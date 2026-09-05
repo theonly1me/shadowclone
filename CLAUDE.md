@@ -1,6 +1,8 @@
 # shadowclone
 
-A daemon that runs on the user's own machine, watches how they work, learns their patterns, and eventually acts as them when they are away. A shadow clone, in the Naruto sense.
+Learns how the user works from the AI coding sessions they already run, then acts as them when they are away. A shadow clone, in the Naruto sense.
+
+It is not a daemon. The agent CLIs already write their own transcripts to disk, so observation needs no background process. See `docs/architecture/06-roadmap.md` for why a daemon is deferred.
 
 ## Read this first
 
@@ -86,7 +88,8 @@ A test for a capture source proves the wiring, not just the function. `src/redac
 
 ## Docs
 
-- `docs/architecture.md` holds the current shape of the system and the open questions.
+- `docs/architecture/` holds the shape of the system and the reasoning behind each decision.
+- `docs/design/001-agent-transcript-pivot.md` is the active design. It moves capture from shell history to agent session transcripts, and replaces the API key with the user's own agent CLI subscription. It is approved and not yet built, so the table above still describes what runs.
 - `docs/design/` holds design docs, one file per change, written against `docs/design/template.md`.
 - `CONTRIBUTING.md` is for humans.
 
