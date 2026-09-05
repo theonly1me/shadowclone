@@ -15,6 +15,7 @@ It learns from the transcripts your agents already write to disk. It acts by dri
 | `05-privacy.md` | The egress gate, retention, consent, and the one-step wipe |
 | `06-roadmap.md` | Build order and what is deliberately not built yet |
 | `07-enterprise.md` | Organization boundaries, and what to hand a security reviewer |
+| `08-landscape.md` | What already exists, the gap, and what to borrow from prior work |
 
 Per-change design docs live in `docs/design/`, one file per change, written against `docs/design/template.md`.
 
