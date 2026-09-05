@@ -83,6 +83,9 @@ export async function writeProfile(options: {
       const updated = incomingRules.find(
         (rule) => rule.key === existingRule.key,
       );
+      if (!updated && !existingRule.edited) {
+        continue;
+      }
       nextBlocks.push(
         updated && !existingRule.edited
           ? renderProfileRule(updated)
