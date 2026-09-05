@@ -145,6 +145,9 @@ test("does not touch paths for disabled sources", async () => {
   });
   const paths: ProjectPaths = {
     ...basePaths,
+    get antigravityBrainDirectory(): string {
+      throw new Error("Disabled Antigravity path was accessed");
+    },
     get codexSessionsDirectory(): string {
       throw new Error("Disabled Codex path was accessed");
     },

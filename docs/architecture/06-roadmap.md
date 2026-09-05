@@ -64,7 +64,7 @@ Cursor required the approved evolution of `TextRef` from a file range into a fil
 
 ## Phase 6, provider capabilities and Antigravity
 
-Status: planned in `docs/design/002-provider-expansion.md`.
+Status: implementation complete. Real Antigravity corpus verification requires explicit source consent.
 
 Add the static provider capability registry, purpose-aware engine selection, and separate observe, distill, and dispatch support reporting. Add Antigravity's off-by-default generated-log adapter. Record its engine capabilities, but do not add a runner while the CLI lacks a per-run deny-all tool policy.
 

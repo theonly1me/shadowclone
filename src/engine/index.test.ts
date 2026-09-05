@@ -114,6 +114,7 @@ test("fails when a provider cannot enforce a requested ceiling", () => {
 test("detects authenticated engines in selection order", async () => {
   const checked: string[] = [];
   const detection = await detectEngine({
+    purpose: "distill",
     probe: (command) => {
       checked.push(command.join(" "));
       return Promise.resolve(true);
@@ -135,6 +136,7 @@ test("detects authenticated engines in selection order", async () => {
 
 test("falls back to Codex when Claude is unavailable", async () => {
   const detection = await detectEngine({
+    purpose: "distill",
     probe: (command) =>
       Promise.resolve(
         command[0] === "codex" || command[0] === "cursor-agent",
@@ -142,4 +144,15 @@ test("falls back to Codex when Claude is unavailable", async () => {
   });
 
   expect(detection.selectedEngine).toBe("codex");
+});
+
+test("selects only engines that support the requested purpose", async () => {
+  const detection = await detectEngine({
+    purpose: "dispatch",
+    probe: () => Promise.resolve(true),
+    allowedEngines: ["codex", "cursor-agent"],
+  });
+
+  expect(detection.selectedEngine).toBeNull();
+  expect(detection.runner).toBeNull();
 });

@@ -23,6 +23,7 @@ const engineIds: readonly EngineId[] = [
   "claude-code",
   "codex",
   "cursor-agent",
+  "antigravity",
   "anthropic-api",
   "openai-compatible",
 ];
@@ -116,6 +117,9 @@ export function applyManagedPolicy(options: {
   return {
     ...options.config,
     sources: {
+      antigravity:
+        options.config.sources.antigravity &&
+        sourceAllowed("antigravity"),
       "claude-code":
         options.config.sources["claude-code"] &&
         sourceAllowed("claude-code"),

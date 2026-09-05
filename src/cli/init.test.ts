@@ -8,7 +8,7 @@ import { initialize } from "./init";
 test("enables Claude Code only after consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
-  const answers = [true, false, false, false, false, false, false];
+  const answers = [false, true, false, false, false, false, false, false];
 
   await initialize({
     configPath,
@@ -16,6 +16,7 @@ test("enables Claude Code only after consent", async () => {
   });
 
   const config = await readConfig({ configPath });
+  expect(config.sources.antigravity).toBeFalse();
   expect(config.sources["claude-code"]).toBeTrue();
   expect(config.sources["claude-prompts"]).toBeFalse();
   expect(config.sources.codex).toBeFalse();
@@ -28,7 +29,7 @@ test("enables Claude Code only after consent", async () => {
 test("enables git metadata only after separate consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
-  const answers = [false, false, false, false, false, true, false];
+  const answers = [false, false, false, false, false, false, true, false];
 
   await initialize({
     configPath,
@@ -43,7 +44,7 @@ test("enables git metadata only after separate consent", async () => {
 test("enables deep distillation only after separate consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
-  const answers = [false, false, false, false, false, false, true];
+  const answers = [false, false, false, false, false, false, false, true];
 
   await initialize({
     configPath,
@@ -59,7 +60,7 @@ test("enables provider transcripts only after named consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
   const questions: string[] = [];
-  const answers = [false, false, true, true, false, false, false];
+  const answers = [true, false, false, true, true, false, false, false];
 
   await initialize({
     configPath,
@@ -70,8 +71,10 @@ test("enables provider transcripts only after named consent", async () => {
   });
 
   const config = await readConfig({ configPath });
+  expect(config.sources.antigravity).toBeTrue();
   expect(config.sources.codex).toBeTrue();
   expect(config.sources.cursor).toBeTrue();
+  expect(questions).toContain("Enable Antigravity CLI transcripts?");
   expect(questions).toContain("Enable Codex transcripts?");
   expect(questions).toContain("Enable Cursor CLI chat stores?");
 });

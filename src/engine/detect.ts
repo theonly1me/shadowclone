@@ -3,6 +3,11 @@ import type {
   EngineId,
   EngineRunner,
 } from "./types";
+import {
+  getProviderByEngine,
+  providerSupportsPurpose,
+  type EnginePurpose,
+} from "../provider";
 import { runClaudeCode } from "./claudeCode";
 import { runCodex } from "./codex";
 import { runCursorAgent } from "./cursorAgent";
@@ -56,10 +61,38 @@ export async function detectCursorAgent(options: {
   return { engine: "cursor-agent", installed, authenticated };
 }
 
+function getEngineRunner(engineId: EngineId): EngineRunner | null {
+  if (engineId === "claude-code") {
+    return runClaudeCode;
+  }
+  if (engineId === "codex") {
+    return runCodex;
+  }
+  if (engineId === "cursor-agent") {
+    return runCursorAgent;
+  }
+  return null;
+}
+
+function supportsPurpose(options: {
+  readonly engineId: EngineId;
+  readonly purpose: EnginePurpose;
+}): boolean {
+  const definition = getProviderByEngine(options.engineId);
+  return (
+    definition !== null &&
+    providerSupportsPurpose({
+      definition,
+      purpose: options.purpose,
+    })
+  );
+}
+
 export async function detectEngine(options: {
+  readonly purpose: EnginePurpose;
   readonly probe?: CommandProbe;
   readonly allowedEngines?: readonly EngineId[];
-} = {}): Promise<{
+}): Promise<{
   readonly availability: readonly EngineAvailability[];
   readonly runner: EngineRunner | null;
   readonly selectedEngine: EngineId | null;
@@ -72,26 +105,20 @@ export async function detectEngine(options: {
     "codex",
     "cursor-agent",
   ];
-  const claudeSelected =
-    claudeCode.authenticated && allowed.includes("claude-code");
-  const codexSelected = codex.authenticated && allowed.includes("codex");
-  const cursorSelected =
-    cursorAgent.authenticated && allowed.includes("cursor-agent");
+  const availability = [claudeCode, codex, cursorAgent];
+  const selected = availability.find(
+    (candidate) =>
+      candidate.authenticated &&
+      allowed.includes(candidate.engine) &&
+      supportsPurpose({
+        engineId: candidate.engine,
+        purpose: options.purpose,
+      }),
+  );
+  const runner = selected ? getEngineRunner(selected.engine) : null;
   return {
-    availability: [claudeCode, codex, cursorAgent],
-    runner: claudeSelected
-      ? runClaudeCode
-      : codexSelected
-        ? runCodex
-        : cursorSelected
-          ? runCursorAgent
-          : null,
-    selectedEngine: claudeSelected
-      ? "claude-code"
-      : codexSelected
-        ? "codex"
-        : cursorSelected
-          ? "cursor-agent"
-          : null,
+    availability,
+    runner,
+    selectedEngine: runner ? selected?.engine ?? null : null,
   };
 }

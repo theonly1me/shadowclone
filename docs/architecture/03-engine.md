@@ -17,13 +17,13 @@ Shadowclone does not have an API key, does not ask for one, and has no server to
 
 The last row is the zero-egress path. Pointing `openai-compatible` at a local Ollama endpoint gives a complete shadowclone that makes no network call at all. That is the answer for anyone whose employer would never allow this otherwise.
 
-The current selection order is Claude Code, then Codex, then Cursor. Phase 6 makes selection purpose-aware and records Antigravity's known limits without adding a runner. API keys and configured local endpoints remain later work. `shadowclone doctor` prints what was found, what is authenticated, and which providers can support each purpose.
+Selection is purpose-aware, then follows Claude Code, Codex, and Cursor order among engines that can enforce that purpose. The registry records Antigravity's known limits without adding a runner. API keys and configured local endpoints remain later work. `shadowclone doctor` prints what was found, what is authenticated, and which providers can support each purpose.
 
 The Claude Code, Codex, and Cursor engines are built. Antigravity, API, and local endpoint implementations remain later work, so the detector never claims they are available today.
 
 ## Capability registry
 
-Phase 6 replaces selection by authentication alone with a static provider registry. Each provider reports native structured output, caller-selected session ids, dollar budgets, granular tool policy, and isolated no-tools execution independently. Distillation and dispatch derive their requirements before selecting an engine, and a provider missing one requirement is not selected for that purpose.
+The static provider registry reports native structured output, caller-selected session ids, dollar budgets, granular tool policy, and isolated no-tools execution independently. Distillation and dispatch derive separate requirements before selecting an engine, and a provider missing one requirement is not selected for that purpose.
 
 The registry contains metadata only. It does not inspect transcript paths, probe executables, or grant source consent. Observation, distillation, and dispatch remain three separate support levels.
 

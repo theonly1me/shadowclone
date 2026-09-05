@@ -98,12 +98,12 @@ export async function runHeadlessClone(options: {
     approvedActions: options.approvedActions ?? [],
     managedActionTier: managedPolicy.maxActionTier,
   });
-  const allowedEngines = managedPolicy.allowedEngines.filter(
-    (engine) => engine === "claude-code",
-  );
   const detection = options.runner
     ? null
-    : await detectEngine({ allowedEngines });
+    : await detectEngine({
+        purpose: "dispatch",
+        allowedEngines: managedPolicy.allowedEngines,
+      });
   const runner = options.runner ?? detection?.runner;
   if (!runner) {
     throw new Error("No authenticated agent engine is available");

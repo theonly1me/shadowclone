@@ -18,7 +18,7 @@ Two skills in `.claude/skills/` are not optional.
 | File | Does |
 | --- | --- |
 | `src/config/` | stores explicit source consent, with every source off by default |
-| `src/observe/` | reads enabled Claude Code, Codex, Cursor, Claude prompt, and shell sources incrementally |
+| `src/observe/` | reads enabled Claude Code, Codex, Cursor, Antigravity, Claude prompt, and shell sources incrementally |
 | `src/redact/` | resolves pointers into redacted text, the single egress gate |
 | `src/index/` | stores cursors and event skeletons in a rebuildable SQLite cache |
 | `src/signal/` | derives structural and correction signals without a model |
@@ -29,7 +29,7 @@ Two skills in `.claude/skills/` are not optional.
 | `.claude-plugin/` | injects the profile, enforces boundaries, and learns at session end |
 | `src/cli/` | provides `init`, `learn`, `doctor`, `install`, `run`, and `forget --all` |
 
-Say this honestly when asked what works: opt-in capture, indexing, the mirror, deep distillation, live profile injection, the Claude subagent, headless worktree dispatch, and three provider adapters and engines are implemented. Real plugin installation and authenticated engine runs are manual checks. API and local endpoint engines are not built yet.
+Say this honestly when asked what works: opt-in capture, indexing, the mirror, deep distillation, live profile injection, the Claude subagent, headless worktree dispatch, four provider adapters, and three provider engines are implemented. Real plugin installation, provider corpus checks, and authenticated engine runs are manual checks. Antigravity, API, and local endpoint engines are not built yet.
 
 ## What is being built
 
@@ -47,9 +47,9 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 | distill | `src/distill/` | 3 |
 | dispatch | `src/dispatch/` | 4 |
 
-`docs/design/001-agent-transcript-pivot.md` is the spec, file by file. `docs/architecture/06-roadmap.md` is the order. Phases 0 through 5 are implemented. Build from the design doc.
+`docs/design/001-agent-transcript-pivot.md` is the original transcript pivot spec. `docs/architecture/06-roadmap.md` is the order. Phases 0 through 6 are implemented. Build from the design docs.
 
-`docs/design/002-provider-expansion.md` is the approved next change. Phase 6 adds a static capability registry and Antigravity observation, then Phase 7 adds one verified CLI provider per stacked PR.
+`docs/design/002-provider-expansion.md` defines provider growth. Phase 6 adds the static capability registry and Antigravity observation. Phase 7 adds one verified CLI provider per stacked PR.
 
 ## The rules that outrank convenience
 
@@ -123,7 +123,8 @@ Spawning a real agent CLI is a manual verification step, never a unit test. The 
 ## Docs
 
 - `docs/architecture/` holds the shape of the system and the reasoning behind each decision. `07-enterprise.md` is for whoever approves this at a company, `08-landscape.md` is what already exists elsewhere.
-- `docs/design/001-agent-transcript-pivot.md` is the active design. It moves capture from shell history to agent session transcripts, replaces the API key with the user's own agent CLI subscription, and compiles the profile into a subagent. It is approved, Phases 0 through 5 are implemented, and the first table above describes what runs.
+- `docs/design/001-agent-transcript-pivot.md` moved capture from shell history to agent session transcripts, replaced the API key with the user's own agent CLI subscription, and compiled the profile into a subagent. Phases 0 through 5 implement it.
+- `docs/design/002-provider-expansion.md` adds reviewed provider metadata and one qualified provider at a time. Phase 6 is implemented and Phase 7 is next.
 - `docs/design/` holds design docs, one file per change, written against `docs/design/template.md`.
 - `CONTRIBUTING.md` is for humans.
 

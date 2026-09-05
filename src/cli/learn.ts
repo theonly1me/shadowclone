@@ -86,7 +86,10 @@ export async function learn(options: {
         }
         const detection = options.runner
           ? null
-          : await detectEngine({ allowedEngines: policy.allowedEngines });
+          : await detectEngine({
+              purpose: "distill",
+              allowedEngines: policy.allowedEngines,
+            });
         const runner = options.runner ?? detection?.runner;
         if (!runner) {
           throw new Error("No authenticated agent engine is available");
