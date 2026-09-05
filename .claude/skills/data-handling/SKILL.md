@@ -1,6 +1,6 @@
 ---
 name: data-handling
-description: The rules for anything that captures, stores, sends, or acts on the user's data. Load this before touching src/collector.ts, src/redact.ts, src/vault.ts, src/distiller.ts, any new capture source (browser history, editor state, git activity, clipboard, screen), any code that makes a network call, and any code that lets the clone act as the user. Use when the user says "add a collector", "capture X", "send this to the model", "store the skills", "let it act on its own", or asks about privacy, redaction, retention, or telemetry. Not for ordinary refactors that touch none of those.
+description: The rules for anything that captures, stores, sends, or acts on the user's data. Load this before touching src/collector.ts, src/redact/, src/vault.ts, src/distiller.ts, any new capture source (browser history, editor state, git activity, clipboard, screen), any code that makes a network call, and any code that lets the clone act as the user. Use when the user says "add a collector", "capture X", "send this to the model", "store the skills", "let it act on its own", or asks about privacy, redaction, retention, or telemetry. Not for ordinary refactors that touch none of those.
 ---
 
 # Data handling
@@ -22,11 +22,11 @@ The set of things shadowclone reads is a list the user can see and edit. It is n
 
 ## Egress: one gate, and it is `redactSecrets`
 
-Nothing derived from the user's machine leaves it without passing `redactSecrets` in `src/redact.ts`. Not to the model, not to a log aggregator, not to a crash reporter, not to a metrics endpoint.
+Nothing derived from the user's machine leaves it without passing `redactSecrets` in `src/redact/`. Not to the model, not to a log aggregator, not to a crash reporter, not to a metrics endpoint.
 
 - **The gate lives at the collector boundary**, so redaction happens once, on the way out of capture, before anything downstream can hold the raw text. `getRecentShellHistory` returns redacted text and that is the contract.
 - Do not add a second redaction call downstream as a safety net. Two gates means neither is the gate, and the next person cannot tell which one is authoritative.
-- **Every new source ships a test that proves the wiring, not just the function.** `src/redact.test.ts` proves the patterns work. `src/collector.test.ts` proves the collector actually calls them. A new source needs the second kind, and per `scoped-fix` you prove it by mutating the call away and watching the test go red.
+- **Every new source ships a test that proves the wiring, not just the function.** `src/redact/index.test.ts` proves the patterns work. `src/collector.test.ts` proves the collector actually calls them. A new source needs the second kind, and per `scoped-fix` you prove it by mutating the call away and watching the test go red.
 - Redaction is deliberately over-eager. A false positive costs a distilled skill some context. A false negative ships a key to a third party. When in doubt, redact.
 - Adding a pattern to `redactionRules` is cheap and always allowed. Removing one needs a reason in the PR description.
 

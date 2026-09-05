@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { redactSecrets } from "./redact";
+import { redactSecrets } from "./index";
 
 const homeDirectory = "/Users/example";
 

@@ -27,7 +27,7 @@ There is no API key and no server. Model calls go through `claude`, `codex`, or 
 
 Early.
 
-- **Works.** The first prototype. `src/collector.ts` reads shell history, `src/redact.ts` scrubs it, `src/distiller.ts` sends it to OpenAI. It is being replaced, not extended.
+- **Works.** The first prototype. `src/collector.ts` reads shell history, `src/redact/` scrubs it, `src/distiller.ts` sends it to OpenAI. It is being replaced, not extended.
 - **In review.** Phase 0: `src/paths.ts`, `src/config/`, and the `src/redact/` split.
 - **Not started.** Everything in the table above. Nothing reads a transcript, builds a profile, or acts yet.
 
@@ -49,7 +49,7 @@ This is the first question to ask about a program that reads your agent transcri
 
 **What leaves your machine.** Only what your own agent CLI sends, under your own account. shadowclone has no server, no account, and no key. `shadowclone learn` makes no network call at all. No telemetry, no analytics, no crash reporting.
 
-**What gets scrubbed.** API keys, GitHub and Slack tokens, AWS key ids, JWTs, `Authorization` headers, PEM blocks, secret-looking assignments, and your home path. `src/redact.test.ts` is the list. It is over-eager on purpose.
+**What gets scrubbed.** API keys, GitHub and Slack tokens, AWS key ids, JWTs, `Authorization` headers, PEM blocks, secret-looking assignments, and your home path. `src/redact/index.test.ts` is the list. It is over-eager on purpose.
 
 **What is never read.** Tool results, file contents, thinking blocks, and anything from a data-access tool. Those hold other people's data, so they are excluded outright rather than redacted. `docs/architecture/07-enterprise.md` has the list.
 

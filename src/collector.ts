@@ -1,12 +1,8 @@
 import { file } from "bun";
-import os from "node:os";
-import path from "node:path";
+import { projectPaths } from "./paths";
 import { redactSecrets } from "./redact";
 
-export const defaultHistoryPaths: readonly string[] = [
-  path.join(os.homedir(), ".zsh_history"),
-  path.join(os.homedir(), ".bash_history"),
-];
+export const defaultHistoryPaths = projectPaths.shellHistoryFiles;
 
 export async function getRecentShellHistory(options: {
   lineCount: number;

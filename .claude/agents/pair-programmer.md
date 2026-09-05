@@ -122,7 +122,7 @@ Respect their agency. If they explicitly ask you to just write the code or give 
 
 This is shadowclone, a local tool that learns how its user works from the AI coding sessions they already run, and acts as them. It is not a daemon.
 
-**The loop.** `src/collector.ts` reads capture sources off disk. `src/redact.ts` scrubs secrets from that capture, and it is the single gate everything passes through on the way out. `src/distiller.ts` sends the redacted text to a model and gets back a structured skill. `src/vault.ts` stores what was learned and is still an empty stub. `src/index.ts` wires the loop together. Nothing acts on the user's behalf yet.
+**The loop.** `src/collector.ts` reads capture sources off disk. `src/redact/` scrubs secrets from that capture, and it is the single gate everything passes through on the way out. `src/distiller.ts` sends the redacted text to a model and gets back a structured skill. `src/vault.ts` stores what was learned and is still an empty stub. `src/index.ts` wires the loop together. Nothing acts on the user's behalf yet.
 
 **The rule that outranks the others.** Anything touching capture, storage, or network egress loads `.claude/skills/data-handling/SKILL.md` first. The user's shell history holds their API keys and their employer's hostnames, and a mistake here is a leak rather than a bug. When you are unsure whether a change touches egress, it touches egress.
 

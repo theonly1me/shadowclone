@@ -20,7 +20,7 @@ The first prototype. It is being replaced, not extended.
 | File | Does |
 | --- | --- |
 | `src/collector.ts` | reads `.zsh_history` and `.bash_history`, calls `redactSecrets` at its single exit |
-| `src/redact.ts` | the egress gate and its rules |
+| `src/redact/` | the egress gate and its rules |
 | `src/distiller.ts` | sends redacted text to OpenAI through the `ai` SDK |
 | `src/vault.ts` | empty |
 | `src/index.ts` | wires collector to distiller and prints the result |
@@ -43,7 +43,7 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 | distill | `src/distill/` | 3 |
 | dispatch | `src/dispatch/` | 4 |
 
-`docs/design/001-agent-transcript-pivot.md` is the spec, file by file. `docs/architecture/06-roadmap.md` is the order. Phase 0, which adds `src/paths.ts` and `src/config/` and splits `src/redact.ts` into `src/redact/`, is in review. Build from the design doc, not from the prototype.
+`docs/design/001-agent-transcript-pivot.md` is the spec, file by file. `docs/architecture/06-roadmap.md` is the order. Phase 0 adds `src/paths.ts` and `src/config/` and splits `src/redact.ts` into `src/redact/`. Build from the design doc, not from the prototype.
 
 ## The rules that outrank convenience
 
@@ -62,7 +62,7 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 bun install
 bun run check        # typecheck, lint, tests
 bun test             # all tests
-bun test src/redact.test.ts
+bun test src/redact/index.test.ts
 bun run typecheck
 bun run lint         # biome, its as-cast plugin, and scripts/conventions.ts
 bun run start        # the legacy prototype, needs OPENAI_API_KEY in .env, being removed
@@ -106,7 +106,7 @@ test("redacts an api key", () => {
 });
 ```
 
-A test for a capture source proves the wiring, not just the function. `src/redact.test.ts` proves the patterns work. `src/collector.test.ts` proves the collector calls them, and that is the one that catches a real regression. Every adapter under `src/observe/adapters/` ships the same shape: a fixture transcript with a planted secret, run through the real entry point, asserting the secret is absent. Prove a new test catches its bug by mutating the fix away and watching it go red, per `scoped-fix`.
+A test for a capture source proves the wiring, not just the function. `src/redact/index.test.ts` proves the patterns work. `src/collector.test.ts` proves the collector calls them, and that is the one that catches a real regression. Every adapter under `src/observe/adapters/` ships the same shape: a fixture transcript with a planted secret, run through the real entry point, asserting the secret is absent. Prove a new test catches its bug by mutating the fix away and watching it go red, per `scoped-fix`.
 
 Spawning a real agent CLI is a manual verification step, never a unit test. The engine is tested against recorded `stream-json` fixtures.
 
