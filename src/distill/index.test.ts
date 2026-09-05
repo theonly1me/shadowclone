@@ -39,6 +39,7 @@ function signal(options: {
     origin: options.origin,
     textRefs: [
       {
+        type: "file",
         sourcePath: options.sourcePath,
         byteOffset: 0,
         byteLength: Buffer.byteLength(plantedSecret),
@@ -85,6 +86,7 @@ function indexedPrompt(sourcePath: string): IndexedEvent {
     tool: null,
     isError: false,
     textRef: {
+      type: "file",
       sourcePath,
       byteOffset: 0,
       byteLength: Buffer.byteLength(plantedSecret),

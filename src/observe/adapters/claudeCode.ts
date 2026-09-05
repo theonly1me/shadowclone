@@ -11,8 +11,8 @@ import type {
   AgentEvent,
   AgentEventKind,
   FileCursor,
+  FileTextRef,
   ObservationBatch,
-  TextRef,
   ToolCall,
 } from "../types";
 import { createClaudeBaseEvent } from "./claudeBase";
@@ -54,9 +54,9 @@ function getContentBlocks(
 function getTextRef(options: {
   readonly blocks: readonly unknown[];
   readonly block: Readonly<Record<string, unknown>>;
-  readonly ref: TextRef;
+  readonly ref: FileTextRef;
   readonly kind: AgentEventKind;
-}): TextRef | null {
+}): FileTextRef | null {
   return options.blocks.length === 1 &&
     (readString(options.block, "type") === "text" ||
       options.kind === "question-asked" ||
@@ -68,7 +68,7 @@ function getTextRef(options: {
 function parseAssistant(options: {
   readonly record: Readonly<Record<string, unknown>>;
   readonly message: Readonly<Record<string, unknown>>;
-  readonly ref: TextRef;
+  readonly ref: FileTextRef;
 }): readonly AgentEvent[] {
   const base = createClaudeBaseEvent(options);
   const blocks = getContentBlocks(options.message);
@@ -107,7 +107,7 @@ function parseAssistant(options: {
 
 function parseClaudeRecord(options: {
   readonly value: unknown;
-  readonly ref: TextRef;
+  readonly ref: FileTextRef;
 }): readonly AgentEvent[] {
   if (!isRecord(options.value)) {
     return [];

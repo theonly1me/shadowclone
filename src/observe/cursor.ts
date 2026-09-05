@@ -1,14 +1,14 @@
 import { stat } from "node:fs/promises";
-import type { FileCursor, TextRef } from "./types";
+import type { FileCursor, FileTextRef } from "./types";
 
 type LineBoundaries = {
-  readonly ref: TextRef;
+  readonly ref: FileTextRef;
   readonly bytes: Uint8Array;
 };
 
 export type JsonLine = {
   readonly value: unknown;
-  readonly ref: TextRef;
+  readonly ref: FileTextRef;
 };
 
 export type CursorRead<Value> = {
@@ -85,6 +85,7 @@ async function getLineBoundaries(options: {
     if (byteLength > 0) {
       values.push({
         ref: {
+          type: "file",
           sourcePath: options.sourcePath,
           byteOffset: startOffset + lineStart,
           byteLength,
@@ -138,7 +139,7 @@ export async function readJsonLines(options: {
 export async function readLineRefs(options: {
   readonly sourcePath: string;
   readonly cursor: FileCursor | null;
-}): Promise<CursorRead<TextRef> | null> {
+}): Promise<CursorRead<FileTextRef> | null> {
   const result = await getLineBoundaries(options);
   if (result === null) {
     return null;

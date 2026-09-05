@@ -9,7 +9,7 @@ Every source is opt-in, named in the config, and listed in the README. The confi
 | `claude-code` | `~/.claude/projects/**/*.jsonl` | off | Session transcripts, the primary source |
 | `claude-prompts` | `~/.claude/history.jsonl` | off | Prompts in the user's own words |
 | `codex` | `~/.codex/sessions/**/*.jsonl` | off | Date partitioned rollouts |
-| `cursor` | `~/.cursor/chats/**/store.db` | off | Per session SQLite, not JSONL |
+| `cursor` | `~/.cursor/chats/**/{store.db,meta.json}` | off | Per session SQLite plus cwd and timestamps |
 | `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization scope only, never repository contents |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | The original source, kept and demoted |
 
@@ -22,11 +22,20 @@ Reading a path to see whether it exists is reading. Nothing under a disabled sou
 Every adapter produces the same type. The stage boundary is `observeAll`, and nothing downstream knows which provider an event came from unless it asks.
 
 ```ts
-export type TextRef = {
-  readonly sourcePath: string;
-  readonly byteOffset: number;
-  readonly byteLength: number;
-};
+export type TextRef =
+  | {
+      readonly type: "file";
+      readonly sourcePath: string;
+      readonly byteOffset: number;
+      readonly byteLength: number;
+    }
+  | {
+      readonly type: "sqlite-blob";
+      readonly sourcePath: string;
+      readonly blobId: string;
+      readonly jsonPath: readonly (string | number)[];
+      readonly unwrap: "user-query" | null;
+    };
 
 export type AgentEventKind =
   | "user-prompt"
@@ -56,7 +65,7 @@ export type AgentEvent = {
 };
 ```
 
-`AgentEvent` carries no text. It carries a pointer to text. That is the central decision in this document and `05-privacy.md` explains why.
+`AgentEvent` carries no text. It carries a pointer to text. A file pointer selects bytes. A Cursor pointer selects one text field inside one content-addressed SQLite blob, so a neighboring thinking block or tool result cannot enter distillation. Both are resolved only inside `resolveRedacted`. That is the central decision in this document and `05-privacy.md` explains why.
 
 ## Incremental reads
 
@@ -88,9 +97,9 @@ Useful fields on the envelope: `parentUuid`, `uuid`, `promptId`, `sessionId`, `t
 
 ## Other adapters
 
-**Codex** writes `{timestamp, type, payload}` with no uuid chain, so order is the chain. `response_item` and `event_msg` are redundant views of the same turn. Read `response_item` and drop `event_msg`, or every turn counts twice.
+**Codex** writes `{timestamp, type, payload}` with no uuid chain, so order is the chain. `response_item` and `event_msg` are redundant views of the same turn. Read `response_item` for messages and tools, and read only terminal or interruption events from `event_msg`, or every turn counts twice.
 
-**Cursor** stores chat state as a SQLite `store.db` per session under a workspace hash, with `meta.json` alongside carrying `cwd` and timestamps. It is a different reader, not a different parser, which is why it lands last.
+**Cursor** stores chat state as a SQLite `store.db` per session under a workspace hash, with `meta.json` alongside carrying `cwd` and timestamps. The adapter opens the database read only, ignores opaque protobuf blobs, and reads plain JSON message blobs in row order. A change to the database, write-ahead log, or sidecar rescans that session because SQLite is not append-only JSONL.
 
 **Shell** is the existing `getRecentShellHistory`, rewritten to emit `AgentEvent` values with `kind: "user-prompt"` and no session grouping.
 

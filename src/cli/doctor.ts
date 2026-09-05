@@ -24,7 +24,12 @@ export async function doctor(options: {
     console.log("Managed policy: shadowclone is disabled.");
     return;
   }
-  const detection = await detectEngine({ probe: options.probe });
+  const allowedEngines =
+    policy.distillation === "allowed" ? policy.allowedEngines : [];
+  const detection = await detectEngine({
+    probe: options.probe,
+    allowedEngines,
+  });
   for (const engine of detection.availability) {
     const status = engine.authenticated
       ? "authenticated"
@@ -33,12 +38,9 @@ export async function doctor(options: {
         : "not installed";
     console.log(`${engine.engine}: ${status}`);
   }
-  const claudeAllowed =
-    policy.allowedEngines.includes("claude-code") &&
-    policy.distillation === "allowed";
   console.log(
-    detection.runner && claudeAllowed
-      ? "Selected engine: claude-code"
+    detection.selectedEngine
+      ? `Selected engine: ${detection.selectedEngine}`
       : "No authenticated engine is available.",
   );
 }

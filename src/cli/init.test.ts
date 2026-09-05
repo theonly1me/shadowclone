@@ -8,7 +8,7 @@ import { initialize } from "./init";
 test("enables Claude Code only after consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
-  const answers = [true, false];
+  const answers = [true, false, false, false, false, false, false];
 
   await initialize({
     configPath,
@@ -28,7 +28,7 @@ test("enables Claude Code only after consent", async () => {
 test("enables git metadata only after separate consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
-  const answers = [false, true];
+  const answers = [false, false, false, false, false, true, false];
 
   await initialize({
     configPath,
@@ -43,7 +43,7 @@ test("enables git metadata only after separate consent", async () => {
 test("enables deep distillation only after separate consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
-  const answers = [false, false, true];
+  const answers = [false, false, false, false, false, false, true];
 
   await initialize({
     configPath,
@@ -53,6 +53,27 @@ test("enables deep distillation only after separate consent", async () => {
   const config = await readConfig({ configPath });
   expect(config.distillation.deep).toBeTrue();
   expect(Object.values(config.sources).every((enabled) => !enabled)).toBeTrue();
+});
+
+test("enables provider transcripts only after named consent", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
+  const configPath = path.join(directory, "config.toml");
+  const questions: string[] = [];
+  const answers = [false, false, true, true, false, false, false];
+
+  await initialize({
+    configPath,
+    ask: (question) => {
+      questions.push(question);
+      return answers.shift() ?? false;
+    },
+  });
+
+  const config = await readConfig({ configPath });
+  expect(config.sources.codex).toBeTrue();
+  expect(config.sources.cursor).toBeTrue();
+  expect(questions).toContain("Enable Codex transcripts?");
+  expect(questions).toContain("Enable Cursor CLI chat stores?");
 });
 
 test("keeps every source off when consent is declined", async () => {

@@ -1,10 +1,65 @@
 import type { SourceId } from "../config";
 
-export type TextRef = {
+export type FileTextRef = {
+  readonly type: "file";
   readonly sourcePath: string;
   readonly byteOffset: number;
   readonly byteLength: number;
 };
+
+export type SqliteTextRef = {
+  readonly type: "sqlite-blob";
+  readonly sourcePath: string;
+  readonly blobId: string;
+  readonly jsonPath: readonly (string | number)[];
+  readonly unwrap: "user-query" | null;
+};
+
+export type TextRef = FileTextRef | SqliteTextRef;
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function parseTextRef(value: unknown): TextRef | null {
+  if (!isRecord(value) || typeof value.sourcePath !== "string") {
+    return null;
+  }
+  if (
+    value.type === "file" &&
+    typeof value.byteOffset === "number" &&
+    typeof value.byteLength === "number"
+  ) {
+    return {
+      type: "file",
+      sourcePath: value.sourcePath,
+      byteOffset: value.byteOffset,
+      byteLength: value.byteLength,
+    };
+  }
+  if (
+    value.type !== "sqlite-blob" ||
+    typeof value.blobId !== "string" ||
+    !Array.isArray(value.jsonPath) ||
+    !value.jsonPath.every(
+      (part) => typeof part === "string" || typeof part === "number",
+    ) ||
+    (value.unwrap !== null && value.unwrap !== "user-query")
+  ) {
+    return null;
+  }
+  return {
+    type: "sqlite-blob",
+    sourcePath: value.sourcePath,
+    blobId: value.blobId,
+    jsonPath: value.jsonPath,
+    unwrap: value.unwrap,
+  };
+}
+
+export function textRefKey(ref: TextRef): string {
+  return JSON.stringify(ref);
+}
 
 export type FileCursor = {
   readonly sourcePath: string;

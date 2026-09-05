@@ -1,5 +1,10 @@
 import type { Database } from "bun:sqlite";
-import type { FileCursor, ObservationBatch } from "../observe";
+import {
+  parseTextRef,
+  type FileCursor,
+  type ObservationBatch,
+  type TextRef,
+} from "../observe";
 import type {
   CorpusSummary,
   IndexedEvent,
@@ -27,9 +32,19 @@ type EventRow = {
   readonly tool_use_id: string | null;
   readonly tool_name: string | null;
   readonly is_error: number;
-  readonly text_byte_offset: number | null;
-  readonly text_byte_length: number | null;
+  readonly text_ref: string | null;
 };
+
+function textRefFromRow(value: string | null): TextRef | null {
+  if (value === null) {
+    return null;
+  }
+  try {
+    return parseTextRef(JSON.parse(value));
+  } catch {
+    return null;
+  }
+}
 
 function toIndexedEvent(row: EventRow): IndexedEvent {
   return {
@@ -48,14 +63,7 @@ function toIndexedEvent(row: EventRow): IndexedEvent {
         ? null
         : { toolUseId: row.tool_use_id, name: row.tool_name },
     isError: row.is_error === 1,
-    textRef:
-      row.text_byte_offset === null || row.text_byte_length === null
-        ? null
-        : {
-            sourcePath: row.source_path,
-            byteOffset: row.text_byte_offset,
-            byteLength: row.text_byte_length,
-          },
+    textRef: textRefFromRow(row.text_ref),
   };
 }
 
@@ -93,7 +101,7 @@ export class EventIndex {
       .query<EventRow, []>(
         `SELECT id, source_path, source, session_id, event_id,
           parent_event_id, timestamp, cwd, git_branch, kind, tool_use_id,
-          tool_name, is_error, text_byte_offset, text_byte_length
+          tool_name, is_error, text_ref
         FROM events ORDER BY source, session_id, id`,
       )
       .all()

@@ -1,3 +1,4 @@
+import { Database } from "bun:sqlite";
 import { expect, test } from "bun:test";
 import { mkdir, mkdtemp, readdir } from "node:fs/promises";
 import os from "node:os";
@@ -70,4 +71,21 @@ test("indexes skeletons incrementally without captured text", async () => {
     const bytes = await Bun.file(path.join(indexDirectory, fileName)).bytes();
     expect(new TextDecoder().decode(bytes)).not.toContain(plantedSecret);
   }
+});
+
+test("rebuilds an outdated disposable index schema", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-schema-"));
+  const databasePath = path.join(directory, "index.db");
+  const legacy = new Database(databasePath, { create: true });
+  legacy.exec(`
+    CREATE TABLE cursors (source_path TEXT PRIMARY KEY);
+    CREATE TABLE events (id INTEGER PRIMARY KEY);
+    INSERT INTO events (id) VALUES (1);
+  `);
+  legacy.close();
+
+  const index = await openEventIndex(databasePath);
+
+  expect(index.countEvents()).toBe(0);
+  index.close();
 });

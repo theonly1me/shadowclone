@@ -3,7 +3,10 @@ import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultConfig } from "../config";
-import { createProjectPaths } from "../paths";
+import {
+  createProjectPaths,
+  type ProjectPaths,
+} from "../paths";
 import { resolveRedacted } from "../redact";
 import { observeAll } from "./index";
 import type { AgentEvent } from "./types";
@@ -136,10 +139,19 @@ test("keeps captured text behind resolveRedacted", async () => {
 });
 
 test("does not touch paths for disabled sources", async () => {
-  const paths = createProjectPaths({
+  const basePaths = createProjectPaths({
     homeDirectory: "/path/that/must/not/be/read",
     platform: "linux",
   });
+  const paths: ProjectPaths = {
+    ...basePaths,
+    get codexSessionsDirectory(): string {
+      throw new Error("Disabled Codex path was accessed");
+    },
+    get cursorChatsDirectory(): string {
+      throw new Error("Disabled Cursor path was accessed");
+    },
+  };
   let cursorLookups = 0;
 
   for await (const batch of observeAll({

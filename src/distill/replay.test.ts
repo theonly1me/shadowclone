@@ -37,6 +37,7 @@ test("replays only a redacted first prompt through the engine", async () => {
 
   const score = await runReplay({
     promptRef: {
+      type: "file",
       sourcePath,
       byteOffset: 0,
       byteLength: Buffer.byteLength(plantedSecret),

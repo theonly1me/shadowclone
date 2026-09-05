@@ -18,7 +18,7 @@ The last row is the zero-egress path. Pointing `openai-compatible` at a local Ol
 
 Selection order is Claude Code, then Codex, then Cursor, then a key if one is present, then a configured local endpoint. `shadowclone doctor` prints what was found, what is authenticated, and which one will be used.
 
-The Claude Code engine and doctor are built in Phase 3. Codex and Cursor land in Phase 5. API and local endpoint implementations remain later work, so the detector never claims they are available today.
+The Claude Code, Codex, and Cursor engines are built. API and local endpoint implementations remain later work, so the detector never claims they are available today.
 
 ## Interface
 
@@ -91,12 +91,21 @@ Permission modes available are `acceptEdits`, `bypassPermissions`, `default`, `d
 ## Codex
 
 ```
-codex exec "<task>" --json --sandbox workspace-write -C <worktree> -m <model>
+codex exec - --json --sandbox read-only -C <worktree> -m <model>
 ```
 
 `-c key=value` sets any config value per invocation, including `model_reasoning_effort`. `--output-schema <FILE>` gives structured output for distillation, matching `--json-schema` on the Claude side. `-o` writes the last message to a file, which is a simpler read than the event stream when only the final answer is wanted.
 
-Codex has its own sandbox, so `--sandbox workspace-write` plus a worktree is defence in depth rather than one layer.
+The prompt stays on stdin rather than the process list. Distillation disables the shell tool, removes configured MCP servers for the run, selects the read-only sandbox, and parses only completed assistant messages. Codex has no dollar-budget or granular tool-list flags, so the runner rejects those options rather than silently weakening them.
+
+## Cursor
+
+```
+cursor-agent --print --output-format stream-json \
+  --sandbox enabled --mode ask --workspace <directory>
+```
+
+Cursor also receives its prompt on stdin. A no-tools distillation run gets an empty temporary workspace whose project policy denies shell, read, write, web, and MCP tools. Ask or plan mode adds another read-only boundary. The terminal `result` event supplies the final text and duration, and tool result events are ignored. Cursor has no caller-selected session id, dollar budget, or arbitrary granular tool-list mapping, so those requests fail before a process starts.
 
 ## Compiled profile
 

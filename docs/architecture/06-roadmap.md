@@ -56,9 +56,11 @@ Proves: a task produces a worktree, a branch, a commit, and a receipt, with noth
 
 ## Phase 5, more providers
 
+Status: implementation complete. Real Codex and Cursor corpora and authenticated runs remain manual verification.
+
 The Codex adapter and engine, then Cursor. Codex is a parser. Cursor is a different reader, since its chat state is a per session SQLite database rather than JSONL.
 
-Proves: the adapter boundary was real, by a second provider landing without changes to `signal`, `distill`, or `profile`. This is also the hedge against a single vendor shipping the Claude-only version natively, so it is earlier than it would otherwise be.
+Cursor required the approved evolution of `TextRef` from a file range into a file-or-SQLite pointer and a disposable index rebuild. Provider events still required no changes to `signal` or `profile`; `distill` only changed pointer identity handling and retains the same eligibility policy. This is also the hedge against a single vendor shipping the Claude-only version natively, so it is earlier than it would otherwise be.
 
 ## Later, and deliberately not now
 

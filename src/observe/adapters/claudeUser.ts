@@ -4,7 +4,7 @@ import {
 } from "../record";
 import type {
   AgentEvent,
-  TextRef,
+  FileTextRef,
 } from "../types";
 import { createClaudeBaseEvent } from "./claudeBase";
 
@@ -40,7 +40,7 @@ function classifyUserContent(options: {
 export function parseClaudeUser(options: {
   readonly record: Readonly<Record<string, unknown>>;
   readonly message: Readonly<Record<string, unknown>>;
-  readonly ref: TextRef;
+  readonly ref: FileTextRef;
 }): readonly AgentEvent[] {
   if (readBoolean(options.record, "isMeta")) {
     return [];

@@ -26,14 +26,10 @@ Git 2.5 or later, for `git worktree`. Without it every clone run would have to u
 
 The pipeline becomes `observe -> index -> signal -> distill -> profile -> dispatch`, with `src/engine/` as the single place a model is called and `src/cli/` as the only module aware of more than one stage.
 
-`AgentEvent` carries a `TextRef` of file path, byte offset, and length, and never a string. The only function that turns a `TextRef` into text is `resolveRedacted`, which reads those bytes and passes them through the existing `redactSecrets` before returning. Producing a string is the gate.
+`AgentEvent` carries a `TextRef` pointer and never a string. JSONL sources use a file path, byte offset, and length. Cursor uses a database path, content-addressed blob id, and JSON-field selector so neighboring thinking and tool-result fields stay excluded. The only function that turns either pointer into text is `resolveRedacted`, which selects the eligible text and passes it through the existing `redactSecrets` before returning. Producing a string is the gate.
 
 ```ts
-export type TextRef = {
-  readonly sourcePath: string;
-  readonly byteOffset: number;
-  readonly byteLength: number;
-};
+export type TextRef = FileTextRef | SqliteTextRef;
 
 export function resolveRedacted(options: { ref: TextRef }): Promise<string>;
 ```

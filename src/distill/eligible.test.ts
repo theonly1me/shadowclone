@@ -21,6 +21,7 @@ function indexedEvent(kind: IndexedEvent["kind"]): IndexedEvent {
     tool: null,
     isError: false,
     textRef: {
+      type: "file",
       sourcePath: "/fixture.jsonl",
       byteOffset: 0,
       byteLength: 10,

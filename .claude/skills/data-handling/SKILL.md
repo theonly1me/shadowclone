@@ -51,7 +51,7 @@ Debugging a collector by printing what it collected is how a secret ends up in a
 - Log counts, byte sizes, hashes, and source names. `indexed 4,182 events from 37 sessions` is a useful log line.
 - If you must log a sample, log the redacted text, and only under an explicit debug flag.
 - No raw capture in an error message or a thrown exception either. An exception ends up in a crash reporter.
-- A transcript path is captured data because its project slug can name an employer. Log the source name and byte offset instead.
+- A transcript path is captured data because its project slug can name an employer. Log the source name and opaque locator instead.
 
 ## Acting as the user: tiered, and the top tier always asks
 
