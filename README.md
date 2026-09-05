@@ -1,6 +1,6 @@
 # shadowclone
 
-shadowclone reads the AI coding sessions already on your disk, builds a profile of how you work, and runs copies of you inside the agent you already use.
+Every time you start a new AI agent, it has amnesia. shadowclone reads the AI coding sessions already on your disk, builds a profile of how you work, and runs copies of you inside the agent you already use.
 
 Claude Code, Codex, and Cursor write every session to a file. Those files hold every time you stopped the agent, refused a tool, or picked one option over another. shadowclone turns those moments into a profile, loads it into your live sessions, and compiles it into a subagent. The subagent is you. Spawn ten of them on ten tasks, or let one run in a worktree while you're away.
 
