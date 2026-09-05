@@ -1,10 +1,12 @@
 # Organization boundaries
 
-This document exists so a security reviewer at a company can read one file and decide. Everything here is a property someone else can verify by reading the source, not a promise.
+Written for the security reviewer who has to approve this. Every claim here can be checked against the source.
 
 ## The problem a personal tool creates at work
 
-A profile learned from every repo you touch is a profile that mixes employers, clients, and personal projects into one artifact. Injecting that artifact into a session on a different repo moves one organization's derived data into another organization's context. No amount of "it runs on your own subscription" answers that, because the subscription is not the boundary anyone cares about. The organization is.
+A profile learned from every repo you touch mixes employers, clients, and personal projects into one artifact. Loading that artifact into a session on a different repo moves one organization's derived data into another's.
+
+"It runs on your own subscription" does not answer that. The subscription is not the boundary anyone cares about. The organization is.
 
 Three mechanisms address it, and they are independent, so defeating one does not defeat the others.
 
@@ -42,7 +44,9 @@ Distillation input is restricted by category, and the list is short enough to au
 
 **Never eligible, at any setting.** The content of any `tool_result`. File contents from Read, Edit, or Write. Thinking blocks. Any result from an MCP data-access tool.
 
-That last exclusion is why this is a category rule rather than a redaction rule. The measured corpus contains 328 data-access calls: 194 Loki log queries, 111 Postgres queries, and 23 actor log queries. Those results hold production log lines and database rows belonging to customers, not to the user. Pattern matching finds an API key in them and will not find a customer's email address. So they are never read.
+That last exclusion is why this is a category rule rather than a redaction rule. The measured corpus holds 328 data-access calls: 194 Loki log queries, 111 Postgres queries, and 23 actor log queries. Those results are production log lines and database rows belonging to customers.
+
+Pattern matching finds an API key in them and will not find a customer's email address. So they are never read.
 
 **Every distillation batch is single origin.** One organization's transcripts produce one organization's rules. Content from two organizations is never in the same request.
 

@@ -6,13 +6,13 @@ It is a directory of markdown at `~/.shadowclone/profile/`. You can read it, edi
 
 ## Two tiers
 
-Deriving a profile from 562 MB by sending 562 MB to a model is not a design, it is a bill. The work splits by whether it needs a model at all.
+Sending 562 MB to a model is not affordable. The work splits by whether it needs a model at all.
 
 **Structural signals cost zero tokens.** They are computed in pure code over the index. Tool histograms, which commands run before work is called done, flag preferences, branch naming, session length and turn counts, time of day, how often plan mode is used, which repos get worked on. This tier alone produces a profile that is recognisably a particular person, and it runs with no network call.
 
 **Semantic signals cost tokens, over a very small input.** The correction miner reduces the corpus to the moments that carry preference, roughly a thousand to one. What reaches a model is a few hundred KB of extracted moments, never a raw transcript.
 
-The ratio is the whole trick. `shadowclone learn` runs tier one and is free. `shadowclone learn --deep` adds tier two and requires a second explicit enable in the config.
+`shadowclone learn` runs tier one and is free. `shadowclone learn --deep` adds tier two and requires a second explicit enable in the config.
 
 ## Correction mining
 
@@ -32,7 +32,7 @@ Six extractors, ordered by yield measured against a real 562 MB corpus of 372 se
 
 **Correction prompt, 13 found in 682 prompts.** A user turn opening with no, don't, actually, instead, revert, or wrong. This was expected to be a high yield extractor and it is not: it fires on 1.9 percent of prompts. It ships last, or not at all, and nothing in the design should depend on it.
 
-The lesson worth keeping: the structured markers the harness already writes are worth far more than any heuristic over prose. Roughly 1,750 zero-ambiguity correction events exist without a single regex over user text.
+The structured markers the harness already writes are worth far more than any heuristic over prose. Roughly 1,750 zero-ambiguity correction events exist without a single regex over user text.
 
 The miner runs over the index and emits `Signal` values holding `TextRef` pointers. Text is materialized only inside `src/distill/`, once, redacted, and dropped.
 
@@ -63,7 +63,15 @@ $ shadowclone learn
   Profile written to ~/.shadowclone/profile/. Open it. Argue with it.
 ```
 
-Four rules govern the output. The first line states the source counts and that no network call was made, and it is only printed when that is true, which it always is for `learn` without `--deep`. Sections are ordered by measured yield, interruptions first, so the strongest signal is what the user reads first. Every line carries a count, because a count is a claim the user can dispute and an adjective is not. Nothing in the output is captured text. Category labels are derived, tool names are tool names, and the one exception is the tool pattern in a denial, which is already a pattern rather than a command.
+Four rules govern the output.
+
+The first line states the source counts and that no network call was made. It is printed only when that is true, which it always is for `learn` without `--deep`.
+
+Sections are ordered by measured yield, interruptions first.
+
+Every line carries a count. A count is a claim the user can dispute and an adjective is not.
+
+Nothing in the output is captured text. Category labels are derived and tool names are tool names. The one exception is the tool pattern in a denial, which is already a pattern rather than a command.
 
 The output is judged on one question: does it surprise the person it describes. A profile that could have been written from memory in five minutes is not wrong, it is just not worth running, and it is not worth sharing. The extractors are tuned against that question on the real corpus before anything downstream is built.
 
@@ -98,7 +106,7 @@ A rule starts in the organization it was observed in. It moves to `global/` when
 
 ## Provenance
 
-Every rule carries where it came from. A profile without provenance is a horoscope.
+Every rule carries where it came from.
 
 ```markdown
 ## Runs typecheck and tests before presenting a diff
@@ -120,7 +128,9 @@ The profile compiles two ways. Into a system prompt, which `03-engine.md` covers
 ~/.shadowclone/profile/   --compile-->   .claude/agents/<name>.md
 ```
 
-`src/profile/agent.ts` writes the subagent file: frontmatter carrying `name`, `description`, `model`, and `tools`, then the compiled profile as the body. Claude Code reads `.claude/agents/*.md` at session start and also accepts the same definition as `--agents <json>` on a headless run. Once it exists, the main session can call `Agent(subagent_type: "<name>")` and get a copy of the user on a subtask, and ten of those on ten tasks is what the project is named after.
+`src/profile/agent.ts` writes the subagent file: frontmatter with `name`, `description`, `model`, and `tools`, then the compiled profile as the body. Claude Code reads `.claude/agents/*.md` at session start and accepts the same definition as `--agents <json>` on a headless run.
+
+Once it exists, the main session calls `Agent(subagent_type: "<name>")` and gets a copy of the user on a subtask. Ten of those on ten tasks is what the project is named after.
 
 Origin scoping applies at compile time here too. The subagent written into a repo's `.claude/agents/` carries `global/` rules plus that repo's organization and nothing else, so a subagent file committed to an employer's repo holds no rule learned anywhere but there.
 

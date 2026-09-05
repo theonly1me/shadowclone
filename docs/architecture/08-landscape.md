@@ -1,6 +1,6 @@
 # Landscape
 
-What already exists, checked in September 2026, and the gap shadowclone occupies. This document exists so nobody on the project reinvents a tool that is one `npm install` away, and so the positioning is stated in terms a reviewer can check.
+What already exists, checked in September 2026, and the gap shadowclone occupies.
 
 ## What exists
 

@@ -1,6 +1,6 @@
 # Acting
 
-A clone that only observes is a diary. The point is work getting done while its owner is not at the desk. This document is about the boundary on that.
+This document sets the ceiling on what a clone may do, in a session and unattended.
 
 ## Tiers
 
