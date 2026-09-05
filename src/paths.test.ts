@@ -7,7 +7,11 @@ test("holds every user path under the selected home directory", () => {
     platform: "darwin",
   });
 
-  expect(paths).toEqual({
+  expect({
+    ...paths,
+    runDirectory: paths.runDirectory("run-1"),
+    worktreeDirectory: paths.worktreeDirectory("run-1"),
+  }).toEqual({
     shadowcloneDirectory: "/Users/example/.shadowclone",
     configFile: "/Users/example/.shadowclone/config.toml",
     indexDatabase: "/Users/example/.shadowclone/index.db",
@@ -26,6 +30,8 @@ test("holds every user path under the selected home directory", () => {
       "/Users/example/.bash_history",
     ],
     managedConfigFile: "/Library/Application Support/shadowclone/managed.json",
+    runDirectory: "/Users/example/.shadowclone/runs/run-1",
+    worktreeDirectory: "/Users/example/.shadowclone/worktrees/run-1",
   });
 });
 

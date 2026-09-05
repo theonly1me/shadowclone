@@ -17,6 +17,8 @@ export type ProjectPaths = {
   readonly cursorChatsDirectory: string;
   readonly shellHistoryFiles: readonly string[];
   readonly managedConfigFile: string | null;
+  readonly runDirectory: (runId: string) => string;
+  readonly worktreeDirectory: (runId: string) => string;
 };
 
 function getManagedConfigFile(platform: NodeJS.Platform): string | null {
@@ -57,6 +59,9 @@ export function createProjectPaths(options: {
       path.join(options.homeDirectory, ".bash_history"),
     ],
     managedConfigFile: getManagedConfigFile(options.platform),
+    runDirectory: (runId) => path.join(shadowcloneDirectory, "runs", runId),
+    worktreeDirectory: (runId) =>
+      path.join(shadowcloneDirectory, "worktrees", runId),
   };
 }
 
