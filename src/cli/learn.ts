@@ -23,9 +23,19 @@ import type { ProfileRule } from "../profile";
 import { deriveSignals } from "../signal";
 import type { GitRemoteReader } from "../signal";
 
+async function isGitWorkTree(cwd: string): Promise<boolean> {
+  const child = Bun.spawn({
+    cmd: ["git", "-C", cwd, "rev-parse", "--is-inside-work-tree"],
+    stdout: "ignore",
+    stderr: "ignore",
+  });
+  return (await child.exited) === 0;
+}
+
 export async function learn(options: {
   readonly configPath?: string;
   readonly databasePath?: string;
+  readonly targetDirectory?: string;
   readonly paths?: ProjectPaths;
   readonly readRemote?: GitRemoteReader;
   readonly deep?: boolean;
@@ -132,15 +142,23 @@ export async function learn(options: {
       console.log(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
     }
 
-    try {
-      await installLiveClone({
-        cwd: process.cwd(),
-        paths,
-        configPath: options.configPath,
-        managedConfigPath: options.managedConfigPath,
-        readRemote: options.readRemote,
-      });
-    } catch {
+    const targetDirectory = options.targetDirectory ?? process.cwd();
+    if (await isGitWorkTree(targetDirectory)) {
+      try {
+        await installLiveClone({
+          cwd: targetDirectory,
+          paths,
+          configPath: options.configPath,
+          managedConfigPath: options.managedConfigPath,
+          readRemote: options.readRemote,
+        });
+      } catch (error) {
+        console.log(
+          `Skipped installing the live clone: ${
+            error instanceof Error ? error.message : "unknown error"
+          }`,
+        );
+      }
     }
   } finally {
     index.close();
