@@ -1,8 +1,10 @@
 # shadowclone
 
-A daemon that runs on your machine, watches how you work, and learns to act as you when you are not there.
+Learns how you work from the AI coding sessions you already run, then does your work the way you would when you are not there.
 
-The name is the Naruto reference. A shadow clone is a copy that goes off and does your work while you do something else, and everything it learned comes back to you when it dissolves. That is the goal here: a local process that picks up your habits from the way you actually work, so it can stand in for you on the things you would have done the same way anyway.
+There is nothing to keep running. Claude Code, Codex, and Cursor already write every session to disk. shadowclone reads what is already there.
+
+The name is the Naruto reference. A shadow clone is a copy that goes off and does your work while you do something else, and everything it learned comes back to you when it dissolves. That is the goal here: something that picks up your habits from the way you actually work, so it can stand in for you on the things you would have done the same way anyway.
 
 ## Status
 
@@ -10,9 +12,11 @@ Early. Honest summary of what exists:
 
 - **Works.** Reading shell history, scrubbing secrets out of it, sending it to a model, and getting back a structured description of a reusable practice it spotted.
 - **Stub.** `src/vault.ts` is empty. Nothing is stored between runs yet.
-- **Not started.** Nothing acts on your behalf. There is no scheduler, no daemon process, and no agent loop.
+- **Not started.** Nothing acts on your behalf, and nothing is learned from your agent sessions yet.
 
 So right now it is a one-shot script that prints what it learned and forgets it. The interesting parts are ahead.
+
+**A rewrite is designed and not yet built.** Shell history turned out to be the wrong input, and requiring an `OPENAI_API_KEY` turned out to be the wrong ask. The next version learns from the session transcripts your AI coding agents already write to disk, and acts by driving the agent CLI you are already logged into, so it needs no API key of its own. `docs/design/001-agent-transcript-pivot.md` is the change, and `docs/architecture/` is the shape it is heading toward. Everything described in this README is what runs today.
 
 ## Privacy
 
@@ -64,7 +68,7 @@ collect  ->  redact  ->  distill  ->  vault  ->  act
 | vault | `src/vault.ts` | stores what was learned (not built yet) |
 | act | none | uses it (not built yet) |
 
-`docs/architecture.md` has the longer version and the open design questions.
+`docs/architecture/` has the longer version, the reasoning behind each decision, and the open questions. If the question is whether this is safe to run on a work laptop, `docs/architecture/07-enterprise.md` is written for the person who has to approve it.
 
 ## Contributing
 
@@ -74,4 +78,4 @@ Anything touching capture, storage, or network egress gets a closer read than th
 
 ## License
 
-Not chosen yet.
+MIT. See `LICENSE`.
