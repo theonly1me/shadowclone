@@ -108,6 +108,6 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-`.github/workflows/release.yml` runs the gate, cross compiles the CLI for macOS and Linux on both architectures, writes `SHA256SUMS.txt`, attests the archives, and publishes the release with generated notes. It stops before publishing if the tag does not match `version`. A tag with a hyphen, such as `v0.1.0-rc.1`, publishes as a prerelease.
+`.github/workflows/release.yml` runs the gate, cross compiles the CLI for macOS and Linux on both architectures, writes `SHA256SUMS.txt`, attests the archives, publishes five npm packages, and publishes the release with generated notes. The npm side is `@theonly1me/shadowclone` plus one `os` and `cpu` gated binary package per platform, so `npm i -g` installs only the binary that matches. Publishing needs an `NPM_TOKEN` repository secret. It stops before publishing if the tag does not match `version`. A tag with a hyphen, such as `v0.1.0-rc.1`, publishes as a prerelease.
 
 `bun run build` produces the same archives in `dist/`, and running the release workflow by hand from the Actions tab builds and uploads them to the run without creating a release. Use that to test a change to the release path rather than spending a version number.

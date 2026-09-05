@@ -1,9 +1,8 @@
 {
-  "name": "shadowclone",
-  "version": "0.0.0",
+  "name": "@theonly1me/shadowclone",
+  "version": "0.0.1",
   "module": "src/cli/index.ts",
   "type": "module",
-  "private": true,
   "packageManager": "bun@1.3.3",
   "engines": {
     "bun": ">=1.3.0"
@@ -25,5 +24,23 @@
     "@biomejs/biome": "2.5.12",
     "@types/bun": "latest",
     "typescript": "^5"
-  }
+  },
+  "description": "Learns how you work from the AI coding sessions already on your disk, then runs copies of you inside the agent you already use.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theonly1me/shadowclone.git"
+  },
+  "homepage": "https://shadowclone.co",
+  "bugs": {
+    "url": "https://github.com/theonly1me/shadowclone/issues"
+  },
+  "keywords": [
+    "claude-code",
+    "codex",
+    "cursor",
+    "agent",
+    "subagent",
+    "local-first"
+  ]
 }
