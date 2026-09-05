@@ -5,7 +5,6 @@ import path from "node:path";
 import type { OriginScope } from "../signal";
 import {
   buildCompiledProfile,
-  isToolBlocked,
   renderProfileRule,
   writeAgent,
 } from "./index";
@@ -79,22 +78,20 @@ test("compiles global and matching organization rules only", async () => {
   expect(profile).not.toContain("<!-- shadowclone:");
 });
 
-test("writes a dispatchable agent and enforces learned boundaries", async () => {
+test("writes a dispatchable agent with advisory boundaries", async () => {
   const targetDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-agent-"),
   );
   const profile = [
     "# Shadowclone profile",
     "",
-    "## Has refused Bash tool requests",
+    "## Requests confirmation after refusing Bash",
     "",
-    "Treat `Bash` as requiring explicit approval.",
+    "Ask before repeating a similar Bash action.",
   ].join("\n");
   const outputPath = await writeAgent({ targetDirectory, profile });
   const agent = await Bun.file(outputPath).text();
 
   expect(agent).toContain("name: shadowclone");
   expect(agent).toContain(profile);
-  expect(isToolBlocked({ profile, toolName: "Bash" })).toBeTrue();
-  expect(isToolBlocked({ profile, toolName: "Read" })).toBeFalse();
 });

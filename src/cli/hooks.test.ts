@@ -12,7 +12,6 @@ import { createProjectPaths } from "../paths";
 import { writeProfile } from "../profile";
 import { resolveCwdOrigin } from "../signal";
 import {
-  getPreToolUseDecision,
   getSessionStartContext,
   runSessionEndHook,
 } from "./hooks";
@@ -80,7 +79,7 @@ test("the session hook ingests only its enabled transcript", async () => {
   index.close();
 });
 
-test("the boundary hook denies a tool from the active origin", async () => {
+test("the session context keeps learned boundaries advisory", async () => {
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-boundary-"),
   );
@@ -98,8 +97,8 @@ test("the boundary hook denies a tool from the active origin", async () => {
     rules: [
       {
         key: "deny-bash",
-        title: "Has refused Bash tool requests",
-        body: "Treat the `Bash` tool as requiring explicit approval.",
+        title: "Requests confirmation after refusing Bash",
+        body: "Ask before repeating a similar Bash action.",
         section: "boundaries",
         scope: "org",
         originDirectory: origin.directoryName,
@@ -112,12 +111,6 @@ test("the boundary hook denies a tool from the active origin", async () => {
     ],
   });
 
-  const decision = await getPreToolUseDecision({
-    input: JSON.stringify({ tool_name: "Bash", cwd: homeDirectory }),
-    configPath: paths.configFile,
-    paths,
-    managedConfigPath: null,
-  });
   const context = await getSessionStartContext({
     input: JSON.stringify({ cwd: homeDirectory }),
     configPath: paths.configFile,
@@ -125,11 +118,16 @@ test("the boundary hook denies a tool from the active origin", async () => {
     managedConfigPath: null,
   });
 
-  expect(decision?.hookSpecificOutput.permissionDecision).toBe("deny");
-  expect(decision?.hookSpecificOutput.permissionDecisionReason).not.toContain(
-    homeDirectory,
-  );
   expect(context?.hookSpecificOutput.additionalContext).toContain(
-    "Has refused Bash tool requests",
+    "Requests confirmation after refusing Bash",
   );
+});
+
+test("the plugin registers no tool-family blocking hook", async () => {
+  const hooks = await Bun.file(
+    new URL("../../.claude-plugin/hooks/hooks.json", import.meta.url),
+  ).text();
+
+  expect(hooks).not.toContain("PreToolUse");
+  expect(hooks).not.toContain("pre-tool-use");
 });

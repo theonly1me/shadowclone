@@ -3,7 +3,6 @@
 import { doctor } from "./doctor";
 import { forgetAll } from "./forget";
 import {
-  runPreToolUseHook,
   runSessionEndHook,
   runSessionStartHook,
 } from "./hooks";
@@ -45,10 +44,6 @@ async function main(arguments_: readonly string[]): Promise<void> {
   }
   if (command === "hook" && rest[0] === "session-start") {
     await runSessionStartHook({ input: await Bun.stdin.text() });
-    return;
-  }
-  if (command === "hook" && rest[0] === "pre-tool-use") {
-    await runPreToolUseHook({ input: await Bun.stdin.text() });
     return;
   }
   if (command === "forget" && rest[0] === "--all") {
