@@ -1,8 +1,12 @@
 import {
   detectEngine,
   type CommandProbe,
+  type EngineId,
 } from "../engine";
-import { readManagedPolicy } from "../config";
+import {
+  readManagedPolicy,
+  type DistillationPolicy,
+} from "../config";
 import { projectPaths } from "../paths";
 import {
   getProviderSupport,
@@ -16,6 +20,21 @@ export function renderProviderSupport(): readonly string[] {
       support.distill ? "yes" : "no"
     }, dispatch=${support.dispatch ? "yes" : "no"}`;
   });
+}
+
+export function renderEngineSelection(options: {
+  readonly distillation: DistillationPolicy;
+  readonly selectedEngine: EngineId | null;
+}): string {
+  if (options.distillation === "disabled") {
+    return "Deep distillation is disabled by managed policy.";
+  }
+  if (options.distillation === "local-only") {
+    return "Deep distillation is restricted to local engines, which are not implemented.";
+  }
+  return options.selectedEngine
+    ? `Selected engine: ${options.selectedEngine}`
+    : "No authenticated distillation engine is available.";
 }
 
 export async function doctor(options: {
@@ -53,9 +72,10 @@ export async function doctor(options: {
     console.log(`${engine.engine}: ${status}`);
   }
   console.log(
-    detection.selectedEngine
-      ? `Selected engine: ${detection.selectedEngine}`
-      : "No authenticated engine is available.",
+    renderEngineSelection({
+      distillation: policy.distillation,
+      selectedEngine: detection.selectedEngine,
+    }),
   );
   console.log("Provider support:");
   for (const line of renderProviderSupport()) {
