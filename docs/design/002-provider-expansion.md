@@ -2,7 +2,7 @@
 
 ## Summary
 
-Shadowclone adds a static provider capability registry, uses Antigravity CLI as the first registry-backed integration, then adds one reviewed provider at a time without weakening source consent, redaction, or action policy.
+Shadowclone adds a static provider capability registry, uses Antigravity CLI as the first observation-only registry expansion, then adds one reviewed provider at a time without weakening source consent, redaction, or action policy.
 
 ## Problem
 
@@ -10,7 +10,7 @@ Claude Code, Codex, and Cursor support is implemented, but provider knowledge is
 
 "Support every CLI" is not a stable finite checklist. CLIs appear, storage formats change, and observation and execution capabilities often arrive separately. Shadowclone needs a qualification rule and an honest support level for each provider.
 
-Antigravity demonstrates both problems. Its documented headless protocol supports structured streaming, while its local history uses generated JSONL logs plus a version-sensitive SQLite and protobuf resume store. Engine support and observation support must remain independent.
+Antigravity demonstrates both problems. Its documented headless protocol supports structured streaming but lacks a per-run deny-all tool policy, while its local history uses generated JSONL logs plus a version-sensitive SQLite and protobuf resume store. Engine support and observation support must remain independent.
 
 ## Prerequisites
 
@@ -33,12 +33,17 @@ export type EngineCapabilities = {
   readonly isolatedNoTools: boolean;
 };
 
+export type ProviderEngine = {
+  readonly id: EngineId;
+  readonly implemented: boolean;
+  readonly capabilities: EngineCapabilities;
+};
+
 export type ProviderDefinition = {
   readonly id: ProviderId;
   readonly captureSource: SourceId | null;
-  readonly engine: EngineId | null;
+  readonly engine: ProviderEngine | null;
   readonly transcriptFormat: "jsonl" | "sqlite" | "sqlite-protobuf" | null;
-  readonly capabilities: EngineCapabilities | null;
 };
 ```
 
@@ -56,7 +61,7 @@ Support is reported at three independent levels:
 
 Antigravity adds an off-by-default `antigravity` source. The adapter first reads `~/.gemini/antigravity-cli/brain/*/.system_generated/logs/transcript_full.jsonl`. A SQLite and protobuf fallback lands only against clean-room, version-pinned synthetic fixtures. It never queries the live language-server daemon and never writes a plaintext transcript sidecar.
 
-The Antigravity engine sends a JSON user event through stdin to `agy --input-format stream-json --output-format stream-json`, uses `--json-schema` for native structured output, parses only agent-response and terminal result fields, and ignores tool output. Distillation runs in an empty temporary workspace under request-review permissions. `--dangerously-skip-permissions` is permanently forbidden. Dispatch remains unsupported until Antigravity can enforce the resolved budget and granular tool policy without editing the user's global settings.
+The registry records Antigravity's native structured output and missing isolated no-tools, budget, granular tool policy, and caller session controls. No runner or authentication probe ships in this phase. `--sandbox` restricts terminal commands but does not override global file, web, or MCP allow rules, so an empty workspace cannot make distillation safe. A later runner must use stdin, ignore tool output, and permanently forbid `--dangerously-skip-permissions`, but it does not land until the CLI can enforce a per-run deny-all policy without editing global settings.
 
 After Antigravity, each provider lands in its own stacked PR. The initial order is Gemini CLI, GitHub Copilot CLI, OpenCode, Aider, and Amp. Goose, Amazon Q or Kiro, Windsurf, Cline, and newly verified CLIs remain in the qualified backlog.
 
@@ -79,8 +84,6 @@ A provider qualifies when its integration can prove all applicable claims:
 | `src/provider/index.ts` | Public provider metadata surface |
 | `src/config/schema.ts` | Adds off-by-default Antigravity consent; registry tests keep source ids aligned |
 | `src/engine/detect.ts` | Selects a provider by purpose and enforceable capabilities |
-| `src/engine/antigravity.ts` | Antigravity headless runner |
-| `src/engine/parseAntigravity.ts` | Antigravity stream parser |
 | `src/observe/adapters/antigravity.ts` | Antigravity JSONL adapter |
 | `src/observe/index.ts` | Routes the enabled Antigravity source |
 | `src/paths.ts` | Declares Antigravity capture roots |
@@ -92,7 +95,7 @@ A provider qualifies when its integration can prove all applicable claims:
 
 The Antigravity source reads only after explicit `antigravity` consent. It reads generated conversation logs and, after the fallback is proven, local SQLite and protobuf session stores. It stores event skeletons and `TextRef` locators, never transcript content.
 
-Every eligible excerpt is resolved inside `resolveRedacted`, which remains the only captured-text egress gate. Tool output and thinking never receive an eligible locator. Antigravity engine prompts contain only redacted distillation input or an explicitly supplied run task and are written to stdin.
+Every eligible excerpt is resolved inside `resolveRedacted`, which remains the only captured-text egress gate. Tool output and thinking never receive an eligible locator. Phase 6 makes no Antigravity model call.
 
 The implementation makes no local daemon request, creates no plaintext transcript copy, sends no telemetry, and never invokes a provider merely because its executable is installed.
 
@@ -124,11 +127,13 @@ Registry tests prove each id is unique, every implemented adapter and runner has
 
 Each observation adapter uses a synthetic fixture with a planted secret and excluded tool result, runs through `observeAll`, persists through the index, and resolves eligible text through `resolveRedacted`. Mutating the source-consent condition, the redaction call, or the excluded-category mapping must make the focused test fail before the mutation is restored.
 
-Each engine parser uses recorded synthetic stream events and never spawns a real CLI in unit tests. Argument tests prove prompts are absent, forbidden bypass flags are absent, and unsupported ceilings throw before spawn. Real authentication and one no-op structured run remain manual checks.
+Each implemented engine parser uses recorded synthetic stream events and never spawns a real CLI in unit tests. Argument tests prove prompts are absent, forbidden bypass flags are absent, and unsupported ceilings throw before spawn. Real authentication and one no-op structured run remain manual checks.
 
 ## Open questions
 
 Whether current Antigravity releases always retain `transcript_full.jsonl` determines when the SQLite and protobuf fallback becomes necessary. The JSONL adapter ships only after verification against an explicitly consented local corpus.
+
+Antigravity distillation remains blocked until its CLI documents a per-run deny-all tool policy that overrides global allow rules.
 
 Provider order after the named backlog follows verified local transcript availability, not popularity. A CLI with no local history can receive engine support without receiving observe support.
 
@@ -143,3 +148,5 @@ Capabilities are checked before engine selection because runners may not silentl
 Antigravity uses generated logs before version-sensitive protobuf because the simplest stable source wins.
 
 Antigravity never uses live-daemon scraping or plaintext transcript sidecars because raw capture must not be duplicated.
+
+Antigravity remains observation-only because request-review and terminal sandboxing do not provide an isolated no-tools run.
