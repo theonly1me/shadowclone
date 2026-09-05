@@ -1,6 +1,6 @@
 ---
 name: clean-code
-description: Load this skill first, before writing or editing any code, test, doc, PR description, or comment, on every task. It carries the project's non-negotiable conventions for type safety, comments, naming, file size, checks, and plain prose, so it is the baseline context to gain before anything else. It composes with task-specific skills, so load it first and then add scoped-fix for fixes, data-handling for anything touching capture or egress, or review-prs for reviews. Never skip it.
+description: Load this skill first, before writing or editing any code, test, doc, PR description, or comment, on every task. It carries the project's non-negotiable conventions for type safety, comments, naming, file size, checks, and plain prose, so it is the baseline context to gain before anything else. It composes with task-specific skills, so load it first and then add scoped-fix for fixes or data-handling for anything touching capture or egress. Never skip it.
 ---
 
 # Clean code

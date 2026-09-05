@@ -9,7 +9,7 @@ Two skills in `.claude/skills/` are not optional.
 - **`clean-code`** loads before you write or edit any code, test, doc, or comment. Every task.
 - **`data-handling`** loads before you touch capture, storage, or anything that makes a network call. This project reads the user's shell history, which holds their API keys and their employer's hostnames. A mistake here is a leak, not a bug.
 
-The rest (`scoped-fix`, `review-prs`, `write-pr-description`, `write-design-doc`, `triage-review-findings`) load when the task matches their description.
+`scoped-fix` loads when you are changing existing code, which is most of the time.
 
 ## The loop
 

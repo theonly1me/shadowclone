@@ -1,6 +1,8 @@
 # <Title>
 
-Every heading below appears in the finished document. A heading that does not apply gets the word "None" written under it and is never deleted, so a reviewer can still argue with the absence. One paragraph per line, no hard wrapping. Read `.claude/skills/write-design-doc/SKILL.md` before writing, and delete this paragraph.
+Every heading below appears in the finished document. A heading that does not apply gets the word "None" written under it and is never deleted, so a reviewer can still argue with the absence.
+
+The register is declarative: state what we are doing, do not offer an opinion on it. No "I think", no "I" at all, no contributor names. Uncertainty belongs in Open Questions and nowhere else. One paragraph per line, no hard wrapping, since hard-wrapped prose is painful to edit. Delete this paragraph and the one above it.
 
 ## Summary
 
