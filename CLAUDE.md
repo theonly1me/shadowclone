@@ -60,13 +60,17 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 
 ```bash
 bun install
+bun run check        # typecheck, lint, tests
 bun test             # all tests
 bun test src/redact.test.ts
 bun run typecheck
+bun run lint         # biome, its as-cast plugin, and scripts/conventions.ts
 bun run start        # the legacy prototype, needs OPENAI_API_KEY in .env, being removed
 ```
 
-`bun run typecheck && bun test` is the gate. Run both on the files you touched before presenting.
+`bun run check` is the gate. Run it before presenting, and expect CI to run the same three commands on Linux and macOS.
+
+`bun run lint` fails on `any`, a non-null `!`, an `as` cast other than `as const`, a voided or floating promise, a comment in a `.ts` file, a file over 200 lines, and an em-dash. It reports the rule and the line, so fix the code rather than the rule. A release is a `v<version>` tag matching `package.json`, and `.github/workflows/release.yml` builds and publishes it.
 
 Nothing new depends on `OPENAI_API_KEY`. The engine drives the user's own authenticated agent CLI and holds no key. The prototype's `.env` requirement disappears when `src/distiller.ts` is deleted in Phase 1.
 
