@@ -34,8 +34,10 @@ test("allows user-authored and correction events with text pointers", () => {
 });
 
 test("rejects tool results and thinking even if a pointer is present", () => {
+  expect(isEligibleForDistillation(indexedEvent("tool-call"))).toBeFalse();
   expect(isEligibleForDistillation(indexedEvent("tool-result"))).toBeFalse();
   expect(isEligibleForDistillation(indexedEvent("thinking"))).toBeFalse();
+  expect(isEligibleForDistillation(indexedEvent("assistant-text"))).toBeFalse();
 });
 
 test("removes a tool result pointer before a distillation batch", () => {
@@ -60,4 +62,28 @@ test("removes a tool result pointer before a distillation batch", () => {
 
   expect(allowlistedSignals({ signals: [signal], events: [event] })[0]?.textRefs)
     .toEqual([]);
+});
+
+test("allows assistant text only through a correction signal", () => {
+  const event = indexedEvent("assistant-text");
+  const ref = event.textRef;
+  if (ref === null) {
+    throw new Error("Expected fixture pointer");
+  }
+  const signal: CorrectionSignal = {
+    kind: "interruption",
+    category: "assistant-text",
+    label: "during an explanation",
+    sessionId: "session",
+    timestamp: 0,
+    origin: {
+      id: "github.com/acme",
+      directoryName: "github.com--acme",
+      promotable: true,
+    },
+    textRefs: [ref],
+  };
+
+  expect(allowlistedSignals({ signals: [signal], events: [event] })[0]?.textRefs)
+    .toEqual([ref]);
 });
