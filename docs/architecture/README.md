@@ -67,7 +67,7 @@ Five questions were open in the previous version of this document. Four are now 
 
 **Should the distiller be provider agnostic.** Yes, and `src/engine/` is the abstraction. See `03-engine.md`.
 
-**What is the vault's schema, and is it files or a database.** Both, split by purpose. Plain markdown holds what was learned about the user, because a user who cannot read what was learned about them cannot consent to it. SQLite holds offsets and skeletons, and is declared a disposable cache that can be deleted and rebuilt. See `02-profile.md`.
+**What is the vault's schema, and is it files or a database.** Both, split by purpose. Plain markdown holds what was learned about the user, because a user who cannot read what was learned about them cannot consent to it. SQLite holds source locators and skeletons, and is declared a disposable cache that can be deleted and rebuilt. See `02-profile.md`.
 
 **What triggers the clone.** A CLI command, a Claude Code `SessionEnd` hook, or a long running daemon, in that order of arrival. Incremental cursors make all three cheap. See `01-capture.md`.
 

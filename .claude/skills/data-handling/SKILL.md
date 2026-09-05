@@ -1,13 +1,13 @@
 ---
 name: data-handling
-description: The rules for anything that captures, stores, sends, or acts on the user's data. Load this before touching src/collector.ts, src/redact.ts, src/vault.ts, src/distiller.ts, any new capture source (browser history, editor state, git activity, clipboard, screen), any code that makes a network call, and any code that lets the clone act as the user. Use when the user says "add a collector", "capture X", "send this to the model", "store the skills", "let it act on its own", or asks about privacy, redaction, retention, or telemetry. Not for ordinary refactors that touch none of those.
+description: The rules for anything that captures, stores, sends, or acts on the user's data. Load this before touching src/observe/, src/index/, src/redact/, src/profile/, src/distill/, src/engine/, src/dispatch/, any new capture source, any code that makes a network call, and any code that lets the clone act as the user. Use when the user says "add a collector", "capture X", "send this to the model", "store the profile", "let it act on its own", or asks about privacy, redaction, retention, or telemetry. Not for ordinary refactors that touch none of those.
 ---
 
 # Data handling
 
 Load `clean-code` first. This skill adds the rules that only matter because of what this project is.
 
-Shadowclone runs on the user's own machine and watches them work. That is the product, and it is also the entire risk. The shell history it reads holds API keys, customer names, private hostnames, and file paths that say where someone works and what they work on. A bug in a normal app degrades an experience. A bug here hands a third party the user's secrets, or destroys the behavioral history they cannot recreate.
+Shadowclone runs on the user's own machine and watches them work. That is the product, and it is also the entire risk. Agent transcripts hold source code, API keys, customer data, private hostnames, and file paths that say where someone works and what they work on. A bug in a normal app degrades an experience. A bug here hands a third party the user's secrets, or destroys the behavioral history they cannot recreate.
 
 **The user is not the adversary and neither are you. The adversary is a mistake nobody noticed.** Every rule below exists so a mistake is loud instead of silent.
 
@@ -19,16 +19,19 @@ The set of things shadowclone reads is a list the user can see and edit. It is n
 - The source appears in the README's list of what gets read, in the same commit that adds it.
 - Widening an existing source counts as a new source. Reading `~/.bash_history` when you previously read `~/.zsh_history` is a new source. Reading full file contents when you previously read filenames is a new source.
 - Never read a path the user did not opt into to "check whether it exists". Existence is data.
+- Git remote discovery is the `git-metadata` source. Transcript consent never enables it. When disabled, working directories stay isolated and no repository path is opened.
 
 ## Egress: one gate, and it is `redactSecrets`
 
-Nothing derived from the user's machine leaves it without passing `redactSecrets` in `src/redact.ts`. Not to the model, not to a log aggregator, not to a crash reporter, not to a metrics endpoint.
+Nothing derived from the user's machine leaves it without passing `redactSecrets` in `src/redact/`. Not to the model, not to a log aggregator, not to a crash reporter, not to a metrics endpoint.
 
-- **The gate lives at the collector boundary**, so redaction happens once, on the way out of capture, before anything downstream can hold the raw text. `getRecentShellHistory` returns redacted text and that is the contract.
+- **The gate lives inside `resolveRedacted`**, the only exported function that turns a `TextRef` into a string. Events and signals carry pointers, never captured text. Redaction happens once, when an eligible excerpt is materialized for distillation.
 - Do not add a second redaction call downstream as a safety net. Two gates means neither is the gate, and the next person cannot tell which one is authoritative.
-- **Every new source ships a test that proves the wiring, not just the function.** `src/redact.test.ts` proves the patterns work. `src/collector.test.ts` proves the collector actually calls them. A new source needs the second kind, and per `scoped-fix` you prove it by mutating the call away and watching the test go red.
+- **Every new source ships a test that proves the wiring, not just the function.** `src/redact/index.test.ts` proves the patterns work. `src/observe/index.test.ts` proves an adapter leaves text behind `resolveRedacted`. A new source needs the second kind, and per `scoped-fix` you prove it by mutating the call away and watching the test go red.
 - Redaction is deliberately over-eager. A false positive costs a distilled skill some context. A false negative ships a key to a third party. When in doubt, redact.
 - Adding a pattern to `redactionRules` is cheap and always allowed. Removing one needs a reason in the PR description.
+
+Tool results, file contents from Read, Edit, or Write, thinking blocks, and data-access results never receive a `TextRef` that enters distillation. Exclude them by category rather than trusting redaction to recognize someone else's data.
 
 ### When you add a network call
 
@@ -36,31 +39,35 @@ Ask, in this order: does this need to leave the machine at all, can it leave as 
 
 ## Storage: local-first, under the user's control
 
-- The vault lives on disk in a directory the user owns and can open in a text editor. Plain files over an opaque database, because a user who cannot read what was learned about them cannot consent to it.
-- Never sync, upload, or back up the vault by default.
-- Anything the vault holds is derived and disposable. Losing it costs the user learned behavior, so a destructive write needs a test, but it never costs them their actual work.
+- The profile lives on disk in a directory the user owns and can open in a text editor. Plain files over an opaque database, because a user who cannot read what was learned about them cannot consent to it.
+- The SQLite index stores pointers, event kinds, and tool metadata, never captured text. It is disposable and rebuildable.
+- Never sync, upload, or back up the profile by default.
+- Anything shadowclone stores is derived and disposable. Losing it costs the user learned behavior, so a destructive write needs a test, but it never costs them their actual work.
 
 ## Logging: never the raw capture
 
 Debugging a collector by printing what it collected is how a secret ends up in a scrollback buffer, a CI log, or a screenshot in a bug report.
 
-- Log counts, byte sizes, hashes, and source names. `read 412 lines from ~/.zsh_history` is a useful log line.
+- Log counts, byte sizes, hashes, and source names. `indexed 4,182 events from 37 sessions` is a useful log line.
 - If you must log a sample, log the redacted text, and only under an explicit debug flag.
 - No raw capture in an error message or a thrown exception either. An exception ends up in a crash reporter.
+- A transcript path is captured data because its project slug can name an employer. Log the source name and opaque locator instead.
 
 ## Acting as the user: tiered, and the top tier always asks
 
 The clone acting on the user's behalf is the point of the project, so the boundary has to be explicit rather than a matter of judgment at the call site.
 
 - **Observe and derive.** Reading capture, distilling it, writing to the vault. Runs unattended.
-- **Draft.** Producing a message, a commit, a reply, a file, and leaving it staged for the user. Runs unattended, as long as nothing is sent or committed.
+- **Draft.** Producing a message, diff, reply, or file and leaving it local for the user. Runs unattended, as long as nothing is sent or committed.
 - **Act.** Anything that sends, posts, commits, pushes, deletes, spends, or changes state another person can see. **Requires explicit approval per action.** Not per session, not per category, not a setting the user turned on once. The approval names the specific thing being done.
 
 Approval granted for one action does not extend to the next one, and "the user asked me to handle their email" is not approval to send a particular email.
 
+`shadowclone run "<task>"` names the task and target repository, so that invocation approves one local worktree, branch, and commit. A remote action also requires a repo policy ceiling and a matching `--approve` on that run. Approval never carries into another run.
+
 ## Retention
 
-- Capture has a window. Old raw capture is deleted, not kept in case it becomes useful.
+- Shadowclone creates no raw capture store and never makes a second copy of a transcript.
 - There is one documented command that wipes everything shadowclone has stored, and it is in the README. A user who wants out gets out in one step.
 
 ## The check before you present
@@ -69,7 +76,7 @@ For any diff touching capture, storage, or egress:
 
 ```bash
 bun test
-git diff -U0 | grep -nE '(console\.(log|error|warn)|fetch\(|generateText|writeFile)'
+git diff -U0 | grep -nE '(console\.(log|error|warn)|fetch\(|generateText|writeFile|Bun\.spawn)'
 ```
 
 Read every hit and answer, out loud in your report, where the redaction gate sits relative to it.

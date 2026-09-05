@@ -11,7 +11,7 @@ bun install
 bun run check
 ```
 
-`bun run start` still runs the shell-history prototype on `main` and needs `OPENAI_API_KEY` in `.env`. It is being removed, so do not build on it.
+`bun run cli init` writes the opt-in config. `bun run cli learn` ingests enabled sources without making a network call. `bun run cli learn --deep` is the separate, consented path through a selected authenticated agent CLI. `bun run cli run "<task>"` explicitly approves one local worktree, branch, and commit for that task.
 
 ## The gate
 
@@ -80,13 +80,13 @@ Commit messages are one line, lowercase, with a conventional-commit prefix. Chec
 
 ## Changes that get a closer read
 
-Anything touching capture, storage, or network egress. On `main` today that is `src/collector.ts`, `src/redact.ts`, and `src/distiller.ts`. As the design lands it is `src/observe/`, `src/index/`, `src/distill/`, `src/profile/`, `src/engine/`, `src/dispatch/`, and any new file that reads from a home directory, opens a socket, calls `fetch`, or spawns a process.
+Anything touching capture, storage, or network egress. That is `src/observe/`, `src/index/`, `src/redact/`, `src/distill/`, `src/profile/`, `src/engine/`, `src/dispatch/`, and any new file that reads from a home directory, opens a socket, calls `fetch`, or spawns a process.
 
 `.claude/skills/data-handling/SKILL.md` has the rules. The six that come up most:
 
 1. **A new capture source needs an opt-in flag and a README entry in the same PR.** Reading a wider slice of a file you already read counts as a new source.
-2. **Everything reaching the network passes `redactSecrets`.** The gate sits at the collector boundary. Do not add a second one downstream, and do not route around it.
-3. **A test proves the wiring, not just the function.** `src/redact.test.ts` proving a pattern works says nothing about whether the collector calls it. Add the `src/collector.test.ts` kind, and prove it catches the bug by mutating the call away and watching it go red. Every adapter under `src/observe/adapters/` ships one, with a fixture transcript holding a planted secret.
+2. **Everything reaching the network passes `redactSecrets`.** The gate sits inside `resolveRedacted`, the only exported function that turns a `TextRef` into a string. Do not add a second one downstream, and do not route around it.
+3. **A test proves the wiring, not just the function.** `src/redact/index.test.ts` proving a pattern works says nothing about whether an adapter keeps text behind the resolver. Every adapter under `src/observe/adapters/` ships a wiring test with a fixture transcript holding a planted secret.
 4. **No raw capture in a log line, an error message, or a committed test fixture.**
 5. **Tool results, file contents, and thinking blocks are never distilled.** Excluded by category, not redacted. `docs/architecture/07-enterprise.md` has the list and the reason.
 6. **A rule never leaves the organization it was learned from.** Origin scoping is not optional and not a setting.
@@ -95,7 +95,7 @@ If you are unsure whether your change touches egress, it touches egress. Say so 
 
 ## Reporting a redaction gap
 
-If you find a string that gets past `src/redact.ts`, that is the most valuable bug report this project can get. Open an issue describing the **shape** of the string, not the string itself. "A GitLab personal access token starting `glpat-` is not matched" is enough to write the pattern and the test.
+If you find a string that gets past `src/redact/`, that is the most valuable bug report this project can get. Open an issue describing the **shape** of the string, not the string itself. "A GitLab personal access token starting `glpat-` is not matched" is enough to write the pattern and the test.
 
 `SECURITY.md` covers the reports that go through private reporting instead.
 

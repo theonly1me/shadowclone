@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { redactSecrets } from "./redact";
+import { redactSecrets } from "./index";
 
 const homeDirectory = "/Users/example";
 
@@ -96,4 +96,33 @@ test("does not redact a placeholder a second time", () => {
   const once = redact("export OPENAI_API_KEY=sk-proj-abc123DEF456ghi789JKL");
 
   expect(redact(once)).toBe(once);
+});
+
+test("removes transcript-grade sensitive values", () => {
+  const text = [
+    "postgres://user:password@db.internal:5432/app",
+    "owner@example.org",
+    "10.24.8.19",
+    "service.prod.corp",
+    "arn:aws:iam::123456789012:role/admin",
+    "s3://private-customer-bucket/report.csv",
+    "/var/log/company/service.log",
+    "MZXW6YTBOI======abcDEF1234567890abcdefghijk",
+  ].join("\n");
+  const redacted = redact(text);
+
+  expect(redacted).not.toContain("password");
+  expect(redacted).not.toContain("owner@example.org");
+  expect(redacted).not.toContain("10.24.8.19");
+  expect(redacted).not.toContain("service.prod.corp");
+  expect(redacted).not.toContain("123456789012");
+  expect(redacted).not.toContain("private-customer-bucket");
+  expect(redacted).not.toContain("/var/log/company");
+  expect(redacted).not.toContain("MZXW6YTBOI");
+});
+
+test("keeps the home directory readable while redacting other absolute paths", () => {
+  expect(redact("cd /Users/example/repo && cat /etc/company/config")).toBe(
+    "cd ~/repo && cat [redacted:absolute-path]",
+  );
 });

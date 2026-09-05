@@ -1,0 +1,25 @@
+{
+  "description": "Keep the shadowclone profile current and load learned guidance",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts\" hook session-start"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts\" hook session-end"
+          }
+        ]
+      }
+    ]
+  }
+}
