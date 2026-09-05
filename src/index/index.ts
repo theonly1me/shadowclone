@@ -3,6 +3,7 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { ShadowcloneConfig } from "../config";
 import { observeAll } from "../observe";
+import { observeClaudeCodeFile } from "../observe/adapters/claudeCode";
 import type { ProjectPaths } from "../paths";
 import { createSchema } from "./schema";
 import { EventIndex } from "./store";
@@ -51,4 +52,19 @@ export async function ingestSources(options: {
     bytesRead,
     rescannedFiles,
   };
+}
+
+export async function ingestClaudeTranscript(options: {
+  readonly index: EventIndex;
+  readonly sourcePath: string;
+}): Promise<number> {
+  const batch = await observeClaudeCodeFile({
+    sourcePath: options.sourcePath,
+    cursor: options.index.getCursor(options.sourcePath),
+  });
+  if (batch === null) {
+    return 0;
+  }
+  options.index.saveBatch(batch);
+  return batch.events.length;
 }

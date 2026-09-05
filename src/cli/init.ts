@@ -1,5 +1,6 @@
 import {
   defaultConfig,
+  setDeepEnabled,
   setSourceEnabled,
   writeConfig,
 } from "../config";
@@ -27,6 +28,9 @@ export async function initialize(options: {
   const enableGitMetadata = await ask(
     "Enable reading git remote origins for organization-scoped profiles?",
   );
+  const enableDeep = await ask(
+    "Enable semantic distillation through your authenticated agent CLI?",
+  );
   const transcriptConfig = setSourceEnabled({
     config: defaultConfig,
     source: "claude-code",
@@ -37,11 +41,15 @@ export async function initialize(options: {
     source: "git-metadata",
     enabled: enableGitMetadata,
   });
+  const completeConfig = setDeepEnabled({
+    config,
+    enabled: enableDeep,
+  });
 
-  await writeConfig({ config, configPath: options.configPath });
+  await writeConfig({ config: completeConfig, configPath: options.configPath });
   console.log(
-    enableClaudeCode || enableGitMetadata
-      ? "Selected local sources enabled."
+    enableClaudeCode || enableGitMetadata || enableDeep
+      ? "Selected sources and capabilities enabled."
       : "All capture sources remain disabled.",
   );
 }

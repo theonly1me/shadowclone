@@ -1,3 +1,6 @@
+export { renderAgent, writeAgent } from "./agent";
+export { blockedTools, isToolBlocked } from "./boundaries";
+export { buildCompiledProfile, compileProfile } from "./inject";
 export { renderMirror } from "./mirror";
 export { parseProfileBlocks, parseProfileRules } from "./parse";
 export {

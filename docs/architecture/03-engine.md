@@ -18,6 +18,8 @@ The last row is the zero-egress path. Pointing `openai-compatible` at a local Ol
 
 Selection order is Claude Code, then Codex, then Cursor, then a key if one is present, then a configured local endpoint. `shadowclone doctor` prints what was found, what is authenticated, and which one will be used.
 
+The Claude Code engine and doctor are built in Phase 3. Codex and Cursor land in Phase 5. API and local endpoint implementations remain later work, so the detector never claims they are available today.
+
 ## Interface
 
 ```ts
@@ -101,3 +103,5 @@ Codex has its own sandbox, so `--sandbox workspace-write` plus a worktree is def
 The engine is handed one file, not five. `src/profile/inject.ts` compiles `~/.shadowclone/profile/*.md` into `.compiled.md`: rules above a confidence threshold, ordered by observation count, with provenance comments stripped and any `projects/<repo>.md` matching the target repo appended.
 
 Compilation is where the profile stops being a document and becomes a prompt, so it is a named step with its own file rather than string building inside the runner.
+
+The compiler reads `global/` and exactly one matching organization directory, strips provenance, and places hand-written rules first. The current confidence threshold is zero until the confidence model in the open questions is settled, so compilation does not silently discard a rule the user can see.

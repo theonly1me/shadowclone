@@ -11,7 +11,7 @@ bun install
 bun run check
 ```
 
-`bun run cli init` writes the opt-in config. `bun run cli learn` ingests enabled sources without making a network call.
+`bun run cli init` writes the opt-in config. `bun run cli learn` ingests enabled sources without making a network call. `bun run cli learn --deep` is the separate, consented path through the authenticated Claude Code engine.
 
 ## The gate
 

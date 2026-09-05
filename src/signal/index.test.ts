@@ -122,7 +122,7 @@ test("mines correction markers and renders a text-free mirror", async () => {
           : "https://github.com/other/repo.git",
       ),
   });
-  const output = renderMirror(derived.report);
+  const output = renderMirror({ report: derived.report });
 
   expect(derived.report.interruptions[0]?.label).toBe("while using Edit");
   expect(derived.report.answeredQuestions).toBe(1);

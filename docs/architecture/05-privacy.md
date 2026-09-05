@@ -20,6 +20,8 @@ Shadowclone does not copy transcripts. The index stores offsets, timestamps, too
 
 Text is materialized in exactly one place, `src/distill/`, held in memory, redacted, sent through the engine, and dropped. Nothing writes captured text to disk at any point in the pipeline.
 
+Replay evaluation uses the same path. Its first prompt is resolved through `resolveRedacted` inside `src/distill/replay.ts` before the engine receives it.
+
 This makes the retention question much smaller than it was. There is no raw capture store to age out, because there is no raw capture store. What ages is the index, and the index can be deleted at any time with no loss beyond a reingest.
 
 ## Redaction has to grow

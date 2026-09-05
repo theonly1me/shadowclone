@@ -7,6 +7,7 @@ import {
   setSourceEnabled,
   writeConfig,
 } from "../config";
+import type { EngineRunner } from "../engine";
 import { openEventIndex } from "../index";
 import { createProjectPaths } from "../paths";
 import { learn } from "./learn";
@@ -55,13 +56,42 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
         content: "[Request interrupted by user]",
       },
     },
+    {
+      type: "assistant",
+      sessionId: "session-1",
+      uuid: "event-4",
+      timestamp: "2026-09-05T08:03:00.000Z",
+      cwd: "/repo",
+      message: {
+        id: "message-4",
+        content: [
+          {
+            type: "tool_use",
+            id: "tool-2",
+            name: "AskUserQuestion",
+            input: { question: "Which scope?", options: ["small", "large"] },
+          },
+        ],
+      },
+    },
+    {
+      type: "user",
+      sessionId: "session-1",
+      uuid: "event-5",
+      timestamp: "2026-09-05T08:04:00.000Z",
+      cwd: "/repo",
+      message: { id: "message-5", content: "Use the small scope" },
+    },
   ];
   await Bun.write(
     path.join(transcriptDirectory, "session.jsonl"),
     `${records.map((record) => JSON.stringify(record)).join("\n")}\n`,
   );
   const config = setSourceEnabled({
-    config: defaultConfig,
+    config: {
+      ...defaultConfig,
+      distillation: { deep: true },
+    },
     source: "claude-code",
     enabled: true,
   });
@@ -71,11 +101,46 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
     configPath: paths.configFile,
     databasePath: paths.indexDatabase,
     paths,
+    managedConfigPath: null,
   });
 
   const index = await openEventIndex(paths.indexDatabase);
-  expect(index.countEvents()).toBe(3);
+  expect(index.countEvents()).toBe(5);
   index.close();
+
+  let engineRuns = 0;
+  const runner: EngineRunner = () => {
+    engineRuns += 1;
+    return Promise.resolve({
+      engine: "claude-code",
+      sessionId: "deep-session",
+      transcriptPath: null,
+      text: "",
+      structured: {
+        rules: [
+          {
+            title: "Choose the smaller scope",
+            body: "Prefer the smaller change when the user is asked.",
+            section: "workflow",
+          },
+        ],
+      },
+      costUsd: 0.01,
+      durationMs: 100,
+      turns: 1,
+      isError: false,
+      permissionDenials: [],
+    });
+  };
+  await learn({
+    configPath: paths.configFile,
+    databasePath: paths.indexDatabase,
+    paths,
+    deep: true,
+    runner,
+    managedConfigPath: null,
+  });
+  expect(engineRuns).toBe(1);
 
   const profileGlob = new Bun.Glob("**/*.md");
   const profileFiles = [];
@@ -95,5 +160,6 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
     )
   ).join("\n");
   expect(profile).toContain("Stops the agent while using Edit");
+  expect(profile).toContain("Choose the smaller scope");
   expect(profile).not.toContain("plan this change");
 });
