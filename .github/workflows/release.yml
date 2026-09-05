@@ -96,18 +96,14 @@ jobs:
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
 
       - name: Publish the npm packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "NPM_TOKEN is not set, so the npm packages were not published" >&2
-            exit 1
-          fi
           for platform in darwin-arm64 darwin-x64 linux-x64 linux-arm64; do
-            npm publish "dist/npm/$platform" --access public --provenance
+            npm publish "dist/npm/$platform" --access public
           done
-          npm publish dist/npm/launcher --access public --provenance
+          npm publish dist/npm/launcher --access public
