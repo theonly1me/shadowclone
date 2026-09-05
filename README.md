@@ -1,10 +1,10 @@
 # shadowclone
 
-Learns how you work from the AI coding sessions you already run, then does your work the way you would when you are not there.
+Shows you how you actually work with AI coding agents, from the sessions already on your disk, then makes those agents stop doing the things you keep correcting.
 
-There is nothing to keep running. Claude Code, Codex, and Cursor already write every session to disk. shadowclone reads what is already there.
+Claude Code, Codex, and Cursor write every session to disk. On one machine that is 372 sessions holding 994 interruptions, 445 refused tool calls, and 313 answered questions, all of them moments where you overrode the agent. shadowclone reads them, offline, and hands you a profile of yourself you did not write. Then it loads that profile into the agent you already use, on the subscription you already pay for, so the corrections stop repeating.
 
-The name is the Naruto reference. A shadow clone is a copy that goes off and does your work while you do something else, and everything it learned comes back to you when it dissolves. That is the goal here: something that picks up your habits from the way you actually work, so it can stand in for you on the things you would have done the same way anyway.
+The name is the Naruto reference. A shadow clone is a copy that goes off and does your work while you do something else, and everything it learned comes back to you when it dissolves. That is where this goes once the profile has earned trust: a clone that takes a task and does it the way you would have. The profile comes first, because a clone is only as good as what it learned.
 
 ## Status
 

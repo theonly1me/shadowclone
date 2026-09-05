@@ -14,41 +14,37 @@ Proves: nothing regressed, and there is one place to look for what gets touched 
 
 Proves: a full ingest completes, a second run is incremental, and a secret planted in a fixture transcript appears nowhere in the index. The wiring test is proved by mutating `resolveRedacted` to return raw bytes and watching it go red.
 
-## Phase 2, signal
+## Phase 2, the mirror
 
-Structural derivation and the correction miner. `shadowclone profile` writes markdown with provenance. Zero model calls in this phase.
+Structural derivation and the correction miner. `shadowclone learn` prints the profile to the terminal and writes it to `~/.shadowclone/profile/`. Zero model calls in this phase, and the first line of output says so.
 
-Proves: the profile is recognisably a specific person, and the whole thing runs offline. This is the first phase with a demo.
+Proves: the output surprises its own author. This is the go/no-go for the project. Run it on the real 562 MB corpus and read it with fresh eyes. A profile that says "runs tests, uses plan mode, prefers Bun" is something a good engineer writes in five minutes and nobody shares. A profile that names what you interrupt the agent for, in order, with counts, is something nobody has seen. Iterate on the extractors until the second one is true. Nothing past this phase is worth building until it is.
 
-## Phase 3, engine
+Also in this phase, the replay eval. Take a past session, hand its first prompt to an engine with the profile loaded, and compare what the clone did with what the user did: tools chosen, verification ritual, files touched, plan before edit. Score it. The corpus is 372 ground-truth test cases and they cost nothing. This is what turns "acts like you" from a claim into a number in the README.
 
-`src/engine/` with the Claude Code runner, stream-json parsing, `detect.ts`, and `shadowclone doctor`. Then `learn --deep` on top, batched and checkpointed.
+## Phase 3, the fix
 
-Proves: a headless run completes and returns a populated `EngineRun`, and killing the process mid distillation loses one batch rather than the run.
+`.claude-plugin/` with a `SessionEnd` hook and an MCP server that loads the user's own profile into their own live Claude Code sessions. The engine module lands here too, since the hook needs the Claude Code runner for `learn --deep`.
 
-## Phase 4, dispatch
+Proves: install is one command, and a normal session gets the user's conventions with no manual step. This is where daily value and retention come from, because the user feels the difference the same day in work they were already doing, and it is the first thing that runs before any clone has ever been trusted.
+
+## Phase 4, the clone
 
 Worktree, policy, receipt, `shadowclone run`. Ships with every allowlist empty, so the ceiling is a branch and a commit.
 
-Proves: a task produces a worktree, a branch, a commit, and a receipt, with nothing pushed and `actionsBlockedByPolicy` correctly populated.
+Proves: a task produces a worktree, a branch, a commit, and a receipt, with nothing pushed and `actionsBlockedByPolicy` correctly populated. Phase 3 has to have earned trust first, which is why this moved from third to fourth.
 
-This is the end of the first release. Everything above is the demo: read a profile of yourself, then hand a clone a task and read what it did.
-
-## Phase 5, plugin
-
-`.claude-plugin/` with a `SessionEnd` hook, slash commands, and an MCP server exposing profile recall to live sessions.
-
-Proves: install is one command, and a normal Claude Code session gets the user's own conventions injected without shadowclone being run manually. This phase is the distribution vector, and it is also the first thing that pays off before any clone has ever run.
-
-## Phase 6, more providers
+## Phase 5, more providers
 
 The Codex adapter and engine, then Cursor. Codex is a parser. Cursor is a different reader, since its chat state is a per session SQLite database rather than JSONL.
 
-Proves: the adapter boundary was real, by a second provider landing without changes to `signal`, `distill`, or `profile`.
+Proves: the adapter boundary was real, by a second provider landing without changes to `signal`, `distill`, or `profile`. This is also the hedge against a single vendor shipping the Claude-only version natively, so it is earlier than it would otherwise be.
 
 ## Later, and deliberately not now
 
 **Learning from merge outcomes.** The diff between what a clone wrote and what the user shipped is the strongest correction signal available. It needs clone output good enough to be worth reviewing, so it waits until phase 4 has been used in anger.
+
+**Claims about productivity multiples.** None are made until the replay eval produces a number. The honest value is bounded and measurable, the agent stops repeating corrections it has already received, and a bounded number that holds beats a large one that does not.
 
 **A daemon.** Adds latency reduction and queued work, no new capability. The hook covers most of the value at a fraction of the moving parts.
 

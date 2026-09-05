@@ -178,7 +178,7 @@ The mutation proof for the cursor: change the rescan condition so a truncated fi
 
 **Is two organizations the right promotion threshold.** Two is enough to show a habit is not employer specific, and a contractor with many short client engagements would promote rules faster than someone with one job. The answer decides whether the threshold is a constant or a function of how long each origin was observed.
 
-**Does the compiled profile fit in a system prompt.** A mature profile could exceed a reasonable prompt budget. The answer decides whether compilation stays a truncating sort or becomes retrieval through the MCP server planned in phase 5.
+**Does the compiled profile fit in a system prompt.** A mature profile could exceed a reasonable prompt budget. The answer decides whether compilation stays a truncating sort or becomes retrieval through the MCP server planned in phase 3.
 
 ## Decision record
 
