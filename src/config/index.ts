@@ -6,6 +6,7 @@ import {
   parseConfig,
   sourceIds,
   type ShadowcloneConfig,
+  type SourceId,
 } from "./schema";
 
 export {
@@ -55,4 +56,18 @@ export async function writeConfig(options: {
 
   await mkdir(path.dirname(configPath), { recursive: true });
   await Bun.write(configPath, renderConfig(options.config));
+}
+
+export function setSourceEnabled(options: {
+  readonly config: ShadowcloneConfig;
+  readonly source: SourceId;
+  readonly enabled: boolean;
+}): ShadowcloneConfig {
+  return {
+    ...options.config,
+    sources: {
+      ...options.config.sources,
+      [options.source]: options.enabled,
+    },
+  };
 }

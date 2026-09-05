@@ -13,19 +13,17 @@ Two skills in `.claude/skills/` are not optional.
 
 `scoped-fix` loads when you are changing existing code, which is most of the time.
 
-## What is on `main` today
-
-The first prototype. It is being replaced, not extended.
+## What works today
 
 | File | Does |
 | --- | --- |
-| `src/collector.ts` | reads `.zsh_history` and `.bash_history`, calls `redactSecrets` at its single exit |
-| `src/redact/` | the egress gate and its rules |
-| `src/distiller.ts` | sends redacted text to OpenAI through the `ai` SDK |
-| `src/vault.ts` | empty |
-| `src/index.ts` | wires collector to distiller and prints the result |
+| `src/config/` | stores explicit source consent, with every source off by default |
+| `src/observe/` | reads enabled Claude Code, Claude prompt, and shell sources incrementally |
+| `src/redact/` | resolves pointers into redacted text, the single egress gate |
+| `src/index/` | stores cursors and event skeletons in a rebuildable SQLite cache |
+| `src/cli/` | provides `init`, `learn`, and `forget --all` |
 
-Say this honestly when asked what works: the prototype captures shell history and distils it end to end. Nothing reads a transcript, builds a profile, or acts.
+Say this honestly when asked what works: opt-in capture and incremental indexing run. Nothing derives signals, builds a profile, calls an agent, or acts yet.
 
 ## What is being built
 
@@ -43,11 +41,11 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 | distill | `src/distill/` | 3 |
 | dispatch | `src/dispatch/` | 4 |
 
-`docs/design/001-agent-transcript-pivot.md` is the spec, file by file. `docs/architecture/06-roadmap.md` is the order. Phase 0 adds `src/paths.ts` and `src/config/` and splits `src/redact.ts` into `src/redact/`. Build from the design doc, not from the prototype.
+`docs/design/001-agent-transcript-pivot.md` is the spec, file by file. `docs/architecture/06-roadmap.md` is the order. Phases 0 and 1 are complete. Build from the design doc.
 
 ## The rules that outrank convenience
 
-- **One egress gate.** `redactSecrets` is the only thing between captured text and the network. On `main` it is called at the collector's single exit. The design moves it inside `resolveRedacted`, the only function that turns a `TextRef` into a string, so bypassing it takes a new file reader rather than a forgotten call. That lands with Phase 1, and `.claude/skills/data-handling/SKILL.md` updates in the same change. Never add a second gate downstream as a safety net, and never route around the one that exists.
+- **One egress gate.** `redactSecrets` is the only thing between captured text and the network. It lives inside `resolveRedacted`, the only exported function that turns a `TextRef` into a string, so bypassing it takes a new file reader rather than a forgotten call. Never add a second gate downstream as a safety net, and never route around it.
 - **Every capture source is opt-in.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. It needs a flag defaulting to off and a README entry in the same change. A disabled source is never opened, not even to check whether it exists.
 - **Never distil tool results.** The content of any `tool_result`, file contents from Read, Edit, or Write, thinking blocks, and every data-access result never enter the distillation path. Excluded by category, not redacted. `docs/architecture/07-enterprise.md` says why.
 - **Rules stay inside the organization they were learned from.** A rule carries the git remote it came from and compiles only into sessions on that organization's repos, or into `global/` once seen across two organizations. Never pool across organizations.
@@ -65,14 +63,15 @@ bun test             # all tests
 bun test src/redact/index.test.ts
 bun run typecheck
 bun run lint         # biome, its as-cast plugin, and scripts/conventions.ts
-bun run start        # the legacy prototype, needs OPENAI_API_KEY in .env, being removed
+bun run cli init
+bun run cli learn
 ```
 
 `bun run check` is the gate. Run it before presenting, and expect CI to run the same three commands on Linux and macOS.
 
 `bun run lint` fails on `any`, a non-null `!`, an `as` cast other than `as const`, a voided or floating promise, a comment in a `.ts` file, a file over 200 lines, and an em-dash. It reports the rule and the line, so fix the code rather than the rule. A release is a `v<version>` tag matching `package.json`, and `.github/workflows/release.yml` builds and publishes it.
 
-Nothing new depends on `OPENAI_API_KEY`. The engine drives the user's own authenticated agent CLI and holds no key. The prototype's `.env` requirement disappears when `src/distiller.ts` is deleted in Phase 1.
+Nothing depends on an API key. The engine added in Phase 3 drives the user's own authenticated agent CLI.
 
 ## Bun, not Node
 
@@ -106,14 +105,14 @@ test("redacts an api key", () => {
 });
 ```
 
-A test for a capture source proves the wiring, not just the function. `src/redact/index.test.ts` proves the patterns work. `src/collector.test.ts` proves the collector calls them, and that is the one that catches a real regression. Every adapter under `src/observe/adapters/` ships the same shape: a fixture transcript with a planted secret, run through the real entry point, asserting the secret is absent. Prove a new test catches its bug by mutating the fix away and watching it go red, per `scoped-fix`.
+A test for a capture source proves the wiring, not just the function. `src/redact/index.test.ts` proves the patterns work. `src/observe/index.test.ts` proves the adapter leaves captured text behind `resolveRedacted`. Every adapter under `src/observe/adapters/` ships the same shape: a fixture transcript with a planted secret, run through the real entry point, asserting the secret is absent. Prove a new test catches its bug by mutating the fix away and watching it go red, per `scoped-fix`.
 
 Spawning a real agent CLI is a manual verification step, never a unit test. The engine is tested against recorded `stream-json` fixtures.
 
 ## Docs
 
 - `docs/architecture/` holds the shape of the system and the reasoning behind each decision. `07-enterprise.md` is for whoever approves this at a company, `08-landscape.md` is what already exists elsewhere.
-- `docs/design/001-agent-transcript-pivot.md` is the active design. It moves capture from shell history to agent session transcripts, replaces the API key with the user's own agent CLI subscription, and compiles the profile into a subagent. It is approved, Phase 0 is in review, and the rest is not built, so the first table above still describes what runs.
+- `docs/design/001-agent-transcript-pivot.md` is the active design. It moves capture from shell history to agent session transcripts, replaces the API key with the user's own agent CLI subscription, and compiles the profile into a subagent. It is approved, Phases 0 and 1 are complete, and the first table above describes what runs.
 - `docs/design/` holds design docs, one file per change, written against `docs/design/template.md`.
 - `CONTRIBUTING.md` is for humans.
 

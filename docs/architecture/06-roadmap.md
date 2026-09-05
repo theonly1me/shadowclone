@@ -12,6 +12,8 @@ Proves: nothing regressed, and there is one place to look for what gets touched 
 
 ## Phase 1, observe and index
 
+Status: implementation complete. Real corpus verification requires explicit source consent.
+
 `AgentEvent`, `TextRef`, `resolveRedacted`, the cursor, the Claude Code adapter, the SQLite index, and `shadowclone learn` doing a real ingest of the local corpus.
 
 Proves: a full ingest completes, a second run is incremental, and a secret planted in a fixture transcript appears nowhere in the index. The wiring test is proved by mutating `resolveRedacted` to return raw bytes and watching it go red.
