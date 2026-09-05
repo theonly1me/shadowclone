@@ -40,6 +40,21 @@ test("enables git metadata only after separate consent", async () => {
   expect(config.sources["git-metadata"]).toBeTrue();
 });
 
+test("enables deep distillation only after separate consent", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
+  const configPath = path.join(directory, "config.toml");
+  const answers = [false, false, true];
+
+  await initialize({
+    configPath,
+    ask: () => answers.shift() ?? false,
+  });
+
+  const config = await readConfig({ configPath });
+  expect(config.distillation.deep).toBeTrue();
+  expect(Object.values(config.sources).every((enabled) => !enabled)).toBeTrue();
+});
+
 test("keeps every source off when consent is declined", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");

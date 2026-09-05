@@ -133,6 +133,8 @@ The profile compiles two ways. Into a system prompt, which `03-engine.md` covers
 
 `src/profile/agent.ts` writes the subagent file: frontmatter with `name`, `description`, `model`, and `tools`, then the compiled profile as the body. Claude Code reads `.claude/agents/*.md` at session start and accepts the same definition as `--agents <json>` on a headless run.
 
+`shadowclone install` performs this compilation for the current repository. The plugin also injects the scoped compiled profile through `SessionStart`, and its MCP server exposes the same profile for recall during a live session.
+
 Once it exists, the main session calls `Agent(subagent_type: "<name>")` and gets a copy of the user on a subtask. Ten of those on ten tasks is what the project is named after.
 
 Origin scoping applies at compile time here too. The subagent written into a repo's `.claude/agents/` carries `global/` rules plus that repo's organization and nothing else, so a subagent file committed to an employer's repo holds no rule learned anywhere but there.

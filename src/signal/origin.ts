@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { IndexedEvent } from "../index";
 import type { OriginScope } from "./types";
 
@@ -52,6 +53,29 @@ export function normalizeRemoteOrigin(remote: string): OriginScope | null {
   return { id, directoryName, promotable: true };
 }
 
+function matchesPattern(value: string, pattern: string): boolean {
+  const expression = pattern
+    .split("*")
+    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+    .join(".*");
+  return new RegExp(`^${expression}$`).test(value);
+}
+
+export function isOriginBlocked(options: {
+  readonly origin: OriginScope;
+  readonly cwd: string;
+  readonly patterns: readonly string[];
+}): boolean {
+  const repository = options.cwd ? path.basename(options.cwd) : null;
+  const values = [
+    options.origin.id,
+    ...(repository ? [`${options.origin.id}/${repository}`] : []),
+  ];
+  return options.patterns.some((pattern) =>
+    values.some((value) => matchesPattern(value, pattern))
+  );
+}
+
 export async function readGitRemote(cwd: string): Promise<string | null> {
   const process = Bun.spawn({
     cmd: ["git", "-C", cwd, "config", "--local", "--get", "remote.origin.url"],
@@ -86,19 +110,35 @@ export async function resolveEventOrigins(options: {
       continue;
     }
 
-    const remote =
-      options.enabled && event.cwd.length > 0
-        ? await readRemote(event.cwd)
-        : null;
     origins.set(
       key,
-      remote === null
-        ? isolatedOrigin(key)
-        : normalizeRemoteOrigin(remote) ?? isolatedOrigin(key),
+      await resolveCwdOrigin({
+        cwd: event.cwd,
+        fallbackKey: key,
+        enabled: options.enabled,
+        readRemote,
+      }),
     );
   }
 
   return origins;
+}
+
+export async function resolveCwdOrigin(options: {
+  readonly cwd: string;
+  readonly fallbackKey?: string;
+  readonly enabled: boolean;
+  readonly readRemote?: GitRemoteReader;
+}): Promise<OriginScope> {
+  const key = options.cwd || options.fallbackKey || "unknown";
+  const readRemote = options.readRemote ?? readGitRemote;
+  const remote =
+    options.enabled && options.cwd.length > 0
+      ? await readRemote(options.cwd)
+      : null;
+  return remote === null
+    ? isolatedOrigin(key)
+    : normalizeRemoteOrigin(remote) ?? isolatedOrigin(key);
 }
 
 export function getEventOrigin(options: {

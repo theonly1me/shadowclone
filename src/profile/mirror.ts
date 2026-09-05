@@ -13,7 +13,11 @@ function ratioLine(options: {
   return countedLine(options.label, `${options.count} of ${options.total}`);
 }
 
-export function renderMirror(report: MirrorReport): string {
+export function renderMirror(options: {
+  readonly report: MirrorReport;
+  readonly networkCallsMade?: boolean;
+}): string {
+  const report = options.report;
   const megabytes = (report.corpus.bytes / 1_048_576).toFixed(1);
   const interruptions =
     report.interruptions.length > 0
@@ -35,7 +39,7 @@ export function renderMirror(report: MirrorReport): string {
       : [countedLine("no tool calls indexed", 0)];
 
   return [
-    `  Read ${report.corpus.sessions} sessions, ${megabytes} MB, ${report.corpus.activeDays} active days. No network calls were made.`,
+    `  Read ${report.corpus.sessions} sessions, ${megabytes} MB, ${report.corpus.activeDays} active days.${options.networkCallsMade ? "" : " No network calls were made."}`,
     "",
     "  You stop the agent most often",
     ...interruptions,

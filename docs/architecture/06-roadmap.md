@@ -36,6 +36,8 @@ The pure four-dimension scorer lands with the mirror. Phase 3 connects it to the
 
 ## Phase 3, the clone inside your session
 
+Status: implementation complete. Local plugin installation and a real authenticated engine run remain manual verification.
+
 `.claude-plugin/` with a `SessionEnd` hook and an MCP server that loads the profile into the user's live Claude Code sessions. `src/profile/agent.ts` compiles the profile into a `.claude/agents/<name>.md` subagent, so the session can dispatch copies of the user in parallel.
 
 The engine module lands here too, since the hook needs the Claude Code runner for `learn --deep`.

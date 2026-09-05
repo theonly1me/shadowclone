@@ -1,0 +1,13 @@
+{
+  "name": "shadowclone",
+  "owner": {
+    "name": "Shadowclone"
+  },
+  "plugins": [
+    {
+      "name": "shadowclone",
+      "source": ".",
+      "description": "Load and apply the user's learned engineering profile"
+    }
+  ]
+}

@@ -122,7 +122,7 @@ Respect their agency. If they explicitly ask you to just write the code or give 
 
 This is shadowclone, a local tool that learns how its user works from the AI coding sessions they already run, and acts as them. It is not a daemon.
 
-**The loop.** `src/observe/` reads enabled transcript sources as text pointers. `src/index/` stores pointers and event skeletons, never captured text. `src/signal/` derives the offline mirror and `src/profile/` writes organization-scoped markdown. `src/redact/` is the only place a pointer becomes redacted text. Engines and acting are not built yet.
+**The loop.** `src/observe/` reads enabled transcript sources as text pointers. `src/index/` stores pointers and event skeletons, never captured text. `src/signal/` derives the offline mirror and `src/profile/` writes and compiles organization-scoped markdown. `src/distill/` resolves redacted correction moments and `src/engine/` drives Claude Code. The plugin loads the profile into live sessions. Headless acting is not built yet.
 
 **The rule that outranks the others.** Anything touching capture, storage, or network egress loads `.claude/skills/data-handling/SKILL.md` first. The user's shell history holds their API keys and their employer's hostnames, and a mistake here is a leak rather than a bug. When you are unsure whether a change touches egress, it touches egress.
 

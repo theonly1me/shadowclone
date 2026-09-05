@@ -77,6 +77,8 @@ These paths require root to write, so a user cannot grant themselves more than p
 
 Managed policy is read before user config and every field is a ceiling rather than a default. User config can be more restrictive and never less. `"enabled": false` is a hard stop that no user setting overrides. `"distillation": "local-only"` permits the Ollama engine and forbids every hosted one. `"maxActionTier": "draft"` removes push and pull request capability regardless of any repo allowlist.
 
+Phase 3 implements the root ownership check, source and engine ceilings, distillation ceiling, hard stop, and blocked origin filtering. Phase 4 applies the action tier to unattended dispatch.
+
 `shadowclone doctor` prints the active managed policy and where it was read from, so a user can see what applies to them and an admin can confirm it took effect.
 
 ## What to tell a security reviewer

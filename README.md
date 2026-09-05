@@ -27,8 +27,8 @@ There is no API key and no server. Model calls go through `claude`, `codex`, or 
 
 Early.
 
-- **Built.** Phases 0 through 2. `shadowclone init` records consent, and `shadowclone learn` incrementally indexes enabled Claude Code transcripts, prints the offline mirror, and writes an organization-scoped markdown profile without storing transcript text.
-- **Not started.** The live-session clone, headless clone, and additional providers. Nothing calls a model or acts yet.
+- **Built.** Phases 0 through 3. `shadowclone learn` builds the offline mirror, `learn --deep` distils redacted correction moments through Claude Code, and the plugin loads the scoped profile into live sessions and provides a dispatchable `shadowclone` subagent.
+- **Not started.** The unattended worktree clone and additional providers. Nothing pushes, opens a pull request, or acts outside the current Claude Code permission mode.
 
 `docs/design/001-agent-transcript-pivot.md` is the spec. `docs/architecture/06-roadmap.md` is the order.
 
@@ -47,7 +47,7 @@ This is the first question to ask about a program that reads your agent transcri
 | `git-metadata` | observed repositories' local `remote.origin.url` | off | read only when enabled |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | read only when enabled |
 
-**What leaves your machine.** Only what your own agent CLI sends, under your own account. shadowclone has no server, no account, and no key. `shadowclone learn` makes no network call at all. No telemetry, no analytics, no crash reporting.
+**What leaves your machine.** Only what your own agent CLI sends, under your own account. `shadowclone learn` makes no network call. `shadowclone learn --deep` sends only redacted, allowlisted correction excerpts after separate consent. shadowclone has no server, account, key, telemetry, analytics, or crash reporting.
 
 **What gets scrubbed.** Secrets, private paths, internal hosts, emails, cloud resources, and database URLs. `src/redact/index.test.ts` is the list. It is over-eager on purpose.
 
@@ -57,7 +57,7 @@ This is the first question to ask about a program that reads your agent transcri
 
 **What stays in your org.** Every rule is scoped to the git remote it came from when `git-metadata` is enabled. Without that consent, each working directory is an isolated origin that never promotes a rule to global. An admin can disable shadowclone fleet-wide with a root-owned file.
 
-**What it does on your behalf.** Nothing yet. Phase 3 adds a subagent under the current session's permission mode. Phase 4 adds unattended worktree runs behind per-repo policy, and `bypassPermissions` is never passed at any tier.
+**What it does on your behalf.** The Phase 3 subagent runs inside your current Claude Code session and its permission mode. Learned denials compile into `PreToolUse` blocks. Phase 4 adds unattended worktree runs behind per-repo policy, and `bypassPermissions` is never passed at any tier.
 
 If a secret gets past the redaction, that is the highest-value bug report this project can get. Open an issue with the shape of the string, not the string itself.
 
@@ -72,14 +72,20 @@ bun install
 bun run check        # typecheck, lint, and tests
 bun run cli init
 bun run cli learn
+bun run cli doctor
+bun run cli learn --deep
 ```
 
-`learn` indexes, prints the offline mirror, and writes the markdown profile. These commands land later:
+Add this checkout as a local Claude Code marketplace, then install the plugin:
 
-```bash
-shadowclone learn --deep  # distil through your own agent      (Phase 3)
-shadowclone run "<task>"  # a clone in a worktree              (Phase 4)
+```text
+/plugin marketplace add /path/to/shadowclone
+/plugin install shadowclone@shadowclone
 ```
+
+Run `shadowclone install` inside a repository before its next Claude Code session. It writes the scoped `.claude/agents/shadowclone.md`. The plugin injects the same profile at session start, refreshes the offline profile at session end, and exposes it through MCP.
+
+`shadowclone run "<task>"` lands in Phase 4.
 
 ## Contributing
 
