@@ -1,3 +1,13 @@
+## Releasing
+
+Releases are automated. Every merge to `main` updates a release pull request that bumps the version and writes `CHANGELOG.md` from the conventional-commit subjects since the last release. Merging that pull request tags the version and creates the GitHub release.
+
+The same run then builds the binaries, attaches them to the release, and waits. Publishing to npm sits behind the `npm` environment, so it runs only after a maintainer approves it from the Actions tab. That approval is the last gate before anything reaches the registry.
+
+Commit subjects decide the version. A `feat:` subject bumps the minor, `fix:` bumps the patch, and anything with a `!` bumps the major. `chore:`, `ci:`, `test:`, and `refactor:` do not appear in the changelog.
+
+Running the release workflow by hand from the Actions tab builds and uploads the archives to the run without tagging, releasing, or publishing. Use that to test a change to the release path rather than spending a version number.
+
 # Contributing
 
 Thanks for looking. This is an early project, so the surface area is small and the conventions are strict. Both of those make review fast, which is the whole point.
