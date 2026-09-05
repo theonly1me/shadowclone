@@ -6,6 +6,7 @@ export {
   profileFingerprint,
   profileRulePath,
   renderProfileRule,
+  semanticRuleKey,
 } from "./render";
 export { buildProfileRules } from "./rules";
 export type {

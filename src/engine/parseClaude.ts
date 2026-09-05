@@ -85,7 +85,6 @@ export function parseClaudeStream(options: {
         result = parsed;
       }
     } catch {
-      continue;
     }
   }
 
