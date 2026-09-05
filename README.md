@@ -69,7 +69,7 @@ Needs [Bun](https://bun.sh). For anything that calls a model, one of `claude`, `
 git clone https://github.com/theonly1me/shadowclone.git
 cd shadowclone
 bun install
-bun run typecheck && bun test
+bun run check
 ```
 
 That is all that runs on `main` today. These land by phase:
@@ -84,7 +84,9 @@ shadowclone forget --all  # wipe                               (Phase 1)
 
 ## Contributing
 
-`CONTRIBUTING.md` has the rules. Short version: small diffs, `bun run typecheck && bun test`, PR body under 250 words.
+`CONTRIBUTING.md` has the rules. Short version: small diffs, `bun run check`, PR body under 250 words.
+
+`SECURITY.md` says what to report privately and how to verify a release download.
 
 Anything touching capture, storage, or egress gets a closer read. `.claude/skills/data-handling/SKILL.md` says what a reviewer checks.
 

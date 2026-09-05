@@ -1,15 +1,25 @@
 {
   "name": "shadowclone",
+  "version": "0.0.0",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
+  "packageManager": "bun@1.3.3",
+  "engines": {
+    "bun": ">=1.3.0"
+  },
   "scripts": {
     "start": "bun run src/index.ts",
     "dev": "bun --hot src/index.ts",
+    "check": "bun run typecheck && bun run lint && bun test",
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run scripts/conventions.ts",
+    "lint:fix": "biome lint --write .",
+    "build": "bun run scripts/build.ts"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.12",
     "@types/bun": "latest",
     "typescript": "^5"
   },
