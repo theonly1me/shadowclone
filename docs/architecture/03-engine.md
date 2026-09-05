@@ -14,7 +14,7 @@ Shadowclone does not have an API key, does not ask for one, and has no server to
 | `anthropic-api` | `ANTHROPIC_API_KEY` if set | none | their key |
 | `openai-compatible` | base URL, covers Ollama | none | none when local |
 
-The last row matters more than its size suggests. Pointing `openai-compatible` at a local Ollama endpoint gives a complete shadowclone that makes no network call at all. That is the answer for anyone whose employer would never allow this otherwise.
+The last row is the zero-egress path. Pointing `openai-compatible` at a local Ollama endpoint gives a complete shadowclone that makes no network call at all. That is the answer for anyone whose employer would never allow this otherwise.
 
 Selection order is Claude Code, then Codex, then Cursor, then a key if one is present, then a configured local endpoint. `shadowclone doctor` prints what was found, what is authenticated, and which one will be used.
 
@@ -74,7 +74,9 @@ claude -p "<task>"
 
 Two flags carry more weight than the rest.
 
-`--session-id` accepts a UUID that becomes the transcript filename under `~/.claude/projects/<slug>/`. This was verified against real transcripts on disk, where filename and the records' `sessionId` field matched in every case checked. Generating the id up front means the clone knows exactly where its own transcript will land, so a clone run is observable by the same pipeline that observes the user. The system learns from itself with no extra machinery.
+`--session-id` accepts a UUID that becomes the transcript filename under `~/.claude/projects/<slug>/`. Verified against real transcripts on disk, where filename and the records' `sessionId` field matched in every case checked.
+
+Generating the id up front means the clone knows where its own transcript will land, so a clone run is observable by the same pipeline that observes the user.
 
 `--agents <json>` accepts the same subagent definition that `src/profile/agent.ts` writes to `.claude/agents/`, so a headless run can carry a clone subagent without touching the repo. `02-profile.md` covers the compilation.
 

@@ -18,15 +18,23 @@ Proves: a full ingest completes, a second run is incremental, and a secret plant
 
 Structural derivation and the correction miner. `shadowclone learn` prints the profile to the terminal and writes it to `~/.shadowclone/profile/`. Zero model calls in this phase, and the first line of output says so.
 
-Proves: the output surprises its own author. This is the quality bar for the whole project. Run it on the real 562 MB corpus and read it with fresh eyes. A profile that says "runs tests, uses plan mode, prefers Bun" is something a good engineer writes in five minutes and nobody shares. A profile that names what you interrupt the agent for, in order, with counts, is something nobody has seen. The extractors get tuned until the second one is true, and later phases are built in parallel rather than waiting, because every one of them consumes the profile and none of them improves it.
+Proves: the output surprises its own author. This is the quality bar for the whole project.
+
+Run it on the real 562 MB corpus and read it. A profile that says "runs tests, uses plan mode, prefers Bun" is something a good engineer writes in five minutes. A profile that names what you interrupt the agent for, in order, with counts, is something nobody has seen. Tune the extractors until it is the second one.
+
+Later phases build in parallel rather than waiting. They consume the profile and none of them improves it.
 
 Also in this phase, the replay eval. Take a past session, hand its first prompt to an engine with the profile loaded, and compare what the clone did with what the user did: tools chosen, verification ritual, files touched, plan before edit. Score it. The corpus is 372 ground-truth test cases and they cost nothing. This is what turns "acts like you" from a claim into a number in the README.
 
 ## Phase 3, the clone inside your session
 
-`.claude-plugin/` with a `SessionEnd` hook and an MCP server that loads the user's own profile into their own live Claude Code sessions. `src/profile/agent.ts` compiles the profile into a `.claude/agents/<name>.md` subagent, so the main session can dispatch copies of the user onto subtasks in parallel. The engine module lands here too, since the hook needs the Claude Code runner for `learn --deep`.
+`.claude-plugin/` with a `SessionEnd` hook and an MCP server that loads the profile into the user's live Claude Code sessions. `src/profile/agent.ts` compiles the profile into a `.claude/agents/<name>.md` subagent, so the session can dispatch copies of the user in parallel.
 
-Proves: install is one command, a normal session gets the user's conventions with no manual step, and `Agent(subagent_type: "<name>")` dispatches a copy of the user from inside that session. This is the first phase where shadowclone is a clone rather than a profile. This is where daily value and retention come from, because the user feels the difference the same day in work they were already doing, and it is the first thing that runs before any clone has ever been trusted.
+The engine module lands here too, since the hook needs the Claude Code runner for `learn --deep`.
+
+Proves: install is one command, a normal session gets the user's conventions with no manual step, and `Agent(subagent_type: "<name>")` dispatches a copy of the user from inside that session.
+
+This is the first phase where shadowclone is a clone rather than a profile, and the first thing that runs before any clone has been trusted.
 
 ## Phase 4, the clone while you are away
 

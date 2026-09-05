@@ -41,13 +41,17 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 
 ## Why agent transcripts
 
-The first version of this project read `~/.zsh_history`. That was the wrong input and the mistake is worth recording, because it is the mistake most "learn from the user" tools make.
+The first version of this project read `~/.zsh_history`. That was the wrong input.
 
-Shell history records what a person typed into a terminal. It shows `git status`, `bun test`, and a lot of `cd`. It does not show why they chose an approach, what they rejected, how they verify work before calling it done, or what they refuse to let an agent do. Most people are not heavy terminal users, so for most people the file is close to empty. Nothing in it teaches a clone to act like its owner.
+Shell history records what a person typed. It shows `git status`, `bun test`, and a lot of `cd`. It does not show why they chose an approach, what they rejected, how they verify work, or what they refuse to let an agent do.
 
-Agent transcripts record the opposite. They are a turn by turn recording of a person steering an agent, which is exactly the job the clone has to do. On the development machine this was designed against, `~/.claude/projects/` holds 372 transcripts, 562 MB, 175,218 records and 43,022 tool calls across 30 active days. `~/.claude/history.jsonl` holds 742 prompts in the user's own words. `~/.codex/sessions/` holds the same thing for Codex.
+Most people are not heavy terminal users, so for most people the file is close to empty.
 
-Every Claude Code and Codex user is producing that corpus right now and nothing reads it. It is the highest quality behavioral data on the machine and it is free.
+Agent transcripts record the opposite: a turn by turn recording of a person steering an agent, which is the job the clone has to do.
+
+On the machine this was designed against, `~/.claude/projects/` holds 372 transcripts, 562 MB, 175,218 records and 43,022 tool calls across 30 active days. `~/.claude/history.jsonl` holds 742 prompts in the user's own words. `~/.codex/sessions/` holds the same for Codex.
+
+Every Claude Code and Codex user is producing that corpus and nothing reads it.
 
 ## Why the user's own subscription
 
@@ -55,7 +59,7 @@ Shadowclone calls no model API of its own. It shells out to `claude`, `codex`, o
 
 This is a product decision before it is a technical one. Asking a new user to paste an API key is the single largest drop off in a local AI tool, and it puts the maintainer on the hook for other people's inference bills. Driving the installed CLI removes both. If you can run `claude`, you can run shadowclone.
 
-It also produces the clearest privacy statement the project can make. Shadowclone sends nothing anywhere your own agent is not already sending it, under your own account, on your own plan. `03-engine.md` covers the abstraction and the fallbacks, including a fully local path through Ollama for people who want zero egress.
+It also gives the privacy statement: shadowclone sends nothing anywhere your own agent is not already sending it, under your own account. `03-engine.md` covers the abstraction and the fallbacks, including a fully local path through Ollama for people who want zero egress.
 
 ## What is settled and what is not
 
