@@ -12,6 +12,12 @@ A clone that only observes is a diary. The point is work getting done while its 
 
 **Act** changes state someone else can observe. Pushing, opening a PR, replying to a review, commenting on an issue. This tier is gated, and the gate is per repo rather than per session.
 
+## Two ways a clone runs
+
+**As a subagent, inside the user's own session.** The profile compiles to `.claude/agents/<name>.md`, and the main session dispatches copies of the user onto subtasks with the `Agent` tool, several at once. The user is present, the session's permission mode applies, and every action is visible in the transcript being written. This is the primary way clones spawn, because it composes with the tool already open and needs no worktree, no policy resolution, and no receipt. It is also where the multiplier lives, since one person does one thing at a time and ten subagents do ten.
+
+**Headless, in a worktree.** `shadowclone run` for work that happens while the user is away. This is the path the rest of this document governs, because nobody is watching it.
+
 ## The policy
 
 Full delegation is the goal and an empty allowlist is the default. A fresh install can produce a branch and a commit in a worktree and nothing else, on any repo, with no configuration.
