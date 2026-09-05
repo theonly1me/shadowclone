@@ -62,8 +62,7 @@ function isProfileRule(value: unknown): value is ProfileRule {
     typeof value.lastSeen === "string" &&
     "sessions" in value &&
     typeof value.sessions === "number" &&
-    origins !== null &&
-    origins.every((origin) => typeof origin === "string")
+    origins?.every((origin) => typeof origin === "string") === true
   );
 }
 
