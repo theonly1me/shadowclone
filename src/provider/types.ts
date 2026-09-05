@@ -45,8 +45,7 @@ export type ProviderId = (typeof providerIds)[number];
 
 function supportsDistillation(engine: ProviderEngine | null): boolean {
   return (
-    engine !== null &&
-    engine.implemented &&
+    engine?.implemented === true &&
     engine.capabilities.structuredOutput !== "none" &&
     engine.capabilities.isolatedNoTools
   );
