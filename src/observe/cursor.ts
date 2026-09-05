@@ -30,14 +30,16 @@ async function getLineBoundaries(options: {
   readonly sourcePath: string;
   readonly cursor: FileCursor | null;
 }): Promise<CursorRead<LineBoundaries> | null> {
-  let fileStats;
-  try {
-    fileStats = await stat(options.sourcePath);
-  } catch (error) {
-    if (isMissingFile(error)) {
-      return null;
-    }
-    throw error;
+  const fileStats = await stat(options.sourcePath).catch(
+    (error: unknown): null => {
+      if (isMissingFile(error)) {
+        return null;
+      }
+      throw error;
+    },
+  );
+  if (fileStats === null) {
+    return null;
   }
 
   const modifiedAt = fileStats.mtimeMs;
