@@ -76,6 +76,8 @@ Two flags carry more weight than the rest.
 
 `--session-id` accepts a UUID that becomes the transcript filename under `~/.claude/projects/<slug>/`. This was verified against real transcripts on disk, where filename and the records' `sessionId` field matched in every case checked. Generating the id up front means the clone knows exactly where its own transcript will land, so a clone run is observable by the same pipeline that observes the user. The system learns from itself with no extra machinery.
 
+`--agents <json>` accepts the same subagent definition that `src/profile/agent.ts` writes to `.claude/agents/`, so a headless run can carry a clone subagent without touching the repo. `02-profile.md` covers the compilation.
+
 `--append-system-prompt-file` injects the compiled profile without replacing Claude Code's own system prompt, so the clone keeps its normal competence and gains the user's habits on top. Replacing the system prompt with `--system-prompt-file` produces a worse agent that sounds more like the user, which is the wrong trade.
 
 The terminal `result` message carries `session_id`, `total_cost_usd`, `duration_ms`, `duration_api_ms`, `num_turns`, `is_error`, `modelUsage`, and `permission_denials`. Everything `EngineRun` needs is in one message, so the stream parser only has to buffer text blocks and wait for `result`.

@@ -54,6 +54,8 @@ Distillation input is an allowlist. Eligible: the user's own prompts, plan and q
 
 Managed policy is read from `/Library/Application Support/shadowclone/managed.json` on macOS and `/etc/shadowclone/managed.json` on Linux, both root owned, before any user config. Every field is a ceiling rather than a default, so user config can be more restrictive and never less. `enabled: false` is a hard stop, `distillation: "local-only"` permits only the Ollama engine, and `maxActionTier: "draft"` removes push and pull request capability regardless of any repo allowlist.
 
+The profile also compiles into a Claude Code subagent definition, written to `.claude/agents/<name>.md` for live sessions or passed as `--agents <json>` on a headless run. A session that has it can dispatch copies of the user onto subtasks with the `Agent` tool, several at once, under the session's own permission mode and with the user present. This is the primary way clones spawn. Headless dispatch remains for work done while the user is away.
+
 Dispatch resolves a per repo policy, creates a worktree at `~/.shadowclone/worktrees/<runId>` on branch `shadowclone/<slug>`, runs the engine with the policy expressed as `--allowedTools`, `--disallowedTools`, `--permission-mode`, and `--max-budget-usd`, and writes a receipt. A capability the policy withholds is removed from the tool list rather than left available behind a prompt. The allowlist ships empty for every repo, so the default ceiling is a branch and a commit.
 
 ## Files
@@ -76,6 +78,7 @@ Dispatch resolves a per repo policy, creates a worktree at `~/.shadowclone/workt
 | `src/distiller.ts` | Deleted. |
 | `src/profile/` | New. Read, render, parse, and compile the profile. |
 | `src/profile/scope.ts` | New. Origin tagging, automatic promotion, and per session rule selection. |
+| `src/profile/agent.ts` | New. Compiles the profile into a `.claude/agents/<name>.md` subagent definition, also emitted as `--agents` JSON. |
 | `src/distill/eligible.ts` | New. The allowlist of event kinds that may be distilled. |
 | `src/vault.ts` | Deleted. The empty stub is replaced by `src/profile/`. |
 | `src/engine/` | New. One interface, five implementations, plus detection. |
@@ -193,6 +196,8 @@ Events carry `TextRef` pointers instead of strings, because it converts the egre
 The index is SQLite and the profile is markdown, because the index is a rebuildable cache and the profile is the thing the user has to be able to read in order to consent to it.
 
 Clone runs happen in a git worktree with a pinned `--session-id`, because it keeps the user's working tree untouched and makes the clone's own transcript findable by the pipeline that reads the user's.
+
+Clones spawn primarily as subagents inside the user's own session, because it composes with the tool already open, needs no worktree or receipt, the user is present, and parallel subagents are where the multiplier lives.
 
 Delegation is per repo with an empty default allowlist, because the repo where autonomy is useful and the repo where it is career limiting are usually on the same machine.
 
