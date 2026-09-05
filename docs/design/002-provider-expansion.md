@@ -63,7 +63,7 @@ Antigravity adds an off-by-default `antigravity` source. The adapter first reads
 
 The registry records Antigravity's native structured output and missing isolated no-tools, budget, granular tool policy, and caller session controls. No runner or authentication probe ships in this phase. `--sandbox` restricts terminal commands but does not override global file, web, or MCP allow rules, so an empty workspace cannot make distillation safe. A later runner must use stdin, ignore tool output, and permanently forbid `--dangerously-skip-permissions`, but it does not land until the CLI can enforce a per-run deny-all policy without editing global settings.
 
-After Antigravity, each provider lands in its own stacked PR. The initial order is Gemini CLI, GitHub Copilot CLI, OpenCode, Aider, and Amp. Goose, Amazon Q or Kiro, Windsurf, Cline, and newly verified CLIs remain in the qualified backlog.
+After Antigravity, each provider lands in its own stacked PR. The initial order is GitHub Copilot CLI, OpenCode, Aider, and Amp. Gemini CLI is excluded because Antigravity supersedes it. Goose, Amazon Q or Kiro, Windsurf, Cline, and newly verified CLIs remain in the qualified backlog.
 
 A provider qualifies when its integration can prove all applicable claims:
 
