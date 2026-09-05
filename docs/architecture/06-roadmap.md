@@ -62,6 +62,22 @@ The Codex adapter and engine, then Cursor. Codex is a parser. Cursor is a differ
 
 Cursor required the approved evolution of `TextRef` from a file range into a file-or-SQLite pointer and a disposable index rebuild. Provider events still required no changes to `signal` or `profile`; `distill` only changed pointer identity handling and retains the same eligibility policy. This is also the hedge against a single vendor shipping the Claude-only version natively, so it is earlier than it would otherwise be.
 
+## Phase 6, provider capabilities and Antigravity
+
+Status: planned in `docs/design/002-provider-expansion.md`.
+
+Add the static provider capability registry, purpose-aware engine selection, and separate observe, distill, and dispatch support reporting. Add Antigravity's off-by-default generated-log adapter and headless engine without live-daemon scraping, plaintext sidecars, global-settings edits, or permission bypass flags.
+
+Proves: adding a provider cannot overstate its security controls, and Antigravity can join observation and distillation without being falsely advertised for dispatch.
+
+## Phase 7, verified provider breadth
+
+One stacked PR per provider, initially Gemini CLI, GitHub Copilot CLI, OpenCode, Aider, and Amp. Goose, Amazon Q or Kiro, Windsurf, Cline, and newly verified transcript-producing CLIs follow the same qualification gate.
+
+Each provider may ship observation, distillation, and dispatch independently. A provider with no local transcript stays out of observation. A provider with no enforceable no-tools mode stays out of distillation. A provider with no enforceable budget or granular tool policy stays out of dispatch.
+
+Proves: provider breadth grows by adding registry metadata and boundary implementations rather than weakening the common pipeline.
+
 ## Later, and deliberately not now
 
 **Learning from merge outcomes.** The diff between what a clone wrote and what the user shipped is the strongest correction signal available. It needs clone output good enough to be worth reviewing, so it waits until phase 4 has been used in anger.

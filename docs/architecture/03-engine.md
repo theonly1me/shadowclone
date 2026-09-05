@@ -1,6 +1,6 @@
 # Engine
 
-One interface, two uses, five implementations. `src/engine/` is the only place in the project that causes a model to be called. Distillation uses it and dispatch uses it, which means there is one thing to audit rather than two.
+One interface, two uses, and provider-specific implementations. `src/engine/` is the only place in the project that causes a model to be called. Distillation uses it and dispatch uses it, which means there is one thing to audit rather than two.
 
 ## No key ships
 
@@ -11,14 +11,23 @@ Shadowclone does not have an API key, does not ask for one, and has no server to
 | `claude-code` | Claude Code OAuth, Pro, Max, or Team | none | subscription quota |
 | `codex` | ChatGPT subscription | none | subscription quota |
 | `cursor-agent` | Cursor subscription | none | subscription quota |
+| `antigravity` | Antigravity CLI cached login | none | provider quota |
 | `anthropic-api` | `ANTHROPIC_API_KEY` if set | none | their key |
 | `openai-compatible` | base URL, covers Ollama | none | none when local |
 
 The last row is the zero-egress path. Pointing `openai-compatible` at a local Ollama endpoint gives a complete shadowclone that makes no network call at all. That is the answer for anyone whose employer would never allow this otherwise.
 
-Selection order is Claude Code, then Codex, then Cursor, then a key if one is present, then a configured local endpoint. `shadowclone doctor` prints what was found, what is authenticated, and which one will be used.
+The current selection order is Claude Code, then Codex, then Cursor. Phase 6 makes selection purpose-aware before adding Antigravity. API keys and configured local endpoints remain later work. `shadowclone doctor` prints what was found, what is authenticated, and which providers can support each purpose.
 
 The Claude Code, Codex, and Cursor engines are built. API and local endpoint implementations remain later work, so the detector never claims they are available today.
+
+## Capability registry
+
+Phase 6 replaces selection by authentication alone with a static provider registry. Each provider reports native structured output, caller-selected session ids, dollar budgets, granular tool policy, and isolated no-tools execution independently. Distillation and dispatch derive their requirements before selecting an engine, and a provider missing one requirement is not selected for that purpose.
+
+The registry contains metadata only. It does not inspect transcript paths, probe executables, or grant source consent. Observation, distillation, and dispatch remain three separate support levels.
+
+Antigravity is the first registry-backed engine. Its documented headless mode provides stdin JSON events, `stream-json` output, native `--json-schema`, cached authentication, and request-review permissions. It can support isolated distillation. It cannot support dispatch until per-run budget and granular tool policy can be enforced without editing global settings.
 
 ## Interface
 
@@ -27,6 +36,7 @@ export type EngineId =
   | "claude-code"
   | "codex"
   | "cursor-agent"
+  | "antigravity"
   | "anthropic-api"
   | "openai-compatible";
 
