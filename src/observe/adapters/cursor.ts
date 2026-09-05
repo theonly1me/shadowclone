@@ -35,6 +35,9 @@ export async function observeCursorFile(options: {
     sourcePath: options.sourcePath,
     signature,
   });
+  if (store === null) {
+    return null;
+  }
   const events: AgentEvent[] = [];
   let parentEventId: string | null = null;
   for (const blob of store.blobs) {
