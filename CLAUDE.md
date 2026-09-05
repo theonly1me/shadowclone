@@ -49,7 +49,7 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 
 `docs/design/001-agent-transcript-pivot.md` is the original transcript pivot spec. `docs/architecture/06-roadmap.md` is the order. Phases 0 through 6 are implemented. Build from the design docs.
 
-`docs/design/002-provider-expansion.md` defines provider growth. Phase 6 adds the static capability registry and Antigravity observation. Phase 7 adds one verified CLI provider per stacked PR.
+`docs/design/003-provider-expansion.md` defines provider growth. Phase 6 adds the static capability registry and Antigravity observation. Phase 7 adds one verified CLI provider per stacked PR.
 
 ## The rules that outrank convenience
 
@@ -124,7 +124,7 @@ Spawning a real agent CLI is a manual verification step, never a unit test. The 
 
 - `docs/architecture/` holds the shape of the system and the reasoning behind each decision. `07-enterprise.md` is for whoever approves this at a company, `08-landscape.md` is what already exists elsewhere.
 - `docs/design/001-agent-transcript-pivot.md` moved capture from shell history to agent session transcripts, replaced the API key with the user's own agent CLI subscription, and compiled the profile into a subagent. Phases 0 through 5 implement it.
-- `docs/design/002-provider-expansion.md` adds reviewed provider metadata and one qualified provider at a time. Phase 6 is implemented and Phase 7 is next.
+- `docs/design/003-provider-expansion.md` adds reviewed provider metadata and one qualified provider at a time. Phase 6 is implemented and Phase 7 is next.
 - `docs/design/` holds design docs, one file per change, written against `docs/design/template.md`.
 - `CONTRIBUTING.md` is for humans.
 

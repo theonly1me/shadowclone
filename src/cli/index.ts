@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 
+import packageManifest from "../../package.json";
 import { doctor } from "./doctor";
 import { forgetAll } from "./forget";
 import {
@@ -11,15 +12,28 @@ import { installLiveClone } from "./install";
 import { learn } from "./learn";
 import { runClone } from "./run";
 
+const usage =
+  "Usage: shadowclone <init|learn [--deep]|doctor|install|run <task>|forget --all>";
+
 function printUsage(): void {
-  console.log(
-    "Usage: shadowclone <init|learn [--deep]|doctor|install|run <task>|forget --all>",
-  );
+  console.log(usage);
+}
+
+function printVersion(): void {
+  console.log(packageManifest.version);
 }
 
 async function main(arguments_: readonly string[]): Promise<void> {
   const [command, ...rest] = arguments_;
 
+  if (command === "--help" || command === "-h" || command === "help") {
+    printUsage();
+    return;
+  }
+  if (command === "--version" || command === "-v") {
+    printVersion();
+    return;
+  }
   if (command === "init") {
     await initialize();
     return;
