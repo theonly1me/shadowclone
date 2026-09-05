@@ -30,57 +30,8 @@ jobs:
     if: needs.prepare.outputs.released == 'true' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/ci.yml
 
-  build:
-    needs: [prepare, gate]
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: write
-      id-token: write
-      attestations: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
-      - run: bun install --frozen-lockfile
-
-      - name: Match the tag to the package version
-        if: needs.prepare.outputs.released == 'true'
-        run: |
-          version="$(bun --print 'require("./package.json").version')"
-          tag="${{ needs.prepare.outputs.tag }}"
-          if [ "${tag#v}" != "$version" ]; then
-            echo "tag $tag does not match package.json version $version" >&2
-            exit 1
-          fi
-
-      - run: bun run build
-
-      - name: Run the built linux binary
-        run: dist/linux-x64/shadowclone
-
-      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8
-        with:
-          subject-path: dist/*.tar.gz
-
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: shadowclone-release
-          retention-days: 7
-          path: |
-            dist/*.tar.gz
-            dist/SHA256SUMS.txt
-            dist/npm/**
-
-      - name: Attach the binaries to the release
-        if: needs.prepare.outputs.released == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release upload "${{ needs.prepare.outputs.tag }}" \
-            dist/*.tar.gz dist/SHA256SUMS.txt --clobber
-
   publish:
-    needs: [prepare, build]
+    needs: [prepare, gate]
     if: needs.prepare.outputs.released == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -89,21 +40,26 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          name: shadowclone-release
-          path: dist
-
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
 
-      - name: Publish the npm packages
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+
+      - name: Match the tag to the package version
+        run: |
+          version="$(bun --print 'require("./package.json").version')"
+          tag="${{ needs.prepare.outputs.tag }}"
+          if [ "${tag#v}" != "$version" ]; then
+            echo "tag $tag does not match package.json version $version" >&2
+            exit 1
+          fi
+
+      - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          for platform in darwin-arm64 darwin-x64 linux-x64 linux-arm64; do
-            npm publish "dist/npm/$platform" --access public
-          done
-          npm publish dist/npm/launcher --access public
+        run: npm publish --access public
