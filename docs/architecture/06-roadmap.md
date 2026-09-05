@@ -48,6 +48,8 @@ This is the first phase where shadowclone is a clone rather than a profile, and 
 
 ## Phase 4, the clone while you are away
 
+Status: implementation complete. A real authenticated worktree run remains manual verification.
+
 Worktree, policy, receipt, `shadowclone run`. Ships with every allowlist empty, so the ceiling is a branch and a commit.
 
 Proves: a task produces a worktree, a branch, a commit, and a receipt, with nothing pushed and `actionsBlockedByPolicy` correctly populated. Phase 3 has to have earned trust first, which is why this moved from third to fourth.

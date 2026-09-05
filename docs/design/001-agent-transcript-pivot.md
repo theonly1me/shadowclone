@@ -56,7 +56,7 @@ Managed policy is read from `/Library/Application Support/shadowclone/managed.js
 
 The profile also compiles into a Claude Code subagent definition, written to `.claude/agents/<name>.md` for live sessions or passed as `--agents <json>` on a headless run. A session that has it can dispatch copies of the user onto subtasks with the `Agent` tool, several at once, under the session's own permission mode and with the user present. This is the primary way clones spawn. Headless dispatch remains for work done while the user is away.
 
-Dispatch resolves a per repo policy, creates a worktree at `~/.shadowclone/worktrees/<runId>` on branch `shadowclone/<slug>`, runs the engine with the policy expressed as `--allowedTools`, `--disallowedTools`, `--permission-mode`, and `--max-budget-usd`, and writes a receipt. A capability the policy withholds is removed from the tool list rather than left available behind a prompt. The allowlist ships empty for every repo, so the default ceiling is a branch and a commit.
+Dispatch resolves a per repo policy, creates a worktree at `~/.shadowclone/worktrees/<runId>` on branch `shadowclone/<slug>`, runs the engine with the policy expressed as `--allowedTools`, `--disallowedTools`, `--permission-mode`, and `--max-budget-usd`, and writes a receipt. A capability the policy withholds is removed from the tool list rather than left available behind a prompt. The allowlist ships empty for every repo, so invoking `shadowclone run "<task>"` approves one local worktree, branch, and commit. Remote actions require both a repo ceiling and a matching per-run `--approve`.
 
 ## Files
 

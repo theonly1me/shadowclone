@@ -6,6 +6,11 @@ export type OriginScope = {
   readonly promotable: boolean;
 };
 
+export type RepositoryIdentity = {
+  readonly id: string;
+  readonly origin: OriginScope;
+};
+
 export type CorrectionSignalKind =
   | "interruption"
   | "permission-denied"

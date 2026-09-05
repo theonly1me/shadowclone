@@ -8,9 +8,9 @@ This document sets the ceiling on what a clone may do, in a session and unattend
 
 **Observe and derive** runs unattended with no ceremony. Reading transcripts, mining signals, writing the profile. Nothing leaves the machine except through the engine, under the user's own account.
 
-**Draft** runs unattended. Producing a diff, a commit on a throwaway branch, a message left in a file. Nothing another person can see.
+**Draft** runs unattended. Producing a diff or a message left in a file. Nothing another person can see.
 
-**Act** changes state someone else can observe. Pushing, opening a PR, replying to a review, commenting on an issue. This tier is gated, and the gate is per repo rather than per session.
+**Act** changes state outside the run. Committing, pushing, opening a PR, replying to a review, commenting on an issue. This tier requires explicit approval for the action, bounded by a per-repo ceiling.
 
 ## Two ways a clone runs
 
@@ -20,7 +20,7 @@ This document sets the ceiling on what a clone may do, in a session and unattend
 
 ## The policy
 
-Full delegation is the goal and an empty allowlist is the default. A fresh install can produce a branch and a commit in a worktree and nothing else, on any repo, with no configuration.
+Full delegation is the goal and an empty allowlist is the default. Invoking `shadowclone run "<task>"` explicitly approves one worktree, branch, and local commit for that task. A fresh install can do that and nothing else, on any repo, with no configuration.
 
 ```toml
 [repo."github.com/atchyut/shadowclone"]
@@ -32,9 +32,9 @@ requireCleanExit = true
 allow = []
 ```
 
-Promotion is a deliberate edit to a config file, one repo at a time. There is no global switch that turns delegation on everywhere, because the repo where this is a good idea and the repo where it ends a job are usually on the same laptop.
+Promotion is a deliberate edit to a config file, one repo at a time. The entry is a ceiling, not standing approval. A remote action also needs a matching `--approve` on the individual run. There is no global switch that turns delegation on everywhere, because the repo where this is a good idea and the repo where it ends a job are usually on the same laptop.
 
-`src/dispatch/policy.ts` turns a policy into engine arguments. A repo without `push` in its allowlist does not get a permission prompt about pushing, it gets a `--disallowedTools` entry that removes the capability. Absence of a tool beats a rule about a tool.
+`src/dispatch/policy.ts` intersects repo policy, per-run approval, and the managed action tier to produce engine arguments. A withheld capability becomes a `--disallowedTools` entry rather than a permission prompt. Absence of a tool beats a rule about a tool. The engine never receives wildcard add or commit tools. After a successful run, the dispatcher creates the approved commit with fixed argument vectors.
 
 ## A run
 
@@ -43,8 +43,9 @@ Promotion is a deliberate edit to a config file, one repo at a time. There is no
 3. Compile the profile for this repo into `.compiled.md`.
 4. Generate a run UUID and pass it as `--session-id`, so the clone's transcript is findable.
 5. Run the engine with the policy's tools, permission mode, and budget.
-6. Write `~/.shadowclone/runs/<runId>/receipt.json`.
-7. Leave the worktree in place for review. `shadowclone runs --clean` removes merged and abandoned ones.
+6. Commit a successful change with fixed `git add --all` and `git commit` argument vectors.
+7. Inspect the worktree and write `~/.shadowclone/runs/<runId>/receipt.json`.
+8. Leave the worktree in place for review.
 
 ## The receipt
 

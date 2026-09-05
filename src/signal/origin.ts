@@ -1,6 +1,9 @@
 import path from "node:path";
 import type { IndexedEvent } from "../index";
-import type { OriginScope } from "./types";
+import type {
+  OriginScope,
+  RepositoryIdentity,
+} from "./types";
 
 export type GitRemoteReader = (cwd: string) => Promise<string | null>;
 
@@ -19,21 +22,28 @@ function isolatedOrigin(key: string): OriginScope {
 function remoteParts(remote: string): {
   readonly host: string;
   readonly owner: string;
+  readonly repository: string;
 } | null {
   const trimmed = remote.trim();
   const secureShellMatch = trimmed.match(
-    /^(?:[^@]+@)?([^/:]+):([^/]+)\/.+$/,
+    /^(?:[^@]+@)?([^/:]+):([^/]+)\/(.+)$/,
   );
   if (secureShellMatch) {
-    const [, host, owner] = secureShellMatch;
-    return host && owner ? { host, owner } : null;
+    const [, host, owner, repository] = secureShellMatch;
+    return host && owner && repository
+      ? { host, owner, repository: repository.replace(/\.git$/, "") }
+      : null;
   }
 
   try {
     const parsed = new URL(trimmed);
-    const [owner] = parsed.pathname.split("/").filter(Boolean);
-    return owner
-      ? { host: parsed.hostname, owner: decodeURIComponent(owner) }
+    const [owner, repository] = parsed.pathname.split("/").filter(Boolean);
+    return owner && repository
+      ? {
+          host: parsed.hostname,
+          owner: decodeURIComponent(owner),
+          repository: decodeURIComponent(repository).replace(/\.git$/, ""),
+        }
       : null;
   } catch {
     return null;
@@ -51,6 +61,20 @@ export function normalizeRemoteOrigin(remote: string): OriginScope | null {
   const id = `${host}/${owner}`;
   const directoryName = id.replace(/[^a-z0-9._-]+/g, "--");
   return { id, directoryName, promotable: true };
+}
+
+export function normalizeRemoteRepository(
+  remote: string,
+): RepositoryIdentity | null {
+  const parts = remoteParts(remote);
+  const origin = normalizeRemoteOrigin(remote);
+  if (parts === null || origin === null) {
+    return null;
+  }
+  return {
+    id: `${origin.id}/${parts.repository.toLowerCase()}`,
+    origin,
+  };
 }
 
 function matchesPattern(value: string, pattern: string): boolean {
@@ -139,6 +163,27 @@ export async function resolveCwdOrigin(options: {
   return remote === null
     ? isolatedOrigin(key)
     : normalizeRemoteOrigin(remote) ?? isolatedOrigin(key);
+}
+
+export async function resolveRepository(options: {
+  readonly cwd: string;
+  readonly enabled: boolean;
+  readonly readRemote?: GitRemoteReader;
+}): Promise<RepositoryIdentity> {
+  const readRemote = options.readRemote ?? readGitRemote;
+  const remote =
+    options.enabled && options.cwd.length > 0
+      ? await readRemote(options.cwd)
+      : null;
+  const repository = remote ? normalizeRemoteRepository(remote) : null;
+  if (repository !== null) {
+    return repository;
+  }
+  const origin = await resolveCwdOrigin({
+    cwd: options.cwd,
+    enabled: false,
+  });
+  return { id: origin.id, origin };
 }
 
 export function getEventOrigin(options: {

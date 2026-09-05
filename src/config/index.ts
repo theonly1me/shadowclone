@@ -6,6 +6,7 @@ import {
   readManagedPolicy,
 } from "./managed";
 import type { ManagedPolicy } from "./managed";
+import { renderRepoSettings } from "./repo";
 import {
   defaultConfig,
   parseConfig,
@@ -30,6 +31,12 @@ export {
   type DistillationPolicy,
   type ManagedPolicy,
 } from "./managed";
+export {
+  actionCapabilities,
+  type ActionCapability,
+  type RepoPolicy,
+  type RepoSettings,
+} from "./repo";
 
 export async function readConfig(
   options: { readonly configPath?: string } = {},
@@ -79,6 +86,7 @@ export function renderConfig(config: ShadowcloneConfig): string {
     "",
     "[distillation]",
     `deep = ${config.distillation.deep}`,
+    ...renderRepoSettings(config.repo),
     "",
   ].join("\n");
 }

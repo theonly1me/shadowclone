@@ -1,3 +1,6 @@
+import type { RepoSettings } from "./repo";
+import { parseRepoSettings } from "./repo";
+
 export const sourceIds = [
   "claude-code",
   "claude-prompts",
@@ -23,6 +26,7 @@ export type ShadowcloneConfig = {
   readonly distillation: {
     readonly deep: boolean;
   };
+  readonly repo: RepoSettings;
 };
 
 export const defaultConfig: ShadowcloneConfig = {
@@ -38,6 +42,7 @@ export const defaultConfig: ShadowcloneConfig = {
   distillation: {
     deep: false,
   },
+  repo: {},
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -107,14 +112,14 @@ function parseDistillation(value: unknown): ShadowcloneConfig["distillation"] {
 }
 
 export function parseConfig(value: unknown): ShadowcloneConfig {
+  const keys = ["schema-version", "sources", "distillation"];
+  const keysWithRepositories = [...keys, "repo"];
   if (
     !isRecord(value) ||
-    !hasExactKeys({
-      record: value,
-      keys: ["schema-version", "sources", "distillation"],
-    })
+    (!hasExactKeys({ record: value, keys }) &&
+      !hasExactKeys({ record: value, keys: keysWithRepositories }))
   ) {
-    throw new Error("Config must contain schema-version, sources, and distillation");
+    throw new Error("Config must contain only supported top-level settings");
   }
 
   if (value["schema-version"] !== 1) {
@@ -125,5 +130,6 @@ export function parseConfig(value: unknown): ShadowcloneConfig {
     schemaVersion: 1,
     sources: parseSources(value.sources),
     distillation: parseDistillation(value.distillation),
+    repo: parseRepoSettings(value.repo),
   };
 }
