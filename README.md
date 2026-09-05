@@ -81,13 +81,13 @@ If a secret gets past the redaction, that is the highest-value bug report this p
 Needs one of `claude`, `codex`, or `cursor-agent` installed and logged in for anything that calls a model. No API key.
 
 ```bash
-npm i -g @shadowclone/cli   # or: bun add -g @shadowclone/cli
+npm i -g @shadowclone/cli
 shadowclone doctor
 shadowclone init
 shadowclone learn
 ```
 
-The npm package ships a prebuilt binary for macOS and Linux on both architectures, so Bun is not required. On any other platform it runs from source if Bun is present. Binaries and checksums are also attached to each [release](https://github.com/theonly1me/shadowclone/releases).
+That is the whole install. The package brings its own runtime, so nothing else is required.
 
 Working on shadowclone itself:
 
