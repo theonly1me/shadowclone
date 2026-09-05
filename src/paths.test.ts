@@ -17,6 +17,7 @@ test("holds every user path under the selected home directory", () => {
     indexDatabase: "/Users/example/.shadowclone/index.db",
     profileDirectory: "/Users/example/.shadowclone/profile",
     rejectedProfileFile: "/Users/example/.shadowclone/profile/.rejected",
+    profileManifestFile: "/Users/example/.shadowclone/profile/.generated",
     compiledProfileFile: "/Users/example/.shadowclone/profile/.compiled.md",
     distillDirectory: "/Users/example/.shadowclone/distill",
     worktreesDirectory: "/Users/example/.shadowclone/worktrees",

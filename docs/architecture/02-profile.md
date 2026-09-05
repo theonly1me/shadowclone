@@ -92,7 +92,10 @@ The layout is scoped by the organization a rule was learned from, because a rule
     github.com--atchyut/
       engineering.md
   .rejected
+  .generated
 ```
+
+`.generated` holds rule ids and relative profile paths, never captured text. The writer needs that small manifest to tell a newly discovered rule from one the user deleted. Deleted ids move to `.rejected` and are not proposed again.
 
 | File | Holds |
 | --- | --- |

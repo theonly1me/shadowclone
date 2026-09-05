@@ -34,6 +34,8 @@ Demotion is always available and always wins. A rule in `global/` that the user 
 
 A repo with no git remote is treated as its own isolated origin, never as global. Absence of evidence is not evidence of safety.
 
+Reading the remote is its own off-by-default source named `git-metadata`. Without that consent, every working directory is treated as an isolated origin. Transcript consent alone never causes shadowclone to inspect a repository.
+
 ## 2. Distillation allowlist
 
 The stronger control is not redacting third-party data, it is never reading it.

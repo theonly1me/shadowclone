@@ -3,10 +3,15 @@ export const sourceIds = [
   "claude-prompts",
   "codex",
   "cursor",
+  "git-metadata",
   "shell",
 ] as const;
 
 export type SourceId = (typeof sourceIds)[number];
+
+const legacySourceIds = sourceIds.filter(
+  (sourceId) => sourceId !== "git-metadata",
+);
 
 export type SourceSettings = {
   readonly [Source in SourceId]: boolean;
@@ -27,6 +32,7 @@ export const defaultConfig: ShadowcloneConfig = {
     "claude-prompts": false,
     codex: false,
     cursor: false,
+    "git-metadata": false,
     shell: false,
   },
   distillation: {
@@ -52,7 +58,11 @@ function hasExactKeys(options: {
 }
 
 function parseSources(value: unknown): SourceSettings {
-  if (!isRecord(value) || !hasExactKeys({ record: value, keys: sourceIds })) {
+  if (
+    !isRecord(value) ||
+    (!hasExactKeys({ record: value, keys: sourceIds }) &&
+      !hasExactKeys({ record: value, keys: legacySourceIds }))
+  ) {
     throw new Error("Config sources must contain every supported source and no unknown sources");
   }
 
@@ -60,6 +70,7 @@ function parseSources(value: unknown): SourceSettings {
   const claudePrompts = value["claude-prompts"];
   const codex = value.codex;
   const cursor = value.cursor;
+  const gitMetadata = value["git-metadata"] ?? false;
   const shell = value.shell;
 
   if (
@@ -67,6 +78,7 @@ function parseSources(value: unknown): SourceSettings {
     typeof claudePrompts !== "boolean" ||
     typeof codex !== "boolean" ||
     typeof cursor !== "boolean" ||
+    typeof gitMetadata !== "boolean" ||
     typeof shell !== "boolean"
   ) {
     throw new Error("Every config source setting must be a boolean");
@@ -77,6 +89,7 @@ function parseSources(value: unknown): SourceSettings {
     "claude-prompts": claudePrompts,
     codex,
     cursor,
+    "git-metadata": gitMetadata,
     shell,
   };
 }

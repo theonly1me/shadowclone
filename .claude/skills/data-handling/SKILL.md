@@ -19,6 +19,7 @@ The set of things shadowclone reads is a list the user can see and edit. It is n
 - The source appears in the README's list of what gets read, in the same commit that adds it.
 - Widening an existing source counts as a new source. Reading `~/.bash_history` when you previously read `~/.zsh_history` is a new source. Reading full file contents when you previously read filenames is a new source.
 - Never read a path the user did not opt into to "check whether it exists". Existence is data.
+- Git remote discovery is the `git-metadata` source. Transcript consent never enables it. When disabled, working directories stay isolated and no repository path is opened.
 
 ## Egress: one gate, and it is `redactSecrets`
 

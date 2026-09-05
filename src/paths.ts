@@ -7,6 +7,7 @@ export type ProjectPaths = {
   readonly indexDatabase: string;
   readonly profileDirectory: string;
   readonly rejectedProfileFile: string;
+  readonly profileManifestFile: string;
   readonly compiledProfileFile: string;
   readonly distillDirectory: string;
   readonly worktreesDirectory: string;
@@ -46,6 +47,7 @@ export function createProjectPaths(options: {
     indexDatabase: path.join(shadowcloneDirectory, "index.db"),
     profileDirectory,
     rejectedProfileFile: path.join(profileDirectory, ".rejected"),
+    profileManifestFile: path.join(profileDirectory, ".generated"),
     compiledProfileFile: path.join(profileDirectory, ".compiled.md"),
     distillDirectory: path.join(shadowcloneDirectory, "distill"),
     worktreesDirectory: path.join(shadowcloneDirectory, "worktrees"),

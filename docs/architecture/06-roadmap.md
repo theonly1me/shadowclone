@@ -20,6 +20,8 @@ Proves: a full ingest completes, a second run is incremental, and a secret plant
 
 ## Phase 2, the mirror
 
+Status: implementation complete. Real corpus tuning and engine-backed replay execution remain verification work.
+
 Structural derivation and the correction miner. `shadowclone learn` prints the profile to the terminal and writes it to `~/.shadowclone/profile/`. Zero model calls in this phase, and the first line of output says so.
 
 Proves: the output surprises its own author. This is the quality bar for the whole project.
@@ -29,6 +31,8 @@ Run it on the real 562 MB corpus and read it. A profile that says "runs tests, u
 Later phases build in parallel rather than waiting. They consume the profile and none of them improves it.
 
 Also in this phase, the replay eval. Take a past session, hand its first prompt to an engine with the profile loaded, and compare what the clone did with what the user did: tools chosen, verification ritual, files touched, plan before edit. Score it. The corpus is 372 ground-truth test cases and they cost nothing. This is what turns "acts like you" from a claim into a number in the README.
+
+The pure four-dimension scorer lands with the mirror. Phase 3 connects it to the first engine, since Phase 2 deliberately makes no model calls.
 
 ## Phase 3, the clone inside your session
 

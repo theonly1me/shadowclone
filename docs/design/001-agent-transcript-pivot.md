@@ -91,7 +91,7 @@ Dispatch resolves a per repo policy, creates a worktree at `~/.shadowclone/workt
 
 ## Data handling
 
-Reads: agent transcripts under `~/.claude/projects/`, `~/.claude/history.jsonl`, `~/.codex/sessions/`, `~/.cursor/chats/`, and optionally the shell history files. Every source is opt in with a config flag defaulting to off and a README entry in the same change. A disabled source is not opened, including to check whether it exists.
+Reads: agent transcripts under `~/.claude/projects/`, `~/.claude/history.jsonl`, `~/.codex/sessions/`, `~/.cursor/chats/`, optionally the shell history files, and optionally the local git remote of an observed repository. Every source is opt in with a config flag defaulting to off and a README entry in the same change. Transcript consent does not include git metadata. A disabled source is not opened, including to check whether it exists.
 
 Stores: `~/.shadowclone/` only. The index holds offsets, timestamps, tool names, and event kinds. The profile holds rules written about the user. Neither holds captured text, because events carry pointers rather than strings, so no second copy of any transcript is created anywhere.
 

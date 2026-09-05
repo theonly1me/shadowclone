@@ -10,9 +10,12 @@ Every source is opt-in, named in the config, and listed in the README. The confi
 | `claude-prompts` | `~/.claude/history.jsonl` | off | Prompts in the user's own words |
 | `codex` | `~/.codex/sessions/**/*.jsonl` | off | Date partitioned rollouts |
 | `cursor` | `~/.cursor/chats/**/store.db` | off | Per session SQLite, not JSONL |
+| `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization scope only, never repository contents |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | The original source, kept and demoted |
 
 Reading a path to see whether it exists is reading. Nothing under a disabled source is opened, including an existence check.
+
+`git-metadata` is separate consent because transcript consent does not imply permission to inspect a repository. When it is disabled, each working directory is hashed into its own isolated origin and its rules never promote to global. When enabled, shadowclone asks git for the local remote origin and reads no repository content.
 
 ## The normalized event
 
