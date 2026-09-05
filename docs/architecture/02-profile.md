@@ -36,6 +36,37 @@ The lesson worth keeping: the structured markers the harness already writes are 
 
 The miner runs over the index and emits `Signal` values holding `TextRef` pointers. Text is materialized only inside `src/distill/`, once, redacted, and dropped.
 
+## The mirror
+
+`shadowclone learn` prints before it writes, and what it prints is the product. A developer has never been shown how they actually work with an agent, and the terminal output is where that happens, so its shape is specified here rather than left to whoever writes the CLI.
+
+The block below is a specification of shape, not a result. The session count, size, day count, and the three totals are measured on the development corpus. Every line beneath them is invented to show what a line looks like, and nothing has produced those categories or those numbers yet.
+
+```
+$ shadowclone learn
+
+  Read 372 sessions, 562 MB, 30 active days.   No network calls were made.
+
+  You stop the agent most often when it
+    starts editing before showing a plan .......... 211
+    writes comments ............................... 89
+    runs a broader command than you would ......... 74
+
+  You have refused these tools 445 times
+    Bash(rm *) .................................... 61
+    Bash(git push *) .............................. 44
+
+  When it asked, you chose
+    the smaller diff .............................. 38 of 41
+    plan mode first ............................... 29 of 31
+
+  Profile written to ~/.shadowclone/profile/. Open it. Argue with it.
+```
+
+Four rules govern the output. The first line states the source counts and that no network call was made, and it is only printed when that is true, which it always is for `learn` without `--deep`. Sections are ordered by measured yield, interruptions first, so the strongest signal is what the user reads first. Every line carries a count, because a count is a claim the user can dispute and an adjective is not. Nothing in the output is captured text. Category labels are derived, tool names are tool names, and the one exception is the tool pattern in a denial, which is already a pattern rather than a command.
+
+The output is judged on one question: does it surprise the person it describes. A profile that could have been written from memory in five minutes is not wrong, it is just not worth running, and it is not worth sharing. The extractors are tuned against that question on the real corpus before anything downstream is built.
+
 ## Files
 
 The layout is scoped by the organization a rule was learned from, because a rule learned in an employer's repo must not be injected into a session on someone else's. `07-enterprise.md` covers the boundary in full and this is the shape it produces.
@@ -80,6 +111,18 @@ Never presents work as finished without running `bun run typecheck && bun test` 
 The trailing metadata is HTML comment syntax so it renders as nothing when the file is read as markdown, and parses reliably when the file is read back. This is the one place in the project where a comment is written, and it is data, not commentary.
 
 Provenance is what makes the profile arguable. A rule claiming 47 observations is a claim the user can check and reject, and rejecting it is how the profile improves. `origins` and `scope` are what the compiler reads to decide whether a rule is allowed into a given session, so they are load bearing rather than informational.
+
+## Compiling to a subagent
+
+The profile compiles two ways. Into a system prompt, which `03-engine.md` covers, and into a Claude Code subagent definition, which is how clones get spawned in parallel inside a session the user already has open.
+
+```
+~/.shadowclone/profile/   --compile-->   .claude/agents/<name>.md
+```
+
+`src/profile/agent.ts` writes the subagent file: frontmatter carrying `name`, `description`, `model`, and `tools`, then the compiled profile as the body. Claude Code reads `.claude/agents/*.md` at session start and also accepts the same definition as `--agents <json>` on a headless run. Once it exists, the main session can call `Agent(subagent_type: "<name>")` and get a copy of the user on a subtask, and ten of those on ten tasks is what the project is named after.
+
+Origin scoping applies at compile time here too. The subagent written into a repo's `.claude/agents/` carries `global/` rules plus that repo's organization and nothing else, so a subagent file committed to an employer's repo holds no rule learned anywhere but there.
 
 ## Hand edits survive
 
