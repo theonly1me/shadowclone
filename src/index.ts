@@ -2,7 +2,7 @@ import { getRecentShellHistory } from "./collector";
 import { distillHistory } from "./distiller";
 
 async function main() {
-  console.log("Starting Shadowclone Daemon...");
+  console.log("Starting Shadowclone...");
 
   const history = await getRecentShellHistory({ lineCount: 100 });
 
