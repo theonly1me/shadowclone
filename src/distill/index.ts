@@ -1,5 +1,6 @@
 import type { EngineRunner } from "../engine";
 import type { IndexedEvent } from "../index";
+import { semanticRuleKey } from "../profile";
 import type { ProfileRule } from "../profile";
 import type { CorrectionSignal } from "../signal";
 import {
@@ -14,6 +15,7 @@ import {
   distillationOutputSchema,
   parseDistilledRules,
 } from "./schema";
+import { mergeDistilledRules } from "./merge";
 import { allowlistedSignals } from "./eligible";
 
 export { buildDistillPrompt, groupDistillBatches } from "./batch";
@@ -50,10 +52,7 @@ function profileRules(options: {
     ...options.signals.map((signal) => signal.timestamp),
   );
   return parseDistilledRules(options.value).map((rule) => {
-    const key = new Bun.CryptoHasher("sha256")
-      .update(`semantic:${rule.title.toLowerCase()}`)
-      .digest("hex")
-      .slice(0, 16);
+    const key = semanticRuleKey(rule.title);
     return {
       ...rule,
       key,
@@ -136,5 +135,33 @@ export async function distillSignals(options: {
     rules.push(...batchRules);
   }
 
-  return { rules, engineRuns };
+  const rulesByOrigin = Map.groupBy(rules, (rule) => rule.originDirectory);
+  const finalRules: ProfileRule[] = [];
+
+  for (const [originDirectory, originRules] of rulesByOrigin.entries()) {
+    if (originRules.length <= 1) {
+      finalRules.push(...originRules);
+      continue;
+    }
+
+    const mergedRaw = await mergeDistilledRules({
+      rules: originRules.map((r) => ({ title: r.title, body: r.body, section: r.section })),
+      runner: options.runner,
+      cwd: options.workingDirectory,
+      maxBudgetUsd: options.maxBudgetUsd,
+    });
+    engineRuns += 1;
+
+    const originSignals = signals.filter(
+      (s) => s.origin.directoryName === originDirectory,
+    );
+    finalRules.push(
+      ...profileRules({
+        value: { rules: mergedRaw },
+        signals: originSignals,
+      }),
+    );
+  }
+
+  return { rules: finalRules, engineRuns };
 }

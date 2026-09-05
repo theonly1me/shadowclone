@@ -1,5 +1,4 @@
 import type { IndexedEvent } from "../index";
-import { getEventOrigin } from "../signal";
 import type {
   CorrectionSignal,
   OriginScope,
@@ -81,29 +80,6 @@ function signalObservations(
   });
 }
 
-function structuralObservations(options: {
-  readonly events: readonly IndexedEvent[];
-  readonly origins: ReadonlyMap<string, OriginScope>;
-}): readonly RuleObservation[] {
-  const toolEvents = options.events.filter((event) => event.tool !== null);
-  const totals = Map.groupBy(toolEvents, (event) =>
-    getEventOrigin({ event, origins: options.origins }).id
-  );
-  return toolEvents.map((event) => {
-    const origin = getEventOrigin({ event, origins: options.origins });
-    const toolName = event.tool?.name ?? "unknown";
-    return {
-      key: stableKey(`tool-use:${toolName}`),
-      title: `Uses ${toolName} in agent sessions`,
-      body: `The \`${toolName}\` tool is part of the regular workflow.`,
-      section: "engineering",
-      origin,
-      timestamp: event.timestamp,
-      sessionId: event.sessionId,
-      opportunities: totals.get(origin.id)?.length ?? 1,
-    };
-  });
-}
 
 function aggregateRule(options: {
   readonly observations: readonly RuleObservation[];
@@ -152,10 +128,7 @@ export function buildProfileRules(options: {
   readonly signals: readonly CorrectionSignal[];
   readonly origins: ReadonlyMap<string, OriginScope>;
 }): readonly ProfileRule[] {
-  const observations = [
-    ...signalObservations(options.signals),
-    ...structuralObservations(options),
-  ];
+  const observations = signalObservations(options.signals);
   const rules: ProfileRule[] = [];
 
   for (const matching of Map.groupBy(observations, (value) => value.key).values()) {

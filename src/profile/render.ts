@@ -7,6 +7,13 @@ export function profileFingerprint(value: string): string {
     .slice(0, 16);
 }
 
+export function semanticRuleKey(title: string): string {
+  return new Bun.CryptoHasher("sha256")
+    .update(`semantic:${title.toLowerCase()}`)
+    .digest("hex")
+    .slice(0, 16);
+}
+
 export function profileRulePath(rule: ProfileRule): string {
   return rule.scope === "global"
     ? `global/${rule.section}.md`
