@@ -3,8 +3,6 @@ import type { CorrectionSignal } from "../signal";
 
 const eligibleKinds = new Set<IndexedEvent["kind"]>([
   "user-prompt",
-  "assistant-text",
-  "tool-call",
   "plan-presented",
   "plan-resolved",
   "question-asked",
@@ -29,17 +27,28 @@ export function allowlistedSignals(options: {
   readonly signals: readonly CorrectionSignal[];
   readonly events: readonly IndexedEvent[];
 }): readonly CorrectionSignal[] {
-  const eligibleReferences = new Set(
+  const independentlyEligibleReferences = new Set(
     options.events.flatMap((event) =>
       isEligibleForDistillation(event) && event.textRef
         ? [referenceKey(event.textRef)]
         : [],
     ),
   );
+  const assistantReferences = new Set(
+    options.events.flatMap((event) =>
+      event.kind === "assistant-text" && event.textRef
+        ? [referenceKey(event.textRef)]
+        : [],
+    ),
+  );
   return options.signals.map((signal) => ({
     ...signal,
-    textRefs: signal.textRefs.filter((ref) =>
-      eligibleReferences.has(referenceKey(ref))
-    ),
+    textRefs: signal.textRefs.filter((ref) => {
+      const key = referenceKey(ref);
+      return (
+        independentlyEligibleReferences.has(key) ||
+        assistantReferences.has(key)
+      );
+    }),
   }));
 }
