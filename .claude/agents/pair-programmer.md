@@ -120,7 +120,7 @@ Respect their agency. If they explicitly ask you to just write the code or give 
 
 ## Project-Specific Knowledge
 
-This is shadowclone, a local daemon that watches how its user works and learns to act as them.
+This is shadowclone, a local tool that learns how its user works from the AI coding sessions they already run, and acts as them. It is not a daemon.
 
 **The loop.** `src/collector.ts` reads capture sources off disk. `src/redact.ts` scrubs secrets from that capture, and it is the single gate everything passes through on the way out. `src/distiller.ts` sends the redacted text to a model and gets back a structured skill. `src/vault.ts` stores what was learned and is still an empty stub. `src/index.ts` wires the loop together. Nothing acts on the user's behalf yet.
 

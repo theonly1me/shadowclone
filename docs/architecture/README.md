@@ -1,49 +1,71 @@
 # Architecture
 
-Declarative register, no first person, one paragraph per line, no hard wrapping. `docs/design/template.md` describes the format.
+Shadowclone learns how you work with AI coding agents, then does your work the way you would when you are not there.
+
+It learns from the transcripts your agents already write to disk. It acts by driving the agent CLIs you already pay for. It never holds an API key and it has no server.
+
+## Documents
+
+| File | Covers |
+| --- | --- |
+| `01-capture.md` | What gets read, how it is normalized, how it stays incremental |
+| `02-profile.md` | How raw sessions become a behavioral profile you can read and edit |
+| `03-engine.md` | Driving the user's own agent subscriptions instead of an API key |
+| `04-acting.md` | How a clone runs a task, and the ceiling on what it may do |
+| `05-privacy.md` | The egress gate, retention, consent, and the one-step wipe |
+| `06-roadmap.md` | Build order and what is deliberately not built yet |
+| `07-enterprise.md` | Organization boundaries, and what to hand a security reviewer |
+
+Per-change design docs live in `docs/design/`, one file per change, written against `docs/design/template.md`.
 
 ## The loop
 
 ```
-collect  ->  redact  ->  distill  ->  vault  ->  act
+observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
+                          |                        |            |
+                     zero tokens          user's own subscription
 ```
 
-Shadowclone observes the user, turns what it observed into something reusable, keeps it, and eventually uses it. Each stage is a module with one job, and the boundary between capture and everything downstream is the one that carries a security property rather than just a design preference.
+| Stage | Module | What it does |
+| --- | --- | --- |
+| observe | `src/observe/` | Normalizes agent transcripts into one event stream |
+| index | `src/index/` | A rebuildable SQLite cache of pointers and skeletons |
+| signal | `src/signal/` | Derives behavior in pure code, no model, no network |
+| distill | `src/distill/` | Turns high signal moments into written rules |
+| profile | `src/profile/` | Plain markdown you can read, edit, and diff |
+| dispatch | `src/dispatch/` | Runs a task in a worktree and leaves a receipt |
+| engine | `src/engine/` | The one way a model gets called, by any stage |
 
-## Stages
+`src/cli/` is the only place that knows about more than one stage. Stage modules depend downward and never sideways, which is what keeps the egress path auditable by reading one file.
 
-**Collect.** `src/collector.ts` reads capture sources off disk and returns text. Today the sources are `~/.zsh_history` and `~/.bash_history`, and `getRecentShellHistory` takes the last `lineCount` lines of each. `historyPaths` is injectable so tests can point it at a fixture, and `defaultHistoryPaths` is what production uses. The function has one exit, and that exit is where redaction happens.
+## Why agent transcripts
 
-**Redact.** `src/redact.ts` exports `redactSecrets`, which runs an ordered list of patterns over the text and replaces each match with a labelled placeholder. Order matters. Specific provider patterns run before the generic assignment pattern, so `OPENAI_API_KEY=sk-abc` comes back labelled `llm-api-key` rather than the vaguer `secret-assignment`, and the generic pattern's value class excludes `[` so it cannot redact a placeholder a second time. The gate is deliberately over-eager, because a false positive costs the distiller some context and a false negative sends a credential to a third party.
+The first version of this project read `~/.zsh_history`. That was the wrong input and the mistake is worth recording, because it is the mistake most "learn from the user" tools make.
 
-The single-gate design is the load-bearing decision in this codebase. Redaction sits at the collector boundary rather than at each network call, so there is exactly one place to audit and exactly one place a new capture source has to route through. The cost is that a future source which returns its own value without going through the collector's exit bypasses the gate silently. That cost is accepted, and `src/collector.test.ts` exists to make it loud: a new source ships a test in that shape, exercising the real entry point with a fixture secret.
+Shell history records what a person typed into a terminal. It shows `git status`, `bun test`, and a lot of `cd`. It does not show why they chose an approach, what they rejected, how they verify work before calling it done, or what they refuse to let an agent do. Most people are not heavy terminal users, so for most people the file is close to empty. Nothing in it teaches a clone to act like its owner.
 
-**Distil.** `src/distiller.ts` sends the redacted text to a model with a `zod` schema (`SkillSchema`) and gets back a structured answer: whether a reusable practice was found, a name, a description, and a list of rules. This is the only network call in the project. It uses `generateText` from the `ai` package with `@ai-sdk/openai` and `gpt-5-nano`.
+Agent transcripts record the opposite. They are a turn by turn recording of a person steering an agent, which is exactly the job the clone has to do. On the development machine this was designed against, `~/.claude/projects/` holds 372 transcripts, 562 MB, 175,218 records and 43,022 tool calls across 30 active days. `~/.claude/history.jsonl` holds 742 prompts in the user's own words. `~/.codex/sessions/` holds the same thing for Codex.
 
-**Vault.** `src/vault.ts` is an empty stub. It will store distilled skills so they survive between runs. Nothing is persisted today, so every run starts from nothing and the daemon learns the same things repeatedly.
+Every Claude Code and Codex user is producing that corpus right now and nothing reads it. It is the highest quality behavioral data on the machine and it is free.
 
-**Act.** Not started. No scheduler, no daemon process, no agent loop. `src/index.ts` runs the first three stages once and prints the result.
+## Why the user's own subscription
 
-## Module boundaries
+Shadowclone calls no model API of its own. It shells out to `claude`, `codex`, or `cursor-agent`, which are already installed and already authenticated.
 
-`src/index.ts` is the only file that knows about more than one stage. Each stage imports the one it directly depends on and nothing else, so `distiller.ts` does not know where its text came from and `redact.ts` does not know where its text is going. Keeping those directions one-way is what makes the gate auditable.
+This is a product decision before it is a technical one. Asking a new user to paste an API key is the single largest drop off in a local AI tool, and it puts the maintainer on the hook for other people's inference bills. Driving the installed CLI removes both. If you can run `claude`, you can run shadowclone.
 
-Files stay under 200 lines. When a stage grows past that it becomes a folder with an `index.ts` public surface, rather than a long file that gets split later.
+It also produces the clearest privacy statement the project can make. Shadowclone sends nothing anywhere your own agent is not already sending it, under your own account, on your own plan. `03-engine.md` covers the abstraction and the fallbacks, including a fully local path through Ollama for people who want zero egress.
 
-## Data handling
+## What is settled and what is not
 
-Every rule that governs capture, storage, and egress lives in `.claude/skills/data-handling/SKILL.md`. The four that shape the architecture rather than just the code: sources are opt-in and enumerated, egress passes one gate, storage is local-first and readable by the user in a text editor, and acting on the user's behalf needs approval per action rather than per session.
+Five questions were open in the previous version of this document. Four are now closed.
 
-## Open questions
+**Should the distiller be provider agnostic.** Yes, and `src/engine/` is the abstraction. See `03-engine.md`.
 
-Each of these is genuinely unresolved. What the answer changes is stated, because a question with no consequence is decided rather than open.
+**What is the vault's schema, and is it files or a database.** Both, split by purpose. Plain markdown holds what was learned about the user, because a user who cannot read what was learned about them cannot consent to it. SQLite holds offsets and skeletons, and is declared a disposable cache that can be deleted and rebuilt. See `02-profile.md`.
 
-**Should the distiller be provider-agnostic?** `src/distiller.ts` imports `@ai-sdk/openai` directly and names `gpt-5-nano`. The `ai` package already abstracts providers, so swapping is a small change today and a large one after several call sites exist. The answer decides whether a local model is a supported configuration, which matters more here than in most projects, since a daemon that reads your shell history is more defensible when it can run without sending anything anywhere.
+**What triggers the clone.** A CLI command, a Claude Code `SessionEnd` hook, or a long running daemon, in that order of arrival. Incremental cursors make all three cheap. See `01-capture.md`.
 
-**What is the vault's schema, and is it files or a database?** Plain files can be opened in an editor by the user, which is most of the argument for keeping the vault local at all. `bun:sqlite` gives querying, which matters once the act stage needs to find the right skill for a situation. The answer decides whether deduplication is a filename property (hash the skill, let the filesystem collapse duplicates) or a query.
+**How does the act stage get its capabilities.** It does not get capabilities of its own. It borrows the agent CLI's tools and narrows them with a per repo policy. See `04-acting.md`.
 
-**What triggers the clone?** A cron-style schedule, a file watcher on the history files, an explicit invocation, or a long-running process. The answer decides whether capture is incremental (track a cursor into the history file) or always re-reads the last N lines and tolerates re-distilling the same commands.
-
-**How does the act stage get its capabilities?** The tiering in `data-handling` says what needs approval, not how approval is requested or how a capability is described. The answer decides whether the vault stores executable skills or descriptions that something else executes.
-
-**What is the retention window?** Nothing is stored yet, so nothing expires yet. The answer decides whether the wipe command is a directory delete or something that has to understand the schema.
+**What is the retention window.** Still open, and it is now a smaller question than it was, because shadowclone stores pointers rather than copies. See `05-privacy.md`.
