@@ -22,13 +22,13 @@ Proves: the output surprises its own author. This is the quality bar for the who
 
 Also in this phase, the replay eval. Take a past session, hand its first prompt to an engine with the profile loaded, and compare what the clone did with what the user did: tools chosen, verification ritual, files touched, plan before edit. Score it. The corpus is 372 ground-truth test cases and they cost nothing. This is what turns "acts like you" from a claim into a number in the README.
 
-## Phase 3, the fix
+## Phase 3, the clone inside your session
 
 `.claude-plugin/` with a `SessionEnd` hook and an MCP server that loads the user's own profile into their own live Claude Code sessions. `src/profile/agent.ts` compiles the profile into a `.claude/agents/<name>.md` subagent, so the main session can dispatch copies of the user onto subtasks in parallel. The engine module lands here too, since the hook needs the Claude Code runner for `learn --deep`.
 
-Proves: install is one command, a normal session gets the user's conventions with no manual step, and `Agent(subagent_type: "<name>")` works from inside that session. This is where daily value and retention come from, because the user feels the difference the same day in work they were already doing, and it is the first thing that runs before any clone has ever been trusted.
+Proves: install is one command, a normal session gets the user's conventions with no manual step, and `Agent(subagent_type: "<name>")` dispatches a copy of the user from inside that session. This is the first phase where shadowclone is a clone rather than a profile. This is where daily value and retention come from, because the user feels the difference the same day in work they were already doing, and it is the first thing that runs before any clone has ever been trusted.
 
-## Phase 4, the clone
+## Phase 4, the clone while you are away
 
 Worktree, policy, receipt, `shadowclone run`. Ships with every allowlist empty, so the ceiling is a branch and a commit.
 

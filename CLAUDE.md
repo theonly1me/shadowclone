@@ -1,6 +1,6 @@
 # shadowclone
 
-Learns how the user works from the AI coding sessions they already run, then acts as them when they are away. A shadow clone, in the Naruto sense.
+Becomes the user. Learns how they work from the AI coding sessions they already run, then runs as them: a subagent spawned in parallel inside their own Claude Code session, and a headless clone in a worktree when they are away. A shadow clone, in the Naruto sense.
 
 It is not a daemon. The agent CLIs already write their own transcripts to disk, so observation needs no background process. See `docs/architecture/06-roadmap.md` for why a daemon is deferred.
 
@@ -9,32 +9,50 @@ It is not a daemon. The agent CLIs already write their own transcripts to disk, 
 Two skills in `.claude/skills/` are not optional.
 
 - **`clean-code`** loads before you write or edit any code, test, doc, or comment. Every task.
-- **`data-handling`** loads before you touch capture, storage, or anything that makes a network call. This project reads the user's shell history, which holds their API keys and their employer's hostnames. A mistake here is a leak, not a bug.
+- **`data-handling`** loads before you touch capture, storage, or anything that makes a network call. This project reads the user's AI agent transcripts, which hold their employer's source code, hostnames, and production data, and it acts on the user's behalf. A mistake here is a leak, not a bug.
 
 `scoped-fix` loads when you are changing existing code, which is most of the time.
 
-## The loop
+## What is on `main` today
+
+The first prototype. It is being replaced, not extended.
+
+| File | Does |
+| --- | --- |
+| `src/collector.ts` | reads `.zsh_history` and `.bash_history`, calls `redactSecrets` at its single exit |
+| `src/redact.ts` | the egress gate and its rules |
+| `src/distiller.ts` | sends redacted text to OpenAI through the `ai` SDK |
+| `src/vault.ts` | empty |
+| `src/index.ts` | wires collector to distiller and prints the result |
+
+Say this honestly when asked what works: the prototype captures shell history and distils it end to end. Nothing reads a transcript, builds a profile, or acts.
+
+## What is being built
 
 ```
-collect  ->  redact  ->  distill  ->  vault  ->  act
+observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 ```
 
-| Stage | File | State |
+| Stage | Module | Phase |
 | --- | --- | --- |
-| collect | `src/collector.ts` | reads `.zsh_history` and `.bash_history` |
-| redact | `src/redact.ts` | the single egress gate, called by the collector |
-| distill | `src/distiller.ts` | sends redacted text to a model, returns a structured skill |
-| vault | `src/vault.ts` | empty stub, this is the next thing to build |
-| act | none yet | nothing acts on the user's behalf |
+| observe | `src/observe/` | 1 |
+| index | `src/index/` | 1 |
+| signal | `src/signal/` | 2 |
+| profile | `src/profile/` | 2, subagent compiler in 3 |
+| engine | `src/engine/` | 3 |
+| distill | `src/distill/` | 3 |
+| dispatch | `src/dispatch/` | 4 |
 
-`src/index.ts` wires collect through distill and prints the result. Say this honestly when asked what works: capture and distillation run end to end, storage and acting do not exist yet.
+`docs/design/001-agent-transcript-pivot.md` is the spec, file by file. `docs/architecture/06-roadmap.md` is the order. Phase 0, which adds `src/paths.ts` and `src/config/` and splits `src/redact.ts` into `src/redact/`, is in review. Build from the design doc, not from the prototype.
 
 ## The rules that outrank convenience
 
-- **One egress gate.** `redactSecrets` in `src/redact.ts` is the only thing between captured text and the network. It is called at the collector boundary. Do not add a second one downstream as a safety net, and do not route around it.
-- **Every capture source is opt-in.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. It needs a flag and a README entry in the same change.
-- **Never log raw capture.** Log counts, sizes, hashes, and source names. An error message that interpolates captured text ends up in a crash reporter.
-- **Acting needs per-action approval.** Observing and drafting can run unattended. Anything that sends, posts, commits, pushes, deletes, or spends asks first, every time.
+- **One egress gate.** `redactSecrets` is the only thing between captured text and the network. On `main` it is called at the collector's single exit. The design moves it inside `resolveRedacted`, the only function that turns a `TextRef` into a string, so bypassing it takes a new file reader rather than a forgotten call. That lands with Phase 1, and `.claude/skills/data-handling/SKILL.md` updates in the same change. Never add a second gate downstream as a safety net, and never route around the one that exists.
+- **Every capture source is opt-in.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. It needs a flag defaulting to off and a README entry in the same change. A disabled source is never opened, not even to check whether it exists.
+- **Never distil tool results.** The content of any `tool_result`, file contents from Read, Edit, or Write, thinking blocks, and every data-access result never enter the distillation path. Excluded by category, not redacted. `docs/architecture/07-enterprise.md` says why.
+- **Rules stay inside the organization they were learned from.** A rule carries the git remote it came from and compiles only into sessions on that organization's repos, or into `global/` once seen across two organizations. Never pool across organizations.
+- **Never log raw capture.** Log counts, sizes, hashes, and source names. A transcript path names the user's employer in its slug, so log the source name and the offset instead. An error message that interpolates captured text ends up in a crash reporter.
+- **Acting needs per-action approval.** Observing, deriving, and drafting run unattended. Anything that sends, posts, commits, pushes, deletes, or spends asks first, every time, gated per repo. `bypassPermissions` and `--dangerously-skip-permissions` are never passed at any tier.
 
 `.claude/skills/data-handling/SKILL.md` has the full version and the checks to run before presenting a diff.
 
@@ -42,16 +60,15 @@ collect  ->  redact  ->  distill  ->  vault  ->  act
 
 ```bash
 bun install
-bun run dev          # hot reload loop
-bun run start        # one pass
 bun test             # all tests
 bun test src/redact.test.ts
 bun run typecheck
+bun run start        # the legacy prototype, needs OPENAI_API_KEY in .env, being removed
 ```
 
 `bun run typecheck && bun test` is the gate. Run both on the files you touched before presenting.
 
-Copy `.env.example` to `.env` and add an `OPENAI_API_KEY`. Bun loads `.env` on its own.
+Nothing new depends on `OPENAI_API_KEY`. The engine drives the user's own authenticated agent CLI and holds no key. The prototype's `.env` requirement disappears when `src/distiller.ts` is deleted in Phase 1.
 
 ## Bun, not Node
 
@@ -71,6 +88,7 @@ Copy `.env.example` to `.env` and add an `OPENAI_API_KEY`. Bun loads `.env` on i
 - `WebSocket` is built in. Not `ws`.
 - `Bun.file` over `node:fs` readFile and writeFile.
 - ``Bun.$`ls` `` instead of execa.
+- `Bun.spawn` for the agent CLIs. Not `child_process`.
 
 If a UI ever gets added, use `Bun.serve()` with HTML imports, not Vite. The Bun API docs are in `node_modules/bun-types/docs/**.md`.
 
@@ -84,15 +102,17 @@ test("redacts an api key", () => {
 });
 ```
 
-A test for a capture source proves the wiring, not just the function. `src/redact.test.ts` proves the patterns work. `src/collector.test.ts` proves the collector calls them, and that is the one that catches a real regression. Prove a new test catches its bug by mutating the fix away and watching it go red, per `scoped-fix`.
+A test for a capture source proves the wiring, not just the function. `src/redact.test.ts` proves the patterns work. `src/collector.test.ts` proves the collector calls them, and that is the one that catches a real regression. Every adapter under `src/observe/adapters/` ships the same shape: a fixture transcript with a planted secret, run through the real entry point, asserting the secret is absent. Prove a new test catches its bug by mutating the fix away and watching it go red, per `scoped-fix`.
+
+Spawning a real agent CLI is a manual verification step, never a unit test. The engine is tested against recorded `stream-json` fixtures.
 
 ## Docs
 
-- `docs/architecture/` holds the shape of the system and the reasoning behind each decision.
-- `docs/design/001-agent-transcript-pivot.md` is the active design. It moves capture from shell history to agent session transcripts, and replaces the API key with the user's own agent CLI subscription. It is approved and not yet built, so the table above still describes what runs.
+- `docs/architecture/` holds the shape of the system and the reasoning behind each decision. `07-enterprise.md` is for whoever approves this at a company, `08-landscape.md` is what already exists elsewhere.
+- `docs/design/001-agent-transcript-pivot.md` is the active design. It moves capture from shell history to agent session transcripts, replaces the API key with the user's own agent CLI subscription, and compiles the profile into a subagent. It is approved, Phase 0 is in review, and the rest is not built, so the first table above still describes what runs.
 - `docs/design/` holds design docs, one file per change, written against `docs/design/template.md`.
 - `CONTRIBUTING.md` is for humans.
 
 ## Git
 
-Commit messages are one line, lowercase, conventional-commit prefixed, matching what `git log --oneline` shows. Never add a co-author trailer. Never force push and never amend a commit that is already on the remote.
+Commit messages are one line, lowercase, conventional-commit prefixed, matching what `git log --oneline` shows. Never add a co-author trailer. Never force push and never amend a commit that is already on the remote. Before pushing to a branch that has a pull request, check `gh pr view --json state`. If it is merged, branch from `main` and open a new one.
