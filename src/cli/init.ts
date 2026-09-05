@@ -12,6 +12,7 @@ const captureSources: readonly {
   readonly id: SourceId;
   readonly question: string;
 }[] = [
+  { id: "antigravity", question: "Enable Antigravity CLI transcripts?" },
   { id: "claude-code", question: "Enable Claude Code transcripts?" },
   { id: "claude-prompts", question: "Enable Claude prompt history?" },
   { id: "codex", question: "Enable Codex transcripts?" },

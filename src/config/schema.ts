@@ -2,6 +2,7 @@ import type { RepoSettings } from "./repo";
 import { parseRepoSettings } from "./repo";
 
 export const sourceIds = [
+  "antigravity",
   "claude-code",
   "claude-prompts",
   "codex",
@@ -12,8 +13,12 @@ export const sourceIds = [
 
 export type SourceId = (typeof sourceIds)[number];
 
+const sourceIdsBeforeAntigravity = sourceIds.filter(
+  (sourceId) => sourceId !== "antigravity",
+);
 const legacySourceIds = sourceIds.filter(
-  (sourceId) => sourceId !== "git-metadata",
+  (sourceId) =>
+    sourceId !== "antigravity" && sourceId !== "git-metadata",
 );
 
 export type SourceSettings = {
@@ -32,6 +37,7 @@ export type ShadowcloneConfig = {
 export const defaultConfig: ShadowcloneConfig = {
   schemaVersion: 1,
   sources: {
+    antigravity: false,
     "claude-code": false,
     "claude-prompts": false,
     codex: false,
@@ -66,11 +72,13 @@ function parseSources(value: unknown): SourceSettings {
   if (
     !isRecord(value) ||
     (!hasExactKeys({ record: value, keys: sourceIds }) &&
+      !hasExactKeys({ record: value, keys: sourceIdsBeforeAntigravity }) &&
       !hasExactKeys({ record: value, keys: legacySourceIds }))
   ) {
     throw new Error("Config sources must contain every supported source and no unknown sources");
   }
 
+  const antigravity = value.antigravity ?? false;
   const claudeCode = value["claude-code"];
   const claudePrompts = value["claude-prompts"];
   const codex = value.codex;
@@ -79,6 +87,7 @@ function parseSources(value: unknown): SourceSettings {
   const shell = value.shell;
 
   if (
+    typeof antigravity !== "boolean" ||
     typeof claudeCode !== "boolean" ||
     typeof claudePrompts !== "boolean" ||
     typeof codex !== "boolean" ||
@@ -90,6 +99,7 @@ function parseSources(value: unknown): SourceSettings {
   }
 
   return {
+    antigravity,
     "claude-code": claudeCode,
     "claude-prompts": claudePrompts,
     codex,

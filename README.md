@@ -27,7 +27,7 @@ There is no API key and no server. Model calls go through `claude`, `codex`, or 
 
 Early.
 
-- **Built.** Phases 0 through 5. `shadowclone learn` reads enabled Claude Code, Codex, and Cursor sessions into one offline mirror, `learn --deep` selects an authenticated CLI, the plugin provides a live `shadowclone` subagent, and `shadowclone run` leaves unattended work on a local branch with a receipt.
+- **Built.** Phases 0 through 6. `shadowclone learn` reads enabled Claude Code, Codex, Cursor, and Antigravity sessions into one offline mirror, `learn --deep` selects an authenticated CLI by enforceable capabilities, the plugin provides a live `shadowclone` subagent, and `shadowclone run` leaves unattended work on a local branch with a receipt.
 - **Manual checks.** Real authenticated provider runs, plugin installation, and provider-specific corpus tuning still need to be exercised outside recorded fixtures. API and local endpoint engines remain later work.
 
 `docs/design/001-agent-transcript-pivot.md` is the spec. `docs/architecture/06-roadmap.md` is the order.
@@ -41,7 +41,7 @@ Observe, distill, and dispatch are separate claims. An installed CLI is never ca
 | Claude Code | built | built | built |
 | Codex | built | built | blocked on granular tool and budget controls |
 | Cursor | built | built | blocked on granular tool and budget controls |
-| Antigravity CLI | next | blocked on a per-run deny-all tool policy | blocked on granular tool and budget controls |
+| Antigravity CLI | built | blocked on a per-run deny-all tool policy | blocked on granular tool and budget controls |
 | Gemini CLI, Copilot CLI, OpenCode, Aider, Amp | planned, one reviewed provider at a time | capability dependent | capability dependent |
 
 `docs/design/002-provider-expansion.md` defines the qualification gate and the registry that keeps these claims honest.
@@ -54,6 +54,7 @@ This is the first question to ask about a program that reads your agent transcri
 
 | Source | Path | Default | Built today |
 | --- | --- | --- | --- |
+| `antigravity` | `~/.gemini/antigravity-cli/brain/*/.system_generated/logs/transcript_full.jsonl` | off | read only when enabled |
 | `claude-code` | `~/.claude/projects/**/*.jsonl` | off | read only when enabled |
 | `claude-prompts` | `~/.claude/history.jsonl` | off | read only when enabled |
 | `codex` | `~/.codex/sessions/**/*.jsonl` | off | read only when enabled |

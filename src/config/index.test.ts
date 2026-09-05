@@ -47,6 +47,7 @@ test("renders named source settings as TOML", () => {
       "schema-version = 1",
       "",
       "[sources]",
+      "antigravity = false",
       "claude-code = false",
       "claude-prompts = false",
       "codex = false",
@@ -64,13 +65,24 @@ test("renders named source settings as TOML", () => {
 test("migrates an existing config with git metadata disabled", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
   const configPath = path.join(directory, "config.toml");
+  const legacy = renderConfig(defaultConfig)
+    .replace("antigravity = false\n", "")
+    .replace("git-metadata = false\n", "");
+  await Bun.write(configPath, legacy);
+
+  expect((await readConfig({ configPath })).sources["git-metadata"]).toBeFalse();
+});
+
+test("migrates an existing config with Antigravity disabled", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const configPath = path.join(directory, "config.toml");
   const legacy = renderConfig(defaultConfig).replace(
-    "git-metadata = false\n",
+    "antigravity = false\n",
     "",
   );
   await Bun.write(configPath, legacy);
 
-  expect((await readConfig({ configPath })).sources["git-metadata"]).toBeFalse();
+  expect((await readConfig({ configPath })).sources.antigravity).toBeFalse();
 });
 
 test("writes and reads a repository action ceiling", async () => {

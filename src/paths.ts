@@ -12,6 +12,7 @@ export type ProjectPaths = {
   readonly distillDirectory: string;
   readonly worktreesDirectory: string;
   readonly runsDirectory: string;
+  readonly antigravityBrainDirectory: string;
   readonly claudeProjectsDirectory: string;
   readonly claudePromptHistoryFile: string;
   readonly codexSessionsDirectory: string;
@@ -52,6 +53,12 @@ export function createProjectPaths(options: {
     distillDirectory: path.join(shadowcloneDirectory, "distill"),
     worktreesDirectory: path.join(shadowcloneDirectory, "worktrees"),
     runsDirectory: path.join(shadowcloneDirectory, "runs"),
+    antigravityBrainDirectory: path.join(
+      options.homeDirectory,
+      ".gemini",
+      "antigravity-cli",
+      "brain",
+    ),
     claudeProjectsDirectory: path.join(options.homeDirectory, ".claude", "projects"),
     claudePromptHistoryFile: path.join(options.homeDirectory, ".claude", "history.jsonl"),
     codexSessionsDirectory: path.join(options.homeDirectory, ".codex", "sessions"),

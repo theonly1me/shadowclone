@@ -2,6 +2,7 @@ export type EngineId =
   | "claude-code"
   | "codex"
   | "cursor-agent"
+  | "antigravity"
   | "anthropic-api"
   | "openai-compatible";
 

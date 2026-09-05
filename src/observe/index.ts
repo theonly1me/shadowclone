@@ -1,6 +1,10 @@
 import type { ShadowcloneConfig } from "../config";
 import type { ProjectPaths } from "../paths";
 import {
+  discoverAntigravityFiles,
+  observeAntigravityFile,
+} from "./adapters/antigravity";
+import {
   discoverClaudeCodeFiles,
   observeClaudeCodeFile,
 } from "./adapters/claudeCode";
@@ -40,6 +44,21 @@ export async function* observeAll(options: {
   readonly paths: ProjectPaths;
   readonly getCursor: CursorLookup;
 }): AsyncIterable<ObservationBatch> {
+  if (options.config.sources.antigravity) {
+    const sourcePaths = await discoverAntigravityFiles(
+      options.paths.antigravityBrainDirectory,
+    );
+    for (const sourcePath of sourcePaths) {
+      const batch = await observeAntigravityFile({
+        sourcePath,
+        cursor: await options.getCursor(sourcePath),
+      });
+      if (batch !== null) {
+        yield batch;
+      }
+    }
+  }
+
   if (options.config.sources["claude-code"]) {
     const sourcePaths = await discoverClaudeCodeFiles(
       options.paths.claudeProjectsDirectory,

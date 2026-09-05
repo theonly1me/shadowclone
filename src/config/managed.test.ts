@@ -10,6 +10,7 @@ test("managed policy can only narrow user source consent", () => {
   const config = {
     ...defaultConfig,
     sources: {
+      antigravity: true,
       "claude-code": true,
       "claude-prompts": true,
       codex: false,
@@ -28,6 +29,7 @@ test("managed policy can only narrow user source consent", () => {
   const effective = applyManagedPolicy({ config, policy });
 
   expect(effective.sources["claude-code"]).toBeTrue();
+  expect(effective.sources.antigravity).toBeFalse();
   expect(effective.sources["claude-prompts"]).toBeFalse();
   expect(effective.sources["git-metadata"]).toBeFalse();
   expect(effective.distillation.deep).toBeFalse();

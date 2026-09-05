@@ -4,6 +4,19 @@ import {
 } from "../engine";
 import { readManagedPolicy } from "../config";
 import { projectPaths } from "../paths";
+import {
+  getProviderSupport,
+  providerDefinitions,
+} from "../provider";
+
+export function renderProviderSupport(): readonly string[] {
+  return providerDefinitions.map((definition) => {
+    const support = getProviderSupport(definition);
+    return `${definition.id}: observe=${support.observe ? "yes" : "no"}, distill=${
+      support.distill ? "yes" : "no"
+    }, dispatch=${support.dispatch ? "yes" : "no"}`;
+  });
+}
 
 export async function doctor(options: {
   readonly probe?: CommandProbe;
@@ -27,6 +40,7 @@ export async function doctor(options: {
   const allowedEngines =
     policy.distillation === "allowed" ? policy.allowedEngines : [];
   const detection = await detectEngine({
+    purpose: "distill",
     probe: options.probe,
     allowedEngines,
   });
@@ -43,4 +57,8 @@ export async function doctor(options: {
       ? `Selected engine: ${detection.selectedEngine}`
       : "No authenticated engine is available.",
   );
+  console.log("Provider support:");
+  for (const line of renderProviderSupport()) {
+    console.log(line);
+  }
 }

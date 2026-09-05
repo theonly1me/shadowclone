@@ -49,7 +49,7 @@ export type ProviderDefinition = {
 
 The registry is the source of truth for `doctor`, engine selection, support documentation, and capability checks. It never discovers files, reads a source path, probes a binary, or grants consent. `observeAll` still checks the source flag before accessing an adapter or path.
 
-Engine selection takes a purpose and derives requirements before choosing a runner. Distillation requires structured output and an isolated no-tools mode. Dispatch additionally requires every option requested by the resolved repo policy, including session id, budget, and granular allow and deny lists. A provider that cannot enforce one requirement is not selected for that use.
+Engine selection takes a purpose and derives requirements before choosing a runner. Distillation requires structured output and an isolated no-tools mode. Dispatch independently requires every option requested by the resolved repo policy, including session id, budget, and granular allow and deny lists. A provider that cannot enforce one requirement is not selected for that use.
 
 Support is reported at three independent levels:
 
