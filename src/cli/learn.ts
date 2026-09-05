@@ -10,6 +10,8 @@ import {
   ingestSources,
   openEventIndex,
 } from "../index";
+import { initialize } from "./init";
+import { installLiveClone } from "./install";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import {
@@ -31,6 +33,17 @@ export async function learn(options: {
   readonly managedConfigPath?: string | null;
 } = {}): Promise<void> {
   const paths = options.paths ?? projectPaths;
+  const configPath = options.configPath ?? paths.configFile;
+  const configFile = Bun.file(configPath);
+
+  if (!(await configFile.exists())) {
+    if (!process.stdin.isTTY) {
+      throw new Error("No configuration found. Run shadowclone init interactively first.");
+    }
+    console.log("No configuration found. Running shadowclone init...");
+    await initialize({ configPath: options.configPath });
+  }
+
   const { config, policy } = await readEffectiveConfig({
     configPath: options.configPath,
     managedConfigPath:
@@ -105,13 +118,29 @@ export async function learn(options: {
         networkCallsMade = result.engineRuns > 0;
       }
     }
+    const combinedRules = [...structuralRules, ...semanticRules].sort(
+      (left, right) =>
+        right.observations - left.observations ||
+        left.title.localeCompare(right.title),
+    );
     await writeProfile({
       paths,
-      rules: [...structuralRules, ...semanticRules],
+      rules: combinedRules,
     });
     console.log(renderMirror({ report: derived.report, networkCallsMade }));
     if (summary.rescannedFiles > 0) {
       console.log(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
+    }
+
+    try {
+      await installLiveClone({
+        cwd: process.cwd(),
+        paths,
+        configPath: options.configPath,
+        managedConfigPath: options.managedConfigPath,
+        readRemote: options.readRemote,
+      });
+    } catch {
     }
   } finally {
     index.close();
