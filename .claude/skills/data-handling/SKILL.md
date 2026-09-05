@@ -58,10 +58,12 @@ Debugging a collector by printing what it collected is how a secret ends up in a
 The clone acting on the user's behalf is the point of the project, so the boundary has to be explicit rather than a matter of judgment at the call site.
 
 - **Observe and derive.** Reading capture, distilling it, writing to the vault. Runs unattended.
-- **Draft.** Producing a message, a commit, a reply, a file, and leaving it staged for the user. Runs unattended, as long as nothing is sent or committed.
+- **Draft.** Producing a message, diff, reply, or file and leaving it local for the user. Runs unattended, as long as nothing is sent or committed.
 - **Act.** Anything that sends, posts, commits, pushes, deletes, spends, or changes state another person can see. **Requires explicit approval per action.** Not per session, not per category, not a setting the user turned on once. The approval names the specific thing being done.
 
 Approval granted for one action does not extend to the next one, and "the user asked me to handle their email" is not approval to send a particular email.
+
+`shadowclone run "<task>"` names the task and target repository, so that invocation approves one local worktree, branch, and commit. A remote action also requires a repo policy ceiling and a matching `--approve` on that run. Approval never carries into another run.
 
 ## Retention
 

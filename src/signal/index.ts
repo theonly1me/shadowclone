@@ -40,15 +40,18 @@ export type {
   CorrectionSignalKind,
   CountedCategory,
   OriginScope,
+  RepositoryIdentity,
   StructuralSummary,
 } from "./types";
 export {
   getEventOrigin,
   isOriginBlocked,
   normalizeRemoteOrigin,
+  normalizeRemoteRepository,
   readGitRemote,
   resolveCwdOrigin,
   resolveEventOrigins,
+  resolveRepository,
   type GitRemoteReader,
 } from "./origin";
 

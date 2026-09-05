@@ -73,6 +73,25 @@ test("migrates an existing config with git metadata disabled", async () => {
   expect((await readConfig({ configPath })).sources["git-metadata"]).toBeFalse();
 });
 
+test("writes and reads a repository action ceiling", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const configPath = path.join(directory, "config.toml");
+  const config = {
+    ...defaultConfig,
+    repo: {
+      "github.com/acme/platform": {
+        allow: ["push", "pr-draft"] as const,
+        maxBudgetUsd: 2,
+        requireCleanExit: true,
+      },
+    },
+  };
+
+  await writeConfig({ config, configPath });
+
+  expect(await readConfig({ configPath })).toEqual(config);
+});
+
 test("rejects unknown source names instead of silently enabling them", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
   const configPath = path.join(directory, "config.toml");

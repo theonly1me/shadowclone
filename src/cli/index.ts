@@ -9,10 +9,11 @@ import {
 import { initialize } from "./init";
 import { installLiveClone } from "./install";
 import { learn } from "./learn";
+import { runClone } from "./run";
 
 function printUsage(): void {
   console.log(
-    "Usage: shadowclone <init|learn [--deep]|doctor|install|forget --all>",
+    "Usage: shadowclone <init|learn [--deep]|doctor|install|run <task>|forget --all>",
   );
 }
 
@@ -36,6 +37,10 @@ async function main(arguments_: readonly string[]): Promise<void> {
   }
   if (command === "install" && rest.length === 0) {
     await installLiveClone();
+    return;
+  }
+  if (command === "run") {
+    await runClone(rest);
     return;
   }
   if (command === "hook" && rest[0] === "session-end") {

@@ -27,8 +27,8 @@ There is no API key and no server. Model calls go through `claude`, `codex`, or 
 
 Early.
 
-- **Built.** Phases 0 through 3. `shadowclone learn` builds the offline mirror, `learn --deep` distils redacted correction moments through Claude Code, and the plugin loads the scoped profile into live sessions and provides a dispatchable `shadowclone` subagent.
-- **Not started.** The unattended worktree clone and additional providers. Nothing pushes, opens a pull request, or acts outside the current Claude Code permission mode.
+- **Built.** Phases 0 through 4. `shadowclone learn` builds the offline mirror, `learn --deep` distils redacted correction moments through Claude Code, the plugin provides a live `shadowclone` subagent, and `shadowclone run` leaves unattended work on a local branch with a receipt.
+- **Not started.** Codex and Cursor adapters and engines. Claude Code is the only provider that can currently be observed or run.
 
 `docs/design/001-agent-transcript-pivot.md` is the spec. `docs/architecture/06-roadmap.md` is the order.
 
@@ -57,7 +57,7 @@ This is the first question to ask about a program that reads your agent transcri
 
 **What stays in your org.** Every rule is scoped to the git remote it came from when `git-metadata` is enabled. Without that consent, each working directory is an isolated origin that never promotes a rule to global. An admin can disable shadowclone fleet-wide with a root-owned file.
 
-**What it does on your behalf.** The Phase 3 subagent runs inside your current Claude Code session and its permission mode. Learned denials remain advisory until observation can identify the denied action without storing raw tool input. Phase 4 adds unattended worktree runs behind per-repo policy, and `bypassPermissions` is never passed at any tier.
+**What it does on your behalf.** The live subagent runs inside your current Claude Code session and its permission mode. `shadowclone run "<task>"` explicitly approves one local worktree, branch, and commit for that task. A repo allowlist is only a ceiling for remote actions, and each run must also name an action with `--approve`. Learned denials stay advisory until observation can identify the denied action without storing raw tool input. Merge, force push, `bypassPermissions`, and `--dangerously-skip-permissions` are never allowed.
 
 If a secret gets past the redaction, that is the highest-value bug report this project can get. Open an issue with the shape of the string, not the string itself.
 
@@ -74,6 +74,7 @@ bun run cli init
 bun run cli learn
 bun run cli doctor
 bun run cli learn --deep
+bun run cli run "fix the flaky test"
 ```
 
 Add this checkout as a local Claude Code marketplace, then install the plugin:
@@ -85,7 +86,7 @@ Add this checkout as a local Claude Code marketplace, then install the plugin:
 
 Run `shadowclone install` inside a repository before its next Claude Code session. It writes the scoped `.claude/agents/shadowclone.md`. The plugin injects the same profile at session start, refreshes the offline profile at session end, and exposes it through MCP.
 
-`shadowclone run "<task>"` lands in Phase 4.
+The default run creates a worktree and local commit, writes a receipt under `~/.shadowclone/runs/`, and pushes nothing. Remote actions need both a matching `[repo."<host>/<owner>/<repo>"]` allowlist and an explicit per-run `--approve`.
 
 ## Contributing
 
