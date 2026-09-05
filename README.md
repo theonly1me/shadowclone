@@ -81,7 +81,7 @@ If a secret gets past the redaction, that is the highest-value bug report this p
 Needs one of `claude`, `codex`, or `cursor-agent` installed and logged in for anything that calls a model. No API key.
 
 ```bash
-npm i -g @theonly1me/shadowclone   # or: bun add -g @theonly1me/shadowclone
+npm i -g @shadowclone/cli   # or: bun add -g @shadowclone/cli
 shadowclone doctor
 shadowclone init
 shadowclone learn
