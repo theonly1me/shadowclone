@@ -10,6 +10,8 @@ import {
   ingestSources,
   openEventIndex,
 } from "../index";
+import { initialize } from "./init";
+import { installLiveClone } from "./install";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import {
@@ -21,9 +23,19 @@ import type { ProfileRule } from "../profile";
 import { deriveSignals } from "../signal";
 import type { GitRemoteReader } from "../signal";
 
+async function isGitWorkTree(cwd: string): Promise<boolean> {
+  const child = Bun.spawn({
+    cmd: ["git", "-C", cwd, "rev-parse", "--is-inside-work-tree"],
+    stdout: "ignore",
+    stderr: "ignore",
+  });
+  return (await child.exited) === 0;
+}
+
 export async function learn(options: {
   readonly configPath?: string;
   readonly databasePath?: string;
+  readonly targetDirectory?: string;
   readonly paths?: ProjectPaths;
   readonly readRemote?: GitRemoteReader;
   readonly deep?: boolean;
@@ -31,6 +43,17 @@ export async function learn(options: {
   readonly managedConfigPath?: string | null;
 } = {}): Promise<void> {
   const paths = options.paths ?? projectPaths;
+  const configPath = options.configPath ?? paths.configFile;
+  const configFile = Bun.file(configPath);
+
+  if (!(await configFile.exists())) {
+    if (!process.stdin.isTTY) {
+      throw new Error("No configuration found. Run shadowclone init interactively first.");
+    }
+    console.log("No configuration found. Running shadowclone init...");
+    await initialize({ configPath: options.configPath });
+  }
+
   const { config, policy } = await readEffectiveConfig({
     configPath: options.configPath,
     managedConfigPath:
@@ -105,13 +128,37 @@ export async function learn(options: {
         networkCallsMade = result.engineRuns > 0;
       }
     }
+    const combinedRules = [...structuralRules, ...semanticRules].sort(
+      (left, right) =>
+        right.observations - left.observations ||
+        left.title.localeCompare(right.title),
+    );
     await writeProfile({
       paths,
-      rules: [...structuralRules, ...semanticRules],
+      rules: combinedRules,
     });
     console.log(renderMirror({ report: derived.report, networkCallsMade }));
     if (summary.rescannedFiles > 0) {
       console.log(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
+    }
+
+    const targetDirectory = options.targetDirectory ?? process.cwd();
+    if (await isGitWorkTree(targetDirectory)) {
+      try {
+        await installLiveClone({
+          cwd: targetDirectory,
+          paths,
+          configPath: options.configPath,
+          managedConfigPath: options.managedConfigPath,
+          readRemote: options.readRemote,
+        });
+      } catch (error) {
+        console.log(
+          `Skipped installing the live clone: ${
+            error instanceof Error ? error.message : "unknown error"
+          }`,
+        );
+      }
     }
   } finally {
     index.close();

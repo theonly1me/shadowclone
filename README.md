@@ -97,6 +97,21 @@ shadowclone learn
 
 That is the whole install. The package brings its own runtime, so nothing else is required.
 
+### Using your clone
+
+To inject your profile into a project, navigate to the repository and run:
+
+```bash
+shadowclone install
+```
+
+This writes your profile as a subagent (`.claude/agents/shadowclone.md`). Here is how to use it across different editors:
+
+- **Claude Code:** Ask Claude to delegate tasks to your clone. For example: *"Use the Agent tool to spawn a shadowclone subagent to write a unit test."*
+- **Cursor:** Since Cursor's agent dispatch is still in development, you can manually point Cursor to your profile by adding `Include .claude/agents/shadowclone.md in your context` to your `.cursorrules`.
+- **Codex:** Similar to Cursor, reference the generated markdown profile directly in your Codex system prompt instructions until native dispatch is unblocked.
+- **Headless Dispatch:** Run `shadowclone run "<task>"` in your terminal to dispatch a clone in a background worktree (currently defaults to Claude).
+
 Working on shadowclone itself:
 
 ```bash

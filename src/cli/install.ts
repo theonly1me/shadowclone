@@ -1,3 +1,4 @@
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { readEffectiveConfig } from "../config";
 import { projectPaths } from "../paths";
@@ -46,5 +47,18 @@ export async function installLiveClone(options: {
     targetRepo: path.basename(cwd),
   });
   await writeAgent({ targetDirectory: cwd, profile });
+
+  const skillsDirectory = path.join(cwd, ".claude", "skills", "shadowclone");
+  await mkdir(skillsDirectory, { recursive: true });
+  const skillContent = [
+    "---",
+    "name: shadowclone",
+    "description: How to delegate tasks to the shadowclone subagent",
+    "---",
+    "",
+    "When the user asks you to perform a task using shadowclone, or if you believe the task is complex enough to delegate, use the `Agent` tool with `subagent_type: \"shadowclone\"` to spawn a clone.",
+    "Pass the user's request verbatim in the tool prompt."
+  ].join("\n");
+  await Bun.write(path.join(skillsDirectory, "SKILL.md"), skillContent);
   console.log("Installed .claude/agents/shadowclone.md for this repository.");
 }
