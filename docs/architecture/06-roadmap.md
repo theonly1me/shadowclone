@@ -4,17 +4,23 @@ Build order, and what each phase has to prove before the next one starts. A phas
 
 ## Phase 0, foundation
 
+Status: complete.
+
 MIT `LICENSE`. `src/paths.ts` holding every path the project reads or writes. `src/config/` with all sources defaulting to off. `src/redact.ts` becomes `src/redact/` with the rules split out, keeping all twelve existing tests green and unchanged.
 
 Proves: nothing regressed, and there is one place to look for what gets touched on disk.
 
 ## Phase 1, observe and index
 
+Status: implementation complete. Real corpus verification requires explicit source consent.
+
 `AgentEvent`, `TextRef`, `resolveRedacted`, the cursor, the Claude Code adapter, the SQLite index, and `shadowclone learn` doing a real ingest of the local corpus.
 
 Proves: a full ingest completes, a second run is incremental, and a secret planted in a fixture transcript appears nowhere in the index. The wiring test is proved by mutating `resolveRedacted` to return raw bytes and watching it go red.
 
 ## Phase 2, the mirror
+
+Status: mirror implementation complete. The pure replay scorer is built, but executable replay and real corpus tuning remain tracked in issue #14.
 
 Structural derivation and the correction miner. `shadowclone learn` prints the profile to the terminal and writes it to `~/.shadowclone/profile/`. Zero model calls in this phase, and the first line of output says so.
 
@@ -26,7 +32,11 @@ Later phases build in parallel rather than waiting. They consume the profile and
 
 Also in this phase, the replay eval. Take a past session, hand its first prompt to an engine with the profile loaded, and compare what the clone did with what the user did: tools chosen, verification ritual, files touched, plan before edit. Score it. The corpus is 372 ground-truth test cases and they cost nothing. This is what turns "acts like you" from a claim into a number in the README.
 
+The pure four-dimension scorer lands with the mirror. Connecting it to an observed engine run requires behavior extraction that does not store raw tool input, so issue #14 tracks the executable `shadowclone eval` path.
+
 ## Phase 3, the clone inside your session
+
+Status: implementation complete. Local plugin installation and a real authenticated engine run remain manual verification.
 
 `.claude-plugin/` with a `SessionEnd` hook and an MCP server that loads the profile into the user's live Claude Code sessions. `src/profile/agent.ts` compiles the profile into a `.claude/agents/<name>.md` subagent, so the session can dispatch copies of the user in parallel.
 
@@ -38,15 +48,35 @@ This is the first phase where shadowclone is a clone rather than a profile, and 
 
 ## Phase 4, the clone while you are away
 
+Status: implementation complete. A real authenticated worktree run remains manual verification.
+
 Worktree, policy, receipt, `shadowclone run`. Ships with every allowlist empty, so the ceiling is a branch and a commit.
 
 Proves: a task produces a worktree, a branch, a commit, and a receipt, with nothing pushed and `actionsBlockedByPolicy` correctly populated. Phase 3 has to have earned trust first, which is why this moved from third to fourth.
 
 ## Phase 5, more providers
 
+Status: implementation complete. Real Codex and Cursor corpora and authenticated runs remain manual verification.
+
 The Codex adapter and engine, then Cursor. Codex is a parser. Cursor is a different reader, since its chat state is a per session SQLite database rather than JSONL.
 
-Proves: the adapter boundary was real, by a second provider landing without changes to `signal`, `distill`, or `profile`. This is also the hedge against a single vendor shipping the Claude-only version natively, so it is earlier than it would otherwise be.
+Cursor required the approved evolution of `TextRef` from a file range into a file-or-SQLite pointer and a disposable index rebuild. Provider events still required no changes to `signal` or `profile`; `distill` only changed pointer identity handling and retains the same eligibility policy. This is also the hedge against a single vendor shipping the Claude-only version natively, so it is earlier than it would otherwise be.
+
+## Phase 6, provider capabilities and Antigravity
+
+Status: implementation complete. Real Antigravity corpus verification requires explicit source consent.
+
+Add the static provider capability registry, purpose-aware engine selection, and separate observe, distill, and dispatch support reporting. Add Antigravity's off-by-default generated-log adapter. Record its engine capabilities, but do not add a runner while the CLI lacks a per-run deny-all tool policy.
+
+Proves: adding a provider cannot overstate its security controls, and Antigravity can join observation without being falsely advertised for distillation or dispatch.
+
+## Phase 7, verified provider breadth
+
+One stacked PR per provider, initially GitHub Copilot CLI, OpenCode, Aider, and Amp. Gemini CLI is excluded in favor of its Antigravity successor. Goose, Amazon Q or Kiro, Windsurf, Cline, and newly verified transcript-producing CLIs follow the same qualification gate.
+
+Each provider may ship observation, distillation, and dispatch independently. A provider with no local transcript stays out of observation. A provider with no enforceable no-tools mode stays out of distillation. A provider with no enforceable budget or granular tool policy stays out of dispatch.
+
+Proves: provider breadth grows by adding registry metadata and boundary implementations rather than weakening the common pipeline.
 
 ## Later, and deliberately not now
 

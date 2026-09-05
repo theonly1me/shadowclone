@@ -34,6 +34,8 @@ Demotion is always available and always wins. A rule in `global/` that the user 
 
 A repo with no git remote is treated as its own isolated origin, never as global. Absence of evidence is not evidence of safety.
 
+Reading the remote is its own off-by-default source named `git-metadata`. Without that consent, every working directory is treated as an isolated origin. Transcript consent alone never causes shadowclone to inspect a repository.
+
 ## 2. Distillation allowlist
 
 The stronger control is not redacting third-party data, it is never reading it.
@@ -74,6 +76,8 @@ These paths require root to write, so a user cannot grant themselves more than p
 ```
 
 Managed policy is read before user config and every field is a ceiling rather than a default. User config can be more restrictive and never less. `"enabled": false` is a hard stop that no user setting overrides. `"distillation": "local-only"` permits the Ollama engine and forbids every hosted one. `"maxActionTier": "draft"` removes push and pull request capability regardless of any repo allowlist.
+
+Phase 3 implements the root ownership check, source and engine ceilings, distillation ceiling, hard stop, and blocked origin filtering. Phase 4 applies the action tier to unattended dispatch.
 
 `shadowclone doctor` prints the active managed policy and where it was read from, so a user can see what applies to them and an admin can confirm it took effect.
 

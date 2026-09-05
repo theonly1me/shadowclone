@@ -26,14 +26,10 @@ Git 2.5 or later, for `git worktree`. Without it every clone run would have to u
 
 The pipeline becomes `observe -> index -> signal -> distill -> profile -> dispatch`, with `src/engine/` as the single place a model is called and `src/cli/` as the only module aware of more than one stage.
 
-`AgentEvent` carries a `TextRef` of file path, byte offset, and length, and never a string. The only function that turns a `TextRef` into text is `resolveRedacted`, which reads those bytes and passes them through the existing `redactSecrets` before returning. Producing a string is the gate.
+`AgentEvent` carries a `TextRef` pointer and never a string. JSONL sources use a file path, byte offset, and length. Cursor uses a database path, content-addressed blob id, and JSON-field selector so neighboring thinking and tool-result fields stay excluded. The only function that turns either pointer into text is `resolveRedacted`, which selects the eligible text and passes it through the existing `redactSecrets` before returning. Producing a string is the gate.
 
 ```ts
-export type TextRef = {
-  readonly sourcePath: string;
-  readonly byteOffset: number;
-  readonly byteLength: number;
-};
+export type TextRef = FileTextRef | SqliteTextRef;
 
 export function resolveRedacted(options: { ref: TextRef }): Promise<string>;
 ```
@@ -56,7 +52,7 @@ Managed policy is read from `/Library/Application Support/shadowclone/managed.js
 
 The profile also compiles into a Claude Code subagent definition, written to `.claude/agents/<name>.md` for live sessions or passed as `--agents <json>` on a headless run. A session that has it can dispatch copies of the user onto subtasks with the `Agent` tool, several at once, under the session's own permission mode and with the user present. This is the primary way clones spawn. Headless dispatch remains for work done while the user is away.
 
-Dispatch resolves a per repo policy, creates a worktree at `~/.shadowclone/worktrees/<runId>` on branch `shadowclone/<slug>`, runs the engine with the policy expressed as `--allowedTools`, `--disallowedTools`, `--permission-mode`, and `--max-budget-usd`, and writes a receipt. A capability the policy withholds is removed from the tool list rather than left available behind a prompt. The allowlist ships empty for every repo, so the default ceiling is a branch and a commit.
+Dispatch resolves a per repo policy, creates a worktree at `~/.shadowclone/worktrees/<runId>` on branch `shadowclone/<slug>`, runs the engine with the policy expressed as `--allowedTools`, `--disallowedTools`, `--permission-mode`, and `--max-budget-usd`, and writes a receipt. A capability the policy withholds is removed from the tool list rather than left available behind a prompt. The allowlist ships empty for every repo, so invoking `shadowclone run "<task>"` approves one local worktree, branch, and commit. Remote actions require both a repo ceiling and a matching per-run `--approve`.
 
 ## Files
 
@@ -91,7 +87,7 @@ Dispatch resolves a per repo policy, creates a worktree at `~/.shadowclone/workt
 
 ## Data handling
 
-Reads: agent transcripts under `~/.claude/projects/`, `~/.claude/history.jsonl`, `~/.codex/sessions/`, `~/.cursor/chats/`, and optionally the shell history files. Every source is opt in with a config flag defaulting to off and a README entry in the same change. A disabled source is not opened, including to check whether it exists.
+Reads: agent transcripts under `~/.claude/projects/`, `~/.claude/history.jsonl`, `~/.codex/sessions/`, `~/.cursor/chats/`, optionally the shell history files, and optionally the local git remote of an observed repository. Every source is opt in with a config flag defaulting to off and a README entry in the same change. Transcript consent does not include git metadata. A disabled source is not opened, including to check whether it exists.
 
 Stores: `~/.shadowclone/` only. The index holds offsets, timestamps, tool names, and event kinds. The profile holds rules written about the user. Neither holds captured text, because events carry pointers rather than strings, so no second copy of any transcript is created anywhere.
 

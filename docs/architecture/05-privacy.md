@@ -8,7 +8,7 @@ The previous design put `redactSecrets` at the collector's single exit, and `.cl
 
 With one source and one exit, that cost was affordable. With four adapters, a SQLite index, a signal miner, a distiller, an engine, and a dispatcher, a gate that works by everyone remembering to call it is a gate that will be missed. Making it loud is no longer good enough, so it is made impossible instead.
 
-**Events carry pointers, not text.** `AgentEvent.textRef` is a file path, a byte offset, and a length. The only function in the project that turns a `TextRef` into a string is `resolveRedacted` in `src/redact/`, which reads those bytes and passes them through `redactSecrets` before returning.
+**Events carry pointers, not text.** `AgentEvent.textRef` is either a byte range in a transcript or a JSON-field selector for a content-addressed Cursor SQLite blob. The only function in the project that turns either pointer into a string is `resolveRedacted` in `src/redact/`, which selects only the eligible field and passes it through `redactSecrets` before returning.
 
 There is no unredacted path because producing a string is the gate. A future contributor who wants raw text has to add a function that reads a file and returns its contents, which is a reviewable act, not an omission.
 
@@ -19,6 +19,8 @@ This is a deliberate amendment to the rule in `data-handling`, not a second gate
 Shadowclone does not copy transcripts. The index stores offsets, timestamps, tool names, and event kinds. The profile stores rules written about the user, not excerpts from them.
 
 Text is materialized in exactly one place, `src/distill/`, held in memory, redacted, sent through the engine, and dropped. Nothing writes captured text to disk at any point in the pipeline.
+
+Replay evaluation uses the same path. Its first prompt is resolved through `resolveRedacted` inside `src/distill/replay.ts` before the engine receives it.
 
 This makes the retention question much smaller than it was. There is no raw capture store to age out, because there is no raw capture store. What ages is the index, and the index can be deleted at any time with no loss beyond a reingest.
 

@@ -1,6 +1,6 @@
 # Engine
 
-One interface, two uses, five implementations. `src/engine/` is the only place in the project that causes a model to be called. Distillation uses it and dispatch uses it, which means there is one thing to audit rather than two.
+One interface, two uses, and provider-specific implementations. `src/engine/` is the only place in the project that causes a model to be called. Distillation uses it and dispatch uses it, which means there is one thing to audit rather than two.
 
 ## No key ships
 
@@ -11,12 +11,23 @@ Shadowclone does not have an API key, does not ask for one, and has no server to
 | `claude-code` | Claude Code OAuth, Pro, Max, or Team | none | subscription quota |
 | `codex` | ChatGPT subscription | none | subscription quota |
 | `cursor-agent` | Cursor subscription | none | subscription quota |
+| `antigravity` | Antigravity CLI cached login | none | provider quota |
 | `anthropic-api` | `ANTHROPIC_API_KEY` if set | none | their key |
 | `openai-compatible` | base URL, covers Ollama | none | none when local |
 
 The last row is the zero-egress path. Pointing `openai-compatible` at a local Ollama endpoint gives a complete shadowclone that makes no network call at all. That is the answer for anyone whose employer would never allow this otherwise.
 
-Selection order is Claude Code, then Codex, then Cursor, then a key if one is present, then a configured local endpoint. `shadowclone doctor` prints what was found, what is authenticated, and which one will be used.
+Selection is purpose-aware, then follows Claude Code, Codex, and Cursor order among engines that can enforce that purpose. The registry records Antigravity's known limits without adding a runner. API keys and configured local endpoints remain later work. `shadowclone doctor` prints what was found, what is authenticated, and which providers can support each purpose.
+
+The Claude Code, Codex, and Cursor engines are built. Antigravity, API, and local endpoint implementations remain later work, so the detector never claims they are available today.
+
+## Capability registry
+
+The static provider registry reports native structured output, caller-selected session ids, dollar budgets, granular tool policy, and isolated no-tools execution independently. Distillation and dispatch derive separate requirements before selecting an engine, and a provider missing one requirement is not selected for that purpose.
+
+The registry contains metadata only. It does not inspect transcript paths, probe executables, or grant source consent. Observation, distillation, and dispatch remain three separate support levels.
+
+Antigravity is the first provider whose documented engine capabilities are registered before its runner. Its headless mode provides stdin JSON events, `stream-json` output, native `--json-schema`, cached authentication, and request-review permissions. It has no documented per-run deny-all tool policy. `--sandbox` restricts terminal commands but does not override global file, web, or MCP allow rules. Its runner stays unimplemented until isolated distillation can be enforced without editing global settings.
 
 ## Interface
 
@@ -25,6 +36,7 @@ export type EngineId =
   | "claude-code"
   | "codex"
   | "cursor-agent"
+  | "antigravity"
   | "anthropic-api"
   | "openai-compatible";
 
@@ -89,15 +101,26 @@ Permission modes available are `acceptEdits`, `bypassPermissions`, `default`, `d
 ## Codex
 
 ```
-codex exec "<task>" --json --sandbox workspace-write -C <worktree> -m <model>
+codex exec - --json --sandbox read-only -C <worktree> -m <model>
 ```
 
 `-c key=value` sets any config value per invocation, including `model_reasoning_effort`. `--output-schema <FILE>` gives structured output for distillation, matching `--json-schema` on the Claude side. `-o` writes the last message to a file, which is a simpler read than the event stream when only the final answer is wanted.
 
-Codex has its own sandbox, so `--sandbox workspace-write` plus a worktree is defence in depth rather than one layer.
+The prompt stays on stdin rather than the process list. Distillation disables the shell tool, removes configured MCP servers for the run, selects the read-only sandbox, and parses only completed assistant messages. Codex has no dollar-budget or granular tool-list flags, so the runner rejects those options rather than silently weakening them.
+
+## Cursor
+
+```
+cursor-agent --print --output-format stream-json \
+  --sandbox enabled --mode ask --workspace <directory>
+```
+
+Cursor also receives its prompt on stdin. A no-tools distillation run gets an empty temporary workspace whose project policy denies shell, read, write, web, and MCP tools. Ask or plan mode adds another read-only boundary. The terminal `result` event supplies the final text and duration, and tool result events are ignored. Cursor has no caller-selected session id, dollar budget, or arbitrary granular tool-list mapping, so those requests fail before a process starts.
 
 ## Compiled profile
 
 The engine is handed one file, not five. `src/profile/inject.ts` compiles `~/.shadowclone/profile/*.md` into `.compiled.md`: rules above a confidence threshold, ordered by observation count, with provenance comments stripped and any `projects/<repo>.md` matching the target repo appended.
 
 Compilation is where the profile stops being a document and becomes a prompt, so it is a named step with its own file rather than string building inside the runner.
+
+The compiler reads `global/` and exactly one matching organization directory, strips provenance, and places hand-written rules first. The current confidence threshold is zero until the confidence model in the open questions is settled, so compilation does not silently discard a rule the user can see.

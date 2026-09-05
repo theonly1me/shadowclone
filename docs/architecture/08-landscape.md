@@ -32,7 +32,7 @@ Five things none of the above does, each verifiable against the projects named.
 
 ## What to borrow
 
-TRACE settles a design question this project had left to prompt text. Boundaries enforced as checks beat boundaries injected as instructions, by their numbers roughly 2 percent violations against 37 percent. `boundaries.md` should therefore compile into `PreToolUse` hooks that refuse, not only into the system prompt, and that lands in Phase 3 alongside the subagent compiler.
+TRACE shows that boundaries enforced as checks beat boundaries injected as instructions, by their numbers roughly 2 percent violations against 37 percent. Shadowclone cannot apply that result to bare tool-family denials. Until observation stores a privacy-safe action fingerprint that a live hook can reproduce, `boundaries.md` stays advisory in the system prompt rather than blocking every invocation of a tool.
 
 The 20,574 session study's taxonomy, seven forms of misalignment covering how agents read projects, interpret intent, follow rules, bound actions, implement, and report progress, is a better category scheme for the mirror's output than anything invented here. The extractors should label into it.
 
