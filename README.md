@@ -44,7 +44,7 @@ Observe, distill, and dispatch are separate claims. An installed CLI is never ca
 | Antigravity CLI | built | blocked on a per-run deny-all tool policy | blocked on granular tool and budget controls |
 | GitHub Copilot CLI, OpenCode, Aider, Amp | planned, one reviewed provider at a time | capability dependent | capability dependent |
 
-`docs/design/002-provider-expansion.md` defines the qualification gate and the registry that keeps these claims honest.
+`docs/design/003-provider-expansion.md` defines the qualification gate and the registry that keeps these claims honest.
 
 ## Privacy
 
@@ -78,18 +78,25 @@ If a secret gets past the redaction, that is the highest-value bug report this p
 
 ## Quickstart
 
-Needs [Bun](https://bun.sh). For anything that calls a model, one of `claude`, `codex`, or `cursor-agent` logged in. No API key.
+Needs one of `claude`, `codex`, or `cursor-agent` installed and logged in for anything that calls a model. No API key.
+
+```bash
+npm i -g @theonly1me/shadowclone   # or: bun add -g @theonly1me/shadowclone
+shadowclone doctor
+shadowclone init
+shadowclone learn
+```
+
+The npm package ships a prebuilt binary for macOS and Linux on both architectures, so Bun is not required. On any other platform it runs from source if Bun is present. Binaries and checksums are also attached to each [release](https://github.com/theonly1me/shadowclone/releases).
+
+Working on shadowclone itself:
 
 ```bash
 git clone https://github.com/theonly1me/shadowclone.git
 cd shadowclone
 bun install
 bun run check        # typecheck, lint, and tests
-bun run cli init
-bun run cli learn
 bun run cli doctor
-bun run cli learn --deep
-bun run cli run "fix the flaky test"
 ```
 
 Add this checkout as a local Claude Code marketplace, then install the plugin:
