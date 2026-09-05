@@ -21,11 +21,11 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
     "@types/bun": "latest",
-    "typescript": "^5"
+    "typescript": "^7"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^4.0.16",
-    "ai": "^7.0.31",
-    "zod": "^4.4.3"
+    "@ai-sdk/openai": "^4.0.56",
+    "ai": "^7.0.90",
+    "zod": "^4.5.4"
   }
 }
