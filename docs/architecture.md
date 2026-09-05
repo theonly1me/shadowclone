@@ -1,6 +1,6 @@
 # Architecture
 
-Written in the register described in `.claude/skills/write-design-doc/SKILL.md`. One paragraph per line, no hard wrapping.
+Declarative register, no first person, one paragraph per line, no hard wrapping. `docs/design/template.md` describes the format.
 
 ## The loop
 

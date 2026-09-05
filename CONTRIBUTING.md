@@ -49,6 +49,31 @@ The reason for the caps: a PR body written by an AI assistant will happily produ
 
 Using an assistant to help write the PR is fine. Shipping its first draft unedited is not.
 
+### What a bullet looks like
+
+Good. One sentence each, present tense, saying what the code does now:
+
+```markdown
+- Route captured history through `redactSecrets` before it leaves the collector, so a shell history containing an API key no longer reaches the model.
+- Rename the loop variable in `getRecentShellHistory` that shadowed the `node:path` import.
+- Add `src/collector.test.ts`, covering the redaction wiring and the empty-history case.
+```
+
+Bad, and this is the exact thing the caps exist to stop:
+
+```markdown
+- **Enhanced Security Posture**: This PR introduces a comprehensive redaction layer that
+  significantly improves the security of the data pipeline. By leveraging a robust set of
+  regular expression patterns, we can now confidently ensure that sensitive credentials are
+  properly sanitized before egress. This represents a crucial step forward for the project.
+```
+
+That bullet is four sentences, has a bold label, uses leverage, robust, comprehensive, and crucial, and after all of it a reviewer still does not know which function changed.
+
+Some specific things to cut, because they show up in almost every generated body: an opening paragraph restating the title, a closing paragraph summarising the bullets, any sentence about what did **not** change, and any narration of how the work went. Join a change to its consequence with "so" only when the reason is not obvious from the name. "Rename `clientFiles` to `openOrDirtyFiles`" needs no second clause.
+
+If you are over 250 words, delete sentences. Do not compress them into denser ones.
+
 Commit messages are one line, lowercase, with a conventional-commit prefix. Check `git log --oneline`. Do not force push a branch someone has already reviewed.
 
 ## Changes that get a closer read
