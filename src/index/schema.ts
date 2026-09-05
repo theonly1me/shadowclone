@@ -1,6 +1,22 @@
 import type { Database } from "bun:sqlite";
 
+const schemaVersion = 2;
+
+function resetOutdatedSchema(database: Database): void {
+  const version = database
+    .query<{ readonly user_version: number }, []>("PRAGMA user_version")
+    .get()?.user_version;
+  if (version === schemaVersion) {
+    return;
+  }
+  database.exec(`
+    DROP TABLE IF EXISTS events;
+    DROP TABLE IF EXISTS cursors;
+  `);
+}
+
 export function createSchema(database: Database): void {
+  resetOutdatedSchema(database);
   database.exec(`
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
@@ -27,8 +43,7 @@ export function createSchema(database: Database): void {
       tool_use_id TEXT,
       tool_name TEXT,
       is_error INTEGER NOT NULL,
-      text_byte_offset INTEGER,
-      text_byte_length INTEGER
+      text_ref TEXT
     );
 
     CREATE INDEX IF NOT EXISTS events_source_path
@@ -37,5 +52,7 @@ export function createSchema(database: Database): void {
       ON events(source, session_id);
     CREATE INDEX IF NOT EXISTS events_kind
       ON events(kind);
+
+    PRAGMA user_version = ${schemaVersion};
   `);
 }

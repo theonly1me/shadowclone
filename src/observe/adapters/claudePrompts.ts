@@ -4,13 +4,13 @@ import { isRecord, readString, readTimestamp } from "../record";
 import type {
   AgentEvent,
   FileCursor,
+  FileTextRef,
   ObservationBatch,
-  TextRef,
 } from "../types";
 
 function parsePrompt(options: {
   readonly value: unknown;
-  readonly ref: TextRef;
+  readonly ref: FileTextRef;
 }): AgentEvent | null {
   if (!isRecord(options.value)) {
     return null;

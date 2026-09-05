@@ -5,6 +5,14 @@ import {
   observeClaudeCodeFile,
 } from "./adapters/claudeCode";
 import { observeClaudePromptsFile } from "./adapters/claudePrompts";
+import {
+  discoverCodexFiles,
+  observeCodexFile,
+} from "./adapters/codex";
+import {
+  discoverCursorFiles,
+  observeCursorFile,
+} from "./adapters/cursor";
 import { observeShellFile } from "./adapters/shell";
 import type {
   CursorLookup,
@@ -15,10 +23,16 @@ export type {
   AgentEvent,
   AgentEventKind,
   CursorLookup,
+  FileTextRef,
   FileCursor,
   ObservationBatch,
+  SqliteTextRef,
   TextRef,
   ToolCall,
+} from "./types";
+export {
+  parseTextRef,
+  textRefKey,
 } from "./types";
 
 export async function* observeAll(options: {
@@ -49,6 +63,36 @@ export async function* observeAll(options: {
     });
     if (batch !== null) {
       yield batch;
+    }
+  }
+
+  if (options.config.sources.codex) {
+    const sourcePaths = await discoverCodexFiles(
+      options.paths.codexSessionsDirectory,
+    );
+    for (const sourcePath of sourcePaths) {
+      const batch = await observeCodexFile({
+        sourcePath,
+        cursor: await options.getCursor(sourcePath),
+      });
+      if (batch !== null) {
+        yield batch;
+      }
+    }
+  }
+
+  if (options.config.sources.cursor) {
+    const sourcePaths = await discoverCursorFiles(
+      options.paths.cursorChatsDirectory,
+    );
+    for (const sourcePath of sourcePaths) {
+      const batch = await observeCursorFile({
+        sourcePath,
+        cursor: await options.getCursor(sourcePath),
+      });
+      if (batch !== null) {
+        yield batch;
+      }
     }
   }
 

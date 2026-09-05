@@ -1,8 +1,12 @@
 import { expect, test } from "bun:test";
 import {
   buildClaudeArguments,
+  buildCodexArguments,
+  buildCursorArguments,
   detectEngine,
   parseClaudeStream,
+  parseCodexStream,
+  parseCursorStream,
 } from "./index";
 
 test("parses a recorded Claude stream without spawning a process", async () => {
@@ -46,7 +50,68 @@ test("builds bounded Claude arguments without a prompt or bypass mode", () => {
   expect(arguments_).not.toContain("--dangerously-skip-permissions");
 });
 
-test("detects Claude only when it is installed and authenticated", async () => {
+test("parses recorded Codex and Cursor streams without tool results", async () => {
+  const codexStream = await Bun.file(
+    new URL("fixtures/codex-stream.jsonl", import.meta.url),
+  ).text();
+  const cursorStream = await Bun.file(
+    new URL("fixtures/cursor-stream.jsonl", import.meta.url),
+  ).text();
+  const codex = parseCodexStream({
+    stream: codexStream,
+    fallbackSessionId: "fallback",
+    durationMs: 20,
+  });
+  const cursor = parseCursorStream({
+    stream: cursorStream,
+    fallbackSessionId: "fallback",
+  });
+
+  expect(codex.sessionId).toBe("codex-session-fixture");
+  expect(codex.structured).toEqual({ rules: [] });
+  expect(codex.turns).toBe(1);
+  expect(cursor.sessionId).toBe("cursor-session-fixture");
+  expect(cursor.text).toBe('{"rules":[]}');
+  expect(cursor.text).not.toContain("private tool result");
+  expect(cursor.structured).toEqual({ rules: [] });
+});
+
+test("builds bounded provider arguments without prompts or bypass flags", () => {
+  const run = {
+    prompt: "private prompt",
+    cwd: "/worktree",
+    allowedTools: [],
+    permissionMode: "dontAsk" as const,
+  };
+  const codex = buildCodexArguments({ run });
+  const cursor = buildCursorArguments(run);
+
+  expect(codex).toContain("read-only");
+  expect(codex).toContain("shell_tool");
+  expect(cursor).toContain("ask");
+  expect([...codex, ...cursor]).not.toContain("private prompt");
+  expect([...codex, ...cursor]).not.toContain("--yolo");
+  expect([...codex, ...cursor]).not.toContain(
+    "--dangerously-bypass-approvals-and-sandbox",
+  );
+});
+
+test("fails when a provider cannot enforce a requested ceiling", () => {
+  expect(() =>
+    buildCodexArguments({
+      run: { prompt: "task", cwd: "/repo", maxBudgetUsd: 1 },
+    }),
+  ).toThrow("dollar budget");
+  expect(() =>
+    buildCursorArguments({
+      prompt: "task",
+      cwd: "/repo",
+      disallowedTools: ["Bash(git push:*)"],
+    }),
+  ).toThrow("granular tool denylist");
+});
+
+test("detects authenticated engines in selection order", async () => {
   const checked: string[] = [];
   const detection = await detectEngine({
     probe: (command) => {
@@ -55,7 +120,26 @@ test("detects Claude only when it is installed and authenticated", async () => {
     },
   });
 
-  expect(checked).toEqual(["claude --version", "claude auth status"]);
+  expect(checked).toEqual([
+    "claude --version",
+    "claude auth status",
+    "codex --version",
+    "codex login status",
+    "cursor-agent --version",
+    "cursor-agent status",
+  ]);
   expect(detection.availability[0]?.authenticated).toBeTrue();
+  expect(detection.selectedEngine).toBe("claude-code");
   expect(detection.runner).not.toBeNull();
+});
+
+test("falls back to Codex when Claude is unavailable", async () => {
+  const detection = await detectEngine({
+    probe: (command) =>
+      Promise.resolve(
+        command[0] === "codex" || command[0] === "cursor-agent",
+      ),
+  });
+
+  expect(detection.selectedEngine).toBe("codex");
 });

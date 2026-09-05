@@ -30,15 +30,14 @@ export function saveObservationBatch(options: {
           string | null,
           string | null,
           number,
-          number | null,
-          number | null,
+          string | null,
         ]
       >(
         `INSERT INTO events (
           source_path, source, session_id, event_id, parent_event_id,
           timestamp, cwd, git_branch, kind, tool_use_id, tool_name,
-          is_error, text_byte_offset, text_byte_length
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          is_error, text_ref
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       );
 
       for (const event of observationBatch.events) {
@@ -55,8 +54,7 @@ export function saveObservationBatch(options: {
           event.tool?.toolUseId ?? null,
           event.tool?.name ?? null,
           event.isError ? 1 : 0,
-          event.textRef?.byteOffset ?? null,
-          event.textRef?.byteLength ?? null,
+          event.textRef === null ? null : JSON.stringify(event.textRef),
         );
       }
 

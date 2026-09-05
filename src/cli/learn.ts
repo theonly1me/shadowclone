@@ -81,13 +81,12 @@ export async function learn(options: {
         `Deep distillation will run up to ${batches.length} agent batches.`,
       );
       if (batches.length > 0) {
-        if (
-          policy.distillation !== "allowed" ||
-          !policy.allowedEngines.includes("claude-code")
-        ) {
-          throw new Error("Managed policy does not allow the Claude Code engine");
+        if (policy.distillation !== "allowed") {
+          throw new Error("Managed policy does not allow remote distillation");
         }
-        const detection = options.runner ? null : await detectEngine();
+        const detection = options.runner
+          ? null
+          : await detectEngine({ allowedEngines: policy.allowedEngines });
         const runner = options.runner ?? detection?.runner;
         if (!runner) {
           throw new Error("No authenticated agent engine is available");

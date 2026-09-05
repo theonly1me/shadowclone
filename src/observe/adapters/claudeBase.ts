@@ -5,13 +5,13 @@ import {
 } from "../record";
 import type {
   AgentEvent,
-  TextRef,
+  FileTextRef,
 } from "../types";
 
 export function createClaudeBaseEvent(options: {
   readonly record: Readonly<Record<string, unknown>>;
   readonly message: Readonly<Record<string, unknown>>;
-  readonly ref: TextRef;
+  readonly ref: FileTextRef;
 }): Omit<AgentEvent, "kind" | "tool" | "isError" | "textRef"> {
   const fallbackId = `${path.basename(options.ref.sourcePath)}:${readTimestamp(options.record.timestamp)}`;
   return {

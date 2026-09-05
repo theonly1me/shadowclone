@@ -27,8 +27,8 @@ There is no API key and no server. Model calls go through `claude`, `codex`, or 
 
 Early.
 
-- **Built.** Phases 0 through 4. `shadowclone learn` builds the offline mirror, `learn --deep` distils redacted correction moments through Claude Code, the plugin provides a live `shadowclone` subagent, and `shadowclone run` leaves unattended work on a local branch with a receipt.
-- **Not started.** Codex and Cursor adapters and engines. Claude Code is the only provider that can currently be observed or run.
+- **Built.** Phases 0 through 5. `shadowclone learn` reads enabled Claude Code, Codex, and Cursor sessions into one offline mirror, `learn --deep` selects an authenticated CLI, the plugin provides a live `shadowclone` subagent, and `shadowclone run` leaves unattended work on a local branch with a receipt.
+- **Manual checks.** Real authenticated provider runs, plugin installation, and provider-specific corpus tuning still need to be exercised outside recorded fixtures. API and local endpoint engines remain later work.
 
 `docs/design/001-agent-transcript-pivot.md` is the spec. `docs/architecture/06-roadmap.md` is the order.
 
@@ -42,8 +42,8 @@ This is the first question to ask about a program that reads your agent transcri
 | --- | --- | --- | --- |
 | `claude-code` | `~/.claude/projects/**/*.jsonl` | off | read only when enabled |
 | `claude-prompts` | `~/.claude/history.jsonl` | off | read only when enabled |
-| `codex` | `~/.codex/sessions/**/*.jsonl` | off | not read |
-| `cursor` | `~/.cursor/chats/**/store.db` | off | not read |
+| `codex` | `~/.codex/sessions/**/*.jsonl` | off | read only when enabled |
+| `cursor` | `~/.cursor/chats/**/{store.db,meta.json}` | off | read only when enabled |
 | `git-metadata` | observed repositories' local `remote.origin.url` | off | read only when enabled |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | read only when enabled |
 
