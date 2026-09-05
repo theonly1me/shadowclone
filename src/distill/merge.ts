@@ -59,5 +59,9 @@ export async function mergeDistilledRules(options: {
     }
   }
 
-  return parseDistilledRules(structured);
+  try {
+    return parseDistilledRules(structured);
+  } catch {
+    return options.rules;
+  }
 }
