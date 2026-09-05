@@ -17,9 +17,9 @@ Shadowclone does not have an API key, does not ask for one, and has no server to
 
 The last row is the zero-egress path. Pointing `openai-compatible` at a local Ollama endpoint gives a complete shadowclone that makes no network call at all. That is the answer for anyone whose employer would never allow this otherwise.
 
-The current selection order is Claude Code, then Codex, then Cursor. Phase 6 makes selection purpose-aware before adding Antigravity. API keys and configured local endpoints remain later work. `shadowclone doctor` prints what was found, what is authenticated, and which providers can support each purpose.
+The current selection order is Claude Code, then Codex, then Cursor. Phase 6 makes selection purpose-aware and records Antigravity's known limits without adding a runner. API keys and configured local endpoints remain later work. `shadowclone doctor` prints what was found, what is authenticated, and which providers can support each purpose.
 
-The Claude Code, Codex, and Cursor engines are built. API and local endpoint implementations remain later work, so the detector never claims they are available today.
+The Claude Code, Codex, and Cursor engines are built. Antigravity, API, and local endpoint implementations remain later work, so the detector never claims they are available today.
 
 ## Capability registry
 
@@ -27,7 +27,7 @@ Phase 6 replaces selection by authentication alone with a static provider regist
 
 The registry contains metadata only. It does not inspect transcript paths, probe executables, or grant source consent. Observation, distillation, and dispatch remain three separate support levels.
 
-Antigravity is the first registry-backed engine. Its documented headless mode provides stdin JSON events, `stream-json` output, native `--json-schema`, cached authentication, and request-review permissions. It can support isolated distillation. It cannot support dispatch until per-run budget and granular tool policy can be enforced without editing global settings.
+Antigravity is the first provider whose documented engine capabilities are registered before its runner. Its headless mode provides stdin JSON events, `stream-json` output, native `--json-schema`, cached authentication, and request-review permissions. It has no documented per-run deny-all tool policy. `--sandbox` restricts terminal commands but does not override global file, web, or MCP allow rules. Its runner stays unimplemented until isolated distillation can be enforced without editing global settings.
 
 ## Interface
 

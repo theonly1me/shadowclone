@@ -66,9 +66,9 @@ Cursor required the approved evolution of `TextRef` from a file range into a fil
 
 Status: planned in `docs/design/002-provider-expansion.md`.
 
-Add the static provider capability registry, purpose-aware engine selection, and separate observe, distill, and dispatch support reporting. Add Antigravity's off-by-default generated-log adapter and headless engine without live-daemon scraping, plaintext sidecars, global-settings edits, or permission bypass flags.
+Add the static provider capability registry, purpose-aware engine selection, and separate observe, distill, and dispatch support reporting. Add Antigravity's off-by-default generated-log adapter. Record its engine capabilities, but do not add a runner while the CLI lacks a per-run deny-all tool policy.
 
-Proves: adding a provider cannot overstate its security controls, and Antigravity can join observation and distillation without being falsely advertised for dispatch.
+Proves: adding a provider cannot overstate its security controls, and Antigravity can join observation without being falsely advertised for distillation or dispatch.
 
 ## Phase 7, verified provider breadth
 

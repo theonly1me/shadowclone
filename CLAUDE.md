@@ -49,7 +49,7 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 
 `docs/design/001-agent-transcript-pivot.md` is the spec, file by file. `docs/architecture/06-roadmap.md` is the order. Phases 0 through 5 are implemented. Build from the design doc.
 
-`docs/design/002-provider-expansion.md` is the approved next change. Phase 6 adds a static capability registry and Antigravity, then Phase 7 adds one verified CLI provider per stacked PR.
+`docs/design/002-provider-expansion.md` is the approved next change. Phase 6 adds a static capability registry and Antigravity observation, then Phase 7 adds one verified CLI provider per stacked PR.
 
 ## The rules that outrank convenience
 

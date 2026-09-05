@@ -41,7 +41,7 @@ Observe, distill, and dispatch are separate claims. An installed CLI is never ca
 | Claude Code | built | built | built |
 | Codex | built | built | blocked on granular tool and budget controls |
 | Cursor | built | built | blocked on granular tool and budget controls |
-| Antigravity CLI | next | next | blocked on granular tool and budget controls |
+| Antigravity CLI | next | blocked on a per-run deny-all tool policy | blocked on granular tool and budget controls |
 | Gemini CLI, Copilot CLI, OpenCode, Aider, Amp | planned, one reviewed provider at a time | capability dependent | capability dependent |
 
 `docs/design/002-provider-expansion.md` defines the qualification gate and the registry that keeps these claims honest.
