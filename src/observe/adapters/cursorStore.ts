@@ -103,7 +103,7 @@ export async function cursorStoreSignature(
 export async function readCursorStore(options: {
   readonly sourcePath: string;
   readonly signature: FileStats;
-}): Promise<CursorStore> {
+}): Promise<CursorStore | null> {
   let database: Database | null = null;
   try {
     database = new Database(options.sourcePath, { readonly: true, strict: true });
@@ -141,7 +141,10 @@ export async function readCursorStore(options: {
       bytesRead: options.signature.size,
     };
   } catch {
-    throw new Error("Cursor chat store could not be read");
+    console.warn(
+      `cursor: skipped an unreadable store (${options.signature.size} bytes)`,
+    );
+    return null;
   } finally {
     database?.close();
   }
