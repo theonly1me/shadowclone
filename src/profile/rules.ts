@@ -41,8 +41,8 @@ function signalText(signal: CorrectionSignal): {
   }
   if (signal.kind === "permission-denied") {
     return {
-      title: `Has refused ${signal.label} tool requests`,
-      body: `Treat the \`${signal.label}\` tool as requiring explicit approval.`,
+      title: `Requests confirmation after refusing ${signal.label}`,
+      body: `A \`${signal.label}\` request was refused. Ask before repeating a similar action, but do not treat the whole tool family as blocked.`,
       section: "boundaries",
     };
   }

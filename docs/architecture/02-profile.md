@@ -22,7 +22,7 @@ Six extractors, ordered by yield measured against a real 562 MB corpus of 372 se
 
 **Interruption, 994 found.** The user stopped the agent mid work. Claude Code writes the exact marker `[Request interrupted by user`, so extraction is a string match with no inference. What was running when it was stopped is the signal, and this is the single richest source in the corpus.
 
-**Tool denial, 445 found.** A permission request the user refused, marked by `user doesn't want to proceed with this tool use`. These name what an agent is not allowed to do unattended and populate `boundaries.md` directly. Claude Code also reports `permission_denials` on the terminal `result` message of a headless run, so a clone's own denials need no parsing at all.
+**Tool denial, 445 found.** A permission request the user refused, marked by `user doesn't want to proceed with this tool use`. These populate `boundaries.md` as advice to ask before similar actions. The transcript currently retains only the tool family, so one denied Bash command cannot block every Bash command. Hard enforcement waits for a privacy-safe action fingerprint that can also be computed from live hook input. Claude Code reports `permission_denials` on the terminal `result` message of a headless run, so a clone's own denials need no parsing at all.
 
 **Question answered, 313 found.** An `AskUserQuestion` call paired with the option the user picked. The unchosen options are negative examples, which are rarer and more valuable than positive ones.
 
@@ -102,7 +102,7 @@ The layout is scoped by the organization a rule was learned from, because a rule
 | `identity.md` | Voice and register. How this person writes, from their own prompts. |
 | `engineering.md` | Stack, conventions, what good looks like in a diff. |
 | `workflow.md` | How they drive an agent. Plan first, scope tight, verify before presenting. |
-| `boundaries.md` | What an agent is never allowed to do. Derived from denials. |
+| `boundaries.md` | What the user has denied and where the agent should ask. Advisory until denials identify the action. |
 | `projects/<repo>.md` | Per repo specifics that do not generalize. |
 
 A rule starts in the organization it was observed in. It moves to `global/` when it has been observed in two or more distinct organizations, because a habit that survives across employers belongs to the person, or when the user promotes it by hand. Compilation for a target repo reads `global/` plus the one matching organization directory and nothing else.
