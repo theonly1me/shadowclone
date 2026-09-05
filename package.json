@@ -23,7 +23,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
     "@types/bun": "latest",
-    "typescript": "^5"
+    "typescript": "^7"
   },
   "description": "Learns how you work from the AI coding sessions already on your disk, then runs copies of you inside the agent you already use.",
   "license": "MIT",
