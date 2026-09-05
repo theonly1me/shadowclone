@@ -1,6 +1,6 @@
 # Architecture
 
-Shadowclone learns how you work with AI coding agents, then does your work the way you would when you are not there.
+Shadowclone becomes you. It learns how you work from the transcripts your AI coding agents already write, compiles that into subagents that are copies of you, and runs them in parallel inside the agent you already use or headless while you are away.
 
 It learns from the transcripts your agents already write to disk. It acts by driving the agent CLIs you already pay for. It never holds an API key and it has no server.
 

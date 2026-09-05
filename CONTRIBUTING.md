@@ -4,13 +4,15 @@ Thanks for looking. This is an early project, so the surface area is small and t
 
 ## Setup
 
-Needs [Bun](https://bun.sh). No Node, no npm.
+Needs [Bun](https://bun.sh). No Node, no npm. For anything that calls a model, at least one of `claude`, `codex`, or `cursor-agent` installed and logged in. No API key, and nothing new may depend on one.
 
 ```bash
 bun install
-cp .env.example .env   # add your OPENAI_API_KEY
-bun run start
+bun run typecheck
+bun test
 ```
+
+`bun run start` still runs the shell-history prototype on `main` and needs `OPENAI_API_KEY` in `.env`. It is being removed, so do not build on it.
 
 ## The gate
 
@@ -78,14 +80,16 @@ Commit messages are one line, lowercase, with a conventional-commit prefix. Chec
 
 ## Changes that get a closer read
 
-Anything touching capture, storage, or network egress. That is `src/collector.ts`, `src/redact.ts`, `src/distiller.ts`, `src/vault.ts`, and any new file that reads from a home directory, opens a socket, or calls `fetch`.
+Anything touching capture, storage, or network egress. On `main` today that is `src/collector.ts`, `src/redact.ts`, and `src/distiller.ts`. As the design lands it is `src/observe/`, `src/index/`, `src/distill/`, `src/profile/`, `src/engine/`, `src/dispatch/`, and any new file that reads from a home directory, opens a socket, calls `fetch`, or spawns a process.
 
-`.claude/skills/data-handling/SKILL.md` has the rules. The four that come up most:
+`.claude/skills/data-handling/SKILL.md` has the rules. The six that come up most:
 
 1. **A new capture source needs an opt-in flag and a README entry in the same PR.** Reading a wider slice of a file you already read counts as a new source.
 2. **Everything reaching the network passes `redactSecrets`.** The gate sits at the collector boundary. Do not add a second one downstream, and do not route around it.
-3. **A test proves the wiring, not just the function.** `src/redact.test.ts` proving a pattern works says nothing about whether the collector calls it. Add the `src/collector.test.ts` kind, and prove it catches the bug by mutating the call away and watching it go red.
+3. **A test proves the wiring, not just the function.** `src/redact.test.ts` proving a pattern works says nothing about whether the collector calls it. Add the `src/collector.test.ts` kind, and prove it catches the bug by mutating the call away and watching it go red. Every adapter under `src/observe/adapters/` ships one, with a fixture transcript holding a planted secret.
 4. **No raw capture in a log line, an error message, or a committed test fixture.**
+5. **Tool results, file contents, and thinking blocks are never distilled.** Excluded by category, not redacted. `docs/architecture/07-enterprise.md` has the list and the reason.
+6. **A rule never leaves the organization it was learned from.** Origin scoping is not optional and not a setting.
 
 If you are unsure whether your change touches egress, it touches egress. Say so in the PR and let the reviewer decide.
 
