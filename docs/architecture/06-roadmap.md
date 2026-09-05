@@ -4,6 +4,8 @@ Build order, and what each phase has to prove before the next one starts. A phas
 
 ## Phase 0, foundation
 
+Status: complete.
+
 MIT `LICENSE`. `src/paths.ts` holding every path the project reads or writes. `src/config/` with all sources defaulting to off. `src/redact.ts` becomes `src/redact/` with the rules split out, keeping all twelve existing tests green and unchanged.
 
 Proves: nothing regressed, and there is one place to look for what gets touched on disk.
