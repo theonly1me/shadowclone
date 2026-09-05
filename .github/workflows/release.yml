@@ -74,7 +74,7 @@ jobs:
           cat > "$RUNNER_TEMP/notes.md" <<NOTES
           ## Install
 
-              npm i -g @theonly1me/shadowclone
+              npm i -g @shadowclone/cli
               shadowclone doctor
 
           Or download a binary directly:
