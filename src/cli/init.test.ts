@@ -8,10 +8,11 @@ import { initialize } from "./init";
 test("enables Claude Code only after consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
+  const answers = [true, false];
 
   await initialize({
     configPath,
-    ask: () => true,
+    ask: () => answers.shift() ?? false,
   });
 
   const config = await readConfig({ configPath });
@@ -19,8 +20,24 @@ test("enables Claude Code only after consent", async () => {
   expect(config.sources["claude-prompts"]).toBeFalse();
   expect(config.sources.codex).toBeFalse();
   expect(config.sources.cursor).toBeFalse();
+  expect(config.sources["git-metadata"]).toBeFalse();
   expect(config.sources.shell).toBeFalse();
   expect(config.distillation.deep).toBeFalse();
+});
+
+test("enables git metadata only after separate consent", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
+  const configPath = path.join(directory, "config.toml");
+  const answers = [false, true];
+
+  await initialize({
+    configPath,
+    ask: () => answers.shift() ?? false,
+  });
+
+  const config = await readConfig({ configPath });
+  expect(config.sources["claude-code"]).toBeFalse();
+  expect(config.sources["git-metadata"]).toBeTrue();
 });
 
 test("keeps every source off when consent is declined", async () => {

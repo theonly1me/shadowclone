@@ -53,6 +53,43 @@ async function createClaudeFixture(): Promise<{
         content: [{ type: "tool_result", content: "private customer row" }],
       },
     },
+    {
+      type: "assistant",
+      sessionId: "session-1",
+      uuid: "assistant-2",
+      message: {
+        id: "message-4",
+        content: [
+          {
+            type: "tool_use",
+            id: "tool-2",
+            name: "AskUserQuestion",
+            input: { question: "Which scope?", options: ["small", "large"] },
+          },
+        ],
+      },
+    },
+    {
+      type: "user",
+      sessionId: "session-1",
+      uuid: "answer-1",
+      message: {
+        id: "message-5",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "tool-2",
+            content: "User has answered your questions: small",
+          },
+        ],
+      },
+    },
+    {
+      type: "result",
+      session_id: "session-1",
+      uuid: "terminal-1",
+      is_error: false,
+    },
   ];
   await Bun.write(
     sourcePath,
@@ -91,6 +128,11 @@ test("keeps captured text behind resolveRedacted", async () => {
 
   const toolResult = events.find((event) => event.kind === "tool-result");
   expect(toolResult?.textRef).toBeNull();
+  const question = events.find((event) => event.kind === "question-asked");
+  const answer = events.find((event) => event.kind === "question-answered");
+  expect(question?.textRef).not.toBeNull();
+  expect(answer?.textRef).toBeNull();
+  expect(events.some((event) => event.kind === "session-end")).toBeTrue();
 });
 
 test("does not touch paths for disabled sources", async () => {

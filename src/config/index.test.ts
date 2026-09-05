@@ -51,6 +51,7 @@ test("renders named source settings as TOML", () => {
       "claude-prompts = false",
       "codex = false",
       "cursor = false",
+      "git-metadata = false",
       "shell = false",
       "",
       "[distillation]",
@@ -58,6 +59,18 @@ test("renders named source settings as TOML", () => {
       "",
     ].join("\n"),
   );
+});
+
+test("migrates an existing config with git metadata disabled", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const configPath = path.join(directory, "config.toml");
+  const legacy = renderConfig(defaultConfig).replace(
+    "git-metadata = false\n",
+    "",
+  );
+  await Bun.write(configPath, legacy);
+
+  expect((await readConfig({ configPath })).sources["git-metadata"]).toBeFalse();
 });
 
 test("rejects unknown source names instead of silently enabling them", async () => {

@@ -21,9 +21,11 @@ Two skills in `.claude/skills/` are not optional.
 | `src/observe/` | reads enabled Claude Code, Claude prompt, and shell sources incrementally |
 | `src/redact/` | resolves pointers into redacted text, the single egress gate |
 | `src/index/` | stores cursors and event skeletons in a rebuildable SQLite cache |
+| `src/signal/` | derives structural and correction signals without a model |
+| `src/profile/` | prints the mirror and writes organization-scoped markdown |
 | `src/cli/` | provides `init`, `learn`, and `forget --all` |
 
-Say this honestly when asked what works: opt-in capture and incremental indexing run. Nothing derives signals, builds a profile, calls an agent, or acts yet.
+Say this honestly when asked what works: opt-in capture, incremental indexing, the offline mirror, and profile writing run. Nothing calls an agent or acts yet.
 
 ## What is being built
 
@@ -41,7 +43,7 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 | distill | `src/distill/` | 3 |
 | dispatch | `src/dispatch/` | 4 |
 
-`docs/design/001-agent-transcript-pivot.md` is the spec, file by file. `docs/architecture/06-roadmap.md` is the order. Phases 0 and 1 are complete. Build from the design doc.
+`docs/design/001-agent-transcript-pivot.md` is the spec, file by file. `docs/architecture/06-roadmap.md` is the order. Phases 0 through 2 are implemented. Build from the design doc.
 
 ## The rules that outrank convenience
 

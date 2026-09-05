@@ -1,8 +1,11 @@
+import path from "node:path";
 import { readJsonLines } from "../cursor";
 import {
   isRecord,
+  readBoolean,
   readRecord,
   readString,
+  readTimestamp,
 } from "../record";
 import type {
   AgentEvent,
@@ -52,9 +55,12 @@ function getTextRef(options: {
   readonly blocks: readonly unknown[];
   readonly block: Readonly<Record<string, unknown>>;
   readonly ref: TextRef;
+  readonly kind: AgentEventKind;
 }): TextRef | null {
   return options.blocks.length === 1 &&
-    readString(options.block, "type") === "text"
+    (readString(options.block, "type") === "text" ||
+      options.kind === "question-asked" ||
+      options.kind === "plan-presented")
     ? options.ref
     : null;
 }
@@ -87,10 +93,12 @@ function parseAssistant(options: {
       kind,
       tool,
       isError: false,
-      textRef:
-        kind === "assistant-text"
-          ? getTextRef({ blocks, block: value, ref: options.ref })
-          : null,
+      textRef: getTextRef({
+        blocks,
+        block: value,
+        ref: options.ref,
+        kind,
+      }),
     });
   }
 
@@ -105,12 +113,36 @@ function parseClaudeRecord(options: {
     return [];
   }
 
+  const type = readString(options.value, "type");
+  if (type === "result") {
+    const timestamp = readTimestamp(options.value.timestamp);
+    return [
+      {
+        source: "claude-code",
+        sessionId:
+          readString(options.value, "session_id") ??
+          readString(options.value, "sessionId") ??
+          path.basename(options.ref.sourcePath, ".jsonl"),
+        eventId:
+          readString(options.value, "uuid") ??
+          `result:${path.basename(options.ref.sourcePath)}:${timestamp}`,
+        parentEventId: readString(options.value, "parentUuid"),
+        timestamp,
+        cwd: readString(options.value, "cwd") ?? "",
+        gitBranch: readString(options.value, "gitBranch"),
+        kind: "session-end",
+        tool: null,
+        isError: readBoolean(options.value, "is_error"),
+        textRef: null,
+      },
+    ];
+  }
+
   const message = readRecord(options.value, "message");
   if (message === null) {
     return [];
   }
 
-  const type = readString(options.value, "type");
   if (type === "assistant") {
     return parseAssistant({ record: options.value, message, ref: options.ref });
   }

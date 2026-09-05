@@ -24,16 +24,24 @@ export async function initialize(options: {
   const enableClaudeCode = await ask(
     "Enable learning from Claude Code transcripts?",
   );
-  const config = setSourceEnabled({
+  const enableGitMetadata = await ask(
+    "Enable reading git remote origins for organization-scoped profiles?",
+  );
+  const transcriptConfig = setSourceEnabled({
     config: defaultConfig,
     source: "claude-code",
     enabled: enableClaudeCode,
   });
+  const config = setSourceEnabled({
+    config: transcriptConfig,
+    source: "git-metadata",
+    enabled: enableGitMetadata,
+  });
 
   await writeConfig({ config, configPath: options.configPath });
   console.log(
-    enableClaudeCode
-      ? "Claude Code transcript learning enabled."
+    enableClaudeCode || enableGitMetadata
+      ? "Selected local sources enabled."
       : "All capture sources remain disabled.",
   );
 }

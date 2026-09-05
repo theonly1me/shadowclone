@@ -25,7 +25,9 @@ export type AgentEventKind =
   | "tool-call"
   | "tool-result"
   | "plan-presented"
+  | "plan-resolved"
   | "question-asked"
+  | "question-answered"
   | "permission-denied"
   | "interruption"
   | "session-end";

@@ -27,8 +27,8 @@ There is no API key and no server. Model calls go through `claude`, `codex`, or 
 
 Early.
 
-- **Built.** Phases 0 and 1. `shadowclone init` records consent, `shadowclone learn` incrementally indexes enabled Claude Code transcripts without storing their text, and `shadowclone forget --all` removes everything it created.
-- **Not started.** The mirror, live-session clone, headless clone, and additional providers. Nothing derives a profile, calls a model, or acts yet.
+- **Built.** Phases 0 through 2. `shadowclone init` records consent, and `shadowclone learn` incrementally indexes enabled Claude Code transcripts, prints the offline mirror, and writes an organization-scoped markdown profile without storing transcript text.
+- **Not started.** The live-session clone, headless clone, and additional providers. Nothing calls a model or acts yet.
 
 `docs/design/001-agent-transcript-pivot.md` is the spec. `docs/architecture/06-roadmap.md` is the order.
 
@@ -44,6 +44,7 @@ This is the first question to ask about a program that reads your agent transcri
 | `claude-prompts` | `~/.claude/history.jsonl` | off | read only when enabled |
 | `codex` | `~/.codex/sessions/**/*.jsonl` | off | not read |
 | `cursor` | `~/.cursor/chats/**/store.db` | off | not read |
+| `git-metadata` | observed repositories' local `remote.origin.url` | off | read only when enabled |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | read only when enabled |
 
 **What leaves your machine.** Only what your own agent CLI sends, under your own account. shadowclone has no server, no account, and no key. `shadowclone learn` makes no network call at all. No telemetry, no analytics, no crash reporting.
@@ -52,9 +53,9 @@ This is the first question to ask about a program that reads your agent transcri
 
 **What is never read.** Tool results, file contents, thinking blocks, and anything from a data-access tool. Those hold other people's data, so they are excluded outright rather than redacted. `docs/architecture/07-enterprise.md` has the list.
 
-**What is stored.** Everything lives under `~/.shadowclone/`. The current SQLite index contains pointers, event kinds, and tool metadata, never transcript text. The profile lands in Phase 2 as plain markdown. shadowclone never makes a second copy of your transcripts. Nothing is synced or uploaded. `shadowclone forget --all` removes all of it in one step.
+**What is stored.** Everything lives under `~/.shadowclone/`. The SQLite index contains pointers, event kinds, and tool metadata, never transcript text. The profile is plain markdown plus a generated-rule manifest containing only rule ids and relative profile paths. shadowclone never makes a second copy of your transcripts. Nothing is synced or uploaded. `shadowclone forget --all` removes all of it in one step.
 
-**What stays in your org.** Phase 2 scopes every rule to the git remote it came from. An admin can disable shadowclone fleet-wide with a root-owned file.
+**What stays in your org.** Every rule is scoped to the git remote it came from when `git-metadata` is enabled. Without that consent, each working directory is an isolated origin that never promotes a rule to global. An admin can disable shadowclone fleet-wide with a root-owned file.
 
 **What it does on your behalf.** Nothing yet. Phase 3 adds a subagent under the current session's permission mode. Phase 4 adds unattended worktree runs behind per-repo policy, and `bypassPermissions` is never passed at any tier.
 
@@ -73,7 +74,7 @@ bun run cli init
 bun run cli learn
 ```
 
-`learn` indexes today and grows the mirror in Phase 2. These commands land later:
+`learn` indexes, prints the offline mirror, and writes the markdown profile. These commands land later:
 
 ```bash
 shadowclone learn --deep  # distil through your own agent      (Phase 3)
