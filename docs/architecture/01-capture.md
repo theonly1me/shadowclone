@@ -103,6 +103,8 @@ Useful fields on the envelope: `parentUuid`, `uuid`, `promptId`, `sessionId`, `t
 
 **Shell** is the existing `getRecentShellHistory`, rewritten to emit `AgentEvent` values with `kind: "user-prompt"` and no session grouping.
 
+Antigravity CLI is the next source. It does not become a config key until its adapter lands. The planned adapter prefers generated `transcript_full.jsonl` logs and adds a version-pinned SQLite and protobuf fallback only after clean-room synthetic fixtures prove it. It never queries a live language-server daemon or writes plaintext transcript sidecars.
+
 Timestamps disagree across sources and are normalized to epoch milliseconds at ingest. Claude transcripts use ISO-8601 strings, `~/.claude/history.jsonl` uses epoch milliseconds, and `~/.codex/history.jsonl` uses epoch seconds.
 
 ## The index

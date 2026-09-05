@@ -32,6 +32,20 @@ Early.
 
 `docs/design/001-agent-transcript-pivot.md` is the spec. `docs/architecture/06-roadmap.md` is the order.
 
+### Provider coverage
+
+Observe, distill, and dispatch are separate claims. An installed CLI is never capture consent, and an engine is not called for a purpose whose policy it cannot enforce.
+
+| Provider | Observe | Distill | Dispatch |
+| --- | --- | --- | --- |
+| Claude Code | built | built | built |
+| Codex | built | built | blocked on granular tool and budget controls |
+| Cursor | built | built | blocked on granular tool and budget controls |
+| Antigravity CLI | next | next | blocked on granular tool and budget controls |
+| Gemini CLI, Copilot CLI, OpenCode, Aider, Amp | planned, one reviewed provider at a time | capability dependent | capability dependent |
+
+`docs/design/002-provider-expansion.md` defines the qualification gate and the registry that keeps these claims honest.
+
 ## Privacy
 
 This is the first question to ask about a program that reads your agent transcripts, so it goes here rather than at the bottom.
