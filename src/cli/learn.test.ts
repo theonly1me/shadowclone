@@ -97,10 +97,14 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
   });
   await writeConfig({ config, configPath: paths.configFile });
 
+  const targetDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-target-"),
+  );
   await learn({
     configPath: paths.configFile,
     databasePath: paths.indexDatabase,
     paths,
+    targetDirectory,
     managedConfigPath: null,
   });
 
@@ -136,6 +140,7 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
     configPath: paths.configFile,
     databasePath: paths.indexDatabase,
     paths,
+    targetDirectory,
     deep: true,
     runner,
     managedConfigPath: null,
