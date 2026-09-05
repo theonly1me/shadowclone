@@ -8,20 +8,20 @@ Needs [Bun](https://bun.sh). No Node, no npm. For anything that calls a model, a
 
 ```bash
 bun install
-bun run typecheck
-bun test
+bun run check
 ```
 
 `bun run start` still runs the shell-history prototype on `main` and needs `OPENAI_API_KEY` in `.env`. It is being removed, so do not build on it.
 
 ## The gate
 
-Run both before you open a PR. They are what CI will run.
+Run this before you open a PR. It is what CI runs, on Linux and macOS.
 
 ```bash
-bun run typecheck
-bun test
+bun run check        # bun run typecheck && bun run lint && bun test
 ```
+
+`bun run lint` is two layers. Biome carries the TypeScript rules, including a plugin that reports any `as` cast other than `as const`. `scripts/conventions.ts` carries the three rules Biome has no rule for: files stay under 200 lines, `.ts` files hold no comments, and nothing anywhere holds an em-dash. Both print the file and line, and neither has a suppression comment you are allowed to reach for.
 
 ## Conventions
 
@@ -96,3 +96,18 @@ If you are unsure whether your change touches egress, it touches egress. Say so 
 ## Reporting a redaction gap
 
 If you find a string that gets past `src/redact.ts`, that is the most valuable bug report this project can get. Open an issue describing the **shape** of the string, not the string itself. "A GitLab personal access token starting `glpat-` is not matched" is enough to write the pattern and the test.
+
+`SECURITY.md` covers the reports that go through private reporting instead.
+
+## Releasing
+
+A release is a tag. Bump `version` in `package.json`, land it, then push `v<version>`:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+`.github/workflows/release.yml` runs the gate, cross compiles the CLI for macOS and Linux on both architectures, writes `SHA256SUMS.txt`, attests the archives, and publishes the release with generated notes. It stops before publishing if the tag does not match `version`. A tag with a hyphen, such as `v0.1.0-rc.1`, publishes as a prerelease.
+
+`bun run build` produces the same archives in `dist/`, and running the release workflow by hand from the Actions tab builds and uploads them to the run without creating a release. Use that to test a change to the release path rather than spending a version number.
