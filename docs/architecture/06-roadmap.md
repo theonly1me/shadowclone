@@ -72,7 +72,7 @@ Proves: adding a provider cannot overstate its security controls, and Antigravit
 
 ## Phase 7, verified provider breadth
 
-One stacked PR per provider, initially Gemini CLI, GitHub Copilot CLI, OpenCode, Aider, and Amp. Goose, Amazon Q or Kiro, Windsurf, Cline, and newly verified transcript-producing CLIs follow the same qualification gate.
+One stacked PR per provider, initially GitHub Copilot CLI, OpenCode, Aider, and Amp. Gemini CLI is excluded in favor of its Antigravity successor. Goose, Amazon Q or Kiro, Windsurf, Cline, and newly verified transcript-producing CLIs follow the same qualification gate.
 
 Each provider may ship observation, distillation, and dispatch independently. A provider with no local transcript stays out of observation. A provider with no enforceable no-tools mode stays out of distillation. A provider with no enforceable budget or granular tool policy stays out of dispatch.
 
