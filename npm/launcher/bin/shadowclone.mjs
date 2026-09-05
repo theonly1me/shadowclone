@@ -13,7 +13,7 @@ const packageDirectory = path.dirname(
 function platformPackage() {
   const platform = process.platform === "win32" ? "windows" : process.platform;
   const architecture = process.arch === "x64" ? "x64" : process.arch;
-  return `@theonly1me/shadowclone-${platform}-${architecture}`;
+  return `@shadowclone/cli-${platform}-${architecture}`;
 }
 
 function binaryPath() {

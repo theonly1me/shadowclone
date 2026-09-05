@@ -1,5 +1,5 @@
 {
-  "name": "@theonly1me/shadowclone",
+  "name": "@shadowclone/cli",
   "version": "0.0.1",
   "module": "src/cli/index.ts",
   "type": "module",

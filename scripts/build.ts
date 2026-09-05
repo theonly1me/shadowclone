@@ -25,7 +25,8 @@ async function archive(options: {
   await Bun.$`tar -czf ${options.archiveFile} -C ${outputDirectory}/${options.platform} ${binaryName}`.quiet();
 }
 
-const scope = "@theonly1me";
+const scope = "@shadowclone";
+const packageBaseName = "cli";
 const npmDirectory = `${outputDirectory}/npm`;
 const manifest: unknown = await Bun.file("package.json").json();
 const version =
@@ -58,7 +59,7 @@ async function writePlatformPackage(options: {
     `${directory}/package.json`,
     `${JSON.stringify(
       {
-        name: `${scope}/${binaryName}-${options.platform}`,
+        name: `${scope}/${packageBaseName}-${options.platform}`,
         description: `The ${options.platform} binary for shadowclone.`,
         ...sharedManifestFields,
         os: [operatingSystem],
@@ -86,7 +87,7 @@ async function writeLauncherPackage(): Promise<void> {
     `${directory}/package.json`,
     `${JSON.stringify(
       {
-        name: `${scope}/${binaryName}`,
+        name: `${scope}/${packageBaseName}`,
         description:
           "Learns how you work from the AI coding sessions already on your disk, then runs copies of you inside the agent you already use.",
         ...sharedManifestFields,
@@ -94,7 +95,7 @@ async function writeLauncherPackage(): Promise<void> {
         files: ["bin", "dist", "README.md", "LICENSE"],
         optionalDependencies: Object.fromEntries(
           platforms.map((platform) => [
-            `${scope}/${binaryName}-${platform}`,
+            `${scope}/${packageBaseName}-${platform}`,
             version,
           ]),
         ),
