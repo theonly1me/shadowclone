@@ -8,6 +8,7 @@ import { openEventIndex } from "../../index";
 import { createProjectPaths } from "../../paths";
 import { resolveRedacted } from "../../redact";
 import { observeAll } from "../index";
+
 import type { ObservationBatch } from "../types";
 
 const plantedSecret = "sk-proj-cursor123DEF456ghi789";
@@ -130,4 +131,42 @@ test("resolves selected Cursor blob text through the redaction gate", async () =
     await Bun.file(paths.indexDatabase).arrayBuffer(),
   );
   expect(new TextDecoder().decode(indexBytes)).not.toContain(plantedSecret);
+});
+
+test("survives an unreadable cursor database without breaking the generator", async () => {
+  const homeDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-cursor-invalid-"),
+  );
+  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  const sessionDirectory = path.join(
+    paths.cursorChatsDirectory,
+    "workspace",
+    "cursor-session",
+  );
+  await mkdir(sessionDirectory, { recursive: true });
+  const sourcePath = path.join(sessionDirectory, "store.db");
+  await Bun.write(sourcePath, "not a sqlite database");
+  const shellHistory = paths.shellHistoryFiles[0];
+  if (!shellHistory) {
+    throw new Error("No shell history files configured");
+  }
+  await mkdir(path.dirname(shellHistory), { recursive: true });
+  await Bun.write(shellHistory, "echo hello\n");
+
+  const config = {
+    ...defaultConfig,
+    sources: { ...defaultConfig.sources, cursor: true, shell: true },
+  };
+
+  const batches: ObservationBatch[] = [];
+  for await (const batch of observeAll({
+    config,
+    paths,
+    getCursor: () => null,
+  })) {
+    batches.push(batch);
+  }
+  
+  expect(batches.length).toBe(1);
+  expect(batches[0]?.source).toBe("shell");
 });
