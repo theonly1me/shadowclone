@@ -23,6 +23,14 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 
 There is no API key and no server. Model calls go through `claude`, `codex`, or `cursor-agent`, already installed and logged in, on your own plan. `docs/architecture/` has the reasoning behind each piece.
 
+## The Architecture Advantage
+
+Most "self-improving" AI agents or memory tools suffer from three massive flaws that shadowclone is explicitly designed to solve:
+
+1. **Zero Cold-Start (No Amnesia):** Other tools require months of daily use to learn your habits because they start at zero. Shadowclone mines the hundreds of past sessions *already sitting on your hard drive* to build your profile instantly.
+2. **Behavioral Distillation:** Instead of feeding expensive LLMs your entire 50-turn conversation (which is 90% noise), shadowclone isolates *only* the "deltas", the exact moments you interrupted the agent or refused a tool. This gives the model an incredibly high signal-to-noise ratio, extracting your true behavioral preferences at a fraction of the cost.
+3. **Enterprise Cross-Contamination:** If a memory tool learns a proprietary code convention at your day job, it will blindly leak it into your open-source side projects. Shadowclone solves this by scoping learned behaviors strictly to the `git` remote URL they were learned in, ensuring safe boundaries.
+
 ## Status
 
 Early.
