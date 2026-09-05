@@ -2,13 +2,13 @@
 
 Releases are automated. Every merge to `main` updates a release pull request that bumps the version and writes `CHANGELOG.md` from the conventional-commit subjects since the last release. Merging that pull request tags the version and creates the GitHub release.
 
-The same run then builds the binaries, attaches them to the release, and waits. Publishing to npm sits behind the `npm` environment, so it runs only after a maintainer approves it from the Actions tab. That approval is the last gate before anything reaches the registry.
-
-Publishing authenticates through trusted publishing, which exchanges a GitHub OIDC token for a short-lived npm credential and needs no stored secret. npm cannot configure a trusted publisher for a package that does not exist yet, so the first release of a new package name publishes with an `NPM_TOKEN` secret. After that release lands, add `theonly1me/shadowclone` and `release.yml` as the trusted publisher on each of the five packages, then delete the secret. The npm CLI prefers OIDC when it is available and falls back to the token when it is not, so the workflow is the same either way.
+The same run then publishes `@shadowclone/cli` to npm, behind the `npm` environment, so it waits for a maintainer to approve it from the Actions tab. That approval is the last gate before anything reaches the registry.
 
 Commit subjects decide the version. A `feat:` subject bumps the minor, `fix:` bumps the patch, and anything with a `!` bumps the major. `chore:`, `ci:`, `test:`, and `refactor:` do not appear in the changelog.
 
-Running the release workflow by hand from the Actions tab builds and uploads the archives to the run without tagging, releasing, or publishing. Use that to test a change to the release path rather than spending a version number.
+One package ships. It carries the bundled CLI and depends on `bun`, which resolves its own platform binary through npm, so a machine with only Node can install and run it.
+
+Publishing authenticates through trusted publishing, which exchanges a GitHub OIDC token for a short-lived npm credential and needs no stored secret. npm cannot configure a trusted publisher for a package that does not exist, so the first publish uses an `NPM_TOKEN` secret. After that, add `theonly1me/shadowclone` and `release.yml` as the trusted publisher and delete the secret. The npm CLI prefers OIDC when it is available and falls back to the token when it is not, so the workflow is the same either way.
 
 # Contributing
 
@@ -111,15 +111,4 @@ If you find a string that gets past `src/redact/`, that is the most valuable bug
 
 `SECURITY.md` covers the reports that go through private reporting instead.
 
-## Releasing
 
-A release is a tag. Bump `version` in `package.json`, land it, then push `v<version>`:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-`.github/workflows/release.yml` runs the gate, cross compiles the CLI for macOS and Linux on both architectures, writes `SHA256SUMS.txt`, attests the archives, publishes five npm packages, and publishes the release with generated notes. The npm side is `@shadowclone/cli` plus one `os` and `cpu` gated binary package per platform, so `npm i -g` installs only the binary that matches. Publishing needs an `NPM_TOKEN` repository secret. It stops before publishing if the tag does not match `version`. A tag with a hyphen, such as `v0.1.0-rc.1`, publishes as a prerelease.
-
-`bun run build` produces the same archives in `dist/`, and running the release workflow by hand from the Actions tab builds and uploads them to the run without creating a release. Use that to test a change to the release path rather than spending a version number.
