@@ -1,0 +1,99 @@
+import { expect, test } from "bun:test";
+import { redactSecrets } from "./redact";
+
+const homeDirectory = "/Users/example";
+
+function redact(text: string): string {
+  return redactSecrets({ text, homeDirectory });
+}
+
+test("removes an openai style key and labels it", () => {
+  const redacted = redact("export OPENAI_API_KEY=sk-proj-abc123DEF456ghi789JKL");
+
+  expect(redacted).not.toContain("sk-proj-abc123DEF456ghi789JKL");
+  expect(redacted).toContain("[redacted:llm-api-key]");
+});
+
+test("removes an anthropic style key", () => {
+  const redacted = redact("curl -H 'x-api-key: sk-ant-api03-abc123DEF456ghi789'");
+
+  expect(redacted).not.toContain("sk-ant-api03-abc123DEF456ghi789");
+  expect(redacted).toContain("[redacted:llm-api-key]");
+});
+
+test("removes github tokens in every prefix form", () => {
+  const redacted = redact(
+    ["ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8", "github_pat_11ABCDEFG0abcdefghij_KLMNOP"].join("\n"),
+  );
+
+  expect(redacted).not.toContain("ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8");
+  expect(redacted).not.toContain("github_pat_11ABCDEFG0abcdefghij_KLMNOP");
+  expect(redacted.split("[redacted:github-token]")).toHaveLength(3);
+});
+
+test("removes a slack token", () => {
+  const redacted = redact("SLACK_BOT=xoxb-1234567890-abcdefghij");
+
+  expect(redacted).not.toContain("xoxb-1234567890-abcdefghij");
+});
+
+test("removes an aws access key id", () => {
+  const redacted = redact("aws configure set aws_access_key_id AKIAIOSFODNN7EXAMPLE");
+
+  expect(redacted).not.toContain("AKIAIOSFODNN7EXAMPLE");
+  expect(redacted).toContain("[redacted:aws-access-key-id]");
+});
+
+test("removes a jwt", () => {
+  const redacted = redact("curl -d token=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NSJ9.dBjftJeZ4CVP");
+
+  expect(redacted).not.toContain("eyJhbGciOiJIUzI1NiJ9");
+  expect(redacted).toContain("[redacted:jwt]");
+});
+
+test("removes an authorization header value but keeps the header name", () => {
+  const redacted = redact('curl -H "Authorization: Bearer abc123def456" https://api.example.com');
+
+  expect(redacted).not.toContain("abc123def456");
+  expect(redacted).toContain("Authorization: [redacted:authorization]");
+  expect(redacted).toContain("https://api.example.com");
+});
+
+test("removes a pem block across multiple lines", () => {
+  const redacted = redact(
+    ["-----BEGIN RSA PRIVATE KEY-----", "MIIEowIBAAKCAQEAxyz", "-----END RSA PRIVATE KEY-----"].join("\n"),
+  );
+
+  expect(redacted).not.toContain("MIIEowIBAAKCAQEAxyz");
+  expect(redacted).toBe("[redacted:pem-block]");
+});
+
+test("removes a secret assignment that matches no specific provider", () => {
+  const redacted = redact("export DATABASE_PASSWORD=hunter2correcthorse");
+
+  expect(redacted).not.toContain("hunter2correcthorse");
+  expect(redacted).toBe("export DATABASE_PASSWORD=[redacted:secret-assignment]");
+});
+
+test("rewrites the home directory to a tilde", () => {
+  const redacted = redact("cd /Users/example/Developer/shadowclone");
+
+  expect(redacted).toBe("cd ~/Developer/shadowclone");
+});
+
+test("leaves ordinary commands untouched", () => {
+  const history = [
+    "git status",
+    "bun test",
+    "git clone https://github.com/example/shadowclone.git",
+    "rg --files-with-matches distillHistory src",
+  ].join("\n");
+
+  expect(redact(history)).toBe(history);
+});
+
+test("does not redact a placeholder a second time", () => {
+  const once = redact("export OPENAI_API_KEY=sk-proj-abc123DEF456ghi789JKL");
+
+  expect(redact(once)).toBe(once);
+});
