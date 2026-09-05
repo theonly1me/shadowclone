@@ -57,7 +57,7 @@ This is the first question to ask about a program that reads your agent transcri
 
 **What stays in your org.** Every rule is scoped to the git remote it came from when `git-metadata` is enabled. Without that consent, each working directory is an isolated origin that never promotes a rule to global. An admin can disable shadowclone fleet-wide with a root-owned file.
 
-**What it does on your behalf.** The Phase 3 subagent runs inside your current Claude Code session and its permission mode. Learned denials compile into `PreToolUse` blocks. Phase 4 adds unattended worktree runs behind per-repo policy, and `bypassPermissions` is never passed at any tier.
+**What it does on your behalf.** The Phase 3 subagent runs inside your current Claude Code session and its permission mode. Learned denials remain advisory until observation can identify the denied action without storing raw tool input. Phase 4 adds unattended worktree runs behind per-repo policy, and `bypassPermissions` is never passed at any tier.
 
 If a secret gets past the redaction, that is the highest-value bug report this project can get. Open an issue with the shape of the string, not the string itself.
 

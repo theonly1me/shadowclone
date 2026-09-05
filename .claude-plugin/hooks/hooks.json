@@ -1,5 +1,5 @@
 {
-  "description": "Keep the shadowclone profile current and enforce learned boundaries",
+  "description": "Keep the shadowclone profile current and load learned guidance",
   "hooks": {
     "SessionStart": [
       {
@@ -17,16 +17,6 @@
           {
             "type": "command",
             "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts\" hook session-end"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts\" hook pre-tool-use"
           }
         ]
       }

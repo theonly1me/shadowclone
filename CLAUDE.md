@@ -25,7 +25,7 @@ Two skills in `.claude/skills/` are not optional.
 | `src/profile/` | writes scoped markdown and compiles it into a live subagent |
 | `src/engine/` | drives authenticated Claude Code and parses `stream-json` |
 | `src/distill/` | sends only redacted, allowlisted correction moments to the engine |
-| `.claude-plugin/` | injects the profile, enforces boundaries, and learns at session end |
+| `.claude-plugin/` | injects the profile and learns at session end |
 | `src/cli/` | provides `init`, `learn`, `doctor`, `install`, and `forget --all` |
 
 Say this honestly when asked what works: opt-in capture, indexing, the mirror, deep distillation, live profile injection, and the Claude subagent are implemented. Real plugin installation and authenticated engine runs are manual checks. Headless dispatch and additional providers are not built yet.
