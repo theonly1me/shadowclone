@@ -1,5 +1,6 @@
 import type { EngineRunner } from "../engine";
 import type { IndexedEvent } from "../index";
+import { semanticRuleKey } from "../profile";
 import type { ProfileRule } from "../profile";
 import type { CorrectionSignal } from "../signal";
 import {
@@ -51,10 +52,7 @@ function profileRules(options: {
     ...options.signals.map((signal) => signal.timestamp),
   );
   return parseDistilledRules(options.value).map((rule) => {
-    const key = new Bun.CryptoHasher("sha256")
-      .update(`semantic:${rule.title.toLowerCase()}`)
-      .digest("hex")
-      .slice(0, 16);
+    const key = semanticRuleKey(rule.title);
     return {
       ...rule,
       key,

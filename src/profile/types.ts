@@ -17,6 +17,7 @@ export type ProfileRule = {
 
 export type ExistingProfileRule = {
   readonly key: string;
+  readonly title: string;
   readonly fingerprint: string;
   readonly content: string;
   readonly edited: boolean;

@@ -1,10 +1,11 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import type { ProjectPaths } from "../paths";
 import { parseProfileBlocks } from "./parse";
 import {
   profileRulePath,
   renderProfileRule,
+  semanticRuleKey,
 } from "./render";
 import {
   readProfileState,
@@ -13,9 +14,14 @@ import {
 import type { ProfileStateEntry } from "./state";
 import type {
   ExistingProfileBlock,
+  ExistingProfileRule,
   ProfileRule,
   ProfileWriteResult,
 } from "./types";
+
+function isDistilledRule(rule: ExistingProfileRule): boolean {
+  return semanticRuleKey(rule.title) === rule.key;
+}
 
 function groupRules(
   rules: readonly ProfileRule[],
@@ -83,7 +89,7 @@ export async function writeProfile(options: {
       const updated = incomingRules.find(
         (rule) => rule.key === existingRule.key,
       );
-      if (!updated && !existingRule.edited) {
+      if (!updated && !existingRule.edited && !isDistilledRule(existingRule)) {
         continue;
       }
       nextBlocks.push(
@@ -107,6 +113,10 @@ export async function writeProfile(options: {
       await Bun.write(filePath, `${nextBlocks.join("\n\n")}\n`);
       files += 1;
       ruleCount += nextBlocks.length;
+      continue;
+    }
+    if (existingRules.length > 0) {
+      await rm(filePath, { force: true });
     }
   }
 

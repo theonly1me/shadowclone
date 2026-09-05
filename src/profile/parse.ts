@@ -33,8 +33,10 @@ function parseBlock(block: string): ExistingProfileBlock {
   }
 
   const visible = block.slice(0, metadataMatch.index).trim();
+  const [heading] = visible.split("\n");
   return {
     key,
+    title: heading?.replace(/^#+\s*/, "").trim() ?? "",
     fingerprint,
     content: block.trim(),
     edited: profileFingerprint(visible) !== fingerprint,
