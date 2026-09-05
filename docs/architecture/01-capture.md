@@ -6,6 +6,7 @@ Every source is opt-in, named in the config, and listed in the README. The confi
 
 | Source | Path | Default | Notes |
 | --- | --- | --- | --- |
+| `antigravity` | `~/.gemini/antigravity-cli/brain/*/.system_generated/logs/transcript_full.jsonl` | off | Generated conversation logs |
 | `claude-code` | `~/.claude/projects/**/*.jsonl` | off | Session transcripts, the primary source |
 | `claude-prompts` | `~/.claude/history.jsonl` | off | Prompts in the user's own words |
 | `codex` | `~/.codex/sessions/**/*.jsonl` | off | Date partitioned rollouts |
