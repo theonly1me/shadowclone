@@ -1,6 +1,6 @@
 # Profile
 
-The profile is the product. Everything before it is plumbing and everything after it is execution.
+The profile is how a clone knows what you would have done. Everything before it is plumbing and everything after it is a clone reading it.
 
 It is a directory of markdown at `~/.shadowclone/profile/`. You can read it, edit it, delete a line you disagree with, commit it to a private repo, or hand it to a teammate. It is not embeddings and it is not a database, because a user who cannot read what was learned about them cannot consent to it.
 
@@ -38,7 +38,7 @@ The miner runs over the index and emits `Signal` values holding `TextRef` pointe
 
 ## The mirror
 
-`shadowclone learn` prints before it writes, and what it prints is the product. A developer has never been shown how they actually work with an agent, and the terminal output is where that happens, so its shape is specified here rather than left to whoever writes the CLI.
+`shadowclone learn` prints before it writes, and what it prints is the first proof that the profile is you. A developer has never been shown how they actually work with an agent, and the terminal output is where that happens, so its shape is specified here rather than left to whoever writes the CLI.
 
 The block below is a specification of shape, not a result. The session count, size, day count, and the three totals are measured on the development corpus. Every line beneath them is invented to show what a line looks like, and nothing has produced those categories or those numbers yet.
 
