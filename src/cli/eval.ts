@@ -1,3 +1,4 @@
+import { Command } from "commander";
 import { engineIds } from "../config";
 import type { EngineId, EngineRunner } from "../engine";
 import { runEval } from "../eval";
@@ -18,62 +19,51 @@ export async function evalCommand(
     readonly paths?: ProjectPaths;
   } = {},
 ): Promise<void> {
-  let sessions: number | undefined;
-  let since: string | undefined;
-  let json = false;
-  let maxBudgetUsd: number | undefined;
-  let engine: EngineId | undefined;
-  let yes = false;
+  const program = new Command()
+    .exitOverride()
+    .configureOutput({ writeErr: () => {} })
+    .option("--sessions <number>")
+    .option("--since <date>")
+    .option("--engine <id>")
+    .option("--max-budget-usd <number>")
+    .option("-y, --yes")
+    .option("--json");
 
-  for (
-    let argumentIndex = 0;
-    argumentIndex < arguments_.length;
-    argumentIndex++
-  ) {
-    const argument = arguments_[argumentIndex];
-    if (argument === "--json") {
-      json = true;
-    } else if (argument === "--yes" || argument === "-y") {
-      yes = true;
-    } else if (
-      argument === "--sessions" &&
-      argumentIndex + 1 < arguments_.length
-    ) {
-      argumentIndex++;
-      const parsed = Number.parseInt(arguments_[argumentIndex] ?? "", 10);
-      if (!Number.isNaN(parsed)) {
-        sessions = parsed;
-      }
-    } else if (
-      argument === "--since" &&
-      argumentIndex + 1 < arguments_.length
-    ) {
-      argumentIndex++;
-      since = arguments_[argumentIndex];
-    } else if (
-      argument === "--engine" &&
-      argumentIndex + 1 < arguments_.length
-    ) {
-      argumentIndex++;
-      const requested = arguments_[argumentIndex] ?? "";
-      const known = engineIds.find((candidate) => candidate === requested);
-      if (!known) {
-        throw new Error(
-          `Unknown engine "${requested}". Known engines: ${engineIds.join(", ")}`,
-        );
-      }
-      engine = known;
-    } else if (
-      argument === "--max-budget-usd" &&
-      argumentIndex + 1 < arguments_.length
-    ) {
-      argumentIndex++;
-      const parsed = Number.parseFloat(arguments_[argumentIndex] ?? "");
-      if (!Number.isNaN(parsed)) {
-        maxBudgetUsd = parsed;
-      }
+  program.parse([...arguments_], { from: "user" });
+
+  const parsedOptions = program.opts<{
+    readonly sessions?: string;
+    readonly since?: string;
+    readonly engine?: string;
+    readonly maxBudgetUsd?: string;
+    readonly yes?: boolean;
+    readonly json?: boolean;
+  }>();
+
+  let engine: EngineId | undefined;
+  if (parsedOptions.engine !== undefined) {
+    const known = engineIds.find(
+      (candidate) => candidate === parsedOptions.engine,
+    );
+    if (!known) {
+      throw new Error(
+        `Unknown engine "${parsedOptions.engine}". Known engines: ${engineIds.join(", ")}`,
+      );
     }
+    engine = known;
   }
+
+  const sessions = parsedOptions.sessions
+    ? Number.parseInt(parsedOptions.sessions, 10)
+    : undefined;
+
+  const maxBudgetUsd = parsedOptions.maxBudgetUsd
+    ? Number.parseFloat(parsedOptions.maxBudgetUsd)
+    : undefined;
+
+  const json = parsedOptions.json ?? false;
+  const yes = parsedOptions.yes ?? false;
+  const since = parsedOptions.since;
 
   const sessionLimit = sessions ?? 10;
   const budgetLimit = maxBudgetUsd ?? 0.5;
