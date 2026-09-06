@@ -1,15 +1,18 @@
 import {
   fingerprint,
+  matchedPreferenceChecks,
   parseJson,
   preparedTaskResponseSchema,
-  validatePreferenceChecks,
 } from "./structured";
 import { trainingEvidence } from "./evidence";
+import {
+  type CommitResolver,
+  resolveCommitReference,
+  resolveStartingCommit,
+} from "./startingCommit";
 import type { DelegationTask, Evidence, ModelCall } from "./types";
 
-export type CommitResolver = (options: {
-  readonly timestamp: number;
-}) => Promise<string | null>;
+export type { CommitResolver } from "./startingCommit";
 
 export interface CandidateResult {
   readonly task?: DelegationTask;
@@ -33,23 +36,11 @@ export async function prepareCandidateTask(options: {
 }): Promise<CandidateResult> {
   const candidate = options.candidate;
 
-  const explicitCommits = candidate.text
-    .split(/[^a-fA-F0-9]+/)
-    .filter(
-      (token) =>
-        token.length >= 7 && options.commits.has(token.toLowerCase()),
-    );
-
-  let startingCommit = explicitCommits[0] ?? null;
-
-  if (!startingCommit && options.resolveCommit) {
-    const resolved = await options.resolveCommit({
-      timestamp: candidate.timestamp,
-    });
-    if (resolved && options.commits.has(resolved.toLowerCase())) {
-      startingCommit = resolved;
-    }
-  }
+  const startingCommit = await resolveStartingCommit({
+    candidate,
+    commits: options.commits,
+    resolveCommit: options.resolveCommit,
+  });
 
   if (!startingCommit) {
     return {
@@ -121,12 +112,17 @@ export async function prepareCandidateTask(options: {
     };
   }
 
-  const taskCommit = parsed.data.startingCommit ?? startingCommit;
+  const requestedCommit = parsed.data.startingCommit ?? startingCommit;
+  const taskCommit =
+    resolveCommitReference({
+      token: requestedCommit,
+      commits: options.commits,
+    }) ?? requestedCommit;
   const completion = parsed.data.completion ?? [];
   const preferencesData = parsed.data.preferences ?? [];
 
   if (
-    !options.commits.has(taskCommit.toLowerCase()) ||
+    !options.commits.has(taskCommit) ||
     completion.length === 0 ||
     preferencesData.length === 0
   ) {
@@ -138,10 +134,19 @@ export async function prepareCandidateTask(options: {
     };
   }
 
-  const preferences = validatePreferenceChecks({
+  const preferences = matchedPreferenceChecks({
     checks: preferencesData,
     evidence: training,
   });
+
+  if (preferences === null) {
+    return {
+      exclusion: {
+        sessionId: candidate.sessionId,
+        reason: "Preference check has no matching user evidence",
+      },
+    };
+  }
 
   if (!options.learnProfile) {
     throw new Error("Evaluation requires the production profile learner");

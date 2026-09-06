@@ -104,7 +104,7 @@ export function parseJson(text: string): unknown {
   }
 }
 
-export function validatePreferenceChecks(options: {
+export function matchedPreferenceChecks(options: {
   readonly checks: readonly {
     readonly requirement: string;
     readonly evidenceId: string;
@@ -114,12 +114,14 @@ export function validatePreferenceChecks(options: {
     readonly id: string;
     readonly text: string;
   }[];
-}): readonly {
-  readonly requirement: string;
-  readonly evidenceId: string;
-  readonly quote: string;
-}[] {
-  return options.checks.map((entry) => {
+}):
+  | readonly {
+      readonly requirement: string;
+      readonly evidenceId: string;
+      readonly quote: string;
+    }[]
+  | null {
+  const matched = options.checks.flatMap((entry) => {
     const source = options.evidence.find(
       (candidate) => candidate.id === entry.evidenceId,
     );
@@ -129,15 +131,19 @@ export function validatePreferenceChecks(options: {
       entry.quote.length < 10 ||
       !source.text.includes(entry.quote)
     ) {
-      throw new Error("Preference check has no matching user evidence");
+      return [];
     }
 
-    return {
-      requirement: entry.requirement,
-      evidenceId: entry.evidenceId,
-      quote: entry.quote,
-    };
+    return [
+      {
+        requirement: entry.requirement,
+        evidenceId: entry.evidenceId,
+        quote: entry.quote,
+      },
+    ];
   });
+
+  return matched.length === options.checks.length ? matched : null;
 }
 
 export function fingerprint(value: unknown): string {

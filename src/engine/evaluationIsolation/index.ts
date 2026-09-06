@@ -1,3 +1,4 @@
+import { canonicalPath } from "../../paths";
 import type { EngineRunOptions } from "../types";
 
 export function evaluationCommand(options: {
@@ -5,12 +6,13 @@ export function evaluationCommand(options: {
   readonly run: EngineRunOptions;
   readonly platform?: NodeJS.Platform;
 }): readonly string[] {
-  const blockedPaths = options.run.evaluationBlockedPaths ?? [];
-  if (!options.run.evaluation || blockedPaths.length === 0) {
+  const requestedPaths = options.run.evaluationBlockedPaths ?? [];
+  if (!options.run.evaluation || requestedPaths.length === 0) {
     return options.arguments;
   }
 
   const platform = options.platform ?? process.platform;
+  const blockedPaths = requestedPaths.map(canonicalPath);
 
   if (platform === "darwin") {
     const predicates = blockedPaths

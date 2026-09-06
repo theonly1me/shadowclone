@@ -8,6 +8,11 @@ import {
 import { detectEngine, type EngineId, type EngineRunner } from "../../engine";
 import { projectPaths, type ProjectPaths } from "../../paths";
 import { isOriginBlocked, resolveCwdOrigin } from "../../signal";
+import {
+  defaultRepeat,
+  defaultTaskCount,
+  defaultTimeoutSeconds,
+} from "./budget";
 import { command } from "./command";
 import { readReceipt } from "./resume";
 import type { TransferOptions, TransferReceipt } from "./types";
@@ -142,19 +147,19 @@ export async function setupTransferEval(
 
   const count = parsePositiveInteger({
     value: options.tasks,
-    fallback: 5,
+    fallback: defaultTaskCount,
     name: "tasks",
   });
 
   const repeat = parsePositiveInteger({
     value: options.repeat,
-    fallback: saved?.prepared.repeat ?? 2,
+    fallback: saved?.prepared.repeat ?? defaultRepeat,
     name: "repeat",
   });
 
   const timeoutSeconds = parsePositiveInteger({
     value: options.timeoutSeconds,
-    fallback: saved?.prepared.timeoutSeconds ?? 600,
+    fallback: saved?.prepared.timeoutSeconds ?? defaultTimeoutSeconds,
     name: "timeout-seconds",
   });
 
