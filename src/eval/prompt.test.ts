@@ -62,3 +62,21 @@ test("extracts prompt from Cursor content array", () => {
   const result = extractPromptText(raw);
   expect(result).toBe("inspect the sqlite store");
 });
+
+test("returns null for empty or whitespace prompts", () => {
+  expect(extractPromptText("")).toBeNull();
+  expect(extractPromptText("   \n\t  ")).toBeNull();
+  expect(
+    extractPromptText(
+      JSON.stringify({ content: "<USER_REQUEST>\n\n</USER_REQUEST>" }),
+    ),
+  ).toBeNull();
+});
+
+test("returns null when content array has no text block", () => {
+  const raw = JSON.stringify({
+    role: "user",
+    content: [{ type: "tool_result", tool_use_id: "t1", content: "ok" }],
+  });
+  expect(extractPromptText(raw)).toBeNull();
+});

@@ -1,56 +1,56 @@
 import { isRecord } from "../observe/record";
 
-export function extractPromptText(raw: string): string {
+type TextContentBlock = {
+  readonly type: string;
+  readonly text: string;
+};
+
+function isTextContentBlock(value: unknown): value is TextContentBlock {
+  return (
+    isRecord(value) &&
+    value.type === "text" &&
+    typeof value.text === "string"
+  );
+}
+
+function readContentText(content: unknown): string | null {
+  if (typeof content === "string") {
+    const match = content.match(/<USER_REQUEST>([\s\S]*?)<\/USER_REQUEST>/);
+    const text = (match?.[1] ?? content).trim();
+    return text.length > 0 ? text : null;
+  }
+  if (!Array.isArray(content)) {
+    return null;
+  }
+  const textBlock = content.find(isTextContentBlock);
+  const text = textBlock ? textBlock.text.trim() : "";
+  return text.length > 0 ? text : null;
+}
+
+export function extractPromptText(rawPrompt: string): string | null {
   try {
-    const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed === "string") {
-      return parsed.trim();
+    const parsedValue: unknown = JSON.parse(rawPrompt);
+    if (typeof parsedValue === "string") {
+      const text = parsedValue.trim();
+      return text.length > 0 ? text : null;
     }
-    if (isRecord(parsed)) {
-      const content = parsed.content;
-      if (typeof content === "string") {
-        const match = content.match(/<USER_REQUEST>([\s\S]*?)<\/USER_REQUEST>/);
-        return match?.[1] ? match[1].trim() : content.trim();
+    if (isRecord(parsedValue)) {
+      const fromContent = readContentText(parsedValue.content);
+      if (fromContent !== null) {
+        return fromContent;
       }
-      if (Array.isArray(content)) {
-        const textBlock = content.find(
-          (item) =>
-            isRecord(item) &&
-            item.type === "text" &&
-            typeof item.text === "string",
-        );
-        if (
-          textBlock &&
-          isRecord(textBlock) &&
-          typeof textBlock.text === "string"
-        ) {
-          return textBlock.text.trim();
+      if (isRecord(parsedValue.message)) {
+        const fromMessage = readContentText(parsedValue.message.content);
+        if (fromMessage !== null) {
+          return fromMessage;
         }
       }
-      if (isRecord(parsed.message)) {
-        const messageContent = parsed.message.content;
-        if (typeof messageContent === "string") {
-          return messageContent.trim();
-        }
-        if (Array.isArray(messageContent)) {
-          const textBlock = messageContent.find(
-            (item) =>
-              isRecord(item) &&
-              item.type === "text" &&
-              typeof item.text === "string",
-          );
-          if (
-            textBlock &&
-            isRecord(textBlock) &&
-            typeof textBlock.text === "string"
-          ) {
-            return textBlock.text.trim();
-          }
-        }
-      }
+      return null;
     }
   } catch {
-    return raw.trim();
+    const text = rawPrompt.trim();
+    return text.length > 0 ? text : null;
   }
-  return raw.trim();
+  const text = rawPrompt.trim();
+  return text.length > 0 ? text : null;
 }
