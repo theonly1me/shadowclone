@@ -1,3 +1,4 @@
+import { redactSecrets } from "../redact";
 import { parseClaudeStream } from "./parseClaude";
 import type {
   EngineRun,
@@ -65,6 +66,24 @@ export function buildClaudeArguments(options: {
   return arguments_;
 }
 
+export function redactedFailure(options: {
+  readonly run: EngineRun;
+  readonly stderr: string;
+  readonly exitCode: number;
+}): string {
+  const stderrText = options.stderr.trim();
+  if (stderrText.length > 0) {
+    return redactSecrets({ text: stderrText });
+  }
+  if (options.run.errorMessage) {
+    return redactSecrets({ text: options.run.errorMessage });
+  }
+  const resultText = options.run.text.trim();
+  return resultText.length > 0
+    ? redactSecrets({ text: resultText })
+    : `Process exited with code ${options.exitCode}`;
+}
+
 export async function runClaudeCode(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
@@ -86,14 +105,14 @@ export async function runClaudeCode(
   ]);
   const run = parseClaudeStream({ stream, fallbackSessionId: sessionId });
   if (exitCode !== 0) {
-    const errorDetails =
-      stderr.trim().length > 0
-        ? stderr.trim()
-        : run.errorMessage ??
-          (run.text.trim().length > 0
-            ? run.text.trim()
-            : `Process exited with code ${exitCode}`);
-    return { ...run, isError: true, errorMessage: errorDetails };
+    return {
+      ...run,
+      isError: true,
+      errorMessage: redactedFailure({ run, stderr, exitCode }),
+    };
+  }
+  if (run.errorMessage) {
+    return { ...run, errorMessage: redactSecrets({ text: run.errorMessage }) };
   }
   return run;
 }

@@ -1,5 +1,6 @@
 export {
   buildClaudeArguments,
+  redactedFailure,
   runClaudeCode,
 } from "./claudeCode";
 export {

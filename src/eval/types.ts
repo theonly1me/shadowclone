@@ -43,7 +43,7 @@ export type EvalReceipt = {
   readonly timestamp: string;
   readonly sessionsEvaluated: number;
   readonly sessionsSkipped: number;
-  readonly skippedSessions?: readonly EvalSkippedSession[];
+  readonly skippedSessions: readonly EvalSkippedSession[];
   readonly averageBaseline: ReplayScore;
   readonly averageClone: ReplayScore;
   readonly averageDelta: ScoreDelta;
