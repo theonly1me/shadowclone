@@ -58,6 +58,18 @@ const sourcesSchema = z
     shell: z.boolean(),
   });
 
+const requiredCoreSourceIds = [
+  "claude-code",
+  "claude-prompts",
+  "codex",
+  "cursor",
+  "shell",
+] as const;
+
+function hasUnknownKey(issues: readonly z.core.$ZodIssue[]): boolean {
+  return issues.some((issue) => issue.code === "unrecognized_keys");
+}
+
 function parseSources(value: unknown): SourceSettings {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error(
@@ -67,7 +79,8 @@ function parseSources(value: unknown): SourceSettings {
 
   const result = sourcesSchema.safeParse(value);
   if (!result.success) {
-    if (result.error.issues.some((issue) => issue.code === "unrecognized_keys")) {
+    const missingCore = requiredCoreSourceIds.some((key) => !(key in value));
+    if (hasUnknownKey(result.error.issues) || missingCore) {
       throw new Error(
         "Config sources must contain every supported source and no unknown sources",
       );
@@ -90,7 +103,7 @@ function parseDistillation(value: unknown): ShadowcloneConfig["distillation"] {
 
   const result = distillationSchema.safeParse(value);
   if (!result.success) {
-    if (result.error.issues.some((issue) => issue.code === "unrecognized_keys")) {
+    if (hasUnknownKey(result.error.issues) || !("deep" in value)) {
       throw new Error("Config distillation must contain only the deep setting");
     }
 
@@ -114,19 +127,17 @@ export function parseConfig(value: unknown): ShadowcloneConfig {
 
   const result = configSchema.safeParse(value);
   if (!result.success) {
-    if (result.error.issues.some((issue) => issue.code === "unrecognized_keys")) {
-      throw new Error("Config must contain only supported top-level settings");
-    }
-
-    if (
+    const wrongSchemaVersion =
+      "schema-version" in value &&
       result.error.issues.some((issue) =>
         issue.path.includes("schema-version"),
-      )
-    ) {
-      throw new Error("Config schema-version must be 1");
-    }
+      );
 
-    throw new Error("Config must contain only supported top-level settings");
+    throw new Error(
+      wrongSchemaVersion
+        ? "Config schema-version must be 1"
+        : "Config must contain only supported top-level settings",
+    );
   }
 
   return {
