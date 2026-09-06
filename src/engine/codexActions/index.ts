@@ -18,7 +18,7 @@ function resolveItemSuccess(status: unknown): boolean | null {
 export function codexActions(
   item: Record<string, unknown>,
 ): readonly EngineAction[] {
-  const itemType = item.type ?? item.item_type;
+  const itemType = item.item_type ?? item.type;
   const succeeded = resolveItemSuccess(item.status);
 
   if (itemType === "command_execution" && typeof item.command === "string") {
