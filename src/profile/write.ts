@@ -19,15 +19,51 @@ import type {
   ProfileWriteResult,
 } from "./types";
 
+export type ProfileGenerator = "structural" | "distilled" | "all";
+
 function isDistilledRule(rule: ExistingProfileRule): boolean {
   return semanticRuleKey(rule.title) === rule.key;
 }
 
-function groupRules(
-  rules: readonly ProfileRule[],
-): ReadonlyMap<string, readonly ProfileRule[]> {
-  return Map.groupBy(rules, profileRulePath);
+function shouldPruneRule(options: {
+  readonly existingRule: ExistingProfileRule;
+  readonly isUpdated: boolean;
+  readonly generator: ProfileGenerator;
+}): boolean {
+  if (options.isUpdated || options.existingRule.edited) {
+    return false;
+  }
+  const isDistilled = isDistilledRule(options.existingRule);
+  if (options.generator === "all") {
+    return true;
+  }
+  if (options.generator === "structural") {
+    return !isDistilled;
+  }
+  return isDistilled;
 }
+
+function resolveGenerator(options: {
+  readonly generator?: ProfileGenerator;
+  readonly rules: readonly ProfileRule[];
+}): ProfileGenerator {
+  if (options.generator) {
+    return options.generator;
+  }
+  const hasDistilled = options.rules.some(
+    (rule) => semanticRuleKey(rule.title) === rule.key,
+  );
+  const hasStructural = options.rules.some(
+    (rule) => semanticRuleKey(rule.title) !== rule.key,
+  );
+  if (hasDistilled && hasStructural) {
+    return "all";
+  }
+  return hasDistilled ? "distilled" : "structural";
+}
+
+const groupRules = (rules: readonly ProfileRule[]) =>
+  Map.groupBy(rules, profileRulePath);
 
 async function readExistingRules(
   filePath: string,
@@ -36,15 +72,19 @@ async function readExistingRules(
   return (await file.exists()) ? parseProfileBlocks(await file.text()) : [];
 }
 
-function keyFor(entry: ProfileStateEntry): string {
-  return `${entry.relativePath}\t${entry.key}`;
-}
+const keyFor = (entry: ProfileStateEntry): string =>
+  `${entry.relativePath}\t${entry.key}`;
 
 export async function writeProfile(options: {
   readonly paths: ProjectPaths;
   readonly rules: readonly ProfileRule[];
+  readonly generator?: ProfileGenerator;
 }): Promise<ProfileWriteResult> {
   await mkdir(options.paths.profileDirectory, { recursive: true });
+  const generator = resolveGenerator({
+    generator: options.generator,
+    rules: options.rules,
+  });
   const previous = await readProfileState(options.paths.profileManifestFile);
   const rejectedEntries = await readProfileState(
     options.paths.rejectedProfileFile,
@@ -89,7 +129,13 @@ export async function writeProfile(options: {
       const updated = incomingRules.find(
         (rule) => rule.key === existingRule.key,
       );
-      if (!updated && !existingRule.edited && !isDistilledRule(existingRule)) {
+      if (
+        shouldPruneRule({
+          existingRule,
+          isUpdated: updated !== undefined,
+          generator,
+        })
+      ) {
         continue;
       }
       nextBlocks.push(
@@ -103,6 +149,13 @@ export async function writeProfile(options: {
     for (const rule of incomingRules) {
       const entry = { relativePath, key: rule.key };
       if (!existing.has(rule.key) && !rejected.has(keyFor(entry))) {
+        existing.set(rule.key, {
+          key: rule.key,
+          title: rule.title,
+          fingerprint: "",
+          content: renderProfileRule(rule),
+          edited: false,
+        });
         nextBlocks.push(renderProfileRule(rule));
         nextState.push(entry);
       }

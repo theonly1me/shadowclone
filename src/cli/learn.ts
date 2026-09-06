@@ -136,6 +136,7 @@ export async function learn(options: {
     await writeProfile({
       paths,
       rules: combinedRules,
+      generator: options.deep ? "all" : "structural",
     });
     console.log(renderMirror({ report: derived.report, networkCallsMade }));
     if (summary.rescannedFiles > 0) {
@@ -148,16 +149,13 @@ export async function learn(options: {
         await installLiveClone({
           cwd: targetDirectory,
           paths,
+          readRemote: options.readRemote,
           configPath: options.configPath,
           managedConfigPath: options.managedConfigPath,
-          readRemote: options.readRemote,
         });
       } catch (error) {
-        console.log(
-          `Skipped installing the live clone: ${
-            error instanceof Error ? error.message : "unknown error"
-          }`,
-        );
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`Warning: failed to install clone hook: ${message}`);
       }
     }
   } finally {
