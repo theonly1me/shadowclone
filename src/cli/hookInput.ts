@@ -1,23 +1,17 @@
-import { z } from "zod";
-
-const hookRecordSchema = z.record(z.string(), z.unknown());
+export function isRecord(
+  value: unknown,
+): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 export function parseHookInput(
   input: string,
 ): Readonly<Record<string, unknown>> {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(input);
-  } catch {
+  const value: unknown = JSON.parse(input);
+  if (!isRecord(value)) {
     throw new Error("Hook input must be a JSON object");
   }
-
-  const result = hookRecordSchema.safeParse(parsed);
-  if (!result.success) {
-    throw new Error("Hook input must be a JSON object");
-  }
-
-  return result.data;
+  return value;
 }
 
 export function readHookString(

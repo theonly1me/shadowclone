@@ -1,4 +1,3 @@
-import { z } from "zod";
 import type { ProfileSection } from "../profile";
 
 export type DistilledRule = {
@@ -62,12 +61,9 @@ export const distillationMergeOutputSchema = {
   },
 } as const;
 
-const distilledRuleItemSchema = z.object({
-  title: z.string(),
-  body: z.string(),
-  section: z.enum(["engineering", "workflow", "boundaries"]),
-  sources: z.array(z.number().int().nonnegative()).optional(),
-});
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 function normalizeText(value: string, maxLength: number): string {
   return value
@@ -78,35 +74,40 @@ function normalizeText(value: string, maxLength: number): string {
     .slice(0, maxLength);
 }
 
+function parseSection(value: unknown): ProfileSection | null {
+  return value === "engineering" ||
+    value === "workflow" ||
+    value === "boundaries"
+    ? value
+    : null;
+}
+
 export function parseDistilledRules(value: unknown): readonly DistilledRule[] {
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    !("rules" in value) ||
-    !Array.isArray(value.rules)
-  ) {
+  if (!isRecord(value) || !Array.isArray(value.rules)) {
     throw new Error("The engine returned an invalid distillation result");
   }
-
   return value.rules.flatMap((entry) => {
-    const parsed = distilledRuleItemSchema.safeParse(entry);
-    if (!parsed.success) {
+    if (!isRecord(entry)) {
       return [];
     }
-
-    const title = normalizeText(parsed.data.title, 120);
-    const body = normalizeText(parsed.data.body, 600);
-    if (!title || !body) {
+    const section = parseSection(entry.section);
+    if (
+      typeof entry.title !== "string" ||
+      typeof entry.body !== "string" ||
+      section === null
+    ) {
       return [];
     }
-
-    return [
-      {
-        title,
-        body,
-        section: parsed.data.section,
-        ...(parsed.data.sources ? { sources: parsed.data.sources } : {}),
-      },
-    ];
+    const title = normalizeText(entry.title, 120);
+    const body = normalizeText(entry.body, 600);
+    const sources = Array.isArray(entry.sources)
+      ? entry.sources.filter(
+          (item): item is number =>
+            typeof item === "number" && Number.isInteger(item) && item >= 0,
+        )
+      : undefined;
+    return title && body
+      ? [{ title, body, section, ...(sources ? { sources } : {}) }]
+      : [];
   });
 }

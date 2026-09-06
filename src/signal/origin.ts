@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { IndexedEvent } from "../index";
 import type {
   OriginScope,
@@ -74,6 +75,29 @@ export function normalizeRemoteRepository(
     id: `${origin.id}/${parts.repository.toLowerCase()}`,
     origin,
   };
+}
+
+function matchesPattern(value: string, pattern: string): boolean {
+  const expression = pattern
+    .split("*")
+    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+    .join(".*");
+  return new RegExp(`^${expression}$`).test(value);
+}
+
+export function isOriginBlocked(options: {
+  readonly origin: OriginScope;
+  readonly cwd: string;
+  readonly patterns: readonly string[];
+}): boolean {
+  const repository = options.cwd ? path.basename(options.cwd) : null;
+  const values = [
+    options.origin.id,
+    ...(repository ? [`${options.origin.id}/${repository}`] : []),
+  ];
+  return options.patterns.some((pattern) =>
+    values.some((value) => matchesPattern(value, pattern))
+  );
 }
 
 export async function readGitRemote(cwd: string): Promise<string | null> {

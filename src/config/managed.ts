@@ -1,5 +1,4 @@
 import { stat } from "node:fs/promises";
-import { z } from "zod";
 import type { EngineId } from "../engine";
 import {
   sourceIds,
@@ -20,14 +19,14 @@ export type ManagedPolicy = {
   readonly maxActionTier: ActionTier;
 };
 
-export const engineIds = [
+export const engineIds: readonly EngineId[] = [
   "claude-code",
   "codex",
   "cursor-agent",
   "antigravity",
   "anthropic-api",
   "openai-compatible",
-] as const;
+];
 
 export const defaultManagedPolicy: ManagedPolicy = {
   enabled: true,
@@ -39,27 +38,74 @@ export const defaultManagedPolicy: ManagedPolicy = {
   maxActionTier: "act",
 };
 
-const managedPolicySchema = z.object({
-  enabled: z.boolean(),
-  allowedSources: z.array(z.enum(sourceIds)),
-  allowedEngines: z.array(z.enum(engineIds)),
-  distillation: z.enum(["allowed", "local-only", "disabled"]),
-  originScope: z.literal("strict"),
-  blockedOrigins: z.array(z.string()),
-  maxActionTier: z.enum(["observe", "draft", "act"]),
-});
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stringArray(value: unknown): readonly string[] | null {
+  return Array.isArray(value) &&
+    value.every((entry) => typeof entry === "string")
+    ? value
+    : null;
+}
+
+function parseSources(value: unknown): readonly SourceId[] | null {
+  const values = stringArray(value);
+  if (values === null) {
+    return null;
+  }
+  const sources = values.flatMap((entry) => {
+    const source = sourceIds.find((candidate) => candidate === entry);
+    return source ? [source] : [];
+  });
+  return sources.length === values.length ? sources : null;
+}
+
+function parseEngines(value: unknown): readonly EngineId[] | null {
+  const values = stringArray(value);
+  if (values === null) {
+    return null;
+  }
+  const engines = values.flatMap((entry) => {
+    const engine = engineIds.find((candidate) => candidate === entry);
+    return engine ? [engine] : [];
+  });
+  return engines.length === values.length ? engines : null;
+}
 
 export function parseManagedPolicy(value: unknown): ManagedPolicy {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+  if (!isRecord(value)) {
     throw new Error("Managed policy must be a JSON object");
   }
-
-  const result = managedPolicySchema.safeParse(value);
-  if (!result.success) {
+  const allowedSources = parseSources(value.allowedSources);
+  const allowedEngines = parseEngines(value.allowedEngines);
+  const blockedOrigins = stringArray(value.blockedOrigins);
+  const distillation = value.distillation;
+  const maxActionTier = value.maxActionTier;
+  if (
+    typeof value.enabled !== "boolean" ||
+    allowedSources === null ||
+    allowedEngines === null ||
+    blockedOrigins === null ||
+    (distillation !== "allowed" &&
+      distillation !== "local-only" &&
+      distillation !== "disabled") ||
+    value.originScope !== "strict" ||
+    (maxActionTier !== "observe" &&
+      maxActionTier !== "draft" &&
+      maxActionTier !== "act")
+  ) {
     throw new Error("Managed policy has invalid or missing fields");
   }
-
-  return result.data;
+  return {
+    enabled: value.enabled,
+    allowedSources,
+    allowedEngines,
+    distillation,
+    originScope: "strict",
+    blockedOrigins,
+    maxActionTier,
+  };
 }
 
 export function applyManagedPolicy(options: {

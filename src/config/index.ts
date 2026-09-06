@@ -1,15 +1,16 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { projectPaths } from "../paths";
-import toml from "smol-toml";
 import {
   applyManagedPolicy,
   readManagedPolicy,
-  type ManagedPolicy,
 } from "./managed";
+import type { ManagedPolicy } from "./managed";
+import { renderRepoSettings } from "./repo";
 import {
   defaultConfig,
   parseConfig,
+  sourceIds,
   type ShadowcloneConfig,
   type SourceId,
 } from "./schema";
@@ -48,7 +49,7 @@ export async function readConfig(
     return defaultConfig;
   }
 
-  const parsed: unknown = toml.parse(await configFile.text());
+  const parsed: unknown = Bun.TOML.parse(await configFile.text());
   return parseConfig(parsed);
 }
 
@@ -74,17 +75,21 @@ export async function readEffectiveConfig(options: {
 }
 
 export function renderConfig(config: ShadowcloneConfig): string {
-  const document: Record<string, unknown> = {
-    "schema-version": config.schemaVersion,
-    sources: config.sources,
-    distillation: config.distillation,
-  };
+  const sourceLines = sourceIds.map(
+    (sourceId) => `${sourceId} = ${config.sources[sourceId]}`,
+  );
 
-  if (Object.keys(config.repo).length > 0) {
-    document.repo = config.repo;
-  }
-
-  return toml.stringify(document);
+  return [
+    `schema-version = ${config.schemaVersion}`,
+    "",
+    "[sources]",
+    ...sourceLines,
+    "",
+    "[distillation]",
+    `deep = ${config.distillation.deep}`,
+    ...renderRepoSettings(config.repo),
+    "",
+  ].join("\n");
 }
 
 export async function writeConfig(options: {

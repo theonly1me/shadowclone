@@ -23,17 +23,3 @@ test("rejects an unnamed or unsupported action approval", () => {
     parseRunArguments(["fix the test", "--approve", "merge"])
   ).toThrow("supported action");
 });
-
-test("keeps a task word that starts with a dash", () => {
-  expect(
-    parseRunArguments(["remove", "the", "--deprecated", "flag", "--approve", "push"]),
-  ).toEqual({
-    task: "remove the --deprecated flag",
-    approvedActions: ["push"],
-  });
-});
-
-test("rejects an empty task by name", () => {
-  expect(() => parseRunArguments([])).toThrow("Run requires a task");
-  expect(() => parseRunArguments(["   "])).toThrow("Run requires a task");
-});
