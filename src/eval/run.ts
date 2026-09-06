@@ -12,12 +12,12 @@ import {
   extractBehaviorFromActions,
   extractBehaviorFromIndex,
 } from "./behavior";
-import { computeScoreDelta, scoreReplay } from "./score";
+import { extractPromptText } from "./prompt";
+import { averageMetrics, computeScoreDelta, scoreReplay } from "./score";
 import type {
   EvalReceipt,
   EvalSessionResult,
   ReplayScore,
-  ScoreDelta,
 } from "./types";
 
 const defaultOrigin: OriginScope = {
@@ -35,21 +35,6 @@ export type EvalOptions = {
   readonly configPath?: string;
   readonly runner?: EngineRunner;
 };
-
-function avgDimension(values: readonly (number | null)[]): number | null {
-  const nums = values.filter((v): v is number => v !== null);
-  return nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : null;
-}
-
-const averageMetrics = (
-  metrics: readonly (ReplayScore | ScoreDelta)[],
-): ReplayScore => ({
-  tools: avgDimension(metrics.map((s) => s.tools)) ?? 0,
-  verification: avgDimension(metrics.map((s) => s.verification)),
-  files: avgDimension(metrics.map((s) => s.files)),
-  planning: avgDimension(metrics.map((s) => s.planning)) ?? 0,
-  total: avgDimension(metrics.map((s) => s.total)) ?? 0,
-});
 
 export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
   const paths = options.paths ?? projectPaths;
@@ -110,7 +95,8 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
     if (!promptEvent?.textRef) {
       continue;
     }
-    const prompt = await resolveRedacted({ ref: promptEvent.textRef });
+    const rawPrompt = await resolveRedacted({ ref: promptEvent.textRef });
+    const prompt = extractPromptText(rawPrompt);
     const actual = extractBehaviorFromIndex({ events });
 
     const baselineCwd = await mkdtemp(
@@ -125,10 +111,15 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
       const baselineRun = await runner({
         prompt,
         cwd: baselineCwd,
-        sessionId: `eval-base-${sessionId}`,
+        sessionId: crypto.randomUUID(),
         permissionMode: "dontAsk",
         maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
       });
+      if (baselineRun.isError) {
+        throw new Error(
+          `Baseline replay failed for session ${sessionId}: ${baselineRun.text || "unknown error"}`,
+        );
+      }
       const baselineBehavior = extractBehaviorFromActions({
         actions: baselineRun.actions ?? [],
       });
@@ -138,10 +129,15 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
         prompt,
         cwd: cloneCwd,
         systemPromptFile: compiledProfilePath,
-        sessionId: `eval-clone-${sessionId}`,
+        sessionId: crypto.randomUUID(),
         permissionMode: "dontAsk",
         maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
       });
+      if (cloneRun.isError) {
+        throw new Error(
+          `Clone replay failed for session ${sessionId}: ${cloneRun.text || "unknown error"}`,
+        );
+      }
       const cloneBehavior = extractBehaviorFromActions({
         actions: cloneRun.actions ?? [],
       });
