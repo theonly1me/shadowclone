@@ -21,7 +21,6 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
     "@types/bun": "latest",
-    "@types/picomatch": "^4.0.3",
     "typescript": "~5.9"
   },
   "description": "Learns how you work from the AI coding sessions already on your disk, then runs copies of you inside the agent you already use.",
@@ -52,7 +51,6 @@
   "dependencies": {
     "bun": "^1.4.2",
     "commander": "^15.0.0",
-    "picomatch": "^4.0.7",
     "smol-toml": "^1.8.0",
     "zod": "^4.5.4"
   }
