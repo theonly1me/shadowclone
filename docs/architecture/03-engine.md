@@ -6,20 +6,18 @@ One interface, two uses, and provider-specific implementations. `src/engine/` is
 
 Shadowclone does not have an API key, does not ask for one, and has no server to hold one. It runs the agent CLI already installed and already logged in on the machine.
 
-| Engine | Auth it inherits | Cost to the maintainer | Cost to the user |
+| Engine | Auth it inherits | Status | Cost to the user |
 | --- | --- | --- | --- |
-| `claude-code` | Claude Code OAuth, Pro, Max, or Team | none | subscription quota |
-| `codex` | ChatGPT subscription | none | subscription quota |
-| `cursor-agent` | Cursor subscription | none | subscription quota |
-| `antigravity` | Antigravity CLI cached login | none | provider quota |
-| `anthropic-api` | `ANTHROPIC_API_KEY` if set | none | their key |
-| `openai-compatible` | base URL, covers Ollama | none | none when local |
+| `claude-code` | Claude Code OAuth, Pro, Max, or Team | built | subscription quota |
+| `codex` | ChatGPT subscription | built | subscription quota |
+| `cursor-agent` | Cursor subscription | built | subscription quota |
+| `antigravity` | Antigravity CLI cached login | metadata only | provider quota |
+| `anthropic-api` | `ANTHROPIC_API_KEY` if set | planned | their key |
+| `openai-compatible` | base URL, covers Ollama | planned | none when local |
 
-The last row is the zero-egress path. Pointing `openai-compatible` at a local Ollama endpoint gives a complete shadowclone that makes no network call at all. That is the answer for anyone whose employer would never allow this otherwise.
+Selection is purpose-aware, then follows Claude Code, Codex, and Cursor order among engines that can enforce that purpose. The registry records Antigravity's known limits without adding a runner. API keys and configured local endpoints remain planned future work. `shadowclone doctor` prints what was found, what is authenticated, and which providers can support each purpose.
 
-Selection is purpose-aware, then follows Claude Code, Codex, and Cursor order among engines that can enforce that purpose. The registry records Antigravity's known limits without adding a runner. API keys and configured local endpoints remain later work. `shadowclone doctor` prints what was found, what is authenticated, and which providers can support each purpose.
-
-The Claude Code, Codex, and Cursor engines are built. Antigravity, API, and local endpoint implementations remain later work, so the detector never claims they are available today.
+The Claude Code, Codex, and Cursor engines are built. Antigravity, API, and local endpoint implementations remain planned, so the detector never claims they are available today.
 
 ## Capability registry
 
@@ -73,14 +71,15 @@ An engine that cannot honour an option fails loudly at construction rather than 
 ## Claude Code
 
 ```
-claude -p "<task>"
-  --output-format stream-json
-  --append-system-prompt-file ~/.shadowclone/profile/.compiled.md
-  --session-id <uuid>
-  --permission-mode acceptEdits
-  --allowedTools "Read" "Edit" "Bash(bun test)" "Bash(git commit:*)"
-  --max-budget-usd 2.00
-  --model sonnet
+claude -p "<task>" \
+  --output-format stream-json \
+  --append-system-prompt-file ~/.shadowclone/profile/.compiled.md \
+  --session-id <uuid> \
+  --permission-mode dontAsk \
+  --setting-sources user,project \
+  --allowedTools "Read" "Edit" "Bash(bun test)" \
+  --max-budget-usd 2.00 \
+  --model sonnet \
   --add-dir <worktree>
 ```
 
@@ -94,9 +93,11 @@ Generating the id up front means the clone knows where its own transcript will l
 
 `--append-system-prompt-file` injects the compiled profile without replacing Claude Code's own system prompt, so the clone keeps its normal competence and gains the user's habits on top. Replacing the system prompt with `--system-prompt-file` produces a worse agent that sounds more like the user, which is the wrong trade.
 
+`--setting-sources` restricts loaded setting files to user and project tiers, preventing a target repository's `.claude/settings.local.json` from silently widening permissions beyond the resolved dispatch policy ceiling.
+
 The terminal `result` message carries `session_id`, `total_cost_usd`, `duration_ms`, `duration_api_ms`, `num_turns`, `is_error`, `modelUsage`, and `permission_denials`. Everything `EngineRun` needs is in one message, so the stream parser only has to buffer text blocks and wait for `result`.
 
-Permission modes available are `acceptEdits`, `bypassPermissions`, `default`, `dontAsk`, `manual`, `plan`, and `auto`. `acceptEdits` inside a throwaway worktree is the unattended default. `bypassPermissions` is never used by shadowclone, at any tier, for any repo.
+Permission modes available are `acceptEdits`, `bypassPermissions`, `default`, `dontAsk`, `manual`, `plan`, and `auto`. `dontAsk` inside a throwaway worktree is the unattended default, converting any unallowed tool call into a hard denial. `bypassPermissions` is never used by shadowclone, at any tier, for any repo.
 
 ## Codex
 

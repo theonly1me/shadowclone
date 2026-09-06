@@ -116,12 +116,14 @@ Every rule carries where it came from.
 
 Never presents work as finished without running `bun run typecheck && bun test` first, and says which one was run.
 
-<!-- shadowclone: observations=47 confidence=0.94 last-seen=2026-09-04 sessions=3 origins=github.com/acme scope=org -->
+<!-- shadowclone: source=semantic observations=47 confidence=0.94 last-seen=2026-09-04 sessions=3 origins=github.com/acme scope=org -->
 ```
 
 The trailing metadata is HTML comment syntax so it renders as nothing when the file is read as markdown, and parses reliably when the file is read back. This is the one place in the project where a comment is written, and it is data, not commentary.
 
 Provenance is what makes the profile arguable. A rule claiming 47 observations is a claim the user can check and reject, and rejecting it is how the profile improves. `origins` and `scope` are what the compiler reads to decide whether a rule is allowed into a given session, so they are load bearing rather than informational.
+
+Merged rules compose evidence honestly: the merge step outputs explicit source indices, ensuring each merged rule's observations, sessions, origins, and timestamps represent the exact union of its source signals rather than origin-wide counts. Confidence scores are derived from session recurrence as `min(1, sessions / 3)` and filtered by `distillation.confidenceThreshold`.
 
 ## Compiling to a subagent
 
@@ -133,22 +135,24 @@ The profile compiles two ways. Into a system prompt, which `03-engine.md` covers
 
 `src/profile/agent.ts` writes the subagent file: frontmatter with `name`, `description`, `model`, and `tools`, then the compiled profile as the body. Claude Code reads `.claude/agents/*.md` at session start and accepts the same definition as `--agents <json>` on a headless run.
 
-`shadowclone install` performs this compilation for the current repository. The plugin also injects the scoped compiled profile through `SessionStart`, and its MCP server exposes the same profile for recall during a live session.
+`shadowclone install` performs this compilation for the current repository and registers `.claude/agents/shadowclone.md` in `.git/info/exclude` to prevent personal rules from being committed to shared version control. The plugin also injects the scoped compiled profile through `SessionStart`, and its MCP server exposes the same profile for recall during a live session.
 
 Once it exists, the main session calls `Agent(subagent_type: "<name>")` and gets a copy of the user on a subtask. Ten of those on ten tasks is what the project is named after.
 
 Origin scoping applies at compile time here too. The subagent written into a repo's `.claude/agents/` carries `global/` rules plus that repo's organization and nothing else, so a subagent file committed to an employer's repo holds no rule learned anywhere but there.
 
-## Hand edits survive
+## Hand edits survive and scoped pruning
 
 The user editing their own profile is the point, so regeneration must never clobber it.
 
-The writer parses the existing file first. A rule the user edited is marked `pinned` and is carried forward verbatim with its observation count frozen. A rule the user deleted is recorded in `~/.shadowclone/profile/.rejected` and is not proposed again. New rules are appended. Nothing is silently rewritten.
+The writer parses the existing file first. A rule the user edited is marked `pinned` and is carried forward verbatim with its observation count frozen. A rule the user deleted is recorded in `~/.shadowclone/profile/.rejected` and is not proposed again.
+
+Pruning is scoped by regeneration type: rules are only pruned if their specific source (`structural` or `semantic`) was regenerated during that run and the rule is absent from incoming generated rules. Offline structural refreshes (`learn`) never drop distilled rules, while deep distillation (`learn --deep`) refreshes semantic rules and prunes stale predecessors. Internal writes deduplicate rules across identical keys.
 
 ## Budget and resumption
 
 Deep distillation runs against the user's own subscription quota, which is a real and exhaustible resource. It is designed around that from the start rather than after the first angry issue.
 
-Work is batched, and every batch is checkpointed to `~/.shadowclone/distill/` before the next one starts. A rate limit or a closed laptop costs one batch, not the run. The default model is a cheap tier, since extracting a rule from a pre-filtered correction pair does not need a frontier model. Action is where the good model earns its cost.
+Work is batched, and every batch and merge step is checkpointed to `~/.shadowclone/distill/` before the next one starts. A rate limit or a closed laptop costs one batch, not the run. The default model is a cheap tier, since extracting a rule from a pre-filtered correction pair does not need a frontier model. Action is where the good model earns its cost.
 
 `shadowclone learn --deep` prints what it is about to spend before it spends it.

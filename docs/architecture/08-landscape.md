@@ -4,6 +4,8 @@ What already exists, checked in September 2026, and the gap shadowclone occupies
 
 ## What exists
 
+**Native auto memory.** Claude Code ships native auto memory, free and enabled by default. It writes project-scoped notes to `~/.claude/projects/<project>/memory/` across four categories: `user` for role and preferences, `feedback` for corrections and confirmed patterns, `project` for architecture guidelines, and `reference` for external pointers. It updates on session close and supports subagents. It begins accumulating on install and learns forward.
+
 **Transcript viewers.** `claude-code-log`, `simonw/claude-code-transcripts`, `claude-notes`, LM Assist, and `claude-dev.tools` all read `~/.claude/projects/*.jsonl`. Every one of them renders or publishes. None derives anything from what it reads. They prove the corpus is readable and that people want to look at it, and they stop there.
 
 **Memory layers.** `mem0`, `claude-mem`, Letta, Zep, Lians, and Kage give an agent persistent memory across sessions. `mem0` runs an LLM extraction pass on write into a vector store and ships a Claude Code plugin. Lians is a local-first bitemporal fact store with erasure proofs, aimed at audited institutions. Kage stores codebase decisions as plain files in the repo and verifies each against the code before serving it. All of them store what was said or decided. None mines what the user did.
@@ -18,17 +20,17 @@ What already exists, checked in September 2026, and the gap shadowclone occupies
 
 ## The gap
 
-Five things none of the above does, each verifiable against the projects named.
+Five things none of the above does, evaluated against the current ecosystem.
 
-**Nobody reads the history.** Every learning system starts at zero on install. `tellonce` needs two months of daily use to reach 280 rules. The same machine already holds 994 interruptions and 445 denials in `~/.claude/projects/`, and shadowclone starts from there on the first run.
+**Nobody reads the history.** Every learning system starts at zero on install. Native auto memory starts empty on day one. `tellonce` needs two months of daily use to reach 280 rules. The same machine already holds 994 interruptions and 445 denials in `~/.claude/projects/`, and shadowclone starts from there on the first run.
 
-**Nobody learns across vendors.** Lians and `tellonce` inject into several tools but learn per tool. A profile built from Claude Code, Codex, and Cursor transcripts together can only come from a third party on the machine, because no vendor will read a competitor's logs.
+**Nobody learns across vendors.** This is the strongest structural gap. Lians and `tellonce` inject into several tools but learn per tool. A profile built from Claude Code, Codex, and Cursor transcripts together can only come from a third party on the machine, because no vendor will read a competitor's logs.
 
-**Nobody scopes by organization.** Every memory and rule store above is global or per project by filesystem location. None knows that a rule learned in an employer's repo must not appear in a session on someone else's, which is the single control that makes a personal learning tool usable on a work laptop.
+**Nobody scopes by organization.** Native memory scopes per project directory path on disk. It has no concept of employer or client boundaries, and no controls governing cross-repository rule promotion or isolation. Shadowclone scopes rules to the organization they originated from, preventing work habits from leaking across corporate boundaries.
 
-**Nobody compiles the person.** The output everywhere is rules or facts for the agent. Shadowclone's output is a subagent that is a copy of the user, dispatched in parallel by the session already open. Rules make one agent behave. A subagent definition makes ten.
+**Nobody compiles the person into dispatchable subagents.** Native auto memory maintains user and feedback notes for the current agent. Shadowclone compiles those steering moments into portable subagent definitions, dispatched in parallel to execute tasks with verified behavioral ceilings.
 
-**Nobody runs on the subscription already paid for.** Hermes needs Nous Portal or keys. `mem0` runs an extraction model. Shadowclone shells out to the authenticated CLI on the machine and holds no key.
+**Nobody runs on the subscription already paid for without vendor lock.** Hermes needs Nous Portal or keys. `mem0` runs a paid extraction model. Native auto memory is tied to one vendor. Shadowclone shells out to the authenticated CLI already on the machine across multiple providers, holding no API keys.
 
 ## What to borrow
 
