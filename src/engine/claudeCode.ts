@@ -79,11 +79,21 @@ export async function runClaudeCode(
   });
   process.stdin.write(options.prompt);
   process.stdin.end();
-  const [exitCode, stream] = await Promise.all([
+  const [exitCode, stream, stderr] = await Promise.all([
     process.exited,
     new Response(process.stdout).text(),
     new Response(process.stderr).text(),
   ]);
   const run = parseClaudeStream({ stream, fallbackSessionId: sessionId });
-  return exitCode === 0 ? run : { ...run, isError: true };
+  if (exitCode !== 0) {
+    const errorDetails =
+      stderr.trim().length > 0
+        ? stderr.trim()
+        : run.errorMessage ??
+          (run.text.trim().length > 0
+            ? run.text.trim()
+            : `Process exited with code ${exitCode}`);
+    return { ...run, isError: true, errorMessage: errorDetails };
+  }
+  return run;
 }

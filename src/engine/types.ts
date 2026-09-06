@@ -51,6 +51,7 @@ export type EngineRun = {
   readonly isError: boolean;
   readonly permissionDenials: readonly PermissionDenial[];
   readonly actions?: readonly EngineAction[];
+  readonly errorMessage?: string | null;
 };
 
 export type EngineRunner = (
