@@ -42,7 +42,6 @@ export async function mergeDistilledRules(options: {
       const cached: unknown = await Bun.file(checkpointPath).json();
       return parseDistilledRules(cached);
     } catch {
-      // Fall through to run
     }
   }
 
