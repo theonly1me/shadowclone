@@ -86,3 +86,25 @@ export function computeScoreDelta(options: {
     total: options.clone.total - options.baseline.total,
   };
 }
+
+function averageDimension(
+  values: readonly (number | null)[],
+): number | null {
+  const numbers = values.filter((value): value is number => value !== null);
+  return numbers.length > 0
+    ? numbers.reduce((accumulator, value) => accumulator + value, 0) /
+        numbers.length
+    : null;
+}
+
+export function averageMetrics(
+  metrics: readonly (ReplayScore | ScoreDelta)[],
+): ReplayScore {
+  return {
+    tools: averageDimension(metrics.map((metric) => metric.tools)) ?? 0,
+    verification: averageDimension(metrics.map((metric) => metric.verification)),
+    files: averageDimension(metrics.map((metric) => metric.files)),
+    planning: averageDimension(metrics.map((metric) => metric.planning)) ?? 0,
+    total: averageDimension(metrics.map((metric) => metric.total)) ?? 0,
+  };
+}
