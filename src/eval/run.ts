@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { readEffectiveConfig } from "../config";
@@ -34,35 +34,22 @@ export type EvalOptions = {
   readonly paths?: ProjectPaths;
   readonly configPath?: string;
   readonly runner?: EngineRunner;
-  readonly confirm?: boolean;
 };
 
 function avgDimension(values: readonly (number | null)[]): number | null {
   const nums = values.filter((v): v is number => v !== null);
-  return nums.length > 0
-    ? nums.reduce((a, b) => a + b, 0) / nums.length
-    : null;
+  return nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : null;
 }
 
-function averageScores(scores: readonly ReplayScore[]): ReplayScore {
-  return {
-    tools: avgDimension(scores.map((s) => s.tools)) ?? 0,
-    verification: avgDimension(scores.map((s) => s.verification)),
-    files: avgDimension(scores.map((s) => s.files)),
-    planning: avgDimension(scores.map((s) => s.planning)) ?? 0,
-    total: avgDimension(scores.map((s) => s.total)) ?? 0,
-  };
-}
-
-function averageDeltas(deltas: readonly ScoreDelta[]): ScoreDelta {
-  return {
-    tools: avgDimension(deltas.map((s) => s.tools)) ?? 0,
-    verification: avgDimension(deltas.map((s) => s.verification)),
-    files: avgDimension(deltas.map((s) => s.files)),
-    planning: avgDimension(deltas.map((s) => s.planning)) ?? 0,
-    total: avgDimension(deltas.map((s) => s.total)) ?? 0,
-  };
-}
+const averageMetrics = (
+  metrics: readonly (ReplayScore | ScoreDelta)[],
+): ReplayScore => ({
+  tools: avgDimension(metrics.map((s) => s.tools)) ?? 0,
+  verification: avgDimension(metrics.map((s) => s.verification)),
+  files: avgDimension(metrics.map((s) => s.files)),
+  planning: avgDimension(metrics.map((s) => s.planning)) ?? 0,
+  total: avgDimension(metrics.map((s) => s.total)) ?? 0,
+});
 
 export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
   const paths = options.paths ?? projectPaths;
@@ -96,13 +83,13 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
 
   const sinceTimestamp = options.since ? Date.parse(options.since) : 0;
   const targetSessions = [...sessionsMap.entries()]
-    .filter(([_, events]) => {
-      const first = events[0];
-      const hasPrompt = events.some(
-        (e) => e.kind === "user-prompt" && e.textRef !== null,
-      );
-      return first && hasPrompt && first.timestamp >= sinceTimestamp;
-    })
+    .filter(([_, events]) =>
+      Boolean(
+        events[0] &&
+          events[0].timestamp >= sinceTimestamp &&
+          events.some((e) => e.kind === "user-prompt" && e.textRef !== null),
+      ),
+    )
     .slice(0, options.sessions ?? 10);
 
   const evalId = crypto.randomUUID();
@@ -126,30 +113,44 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
     const prompt = await resolveRedacted({ ref: promptEvent.textRef });
     const actual = extractBehaviorFromIndex({ events });
 
-    const baselineRun = await runner({
-      prompt,
-      cwd: os.tmpdir(),
-      sessionId: `eval-base-${sessionId}`,
-      permissionMode: "dontAsk",
-      maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
-    });
-    const baselineBehavior = extractBehaviorFromActions({
-      actions: baselineRun.actions ?? [],
-    });
-    const baselineScore = scoreReplay({ actual, clone: baselineBehavior });
+    const baselineCwd = await mkdtemp(
+      path.join(os.tmpdir(), "shadowclone-eval-base-"),
+    );
+    const cloneCwd = await mkdtemp(
+      path.join(os.tmpdir(), "shadowclone-eval-clone-"),
+    );
+    let baselineScore: ReplayScore;
+    let cloneScore: ReplayScore;
+    try {
+      const baselineRun = await runner({
+        prompt,
+        cwd: baselineCwd,
+        sessionId: `eval-base-${sessionId}`,
+        permissionMode: "dontAsk",
+        maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
+      });
+      const baselineBehavior = extractBehaviorFromActions({
+        actions: baselineRun.actions ?? [],
+      });
+      baselineScore = scoreReplay({ actual, clone: baselineBehavior });
 
-    const cloneRun = await runner({
-      prompt,
-      cwd: os.tmpdir(),
-      systemPromptFile: compiledProfilePath,
-      sessionId: `eval-clone-${sessionId}`,
-      permissionMode: "dontAsk",
-      maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
-    });
-    const cloneBehavior = extractBehaviorFromActions({
-      actions: cloneRun.actions ?? [],
-    });
-    const cloneScore = scoreReplay({ actual, clone: cloneBehavior });
+      const cloneRun = await runner({
+        prompt,
+        cwd: cloneCwd,
+        systemPromptFile: compiledProfilePath,
+        sessionId: `eval-clone-${sessionId}`,
+        permissionMode: "dontAsk",
+        maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
+      });
+      const cloneBehavior = extractBehaviorFromActions({
+        actions: cloneRun.actions ?? [],
+      });
+      cloneScore = scoreReplay({ actual, clone: cloneBehavior });
+    } finally {
+      await rm(baselineCwd, { recursive: true, force: true });
+      await rm(cloneCwd, { recursive: true, force: true });
+    }
+
     const delta = computeScoreDelta({
       baseline: baselineScore,
       clone: cloneScore,
@@ -168,9 +169,9 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
     evalId,
     timestamp: new Date().toISOString(),
     sessionsEvaluated: sessionResults.length,
-    averageBaseline: averageScores(sessionResults.map((r) => r.baseline)),
-    averageClone: averageScores(sessionResults.map((r) => r.clone)),
-    averageDelta: averageDeltas(sessionResults.map((r) => r.delta)),
+    averageBaseline: averageMetrics(sessionResults.map((r) => r.baseline)),
+    averageClone: averageMetrics(sessionResults.map((r) => r.clone)),
+    averageDelta: averageMetrics(sessionResults.map((r) => r.delta)),
     sessions: sessionResults,
   };
 
