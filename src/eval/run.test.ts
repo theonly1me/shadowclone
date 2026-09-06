@@ -93,6 +93,7 @@ test("runEval executes baseline and clone runs and writes an eval receipt", asyn
       turns: 1,
       isError: false,
       permissionDenials: [],
+      errorMessage: null,
       actions: options.systemPromptFile
         ? [{ tool: "Edit", path: "src/index.ts", command: null }]
         : [{ tool: "Read", path: "README.md", command: null }],
@@ -150,6 +151,8 @@ test("runEval skips a session whose baseline replay failed", async () => {
       turns: 1,
       isError: true,
       permissionDenials: [],
+      actions: [],
+      errorMessage: null,
     });
 
   const receipt = await runEval({
@@ -160,6 +163,8 @@ test("runEval skips a session whose baseline replay failed", async () => {
 
   expect(receipt.sessionsEvaluated).toBe(0);
   expect(receipt.sessionsSkipped).toBe(1);
+  expect(receipt.skippedSessions[0]?.phase).toBe("baseline");
+  expect(receipt.skippedSessions[0]?.sessionId).toBe("session-1");
 
   const receiptFile = path.join(
     paths.shadowcloneDirectory,

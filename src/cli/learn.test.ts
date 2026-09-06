@@ -134,6 +134,8 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
       turns: 1,
       isError: false,
       permissionDenials: [],
+      actions: [],
+      errorMessage: null,
     });
   };
   await learn({

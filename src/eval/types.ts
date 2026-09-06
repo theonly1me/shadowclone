@@ -31,11 +31,19 @@ export type EvalSessionResult = {
   readonly delta: ScoreDelta;
 };
 
+export type EvalSkippedSession = {
+  readonly sessionId: string;
+  readonly prompt: string;
+  readonly phase: "baseline" | "clone";
+  readonly reason: string;
+};
+
 export type EvalReceipt = {
   readonly evalId: string;
   readonly timestamp: string;
   readonly sessionsEvaluated: number;
   readonly sessionsSkipped: number;
+  readonly skippedSessions: readonly EvalSkippedSession[];
   readonly averageBaseline: ReplayScore;
   readonly averageClone: ReplayScore;
   readonly averageDelta: ScoreDelta;

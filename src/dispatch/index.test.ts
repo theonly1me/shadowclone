@@ -64,6 +64,8 @@ test("runs the engine in a worktree and writes a draft-only receipt", async () =
       turns: 3,
       isError: false,
       permissionDenials: [],
+      actions: [],
+      errorMessage: null,
     });
   };
 

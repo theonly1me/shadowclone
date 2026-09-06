@@ -32,6 +32,8 @@ function runnerReturning(structured: unknown): EngineRunner {
       turns: 1,
       isError: false,
       permissionDenials: [],
+      actions: [],
+      errorMessage: null,
     });
 }
 
@@ -109,6 +111,8 @@ test("reads merge from checkpoint on repeated invocation without calling runner"
       turns: 1,
       isError: false,
       permissionDenials: [],
+      actions: [],
+      errorMessage: null,
     });
   };
 

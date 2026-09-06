@@ -1,3 +1,4 @@
+import { redactSecrets } from "../redact";
 import { parseClaudeStream } from "./parseClaude";
 import type {
   EngineRun,
@@ -65,25 +66,54 @@ export function buildClaudeArguments(options: {
   return arguments_;
 }
 
+export function redactedFailure(options: {
+  readonly run: EngineRun;
+  readonly stderr: string;
+  readonly exitCode: number;
+}): string {
+  const stderrText = options.stderr.trim();
+  if (stderrText.length > 0) {
+    return redactSecrets({ text: stderrText });
+  }
+  if (options.run.errorMessage) {
+    return redactSecrets({ text: options.run.errorMessage });
+  }
+  const resultText = options.run.text.trim();
+  return resultText.length > 0
+    ? redactSecrets({ text: resultText })
+    : `Process exited with code ${options.exitCode}`;
+}
+
 export async function runClaudeCode(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
   const sessionId = options.sessionId ?? crypto.randomUUID();
-  const process = Bun.spawn({
+  const child = Bun.spawn({
     cmd: [...buildClaudeArguments({ run: options, sessionId })],
     cwd: options.cwd,
+    env: process.env,
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",
     signal: options.signal,
   });
-  process.stdin.write(options.prompt);
-  process.stdin.end();
-  const [exitCode, stream] = await Promise.all([
-    process.exited,
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
+  child.stdin.write(options.prompt);
+  child.stdin.end();
+  const [exitCode, stream, stderr] = await Promise.all([
+    child.exited,
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
   ]);
   const run = parseClaudeStream({ stream, fallbackSessionId: sessionId });
-  return exitCode === 0 ? run : { ...run, isError: true };
+  if (exitCode !== 0) {
+    return {
+      ...run,
+      isError: true,
+      errorMessage: redactedFailure({ run, stderr, exitCode }),
+    };
+  }
+  if (run.errorMessage) {
+    return { ...run, errorMessage: redactSecrets({ text: run.errorMessage }) };
+  }
+  return run;
 }

@@ -69,5 +69,7 @@ export function parseCursorStream(options: {
     turns,
     isError: result === null || result.is_error === true,
     permissionDenials: [],
+    actions: [],
+    errorMessage: null,
   };
 }
