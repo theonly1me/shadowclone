@@ -1,13 +1,14 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { readEffectiveConfig } from "../config";
-import { detectEngine, type EngineRunner } from "../engine";
+import type { EngineId, EngineRunner } from "../engine";
 import { openEventIndex } from "../index";
 import { projectPaths, type ProjectPaths } from "../paths";
 import { compileProfile } from "../profile";
 import { resolveRedacted } from "../redact";
 import type { OriginScope } from "../signal";
 import { extractBehaviorFromIndex } from "./behavior";
+import { selectEvalRunner } from "./engine";
 import { extractPromptText } from "./prompt";
 import { replaySession } from "./replaySession";
 import { averageMetrics } from "./score";
@@ -31,6 +32,7 @@ export type EvalOptions = {
   readonly paths?: ProjectPaths;
   readonly configPath?: string;
   readonly runner?: EngineRunner;
+  readonly engine?: EngineId;
 };
 
 function formatPromptSnippet(prompt: string): string {
@@ -47,16 +49,12 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
   if (!policy.enabled) {
     throw new Error("Shadowclone is disabled by managed policy");
   }
-  const detection = options.runner
-    ? null
-    : await detectEngine({
-        purpose: "dispatch",
-        allowedEngines: policy.allowedEngines,
-      });
-  const runner = options.runner ?? detection?.runner;
-  if (!runner) {
-    throw new Error("No authenticated agent engine is available for eval");
-  }
+  const runner =
+    options.runner ??
+    (await selectEvalRunner({
+      requested: options.engine ?? null,
+      allowedEngines: policy.allowedEngines,
+    }));
   const index = await openEventIndex(paths.indexDatabase);
   const allEvents = index.listEvents();
   index.close();
