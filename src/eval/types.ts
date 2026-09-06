@@ -23,6 +23,8 @@ export type ScoreDelta = {
 
 export type EvalSessionResult = {
   readonly sessionId: string;
+  readonly baselineSessionId?: string;
+  readonly cloneSessionId?: string;
   readonly prompt: string;
   readonly baseline: ReplayScore;
   readonly clone: ReplayScore;
@@ -33,6 +35,7 @@ export type EvalReceipt = {
   readonly evalId: string;
   readonly timestamp: string;
   readonly sessionsEvaluated: number;
+  readonly sessionsSkipped: number;
   readonly averageBaseline: ReplayScore;
   readonly averageClone: ReplayScore;
   readonly averageDelta: ScoreDelta;

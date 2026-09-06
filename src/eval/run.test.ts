@@ -9,30 +9,25 @@ import type { FileTextRef } from "../observe";
 import { createProjectPaths } from "../paths";
 import { runEval } from "./run";
 
-test("runEval executes baseline and clone runs and writes an eval receipt", async () => {
-  const homeDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-eval-test-"),
-  );
-  const paths = createProjectPaths({
-    homeDirectory,
-    platform: "darwin",
-  });
+async function setupTestEnvironment(homeDirectory: string) {
+  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
   await mkdir(paths.profileDirectory, { recursive: true });
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
 
   const index = await openEventIndex(paths.indexDatabase);
   const secretText = "reproduce this bug";
+  const sourcePath = path.join(homeDirectory, "prompt.txt");
   const ref: FileTextRef = {
     type: "file",
-    sourcePath: path.join(homeDirectory, "prompt.txt"),
+    sourcePath,
     byteOffset: 0,
     byteLength: secretText.length,
   };
-  await Bun.write(ref.sourcePath, secretText);
+  await Bun.write(sourcePath, secretText);
 
   index.saveBatch({
     source: "claude-code",
-    sourcePath: ref.sourcePath,
+    sourcePath,
     events: [
       {
         source: "claude-code",
@@ -62,7 +57,7 @@ test("runEval executes baseline and clone runs and writes an eval receipt", asyn
       },
     ],
     cursor: {
-      sourcePath: ref.sourcePath,
+      sourcePath,
       byteOffset: secretText.length,
       byteSize: secretText.length,
       modifiedAt: Date.now(),
@@ -71,6 +66,14 @@ test("runEval executes baseline and clone runs and writes an eval receipt", asyn
     bytesRead: secretText.length,
   });
   index.close();
+  return paths;
+}
+
+test("runEval executes baseline and clone runs and writes an eval receipt", async () => {
+  const homeDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-eval-test-"),
+  );
+  const paths = await setupTestEnvironment(homeDirectory);
 
   const runs: { systemPromptFile?: string; permissionMode?: string; cwd?: string }[] = [];
   const runner: EngineRunner = (options) => {
@@ -116,7 +119,47 @@ test("runEval executes baseline and clone runs and writes an eval receipt", asyn
   expect(await Bun.file(runs[1]?.cwd ?? "").exists()).toBeFalse();
 
   expect(receipt.sessionsEvaluated).toBe(1);
+  expect(receipt.sessionsSkipped).toBe(0);
   expect(receipt.averageDelta.total).toBeGreaterThan(0);
+  expect(receipt.sessions[0]?.baselineSessionId).toBeDefined();
+  expect(receipt.sessions[0]?.cloneSessionId).toBeDefined();
+
+  const receiptFile = path.join(
+    paths.shadowcloneDirectory,
+    "eval",
+    `${receipt.evalId}.json`,
+  );
+  expect(await Bun.file(receiptFile).exists()).toBeTrue();
+});
+
+test("runEval skips a session whose baseline replay failed", async () => {
+  const homeDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-eval-fail-"),
+  );
+  const paths = await setupTestEnvironment(homeDirectory);
+
+  const failingRunner: EngineRunner = () =>
+    Promise.resolve({
+      engine: "claude-code",
+      sessionId: "mock-fail",
+      transcriptPath: null,
+      text: "",
+      structured: null,
+      costUsd: 0,
+      durationMs: 10,
+      turns: 1,
+      isError: true,
+      permissionDenials: [],
+    });
+
+  const receipt = await runEval({
+    paths,
+    configPath: paths.configFile,
+    runner: failingRunner,
+  });
+
+  expect(receipt.sessionsEvaluated).toBe(0);
+  expect(receipt.sessionsSkipped).toBe(1);
 
   const receiptFile = path.join(
     paths.shadowcloneDirectory,
