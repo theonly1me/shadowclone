@@ -158,3 +158,24 @@ export async function commitWorktree(options: {
   }
   return true;
 }
+
+export async function pushWorktree(options: {
+  readonly worktree: Worktree;
+  readonly runner?: CommandRunner;
+}): Promise<boolean> {
+  const runner = options.runner ?? runCommand;
+  const result = await runner({
+    command: [
+      "git",
+      "push",
+      "--set-upstream",
+      "origin",
+      options.worktree.branch,
+    ],
+    cwd: options.worktree.worktreeDirectory,
+  });
+  if (result.exitCode !== 0) {
+    throw new Error("Could not push the clone branch to origin");
+  }
+  return true;
+}

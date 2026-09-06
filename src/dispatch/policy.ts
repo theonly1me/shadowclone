@@ -1,34 +1,40 @@
-import { actionCapabilities } from "../config";
+import { actionCapabilities, type ActionCapability } from "../config";
 import type { DispatchPolicyInput, ResolvedDispatchPolicy } from "./types";
 
-const draftTools = [
+const baseDraftTools = [
   "Read",
   "Grep",
   "Glob",
   "Edit",
   "Write",
-  "Bash(git status)",
-  "Bash(git diff)",
-  "Bash(bun test)",
-  "Bash(bun run typecheck)",
+  "Bash(git status:*)",
+  "Bash(git diff:*)",
 ];
 
-const actionTools = {
-  push: "Bash(git push:*)",
-  "pr-draft": "Bash(gh pr create --draft:*)",
-  "pr-reply": "Bash(gh pr comment:*)",
-} as const;
+function actionToolFor(action: ActionCapability): string | null {
+  if (action === "pr-draft") {
+    return "Bash(gh pr create --draft:*)";
+  }
+  if (action === "pr-reply") {
+    return "Bash(gh pr comment:*)";
+  }
+  return null;
+}
 
 const permanentlyBlockedTools = [
   "Bash(git add:*)",
   "Bash(git commit:*)",
+  "Bash(git push:*)",
   "Bash(git push --force:*)",
   "Bash(git push -f:*)",
+  "Bash(git push --force-with-lease:*)",
   "Bash(gh pr merge:*)",
 ];
 
 export function resolveDispatchPolicy(
-  input: DispatchPolicyInput,
+  input: DispatchPolicyInput & {
+    readonly verificationTools?: readonly string[];
+  },
 ): ResolvedDispatchPolicy {
   const configured = input.configuredPolicy ?? {
     allow: [],
@@ -46,20 +52,31 @@ export function resolveDispatchPolicy(
     "force-push",
     "merge",
   ] as const;
+  const verificationTools = input.verificationTools ?? [
+    "Bash(bun test:*)",
+    "Bash(bun run typecheck:*)",
+  ];
+  const draftTools = [...baseDraftTools, ...verificationTools];
   const allowedTools = [
     ...draftTools,
-    ...grantedActions.map((action) => actionTools[action]),
+    ...grantedActions.flatMap((action) => {
+      const tool = actionToolFor(action);
+      return tool ? [tool] : [];
+    }),
   ];
   const disallowedTools = [
     ...actionCapabilities
       .filter((action) => !grantedActions.includes(action))
-      .map((action) => actionTools[action]),
+      .flatMap((action) => {
+        const tool = actionToolFor(action);
+        return tool ? [tool] : [];
+      }),
     ...permanentlyBlockedTools,
   ];
   return {
     allowedTools,
     disallowedTools,
-    permissionMode: "acceptEdits",
+    permissionMode: "dontAsk",
     maxBudgetUsd: configured.maxBudgetUsd,
     requireCleanExit: configured.requireCleanExit,
     grantedActions,
