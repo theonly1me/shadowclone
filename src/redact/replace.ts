@@ -1,3 +1,5 @@
+import { shannonEntropy } from "./entropy";
+
 export type Redactor = (
   substring: string,
   ...groups: readonly string[]
@@ -41,4 +43,16 @@ export function slicedTail(label: string, keep: number): Redactor {
     const retained = tail.slice(0, keep);
     return `${key}${separator}${retained}...[redacted:${label}]`;
   };
+}
+
+export function slicedAboveEntropy(options: {
+  readonly label: string;
+  readonly keep: number;
+  readonly threshold: number;
+}): Redactor {
+  const redact = sliced(options.label, options.keep);
+  return (substring: string): string =>
+    shannonEntropy(substring) >= options.threshold
+      ? redact(substring)
+      : substring;
 }

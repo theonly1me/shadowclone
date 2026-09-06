@@ -133,7 +133,7 @@ The SQLite index stores file offsets, timestamps, and event kinds. Raw transcrip
 Distillation excerpts pass through a deterministic sliced replacer before reaching any model. Secrets keep identifying prefixes (such as `AKIA` or `sk_live_`) while stripping high-entropy characters, keeping code context intact without leaking credentials.
 
 **Shannon entropy layer.**
-Unstructured tokens exceeding 4.5 bits of entropy per character are scrubbed even if they do not match known vendor regex patterns.
+Tokens of 24 characters or more that reach 4.5 bits of entropy per character are sliced under the `shannon-entropy` label, even when they match no known vendor pattern. Long identifiers, file paths, and UUIDs measure below that threshold and stay readable.
 
 **Third-party tool results are excluded.**
 Distillation inputs allowlist user prompts and developer steering corrections. Tool outputs from database queries, log dumps, and file reads are excluded by category rather than relying on regex filtering.

@@ -77,4 +77,12 @@ export const secretFixtures: readonly SecretFixture[] = [
   { label: "hex-secret-40", value: "a3f9c2d1b4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9" },
   { label: "hex-secret-64", value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" },
   { label: "high-entropy", value: "MZXW6YTBOI======abcDEF1234567890abcdefghijk" },
+  { label: "inhouse-prefixed-key", value: "int_9fKw2QzR7mVpL4xN8tYbH3sJ6dGcA1eZ5uT" },
+  { label: "bare-random-token", value: "k7Xq2mZpR8vNwL4tJ6yHbF3sQ9dGcA1e" },
+  { label: "session-cookie-value", value: "Xk9mQ2pLr7vNw4tJ6yHbF3sQ9dGcA1eZ5uT8i" },
+  { label: "random-base64-blob", value: "aGVsbG8gd29ybGQgdGhpcyBpcyBhIHNlY3JldCE9PQ==" },
+  {
+    label: "custom-vendor-credential",
+    value: "acme_live_Vp8xK2mQr7nT4wY6zB3jL9sH1dF5gC0e",
+  },
 ] as const;
