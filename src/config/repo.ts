@@ -48,15 +48,3 @@ export function parseRepoSettings(value: unknown): RepoSettings {
 
   return settings;
 }
-
-export function renderRepoSettings(settings: RepoSettings): readonly string[] {
-  return Object.entries(settings)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .flatMap(([repository, policy]) => [
-      "",
-      `[repo.${JSON.stringify(repository)}]`,
-      `allow = [${policy.allow.map((value) => JSON.stringify(value)).join(", ")}]`,
-      `maxBudgetUsd = ${policy.maxBudgetUsd}`,
-      `requireCleanExit = ${policy.requireCleanExit}`,
-    ]);
-}
