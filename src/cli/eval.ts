@@ -1,4 +1,5 @@
-import type { EngineRunner } from "../engine";
+import { engineIds } from "../config";
+import type { EngineId, EngineRunner } from "../engine";
 import { runEval } from "../eval";
 import type { ProjectPaths } from "../paths";
 
@@ -21,6 +22,7 @@ export async function evalCommand(
   let since: string | undefined;
   let json = false;
   let maxBudgetUsd: number | undefined;
+  let engine: EngineId | undefined;
   let yes = false;
 
   for (
@@ -49,6 +51,19 @@ export async function evalCommand(
       argumentIndex++;
       since = arguments_[argumentIndex];
     } else if (
+      argument === "--engine" &&
+      argumentIndex + 1 < arguments_.length
+    ) {
+      argumentIndex++;
+      const requested = arguments_[argumentIndex] ?? "";
+      const known = engineIds.find((candidate) => candidate === requested);
+      if (!known) {
+        throw new Error(
+          `Unknown engine "${requested}". Known engines: ${engineIds.join(", ")}`,
+        );
+      }
+      engine = known;
+    } else if (
       argument === "--max-budget-usd" &&
       argumentIndex + 1 < arguments_.length
     ) {
@@ -75,6 +90,7 @@ export async function evalCommand(
   }
 
   await runEval({
+    engine,
     sessions,
     since,
     json,
