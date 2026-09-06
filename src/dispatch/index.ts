@@ -1,12 +1,6 @@
 import path from "node:path";
-import {
-  readEffectiveConfig,
-  type ActionCapability,
-} from "../config";
-import {
-  detectEngine,
-  type EngineRunner,
-} from "../engine";
+import { readEffectiveConfig, type ActionCapability } from "../config";
+import { detectEngine, type EngineRunner } from "../engine";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import { compileProfile } from "../profile";
@@ -19,10 +13,12 @@ import type { CommandRunner } from "./command";
 import { resolveDispatchPolicy } from "./policy";
 import { writeReceipt } from "./receipt";
 import type { RunReceipt } from "./types";
+import { detectVerificationTools } from "./verify";
 import {
   commitWorktree,
   createWorktree,
   inspectWorktree,
+  pushWorktree,
 } from "./worktree";
 
 export { runCommand, type CommandResult, type CommandRunner } from "./command";
@@ -38,16 +34,18 @@ export {
   createWorktree,
   commitWorktree,
   inspectWorktree,
+  pushWorktree,
   type Worktree,
 } from "./worktree";
 
 function taskSlug(task: string): string {
-  const slug = task
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 40);
-  return slug || "task";
+  return (
+    task
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 40) || "task"
+  );
 }
 
 function countProfileRules(profile: string): number {
@@ -93,10 +91,14 @@ export async function runHeadlessClone(options: {
   ) {
     throw new Error("Managed policy blocks this repository");
   }
+  const verificationTools = await detectVerificationTools({
+    cwd: targetDirectory,
+  });
   const dispatchPolicy = resolveDispatchPolicy({
     configuredPolicy: config.repo[repository.id] ?? null,
     approvedActions: options.approvedActions ?? [],
     managedActionTier: managedPolicy.maxActionTier,
+    verificationTools,
   });
   const detection = options.runner
     ? null
@@ -141,15 +143,22 @@ export async function runHeadlessClone(options: {
     maxBudgetUsd: dispatchPolicy.maxBudgetUsd,
   });
   if (!run.isError) {
-    await commitWorktree({
-      worktree,
-      runner: options.commandRunner,
-    });
+    await commitWorktree({ worktree, runner: options.commandRunner });
   }
   const inspection = await inspectWorktree({
     worktree,
     runner: options.commandRunner,
   });
+  const actionsTaken: string[] =
+    inspection.commits.length > 0 ? ["commit"] : [];
+  if (
+    !run.isError &&
+    dispatchPolicy.grantedActions.includes("push") &&
+    inspection.commits.length > 0
+  ) {
+    await pushWorktree({ worktree, runner: options.commandRunner });
+    actionsTaken.push("push");
+  }
   const receipt: RunReceipt = {
     runId,
     task: options.task,
@@ -165,17 +174,13 @@ export async function runHeadlessClone(options: {
     turns: run.turns,
     filesChanged: inspection.filesChanged,
     commits: inspection.commits,
-    actionsTaken: inspection.commits.length > 0 ? ["commit"] : [],
+    actionsTaken,
     actionsBlockedByPolicy: dispatchPolicy.blockedActions,
     permissionDenials: run.permissionDenials,
     profileRulesApplied: countProfileRules(profile),
   };
   await writeReceipt({ runDirectory: paths.runDirectory(runId), receipt });
-  if (
-    run.isError ||
-    (dispatchPolicy.requireCleanExit &&
-      !inspection.isClean)
-  ) {
+  if (run.isError || (dispatchPolicy.requireCleanExit && !inspection.isClean)) {
     throw new Error("Clone run did not finish cleanly; review its receipt");
   }
   return receipt;
