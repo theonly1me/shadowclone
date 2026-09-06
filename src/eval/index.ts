@@ -9,6 +9,7 @@ export { computeScoreDelta, scoreReplay } from "./score";
 export type {
   EvalReceipt,
   EvalSessionResult,
+  EvalSkippedSession,
   ReplayScore,
   ScoreDelta,
   SessionBehavior,

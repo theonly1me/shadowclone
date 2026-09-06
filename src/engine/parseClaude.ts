@@ -86,6 +86,18 @@ function permissionDenials(value: unknown): readonly PermissionDenial[] {
   });
 }
 
+const commandUnavailableMarker = "isn't available in this environment";
+
+function readErrors(
+  record: Readonly<Record<string, unknown>>,
+): readonly string[] {
+  const value = record.errors;
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((item): item is string => typeof item === "string");
+}
+
 export function parseClaudeStream(options: {
   readonly stream: string;
   readonly fallbackSessionId: string;
@@ -116,6 +128,28 @@ export function parseClaudeStream(options: {
 
   const resultText = result ? readString(result, "result") : null;
   const streamedText = textParts.join("");
+  const turns = result ? readNumber(result, "num_turns") ?? 0 : 0;
+  const isCommandUnavailable =
+    turns === 0 &&
+    actions.length === 0 &&
+    typeof resultText === "string" &&
+    resultText.includes(commandUnavailableMarker);
+  const isError =
+    result?.is_error === true || result === null || isCommandUnavailable;
+  const errors = result ? readErrors(result) : [];
+  const errorDetails =
+    errors.length > 0
+      ? errors.join("; ")
+      : result
+        ? readString(result, "subtype")
+        : null;
+  const errorMessage = isCommandUnavailable
+    ? resultText
+    : result?.is_error === true
+      ? (resultText ?? errorDetails ?? "Claude reported an error")
+      : result === null
+        ? "Claude returned no result"
+        : null;
   return {
     engine: "claude-code",
     sessionId:
@@ -126,9 +160,10 @@ export function parseClaudeStream(options: {
     structured: result?.structured_output ?? null,
     costUsd: result ? readNumber(result, "total_cost_usd") : null,
     durationMs: result ? readNumber(result, "duration_ms") ?? 0 : 0,
-    turns: result ? readNumber(result, "num_turns") ?? 0 : 0,
-    isError: result?.is_error === true || result === null,
+    turns,
+    isError,
     permissionDenials: permissionDenials(result?.permission_denials),
     actions,
+    errorMessage,
   };
 }

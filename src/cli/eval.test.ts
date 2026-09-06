@@ -60,6 +60,8 @@ test("evalCommand skips confirmation when --yes flag is present", async () => {
       turns: 1,
       isError: false,
       permissionDenials: [],
+      actions: [],
+      errorMessage: null,
     });
   };
 
