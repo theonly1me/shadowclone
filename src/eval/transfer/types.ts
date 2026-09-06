@@ -11,6 +11,7 @@ export type TransferOptions = {
   readonly evalId?: string;
   readonly since?: string;
   readonly json?: boolean;
+  readonly yes?: boolean;
   readonly maxBudgetUsd?: number;
   readonly paths?: ProjectPaths;
   readonly runner?: EngineRunner;

@@ -1,5 +1,15 @@
+import { realpathSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+
+export function canonicalPath(target: string): string {
+  const absolute = path.resolve(target);
+  try {
+    return realpathSync(absolute);
+  } catch {
+    return absolute;
+  }
+}
 
 export type ProjectPaths = {
   readonly shadowcloneDirectory: string;
