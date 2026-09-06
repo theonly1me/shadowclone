@@ -3,27 +3,14 @@ import type { IndexedEvent } from "../index";
 import { semanticRuleKey } from "../profile";
 import type { ProfileRule } from "../profile";
 import type { CorrectionSignal } from "../signal";
-import {
-  buildDistillPrompt,
-  groupDistillBatches,
-} from "./batch";
-import {
-  readCheckpoint,
-  writeCheckpoint,
-} from "./checkpoint";
-import {
-  distillationOutputSchema,
-  parseDistilledRules,
-} from "./schema";
+import { buildDistillPrompt, groupDistillBatches } from "./batch";
+import { readCheckpoint, writeCheckpoint } from "./checkpoint";
+import { distillationOutputSchema, parseDistilledRules } from "./schema";
 import { mergeDistilledRules } from "./merge";
 import { allowlistedSignals } from "./eligible";
 
-export { buildDistillPrompt, groupDistillBatches } from "./batch";
-export type { DistillBatch } from "./batch";
-export {
-  allowlistedSignals,
-  isEligibleForDistillation,
-} from "./eligible";
+export { buildDistillPrompt, groupDistillBatches, type DistillBatch } from "./batch";
+export { allowlistedSignals, isEligibleForDistillation } from "./eligible";
 export { runReplay } from "./replay";
 export {
   distillationMergeOutputSchema,
@@ -104,8 +91,7 @@ function structuredValue(run: {
     return run.structured;
   }
   try {
-    const value: unknown = JSON.parse(run.text);
-    return value;
+    return JSON.parse(run.text);
   } catch {
     throw new Error("The engine returned no structured distillation result");
   }
@@ -170,13 +156,24 @@ export async function distillSignals(options: {
       continue;
     }
 
+    let didMerge = false;
     const mergedRaw = await mergeDistilledRules({
-      rules: originRules.map((r) => ({ title: r.title, body: r.body, section: r.section })),
-      runner: options.runner,
+      rules: originRules.map((r) => ({
+        title: r.title,
+        body: r.body,
+        section: r.section,
+      })),
+      runner: async (opts) => {
+        didMerge = true;
+        return options.runner(opts);
+      },
       cwd: options.workingDirectory,
       maxBudgetUsd: options.maxBudgetUsd,
+      checkpointDirectory: options.checkpointDirectory,
     });
-    engineRuns += 1;
+    if (didMerge) {
+      engineRuns += 1;
+    }
 
     const originSignals = signals.filter(
       (s) => s.origin.directoryName === originDirectory,
