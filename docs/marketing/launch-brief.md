@@ -4,13 +4,13 @@
 
 The primary audience is senior and staff software engineers who use agent CLIs (Claude Code, Codex, Cursor) daily and already have dozens or hundreds of sessions on disk.
 
-These engineers experience recurring agent amnesia. Every new session forgets verified workflows, tool refusals, test patterns, and architectural boundaries. They maintain sprawling system prompts or repeated manual instructions across repositories.
+These engineers constantly repeat themselves across sessions and tools. Every new agent session forgets verified workflows, tool refusals, test patterns, and architectural boundaries. They maintain sprawling system prompts or repeated manual instructions across repositories.
 
 They care about privacy, auditability, and deterministic behavior. They reject cloud memory SaaS tools that siphon codebases into third-party vectors.
 
 ## Core messages
 
-**Your agent has amnesia. Your disk does not.**
+**Stop teaching every new Claude Code session how you work.**
 Coding sessions are already recorded on developer machines in Claude Code, Codex, and Cursor transcript files. Shadowclone turns those local historical sessions into an editable, git-scoped engineering profile without manual transcription.
 
 **Falsifiable alignment, not vibes.**
@@ -35,7 +35,7 @@ All indexing, signal derivation, and distillation execution occur locally on dev
 
 ## Launch hook and narrative
 
-The initial release highlights that agent amnesia is solvable using data developers already generate.
+The initial release highlights that cross-session alignment is solvable using data developers already generate on disk.
 
 The rapid development arc of the project serves as an architectural proof point rather than the headline. Building a multi-provider memory compiler quickly was possible because Shadowclone avoids replicating agent runtimes, vector databases, or hosted infra, focusing strictly on local transcript indexing, deterministic signal derivation, and CLI delegation.
 
