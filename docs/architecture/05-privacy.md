@@ -32,6 +32,8 @@ Home directory scrubbing uses anchored path-boundary replacement rather than nai
 
 The secret rules cover provider API keys (OpenAI, Anthropic, Stripe, Google AI), GitHub tokens, Slack tokens, AWS access key IDs, JSON Web Tokens, PEM private key blocks, generic secret assignments (`KEY=`, `TOKEN=`, `PASSWORD=`), database URLs, Git remote credentials, IP addresses, internal hostnames, cloud resources, and Windows or Unix absolute paths.
 
+In addition to deterministic rules, candidate high-entropy tokens are evaluated through a Shannon entropy gate (>= 4.5 bits/char over candidates) to catch unstructured credentials that do not match provider-specific prefixes.
+
 The property test that redaction is idempotent continues to hold, and an adversarial corpus tests both raw strings and production JSONL message envelopes.
 
 ## Third-party data is never read
@@ -73,9 +75,3 @@ shadowclone forget --all
 Removes `~/.shadowclone/` entirely: index, profile, checkpoints, receipts, and worktrees. It touches nothing it did not create, so transcripts, repos, and CLI configs are left alone. It prints what it removed by count and path, and it is in the README rather than only here.
 
 `shadowclone forget --source claude-code` and `shadowclone forget --repo <name>` are narrower versions for people who want to keep most of a profile.
-
-## Open questions
-
-**What is the retention window for the index.** Pointers are not content, so the argument for aging them out is weaker than it was, but an index that names every repo worked on for two years is still a profile of a career. What the answer changes: whether `learn` prunes on every run or never.
-
-**Should the profile be encrypted at rest.** It is derived, sensitive, and readable by anything running as the user. Encrypting it defeats the requirement that a user can open it in a text editor. What the answer changes: whether readability is enforced through a `shadowclone profile` command instead of plain files.
