@@ -81,7 +81,7 @@ export const redactionRules: readonly RedactionRule[] = [
   {
     label: "git-remote",
     pattern:
-      /\b(?:ssh:\/\/)?git@([A-Za-z0-9.-]+):[A-Za-z0-9._\/-]+(?:\.git)?\b/g,
+      /\b(?:ssh:\/\/)?git@([A-Za-z0-9.-]+):[A-Za-z0-9._/-]+(?:\.git)?\b/g,
     replace: (
       _substring: string,
       hostGroup?: string,

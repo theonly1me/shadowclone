@@ -19,7 +19,7 @@ function reasonFor(options: {
   if (!found.authenticated) {
     return "it is not authenticated";
   }
-  return "it cannot enforce a budget and a granular tool policy";
+  return "its evaluation runner is not implemented";
 }
 
 export async function selectEvalRunner(options: {
@@ -32,7 +32,7 @@ export async function selectEvalRunner(options: {
     throw new Error(`Managed policy does not allow the ${requested} engine`);
   }
   const detection = await detectEngine({
-    purpose: "dispatch",
+    purpose: "eval",
     allowedEngines: requested ? [requested] : options.allowedEngines,
     probe: options.probe,
   });
