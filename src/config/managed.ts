@@ -19,7 +19,7 @@ export type ManagedPolicy = {
   readonly maxActionTier: ActionTier;
 };
 
-const engineIds: readonly EngineId[] = [
+export const engineIds: readonly EngineId[] = [
   "claude-code",
   "codex",
   "cursor-agent",

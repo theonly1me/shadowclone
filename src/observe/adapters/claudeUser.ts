@@ -8,6 +8,16 @@ import type {
 } from "../types";
 import { createClaudeBaseEvent } from "./claudeBase";
 
+function blockText(value: unknown): string | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  if (typeof value.content === "string") {
+    return value.content;
+  }
+  return typeof value.text === "string" ? value.text : null;
+}
+
 function contentContainsMarker(content: unknown, marker: string): boolean {
   if (typeof content === "string") {
     return content.includes(marker);
@@ -15,12 +25,7 @@ function contentContainsMarker(content: unknown, marker: string): boolean {
   if (!Array.isArray(content)) {
     return false;
   }
-  return content.some(
-    (value) =>
-      isRecord(value) &&
-      typeof value.content === "string" &&
-      value.content.includes(marker),
-  );
+  return content.some((value) => blockText(value)?.includes(marker) ?? false);
 }
 
 function classifyUserContent(options: {

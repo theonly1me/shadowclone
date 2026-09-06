@@ -1,6 +1,8 @@
+import { entropyThresholdBitsPerCharacter } from "./entropy";
 import {
   type Redactor,
   sliced,
+  slicedAboveEntropy,
   slicedPrefix,
   slicedTail,
 } from "./replace";
@@ -122,5 +124,14 @@ export const redactionRules: readonly RedactionRule[] = [
     pattern:
       /\b(?=[A-Za-z0-9+/_=-]{40,}\b)(?=[A-Za-z0-9+/_=-]*(?:\d|[A-Z].*[a-z]|[a-z].*[A-Z]))[A-Za-z0-9+/_=-]+\b/g,
     replace: sliced("high-entropy-string", 7),
+  },
+  {
+    label: "shannon-entropy",
+    pattern: /[A-Za-z0-9+/_-]{24,}={0,2}/g,
+    replace: slicedAboveEntropy({
+      label: "shannon-entropy",
+      keep: 7,
+      threshold: entropyThresholdBitsPerCharacter,
+    }),
   },
 ] as const;
