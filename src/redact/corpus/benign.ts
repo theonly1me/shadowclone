@@ -59,4 +59,9 @@ export const benignFixtures: readonly BenignFixture[] = [
   { label: "prose-statement", value: "Verify every claim against the branch head." },
   { label: "prose-question", value: "Which engine was selected for this task?" },
   { label: "prose-instruction", value: "Run the full test suite before presenting changes." },
+  { label: "screaming-snake-const", value: "MAX_CONCURRENT_WORKER_POOL_SIZE" },
+  { label: "camel-case-identifier", value: "computeSourceMarkerHealth" },
+  { label: "repository-url", value: "https://github.com/theonly1me/shadowclone" },
+  { label: "uuid-v4", value: "3f2504e0-4f89-11d3-9a0c-0305e82c3301" },
+  { label: "branch-slug", value: "feat-shannon-entropy-redaction-layer" },
 ] as const;
