@@ -1,6 +1,8 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { redactSecrets } from "../redact";
+import { evaluationCommand } from "./evaluationIsolation";
 import { parseCodexStream } from "./parseCodex";
 import { buildEnginePrompt } from "./prompt";
 import type {
@@ -37,13 +39,16 @@ export function buildCodexArguments(options: {
   readonly outputSchemaPath?: string;
 }): readonly string[] {
   validateCodexOptions(options.run);
+
   const arguments_ = [
     "codex",
     "exec",
     "-",
     "--json",
     "--sandbox",
-    "read-only",
+    options.run.evaluation && options.run.allowedTools?.length !== 0
+      ? "workspace-write"
+      : "read-only",
     "-C",
     options.run.cwd,
     "--skip-git-repo-check",
@@ -52,15 +57,52 @@ export function buildCodexArguments(options: {
     "-c",
     "mcp_servers={}",
   ];
+
+  if (options.run.evaluation) {
+    arguments_.push(
+      "--ephemeral",
+      "--ignore-user-config",
+      "-c",
+      "features.memories=false",
+      "-c",
+      "features.hooks=false",
+      "-c",
+      "features.skip_host_skill_discovery=true",
+      "-c",
+      "project_doc_max_bytes=0",
+      "-c",
+      "features.apps=false",
+      "-c",
+      "features.plugins=false",
+      "-c",
+      "features.browser_use=false",
+      "-c",
+      "features.computer_use=false",
+      "-c",
+      "features.image_generation=false",
+      "-c",
+      "features.view_image=false",
+      "-c",
+      "features.multi_agent_v2=false",
+      "-c",
+      'web_search="disabled"',
+      "-c",
+      "sandbox_workspace_write.network_access=false",
+    );
+  }
+
   if (options.run.allowedTools?.length === 0) {
     arguments_.push("--disable", "shell_tool");
   }
+
   if (options.run.model) {
     arguments_.push("--model", options.run.model);
   }
+
   if (options.outputSchemaPath) {
     arguments_.push("--output-schema", options.outputSchemaPath);
   }
+
   return arguments_;
 }
 
@@ -72,40 +114,68 @@ async function runCodexProcess(options: {
     run: options.run,
     outputSchemaInPrompt: false,
   });
+
   const fallbackSessionId = crypto.randomUUID();
   const startedAt = Date.now();
+
   const process = Bun.spawn({
-    cmd: [...buildCodexArguments(options)],
+    cmd: [
+      ...evaluationCommand({
+        arguments: buildCodexArguments(options),
+        run: options.run,
+      }),
+    ],
     cwd: options.run.cwd,
     stdin: "pipe",
     stdout: "pipe",
-    stderr: "ignore",
+    stderr: "pipe",
     signal: options.run.signal,
   });
+
   process.stdin.write(prompt);
   process.stdin.end();
-  const [exitCode, stream] = await Promise.all([
+
+  const [exitCode, stream, stderr] = await Promise.all([
     process.exited,
     new Response(process.stdout).text(),
+    new Response(process.stderr).text(),
   ]);
+
   const run = parseCodexStream({
     stream,
     fallbackSessionId,
     durationMs: Date.now() - startedAt,
   });
-  return exitCode === 0 ? run : { ...run, isError: true };
+
+  if (exitCode !== 0) {
+    return {
+      ...run,
+      isError: true,
+      errorMessage: redactSecrets({
+        text:
+          stderr.trim() ||
+          run.errorMessage ||
+          `Codex exited with code ${exitCode}`,
+      }),
+    };
+  }
+
+  return run;
 }
 
 export async function runCodex(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
   validateCodexOptions(options);
+
   if (options.outputSchema === undefined) {
     return runCodexProcess({ run: options });
   }
+
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-codex-"));
   const outputSchemaPath = path.join(directory, "schema.json");
   await Bun.write(outputSchemaPath, JSON.stringify(options.outputSchema));
+
   try {
     return await runCodexProcess({ run: options, outputSchemaPath });
   } finally {

@@ -47,6 +47,7 @@ test("renders named source settings as TOML", () => {
       "schema-version = 1",
       "",
       "[sources]",
+      "agent-context = false",
       "antigravity = false",
       "claude-code = false",
       "claude-prompts = false",
@@ -66,6 +67,7 @@ test("migrates an existing config with git metadata disabled", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
   const configPath = path.join(directory, "config.toml");
   const legacy = renderConfig(defaultConfig)
+    .replace("agent-context = false\n", "")
     .replace("antigravity = false\n", "")
     .replace("git-metadata = false\n", "");
   await Bun.write(configPath, legacy);
@@ -76,13 +78,24 @@ test("migrates an existing config with git metadata disabled", async () => {
 test("migrates an existing config with Antigravity disabled", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
   const configPath = path.join(directory, "config.toml");
+  const legacy = renderConfig(defaultConfig)
+    .replace("agent-context = false\n", "")
+    .replace("antigravity = false\n", "");
+  await Bun.write(configPath, legacy);
+
+  expect((await readConfig({ configPath })).sources.antigravity).toBeFalse();
+});
+
+test("migrates an existing config with agent context omitted", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const configPath = path.join(directory, "config.toml");
   const legacy = renderConfig(defaultConfig).replace(
-    "antigravity = false\n",
+    "agent-context = false\n",
     "",
   );
   await Bun.write(configPath, legacy);
 
-  expect((await readConfig({ configPath })).sources.antigravity).toBeFalse();
+  expect((await readConfig({ configPath })).sources["agent-context"]).toBeFalse();
 });
 
 test("writes and reads a repository action ceiling", async () => {

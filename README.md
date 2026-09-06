@@ -60,6 +60,11 @@ Grant consent for desired transcript sources:
 shadowclone init
 ```
 
+Every source is off until it is enabled here, and two of them read files that are not transcripts:
+
+- **`git-metadata`** reads the git remote origin of a working directory, so rules can be scoped to the organization they were learned from. Without it every directory is treated as its own isolated origin.
+- **`agent-context`** reads the user's own `CLAUDE.md` or `AGENTS.md`, their skill markdown, and their agent memory directory. It exists so a transfer evaluation can freeze the same setup for both arms, and it is read only by `shadowclone eval`. Contents pass through redaction before they are written into a snapshot.
+
 Index your historical sessions and build your profile:
 
 ```bash
@@ -86,25 +91,25 @@ shadowclone install
 
 This writes `.claude/agents/shadowclone.md` and excludes it from git tracking.
 
-## Replay evaluation
+## Transfer evaluation
 
-Shadowclone provides a reproducible fitness function to measure profile impact:
+Shadowclone measures whether the profile changes behavior, against tasks the user actually asked for:
 
 ```bash
-shadowclone eval --sessions 5 --max-budget-usd 0.50
+shadowclone eval --tasks 5 --engine codex
 ```
 
-The evaluator replays historical user prompts through two isolated runs:
-1. **Baseline run:** unprofiled agent invocation without system prompt customization.
-2. **Clone run:** agent invocation with the compiled project profile injected.
+The evaluator selects historical requests that name an identifiable starting commit, rebuilds each one as an isolated git snapshot at that commit, and runs the task twice:
+1. **Baseline run:** the agent with frozen instructions and no profile.
+2. **Clone run:** the same agent with the profile learned from sessions strictly earlier than the task.
 
-Replays are compared against historical developer actions across four dimensions:
-- **Tools:** Jaccard similarity of invoked tools.
-- **Verification:** Jaccard similarity of two-token bash verification commands (e.g. `bun test`, `cargo check`).
-- **Files:** Jaccard similarity of posix repository-relative edited paths.
-- **Planning:** Match on whether planning tools were invoked before the first file edit.
+Arm order alternates between repetitions, and the profile is learned only from evidence that predates the task and shares no session with it.
 
-Evaluation receipts are written to `~/.shadowclone/eval/<evalId>.json`.
+Each run is graded two ways. The repository's own `test` and `typecheck` scripts run inside a `sandbox-exec` or `bubblewrap` boundary with no network. A blind judge then grades the observed files and actions twice with the requirement order reversed, and any disagreement between the two passes is recorded as uncertain rather than resolved.
+
+The command previews how many agent invocations it may spend and asks before starting. Pass `--yes` to skip the prompt, or `--json` for machine-readable output.
+
+Receipts are written to `~/.shadowclone/eval/<evalId>/receipt.json` after every run, so `--eval-id <id>` resumes an interrupted evaluation against the same frozen tasks.
 
 ## Unattended dispatch
 
