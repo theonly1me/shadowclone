@@ -50,6 +50,26 @@ test("returns the consolidated rules the engine produced", async () => {
   expect(merged.length).toBe(1);
 });
 
+test("retains constituent source indices from engine output", async () => {
+  const merged = await mergeDistilledRules({
+    rules,
+    runner: runnerReturning({
+      rules: [
+        {
+          title: "Plans before editing",
+          body: "Show the plan before changing files.",
+          section: "workflow",
+          sources: [0, 1],
+        },
+      ],
+    }),
+    cwd: "/tmp",
+  });
+
+  expect(merged.length).toBe(1);
+  expect(merged[0]?.sources).toEqual([0, 1]);
+});
+
 test("keeps the unmerged rules when the engine returns an unusable shape", async () => {
   const merged = await mergeDistilledRules({
     rules,

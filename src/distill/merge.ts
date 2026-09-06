@@ -1,6 +1,6 @@
 import type { EngineRunner } from "../engine";
 import {
-  distillationOutputSchema,
+  distillationMergeOutputSchema,
   parseDistilledRules,
   type DistilledRule,
 } from "./schema";
@@ -19,19 +19,20 @@ export async function mergeDistilledRules(options: {
     "You are an expert engineer. Below is a list of behavioral rules extracted from agent transcripts.",
     "Many of these rules are duplicates, restatements, or overlap significantly.",
     "Merge the duplicates into single, strong rules. Drop any rules that are content-free telemetry.",
+    "For each consolidated rule, include a `sources` array with the 0-based integer indices of the input rules it consolidated.",
     "Output the consolidated set of rules as JSON matching the supplied schema.",
     "",
     ...options.rules.map(
-      (rule) =>
-        `Title: ${rule.title}\nBody: ${rule.body}\nSection: ${rule.section}\n`,
+      (rule, index) =>
+        `[${index}] Title: ${rule.title}\nBody: ${rule.body}\nSection: ${rule.section}\n`,
     ),
   ].join("\n");
 
   const outputSchema = {
-    ...distillationOutputSchema,
+    ...distillationMergeOutputSchema,
     properties: {
       rules: {
-        ...distillationOutputSchema.properties.rules,
+        ...distillationMergeOutputSchema.properties.rules,
         maxItems: options.rules.length,
       },
     },
