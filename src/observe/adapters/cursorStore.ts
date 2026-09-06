@@ -100,13 +100,38 @@ export async function cursorStoreSignature(
   };
 }
 
+function openCursorDatabase(sourcePath: string): Database {
+  let primary: Database | null = null;
+  try {
+    primary = new Database(sourcePath, {
+      readonly: true,
+      strict: true,
+    });
+    primary.query("SELECT 1").get();
+    return primary;
+  } catch {
+    primary?.close();
+    let fallback: Database | null = null;
+    try {
+      fallback = new Database(`file:${sourcePath}?mode=ro&immutable=1`, {
+        strict: true,
+      });
+      fallback.query("SELECT 1").get();
+      return fallback;
+    } catch (error) {
+      fallback?.close();
+      throw error;
+    }
+  }
+}
+
 export async function readCursorStore(options: {
   readonly sourcePath: string;
   readonly signature: FileStats;
 }): Promise<CursorStore | null> {
   let database: Database | null = null;
   try {
-    database = new Database(options.sourcePath, { readonly: true, strict: true });
+    database = openCursorDatabase(options.sourcePath);
     const blobs = database
       .query<BlobRow, []>("SELECT id, data FROM blobs ORDER BY rowid")
       .all()
