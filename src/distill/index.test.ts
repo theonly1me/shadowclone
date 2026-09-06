@@ -55,6 +55,8 @@ function successfulRun(): EngineRun {
     turns: 1,
     isError: false,
     permissionDenials: [],
+    actions: [],
+    errorMessage: null,
   };
 }
 

@@ -78,5 +78,7 @@ export function parseCodexStream(options: {
     turns,
     isError,
     permissionDenials: [],
+    actions: [],
+    errorMessage: null,
   };
 }

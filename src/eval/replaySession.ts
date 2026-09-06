@@ -53,7 +53,7 @@ export async function replaySession(options: {
     }
 
     const baselineBehavior = extractBehaviorFromActions({
-      actions: baselineRun.actions ?? [],
+      actions: baselineRun.actions,
     });
     const baselineScore = scoreReplay({
       actual: options.actual,
@@ -82,7 +82,7 @@ export async function replaySession(options: {
     }
 
     const cloneBehavior = extractBehaviorFromActions({
-      actions: cloneRun.actions ?? [],
+      actions: cloneRun.actions,
     });
     const cloneScore = scoreReplay({
       actual: options.actual,

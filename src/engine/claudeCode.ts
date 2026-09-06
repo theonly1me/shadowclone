@@ -88,20 +88,21 @@ export async function runClaudeCode(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
   const sessionId = options.sessionId ?? crypto.randomUUID();
-  const process = Bun.spawn({
+  const child = Bun.spawn({
     cmd: [...buildClaudeArguments({ run: options, sessionId })],
     cwd: options.cwd,
+    env: process.env,
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",
     signal: options.signal,
   });
-  process.stdin.write(options.prompt);
-  process.stdin.end();
+  child.stdin.write(options.prompt);
+  child.stdin.end();
   const [exitCode, stream, stderr] = await Promise.all([
-    process.exited,
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
+    child.exited,
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
   ]);
   const run = parseClaudeStream({ stream, fallbackSessionId: sessionId });
   if (exitCode !== 0) {
