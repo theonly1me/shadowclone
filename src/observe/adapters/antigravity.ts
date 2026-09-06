@@ -97,19 +97,20 @@ function parseStep(options: {
   if (!isRecord(options.value)) {
     return null;
   }
-  const kind = stepKind(options.value);
+  const rawKind = stepKind(options.value);
   const stepType = readString(options.value, "type");
-  if (kind === null || stepType === null) {
+  if (rawKind === null || stepType === null) {
     return null;
   }
+  const status = readString(options.value, "status");
+  const kind = status === "CANCELED" ? "interruption" : rawKind;
   const stepIndex = options.value.step_index;
   const tool =
-    kind === "tool-call"
+    rawKind === "tool-call"
       ? firstToolCall(options.value)
-      : kind === "tool-result"
+      : rawKind === "tool-result"
         ? toolResult(options.value, stepType)
         : null;
-  const status = readString(options.value, "status");
   return {
     source: "antigravity",
     sessionId: options.sessionId,
@@ -122,7 +123,7 @@ function parseStep(options: {
     gitBranch: readString(options.value, "git_branch"),
     kind,
     tool,
-    isError: status === "ERROR" || status === "CANCELED",
+    isError: status === "ERROR",
     textRef:
       kind === "user-prompt" || kind === "assistant-text"
         ? options.ref

@@ -168,3 +168,32 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
   expect(profile).toContain("Choose the smaller scope");
   expect(profile).not.toContain("plan this change");
 });
+
+test("learn --dry-run does not create profile directory or write database", async () => {
+  const homeDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-dry-"),
+  );
+  const paths = createProjectPaths({
+    homeDirectory,
+    platform: "darwin",
+  });
+  await mkdir(paths.claudeProjectsDirectory, { recursive: true });
+  const config = setSourceEnabled({
+    config: defaultConfig,
+    source: "claude-code",
+    enabled: true,
+  });
+  await writeConfig({ config, configPath: paths.configFile });
+
+  await learn({
+    configPath: paths.configFile,
+    paths,
+    dryRun: true,
+    managedConfigPath: null,
+  });
+
+  const profileExists = await Bun.file(paths.profileDirectory).exists();
+  const dbExists = await Bun.file(paths.indexDatabase).exists();
+  expect(profileExists).toBeFalse();
+  expect(dbExists).toBeFalse();
+});

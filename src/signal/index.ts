@@ -54,6 +54,11 @@ export {
   resolveRepository,
   type GitRemoteReader,
 } from "./origin";
+export {
+  checkMarkerStaleness,
+  computeSourceHealth,
+  type SourceMarkerHealth,
+} from "./health";
 
 function countKind(
   events: readonly IndexedEvent[],
