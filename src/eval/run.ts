@@ -1,5 +1,4 @@
-import { mkdir, mkdtemp, rm } from "node:fs/promises";
-import os from "node:os";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { readEffectiveConfig } from "../config";
 import { detectEngine, type EngineRunner } from "../engine";
@@ -8,16 +7,14 @@ import { projectPaths, type ProjectPaths } from "../paths";
 import { compileProfile } from "../profile";
 import { resolveRedacted } from "../redact";
 import type { OriginScope } from "../signal";
-import {
-  extractBehaviorFromActions,
-  extractBehaviorFromIndex,
-} from "./behavior";
+import { extractBehaviorFromIndex } from "./behavior";
 import { extractPromptText } from "./prompt";
-import { averageMetrics, computeScoreDelta, scoreReplay } from "./score";
+import { replaySession } from "./replaySession";
+import { averageMetrics } from "./score";
 import type {
   EvalReceipt,
   EvalSessionResult,
-  ReplayScore,
+  EvalSkippedSession,
 } from "./types";
 
 const defaultOrigin: OriginScope = {
@@ -35,6 +32,11 @@ export type EvalOptions = {
   readonly configPath?: string;
   readonly runner?: EngineRunner;
 };
+
+function formatPromptSnippet(prompt: string): string {
+  const singleLine = prompt.replaceAll(/\s+/g, " ").trim();
+  return singleLine.length > 50 ? `${singleLine.slice(0, 50)}...` : singleLine;
+}
 
 export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
   const paths = options.paths ?? projectPaths;
@@ -82,11 +84,12 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
     origin: defaultOrigin,
   });
 
-  let sessionsSkipped = 0;
   const sessionResults: EvalSessionResult[] = [];
+  const skippedSessions: EvalSkippedSession[] = [];
+
   for (const [sessionId, events] of targetSessions) {
     const promptEvent = events.find(
-      (e) => e.kind === "user-prompt" && e.textRef !== null,
+      (event) => event.kind === "user-prompt" && event.textRef !== null,
     );
     if (!promptEvent?.textRef) {
       continue;
@@ -97,80 +100,33 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
       continue;
     }
     const actual = extractBehaviorFromIndex({ events });
+    const outcome = await replaySession({
+      sessionId,
+      prompt,
+      actual,
+      compiledProfilePath,
+      runner,
+      maxBudgetUsd: options.maxBudgetUsd,
+    });
 
-    const baselineCwd = await mkdtemp(
-      path.join(os.tmpdir(), "shadowclone-eval-base-"),
-    );
-    const cloneCwd = await mkdtemp(
-      path.join(os.tmpdir(), "shadowclone-eval-clone-"),
-    );
-    let baselineScore: ReplayScore;
-    let cloneScore: ReplayScore;
-    let baselineSessionId = "";
-    let cloneSessionId = "";
-    try {
-      const baselineRun = await runner({
-        prompt,
-        cwd: baselineCwd,
-        sessionId: crypto.randomUUID(),
-        permissionMode: "dontAsk",
-        maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
-      });
-      if (baselineRun.isError) {
-        sessionsSkipped += 1;
-        console.warn(`Skipping session ${sessionId}: baseline replay failed`);
-        continue;
-      }
-      baselineSessionId = baselineRun.sessionId;
-      const baselineBehavior = extractBehaviorFromActions({
-        actions: baselineRun.actions ?? [],
-      });
-      baselineScore = scoreReplay({ actual, clone: baselineBehavior });
-
-      const cloneRun = await runner({
-        prompt,
-        cwd: cloneCwd,
-        systemPromptFile: compiledProfilePath,
-        sessionId: crypto.randomUUID(),
-        permissionMode: "dontAsk",
-        maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
-      });
-      if (cloneRun.isError) {
-        sessionsSkipped += 1;
-        console.warn(`Skipping session ${sessionId}: clone replay failed`);
-        continue;
-      }
-      cloneSessionId = cloneRun.sessionId;
-      const cloneBehavior = extractBehaviorFromActions({
-        actions: cloneRun.actions ?? [],
-      });
-      cloneScore = scoreReplay({ actual, clone: cloneBehavior });
-    } finally {
-      await rm(baselineCwd, { recursive: true, force: true });
-      await rm(cloneCwd, { recursive: true, force: true });
+    if ("skipped" in outcome) {
+      skippedSessions.push(outcome.skipped);
+      const snippet = formatPromptSnippet(prompt);
+      console.warn(
+        `Skipping session ${sessionId} ("${snippet}"): ${outcome.skipped.phase} replay failed: ${outcome.skipped.reason}`,
+      );
+      continue;
     }
 
-    const delta = computeScoreDelta({
-      baseline: baselineScore,
-      clone: cloneScore,
-    });
-
-    sessionResults.push({
-      sessionId,
-      baselineSessionId,
-      cloneSessionId,
-      prompt,
-      baseline: baselineScore,
-      clone: cloneScore,
-      delta,
-    });
+    sessionResults.push(outcome.result);
   }
 
   const receipt: EvalReceipt = {
     evalId,
     timestamp: new Date().toISOString(),
     sessionsEvaluated: sessionResults.length,
-    sessionsSkipped,
+    sessionsSkipped: skippedSessions.length,
+    skippedSessions,
     averageBaseline: averageMetrics(sessionResults.map((entry) => entry.baseline)),
     averageClone: averageMetrics(sessionResults.map((entry) => entry.clone)),
     averageDelta: averageMetrics(sessionResults.map((entry) => entry.delta)),
@@ -188,6 +144,9 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
     console.log(JSON.stringify(receipt, null, 2));
   } else {
     console.log(`Evaluated ${receipt.sessionsEvaluated} sessions.`);
+    if (receipt.sessionsSkipped > 0) {
+      console.log(`Skipped ${receipt.sessionsSkipped} session(s) due to replay errors.`);
+    }
     console.log(
       `Total delta: ${(receipt.averageDelta.total * 100).toFixed(1)}% (${(receipt.averageBaseline.total * 100).toFixed(1)}% -> ${(receipt.averageClone.total * 100).toFixed(1)}%)`,
     );
