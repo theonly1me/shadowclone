@@ -1,4 +1,5 @@
 import type {
+  EngineAction,
   EngineRun,
   PermissionDenial,
 } from "./types";
@@ -39,6 +40,29 @@ function assistantText(record: Readonly<Record<string, unknown>>): string {
     .join("");
 }
 
+function assistantActions(
+  record: Readonly<Record<string, unknown>>,
+): readonly EngineAction[] {
+  const message = record.message;
+  if (!isRecord(message) || !Array.isArray(message.content)) {
+    return [];
+  }
+  return message.content.flatMap((block) => {
+    if (!isRecord(block) || readString(block, "type") !== "tool_use") {
+      return [];
+    }
+    const tool = readString(block, "name") ?? "";
+    const input = isRecord(block.input) ? block.input : null;
+    const rawPath = input
+      ? (readString(input, "file_path") ??
+        readString(input, "path") ??
+        readString(input, "notebook_path"))
+      : null;
+    const command = input ? readString(input, "command") : null;
+    return [{ tool, path: rawPath, command }];
+  });
+}
+
 function permissionDenials(value: unknown): readonly PermissionDenial[] {
   if (!Array.isArray(value)) {
     return [];
@@ -67,6 +91,7 @@ export function parseClaudeStream(options: {
   readonly fallbackSessionId: string;
 }): EngineRun {
   const textParts: string[] = [];
+  const actions: EngineAction[] = [];
   let result: Readonly<Record<string, unknown>> | null = null;
 
   for (const line of options.stream.split("\n")) {
@@ -80,6 +105,7 @@ export function parseClaudeStream(options: {
       }
       if (readString(parsed, "type") === "assistant") {
         textParts.push(assistantText(parsed));
+        actions.push(...assistantActions(parsed));
       }
       if (readString(parsed, "type") === "result") {
         result = parsed;
@@ -103,5 +129,6 @@ export function parseClaudeStream(options: {
     turns: result ? readNumber(result, "num_turns") ?? 0 : 0,
     isError: result?.is_error === true || result === null,
     permissionDenials: permissionDenials(result?.permission_denials),
+    actions,
   };
 }
