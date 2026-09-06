@@ -63,7 +63,7 @@ Shadowclone calls no model API of its own. It shells out to `claude`, `codex`, o
 
 This is a product decision before it is a technical one. Asking a new user to paste an API key is the single largest drop off in a local AI tool, and it puts the maintainer on the hook for other people's inference bills. Driving the installed CLI removes both. If you can run `claude`, you can run shadowclone.
 
-It also gives the privacy statement: shadowclone sends nothing anywhere your own agent is not already sending it, under your own account. `03-engine.md` covers the abstraction and the fallbacks, including a fully local path through Ollama for people who want zero egress.
+It also gives the privacy statement: shadowclone sends nothing anywhere your own agent is not already sending it, under your own account. `03-engine.md` covers the abstraction and the fallbacks, including a planned local path through Ollama for people who want zero egress.
 
 ## What is settled and what is not
 
