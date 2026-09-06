@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { RepoSettings } from "./repo";
 import { parseRepoSettings } from "./repo";
 
@@ -45,111 +46,93 @@ export const defaultConfig: ShadowcloneConfig = {
   repo: {},
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function hasExactKeys(options: {
-  readonly record: Record<string, unknown>;
-  readonly keys: readonly string[];
-}): boolean {
-  const actualKeys = Object.keys(options.record);
-  const expectedKeys = new Set(options.keys);
-
-  return (
-    actualKeys.length === options.keys.length &&
-    actualKeys.every((key) => expectedKeys.has(key))
-  );
-}
-
-const requiredCoreSourceIds = [
-  "claude-code",
-  "claude-prompts",
-  "codex",
-  "cursor",
-  "shell",
-] as const;
-
-const validSourceIdSet = new Set<string>(sourceIds);
+const sourcesSchema = z
+  .strictObject({
+    "agent-context": z.boolean().optional().default(false),
+    antigravity: z.boolean().optional().default(false),
+    "claude-code": z.boolean(),
+    "claude-prompts": z.boolean(),
+    codex: z.boolean(),
+    cursor: z.boolean(),
+    "git-metadata": z.boolean().optional().default(false),
+    shell: z.boolean(),
+  });
 
 function parseSources(value: unknown): SourceSettings {
-  if (!isRecord(value)) {
-    throw new Error("Config sources must contain every supported source and no unknown sources");
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error(
+      "Config sources must contain every supported source and no unknown sources",
+    );
   }
 
-  const keys = Object.keys(value);
-  const hasOnlyValidKeys = keys.every((key) => validSourceIdSet.has(key));
-  const hasCoreKeys = requiredCoreSourceIds.every((key) => key in value);
+  const result = sourcesSchema.safeParse(value);
+  if (!result.success) {
+    if (result.error.issues.some((issue) => issue.code === "unrecognized_keys")) {
+      throw new Error(
+        "Config sources must contain every supported source and no unknown sources",
+      );
+    }
 
-  if (!hasOnlyValidKeys || !hasCoreKeys) {
-    throw new Error("Config sources must contain every supported source and no unknown sources");
-  }
-
-  const agentContext = value["agent-context"] ?? false;
-  const antigravity = value.antigravity ?? false;
-  const claudeCode = value["claude-code"];
-  const claudePrompts = value["claude-prompts"];
-  const codex = value.codex;
-  const cursor = value.cursor;
-  const gitMetadata = value["git-metadata"] ?? false;
-  const shell = value.shell;
-
-  if (
-    typeof agentContext !== "boolean" ||
-    typeof antigravity !== "boolean" ||
-    typeof claudeCode !== "boolean" ||
-    typeof claudePrompts !== "boolean" ||
-    typeof codex !== "boolean" ||
-    typeof cursor !== "boolean" ||
-    typeof gitMetadata !== "boolean" ||
-    typeof shell !== "boolean"
-  ) {
     throw new Error("Every config source setting must be a boolean");
   }
 
-  return {
-    "agent-context": agentContext,
-    antigravity,
-    "claude-code": claudeCode,
-    "claude-prompts": claudePrompts,
-    codex,
-    cursor,
-    "git-metadata": gitMetadata,
-    shell,
-  };
+  return result.data;
 }
 
+const distillationSchema = z.strictObject({
+  deep: z.boolean(),
+});
+
 function parseDistillation(value: unknown): ShadowcloneConfig["distillation"] {
-  if (!isRecord(value) || !hasExactKeys({ record: value, keys: ["deep"] })) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error("Config distillation must contain only the deep setting");
   }
 
-  if (typeof value.deep !== "boolean") {
+  const result = distillationSchema.safeParse(value);
+  if (!result.success) {
+    if (result.error.issues.some((issue) => issue.code === "unrecognized_keys")) {
+      throw new Error("Config distillation must contain only the deep setting");
+    }
+
     throw new Error("Config distillation.deep must be a boolean");
   }
 
-  return { deep: value.deep };
+  return result.data;
 }
 
+const configSchema = z.strictObject({
+  "schema-version": z.literal(1),
+  sources: z.unknown(),
+  distillation: z.unknown(),
+  repo: z.unknown().optional(),
+});
+
 export function parseConfig(value: unknown): ShadowcloneConfig {
-  const keys = ["schema-version", "sources", "distillation"];
-  const keysWithRepositories = [...keys, "repo"];
-  if (
-    !isRecord(value) ||
-    (!hasExactKeys({ record: value, keys }) &&
-      !hasExactKeys({ record: value, keys: keysWithRepositories }))
-  ) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error("Config must contain only supported top-level settings");
   }
 
-  if (value["schema-version"] !== 1) {
-    throw new Error("Config schema-version must be 1");
+  const result = configSchema.safeParse(value);
+  if (!result.success) {
+    if (result.error.issues.some((issue) => issue.code === "unrecognized_keys")) {
+      throw new Error("Config must contain only supported top-level settings");
+    }
+
+    if (
+      result.error.issues.some((issue) =>
+        issue.path.includes("schema-version"),
+      )
+    ) {
+      throw new Error("Config schema-version must be 1");
+    }
+
+    throw new Error("Config must contain only supported top-level settings");
   }
 
   return {
     schemaVersion: 1,
-    sources: parseSources(value.sources),
-    distillation: parseDistillation(value.distillation),
-    repo: parseRepoSettings(value.repo),
+    sources: parseSources(result.data.sources),
+    distillation: parseDistillation(result.data.distillation),
+    repo: parseRepoSettings(result.data.repo),
   };
 }
