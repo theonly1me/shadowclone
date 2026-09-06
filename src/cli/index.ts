@@ -15,7 +15,7 @@ import { learn } from "./learn";
 import { runClone } from "./run";
 
 const usage =
-  "Usage: shadowclone <init|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--sessions N] [--since <date>] [--json] [--max-budget-usd <n>]|mcp|forget --all>";
+  "Usage: shadowclone <init|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--sessions N] [--since <date>] [--engine <id>] [--json] [--max-budget-usd <n>]|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
