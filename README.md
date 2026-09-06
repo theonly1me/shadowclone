@@ -1,145 +1,190 @@
 # shadowclone
 
-Every time you start a new AI agent, it has amnesia. shadowclone reads the AI coding sessions already on your disk, builds a profile of how you work, and runs copies of you inside the agent you already use.
+Memory and alignment compiler for AI coding agents.
 
-Claude Code, Codex, and Cursor write every session to a file. Those files hold every time you stopped the agent, refused a tool, or picked one option over another. shadowclone turns those moments into a profile, loads it into your live sessions, and compiles it into a subagent. The subagent is you. Spawn ten of them on ten tasks, or let one run in a worktree while you're away.
+Shadowclone reads historical coding sessions already on your disk (Claude Code, Codex, Cursor), mines your steering habits without sending raw transcripts to any server, and compiles an editable profile into the agents you already use.
 
-The name is the Naruto reference. A shadow clone does your work while you do something else, and what it learned comes back when it dissolves.
+Developers who install the profile see a measurable action delta against unprofiled runs on their held-out corpus: the agent stops asking for confirmations you never gave, runs the tests you run, and avoids the tools you refuse.
 
-## How it works
+Verify the delta directly on your own machine:
+
+```bash
+shadowclone eval --sessions 10
+```
+
+## Architectural scope: what shadowclone is and is not
+
+**Not an agent runtime.**
+Shadowclone does not provide an LLM chat loop, an autonomous worker daemon, or an IDE extension. It compiles behavioral profiles and subagents for the agent CLIs you already install, authenticate, and pay for.
+
+**A memory and alignment compiler.**
+Every turn where you interrupted an agent, refused a tool, corrected a proposal, or chose one implementation over another is an alignment signal. Shadowclone indexes those moments locally and distills them into plain markdown rules scoped by repository origin.
+
+## The pipeline
 
 ```
-observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
+observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch / eval
+                          |                        |
+                     zero tokens          user's subscription
 ```
 
-| Stage | Module | Does |
+| Stage | Module | Function |
 | --- | --- | --- |
-| observe | `src/observe/` | reads transcripts into one event stream, incrementally |
-| index | `src/index/` | SQLite cache of pointers into those files, never the text |
-| signal | `src/signal/` | finds where you overrode the agent, no model involved |
-| distill | `src/distill/` | turns those moments into rules, through your own agent CLI |
-| profile | `src/profile/` | markdown you can read, plus a subagent that is you |
-| dispatch | `src/dispatch/` | runs a clone in a worktree and leaves a receipt |
+| observe | `src/observe/` | Normalizes agent transcripts into one incremental event stream |
+| index | `src/index/` | Rebuildable SQLite cache of byte offsets and event kinds, never text |
+| signal | `src/signal/` | Detects interruptions, plan changes, and tool refusals in pure code |
+| distill | `src/distill/` | Distills high-signal moments into rules via your installed agent CLI |
+| profile | `src/profile/` | Plain markdown rules and subagents scoped to git origins |
+| dispatch | `src/dispatch/` | Executes unattended tasks on isolated worktrees with receipts |
+| eval | `src/eval/` | Replays historical prompts through baseline vs clone to score behavioral deltas |
 
-There is no API key and no server. Model calls go through `claude`, `codex`, or `cursor-agent`, already installed and logged in, on your own plan. `docs/architecture/` has the reasoning behind each piece.
-
-## The Architecture Advantage
-
-Most "self-improving" AI agents or memory tools suffer from three massive flaws that shadowclone is explicitly designed to solve:
-
-1. **Zero Cold-Start (No Amnesia):** Other tools require months of daily use to learn your habits because they start at zero. Shadowclone mines the hundreds of past sessions *already sitting on your hard drive* to build your profile instantly.
-2. **Behavioral Distillation:** Instead of feeding expensive LLMs your entire 50-turn conversation (which is 90% noise), shadowclone isolates *only* the "deltas", the exact moments you interrupted the agent or refused a tool. This gives the model an incredibly high signal-to-noise ratio, extracting your true behavioral preferences at a fraction of the cost.
-3. **Enterprise Cross-Contamination:** If a memory tool learns a proprietary code convention at your day job, it will blindly leak it into your open-source side projects. Shadowclone solves this by scoping learned behaviors strictly to the `git` remote URL they were learned in, ensuring safe boundaries.
-
-## Status
-
-Early.
-
-- **Built.** Phases 0 through 6. `shadowclone learn` reads enabled Claude Code, Codex, Cursor, and Antigravity sessions into one offline mirror, `learn --deep` selects an authenticated CLI by enforceable capabilities, the plugin provides a live `shadowclone` subagent, and `shadowclone run` leaves unattended work on a local branch with a receipt.
-- **Manual checks.** Real authenticated provider runs, plugin installation, and provider-specific corpus tuning still need to be exercised outside recorded fixtures. API and local endpoint engines remain later work.
-
-`docs/design/001-agent-transcript-pivot.md` is the spec. `docs/architecture/06-roadmap.md` is the order.
-
-### Provider coverage
-
-Observe, distill, and dispatch are separate claims. An installed CLI is never capture consent, and an engine is not called for a purpose whose policy it cannot enforce.
-
-| Provider | Observe | Distill | Dispatch |
-| --- | --- | --- | --- |
-| Claude Code | built | built | built |
-| Codex | built | built | blocked on granular tool and budget controls |
-| Cursor | built | built | blocked on granular tool and budget controls |
-| Antigravity CLI | built | blocked on a per-run deny-all tool policy | blocked on granular tool and budget controls |
-| GitHub Copilot CLI, OpenCode, Aider, Amp | planned, one reviewed provider at a time | capability dependent | capability dependent |
-
-`docs/design/003-provider-expansion.md` defines the qualification gate and the registry that keeps these claims honest.
-
-## Privacy
-
-This is the first question to ask about a program that reads your agent transcripts, so it goes here rather than at the bottom.
-
-**What it reads.** Every source is opt-in and off by default. The list grows only when a release note says it grew.
-
-| Source | Path | Default | Built today |
-| --- | --- | --- | --- |
-| `antigravity` | `~/.gemini/antigravity-cli/brain/*/.system_generated/logs/transcript_full.jsonl` | off | read only when enabled |
-| `claude-code` | `~/.claude/projects/**/*.jsonl` | off | read only when enabled |
-| `claude-prompts` | `~/.claude/history.jsonl` | off | read only when enabled |
-| `codex` | `~/.codex/sessions/**/*.jsonl` | off | read only when enabled |
-| `cursor` | `~/.cursor/chats/**/{store.db,meta.json}` | off | read only when enabled |
-| `git-metadata` | observed repositories' local `remote.origin.url` | off | read only when enabled |
-| `shell` | `~/.zsh_history`, `~/.bash_history` | off | read only when enabled |
-
-**What leaves your machine.** Only what your own agent CLI sends, under your own account. `shadowclone learn` makes no network call. `shadowclone learn --deep` sends only redacted, allowlisted correction excerpts after separate consent. shadowclone has no server, account, key, telemetry, analytics, or crash reporting.
-
-**What gets scrubbed.** Secrets, private paths, internal hosts, emails, cloud resources, and database URLs. `src/redact/index.test.ts` is the list. It is over-eager on purpose.
-
-**What is never read.** Tool results, file contents, thinking blocks, and anything from a data-access tool. Those hold other people's data, so they are excluded outright rather than redacted. `docs/architecture/07-enterprise.md` has the list.
-
-**What is stored.** Everything lives under `~/.shadowclone/`. The SQLite index contains pointers, event kinds, and tool metadata, never transcript text. The profile is plain markdown plus a generated-rule manifest containing only rule ids and relative profile paths. shadowclone never makes a second copy of your transcripts. Nothing is synced or uploaded. `shadowclone forget --all` removes all of it in one step.
-
-**What stays in your org.** Every rule is scoped to the git remote it came from when `git-metadata` is enabled. Without that consent, each working directory is an isolated origin that never promotes a rule to global. An admin can disable shadowclone fleet-wide with a root-owned file.
-
-**What it does on your behalf.** The live subagent runs inside your current Claude Code session and its permission mode. `shadowclone run "<task>"` explicitly approves one local worktree, branch, and commit for that task. A repo allowlist is only a ceiling for remote actions, and each run must also name an action with `--approve`. Learned denials stay advisory until observation can identify the denied action without storing raw tool input. Merge, force push, `bypassPermissions`, and `--dangerously-skip-permissions` are never allowed.
-
-If a secret gets past the redaction, that is the highest-value bug report this project can get. Open an issue with the shape of the string, not the string itself.
+Model calls run through `claude`, `codex`, or `cursor-agent`. There is no shadowclone API key, no telemetry, and no hosted server.
 
 ## Quickstart
 
-Needs one of `claude`, `codex`, or `cursor-agent` installed and logged in for anything that calls a model. No API key.
+Install the global CLI:
 
 ```bash
 npm i -g @shadowclone/cli
+```
+
+Verify your environment and supported provider CLIs:
+
+```bash
 shadowclone doctor
+```
+
+Grant consent for desired transcript sources:
+
+```bash
 shadowclone init
+```
+
+Index your historical sessions and build your profile:
+
+```bash
 shadowclone learn
 ```
 
-That is the whole install. The package brings its own runtime, so nothing else is required.
+To preview without writing files or databases:
 
-### Using your clone
+```bash
+shadowclone learn --dry-run
+```
 
-To inject your profile into a project, navigate to the repository and run:
+To enable deep distillation through your authenticated agent CLI:
+
+```bash
+shadowclone learn --deep
+```
+
+Install the compiled profile into the current repository:
 
 ```bash
 shadowclone install
 ```
 
-This writes your profile as a subagent (`.claude/agents/shadowclone.md`). Here is how to use it across different editors:
+This writes `.claude/agents/shadowclone.md` and excludes it from git tracking.
 
-- **Claude Code:** Ask Claude to delegate tasks to your clone. For example: *"Use the Agent tool to spawn a shadowclone subagent to write a unit test."*
-- **Cursor:** Since Cursor's agent dispatch is still in development, you can manually point Cursor to your profile by adding `Include .claude/agents/shadowclone.md in your context` to your `.cursorrules`.
-- **Codex:** Similar to Cursor, reference the generated markdown profile directly in your Codex system prompt instructions until native dispatch is unblocked.
-- **Headless Dispatch:** Run `shadowclone run "<task>"` in your terminal to dispatch a clone in a background worktree (currently defaults to Claude).
+## Replay evaluation
 
-Working on shadowclone itself:
+Shadowclone provides a reproducible fitness function to measure profile impact:
 
 ```bash
-git clone https://github.com/theonly1me/shadowclone.git
-cd shadowclone
-bun install
-bun run check        # typecheck, lint, and tests
-bun run cli doctor
+shadowclone eval --sessions 5 --max-budget-usd 0.50
 ```
 
-Add this checkout as a local Claude Code marketplace, then install the plugin:
+The evaluator replays historical user prompts through two isolated runs:
+1. **Baseline run:** unprofiled agent invocation without system prompt customization.
+2. **Clone run:** agent invocation with the compiled project profile injected.
 
-```text
-/plugin marketplace add /path/to/shadowclone
-/plugin install shadowclone@shadowclone
+Replays are compared against historical developer actions across four dimensions:
+- **Tools:** Jaccard similarity of invoked tools.
+- **Verification:** Jaccard similarity of two-token bash verification commands (e.g. `bun test`, `cargo check`).
+- **Files:** Jaccard similarity of posix repository-relative edited paths.
+- **Planning:** Match on whether planning tools were invoked before the first file edit.
+
+Evaluation receipts are written to `~/.shadowclone/eval/<evalId>.json`.
+
+## Unattended dispatch
+
+Execute tasks in an isolated git worktree without touching your working tree:
+
+```bash
+shadowclone run "fix the flaky test in src/auth.test.ts"
 ```
 
-Run `shadowclone install` inside a repository before its next Claude Code session. It writes the scoped `.claude/agents/shadowclone.md`. The plugin injects the same profile at session start, refreshes the offline profile at session end, and exposes it through MCP.
+The default dispatch mode creates a local worktree and branch, runs verification checks, and commits locally without pushing.
 
-The default run creates a worktree and local commit, writes a receipt under `~/.shadowclone/runs/`, and pushes nothing. Remote actions need both a matching `[repo."<host>/<owner>/<repo>"]` allowlist and an explicit per-run `--approve`.
+Remote actions (push, open PR) require both a repository ceiling in `~/.shadowclone/config.toml` and an explicit per-run approval flag:
+
+```bash
+shadowclone run "prepare release notes" --approve push
+```
+
+## Ground-truth privacy
+
+Agent transcripts contain private code, environment variables, internal hosts, and customer data. Shadowclone protects data through structural guarantees:
+
+**Pointers instead of text copies.**
+The SQLite index stores file offsets, timestamps, and event kinds. Raw transcripts are never duplicated to a secondary store.
+
+**Sliced secret redaction.**
+Distillation excerpts pass through a deterministic sliced replacer before reaching any model. Secrets keep identifying prefixes (such as `AKIA` or `sk_live_`) while stripping high-entropy characters, keeping code context intact without leaking credentials.
+
+**Shannon entropy layer.**
+Unstructured tokens exceeding 4.5 bits of entropy per character are scrubbed even if they do not match known vendor regex patterns.
+
+**Third-party tool results are excluded.**
+Distillation inputs allowlist user prompts and developer steering corrections. Tool outputs from database queries, log dumps, and file reads are excluded by category rather than relying on regex filtering.
+
+**Single-command wipe.**
+Wipe the entire local index, profile, checkpoints, and receipts:
+
+```bash
+shadowclone forget --all
+```
+
+## Enterprise governance
+
+Security teams can enforce policy ceilings fleet-wide via root-owned managed configuration:
+- **macOS:** `/Library/Application Support/shadowclone/managed.json`
+- **Linux:** `/etc/shadowclone/managed.json`
+
+```json
+{
+  "enabled": true,
+  "allowedSources": ["claude-code"],
+  "allowedEngines": ["claude-code"],
+  "distillation": "local-only",
+  "originScope": "strict",
+  "blockedOrigins": ["github.com/acme/security-*"],
+  "maxActionTier": "draft"
+}
+```
+
+Managed policies act as an absolute ceiling. Users cannot enable unapproved sources or engines, and `enabled: false` enforces an immediate stop across the machine.
+
+## CLI commands
+
+```bash
+shadowclone init                                 # Configure source consent and capabilities
+shadowclone learn [--deep] [--dry-run]           # Index sessions and synthesize rules
+shadowclone doctor                               # Inspect active paths, engines, and policies
+shadowclone install                              # Install profile as .claude/agents/shadowclone.md
+shadowclone run <task> [--approve <action>]      # Dispatch headless clone in a worktree
+shadowclone eval [--sessions N] [--json]         # Measure behavioral deltas against baseline
+shadowclone mcp                                  # Start stdio Model Context Protocol server
+shadowclone forget --all                         # Remove ~/.shadowclone/ completely
+```
 
 ## Contributing
 
-`CONTRIBUTING.md` has the rules. Short version: small diffs, `bun run check`, PR body under 250 words.
+Review `CONTRIBUTING.md` and `SECURITY.md`. All contributions must pass:
 
-`SECURITY.md` says what to report privately and how to verify a release download.
-
-Anything touching capture, storage, or egress gets a closer read. `.claude/skills/data-handling/SKILL.md` says what a reviewer checks.
+```bash
+bun run check
+```
 
 ## License
 

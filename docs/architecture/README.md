@@ -16,6 +16,7 @@ It learns from the transcripts your agents already write to disk. It acts by dri
 | `06-roadmap.md` | Build order and what is deliberately not built yet |
 | `07-enterprise.md` | Organization boundaries, and what to hand a security reviewer |
 | `08-landscape.md` | What already exists, the gap, and what to borrow from prior work |
+| `09-evaluation.md` | Replay evaluation against historical baselines and delta scoring |
 
 Per-change design docs live in `docs/design/`, one file per change, written against `docs/design/template.md`.
 
@@ -23,8 +24,10 @@ Per-change design docs live in `docs/design/`, one file per change, written agai
 
 ```
 observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
-                          |                        |            |
-                     zero tokens          user's own subscription
+                          |                        |              |
+                     zero tokens          user's subscription     |
+                                                                  v
+                                                                eval
 ```
 
 | Stage | Module | What it does |
@@ -35,6 +38,7 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 | distill | `src/distill/` | Turns high signal moments into written rules |
 | profile | `src/profile/` | Plain markdown you can read, edit, and diff |
 | dispatch | `src/dispatch/` | Runs a task in a worktree and leaves a receipt |
+| eval | `src/eval/` | Replays sessions against baseline and clone to measure delta |
 | engine | `src/engine/` | The one way a model gets called, by any stage |
 
 `src/cli/` is the only place that knows about more than one stage. Stage modules depend downward and never sideways, which is what keeps the egress path auditable by reading one file.
@@ -59,7 +63,7 @@ Shadowclone calls no model API of its own. It shells out to `claude`, `codex`, o
 
 This is a product decision before it is a technical one. Asking a new user to paste an API key is the single largest drop off in a local AI tool, and it puts the maintainer on the hook for other people's inference bills. Driving the installed CLI removes both. If you can run `claude`, you can run shadowclone.
 
-It also gives the privacy statement: shadowclone sends nothing anywhere your own agent is not already sending it, under your own account. `03-engine.md` covers the abstraction and the fallbacks, including a fully local path through Ollama for people who want zero egress.
+It also gives the privacy statement: shadowclone sends nothing anywhere your own agent is not already sending it, under your own account. `03-engine.md` covers the abstraction and the fallbacks, including a planned local path through Ollama for people who want zero egress.
 
 ## What is settled and what is not
 
