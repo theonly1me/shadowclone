@@ -2,28 +2,15 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type {
-  EngineRun,
-  EngineRunner,
-} from "../engine";
+import type { EngineRun, EngineRunner } from "../engine";
 import type { IndexedEvent } from "../index";
-import type {
-  CorrectionSignal,
-  OriginScope,
-} from "../signal";
-import {
-  buildDistillPrompt,
-  distillSignals,
-} from "./index";
+import type { CorrectionSignal, OriginScope } from "../signal";
+import { buildDistillPrompt, distillSignals } from "./index";
 
 const plantedSecret = "sk-proj-distillSecret123456789";
 
 function origin(id: string): OriginScope {
-  return {
-    id,
-    directoryName: id.replace("/", "--"),
-    promotable: true,
-  };
+  return { id, directoryName: id.replace("/", "--"), promotable: true };
 }
 
 function signal(options: {
@@ -71,12 +58,17 @@ function successfulRun(): EngineRun {
   };
 }
 
-function indexedPrompt(sourcePath: string): IndexedEvent {
+function indexedPrompt(options: {
+  readonly sourcePath: string;
+  readonly sessionId?: string;
+  readonly byteLength?: number;
+}): IndexedEvent {
+  const byteLength = options.byteLength ?? Buffer.byteLength(plantedSecret);
   return {
     id: 1,
-    sourcePath,
+    sourcePath: options.sourcePath,
     source: "claude-code",
-    sessionId: "session-1",
+    sessionId: options.sessionId ?? "session-1",
     eventId: "event-1",
     parentEventId: null,
     timestamp: 1_788_537_600_000,
@@ -87,9 +79,9 @@ function indexedPrompt(sourcePath: string): IndexedEvent {
     isError: false,
     textRef: {
       type: "file",
-      sourcePath,
+      sourcePath: options.sourcePath,
       byteOffset: 0,
-      byteLength: Buffer.byteLength(plantedSecret),
+      byteLength,
     },
   };
 }
@@ -126,7 +118,7 @@ test("redacts excerpts before the engine and resumes from checkpoints", async ()
     runner,
     workingDirectory: directory,
     checkpointDirectory: path.join(directory, "checkpoints"),
-    events: [indexedPrompt(sourcePath)],
+    events: [indexedPrompt({ sourcePath })],
   };
 
   const first = await distillSignals(options);
@@ -138,4 +130,45 @@ test("redacts excerpts before the engine and resumes from checkpoints", async ()
   expect(first.engineRuns).toBe(1);
   expect(second.engineRuns).toBe(0);
   expect(second.rules).toEqual(first.rules);
+});
+
+test("calculates confidence scaled to sessions and aggregates constituent evidence", async () => {
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-distill-conf-"),
+  );
+  const sourcePath = path.join(directory, "fixture.jsonl");
+  await Bun.write(sourcePath, "user edited code");
+  const orig = origin("github.com/acme");
+  const makeSignal = (
+    sessionId: string,
+    timestamp: number,
+  ): CorrectionSignal => ({
+    kind: "interruption",
+    category: "tool:Edit",
+    label: "while using Edit",
+    sessionId,
+    timestamp,
+    origin: orig,
+    textRefs: [{ type: "file", sourcePath, byteOffset: 0, byteLength: 16 }],
+  });
+  const signals = [
+    makeSignal("session-1", 1_788_537_600_000),
+    makeSignal("session-2", 1_788_537_700_000),
+  ];
+  const runner: EngineRunner = () => Promise.resolve(successfulRun());
+  const options = {
+    signals,
+    runner,
+    workingDirectory: directory,
+    checkpointDirectory: path.join(directory, "checkpoints"),
+    events: [
+      indexedPrompt({ sourcePath, sessionId: "session-1", byteLength: 16 }),
+      indexedPrompt({ sourcePath, sessionId: "session-2", byteLength: 16 }),
+    ],
+  };
+
+  const result = await distillSignals(options);
+  expect(result.rules.length).toBe(1);
+  expect(result.rules[0]?.sessions).toBe(2);
+  expect(result.rules[0]?.confidence).toBe(0.67);
 });

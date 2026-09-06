@@ -19,8 +19,50 @@ import type {
   ProfileWriteResult,
 } from "./types";
 
+export type ProfileGenerator = "structural" | "distilled" | "all";
+
 function isDistilledRule(rule: ExistingProfileRule): boolean {
   return semanticRuleKey(rule.title) === rule.key;
+}
+
+function shouldPruneRule(options: {
+  readonly existingRule: ExistingProfileRule;
+  readonly isUpdated: boolean;
+  readonly generator: ProfileGenerator;
+}): boolean {
+  if (options.isUpdated || options.existingRule.edited) {
+    return false;
+  }
+  const isDistilled = isDistilledRule(options.existingRule);
+  if (options.generator === "all") {
+    return true;
+  }
+  if (options.generator === "structural") {
+    return !isDistilled;
+  }
+  return isDistilled;
+}
+
+function resolveGenerator(options: {
+  readonly generator?: ProfileGenerator;
+  readonly rules: readonly ProfileRule[];
+}): ProfileGenerator {
+  if (options.generator) {
+    return options.generator;
+  }
+  const hasDistilled = options.rules.some(
+    (rule) => semanticRuleKey(rule.title) === rule.key,
+  );
+  const hasStructural = options.rules.some(
+    (rule) => semanticRuleKey(rule.title) !== rule.key,
+  );
+  if (hasDistilled && hasStructural) {
+    return "all";
+  }
+  if (hasDistilled) {
+    return "distilled";
+  }
+  return "structural";
 }
 
 function groupRules(
@@ -43,8 +85,13 @@ function keyFor(entry: ProfileStateEntry): string {
 export async function writeProfile(options: {
   readonly paths: ProjectPaths;
   readonly rules: readonly ProfileRule[];
+  readonly generator?: ProfileGenerator;
 }): Promise<ProfileWriteResult> {
   await mkdir(options.paths.profileDirectory, { recursive: true });
+  const generator = resolveGenerator({
+    generator: options.generator,
+    rules: options.rules,
+  });
   const previous = await readProfileState(options.paths.profileManifestFile);
   const rejectedEntries = await readProfileState(
     options.paths.rejectedProfileFile,
@@ -89,7 +136,13 @@ export async function writeProfile(options: {
       const updated = incomingRules.find(
         (rule) => rule.key === existingRule.key,
       );
-      if (!updated && !existingRule.edited && !isDistilledRule(existingRule)) {
+      if (
+        shouldPruneRule({
+          existingRule,
+          isUpdated: updated !== undefined,
+          generator,
+        })
+      ) {
         continue;
       }
       nextBlocks.push(

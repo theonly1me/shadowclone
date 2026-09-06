@@ -123,13 +123,51 @@ test("drops a retired structural rule the generator no longer produces", async (
     path.join(os.tmpdir(), "shadowclone-profile-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const retired = { ...profileRule(4), key: "tool-use-bash", title: "Uses Bash in agent sessions" };
+  const retired = {
+    ...profileRule(4),
+    key: "tool-use-bash",
+    title: "Uses Bash in agent sessions",
+  };
   await writeProfile({ paths, rules: [retired] });
 
   await writeProfile({ paths, rules: [profileRule(3)] });
 
   const filePath = path.join(paths.profileDirectory, profileRulePath(retired));
   expect(await Bun.file(filePath).text()).not.toContain(retired.title);
+});
+
+test("distilled refresh drops retired distilled rule and preserves structural rule", async () => {
+  const homeDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-profile-"),
+  );
+  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  const structural = profileRule(2);
+  const distilledOne = distilledRule();
+  const titleTwo = "Write tests first";
+  const distilledTwo: ProfileRule = {
+    ...distilledOne,
+    key: semanticRuleKey(titleTwo),
+    title: titleTwo,
+  };
+  await writeProfile({
+    paths,
+    rules: [structural, distilledOne, distilledTwo],
+  });
+
+  await writeProfile({
+    paths,
+    rules: [distilledOne],
+    generator: "distilled",
+  });
+
+  const filePath = path.join(
+    paths.profileDirectory,
+    profileRulePath(structural),
+  );
+  const content = await Bun.file(filePath).text();
+  expect(content).toContain(structural.title);
+  expect(content).toContain(distilledOne.title);
+  expect(content).not.toContain(distilledTwo.title);
 });
 
 test("removes a profile file whose every rule was retired", async () => {
