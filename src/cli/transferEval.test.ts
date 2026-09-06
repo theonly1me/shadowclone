@@ -13,6 +13,16 @@ test("rejects conflicting aliases, missing values, negative bounds, and unknown 
   }
 });
 
+test("rejects a value flag given twice instead of taking the last one", () => {
+  expect(() => parseTransferArguments(["--repo", "a", "--repo", "b"])).toThrow(
+    "Repeated --repo",
+  );
+  expect(() => parseTransferArguments(["--tasks", "1", "--tasks", "2"])).toThrow(
+    "Repeated --tasks",
+  );
+  expect(parseTransferArguments(["--repo", "a"]).repo).toBe("a");
+});
+
 test("carries the confirmation bypass instead of discarding it", () => {
   expect(parseTransferArguments(["--yes"]).yes).toBeTrue();
   expect(parseTransferArguments(["-y"]).yes).toBeTrue();

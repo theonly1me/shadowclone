@@ -1,11 +1,5 @@
 import { z } from "zod";
 
-export function isRecord(
-  value: unknown,
-): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 const hookRecordSchema = z.record(z.string(), z.unknown());
 
 export function parseHookInput(
