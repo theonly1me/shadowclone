@@ -4,6 +4,7 @@ export type DistilledRule = {
   readonly title: string;
   readonly body: string;
   readonly section: ProfileSection;
+  readonly sources?: readonly number[];
 };
 
 export const distillationOutputSchema = {
@@ -24,6 +25,35 @@ export const distillationOutputSchema = {
           section: {
             type: "string",
             enum: ["engineering", "workflow", "boundaries"],
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+export const distillationMergeOutputSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["rules"],
+  properties: {
+    rules: {
+      type: "array",
+      maxItems: 8,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "body", "section"],
+        properties: {
+          title: { type: "string", maxLength: 120 },
+          body: { type: "string", maxLength: 600 },
+          section: {
+            type: "string",
+            enum: ["engineering", "workflow", "boundaries"],
+          },
+          sources: {
+            type: "array",
+            items: { type: "integer" },
           },
         },
       },
@@ -70,6 +100,14 @@ export function parseDistilledRules(value: unknown): readonly DistilledRule[] {
     }
     const title = normalizeText(entry.title, 120);
     const body = normalizeText(entry.body, 600);
-    return title && body ? [{ title, body, section }] : [];
+    const sources = Array.isArray(entry.sources)
+      ? entry.sources.filter(
+          (item): item is number =>
+            typeof item === "number" && Number.isInteger(item) && item >= 0,
+        )
+      : undefined;
+    return title && body
+      ? [{ title, body, section, ...(sources ? { sources } : {}) }]
+      : [];
   });
 }

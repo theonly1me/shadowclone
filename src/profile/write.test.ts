@@ -3,8 +3,16 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
+import type { ProjectPaths } from "../paths";
 import { profileRulePath, semanticRuleKey, writeProfile } from "./index";
 import type { ProfileRule } from "./index";
+
+async function createTestPaths(): Promise<ProjectPaths> {
+  const homeDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-profile-"),
+  );
+  return createProjectPaths({ homeDirectory, platform: "darwin" });
+}
 
 function profileRule(observations: number): ProfileRule {
   return {
@@ -23,13 +31,7 @@ function profileRule(observations: number): ProfileRule {
 }
 
 test("preserves a hand-edited rule verbatim", async () => {
-  const homeDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-profile-"),
-  );
-  const paths = createProjectPaths({
-    homeDirectory,
-    platform: "darwin",
-  });
+  const paths = await createTestPaths();
   const first = profileRule(2);
   await writeProfile({ paths, rules: [first] });
   const filePath = path.join(paths.profileDirectory, profileRulePath(first));
@@ -48,13 +50,7 @@ test("preserves a hand-edited rule verbatim", async () => {
 });
 
 test("preserves a rule the user added without generated metadata", async () => {
-  const homeDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-profile-"),
-  );
-  const paths = createProjectPaths({
-    homeDirectory,
-    platform: "darwin",
-  });
+  const paths = await createTestPaths();
   const rule = profileRule(2);
   await writeProfile({ paths, rules: [rule] });
   const filePath = path.join(paths.profileDirectory, profileRulePath(rule));
@@ -67,13 +63,7 @@ test("preserves a rule the user added without generated metadata", async () => {
 });
 
 test("records a deleted rule and does not propose it again", async () => {
-  const homeDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-profile-"),
-  );
-  const paths = createProjectPaths({
-    homeDirectory,
-    platform: "darwin",
-  });
+  const paths = await createTestPaths();
   const rule = profileRule(2);
   await writeProfile({ paths, rules: [rule] });
   const filePath = path.join(paths.profileDirectory, profileRulePath(rule));
@@ -105,10 +95,7 @@ function distilledRule(): ProfileRule {
 }
 
 test("keeps a distilled rule when a structural refresh writes without it", async () => {
-  const homeDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-profile-"),
-  );
-  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  const paths = await createTestPaths();
   const distilled = distilledRule();
   await writeProfile({ paths, rules: [profileRule(2), distilled] });
 
@@ -119,11 +106,12 @@ test("keeps a distilled rule when a structural refresh writes without it", async
 });
 
 test("drops a retired structural rule the generator no longer produces", async () => {
-  const homeDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-profile-"),
-  );
-  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const retired = { ...profileRule(4), key: "tool-use-bash", title: "Uses Bash in agent sessions" };
+  const paths = await createTestPaths();
+  const retired = {
+    ...profileRule(4),
+    key: "tool-use-bash",
+    title: "Uses Bash in agent sessions",
+  };
   await writeProfile({ paths, rules: [retired] });
 
   await writeProfile({ paths, rules: [profileRule(3)] });
@@ -132,11 +120,47 @@ test("drops a retired structural rule the generator no longer produces", async (
   expect(await Bun.file(filePath).text()).not.toContain(retired.title);
 });
 
-test("removes a profile file whose every rule was retired", async () => {
-  const homeDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-profile-"),
+test("distilled refresh drops retired distilled rule and preserves structural rule", async () => {
+  const paths = await createTestPaths();
+  const structural = profileRule(2);
+  const distilledOne = distilledRule();
+  const titleTwo = "Write tests first";
+  const distilledTwo: ProfileRule = {
+    ...distilledOne,
+    key: semanticRuleKey(titleTwo),
+    title: titleTwo,
+  };
+  await writeProfile({
+    paths,
+    rules: [structural, distilledOne, distilledTwo],
+  });
+
+  await writeProfile({
+    paths,
+    rules: [distilledOne],
+    generator: "distilled",
+  });
+
+  const filePath = path.join(
+    paths.profileDirectory,
+    profileRulePath(structural),
   );
-  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  const content = await Bun.file(filePath).text();
+  expect(content).toContain(structural.title);
+  expect(content).toContain(distilledOne.title);
+  expect(content).not.toContain(distilledTwo.title);
+});
+
+test("drops in-flight duplicate rules with the same key", async () => {
+  const paths = await createTestPaths();
+  await writeProfile({ paths, rules: [profileRule(1), profileRule(2)] });
+  const filePath = path.join(paths.profileDirectory, profileRulePath(profileRule(1)));
+  const matches = (await Bun.file(filePath).text()).match(/Runs focused checks/g);
+  expect(matches).toHaveLength(1);
+});
+
+test("removes a profile file whose every rule was retired", async () => {
+  const paths = await createTestPaths();
   const retired = {
     ...profileRule(4),
     key: "tool-use-bash",

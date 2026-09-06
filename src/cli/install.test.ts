@@ -60,3 +60,36 @@ test("installs the scoped profile as a Claude subagent", async () => {
   expect(agent).toContain("Plans before editing");
   expect(agent).not.toContain("<!-- shadowclone:");
 });
+
+test("adds installed files to git info exclude", async () => {
+  const homeDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-install-"),
+  );
+  const targetDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-repo-"),
+  );
+  const init = Bun.spawn({
+    cmd: ["git", "-C", targetDirectory, "init"],
+    stdout: "ignore",
+    stderr: "ignore",
+  });
+  expect(await init.exited).toBe(0);
+
+  const paths = createProjectPaths({
+    homeDirectory,
+    platform: "darwin",
+  });
+  await writeConfig({ config: defaultConfig, configPath: paths.configFile });
+
+  await installLiveClone({
+    cwd: targetDirectory,
+    configPath: paths.configFile,
+    paths,
+    managedConfigPath: null,
+  });
+
+  const excludePath = path.join(targetDirectory, ".git", "info", "exclude");
+  const content = await Bun.file(excludePath).text();
+  expect(content).toContain(".claude/agents/shadowclone.md");
+  expect(content).toContain(".claude/skills/shadowclone/");
+});

@@ -17,4 +17,4 @@ export type {
   ProfileSection,
   ProfileWriteResult,
 } from "./types";
-export { writeProfile } from "./write";
+export { writeProfile, type ProfileGenerator } from "./write";
