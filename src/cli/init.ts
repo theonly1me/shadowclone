@@ -45,6 +45,9 @@ export async function initialize(options: {
   const enableGitMetadata = await ask(
     "Enable reading git remote origins for organization-scoped profiles?",
   );
+  const enableAgentContext = await ask(
+    "Enable reading agent instructions, skills and native memory for frozen eval baselines?",
+  );
   const enableDeep = await ask(
     "Enable semantic distillation through your authenticated agent CLI?",
   );
@@ -53,14 +56,19 @@ export async function initialize(options: {
     source: "git-metadata",
     enabled: enableGitMetadata,
   });
-  const completeConfig = setDeepEnabled({
+  const contextConfig = setSourceEnabled({
     config: scopedConfig,
+    source: "agent-context",
+    enabled: enableAgentContext,
+  });
+  const completeConfig = setDeepEnabled({
+    config: contextConfig,
     enabled: enableDeep,
   });
 
   await writeConfig({ config: completeConfig, configPath: options.configPath });
   console.log(
-    captureEnabled || enableGitMetadata || enableDeep
+    captureEnabled || enableGitMetadata || enableAgentContext || enableDeep
       ? "Selected sources and capabilities enabled."
       : "All capture sources remain disabled.",
   );

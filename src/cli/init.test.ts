@@ -8,7 +8,7 @@ import { initialize } from "./init";
 test("enables Claude Code only after consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
-  const answers = [false, true, false, false, false, false, false, false];
+  const answers = [false, true, false, false, false, false, false, false, false];
 
   await initialize({
     configPath,
@@ -22,6 +22,7 @@ test("enables Claude Code only after consent", async () => {
   expect(config.sources.codex).toBeFalse();
   expect(config.sources.cursor).toBeFalse();
   expect(config.sources["git-metadata"]).toBeFalse();
+  expect(config.sources["agent-context"]).toBeFalse();
   expect(config.sources.shell).toBeFalse();
   expect(config.distillation.deep).toBeFalse();
 });
@@ -29,7 +30,7 @@ test("enables Claude Code only after consent", async () => {
 test("enables git metadata only after separate consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
-  const answers = [false, false, false, false, false, false, true, false];
+  const answers = [false, false, false, false, false, false, true, false, false];
 
   await initialize({
     configPath,
@@ -39,12 +40,28 @@ test("enables git metadata only after separate consent", async () => {
   const config = await readConfig({ configPath });
   expect(config.sources["claude-code"]).toBeFalse();
   expect(config.sources["git-metadata"]).toBeTrue();
+  expect(config.sources["agent-context"]).toBeFalse();
+});
+
+test("enables agent context only after separate consent", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
+  const configPath = path.join(directory, "config.toml");
+  const answers = [false, false, false, false, false, false, false, true, false];
+
+  await initialize({
+    configPath,
+    ask: () => answers.shift() ?? false,
+  });
+
+  const config = await readConfig({ configPath });
+  expect(config.sources["agent-context"]).toBeTrue();
+  expect(config.sources["git-metadata"]).toBeFalse();
 });
 
 test("enables deep distillation only after separate consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
-  const answers = [false, false, false, false, false, false, false, true];
+  const answers = [false, false, false, false, false, false, false, false, true];
 
   await initialize({
     configPath,
@@ -60,7 +77,7 @@ test("enables provider transcripts only after named consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
   const questions: string[] = [];
-  const answers = [true, false, false, true, true, false, false, false];
+  const answers = [true, false, false, true, true, false, false, false, false];
 
   await initialize({
     configPath,

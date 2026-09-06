@@ -117,6 +117,7 @@ export function applyManagedPolicy(options: {
   return {
     ...options.config,
     sources: {
+      "agent-context": options.config.sources["agent-context"] && sourceAllowed("agent-context"),
       antigravity:
         options.config.sources.antigravity &&
         sourceAllowed("antigravity"),

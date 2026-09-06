@@ -1,4 +1,6 @@
-import type { EngineRun } from "./types";
+import { redactSecrets } from "../redact";
+import { codexActions } from "./codexActions";
+import type { EngineAction, EngineRun } from "./types";
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -29,11 +31,15 @@ export function parseCodexStream(options: {
   let text = "";
   let turns = 0;
   let isError = false;
+  let errorMessage: string | null = null;
+  const actions: EngineAction[] = [];
+  const completedItems = new Set<string>();
 
   for (const line of options.stream.split("\n")) {
     if (line.trim().length === 0) {
       continue;
     }
+
     let event: unknown;
     try {
       event = JSON.parse(line);
@@ -41,23 +47,45 @@ export function parseCodexStream(options: {
       isError = true;
       continue;
     }
+
     if (!isRecord(event)) {
       continue;
     }
+
     const type = readString(event, "type");
+
     if (type === "thread.started") {
       sessionId = readString(event, "thread_id") ?? sessionId;
     }
+
     if (type === "turn.completed") {
       turns += 1;
     }
+
     if (type === "turn.failed" || type === "error") {
       isError = true;
+      const error = isRecord(event.error) ? event.error : event;
+      errorMessage = redactSecrets({
+        text: readString(error, "message") ?? "Codex reported an error",
+      });
     }
+
     const item = isRecord(event.item) ? event.item : null;
+
+    if (type === "item.completed" && item !== null) {
+      const id = readString(item, "id");
+      if (id === null || !completedItems.has(id)) {
+        actions.push(...codexActions(item));
+        if (id !== null) {
+          completedItems.add(id);
+        }
+      }
+    }
+
     const itemType = item
       ? readString(item, "item_type") ?? readString(item, "type")
       : null;
+
     if (
       type === "item.completed" &&
       item !== null &&
@@ -66,6 +94,9 @@ export function parseCodexStream(options: {
       text = readString(item, "text") ?? text;
     }
   }
+
+  const resolvedErrorMessage =
+    errorMessage ?? (turns === 0 ? "Codex returned no completed turn" : null);
 
   return {
     engine: "codex",
@@ -76,9 +107,9 @@ export function parseCodexStream(options: {
     costUsd: null,
     durationMs: options.durationMs,
     turns,
-    isError,
+    isError: isError || turns === 0,
     permissionDenials: [],
-    actions: [],
-    errorMessage: null,
+    actions,
+    errorMessage: resolvedErrorMessage,
   };
 }

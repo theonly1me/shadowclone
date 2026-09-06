@@ -2,6 +2,7 @@ import type { RepoSettings } from "./repo";
 import { parseRepoSettings } from "./repo";
 
 export const sourceIds = [
+  "agent-context",
   "antigravity",
   "claude-code",
   "claude-prompts",
@@ -12,14 +13,6 @@ export const sourceIds = [
 ] as const;
 
 export type SourceId = (typeof sourceIds)[number];
-
-const sourceIdsBeforeAntigravity = sourceIds.filter(
-  (sourceId) => sourceId !== "antigravity",
-);
-const legacySourceIds = sourceIds.filter(
-  (sourceId) =>
-    sourceId !== "antigravity" && sourceId !== "git-metadata",
-);
 
 export type SourceSettings = {
   readonly [Source in SourceId]: boolean;
@@ -37,6 +30,7 @@ export type ShadowcloneConfig = {
 export const defaultConfig: ShadowcloneConfig = {
   schemaVersion: 1,
   sources: {
+    "agent-context": false,
     antigravity: false,
     "claude-code": false,
     "claude-prompts": false,
@@ -68,16 +62,30 @@ function hasExactKeys(options: {
   );
 }
 
+const requiredCoreSourceIds = [
+  "claude-code",
+  "claude-prompts",
+  "codex",
+  "cursor",
+  "shell",
+] as const;
+
+const validSourceIdSet = new Set<string>(sourceIds);
+
 function parseSources(value: unknown): SourceSettings {
-  if (
-    !isRecord(value) ||
-    (!hasExactKeys({ record: value, keys: sourceIds }) &&
-      !hasExactKeys({ record: value, keys: sourceIdsBeforeAntigravity }) &&
-      !hasExactKeys({ record: value, keys: legacySourceIds }))
-  ) {
+  if (!isRecord(value)) {
     throw new Error("Config sources must contain every supported source and no unknown sources");
   }
 
+  const keys = Object.keys(value);
+  const hasOnlyValidKeys = keys.every((key) => validSourceIdSet.has(key));
+  const hasCoreKeys = requiredCoreSourceIds.every((key) => key in value);
+
+  if (!hasOnlyValidKeys || !hasCoreKeys) {
+    throw new Error("Config sources must contain every supported source and no unknown sources");
+  }
+
+  const agentContext = value["agent-context"] ?? false;
   const antigravity = value.antigravity ?? false;
   const claudeCode = value["claude-code"];
   const claudePrompts = value["claude-prompts"];
@@ -87,6 +95,7 @@ function parseSources(value: unknown): SourceSettings {
   const shell = value.shell;
 
   if (
+    typeof agentContext !== "boolean" ||
     typeof antigravity !== "boolean" ||
     typeof claudeCode !== "boolean" ||
     typeof claudePrompts !== "boolean" ||
@@ -99,6 +108,7 @@ function parseSources(value: unknown): SourceSettings {
   }
 
   return {
+    "agent-context": agentContext,
     antigravity,
     "claude-code": claudeCode,
     "claude-prompts": claudePrompts,
