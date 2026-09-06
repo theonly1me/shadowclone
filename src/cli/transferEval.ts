@@ -1,5 +1,10 @@
 import type { TransferOptions } from "../eval/transfer";
-import { runTransferEval } from "../eval/transfer";
+import {
+  defaultTimeoutSeconds,
+  invocationCeiling,
+  runTransferEval,
+} from "../eval/transfer";
+import { promptConfirmation, type ConfirmPrompt } from "./confirm";
 
 const supportedValueFlags = new Set([
   "--repo",
@@ -19,6 +24,7 @@ export function parseTransferArguments(
 ): TransferOptions {
   const flagValues = new Map<string, string>();
   let outputAsJson = false;
+  let skipConfirmation = false;
 
   for (
     let argumentIndex = 0;
@@ -33,6 +39,7 @@ export function parseTransferArguments(
     }
 
     if (currentArgument === "--yes" || currentArgument === "-y") {
+      skipConfirmation = true;
       continue;
     }
 
@@ -96,11 +103,28 @@ export function parseTransferArguments(
     since: flagValues.get("--since"),
     maxBudgetUsd: parsePositiveNumber("--max-budget-usd"),
     json: outputAsJson,
+    yes: skipConfirmation,
   };
 }
 
 export async function transferEvalCommand(
   argumentsList: readonly string[],
+  options: { readonly ask?: ConfirmPrompt } = {},
 ): Promise<void> {
-  await runTransferEval(parseTransferArguments(argumentsList));
+  const parsed = parseTransferArguments(argumentsList);
+  const ask = options.ask ?? promptConfirmation;
+
+  if (!parsed.yes && !parsed.json && process.stdin.isTTY) {
+    const invocations = invocationCeiling(parsed);
+    const timeoutSeconds = parsed.timeoutSeconds ?? defaultTimeoutSeconds;
+    const approved = await ask(
+      `Running eval as up to ${invocations} agent invocations, each up to ${timeoutSeconds}s. Proceed?`,
+    );
+    if (!approved) {
+      console.log("Evaluation cancelled.");
+      return;
+    }
+  }
+
+  await runTransferEval(parsed);
 }

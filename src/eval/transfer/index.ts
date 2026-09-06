@@ -2,6 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { openEventIndex } from "../../index";
+import { invocationCeiling } from "./budget";
 import { modelCaller } from "./call";
 import { command } from "./command";
 import { captureContext } from "./context";
@@ -14,6 +15,12 @@ import { initialReceipt, saveReceipt } from "./storage";
 import type { TransferOptions, TransferReceipt } from "./types";
 
 export type { TransferOptions, TransferReceipt } from "./types";
+export {
+  defaultRepeat,
+  defaultTaskCount,
+  defaultTimeoutSeconds,
+  invocationCeiling,
+} from "./budget";
 
 export async function runTransferEval(
   options: TransferOptions = {},
@@ -33,7 +40,10 @@ export async function runTransferEval(
       maxBudgetUsd: setup.maxBudgetUsd,
       blockedPaths: [setup.repository, setup.paths.shadowcloneDirectory],
       controlDirectory,
-      maximumCalls: setup.count * (setup.repeat * 12 + 12),
+      maximumCalls: invocationCeiling({
+        tasks: setup.count,
+        repeat: setup.repeat,
+      }),
     });
 
     let receipt: TransferReceipt;

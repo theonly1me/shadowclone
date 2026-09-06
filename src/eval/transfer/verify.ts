@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import { canonicalPath } from "../../paths";
 import { redactSecrets } from "../../redact";
 import type { CheckResult } from "./types";
 
@@ -13,8 +14,10 @@ export function verificationArguments(options: {
   readonly arguments: readonly string[];
   readonly platform: NodeJS.Platform;
 }): readonly string[] {
+  const directory = canonicalPath(options.directory);
+
   if (options.platform === "darwin") {
-    const profile = `(version 1)(allow default)(deny network*)(deny file-write*)(allow file-write* (subpath ${JSON.stringify(options.directory)})(subpath "/private/tmp")(subpath "/dev"))`;
+    const profile = `(version 1)(allow default)(deny network*)(deny file-write*)(allow file-write* (subpath ${JSON.stringify(directory)})(subpath "/private/tmp")(subpath "/dev"))`;
     return ["sandbox-exec", "-p", profile, ...options.arguments];
   }
 
@@ -26,17 +29,17 @@ export function verificationArguments(options: {
       "--ro-bind",
       "/",
       "/",
-      "--bind",
-      options.directory,
-      options.directory,
       "--tmpfs",
       "/tmp",
       "--dev",
       "/dev",
       "--proc",
       "/proc",
+      "--bind",
+      directory,
+      directory,
       "--chdir",
-      options.directory,
+      directory,
       "--",
       ...options.arguments,
     ];
