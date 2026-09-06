@@ -1,5 +1,23 @@
 import { expect, test } from "bun:test";
+import packageManifest from "../../package.json";
 import { handleMcpRequest } from "./server";
+
+test("responds to initialize with protocol version and serverInfo", () => {
+  const response = handleMcpRequest({
+    request: { id: 1, method: "initialize", params: {} },
+    profile: "",
+  });
+
+  expect(response).toEqual({
+    jsonrpc: "2.0",
+    id: 1,
+    result: {
+      protocolVersion: "2024-11-05",
+      capabilities: { tools: {} },
+      serverInfo: { name: "shadowclone", version: packageManifest.version },
+    },
+  });
+});
 
 test("advertises one profile recall tool", () => {
   const response = handleMcpRequest({
