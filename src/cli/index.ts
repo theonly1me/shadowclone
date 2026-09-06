@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 
 import packageManifest from "../../package.json";
+import { serveMcp } from "../mcp";
 import { doctor } from "./doctor";
 import { evalCommand } from "./eval";
 import { forgetAll } from "./forget";
@@ -14,7 +15,7 @@ import { learn } from "./learn";
 import { runClone } from "./run";
 
 const usage =
-  "Usage: shadowclone <init|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--sessions N] [--since <date>] [--json] [--max-budget-usd <n>]|forget --all>";
+  "Usage: shadowclone <init|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--sessions N] [--since <date>] [--json] [--max-budget-usd <n>]|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -62,6 +63,10 @@ async function main(arguments_: readonly string[]): Promise<void> {
   }
   if (command === "eval") {
     await evalCommand(rest);
+    return;
+  }
+  if (command === "mcp") {
+    await serveMcp();
     return;
   }
   if (command === "hook" && rest[0] === "session-end") {

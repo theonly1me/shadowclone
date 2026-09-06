@@ -1,4 +1,5 @@
 import path from "node:path";
+import packageManifest from "../../package.json";
 import { readEffectiveConfig } from "../config";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
@@ -43,7 +44,7 @@ export function handleMcpRequest(options: {
       result: {
         protocolVersion: "2024-11-05",
         capabilities: { tools: {} },
-        serverInfo: { name: "shadowclone", version: "0.1.0" },
+        serverInfo: { name: "shadowclone", version: packageManifest.version },
       },
     };
   }
