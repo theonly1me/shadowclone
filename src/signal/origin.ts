@@ -1,5 +1,3 @@
-import path from "node:path";
-import picomatch from "picomatch";
 import type { IndexedEvent } from "../index";
 import type {
   OriginScope,
@@ -76,25 +74,6 @@ export function normalizeRemoteRepository(
     id: `${origin.id}/${parts.repository.toLowerCase()}`,
     origin,
   };
-}
-
-export function isOriginBlocked(options: {
-  readonly origin: OriginScope;
-  readonly cwd: string;
-  readonly patterns: readonly string[];
-}): boolean {
-  if (options.patterns.length === 0) {
-    return false;
-  }
-
-  const isMatch = picomatch([...options.patterns]);
-  const repository = options.cwd ? path.basename(options.cwd) : null;
-  const values = [
-    options.origin.id,
-    ...(repository ? [`${options.origin.id}/${repository}`] : []),
-  ];
-
-  return values.some((value) => isMatch(value));
 }
 
 export async function readGitRemote(cwd: string): Promise<string | null> {
