@@ -160,8 +160,8 @@ test("runEval skips a session whose baseline replay failed", async () => {
 
   expect(receipt.sessionsEvaluated).toBe(0);
   expect(receipt.sessionsSkipped).toBe(1);
-  expect(receipt.skippedSessions?.[0]?.phase).toBe("baseline");
-  expect(receipt.skippedSessions?.[0]?.sessionId).toBe("session-1");
+  expect(receipt.skippedSessions[0]?.phase).toBe("baseline");
+  expect(receipt.skippedSessions[0]?.sessionId).toBe("session-1");
 
   const receiptFile = path.join(
     paths.shadowcloneDirectory,

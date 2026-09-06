@@ -13,10 +13,27 @@ function isTextContentBlock(value: unknown): value is TextContentBlock {
   );
 }
 
+const slashCommands = new Set([
+  "boost",
+  "clear",
+  "compact",
+  "goal",
+  "init",
+  "model",
+  "plan",
+  "review",
+]);
+
 export function stripLeadingSlashCommands(prompt: string): string {
-  return prompt
-    .replace(/^(\s*\/[a-zA-Z0-9_-]+(?::|,)?(?:\s+|$))+/, "")
-    .trim();
+  let text = prompt.trim();
+  for (;;) {
+    const match = text.match(/^\/([a-zA-Z0-9_-]+)(?::|,)?(?:\s+|$)/);
+    const [matched, name] = match ?? [];
+    if (!matched || !name || !slashCommands.has(name.toLowerCase())) {
+      return text;
+    }
+    text = text.slice(matched.length).trim();
+  }
 }
 
 function cleanPrompt(text: string): string | null {

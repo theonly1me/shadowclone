@@ -86,6 +86,18 @@ function permissionDenials(value: unknown): readonly PermissionDenial[] {
   });
 }
 
+const commandUnavailableMarker = "isn't available in this environment";
+
+function readErrors(
+  record: Readonly<Record<string, unknown>>,
+): readonly string[] {
+  const value = record.errors;
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((item): item is string => typeof item === "string");
+}
+
 export function parseClaudeStream(options: {
   readonly stream: string;
   readonly fallbackSessionId: string;
@@ -114,16 +126,6 @@ export function parseClaudeStream(options: {
     }
   }
 
-function readErrors(
-  record: Readonly<Record<string, unknown>>,
-): readonly string[] {
-  const value = record.errors;
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value.filter((item): item is string => typeof item === "string");
-}
-
   const resultText = result ? readString(result, "result") : null;
   const streamedText = textParts.join("");
   const turns = result ? readNumber(result, "num_turns") ?? 0 : 0;
@@ -131,7 +133,7 @@ function readErrors(
     turns === 0 &&
     actions.length === 0 &&
     typeof resultText === "string" &&
-    resultText.includes("isn't available in this environment");
+    resultText.includes(commandUnavailableMarker);
   const isError =
     result?.is_error === true || result === null || isCommandUnavailable;
   const errors = result ? readErrors(result) : [];

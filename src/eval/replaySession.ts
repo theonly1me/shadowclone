@@ -41,11 +41,7 @@ export async function replaySession(options: {
     });
 
     if (baselineRun.isError) {
-      const reason =
-        baselineRun.errorMessage ??
-        (baselineRun.text.trim().length > 0
-          ? baselineRun.text.trim()
-          : "baseline replay failed");
+      const reason = baselineRun.errorMessage ?? "baseline replay failed";
       return {
         skipped: {
           sessionId: options.sessionId,
@@ -74,11 +70,7 @@ export async function replaySession(options: {
     });
 
     if (cloneRun.isError) {
-      const reason =
-        cloneRun.errorMessage ??
-        (cloneRun.text.trim().length > 0
-          ? cloneRun.text.trim()
-          : "clone replay failed");
+      const reason = cloneRun.errorMessage ?? "clone replay failed";
       return {
         skipped: {
           sessionId: options.sessionId,

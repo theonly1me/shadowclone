@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { redactedFailure } from "./claudeCode";
 import { parseClaudeStream } from "./parseClaude";
 
 test("parses a synthetic local command stream as an error", () => {
@@ -83,4 +84,51 @@ test("parses budget exhausted errors array as errorMessage", () => {
 
   expect(run.isError).toBeTrue();
   expect(run.errorMessage).toBe("Reached maximum budget ($0.20)");
+});
+
+test("redacts secrets before they become a failure message", () => {
+  const message = redactedFailure({
+    run: {
+      engine: "claude-code",
+      sessionId: "session",
+      text: "",
+      structured: null,
+      costUsd: null,
+      durationMs: 0,
+      turns: 0,
+      isError: true,
+      permissionDenials: [],
+      transcriptPath: null,
+      errorMessage: null,
+    },
+    stderr: "auth failed for sk-abcdefghijklmnop at /Users/dev/work/acme",
+    exitCode: 1,
+  });
+
+  expect(message).not.toContain("sk-abcdefghijklmnop");
+  expect(message).not.toContain("/Users/dev/work/acme");
+  expect(message).toContain("[redacted:");
+});
+
+test("redacts secrets carried in the parsed result text", () => {
+  const message = redactedFailure({
+    run: {
+      engine: "claude-code",
+      sessionId: "session",
+      text: "",
+      structured: null,
+      costUsd: null,
+      durationMs: 0,
+      turns: 0,
+      isError: true,
+      permissionDenials: [],
+      transcriptPath: null,
+      errorMessage: "token ghp_1234567890abcdefghijklmnopqrstuvwxyzAB rejected",
+    },
+    stderr: "",
+    exitCode: 1,
+  });
+
+  expect(message).not.toContain("ghp_1234567890abcdefghijklmnopqrstuvwxyzAB");
+  expect(message).toContain("[redacted:github-token]");
 });

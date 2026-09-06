@@ -124,3 +124,16 @@ test("returns null when prompt consists only of slash commands", () => {
     ),
   ).toBeNull();
 });
+
+test("preserves single segment paths and routes that are not commands", () => {
+  const preserved = [
+    "/tmp is full, clean it up",
+    "/etc needs a new entry",
+    "/health endpoint is timing out",
+    "/login redirects to the wrong page",
+    "/api/v1/users returns 500",
+  ];
+  for (const prompt of preserved) {
+    expect(stripLeadingSlashCommands(prompt)).toBe(prompt);
+  }
+});
