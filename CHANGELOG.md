@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.0.5](https://github.com/theonly1me/shadowclone/compare/v0.0.4...v0.0.5) (2026-09-06)
+
+
+### Features
+
+* **eval:** add an --engine flag with capability aware selection ([a606fbd](https://github.com/theonly1me/shadowclone/commit/a606fbd8b541f94055d04c4063800b5582044404))
+* **eval:** add an --engine flag with capability aware selection ([bf53d99](https://github.com/theonly1me/shadowclone/commit/bf53d9953d6a34c698839b7821d684d9203af2d5))
+* **eval:** add automatic transfer evaluations for codex and claude code ([4eb0e92](https://github.com/theonly1me/shadowclone/commit/4eb0e92b75aeda15630cb91bb58b21bcd61fed6a))
+* **eval:** add automatic transfer evaluations for codex and claude code ([318ddf0](https://github.com/theonly1me/shadowclone/commit/318ddf0282acacfb818321a90f8ce53d46060523))
+* **redact:** add a shannon entropy layer for unknown-vendor secrets ([ba1a52f](https://github.com/theonly1me/shadowclone/commit/ba1a52f081b6d56d94ec60a924234aedf5296786))
+* **redact:** add a shannon entropy layer for unknown-vendor secrets ([611ad00](https://github.com/theonly1me/shadowclone/commit/611ad00359b7c53dc0dc7abb22fca7341f4d8a57))
+
+
+### Fixes
+
+* **cli:** reject repeated eval flags and keep dashes in a run task ([4215058](https://github.com/theonly1me/shadowclone/commit/421505831c7bfd86a4c2be5fd8655b7845990805))
+* **config:** report the failing config setting by name again ([4127b92](https://github.com/theonly1me/shadowclone/commit/4127b924895daaa1f7436a47ce9a09b8fa6eaaa1))
+* **eval:** allowlist slash commands and redact engine failure messages ([2e28191](https://github.com/theonly1me/shadowclone/commit/2e28191060e3211f23b08e6f04dc9e81cf385d30))
+* **eval:** canonicalize sandbox paths and confirm evaluation spend ([2ab203c](https://github.com/theonly1me/shadowclone/commit/2ab203c2c39878202b57a774c8f35ce06a3882b8))
+* **eval:** strip leading slash commands and surface replay errors ([439c889](https://github.com/theonly1me/shadowclone/commit/439c88970c7e0fd0bd76fb078c449c9f85e5b4f4))
+* **eval:** strip leading slash commands and surface replay errors ([e406202](https://github.com/theonly1me/shadowclone/commit/e406202fdeb320bb4999ef8c9524da0256ac84ab))
+* **observe:** match interruption markers carried in text blocks ([f99b051](https://github.com/theonly1me/shadowclone/commit/f99b05195720c9fc08ffb1ac960e180f8a458e5b))
+* **observe:** match interruption markers carried in text blocks ([93cdeac](https://github.com/theonly1me/shadowclone/commit/93cdeac44b71024bfda60606cf372714d0b9157e))
+* **signal:** restore literal wildcard matching for blocked origins ([8a7a3ae](https://github.com/theonly1me/shadowclone/commit/8a7a3ae18bc3fe18da141469d03b74040231fb0e))
+
+
+### Documentation
+
+* describe the transfer eval and the agent-context source ([631d45a](https://github.com/theonly1me/shadowclone/commit/631d45a16479ecf03991147f5061d244bf6ebc3e))
+
 ## [0.0.4](https://github.com/theonly1me/shadowclone/compare/v0.0.3...v0.0.4) (2026-09-06)
 
 
