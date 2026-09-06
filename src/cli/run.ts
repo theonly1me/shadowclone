@@ -26,7 +26,10 @@ export function parseRunArguments(arguments_: readonly string[]): {
   const program = new Command()
     .exitOverride()
     .configureOutput({ writeErr: () => {} })
-    .argument("<task...>")
+    .helpOption(false)
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .argument("[task...]")
     .option(
       "--approve <action>",
       "Approved action capability",
