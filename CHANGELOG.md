@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.0.3](https://github.com/theonly1me/shadowclone/compare/v0.0.2...v0.0.3) (2026-09-06)
+
+
+### Features
+
+* **dispatch:** enforce dispatch ceiling, host-side push, and git exclude agent ([f15886e](https://github.com/theonly1me/shadowclone/commit/f15886e9556253a1b4885175deee47699234baaf))
+* **dispatch:** enforce dispatch ceiling, host-side push, and git exclude agent ([3e63567](https://github.com/theonly1me/shadowclone/commit/3e63567b341438e5126504772cca1301fd0d9f15))
+* **eval:** add replay eval command, action fingerprints, and delta scoring (closes [#14](https://github.com/theonly1me/shadowclone/issues/14)) ([67705bb](https://github.com/theonly1me/shadowclone/commit/67705bb615d5f5c45902da90d78278f165960fde))
+* **eval:** add replay eval command, action fingerprints, and delta scoring (closes [#14](https://github.com/theonly1me/shadowclone/issues/14)) ([b20c60b](https://github.com/theonly1me/shadowclone/commit/b20c60ba88620e2d1ec309d1cd0bfd9d7f30f9b9))
+* **profile:** scoped pruning, truthful evidence, and git exclude ([8911b09](https://github.com/theonly1me/shadowclone/commit/8911b09c3e9ed3f97e0e475b920b0544a9f1d48e))
+* **profile:** scoped pruning, truthful evidence, and git exclude ([5c1b081](https://github.com/theonly1me/shadowclone/commit/5c1b0816c1a33c61180bcbe0263d6ebeef025bf7))
+* **redact:** sliced redaction and adversarial corpus ([50cd650](https://github.com/theonly1me/shadowclone/commit/50cd65009a8dc57d0858a4e64e315e8ef577f074))
+* **redact:** sliced redaction and adversarial corpus ([2141655](https://github.com/theonly1me/shadowclone/commit/214165579f21c69af1533632a92461d98031bcf8))
+* **signal:** add marker staleness detection, antigravity cancel mapping, and learn dry-run ([574e929](https://github.com/theonly1me/shadowclone/commit/574e92976c26688ffd7de647e05d692d44b64df3))
+* **signal:** add marker staleness detection, antigravity cancel mapping, and learn dry-run ([c3b237a](https://github.com/theonly1me/shadowclone/commit/c3b237a1b247d73572854766a4864f042a294be5))
+
+
+### Fixes
+
+* **docs:** replace amnesia hook with agreed cross-session lead in launch brief ([a7ae94f](https://github.com/theonly1me/shadowclone/commit/a7ae94f2be36dbf644a4d25c5291aefd363a52ad))
+* **eval:** add cost confirmation preview and isolate session working directories ([66af631](https://github.com/theonly1me/shadowclone/commit/66af63192343b273fcbfc67ea14bffc78fdb75d5))
+* **profile:** drop in-flight duplicate rules and checkpoint merge distillation ([537d22a](https://github.com/theonly1me/shadowclone/commit/537d22ace3745f18035483a713b9a1b40df3b37b))
+* **redact:** handle compound secret assignments and file URLs in home scrubbing ([a1c444a](https://github.com/theonly1me/shadowclone/commit/a1c444a04c504b36309b3b8b5fc83bff1d2fb721))
+
+
+### Documentation
+
+* **readme:** rewrite positioning, add evaluation architecture, and launch brief ([dfb2758](https://github.com/theonly1me/shadowclone/commit/dfb27588f31746d8461b9c7e67016b99c711eabd))
+* **readme:** rewrite positioning, add evaluation architecture, and motivation ([4750129](https://github.com/theonly1me/shadowclone/commit/475012957519590409cb222136a2361bd6c22549))
+
 ## [0.0.2](https://github.com/theonly1me/shadowclone/compare/v0.0.1...v0.0.2) (2026-09-05)
 
 
