@@ -36,7 +36,7 @@ test("builds bounded Claude arguments without a prompt or bypass mode", () => {
       prompt: "private prompt",
       cwd: "/worktree",
       systemPromptFile: "/profile.md",
-      allowedTools: [],
+      allowedTools: ["Edit"],
       permissionMode: "dontAsk",
       maxBudgetUsd: 1,
     },
@@ -44,10 +44,28 @@ test("builds bounded Claude arguments without a prompt or bypass mode", () => {
 
   expect(arguments_).toContain("--append-system-prompt-file");
   expect(arguments_).toContain("--allowedTools");
+  expect(arguments_).toContain("Edit");
+  expect(arguments_).toContain("--setting-sources");
+  expect(arguments_).toContain("user,project");
   expect(arguments_).toContain("dontAsk");
+  expect(arguments_).not.toContain("");
   expect(arguments_).not.toContain("private prompt");
   expect(arguments_).not.toContain("bypassPermissions");
   expect(arguments_).not.toContain("--dangerously-skip-permissions");
+});
+
+test("omits allowedTools flag when empty list is supplied", () => {
+  const arguments_ = buildClaudeArguments({
+    sessionId: "00000000-0000-4000-8000-000000000000",
+    run: {
+      prompt: "private prompt",
+      cwd: "/worktree",
+      allowedTools: [],
+      permissionMode: "dontAsk",
+    },
+  });
+
+  expect(arguments_).not.toContain("--allowedTools");
 });
 
 test("parses recorded Codex and Cursor streams without tool results", async () => {
