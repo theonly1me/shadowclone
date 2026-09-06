@@ -19,6 +19,12 @@ export type PermissionDenial = {
   readonly toolUseId: string | null;
 };
 
+export type EngineAction = {
+  readonly tool: string;
+  readonly path: string | null;
+  readonly command?: string | null;
+};
+
 export type EngineRunOptions = {
   readonly prompt: string;
   readonly cwd: string;
@@ -44,6 +50,7 @@ export type EngineRun = {
   readonly turns: number;
   readonly isError: boolean;
   readonly permissionDenials: readonly PermissionDenial[];
+  readonly actions?: readonly EngineAction[];
 };
 
 export type EngineRunner = (
