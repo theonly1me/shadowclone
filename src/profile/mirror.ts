@@ -62,6 +62,6 @@ export function renderMirror(options: {
     "  Your most used agent tools",
     ...tools,
     "",
-    "  Profile written to ~/.shadowclone/profile/. Open it. Argue with it.",
+    "  Profile written to ~/.shadowclone/profile/.",
   ].join("\n");
 }

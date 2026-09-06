@@ -3,9 +3,9 @@ import type {
   IndexedEvent,
 } from "../index";
 import { mineCorrections } from "./corrections";
+import { isOriginBlocked } from "./blockedOrigin";
 import {
   getEventOrigin,
-  isOriginBlocked,
   resolveEventOrigins,
 } from "./origin";
 import type { GitRemoteReader } from "./origin";
@@ -43,9 +43,9 @@ export type {
   RepositoryIdentity,
   StructuralSummary,
 } from "./types";
+export { isOriginBlocked } from "./blockedOrigin";
 export {
   getEventOrigin,
-  isOriginBlocked,
   normalizeRemoteOrigin,
   normalizeRemoteRepository,
   readGitRemote,

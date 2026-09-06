@@ -1,3 +1,4 @@
+import { Command } from "commander";
 import type { TransferOptions } from "../eval/transfer";
 import {
   defaultTimeoutSeconds,
@@ -6,66 +7,83 @@ import {
 } from "../eval/transfer";
 import { promptConfirmation, type ConfirmPrompt } from "./confirm";
 
-const supportedValueFlags = new Set([
-  "--repo",
-  "--model",
-  "--engine",
-  "--tasks",
-  "--sessions",
-  "--repeat",
-  "--timeout-seconds",
-  "--eval-id",
-  "--since",
-  "--max-budget-usd",
-]);
+const valueFlags = [
+  "--repo <path>",
+  "--model <id>",
+  "--engine <id>",
+  "--tasks <number>",
+  "--sessions <number>",
+  "--repeat <number>",
+  "--timeout-seconds <number>",
+  "--eval-id <id>",
+  "--since <date>",
+  "--max-budget-usd <number>",
+] as const;
+
+function rejectRepeat(
+  flag: string,
+): (value: string, previous: string | undefined) => string {
+  const [name] = flag.split(" ");
+
+  return (value, previous) => {
+    if (previous !== undefined) {
+      throw new Error(`Repeated ${name ?? flag}`);
+    }
+    return value;
+  };
+}
+
+function parsePositiveNumber(options: {
+  readonly value: string | undefined;
+  readonly name: string;
+}): number | undefined {
+  if (options.value === undefined) {
+    return undefined;
+  }
+
+  const numericValue = Number(options.value);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) {
+    throw new Error(`${options.name} must be positive`);
+  }
+
+  return numericValue;
+}
 
 export function parseTransferArguments(
   argumentsList: readonly string[],
 ): TransferOptions {
-  const flagValues = new Map<string, string>();
-  let outputAsJson = false;
-  let skipConfirmation = false;
+  const program = valueFlags.reduce(
+    (current, flag) => current.option(flag, "", rejectRepeat(flag)),
+    new Command()
+      .exitOverride()
+      .configureOutput({ writeErr: () => {} })
+      .allowUnknownOption(false)
+      .option("-y, --yes")
+      .option("--json"),
+  );
 
-  for (
-    let argumentIndex = 0;
-    argumentIndex < argumentsList.length;
-    argumentIndex++
-  ) {
-    const currentArgument = argumentsList[argumentIndex];
+  program.parse([...argumentsList], { from: "user" });
 
-    if (currentArgument === "--json") {
-      outputAsJson = true;
-      continue;
-    }
+  const options = program.opts<{
+    readonly repo?: string;
+    readonly model?: string;
+    readonly engine?: string;
+    readonly tasks?: string;
+    readonly sessions?: string;
+    readonly repeat?: string;
+    readonly timeoutSeconds?: string;
+    readonly evalId?: string;
+    readonly since?: string;
+    readonly maxBudgetUsd?: string;
+    readonly yes?: boolean;
+    readonly json?: boolean;
+  }>();
 
-    if (currentArgument === "--yes" || currentArgument === "-y") {
-      skipConfirmation = true;
-      continue;
-    }
-
-    if (!currentArgument || !supportedValueFlags.has(currentArgument)) {
-      throw new Error("Unknown evaluation option");
-    }
-
-    argumentIndex++;
-    const nextValue = argumentsList[argumentIndex];
-
-    if (
-      !nextValue ||
-      nextValue.startsWith("--") ||
-      flagValues.has(currentArgument)
-    ) {
-      throw new Error(`Missing or repeated ${currentArgument}`);
-    }
-
-    flagValues.set(currentArgument, nextValue);
-  }
-
-  if (flagValues.has("--tasks") && flagValues.has("--sessions")) {
+  if (options.tasks !== undefined && options.sessions !== undefined) {
     throw new Error("Use --tasks or --sessions, not both");
   }
 
-  const engine = flagValues.get("--engine");
+  const engine = options.engine;
   if (
     engine !== undefined &&
     engine !== "codex" &&
@@ -74,36 +92,30 @@ export function parseTransferArguments(
     throw new Error("Evaluation supports codex and claude-code");
   }
 
-  function parsePositiveNumber(flagName: string): number | undefined {
-    const flagText = flagValues.get(flagName);
-    if (flagText === undefined) {
-      return undefined;
-    }
-
-    const numericValue = Number(flagText);
-    if (!Number.isFinite(numericValue) || numericValue <= 0) {
-      throw new Error(`${flagName} must be positive`);
-    }
-
-    return numericValue;
-  }
-
-  const taskCountFlag = flagValues.has("--tasks")
-    ? "--tasks"
-    : "--sessions";
+  const taskCountValue = options.tasks ?? options.sessions;
+  const taskCountName = options.tasks !== undefined ? "--tasks" : "--sessions";
 
   return {
-    repo: flagValues.get("--repo"),
-    model: flagValues.get("--model"),
+    repo: options.repo,
+    model: options.model,
     engine,
-    tasks: parsePositiveNumber(taskCountFlag),
-    repeat: parsePositiveNumber("--repeat"),
-    timeoutSeconds: parsePositiveNumber("--timeout-seconds"),
-    evalId: flagValues.get("--eval-id"),
-    since: flagValues.get("--since"),
-    maxBudgetUsd: parsePositiveNumber("--max-budget-usd"),
-    json: outputAsJson,
-    yes: skipConfirmation,
+    tasks: parsePositiveNumber({
+      value: taskCountValue,
+      name: taskCountName,
+    }),
+    repeat: parsePositiveNumber({ value: options.repeat, name: "--repeat" }),
+    timeoutSeconds: parsePositiveNumber({
+      value: options.timeoutSeconds,
+      name: "--timeout-seconds",
+    }),
+    evalId: options.evalId,
+    since: options.since,
+    maxBudgetUsd: parsePositiveNumber({
+      value: options.maxBudgetUsd,
+      name: "--max-budget-usd",
+    }),
+    json: options.json ?? false,
+    yes: options.yes ?? false,
   };
 }
 
