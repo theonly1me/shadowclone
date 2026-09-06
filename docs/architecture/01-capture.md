@@ -12,7 +12,7 @@ Every source is opt-in, named in the config, and listed in the README. The confi
 | `codex` | `~/.codex/sessions/**/*.jsonl` | off | Date partitioned rollouts |
 | `cursor` | `~/.cursor/chats/**/{store.db,meta.json}` | off | Per session SQLite plus cwd and timestamps |
 | `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization scope only, never repository contents |
-| `shell` | `~/.zsh_history`, `~/.bash_history` | off | The original source, kept and demoted |
+| `shell` | `~/.zsh_history`, `~/.bash_history` | off | Captured as user prompts, no correction signals |
 
 Reading a path to see whether it exists is reading. Nothing under a disabled source is opened, including an existence check.
 
@@ -94,6 +94,8 @@ The format has four traps and all four have bitten this design already.
 
 **Records with `isMeta: true` are harness injected, not user authored.** They must not enter the prompt corpus, because they will otherwise be learned as the user's voice.
 
+**Marker health monitoring.** Claude Code string markers (`[Request interrupted by user`, `user doesn't want to proceed with this tool use`) have no version contract. Health monitoring audits indexed sessions for marker staleness and warns when high session volume yields zero interruption or denial signals.
+
 Useful fields on the envelope: `parentUuid`, `uuid`, `promptId`, `sessionId`, `timestamp`, `cwd`, `gitBranch`, `permissionMode`, `version`.
 
 ## Other adapters
@@ -102,9 +104,9 @@ Useful fields on the envelope: `parentUuid`, `uuid`, `promptId`, `sessionId`, `t
 
 **Cursor** stores chat state as a SQLite `store.db` per session under a workspace hash, with `meta.json` alongside carrying `cwd` and timestamps. The adapter opens the database read only, ignores opaque protobuf blobs, and reads plain JSON message blobs in row order. A change to the database, write-ahead log, or sidecar rescans that session because SQLite is not append-only JSONL.
 
-**Shell** is the existing `getRecentShellHistory`, rewritten to emit `AgentEvent` values with `kind: "user-prompt"` and no session grouping.
+**Shell** emits `AgentEvent` values with `kind: "user-prompt"` and synthetic session grouping. Because shell commands lack preceding agent actions, they do not produce correction signals today.
 
-Antigravity CLI reads generated `transcript_full.jsonl` logs only when its source flag is enabled. A version-pinned SQLite and protobuf fallback can land only after clean-room synthetic fixtures prove it. The adapter never queries a live language-server daemon or writes plaintext transcript sidecars.
+**Antigravity** reads generated `transcript_full.jsonl` logs when enabled. Step status `CANCELED` maps to an interruption signal, capturing turns aborted by the user. The adapter never queries a live language-server daemon or writes plaintext transcript sidecars.
 
 Timestamps disagree across sources and are normalized to epoch milliseconds at ingest. Claude transcripts use ISO-8601 strings, `~/.claude/history.jsonl` uses epoch milliseconds, and `~/.codex/history.jsonl` uses epoch seconds.
 

@@ -3,6 +3,33 @@ import { Database } from "bun:sqlite";
 import type { TextRef } from "../observe";
 import { redactionRules } from "./rules";
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function replaceHomeDirectory(options: {
+  readonly text: string;
+  readonly homeDirectory: string;
+}): string {
+  if (options.homeDirectory.length === 0) {
+    return options.text;
+  }
+  const escaped = escapeRegExp(options.homeDirectory);
+  const filePrefix = ["file:", "", ""].join("/");
+  const unslashed = escaped.startsWith("/") ? escaped.slice(1) : escaped;
+  const fileUrlPattern = new RegExp(
+    `(${filePrefix}/?)${unslashed}(?=[/\\\\\\s"'\\),]|$)`,
+    "gm",
+  );
+  const pattern = new RegExp(
+    `(^|[\\s"'\\(=:,])${escaped}(?=[/\\\\\\s"'\\),]|$)`,
+    "gm",
+  );
+  return options.text
+    .replace(fileUrlPattern, "$1~")
+    .replace(pattern, "$1~");
+}
+
 export function redactSecrets(options: {
   readonly text: string;
   readonly homeDirectory?: string;
@@ -10,10 +37,10 @@ export function redactSecrets(options: {
   const homeDirectory = options.homeDirectory ?? os.homedir();
 
   let redacted = homeDirectory
-    ? options.text.replaceAll(homeDirectory, "~")
+    ? replaceHomeDirectory({ text: options.text, homeDirectory })
     : options.text;
   for (const rule of redactionRules) {
-    redacted = redacted.replace(rule.pattern, rule.replacement);
+    redacted = redacted.replace(rule.pattern, rule.replace);
   }
 
   return redacted;

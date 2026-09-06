@@ -75,10 +75,25 @@ test("removes a secret assignment that matches no specific provider", () => {
   expect(redacted).toBe("export DATABASE_PASSWORD=[redacted:secret-assignment]");
 });
 
+test("removes compound secret assignments without underscores", () => {
+  const text = "APIKEY=secretvalue123\nMYSECRET=anothersecret456";
+  const redacted = redact(text);
+
+  expect(redacted).not.toContain("secretvalue123");
+  expect(redacted).not.toContain("anothersecret456");
+  expect(redacted).toBe("APIKEY=[redacted:secret-assignment]\nMYSECRET=[redacted:secret-assignment]");
+});
+
 test("rewrites the home directory to a tilde", () => {
   const redacted = redact("cd /Users/example/Developer/shadowclone");
 
   expect(redacted).toBe("cd ~/Developer/shadowclone");
+});
+
+test("rewrites the home directory in file URLs to a tilde", () => {
+  const redacted = redact("see file:///Users/example/Developer/shadowclone/file.ts");
+
+  expect(redacted).toBe("see file:///~/Developer/shadowclone/file.ts");
 });
 
 test("leaves ordinary commands untouched", () => {

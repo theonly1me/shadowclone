@@ -24,15 +24,15 @@ Replay evaluation uses the same path. Its first prompt is resolved through `reso
 
 This makes the retention question much smaller than it was. There is no raw capture store to age out, because there is no raw capture store. What ages is the index, and the index can be deleted at any time with no loss beyond a reingest.
 
-## Redaction has to grow
+## Sliced redaction
 
-The eight existing rules were written for shell history and all of them stay. Transcripts need more, and every addition is cheap and always allowed.
+Rather than replacing matched text with a generic placeholder, redaction uses sliced preservation. A match keeps its identifying prefix and loses its entropy. For example, AWS keys preserve `AKIA`, Stripe keys preserve `sk_live_`, and commit hashes preserve their first 7 characters. False positives remain readable in code snippets, which allows secret patterns to be greedy without destroying context.
 
-Absolute paths outside the home directory, which name employers and clients. Internal hostnames and private IP ranges. Email addresses. Cloud resource identifiers such as bucket names, ARNs, and project ids. Database connection strings. Long high entropy strings in tool output that match no known provider format.
+Home directory scrubbing uses anchored path-boundary replacement rather than naive global string replacement, preventing mangled substrings inside mounted paths or Windows paths.
 
-Redaction stays over eager. A false positive costs a distilled rule some context. A false negative ships a customer's hostname to a third party.
+The secret rules cover provider API keys (OpenAI, Anthropic, Stripe, Google AI), GitHub tokens, Slack tokens, AWS access key IDs, JSON Web Tokens, PEM private key blocks, generic secret assignments (`KEY=`, `TOKEN=`, `PASSWORD=`), database URLs, Git remote credentials, IP addresses, internal hostnames, cloud resources, and Windows or Unix absolute paths.
 
-The existing property test that redaction is idempotent has to keep passing, and the existing test that ordinary commands survive untouched is what stops the new rules from redacting everything.
+The property test that redaction is idempotent continues to hold, and an adversarial corpus tests both raw strings and production JSONL message envelopes.
 
 ## Third-party data is never read
 
