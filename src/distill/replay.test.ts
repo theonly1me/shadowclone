@@ -26,6 +26,8 @@ test("replays only a redacted first prompt through the engine", async () => {
       turns: 1,
       isError: false,
       permissionDenials: [],
+      actions: [],
+      errorMessage: null,
     });
   };
   const actual = {
