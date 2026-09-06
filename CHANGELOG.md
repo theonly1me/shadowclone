@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.4](https://github.com/theonly1me/shadowclone/compare/v0.0.3...v0.0.4) (2026-09-06)
+
+
+### Fixes
+
+* **cursor:** support wal mode without shm files via immutable fallback ([bc35a50](https://github.com/theonly1me/shadowclone/commit/bc35a50566c2438e31332fbecce19359c9d0c66e))
+* **cursor:** support wal mode without shm files via immutable fallback ([4ca0731](https://github.com/theonly1me/shadowclone/commit/4ca0731ecd06f77c61e4107a8b9bd3bc8b6b1099))
+* **eval:** address shadowclone self-review findings ([b81bd0f](https://github.com/theonly1me/shadowclone/commit/b81bd0f6ba64a33b10a800f308e056353351e64b))
+* **eval:** use uuid session ids, extract prompt text, and drop structural telemetry on deep learn ([ce9fb74](https://github.com/theonly1me/shadowclone/commit/ce9fb74b49cce674c54f688ec48836e53dbf854f))
+* **eval:** use uuid session ids, extract prompt text, and drop structural telemetry on deep learn ([32e1581](https://github.com/theonly1me/shadowclone/commit/32e1581da50ce73922dd03773eb9f13136df57d0))
+
 ## [0.0.3](https://github.com/theonly1me/shadowclone/compare/v0.0.2...v0.0.3) (2026-09-06)
 
 
