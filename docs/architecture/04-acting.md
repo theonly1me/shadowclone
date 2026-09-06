@@ -34,7 +34,11 @@ allow = []
 
 Promotion is a deliberate edit to a config file, one repo at a time. The entry is a ceiling, not standing approval. A remote action also needs a matching `--approve` on the individual run. There is no global switch that turns delegation on everywhere, because the repo where this is a good idea and the repo where it ends a job are usually on the same laptop.
 
-`src/dispatch/policy.ts` intersects repo policy, per-run approval, and the managed action tier to produce engine arguments. A withheld capability becomes a `--disallowedTools` entry rather than a permission prompt. Absence of a tool beats a rule about a tool. The engine never receives wildcard add or commit tools. After a successful run, the dispatcher creates the approved commit with fixed argument vectors.
+`src/dispatch/policy.ts` intersects repo policy, per-run approval, and the managed action tier to produce engine arguments. Unattended execution sets `permissionMode: "dontAsk"`, ensuring `allowedTools` acts as an enforced ceiling. A withheld capability becomes a `--disallowedTools` entry. Absence of a tool beats a rule about a tool. The engine never receives wildcard add, commit, or push tools.
+
+Draft tools include inspection, edits, and repository verification commands detected dynamically from project manifests (`package.json`, `Cargo.toml`, `go.mod`, `Makefile`, `pyproject.toml`) or configured per repository with `:*` argument suffixes.
+
+Push safety is handled outside the agent process. Rather than exposing `Bash(git push:*)` to agent execution, the host orchestrator inspects the resulting worktree and performs an explicit `git push --set-upstream origin <branch>` after the run. Commits are likewise created host-side with fixed argument vectors.
 
 ## A run
 
@@ -42,10 +46,11 @@ Promotion is a deliberate edit to a config file, one repo at a time. The entry i
 2. `git worktree add ~/.shadowclone/worktrees/<runId> -b shadowclone/<slug>`. The user's working tree is never the working directory of a clone.
 3. Compile the profile for this repo into `.compiled.md`.
 4. Generate a run UUID and pass it as `--session-id`, so the clone's transcript is findable.
-5. Run the engine with the policy's tools, permission mode, and budget.
+5. Run the engine with the policy's tools, `dontAsk` permission mode, and budget.
 6. Commit a successful change with fixed `git add --all` and `git commit` argument vectors.
-7. Inspect the worktree and write `~/.shadowclone/runs/<runId>/receipt.json`.
-8. Leave the worktree in place for review.
+7. If push was approved, execute host-side upstream push.
+8. Inspect the worktree and write `~/.shadowclone/runs/<runId>/receipt.json`.
+9. Leave the worktree in place for review.
 
 ## The receipt
 
