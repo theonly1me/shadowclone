@@ -148,14 +148,13 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
   expect(engineRuns).toBe(1);
 
   const profileGlob = new Bun.Glob("**/*.md");
-  const profileFiles = [];
-  for await (const filePath of profileGlob.scan({
-    cwd: paths.profileDirectory,
-    absolute: true,
-    onlyFiles: true,
-  })) {
-    profileFiles.push(filePath);
-  }
+  const profileFiles = await Array.fromAsync(
+    profileGlob.scan({
+      cwd: paths.profileDirectory,
+      absolute: true,
+      onlyFiles: true,
+    }),
+  );
   if (profileFiles.length === 0) {
     throw new Error("Expected learn to write a profile");
   }
@@ -164,7 +163,7 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
       profileFiles.map((filePath) => Bun.file(filePath).text()),
     )
   ).join("\n");
-  expect(profile).toContain("Stops the agent while using Edit");
+  expect(profile).not.toContain("Stops the agent while using Edit");
   expect(profile).toContain("Choose the smaller scope");
   expect(profile).not.toContain("plan this change");
 });

@@ -138,15 +138,17 @@ export async function learn(options: {
         networkCallsMade = result.engineRuns > 0;
       }
     }
-    const combinedRules = [...structuralRules, ...semanticRules].sort(
+    const usesSemanticRules = options.deep && semanticRules.length > 0;
+    const profileRules = usesSemanticRules ? semanticRules : structuralRules;
+    const sortedRules = [...profileRules].sort(
       (left, right) =>
         right.observations - left.observations ||
         left.title.localeCompare(right.title),
     );
     await writeProfile({
       paths,
-      rules: combinedRules,
-      generator: options.deep ? "all" : "structural",
+      rules: sortedRules,
+      generator: usesSemanticRules ? "all" : "structural",
     });
     console.log(renderMirror({ report: derived.report, networkCallsMade }));
     if (summary.rescannedFiles > 0) {

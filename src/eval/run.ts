@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { readEffectiveConfig } from "../config";
 import { detectEngine, type EngineRunner } from "../engine";
-import { openEventIndex, type IndexedEvent } from "../index";
+import { openEventIndex } from "../index";
 import { projectPaths, type ProjectPaths } from "../paths";
 import { compileProfile } from "../profile";
 import { resolveRedacted } from "../redact";
@@ -12,12 +12,12 @@ import {
   extractBehaviorFromActions,
   extractBehaviorFromIndex,
 } from "./behavior";
-import { computeScoreDelta, scoreReplay } from "./score";
+import { extractPromptText } from "./prompt";
+import { averageMetrics, computeScoreDelta, scoreReplay } from "./score";
 import type {
   EvalReceipt,
   EvalSessionResult,
   ReplayScore,
-  ScoreDelta,
 } from "./types";
 
 const defaultOrigin: OriginScope = {
@@ -35,21 +35,6 @@ export type EvalOptions = {
   readonly configPath?: string;
   readonly runner?: EngineRunner;
 };
-
-function avgDimension(values: readonly (number | null)[]): number | null {
-  const nums = values.filter((v): v is number => v !== null);
-  return nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : null;
-}
-
-const averageMetrics = (
-  metrics: readonly (ReplayScore | ScoreDelta)[],
-): ReplayScore => ({
-  tools: avgDimension(metrics.map((s) => s.tools)) ?? 0,
-  verification: avgDimension(metrics.map((s) => s.verification)),
-  files: avgDimension(metrics.map((s) => s.files)),
-  planning: avgDimension(metrics.map((s) => s.planning)) ?? 0,
-  total: avgDimension(metrics.map((s) => s.total)) ?? 0,
-});
 
 export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
   const paths = options.paths ?? projectPaths;
@@ -74,20 +59,15 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
   const allEvents = index.listEvents();
   index.close();
 
-  const sessionsMap = new Map<string, IndexedEvent[]>();
-  for (const event of allEvents) {
-    const list = sessionsMap.get(event.sessionId) ?? [];
-    list.push(event);
-    sessionsMap.set(event.sessionId, list);
-  }
+  const sessionsMap = Map.groupBy(allEvents, (event) => event.sessionId);
 
   const sinceTimestamp = options.since ? Date.parse(options.since) : 0;
   const targetSessions = [...sessionsMap.entries()]
     .filter(([_, events]) =>
       Boolean(
-        events[0] &&
+        events?.[0] &&
           events[0].timestamp >= sinceTimestamp &&
-          events.some((e) => e.kind === "user-prompt" && e.textRef !== null),
+          events.some((event) => event.kind === "user-prompt" && event.textRef !== null),
       ),
     )
     .slice(0, options.sessions ?? 10);
@@ -102,6 +82,7 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
     origin: defaultOrigin,
   });
 
+  let sessionsSkipped = 0;
   const sessionResults: EvalSessionResult[] = [];
   for (const [sessionId, events] of targetSessions) {
     const promptEvent = events.find(
@@ -110,7 +91,11 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
     if (!promptEvent?.textRef) {
       continue;
     }
-    const prompt = await resolveRedacted({ ref: promptEvent.textRef });
+    const rawPrompt = await resolveRedacted({ ref: promptEvent.textRef });
+    const prompt = extractPromptText(rawPrompt);
+    if (!prompt) {
+      continue;
+    }
     const actual = extractBehaviorFromIndex({ events });
 
     const baselineCwd = await mkdtemp(
@@ -121,14 +106,22 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
     );
     let baselineScore: ReplayScore;
     let cloneScore: ReplayScore;
+    let baselineSessionId = "";
+    let cloneSessionId = "";
     try {
       const baselineRun = await runner({
         prompt,
         cwd: baselineCwd,
-        sessionId: `eval-base-${sessionId}`,
+        sessionId: crypto.randomUUID(),
         permissionMode: "dontAsk",
         maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
       });
+      if (baselineRun.isError) {
+        sessionsSkipped += 1;
+        console.warn(`Skipping session ${sessionId}: baseline replay failed`);
+        continue;
+      }
+      baselineSessionId = baselineRun.sessionId;
       const baselineBehavior = extractBehaviorFromActions({
         actions: baselineRun.actions ?? [],
       });
@@ -138,10 +131,16 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
         prompt,
         cwd: cloneCwd,
         systemPromptFile: compiledProfilePath,
-        sessionId: `eval-clone-${sessionId}`,
+        sessionId: crypto.randomUUID(),
         permissionMode: "dontAsk",
         maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
       });
+      if (cloneRun.isError) {
+        sessionsSkipped += 1;
+        console.warn(`Skipping session ${sessionId}: clone replay failed`);
+        continue;
+      }
+      cloneSessionId = cloneRun.sessionId;
       const cloneBehavior = extractBehaviorFromActions({
         actions: cloneRun.actions ?? [],
       });
@@ -158,6 +157,8 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
 
     sessionResults.push({
       sessionId,
+      baselineSessionId,
+      cloneSessionId,
       prompt,
       baseline: baselineScore,
       clone: cloneScore,
@@ -169,9 +170,10 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
     evalId,
     timestamp: new Date().toISOString(),
     sessionsEvaluated: sessionResults.length,
-    averageBaseline: averageMetrics(sessionResults.map((r) => r.baseline)),
-    averageClone: averageMetrics(sessionResults.map((r) => r.clone)),
-    averageDelta: averageMetrics(sessionResults.map((r) => r.delta)),
+    sessionsSkipped,
+    averageBaseline: averageMetrics(sessionResults.map((entry) => entry.baseline)),
+    averageClone: averageMetrics(sessionResults.map((entry) => entry.clone)),
+    averageDelta: averageMetrics(sessionResults.map((entry) => entry.delta)),
     sessions: sessionResults,
   };
 
