@@ -9,11 +9,11 @@ function appendList(options: {
   readonly flag: string;
   readonly values: readonly string[] | undefined;
 }): void {
-  if (options.values === undefined) {
+  if (options.values === undefined || options.values.length === 0) {
     return;
   }
   options.arguments_.push(options.flag);
-  options.arguments_.push(...(options.values.length === 0 ? [""] : options.values));
+  options.arguments_.push(...options.values);
 }
 
 export function buildClaudeArguments(options: {
@@ -28,6 +28,8 @@ export function buildClaudeArguments(options: {
     "--verbose",
     "--session-id",
     options.sessionId,
+    "--setting-sources",
+    "user,project",
   ];
   if (options.run.systemPromptFile) {
     arguments_.push(

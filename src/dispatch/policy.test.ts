@@ -30,6 +30,7 @@ test("an empty repo allowlist removes every remote action", () => {
     managedActionTier: "act",
   });
 
+  expect(policy.permissionMode).toBe("dontAsk");
   expect(policy.allowedTools).not.toContain("Bash(git push:*)");
   expect(policy.disallowedTools).toContain("Bash(git push:*)");
   expect(policy.blockedActions).toContain("push");
@@ -45,14 +46,20 @@ test("repo policy and per-run approval are both required", () => {
   });
   const approved = resolveDispatchPolicy({
     configuredPolicy,
-    approvedActions: ["push"],
+    approvedActions: ["push", "pr-draft"],
     managedActionTier: "act",
   });
 
   expect(withoutApproval.allowedTools).not.toContain("Bash(git push:*)");
-  expect(approved.allowedTools).toContain("Bash(git push:*)");
-  expect(approved.grantedActions).toEqual(["push"]);
+  expect(approved.allowedTools).not.toContain("Bash(git push:*)");
+  expect(approved.allowedTools).toContain("Bash(gh pr create --draft:*)");
+  expect(approved.grantedActions).toEqual(["push", "pr-draft"]);
   expect(approved.maxBudgetUsd).toBe(3);
+  expect(approved.permissionMode).toBe("dontAsk");
+  expect(approved.disallowedTools).toContain("Bash(git push:*)");
+  expect(approved.disallowedTools).toContain(
+    "Bash(git push --force-with-lease:*)",
+  );
 });
 
 test("managed draft tier overrides repo and run approval", () => {
@@ -65,4 +72,16 @@ test("managed draft tier overrides repo and run approval", () => {
   expect(policy.grantedActions).toEqual([]);
   expect(policy.disallowedTools).toContain("Bash(git push:*)");
   expect(policy.disallowedTools).toContain("Bash(gh pr create --draft:*)");
+});
+
+test("accepts custom verification tools", () => {
+  const policy = resolveDispatchPolicy({
+    configuredPolicy,
+    approvedActions: [],
+    managedActionTier: "act",
+    verificationTools: ["Bash(cargo test:*)", "Bash(cargo check:*)"],
+  });
+
+  expect(policy.allowedTools).toContain("Bash(cargo test:*)");
+  expect(policy.allowedTools).toContain("Bash(cargo check:*)");
 });
