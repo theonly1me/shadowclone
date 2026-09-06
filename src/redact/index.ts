@@ -15,11 +15,19 @@ function replaceHomeDirectory(options: {
     return options.text;
   }
   const escaped = escapeRegExp(options.homeDirectory);
-  const pattern = new RegExp(
-    `(^|[\\s"'\\(=:,])${escaped}(?=[/\\s"'\\),]|$)`,
+  const filePrefix = ["file:", "", ""].join("/");
+  const unslashed = escaped.startsWith("/") ? escaped.slice(1) : escaped;
+  const fileUrlPattern = new RegExp(
+    `(${filePrefix}/?)${unslashed}(?=[/\\\\\\s"'\\),]|$)`,
     "gm",
   );
-  return options.text.replace(pattern, "$1~");
+  const pattern = new RegExp(
+    `(^|[\\s"'\\(=:,])${escaped}(?=[/\\\\\\s"'\\),]|$)`,
+    "gm",
+  );
+  return options.text
+    .replace(fileUrlPattern, "$1~")
+    .replace(pattern, "$1~");
 }
 
 export function redactSecrets(options: {
