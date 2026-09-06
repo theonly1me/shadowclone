@@ -59,17 +59,11 @@ function resolveGenerator(options: {
   if (hasDistilled && hasStructural) {
     return "all";
   }
-  if (hasDistilled) {
-    return "distilled";
-  }
-  return "structural";
+  return hasDistilled ? "distilled" : "structural";
 }
 
-function groupRules(
-  rules: readonly ProfileRule[],
-): ReadonlyMap<string, readonly ProfileRule[]> {
-  return Map.groupBy(rules, profileRulePath);
-}
+const groupRules = (rules: readonly ProfileRule[]) =>
+  Map.groupBy(rules, profileRulePath);
 
 async function readExistingRules(
   filePath: string,
@@ -78,9 +72,8 @@ async function readExistingRules(
   return (await file.exists()) ? parseProfileBlocks(await file.text()) : [];
 }
 
-function keyFor(entry: ProfileStateEntry): string {
-  return `${entry.relativePath}\t${entry.key}`;
-}
+const keyFor = (entry: ProfileStateEntry): string =>
+  `${entry.relativePath}\t${entry.key}`;
 
 export async function writeProfile(options: {
   readonly paths: ProjectPaths;
@@ -156,6 +149,13 @@ export async function writeProfile(options: {
     for (const rule of incomingRules) {
       const entry = { relativePath, key: rule.key };
       if (!existing.has(rule.key) && !rejected.has(keyFor(entry))) {
+        existing.set(rule.key, {
+          key: rule.key,
+          title: rule.title,
+          fingerprint: "",
+          content: renderProfileRule(rule),
+          edited: false,
+        });
         nextBlocks.push(renderProfileRule(rule));
         nextState.push(entry);
       }
