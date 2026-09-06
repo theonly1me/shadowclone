@@ -3,7 +3,7 @@
 import packageManifest from "../../package.json";
 import { serveMcp } from "../mcp";
 import { doctor } from "./doctor";
-import { evalCommand } from "./eval";
+import { transferEvalCommand } from "./transferEval";
 import { forgetAll } from "./forget";
 import {
   runSessionEndHook,
@@ -15,7 +15,7 @@ import { learn } from "./learn";
 import { runClone } from "./run";
 
 const usage =
-  "Usage: shadowclone <init|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--sessions N] [--since <date>] [--engine <id>] [--json] [--max-budget-usd <n>]|mcp|forget --all>";
+  "Usage: shadowclone <init|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--repo <path>] [--tasks N] [--engine <id>] [--model <id>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--json]|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -62,7 +62,7 @@ async function main(arguments_: readonly string[]): Promise<void> {
     return;
   }
   if (command === "eval") {
-    await evalCommand(rest);
+    await transferEvalCommand(rest);
     return;
   }
   if (command === "mcp") {

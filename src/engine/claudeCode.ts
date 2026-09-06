@@ -1,3 +1,5 @@
+import { evaluationCommand } from "./evaluationIsolation";
+import { claudeEvaluationArguments } from "./evaluationArguments";
 import { redactSecrets } from "../redact";
 import { parseClaudeStream } from "./parseClaude";
 import type {
@@ -30,39 +32,49 @@ export function buildClaudeArguments(options: {
     "--session-id",
     options.sessionId,
     "--setting-sources",
-    "user,project",
+    options.run.evaluation ? "" : "user,project",
   ];
+
+  arguments_.push(...claudeEvaluationArguments(options.run));
+
   if (options.run.systemPromptFile) {
     arguments_.push(
       "--append-system-prompt-file",
       options.run.systemPromptFile,
     );
   }
+
   if (options.run.model) {
     arguments_.push("--model", options.run.model);
   }
+
   if (options.run.permissionMode) {
     arguments_.push("--permission-mode", options.run.permissionMode);
   }
+
   if (options.run.maxBudgetUsd !== undefined) {
     arguments_.push(
       "--max-budget-usd",
       options.run.maxBudgetUsd.toString(),
     );
   }
+
   if (options.run.outputSchema !== undefined) {
     arguments_.push("--json-schema", JSON.stringify(options.run.outputSchema));
   }
+
   appendList({
     arguments_,
     flag: "--allowedTools",
     values: options.run.allowedTools,
   });
+
   appendList({
     arguments_,
     flag: "--disallowedTools",
     values: options.run.disallowedTools,
   });
+
   return arguments_;
 }
 
@@ -75,9 +87,11 @@ export function redactedFailure(options: {
   if (stderrText.length > 0) {
     return redactSecrets({ text: stderrText });
   }
+
   if (options.run.errorMessage) {
     return redactSecrets({ text: options.run.errorMessage });
   }
+
   const resultText = options.run.text.trim();
   return resultText.length > 0
     ? redactSecrets({ text: resultText })
@@ -88,8 +102,9 @@ export async function runClaudeCode(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
   const sessionId = options.sessionId ?? crypto.randomUUID();
+
   const child = Bun.spawn({
-    cmd: [...buildClaudeArguments({ run: options, sessionId })],
+    cmd: [...evaluationCommand({ arguments: buildClaudeArguments({ run: options, sessionId }), run: options })],
     cwd: options.cwd,
     env: process.env,
     stdin: "pipe",
@@ -97,14 +112,18 @@ export async function runClaudeCode(
     stderr: "pipe",
     signal: options.signal,
   });
+
   child.stdin.write(options.prompt);
   child.stdin.end();
+
   const [exitCode, stream, stderr] = await Promise.all([
     child.exited,
     new Response(child.stdout).text(),
     new Response(child.stderr).text(),
   ]);
+
   const run = parseClaudeStream({ stream, fallbackSessionId: sessionId });
+
   if (exitCode !== 0) {
     return {
       ...run,
@@ -112,8 +131,10 @@ export async function runClaudeCode(
       errorMessage: redactedFailure({ run, stderr, exitCode }),
     };
   }
+
   if (run.errorMessage) {
     return { ...run, errorMessage: redactSecrets({ text: run.errorMessage }) };
   }
+
   return run;
 }

@@ -32,7 +32,7 @@ export type ProviderSupport = {
   readonly dispatch: boolean;
 };
 
-export type EnginePurpose = "distill" | "dispatch";
+export type EnginePurpose = "distill" | "dispatch" | "eval";
 
 export const providerIds = [
   "claude-code",
@@ -72,6 +72,10 @@ export function providerSupportsPurpose(options: {
   readonly definition: ProviderDefinition;
   readonly purpose: EnginePurpose;
 }): boolean {
+  if (options.purpose === "eval") {
+    return options.definition.engine?.implemented === true &&
+      new Set(["claude-code", "codex"]).has(options.definition.engine.id);
+  }
   const support = getProviderSupport(options.definition);
   return options.purpose === "distill" ? support.distill : support.dispatch;
 }

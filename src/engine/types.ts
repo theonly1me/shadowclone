@@ -23,6 +23,7 @@ export type EngineAction = {
   readonly tool: string;
   readonly path: string | null;
   readonly command?: string | null;
+  readonly succeeded?: boolean | null;
 };
 
 export type EngineRunOptions = {
@@ -37,6 +38,8 @@ export type EngineRunOptions = {
   readonly maxBudgetUsd?: number;
   readonly outputSchema?: unknown;
   readonly signal?: AbortSignal;
+  readonly evaluation?: boolean;
+  readonly evaluationBlockedPaths?: readonly string[];
 };
 
 export type EngineRun = {
