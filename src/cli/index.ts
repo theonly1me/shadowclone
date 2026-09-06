@@ -2,6 +2,7 @@
 
 import packageManifest from "../../package.json";
 import { doctor } from "./doctor";
+import { evalCommand } from "./eval";
 import { forgetAll } from "./forget";
 import {
   runSessionEndHook,
@@ -13,7 +14,7 @@ import { learn } from "./learn";
 import { runClone } from "./run";
 
 const usage =
-  "Usage: shadowclone <init|learn [--deep] [--dry-run]|doctor|install|run <task>|forget --all>";
+  "Usage: shadowclone <init|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--sessions N] [--since <date>] [--json] [--max-budget-usd <n>]|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -57,6 +58,10 @@ async function main(arguments_: readonly string[]): Promise<void> {
   }
   if (command === "run") {
     await runClone(rest);
+    return;
+  }
+  if (command === "eval") {
+    await evalCommand(rest);
     return;
   }
   if (command === "hook" && rest[0] === "session-end") {

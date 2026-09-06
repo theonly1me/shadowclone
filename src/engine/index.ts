@@ -22,6 +22,7 @@ export { parseClaudeStream } from "./parseClaude";
 export { parseCodexStream } from "./parseCodex";
 export { parseCursorStream } from "./parseCursor";
 export type {
+  EngineAction,
   EngineAvailability,
   EngineId,
   EngineRun,
