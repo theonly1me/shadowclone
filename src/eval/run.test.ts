@@ -72,11 +72,12 @@ test("runEval executes baseline and clone runs and writes an eval receipt", asyn
   });
   index.close();
 
-  const runs: { systemPromptFile?: string; permissionMode?: string }[] = [];
+  const runs: { systemPromptFile?: string; permissionMode?: string; cwd?: string }[] = [];
   const runner: EngineRunner = (options) => {
     runs.push({
       systemPromptFile: options.systemPromptFile,
       permissionMode: options.permissionMode,
+      cwd: options.cwd,
     });
     const run: EngineRun = {
       engine: "claude-code",
@@ -107,6 +108,12 @@ test("runEval executes baseline and clone runs and writes an eval receipt", asyn
   expect(runs[0]?.permissionMode).toBe("dontAsk");
   expect(runs[1]?.systemPromptFile).toBeDefined();
   expect(runs[1]?.permissionMode).toBe("dontAsk");
+
+  expect(runs[0]?.cwd).not.toBe(os.tmpdir());
+  expect(runs[1]?.cwd).not.toBe(os.tmpdir());
+  expect(runs[0]?.cwd).not.toBe(runs[1]?.cwd);
+  expect(await Bun.file(runs[0]?.cwd ?? "").exists()).toBeFalse();
+  expect(await Bun.file(runs[1]?.cwd ?? "").exists()).toBeFalse();
 
   expect(receipt.sessionsEvaluated).toBe(1);
   expect(receipt.averageDelta.total).toBeGreaterThan(0);

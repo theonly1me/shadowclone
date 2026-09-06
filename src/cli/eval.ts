@@ -1,32 +1,85 @@
+import type { EngineRunner } from "../engine";
 import { runEval } from "../eval";
+import type { ProjectPaths } from "../paths";
 
-export async function evalCommand(arguments_: readonly string[]): Promise<void> {
+export type EvalPrompt = (question: string) => boolean | Promise<boolean>;
+
+function promptConfirmation(question: string): boolean {
+  const answer = prompt(`${question} [y/N]`);
+  return answer?.trim().toLowerCase() === "y";
+}
+
+export async function evalCommand(
+  arguments_: readonly string[],
+  options: {
+    readonly ask?: EvalPrompt;
+    readonly runner?: EngineRunner;
+    readonly paths?: ProjectPaths;
+  } = {},
+): Promise<void> {
   let sessions: number | undefined;
   let since: string | undefined;
   let json = false;
   let maxBudgetUsd: number | undefined;
+  let yes = false;
 
-  for (let i = 0; i < arguments_.length; i++) {
-    const arg = arguments_[i];
-    if (arg === "--json") {
+  for (
+    let argumentIndex = 0;
+    argumentIndex < arguments_.length;
+    argumentIndex++
+  ) {
+    const argument = arguments_[argumentIndex];
+    if (argument === "--json") {
       json = true;
-    } else if (arg === "--sessions" && i + 1 < arguments_.length) {
-      const parsed = Number.parseInt(arguments_[i + 1] ?? "", 10);
+    } else if (argument === "--yes" || argument === "-y") {
+      yes = true;
+    } else if (
+      argument === "--sessions" &&
+      argumentIndex + 1 < arguments_.length
+    ) {
+      argumentIndex++;
+      const parsed = Number.parseInt(arguments_[argumentIndex] ?? "", 10);
       if (!Number.isNaN(parsed)) {
         sessions = parsed;
       }
-      i++;
-    } else if (arg === "--since" && i + 1 < arguments_.length) {
-      since = arguments_[i + 1];
-      i++;
-    } else if (arg === "--max-budget-usd" && i + 1 < arguments_.length) {
-      const parsed = Number.parseFloat(arguments_[i + 1] ?? "");
+    } else if (
+      argument === "--since" &&
+      argumentIndex + 1 < arguments_.length
+    ) {
+      argumentIndex++;
+      since = arguments_[argumentIndex];
+    } else if (
+      argument === "--max-budget-usd" &&
+      argumentIndex + 1 < arguments_.length
+    ) {
+      argumentIndex++;
+      const parsed = Number.parseFloat(arguments_[argumentIndex] ?? "");
       if (!Number.isNaN(parsed)) {
         maxBudgetUsd = parsed;
       }
-      i++;
     }
   }
 
-  await runEval({ sessions, since, json, maxBudgetUsd });
+  const sessionLimit = sessions ?? 10;
+  const budgetLimit = maxBudgetUsd ?? 0.5;
+  const upperCostUsd = sessionLimit * 2 * budgetLimit;
+  const ask = options.ask ?? promptConfirmation;
+
+  if (!yes && !json && process.stdin.isTTY) {
+    const message = `Running eval on up to ${sessionLimit} sessions (2 runs each, max $${upperCostUsd.toFixed(2)} budget). Proceed?`;
+    const approved = await ask(message);
+    if (!approved) {
+      console.log("Evaluation cancelled.");
+      return;
+    }
+  }
+
+  await runEval({
+    sessions,
+    since,
+    json,
+    maxBudgetUsd,
+    runner: options.runner,
+    paths: options.paths,
+  });
 }
