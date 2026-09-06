@@ -13,7 +13,7 @@ import { learn } from "./learn";
 import { runClone } from "./run";
 
 const usage =
-  "Usage: shadowclone <init|learn [--deep]|doctor|install|run <task>|forget --all>";
+  "Usage: shadowclone <init|learn [--deep] [--dry-run]|doctor|install|run <task>|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -38,12 +38,14 @@ async function main(arguments_: readonly string[]): Promise<void> {
     await initialize();
     return;
   }
-  if (
-    command === "learn" &&
-    (rest.length === 0 || (rest.length === 1 && rest[0] === "--deep"))
-  ) {
-    await learn({ deep: rest[0] === "--deep" });
-    return;
+  if (command === "learn") {
+    const deep = rest.includes("--deep");
+    const dryRun = rest.includes("--dry-run");
+    const valid = rest.every((arg) => arg === "--deep" || arg === "--dry-run");
+    if (valid) {
+      await learn({ deep, dryRun });
+      return;
+    }
   }
   if (command === "doctor" && rest.length === 0) {
     await doctor();

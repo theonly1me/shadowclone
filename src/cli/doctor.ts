@@ -7,11 +7,16 @@ import {
   readManagedPolicy,
   type DistillationPolicy,
 } from "../config";
+import { openEventIndex } from "../index";
 import { projectPaths } from "../paths";
 import {
   getProviderSupport,
   providerDefinitions,
 } from "../provider";
+import {
+  computeSourceHealth,
+  type SourceMarkerHealth,
+} from "../signal";
 
 export function renderProviderSupport(): readonly string[] {
   return providerDefinitions.map((definition) => {
@@ -37,9 +42,24 @@ export function renderEngineSelection(options: {
     : "No authenticated distillation engine is available.";
 }
 
+export function renderMarkerHealth(options: {
+  readonly health: readonly SourceMarkerHealth[];
+}): readonly string[] {
+  if (options.health.length === 0) {
+    return ["No indexed sessions yet."];
+  }
+  return options.health.map((h) => {
+    const status = h.isStale
+      ? " (POSSIBLY STALE: 0 signals across 25+ sessions)"
+      : "";
+    return `${h.source}: ${h.sessions} sessions, ${h.interruptions} interruptions, ${h.denials} denials${status}`;
+  });
+}
+
 export async function doctor(options: {
   readonly probe?: CommandProbe;
   readonly managedConfigPath?: string | null;
+  readonly databasePath?: string;
 } = {}): Promise<void> {
   const managedConfigPath =
     options.managedConfigPath === undefined
@@ -80,5 +100,21 @@ export async function doctor(options: {
   console.log("Provider support:");
   for (const line of renderProviderSupport()) {
     console.log(line);
+  }
+  const dbFile = Bun.file(options.databasePath ?? projectPaths.indexDatabase);
+  if (await dbFile.exists()) {
+    const index = await openEventIndex(
+      options.databasePath ?? projectPaths.indexDatabase,
+    );
+    try {
+      const events = index.listEvents();
+      const health = computeSourceHealth(events);
+      console.log("Marker health:");
+      for (const line of renderMarkerHealth({ health })) {
+        console.log(`  ${line}`);
+      }
+    } finally {
+      index.close();
+    }
   }
 }

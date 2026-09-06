@@ -20,7 +20,7 @@ import {
   writeProfile,
 } from "../profile";
 import type { ProfileRule } from "../profile";
-import { deriveSignals } from "../signal";
+import { checkMarkerStaleness, deriveSignals } from "../signal";
 import type { GitRemoteReader } from "../signal";
 
 async function isGitWorkTree(cwd: string): Promise<boolean> {
@@ -39,6 +39,7 @@ export async function learn(options: {
   readonly paths?: ProjectPaths;
   readonly readRemote?: GitRemoteReader;
   readonly deep?: boolean;
+  readonly dryRun?: boolean;
   readonly runner?: EngineRunner;
   readonly managedConfigPath?: string | null;
 } = {}): Promise<void> {
@@ -64,9 +65,10 @@ export async function learn(options: {
   if (!policy.enabled) {
     throw new Error("Shadowclone is disabled by managed policy");
   }
-  const index = await openEventIndex(
-    options.databasePath ?? paths.indexDatabase,
-  );
+  const dbPath =
+    options.databasePath ??
+    (options.dryRun ? ":memory:" : paths.indexDatabase);
+  const index = await openEventIndex(dbPath);
 
   try {
     const summary = await ingestSources({
@@ -82,6 +84,14 @@ export async function learn(options: {
       readRemote: options.readRemote,
       blockedOrigins: policy.blockedOrigins,
     });
+    const markerWarnings = checkMarkerStaleness(events);
+    for (const warning of markerWarnings) {
+      console.warn(`Warning: ${warning}`);
+    }
+    if (options.dryRun) {
+      console.log(renderMirror({ report: derived.report, networkCallsMade: false }));
+      return;
+    }
     const structuralRules = buildProfileRules({
       events: derived.events,
       signals: derived.corrections,
