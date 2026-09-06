@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts\" hook session-start"
+            "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/dist/shadowclone.js\" hook session-start"
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/src/cli/index.ts\" hook session-end"
+            "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/dist/shadowclone.js\" hook session-end"
           }
         ]
       }
