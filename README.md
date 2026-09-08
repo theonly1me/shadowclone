@@ -67,6 +67,14 @@ Verify your environment and supported provider CLIs:
 shadowclone doctor
 ```
 
+Inspect the 20 behavioral dispositions available for onboarding:
+
+```bash
+shadowclone skills
+```
+
+The library contains six groups of mutually exclusive choices and seven independent disciplines. It is readable package content, and listing it does not inspect or change your profile. The setup flow that selects and installs these rules lands in the next milestone.
+
 Grant consent for desired transcript sources:
 
 ```bash
@@ -203,6 +211,7 @@ Managed policies act as an absolute ceiling. Users cannot enable unapproved sour
 
 ```bash
 shadowclone init                                 # Configure source consent and capabilities
+shadowclone skills                               # List packaged behavioral dispositions
 shadowclone learn [--deep] [--dry-run]           # Index sessions and synthesize rules
 shadowclone doctor                               # Inspect active paths, engines, and policies
 shadowclone install                              # Install profile as .claude/agents/shadowclone.md

@@ -87,7 +87,7 @@ The loader reads package-owned Markdown only. It does not inspect a user's profi
 
 **Ship orchestration commands beside dispositions.** Commands answer what operation to run, while this library answers how an agent behaves during work. Mixing them would give `applies-when` two meanings and make transcript reconciliation ambiguous.
 
-**Add a YAML dependency.** Bun 1.4.2 already exposes `Bun.YAML.parse`, so another parser adds install and audit cost without adding a capability.
+**Add a YAML dependency.** The supported Bun runtime already exposes `Bun.YAML.parse`, so another parser adds install and audit cost without adding a capability.
 
 ## Accepted costs
 
@@ -99,11 +99,13 @@ The initial CLI lists skills but does not install them. Profile writes and user 
 
 ## Testing
 
-Add the package-library test before the loader and run it against the branch head. It must fail because `src/skills` and `skills/` do not exist. Add a malformed fixture with an unknown `command` field and prove strict parsing rejects it, then mutate the schema to accept unknown fields, print the changed line, and confirm the fixture fails for the intended reason.
+The package-library test first ran against the branch head and failed because `src/skills/index.ts` did not exist. This established that the new loader was absent before implementation.
 
-The complete-library test asserts 20 unique ids, six axes, at least two options per axis, one axis assignment per axis skill, non-empty applicability, matching filenames and headings, and seven disciplines. The CLI test asserts every skill id and title appears exactly once in the rendered output.
+Mutation changed `z.strictObject` to `z.object`, and the hostile fixture's unknown `command` field was accepted instead of rejected. Mutation disabled the duplicate-key condition, and Bun's YAML parser replaced the first `id` without an error. Each enforcing line was printed before its focused test, and restoring each line returned the five focused tests to green.
 
-Run `bun run check`, `bun run build`, and the built `dist/shadowclone.js skills` command. Inspect the package dry-run file list and confirm all 20 root skill files ship.
+`bun run check` passes with TypeScript, Biome over 218 files, 452 convention-checked files, and 250 tests with 1,345 assertions. `bun run build` produces a 289 KB CLI, and both source and built `skills` commands list all 20 records. The npm package dry run contains 28 entries, including every root skill file.
+
+The architecture overview Mermaid diagram was reviewed and remains accurate because this PR adds inspectable package content without connecting it to the profile write path. That edge lands with the consented setup flow in PR 6.
 
 ## Open questions
 

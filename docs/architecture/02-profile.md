@@ -4,6 +4,12 @@ The profile is how a clone knows what you would have done. Everything before it 
 
 It is a directory of markdown at `~/.shadowclone/profile/`. You can read it, edit it, delete a line you disagree with, commit it to a private repo, or hand it to a teammate. It is not embeddings and it is not a database, because a user who cannot read what was learned about them cannot consent to it.
 
+## Seed skills
+
+The package ships 20 behavioral dispositions under `skills/`. Thirteen are choices across six axes: comments, testing, planning, question frequency, refactor tolerance, and dependencies. The remaining seven are independent disciplines for investigation, scope, verification, regression proof, module design, conflict resolution, and TypeScript type safety.
+
+Each skill is Markdown with strict frontmatter for its stable id, title, optional axis, category, target profile section, and applicability. Its visible content uses the same heading and body shape as a profile rule. `shadowclone skills` lists the library without reading or writing the user's profile. A later setup flow will let the user choose rules and persist them as declared profile records, so the library remains seed content rather than a second profile representation.
+
 ## Two tiers
 
 Sending 562 MB to a model is not affordable. The work splits by whether it needs a model at all.

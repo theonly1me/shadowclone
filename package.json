@@ -44,6 +44,7 @@
   "files": [
     "bin",
     "dist",
+    "skills",
     ".claude-plugin",
     "README.md",
     "LICENSE"
