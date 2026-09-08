@@ -12,18 +12,22 @@ import { runClaudeCode } from "./claudeCode";
 import { runCodex } from "./codex";
 import { runCursorAgent } from "./cursorAgent";
 
-export type CommandProbe = (
-  command: readonly string[],
-) => Promise<boolean>;
+export type CommandProbe = (options: {
+  readonly command: readonly string[];
+}) => Promise<boolean>;
 
-export async function probeCommand(
-  command: readonly string[],
-): Promise<boolean> {
+const probeTimeoutMilliseconds = 5_000;
+
+export async function probeCommand(options: {
+  readonly command: readonly string[];
+  readonly timeoutMilliseconds?: number;
+}): Promise<boolean> {
   try {
     const process = Bun.spawn({
-      cmd: [...command],
+      cmd: [...options.command],
       stdout: "ignore",
       stderr: "ignore",
+      timeout: options.timeoutMilliseconds ?? probeTimeoutMilliseconds,
     });
     return (await process.exited) === 0;
   } catch {
@@ -35,9 +39,9 @@ export async function detectClaudeCode(options: {
   readonly probe?: CommandProbe;
 } = {}): Promise<EngineAvailability> {
   const probe = options.probe ?? probeCommand;
-  const installed = await probe(["claude", "--version"]);
+  const installed = await probe({ command: ["claude", "--version"] });
   const authenticated =
-    installed && (await probe(["claude", "auth", "status"]));
+    installed && (await probe({ command: ["claude", "auth", "status"] }));
   return { engine: "claude-code", installed, authenticated };
 }
 
@@ -45,9 +49,9 @@ export async function detectCodex(options: {
   readonly probe?: CommandProbe;
 } = {}): Promise<EngineAvailability> {
   const probe = options.probe ?? probeCommand;
-  const installed = await probe(["codex", "--version"]);
+  const installed = await probe({ command: ["codex", "--version"] });
   const authenticated =
-    installed && (await probe(["codex", "login", "status"]));
+    installed && (await probe({ command: ["codex", "login", "status"] }));
   return { engine: "codex", installed, authenticated };
 }
 
@@ -55,9 +59,9 @@ export async function detectCursorAgent(options: {
   readonly probe?: CommandProbe;
 } = {}): Promise<EngineAvailability> {
   const probe = options.probe ?? probeCommand;
-  const installed = await probe(["cursor-agent", "--version"]);
+  const installed = await probe({ command: ["cursor-agent", "--version"] });
   const authenticated =
-    installed && (await probe(["cursor-agent", "status"]));
+    installed && (await probe({ command: ["cursor-agent", "status"] }));
   return { engine: "cursor-agent", installed, authenticated };
 }
 
