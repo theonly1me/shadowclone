@@ -109,11 +109,11 @@ The combined library has 18 entries rather than the original 20. Count is no lon
 
 ## Testing
 
-Add a regression test before implementation that expects standard `skills/<name>/SKILL.md` paths and no `comments-none` entry. It must fail against the flat 20-file library.
+The regression test expected ten standard `skills/<name>/SKILL.md` paths and no `comments-none` entry. Against the flat library it failed with zero standard skill files before implementation.
 
-Add parser fixtures for unknown standard frontmatter, invalid Shadowclone metadata, path-name mismatch, missing required workflow sections, duplicate YAML keys, and duplicate ids. Mutate the section requirement and comment-id exclusion separately to prove their tests catch the regression.
+Parser fixtures cover unknown standard frontmatter, invalid Shadowclone metadata, path-name mismatch, missing required workflow sections, duplicate YAML keys, and duplicate ids. Removing the `Guardrails` requirement made the incomplete-workflow fixture fail. Adding a valid `comments-none` preference made the explicit exclusion test fail. Both tests passed again after restoring the intended behavior.
 
-Run `bun run check`, build the package, inspect the packed file list, and run both source and built `shadowclone skills` commands.
+`bun run check` passes 255 tests across 68 files with 1,402 expectations, along with type checking, Biome, and repository convention checks. The production bundle builds at 291 KB. The source and built `shadowclone skills` commands print the same four preference axes, one skill axis, and eight optional skills. `npm pack --dry-run --json` includes all eight preference files and ten standard Agent Skill files.
 
 ## Open questions
 

@@ -4,11 +4,15 @@ The profile is how a clone knows what you would have done. Everything before it 
 
 It is a directory of markdown at `~/.shadowclone/profile/`. You can read it, edit it, delete a line you disagree with, commit it to a private repo, or hand it to a teammate. It is not embeddings and it is not a database, because a user who cannot read what was learned about them cannot consent to it.
 
-## Seed skills
+## Seed guidance
 
-The package ships 20 behavioral dispositions under `skills/`. Thirteen are choices across six axes: comments, testing, planning, question frequency, refactor tolerance, and dependencies. The remaining seven are independent disciplines for investigation, scope, verification, regression proof, module design, conflict resolution, and TypeScript type safety.
+The package keeps profile preferences and Agent Skills separate because they serve different purposes.
 
-Each skill is Markdown with strict frontmatter for its stable id, title, optional axis, category, target profile section, and applicability. Its visible content uses the same heading and body shape as a profile rule. `shadowclone skills` lists the library without reading or writing the user's profile. A later setup flow will let the user choose rules and persist them as declared profile records, so the library remains seed content rather than a second profile representation.
+Eight concise preferences under `preferences/` record choices across dependency posture, planning threshold, question frequency, and refactor tolerance. Ten Agent Skills under `skills/<name>/SKILL.md` carry routing descriptions, task-specific process, guardrails, and completion evidence. Testing approach is the one skill axis; the other eight skills are independently selectable.
+
+The comment-policy axis is absent. A repository's comment practice belongs in imported rules and learned evidence rather than a global seed choice.
+
+`shadowclone skills` lists both forms without reading or writing the user's profile. A later setup flow will let the user select guidance and persist it as declared profile records, so package content remains upstream of the editable profile.
 
 ## Two tiers
 
