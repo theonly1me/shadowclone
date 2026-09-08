@@ -134,7 +134,7 @@ test("redacts excerpts before the engine and resumes from checkpoints", async ()
   expect(second.rules).toEqual(first.rules);
 });
 
-test("calculates confidence scaled to sessions and aggregates constituent evidence", async () => {
+test("records independent supporting evidence without a confidence score", async () => {
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-distill-conf-"),
   );
@@ -172,5 +172,8 @@ test("calculates confidence scaled to sessions and aggregates constituent eviden
   const result = await distillSignals(options);
   expect(result.rules.length).toBe(1);
   expect(result.rules[0]?.sessions).toBe(2);
-  expect(result.rules[0]?.confidence).toBe(0.67);
+  expect(result.rules[0]?.source).toBe("mined");
+  expect(result.rules[0]?.status).toBe("active");
+  expect(result.rules[0]?.evidence.for).toHaveLength(2);
+  expect(result.rules[0]?.evidence.against).toEqual([]);
 });

@@ -67,12 +67,17 @@ Migration runs when the writer opens a legacy block. An unedited legacy block is
 | `src/profile/render.ts` | Render schema version 1 metadata and assign semantic rule identifiers |
 | `src/profile/parse.ts` | Parse versioned and legacy blocks without losing local edits |
 | `src/profile/state.ts` | Read legacy state and persist versioned generated and rejection ledgers |
+| `src/profile/metadata.ts` | Validate and safely encode the versioned metadata object |
+| `src/profile/evidence.ts` | Build one evidence identifier shape for current mined signals |
+| `src/profile/files.ts` | Read only profile files named by incoming or persisted identities |
+| `src/profile/lifecycle.ts` | Prepare state transitions and migration before file rendering |
 | `src/profile/write.ts` | Apply create, revise, pin, reject, retire, and legacy migration transitions |
 | `src/profile/inject.ts` | Compile active typed records and remove confidence filtering |
 | `src/profile/rules.ts` | Populate the new mined record fields for the temporary structural generator |
 | `src/distill/index.ts` | Assign stable semantic candidate identifiers and populate the new fields |
+| `src/distill/profile.ts` | Convert distilled and merged output into persistent profile records |
 | `src/distill/checkpoint.ts` | Validate checkpoints against the new record schema |
-| `src/cli/profile.ts` | Preserve the structural refresh boundary explicitly |
+| `src/cli/learn.ts` | Retire temporary structural rules explicitly when deep output replaces them |
 | `src/profile/*.test.ts` | Cover metadata, lifecycle, migration, stable identity, and compilation |
 | `src/distill/index.test.ts` | Replace the confidence assertion with lifecycle and evidence assertions |
 | `src/cli/hooks.test.ts` | Build the new profile record shape |
@@ -108,15 +113,15 @@ Condition evaluation remains deferred because the current compiler receives repo
 
 ## Testing
 
-Rendering and parsing round-trip every new field, deduplicate repeated evidence identifiers, and derive matching support and contradiction counts. An adversarial proposal containing an HTML comment terminator cannot escape the metadata comment.
+Rendering and parsing round-trip every new field, deduplicate repeated evidence identifiers, and derive matching support and contradiction counts. An adversarial proposal containing an HTML comment terminator cannot escape the metadata comment. State entries using `/tmp`, `/login`, a single segment, parent traversal, or backslash traversal fail before a profile file is opened.
 
 A 0.0.5 fixture contains one unedited generated block and one edited block. Migration removes and retires the unedited template, preserves the edited block byte for byte as an active user rule, and does not invent evidence or rejection text.
 
 Lifecycle tests revise a title while retaining its assigned key, delete a generated rule, propose revised wording under that key, and confirm the richer rejection prevents recreation. Explicit retirement removes an unedited block without recording user rejection. Existing pin and handwritten preservation tests remain.
 
-Compilation tests prove candidate and stale rules are omitted while an active declared rule with contradicting evidence and a pending proposal is still emitted. The regression tests are mutation-checked by restoring title-derived identity, allowing a rejected key through, and filtering active rules with proposals, then observing each focused failure before restoring the implementation.
+Compilation tests prove candidate and stale rules are omitted while an active declared rule with contradicting evidence and a pending proposal is still emitted. Mutation replaced constituent identity with a new random id and the merge identity test failed with two different UUIDs. Mutation removed the rejection check and the deleted file was recreated. Mutation excluded active rules carrying proposals and the compiled profile became empty. Restoring each line returned all nine focused lifecycle tests to green.
 
-The final gate is `bun run check`. The architecture overview Mermaid diagram is reviewed and remains accurate because this change alters the data carried by the existing profile node without adding a stage, dependency, trust boundary, or execution path.
+`bun run check` passes with TypeScript, Biome, 419 convention-checked files, and 237 tests with 1,288 assertions. The architecture overview Mermaid diagram was reviewed and remains accurate because this change alters the data carried by the existing profile node without adding a stage, dependency, trust boundary, or execution path.
 
 ## Open questions
 

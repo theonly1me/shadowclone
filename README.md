@@ -106,7 +106,7 @@ shadowclone install
 
 This writes `.claude/agents/shadowclone.md` and excludes it from git tracking.
 
-The profile is yours to correct. Editing the visible text of a generated block pins it, so later learning preserves your version verbatim. Deleting a generated block records its key in `.rejected`, so that exact generated rule is not written again. Paraphrase-aware rejection is part of the reconciliation milestone and is not implemented yet.
+The profile is yours to correct. Editing the visible text of a generated block makes it active user guidance and preserves your version verbatim. Deleting a generated block records its persistent id and last generated text in `.rejected`, so later wording changes under that id stay rejected. Recognizing a separately created candidate as a paraphrase is part of the reconciliation milestone.
 
 ## Transfer evaluation
 
