@@ -1,5 +1,6 @@
 import { isProfileRelativePath } from "./files";
-import type { ProfileSource } from "./types";
+import { profileImportReferenceSchema } from "./metadata";
+import type { ProfileImportReference, ProfileSource } from "./types";
 
 export type GeneratedProfileStateEntry = {
   readonly relativePath: string;
@@ -7,6 +8,7 @@ export type GeneratedProfileStateEntry = {
   readonly title: string | null;
   readonly body: string | null;
   readonly source: ProfileSource | null;
+  readonly importReference: ProfileImportReference | null;
   readonly disposition: "present" | "retired";
 };
 
@@ -16,6 +18,7 @@ export type ProfileRejection = {
   readonly title: string | null;
   readonly body: string | null;
   readonly source: ProfileSource | null;
+  readonly importReference: ProfileImportReference | null;
 };
 
 function isProfileSource(value: unknown): value is ProfileSource {
@@ -67,6 +70,8 @@ function parseGeneratedLine(line: string): GeneratedProfileStateEntry | null {
     nullableString(value.body) &&
     "source" in value &&
     (isProfileSource(value.source) || value.source === null) &&
+    (!("importReference" in value) ||
+      profileImportReferenceSchema.nullable().safeParse(value.importReference).success) &&
     "disposition" in value &&
     (value.disposition === "present" || value.disposition === "retired")
   ) {
@@ -76,6 +81,9 @@ function parseGeneratedLine(line: string): GeneratedProfileStateEntry | null {
       title: value.title,
       body: value.body,
       source: value.source,
+      importReference: "importReference" in value
+        ? profileImportReferenceSchema.nullable().parse(value.importReference)
+        : null,
       disposition: value.disposition,
     };
   }
@@ -86,6 +94,7 @@ function parseGeneratedLine(line: string): GeneratedProfileStateEntry | null {
         title: null,
         body: null,
         source: null,
+        importReference: null,
         disposition: "present",
       }
     : null;
@@ -108,7 +117,9 @@ function parseRejectionLine(line: string): ProfileRejection | null {
     "body" in value &&
     nullableString(value.body) &&
     "source" in value &&
-    (isProfileSource(value.source) || value.source === null)
+    (isProfileSource(value.source) || value.source === null) &&
+    (!("importReference" in value) ||
+      profileImportReferenceSchema.nullable().safeParse(value.importReference).success)
   ) {
     return {
       relativePath: value.relativePath,
@@ -116,11 +127,14 @@ function parseRejectionLine(line: string): ProfileRejection | null {
       title: value.title,
       body: value.body,
       source: value.source,
+      importReference: "importReference" in value
+        ? profileImportReferenceSchema.nullable().parse(value.importReference)
+        : null,
     };
   }
   const legacy = legacyIdentity(line);
   return legacy
-    ? { ...legacy, title: null, body: null, source: null }
+    ? { ...legacy, title: null, body: null, source: null, importReference: null }
     : null;
 }
 
@@ -162,30 +176,15 @@ export async function readProfileRejections(
   return entries;
 }
 
-function ordered<T extends { readonly relativePath: string; readonly key: string }>(
-  entries: readonly T[],
-): readonly T[] {
-  return entries.slice().sort(
-    (left, right) =>
-      left.relativePath.localeCompare(right.relativePath) ||
-      left.key.localeCompare(right.key),
-  );
-}
-
-export function renderGeneratedProfileState(
-  entries: readonly GeneratedProfileStateEntry[],
-): string {
-  const lines = ordered(entries).map((entry) =>
-    JSON.stringify({ schema: 1, ...entry })
-  );
-  return lines.length > 0 ? `${lines.join("\n")}\n` : "";
-}
-
-export function renderProfileRejections(
-  entries: readonly ProfileRejection[],
-): string {
-  const lines = ordered(entries).map((entry) =>
-    JSON.stringify({ schema: 1, ...entry })
-  );
-  return lines.length > 0 ? `${lines.join("\n")}\n` : "";
+export function profileRejectionFromState(
+  entry: GeneratedProfileStateEntry,
+): ProfileRejection {
+  return {
+    relativePath: entry.relativePath,
+    key: entry.key,
+    title: entry.title,
+    body: entry.body,
+    source: entry.source,
+    importReference: entry.importReference,
+  };
 }

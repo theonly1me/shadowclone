@@ -16,9 +16,29 @@ export function createProfileRuleKey(): string {
 }
 
 export function profileRulePath(rule: ProfileRule): string {
-  return rule.scope === "global"
-    ? `global/${rule.section}.md`
-    : `org/${rule.originDirectory ?? "isolated"}/${rule.section}.md`;
+  if (rule.scope === "global") {
+    return `global/${rule.section}.md`;
+  }
+  if (!isSafeProfileSegment(rule.originDirectory)) {
+    throw new Error("Profile rule has an invalid origin directory");
+  }
+  if (rule.scope === "project") {
+    if (!isSafeProfileSegment(rule.repositoryName)) {
+      throw new Error("Profile rule has an invalid repository name");
+    }
+    return `org/${rule.originDirectory}/projects/${rule.repositoryName}.md`;
+  }
+  return `org/${rule.originDirectory}/${rule.section}.md`;
+}
+
+function isSafeProfileSegment(value: string): boolean {
+  return (
+    value.length > 0 &&
+    value !== "." &&
+    value !== ".." &&
+    !value.includes("/") &&
+    !value.includes("\\")
+  );
 }
 
 export function renderProfileRule(rule: ProfileRule): string {
@@ -39,6 +59,7 @@ export function renderProfileRule(rule: ProfileRule): string {
     sessions: rule.sessions,
     origins: [...rule.origins],
     scope: rule.scope,
+    "import-reference": rule.importReference,
     fingerprint: profileFingerprint(visible),
   };
   return `${visible}\n\n<!-- shadowclone: ${encodeProfileMetadata(metadata)} -->`;

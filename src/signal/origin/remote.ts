@@ -70,7 +70,21 @@ export function normalizeRemoteRepository(
     return null;
   }
   const name = parts.repository.toLowerCase();
-  return { id: `${origin.id}/${name}`, name, origin };
+  const id = `${origin.id}/${name}`;
+  const safeName = name
+    .replace(/[^a-z0-9._-]+/g, "--")
+    .replace(/^[._-]+|[._-]+$/g, "")
+    .slice(0, 64) || "repository";
+  const digest = new Bun.CryptoHasher("sha256")
+    .update(id)
+    .digest("hex")
+    .slice(0, 16);
+  return {
+    id,
+    name,
+    profileFileName: `${safeName}--${digest}`,
+    origin,
+  };
 }
 
 export async function readGitRemote(cwd: string): Promise<string | null> {

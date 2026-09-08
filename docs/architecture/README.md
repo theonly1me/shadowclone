@@ -26,6 +26,8 @@ Per-change design docs live in `docs/design/`, one file per change, written agai
 flowchart LR
     Guidance[seed guidance] --> Onboarding[onboarding]
     Onboarding --> Profile[profile]
+    RepositoryGuidance[repository guidance] --> Import[import]
+    Import --> Profile
     Sources[Enabled local sources] --> Observe[observe]
     Observe --> Index[index]
     Index --> Signal[signal]
@@ -45,6 +47,7 @@ flowchart LR
 | --- | --- | --- |
 | guidance | `src/skills/` | Loads package-owned preferences and Agent Skills for a declared starting profile |
 | onboarding | `src/cli/init.ts`, `src/cli/wizard.ts` | Selects declared rules before collecting source consent |
+| import | `src/importRules/` | Discovers bounded repository guidance and resolves it through redaction |
 | observe | `src/observe/` | Normalizes agent transcripts into one event stream |
 | index | `src/index/` | A rebuildable SQLite cache of pointers and skeletons |
 | signal | `src/signal/` | Derives behavior in pure code, no model, no network |
@@ -54,7 +57,7 @@ flowchart LR
 | eval | `src/eval/` | Replays sessions against baseline and clone to measure delta |
 | engine | `src/engine/` | The one way a model gets called, by any stage |
 
-`src/cli/` coordinates the stages. `src/engine/` is the shared process boundary for distillation, dispatch, and evaluation. Captured text comes into existence only through `resolveRedacted` before it reaches `distill`, which keeps the egress path auditable.
+`src/cli/` coordinates the stages. `src/engine/` is the shared process boundary for distillation, dispatch, and evaluation. Captured text comes into existence only through `resolveRedacted` before it reaches `distill` or repository guidance import, which keeps every materialization path auditable.
 
 ## Why agent transcripts
 

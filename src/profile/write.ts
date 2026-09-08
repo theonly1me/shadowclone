@@ -6,11 +6,11 @@ import {
   prepareProfileWrite,
 } from "./lifecycle";
 import { profileRulePath, renderProfileRule } from "./render";
+import type { GeneratedProfileStateEntry } from "./state";
 import {
   renderGeneratedProfileState,
   renderProfileRejections,
-} from "./state";
-import type { GeneratedProfileStateEntry } from "./state";
+} from "./stateRender";
 import type {
   ProfileRule,
   ProfileRuleReference,
@@ -36,8 +36,21 @@ export async function writeProfile(options: {
   for (const file of prepared.files) {
     const nextBlocks: string[] = [];
     for (const block of file.blocks) {
-      if (block.key === null || block.edited || block.source === "user") {
+      if (block.key === null) {
         nextBlocks.push(block.content);
+        continue;
+      }
+      if (block.edited || block.source === "user") {
+        nextBlocks.push(block.content);
+        if (block.importReference !== null) {
+          nextState.set(
+            block.key,
+            generatedProfileEntry({
+              relativePath: file.relativePath,
+              rule: block,
+            }),
+          );
+        }
         continue;
       }
       if (block.legacy || prepared.retired.has(block.key)) {
@@ -127,5 +140,8 @@ export async function writeProfile(options: {
     files: writtenFiles,
     rules: ruleCount,
     rejected: prepared.rejections.size,
+    preserved: prepared.incomingRules.filter((rule) =>
+      prepared.pinned.has(rule.key)
+    ).length,
   };
 }

@@ -30,6 +30,7 @@ function profileRule(options: {
     section: "workflow",
     scope: "org",
     originDirectory: "github.com--acme",
+    repositoryName: null,
     source: "mined",
     status: "active",
     proposal: null,
@@ -39,6 +40,7 @@ function profileRule(options: {
     lastSeen: "2026-09-08",
     sessions: 1,
     origins: ["github.com/acme"],
+    importReference: null,
   };
 }
 

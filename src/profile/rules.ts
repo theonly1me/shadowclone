@@ -84,7 +84,7 @@ function signalObservations(
 
 function aggregateRule(options: {
   readonly observations: readonly RuleObservation[];
-  readonly scope: ProfileRule["scope"];
+  readonly scope: "global" | "org";
 }): ProfileRule {
   const [first] = options.observations;
   if (!first) {
@@ -101,15 +101,24 @@ function aggregateRule(options: {
   const lastSeenTimestamp = Math.max(
     ...options.observations.map((observation) => observation.timestamp),
   );
+  const location = options.scope === "global"
+    ? {
+        scope: "global" as const,
+        originDirectory: null,
+        repositoryName: null,
+      }
+    : {
+        scope: "org" as const,
+        originDirectory: first.origin.directoryName,
+        repositoryName: null,
+      };
 
   return {
     key: first.key,
     title: first.title,
     body: first.body,
     section: first.section,
-    scope: options.scope,
-    originDirectory:
-      options.scope === "org" ? first.origin.directoryName : null,
+    ...location,
     source: "mined",
     status: "active",
     proposal: null,
@@ -129,6 +138,7 @@ function aggregateRule(options: {
         : "unknown",
     sessions: sessions.size,
     origins,
+    importReference: null,
   };
 }
 

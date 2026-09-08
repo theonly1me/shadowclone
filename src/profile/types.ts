@@ -1,5 +1,5 @@
 export type ProfileSection = "engineering" | "workflow" | "boundaries";
-export type ProfileScope = "global" | "org";
+export type ProfileScope = "global" | "org" | "project";
 export type ProfileSource = "declared" | "imported" | "mined" | "user";
 export type ProfileStatus = "active" | "candidate" | "stale";
 export type ProfileProposalKind = "revise" | "narrow" | "retire";
@@ -14,13 +14,33 @@ export type ProfileEvidence = {
   readonly against: readonly string[];
 };
 
-export type ProfileRule = {
+export type ProfileImportReference = {
+  readonly repositoryAliases: readonly string[];
+  readonly sourceLocator: string;
+};
+
+type ProfileRuleLocation =
+  | {
+      readonly scope: "global";
+      readonly originDirectory: null;
+      readonly repositoryName: null;
+    }
+  | {
+      readonly scope: "org";
+      readonly originDirectory: string;
+      readonly repositoryName: null;
+    }
+  | {
+      readonly scope: "project";
+      readonly originDirectory: string;
+      readonly repositoryName: string;
+    };
+
+type ProfileRuleFields = {
   readonly key: string;
   readonly title: string;
   readonly body: string;
   readonly section: ProfileSection;
-  readonly scope: ProfileScope;
-  readonly originDirectory: string | null;
   readonly source: ProfileSource;
   readonly status: ProfileStatus;
   readonly proposal: ProfileProposal | null;
@@ -30,7 +50,10 @@ export type ProfileRule = {
   readonly lastSeen: string;
   readonly sessions: number;
   readonly origins: readonly string[];
+  readonly importReference: ProfileImportReference | null;
 };
+
+export type ProfileRule = ProfileRuleFields & ProfileRuleLocation;
 
 export type ExistingProfileRule = {
   readonly key: string;
@@ -46,6 +69,7 @@ export type ExistingProfileRule = {
   readonly sessions: number;
   readonly origins: readonly string[];
   readonly scope: ProfileScope;
+  readonly importReference: ProfileImportReference | null;
   readonly fingerprint: string;
   readonly content: string;
   readonly edited: boolean;
@@ -71,4 +95,5 @@ export type ProfileWriteResult = {
   readonly files: number;
   readonly rules: number;
   readonly rejected: number;
+  readonly preserved: number;
 };

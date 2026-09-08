@@ -123,7 +123,7 @@ export async function runHeadlessClone(options: {
     profileDirectory: paths.profileDirectory,
     outputPath: compiledProfilePath,
     origin: repository.origin,
-    targetRepo: path.basename(worktree.repoDirectory),
+    targetRepo: repository.profileFileName,
   });
   const startedAt = options.startedAt ?? new Date().toISOString();
   const run = await runner({

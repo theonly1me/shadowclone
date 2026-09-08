@@ -102,6 +102,7 @@ test("the session context keeps learned boundaries advisory", async () => {
         section: "boundaries",
         scope: "org",
         originDirectory: origin.directoryName,
+        repositoryName: null,
         source: "declared",
         status: "active",
         proposal: null,
@@ -111,6 +112,7 @@ test("the session context keeps learned boundaries advisory", async () => {
         lastSeen: "2026-09-05",
         sessions: 1,
         origins: [origin.id],
+        importReference: null,
       },
     ],
   });

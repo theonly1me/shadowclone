@@ -40,7 +40,7 @@ The command reports only aggregate imported, preserved, rejected, and retired co
 | --- | --- |
 | `src/config/schema.ts` | Add the backward-compatible `declared-rules` source flag |
 | `src/config/managed.ts` | Apply managed-policy restrictions to the new source |
-| `src/onboardingPresence.ts` | Detect only a preconsent supported-guidance boolean |
+| `src/cli/onboardingPresence.ts` | Detect only a preconsent supported-guidance boolean |
 | `src/cli/init.ts` | Add import-first onboarding and seed fallback behavior |
 | `src/cli/import.ts` | Implement the public consent and import command flow |
 | `src/cli/index.ts` | Register `shadowclone import` and update usage |
@@ -48,22 +48,29 @@ The command reports only aggregate imported, preserved, rejected, and retired co
 | `src/importRules/markdown.ts` | Produce one safe profile body and title per source file |
 | `src/importRules/identity.ts` | Hash opaque repository aliases and source locators |
 | `src/importRules/importRepositoryGuidance.ts` | Build stable imported rules and invoke profile lifecycle writes |
+| `src/importRules/retirement.ts` | Retire only unedited imports whose source locator disappeared |
+| `src/importRules/types.ts` | Keep import orchestration types explicit without expanding the coordinator |
+| `src/profile/blocks.ts` | Split profile blocks without treating fenced example headings as rules |
+| `src/profile/importReference.ts` | Merge repository aliases without changing source identity |
 | `src/profile/types.ts` | Add project locations and opaque import references |
 | `src/profile/metadata.ts` | Parse and render backward-compatible import metadata |
-| `src/profile/path.ts` | Route project rules to exact safe repository profile files |
+| `src/profile/render.ts` | Route project rules to exact safe repository profile files and render import metadata |
 | `src/profile/lifecycle.ts` | Preserve import identity through edits, rejections, moves, and retirement |
-| `src/profile/compile.ts` | Compile only the current repository's exact project file |
-| `src/repository.ts` | Derive a traversal-safe, collision-resistant project profile name |
+| `src/profile/inject.ts` | Compile only the current repository's exact project file |
+| `src/profile/state.ts` | Persist backward-compatible opaque import references in lifecycle state |
+| `src/profile/stateRender.ts` | Render deterministic generated and rejection ledgers |
+| `src/signal/origin/remote.ts` | Derive a traversal-safe, collision-resistant project profile name |
 | `README.md` | Explain repository guidance import and its consent boundary |
-| `docs/consent.md` | Document declared-rule consent and managed-policy behavior |
-| `docs/quickstart.md` | Add init and standalone import paths |
-| `docs/profile-lifecycle.md` | Explain imported rule synchronization and rejection behavior |
-| `docs/architecture.md` | Show discovery, redaction, profile lifecycle, and project compilation |
+| `docs/architecture/01-capture.md` | Document declared-rule consent, discovery limits, and Git scope |
+| `docs/architecture/02-profile.md` | Explain imported rule identity, synchronization, and project compilation |
+| `docs/architecture/05-privacy.md` | Record the redaction, storage, presence, and logging boundaries |
+| `docs/architecture/06-roadmap.md` | Add the deterministic import path to the implemented profile phase |
+| `docs/architecture/README.md` | Show import in the maintained architecture diagram |
 | `docs/design/README.md` | Register this design and its implementation status |
 
 ## Data handling
 
-Before consent, Shadowclone stores only the existing aggregate supported-guidance presence boolean in memory for the duration of initialization. After consent, it reads only fixed supported repository files. Every file is represented as a `FileTextRef`, resolved through `resolveRedacted`, and transformed only after redaction. Stored profile bodies therefore contain redacted text. Profile metadata and lifecycle state contain hashes of repository aliases and source-relative locators, never raw filesystem paths, remote URLs, repository names, instruction titles, or unredacted bodies beyond the already redacted profile content. The feature performs no network call and adds no telemetry. Aggregate command output contains counts only.
+Before consent, Shadowclone stores only the existing aggregate supported-guidance presence boolean in memory for the duration of initialization. After consent, it reads only fixed supported repository files. Every file is represented as a `FileTextRef`, resolved through `resolveRedacted`, and transformed only after redaction. Stored profile bodies therefore contain redacted text. Profile metadata and lifecycle state contain hashes of repository aliases and source-relative locators, never raw filesystem paths, remote URLs, or unredacted bodies beyond the already redacted profile content. Project paths use only a normalized repository name plus an identity hash. The feature performs no network call and adds no telemetry. Aggregate command output contains counts only.
 
 ## Alternatives
 
@@ -91,7 +98,7 @@ Tracking opaque import references in lifecycle state expands the profile schema 
 
 An initialization regression test is written first and demonstrates the current behavior failing because detected repository guidance does not offer import.
 
-Command tests verify decline without content, configuration, or profile reads; acceptance persistence; managed-policy denial; repeat execution without another prompt; and aggregate-only output.
+Command tests verify decline without a configuration write or repository-guidance and profile reads; acceptance persistence; managed-policy denial before configuration reads; repeat execution without another prompt; and aggregate-only output.
 
 Discovery tests cover all three root files, both skill roots, nested and unrelated exclusions, generated-skill exclusion, symlinks, unsupported entries, more than 256 files, more than 2,000,000 bytes, and absence of partial profile writes after any validation failure.
 
@@ -101,7 +108,7 @@ Lifecycle tests verify byte-stable reruns, source updates under the same key, pr
 
 Initialization tests verify that import acceptance skips the seed wizard, import decline offers it, managed-policy denial offers it, and a repository without instructions retains wizard-first behavior.
 
-Final verification runs `bun run check`, `bun run build`, public CLI help and import smoke tests, package-content inspection, documentation link checks, architecture rendering inspection, and a search for captured values in command output and persisted lifecycle state.
+Final verification passed `bun run check` with 295 tests and 1,520 assertions, built the 309 KB executable bundle, confirmed `import` in source and built CLI help, and inspected the 26-file package payload. The import command tests exercise its public consent path. The architecture Mermaid source and changed documentation references were inspected. Persisted-data and command-output assertions prove planted secrets, raw working directories, remote URLs, file names, headings, and bodies do not cross their stated boundaries.
 
 ## Open questions
 

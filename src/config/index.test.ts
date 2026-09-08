@@ -53,6 +53,7 @@ test("renders named source settings as TOML", () => {
       "claude-prompts = false",
       "codex = false",
       "cursor = false",
+      "declared-rules = false",
       "git-metadata = false",
       "shell = false",
       "",
@@ -69,10 +70,13 @@ test("migrates an existing config with git metadata disabled", async () => {
   const legacy = renderConfig(defaultConfig)
     .replace("agent-context = false\n", "")
     .replace("antigravity = false\n", "")
+    .replace("declared-rules = false\n", "")
     .replace("git-metadata = false\n", "");
   await Bun.write(configPath, legacy);
 
-  expect((await readConfig({ configPath })).sources["git-metadata"]).toBeFalse();
+  const migrated = await readConfig({ configPath });
+  expect(migrated.sources["declared-rules"]).toBeFalse();
+  expect(migrated.sources["git-metadata"]).toBeFalse();
 });
 
 test("migrates an existing config with Antigravity disabled", async () => {

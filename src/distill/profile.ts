@@ -73,6 +73,7 @@ export function profileRules(options: {
         createProfileRuleKey(),
       scope: "org",
       originDirectory: first.origin.directoryName,
+      repositoryName: null,
       source: "mined",
       status: "active",
       proposal: null,
@@ -82,6 +83,7 @@ export function profileRules(options: {
       lastSeen,
       sessions,
       origins,
+      importReference: null,
     };
   });
 }

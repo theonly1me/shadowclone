@@ -1,6 +1,13 @@
 import { z } from "zod";
 import type { ProfileEvidence } from "./types";
 
+const opaqueHashSchema = z.string().regex(/^[a-f0-9]{64}$/);
+
+export const profileImportReferenceSchema = z.object({
+  repositoryAliases: z.array(opaqueHashSchema).min(1),
+  sourceLocator: opaqueHashSchema,
+});
+
 const profileSourceSchema = z.enum([
   "declared",
   "imported",
@@ -19,13 +26,11 @@ const profileEvidenceSchema = z.object({
   against: z.array(z.string()),
 });
 
-export const profileRuleSchema = z.object({
+const profileRuleFieldsSchema = z.object({
   key: z.string().min(1),
   title: z.string(),
   body: z.string(),
   section: z.enum(["engineering", "workflow", "boundaries"]),
-  scope: z.enum(["global", "org"]),
-  originDirectory: z.string().nullable(),
   source: profileSourceSchema,
   status: profileStatusSchema,
   proposal: profileProposalSchema,
@@ -35,7 +40,30 @@ export const profileRuleSchema = z.object({
   lastSeen: z.string(),
   sessions: z.number().int().nonnegative(),
   origins: z.array(z.string()),
+  importReference: profileImportReferenceSchema.nullable().optional().default(null),
 });
+
+const profileRuleLocationSchema = z.discriminatedUnion("scope", [
+  z.object({
+    scope: z.literal("global"),
+    originDirectory: z.null(),
+    repositoryName: z.null().optional().default(null),
+  }),
+  z.object({
+    scope: z.literal("org"),
+    originDirectory: z.string().min(1),
+    repositoryName: z.null().optional().default(null),
+  }),
+  z.object({
+    scope: z.literal("project"),
+    originDirectory: z.string().min(1),
+    repositoryName: z.string().min(1),
+  }),
+]);
+
+export const profileRuleSchema = profileRuleFieldsSchema.and(
+  profileRuleLocationSchema,
+);
 
 export const profileMetadataSchema = z.object({
   schema: z.literal(1),
@@ -51,7 +79,11 @@ export const profileMetadataSchema = z.object({
   "last-seen": z.string(),
   sessions: z.number().int().nonnegative(),
   origins: z.array(z.string()),
-  scope: z.enum(["global", "org"]),
+  scope: z.enum(["global", "org", "project"]),
+  "import-reference": profileImportReferenceSchema
+    .nullable()
+    .optional()
+    .default(null),
   fingerprint: z.string().min(1),
 });
 

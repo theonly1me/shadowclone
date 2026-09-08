@@ -15,9 +15,14 @@ async function initializeWithAllSources(options: {
 }): Promise<void> {
   await initialize({
     ...options,
+    ask: (question) =>
+      question === "Import existing repository guidance?" ||
+      question === "Set up a seed profile instead?"
+        ? false
+        : options.ask(question),
     writeLine: options.writeLine ?? (() => {}),
     presence: {
-      hasRulesFile: true,
+      hasRepositoryGuidance: true,
       presentCaptureSources: new Set(onboardingCaptureSourceIds),
     },
   });
@@ -38,7 +43,7 @@ test("completes the wizard before filtered source consent", async () => {
     configPath: paths.configFile,
     workingDirectory: homeDirectory,
     presence: {
-      hasRulesFile: false,
+      hasRepositoryGuidance: false,
       presentCaptureSources: new Set(["claude-code"]),
     },
     library,
