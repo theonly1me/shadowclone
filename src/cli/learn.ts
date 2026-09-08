@@ -11,7 +11,6 @@ import {
   openEventIndex,
 } from "../index";
 import { initialize } from "./init";
-import { installLiveClone } from "./install";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import {
@@ -23,19 +22,9 @@ import type { ProfileRule } from "../profile";
 import { checkMarkerStaleness, deriveSignals } from "../signal";
 import type { GitRemoteReader } from "../signal";
 
-async function isGitWorkTree(cwd: string): Promise<boolean> {
-  const child = Bun.spawn({
-    cmd: ["git", "-C", cwd, "rev-parse", "--is-inside-work-tree"],
-    stdout: "ignore",
-    stderr: "ignore",
-  });
-  return (await child.exited) === 0;
-}
-
 export async function learn(options: {
   readonly configPath?: string;
   readonly databasePath?: string;
-  readonly targetDirectory?: string;
   readonly paths?: ProjectPaths;
   readonly readRemote?: GitRemoteReader;
   readonly deep?: boolean;
@@ -153,22 +142,6 @@ export async function learn(options: {
     console.log(renderMirror({ report: derived.report, networkCallsMade }));
     if (summary.rescannedFiles > 0) {
       console.log(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
-    }
-
-    const targetDirectory = options.targetDirectory ?? process.cwd();
-    if (await isGitWorkTree(targetDirectory)) {
-      try {
-        await installLiveClone({
-          cwd: targetDirectory,
-          paths,
-          readRemote: options.readRemote,
-          configPath: options.configPath,
-          managedConfigPath: options.managedConfigPath,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`Warning: failed to install clone hook: ${message}`);
-      }
     }
   } finally {
     index.close();
