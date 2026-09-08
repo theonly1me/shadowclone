@@ -39,7 +39,6 @@ export function resolveDispatchPolicy(
   const configured = input.configuredPolicy ?? {
     allow: [],
     maxBudgetUsd: 2,
-    requireCleanExit: true,
   };
   const repoAllowed =
     input.managedActionTier === "act" ? configured.allow : [];
@@ -78,7 +77,6 @@ export function resolveDispatchPolicy(
     disallowedTools,
     permissionMode: "dontAsk",
     maxBudgetUsd: configured.maxBudgetUsd,
-    requireCleanExit: configured.requireCleanExit,
     grantedActions,
     blockedActions,
   };

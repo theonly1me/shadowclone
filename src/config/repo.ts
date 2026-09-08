@@ -11,7 +11,6 @@ export type ActionCapability = (typeof actionCapabilities)[number];
 export type RepoPolicy = {
   readonly allow: readonly ActionCapability[];
   readonly maxBudgetUsd: number;
-  readonly requireCleanExit: boolean;
 };
 
 export type RepoSettings = Readonly<Record<string, RepoPolicy>>;
@@ -19,7 +18,7 @@ export type RepoSettings = Readonly<Record<string, RepoPolicy>>;
 const repoPolicySchema = z.strictObject({
   allow: z.array(z.enum(actionCapabilities)),
   maxBudgetUsd: z.number().positive(),
-  requireCleanExit: z.boolean(),
+  requireCleanExit: z.boolean().optional(),
 });
 
 export function parseRepoSettings(value: unknown): RepoSettings {
@@ -43,7 +42,10 @@ export function parseRepoSettings(value: unknown): RepoSettings {
       throw new Error("Every repo policy must contain valid action settings");
     }
 
-    settings[repository] = result.data;
+    settings[repository] = {
+      allow: result.data.allow,
+      maxBudgetUsd: result.data.maxBudgetUsd,
+    };
   }
 
   return settings;

@@ -5,7 +5,6 @@ import { resolveDispatchPolicy } from "./index";
 const configuredPolicy = {
   allow: ["push", "pr-draft"] as const,
   maxBudgetUsd: 3,
-  requireCleanExit: true,
 };
 
 test("normalizes a remote without storing credentials", () => {

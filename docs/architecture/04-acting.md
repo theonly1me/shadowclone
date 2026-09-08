@@ -26,7 +26,6 @@ Full delegation is the goal and an empty allowlist is the default. Invoking `sha
 [repo."github.com/atchyut/shadowclone"]
 allow = ["push", "pr-draft", "pr-reply"]
 maxBudgetUsd = 2.00
-requireCleanExit = true
 
 [repo."github.com/employer/platform"]
 allow = []

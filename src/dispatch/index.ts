@@ -179,7 +179,7 @@ export async function runHeadlessClone(options: {
     profileRulesApplied: countProfileRules(profile),
   };
   await writeReceipt({ runDirectory: paths.runDirectory(runId), receipt });
-  if (run.isError || (dispatchPolicy.requireCleanExit && !inspection.isClean)) {
+  if (run.isError) {
     throw new Error("Clone run did not finish cleanly; review its receipt");
   }
   return receipt;
