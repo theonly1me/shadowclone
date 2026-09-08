@@ -14,6 +14,12 @@ There is no unredacted path because producing a string is the gate. A future con
 
 This is a deliberate amendment to the rule in `data-handling`, not a second gate bolted on downstream. There is still exactly one gate. It moved from the collector's exit to the point where text comes into existence, which is strictly earlier and strictly narrower. `data-handling/SKILL.md` is updated in the same change so the two documents do not disagree.
 
+## Presence before consent
+
+Capture consent protects source content. Before consent, onboarding may determine whether a configured source root exists and is non-empty. It reduces the check to one ephemeral boolean so it can omit providers that have no local data from the questions it asks.
+
+The check does not collect entry names, open an entry, inspect metadata beyond what the boolean needs, or retain or log a path, name, count, timestamp, or provider-specific identifier. This reveals that a supported provider has local data on the machine, which is accepted because onboarding is about to ask whether to use that provider. A project slug, repository name, transcript name, and transcript content remain unread.
+
 ## No second copy
 
 Shadowclone does not copy transcripts. The index stores offsets, timestamps, tool names, and event kinds. The profile stores rules written about the user, not excerpts from them.
@@ -26,13 +32,13 @@ This makes the retention question much smaller than it was. There is no raw capt
 
 ## Sliced redaction
 
-Rather than replacing matched text with a generic placeholder, redaction uses sliced preservation. A match keeps its identifying prefix and loses its entropy. For example, AWS keys preserve `AKIA`, Stripe keys preserve `sk_live_`, and commit hashes preserve their first 7 characters. False positives remain readable in code snippets, which allows secret patterns to be greedy without destroying context.
+Rather than replacing every recognized provider token with a generic placeholder, redaction preserves only its public identifying prefix and removes the secret portion. For example, AWS keys preserve `AKIA` and Stripe keys preserve `sk_live_`. Generic hexadecimal and high-entropy tokens have no public prefix, so no matched characters survive.
 
 Home directory scrubbing uses anchored path-boundary replacement rather than naive global string replacement, preventing mangled substrings inside mounted paths or Windows paths.
 
 The secret rules cover provider API keys (OpenAI, Anthropic, Stripe, Google AI), GitHub tokens, Slack tokens, AWS access key IDs, JSON Web Tokens, PEM private key blocks, generic secret assignments (`KEY=`, `TOKEN=`, `PASSWORD=`), database URLs, Git remote credentials, IP addresses, internal hostnames, cloud resources, and Windows or Unix absolute paths.
 
-In addition to deterministic rules, candidate high-entropy tokens are evaluated through a Shannon entropy gate (>= 4.5 bits/char over candidates) to catch unstructured credentials that do not match provider-specific prefixes.
+In addition to deterministic rules, candidate high-entropy tokens are evaluated through a Shannon entropy gate (>= 4.5 bits/char over candidates) to catch unstructured credentials that do not match provider-specific prefixes. The whole matched token is removed.
 
 The property test that redaction is idempotent continues to hold, and an adversarial corpus tests both raw strings and production JSONL message envelopes.
 
@@ -50,7 +56,7 @@ Never eligible, at any setting: the content of any `tool_result`, file contents 
 
 ## What this protects against and what it does not
 
-**Protected.** Secrets reaching a model through the pipeline. Third-party data in tool results, which is never read. A second copy of your transcripts existing anywhere. Data leaving to any endpoint the project chose, because the project has no endpoint and no key. One organization's rules reaching another organization's session. Learning from a source you did not enable.
+**Protected.** Secrets reaching a model through the pipeline. Third-party data in tool results, which is never read. A second copy of your transcripts existing anywhere. Data leaving to any endpoint the project chose, because the project has no endpoint and no key. One owner's rules reaching another owner's session. Learning from the contents of a source you did not enable.
 
 **Not protected.** Anything already in the transcripts you keep. Shadowclone reads them, it does not create them, and deleting shadowclone does not delete them. The engine's own trust boundary, which is the one you accepted when you installed Claude Code or Codex. Someone with read access to your home directory, who could read the transcripts directly and does not need this tool.
 
@@ -72,6 +78,6 @@ The one that is easy to get wrong here: a file path from a transcript is capture
 shadowclone forget --all
 ```
 
-Removes `~/.shadowclone/` entirely: index, profile, checkpoints, receipts, and worktrees. It touches nothing it did not create, so transcripts, repos, and CLI configs are left alone. It prints what it removed by count and path, and it is in the README rather than only here.
+Removes `~/.shadowclone/` entirely: index, profile, checkpoints, receipts, and worktrees. It touches nothing outside that directory, so transcripts, repos, and CLI configs are left alone. Repository-local `.claude/agents/shadowclone.md`, `.claude/skills/shadowclone/SKILL.md`, and `.git/info/exclude` entries created by `shadowclone install` remain until uninstall support lands.
 
 `shadowclone forget --source claude-code` and `shadowclone forget --repo <name>` are narrower versions for people who want to keep most of a profile.

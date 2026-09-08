@@ -18,19 +18,19 @@ What already exists, checked in September 2026, and the gap shadowclone occupies
 
 **Research.** A study of 20,574 coding agent sessions across 1,639 repositories operationalizes misalignment as a breakdown made visible through developer pushback and finds that 91.49 percent of visible resolutions required explicit user correction. That is the density of the signal shadowclone mines, measured independently.
 
-## The gap
+## The product gap
 
-Five things none of the above does, evaluated against the current ecosystem.
+Shadowclone combines five capabilities that the reviewed tools separate.
 
-**Nobody reads the history.** Every learning system starts at zero on install. Native auto memory starts empty on day one. `tellonce` needs two months of daily use to reach 280 rules. The same machine already holds 994 interruptions and 445 denials in `~/.claude/projects/`, and shadowclone starts from there on the first run.
+**Historical cold start.** Native auto memory starts empty on day one, and `tellonce` learns from sessions after installation. The measured development corpus already holds 994 interruptions and 445 denials in `~/.claude/projects/`, and Shadowclone can start from that existing history on the first run.
 
-**Nobody learns across vendors.** This is the strongest structural gap. Lians and `tellonce` inject into several tools but learn per tool. A profile built from Claude Code, Codex, and Cursor transcripts together can only come from a third party on the machine, because no vendor will read a competitor's logs.
+**Cross-vendor learning.** Lians and `tellonce` inject into several tools but learn per tool. Shadowclone builds one local profile from enabled Claude Code, Codex, Cursor, and Antigravity sources.
 
-**Nobody scopes by organization.** Native memory scopes per project directory path on disk. It has no concept of employer or client boundaries, and no controls governing cross-repository rule promotion or isolation. Shadowclone scopes rules to the organization they originated from, preventing work habits from leaking across corporate boundaries.
+**Remote-owner scoping.** Native memory scopes by project directory path on disk. Shadowclone scopes rules to normalized `host/owner` identities and compiles one matching owner at a time. This is a coarse remote boundary, not proof of an employer or legal organization boundary.
 
-**Nobody compiles the person into dispatchable subagents.** Native auto memory maintains user and feedback notes for the current agent. Shadowclone compiles those steering moments into portable subagent definitions, dispatched in parallel to execute tasks with verified behavioral ceilings.
+**Dispatchable subagents.** Native auto memory maintains user and feedback notes for the current agent. Shadowclone compiles steering moments into a Claude subagent definition and can run a headless clone with provider-enforced tool permissions and a receipt. Host-enforced verification remains planned work.
 
-**Nobody runs on the subscription already paid for without vendor lock.** Hermes needs Nous Portal or keys. `mem0` runs a paid extraction model. Native auto memory is tied to one vendor. Shadowclone shells out to the authenticated CLI already on the machine across multiple providers, holding no API keys.
+**The user's existing subscriptions.** Hermes needs Nous Portal or keys. `mem0` runs a paid extraction model. Native auto memory is tied to one vendor. Shadowclone shells out to authenticated CLIs already on the machine and holds no API keys.
 
 ## What to borrow
 
@@ -40,6 +40,6 @@ The 20,574 session study's taxonomy, seven forms of misalignment covering how ag
 
 ## Positioning
 
-One sentence, and every clause maps to a row above: shadowclone is the only tool that builds a profile of how a developer actually works from the agent transcripts already on disk, across vendors, scoped to the organization each habit came from, compiled into subagents that run as copies of that developer on the subscription they already pay for.
+Shadowclone learns how a developer works from agent transcripts already on disk, combines enabled sources across vendors, scopes learned rules by remote owner, and compiles the result into agents that run through subscriptions the developer already pays for.
 
 The honest caveat is that the correction-mining category has 7 stars and one paper in it. That is an open field and an unproven market at the same time, and the 241.7k stars on Hermes are the evidence that the appetite for an agent that grows with its user is real.

@@ -77,7 +77,7 @@ The output is judged on one question: does it surprise the person it describes. 
 
 ## Files
 
-The layout is scoped by the organization a rule was learned from, because a rule learned in an employer's repo must not be injected into a session on someone else's. `07-enterprise.md` covers the boundary in full and this is the shape it produces.
+The layout is scoped by the remote owner a rule was learned from, because a rule learned under one employer or account must not be injected into a session under another. `normalizeRemoteOrigin` represents that boundary as `host/owner`. `07-enterprise.md` covers the boundary in full and this is the shape it produces.
 
 ```
 ~/.shadowclone/profile/
@@ -95,7 +95,7 @@ The layout is scoped by the organization a rule was learned from, because a rule
   .generated
 ```
 
-`.generated` holds rule ids and relative profile paths, never captured text. The writer needs that small manifest to tell a newly discovered rule from one the user deleted. Deleted ids move to `.rejected` and are not proposed again.
+`.generated` holds rule ids and relative profile paths, never captured text. The writer needs that small manifest to tell a newly discovered rule from one the user deleted. Deleted ids move to `.rejected`, and a generated rule with the same key is not written again. The current state cannot recognize a semantic paraphrase with a different key.
 
 | File | Holds |
 | --- | --- |
@@ -105,7 +105,7 @@ The layout is scoped by the organization a rule was learned from, because a rule
 | `boundaries.md` | What the user has denied and where the agent should ask. Advisory until denials identify the action. |
 | `projects/<repo>.md` | Per repo specifics that do not generalize. |
 
-A rule starts in the organization it was observed in. It moves to `global/` when it has been observed in two or more distinct organizations, because a habit that survives across employers belongs to the person, or when the user promotes it by hand. Compilation for a target repo reads `global/` plus the one matching organization directory and nothing else.
+A rule starts under the `host/owner` identity where it was observed. It moves to `global/` when it has been observed under two or more distinct owners, because a habit that survives across those boundaries belongs to the person, or when the user promotes it by hand. Compilation for a target repo reads `global/` plus the one matching owner directory and nothing else. Repository-specific profile files are supported under that owner at `projects/<repo>.md`, but mined rules currently target owner or global scope.
 
 ## Provenance
 
@@ -139,13 +139,13 @@ The profile compiles two ways. Into a system prompt, which `03-engine.md` covers
 
 Once it exists, the main session calls `Agent(subagent_type: "<name>")` and gets a copy of the user on a subtask. Ten of those on ten tasks is what the project is named after.
 
-Origin scoping applies at compile time here too. The subagent written into a repo's `.claude/agents/` carries `global/` rules plus that repo's organization and nothing else, so a subagent file committed to an employer's repo holds no rule learned anywhere but there.
+Origin scoping applies at compile time here too. The subagent written into a repo's `.claude/agents/` carries `global/` rules plus that repo's owner and matching project file, and nothing from another owner.
 
 ## Hand edits survive and scoped pruning
 
 The user editing their own profile is the point, so regeneration must never clobber it.
 
-The writer parses the existing file first. A rule the user edited is marked `pinned` and is carried forward verbatim with its observation count frozen. A rule the user deleted is recorded in `~/.shadowclone/profile/.rejected` and is not proposed again.
+The writer parses the existing file first. A generated block whose visible title or body no longer matches its stored fingerprint is treated as pinned and carried forward verbatim, including its existing metadata. A generated block removed from its file while its key remains in `.generated` moves to `~/.shadowclone/profile/.rejected`, which prevents that same key from being written again. Paraphrase-aware rejection requires the richer lifecycle record planned for reconciliation.
 
 Pruning is scoped by regeneration type: rules are only pruned if their specific source (`structural` or `semantic`) was regenerated during that run and the rule is absent from incoming generated rules. Offline structural refreshes (`learn`) never drop distilled rules, while deep distillation (`learn --deep`) refreshes semantic rules and prunes stale predecessors. Internal writes deduplicate rules across identical keys.
 

@@ -48,8 +48,11 @@ The profile section explains that editing generated visible text pins the block 
 | `docs/architecture/README.md` | Replace the ASCII pipeline with the maintained Mermaid architecture diagram |
 | `docs/architecture/01-capture.md` | Apply the content-based consent boundary to source discovery |
 | `docs/architecture/02-profile.md` | Clarify owner-level scope and the exact pin and rejection lifecycle |
+| `docs/architecture/03-engine.md` | Name the compiler's implemented `host/owner` boundary |
 | `docs/architecture/04-acting.md` | State the `git-metadata` prerequisite and the advisory verification behavior |
 | `docs/architecture/05-privacy.md` | Record the consent amendment and its accepted disclosure |
+| `docs/architecture/07-enterprise.md` | State that remote-owner scope is a coarse technical boundary rather than an inferred employer |
+| `docs/architecture/08-landscape.md` | Replace exclusive positioning and unenforced verification claims with the capabilities Shadowclone combines |
 
 ## Data handling
 
@@ -75,9 +78,9 @@ The README will change again as reconciliation, uninstall, and host-enforced ver
 
 ## Testing
 
-Verify every capability cell against `src/provider/registry.ts`, `src/cli/transferEval.ts`, the Claude plugin, and the dispatch engine requirements. Verify scope claims against `normalizeRemoteOrigin`, `normalizeRemoteRepository`, `profileRulePath`, `allowedProjectFile`, and repository policy lookup. Verify lifecycle claims against `parseProfileBlocks` and `writeProfile`. Verify the wipe limitation against `installLiveClone` and `forgetAll`.
+Every capability cell was verified against `src/provider/registry.ts`, `src/cli/transferEval.ts`, the Claude plugin, and the dispatch engine requirements. Scope claims were verified against `normalizeRemoteOrigin`, `normalizeRemoteRepository`, `profileRulePath`, `allowedProjectFile`, and repository policy lookup. Lifecycle claims were verified against `parseProfileBlocks` and `writeProfile`. The wipe limitation was verified against `installLiveClone` and `forgetAll`.
 
-Run `bun run check` after all documentation changes. No runtime regression test or mutation step applies because this PR changes no executable behavior. Scan every changed prose file for em dashes and render the Mermaid diagram in GitHub's parser through the pull request view.
+`bun run check` passes with TypeScript, Biome, 409 convention-checked files, and 230 tests with 1,260 assertions. The changed prose contains no em dash, and the Mermaid source uses GitHub's supported flowchart syntax. No runtime regression test or mutation step applies because this PR changes no executable behavior. The pull request view supplies the final rendered-diagram check.
 
 ## Open questions
 

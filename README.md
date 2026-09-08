@@ -1,24 +1,24 @@
 # shadowclone
 
-Memory and alignment compiler for AI coding agents.
+Teach your coding agents to work the way you do.
 
-Shadowclone reads historical coding sessions already on your disk (Claude Code, Codex, Cursor), mines your steering habits without sending raw transcripts to any server, and compiles an editable profile into the agents you already use.
+Shadowclone learns how you work from the AI coding sessions already on your disk, then compiles an editable profile for the agents you already use. The goal is a clone that can reason about work and carry it out the way you would.
 
-Developers who install the profile see a measurable action delta against unprofiled runs on their held-out corpus: the agent stops asking for confirmations you never gave, runs the tests you run, and avoids the tools you refuse.
+Today it observes enabled Claude Code, Codex, Cursor, and Antigravity transcripts, finds steering signals, writes a local Markdown profile, and can run an evaluation that compares profiled and unprofiled behavior. The next milestone reconciles instructions you wrote with corrections you made during real work. No measured outcome is published yet.
 
-Verify the delta directly on your own machine:
+Run the evaluation instrument on your own corpus:
 
 ```bash
 shadowclone eval --sessions 10
 ```
 
-## Architectural scope: what shadowclone is and is not
+## What Shadowclone is
 
 **Not an agent runtime.**
 Shadowclone does not provide an LLM chat loop, an autonomous worker daemon, or an IDE extension. It compiles behavioral profiles and subagents for the agent CLIs you already install, authenticate, and pay for.
 
-**A memory and alignment compiler.**
-Every turn where you interrupted an agent, refused a tool, corrected a proposal, or chose one implementation over another is an alignment signal. Shadowclone indexes those moments locally and distills them into plain markdown rules scoped by repository origin.
+**A behavioral profile compiler.**
+Every turn where you interrupted an agent, refused a tool, corrected a proposal, or chose one implementation over another is evidence about how you work. Shadowclone indexes those moments locally and distills them into plain Markdown rules scoped by the remote owner they came from.
 
 ## The pipeline
 
@@ -34,11 +34,24 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch / eval
 | index | `src/index/` | Rebuildable SQLite cache of byte offsets and event kinds, never text |
 | signal | `src/signal/` | Detects interruptions, plan changes, and tool refusals in pure code |
 | distill | `src/distill/` | Distills high-signal moments into rules via your installed agent CLI |
-| profile | `src/profile/` | Plain markdown rules and subagents scoped to git origins |
+| profile | `src/profile/` | Plain Markdown rules and subagents scoped to remote owners |
 | dispatch | `src/dispatch/` | Executes unattended tasks on isolated worktrees with receipts |
 | eval | `src/eval/` | Replays historical prompts through baseline vs clone to score behavioral deltas |
 
 Model calls run through `claude`, `codex`, or `cursor-agent`. There is no shadowclone API key, no telemetry, and no hosted server.
+
+## Capability matrix
+
+Implementation support is tracked separately for each use. A provider appearing in one column does not imply support in another.
+
+| Provider | Observe | Deep distill | Live clone | Headless dispatch | Transfer eval |
+| --- | --- | --- | --- | --- | --- |
+| Claude Code | yes | yes | yes | yes | yes |
+| Codex | yes | yes | no | no | yes |
+| Cursor | yes | yes | no | no | no |
+| Antigravity | yes | no | no | no | no |
+
+`shadowclone doctor` checks installed and authenticated engines. Real provider corpora, plugin installation, and authenticated engine runs remain manual verification steps.
 
 ## Quickstart
 
@@ -62,7 +75,9 @@ shadowclone init
 
 Every source is off until it is enabled here, and two of them read files that are not transcripts:
 
-- **`git-metadata`** reads the git remote origin of a working directory, so rules can be scoped to the organization they were learned from. Without it every directory is treated as its own isolated origin.
+Before consent, onboarding may check whether a configured source root exists and is non-empty. It keeps only that boolean so it can omit absent providers from its questions. It does not collect entry names, open an entry, or retain or log a source path, name, count, timestamp, or provider identifier.
+
+- **`git-metadata`** reads the git remote origin of a working directory, so rules can be scoped to the `host/owner` they were learned from. Without it every directory is treated as its own isolated origin.
 - **`agent-context`** reads the user's own `CLAUDE.md` or `AGENTS.md`, their skill markdown, and their agent memory directory. It exists so a transfer evaluation can freeze the same setup for both arms, and it is read only by `shadowclone eval`. Contents pass through redaction before they are written into a snapshot.
 
 Index your historical sessions and build your profile:
@@ -90,6 +105,8 @@ shadowclone install
 ```
 
 This writes `.claude/agents/shadowclone.md` and excludes it from git tracking.
+
+The profile is yours to correct. Editing the visible text of a generated block pins it, so later learning preserves your version verbatim. Deleting a generated block records its key in `.rejected`, so that exact generated rule is not written again. Paraphrase-aware rejection is part of the reconciliation milestone and is not implemented yet.
 
 ## Transfer evaluation
 
@@ -119,9 +136,17 @@ Execute tasks in an isolated git worktree without touching your working tree:
 shadowclone run "fix the flaky test in src/auth.test.ts"
 ```
 
-The default dispatch mode creates a local worktree and branch, runs verification checks, and commits locally without pushing.
+The default dispatch mode creates a local worktree and branch, permits the agent to run verification commands detected from project manifests, and commits a successful engine result locally without pushing. Shadowclone does not yet prove that the agent ran those checks.
 
 Remote actions (push, open PR) require both a repository ceiling in `~/.shadowclone/config.toml` and an explicit per-run approval flag:
+
+```toml
+[repo."github.com/acme/project"]
+allow = ["push", "pr-draft"]
+maxBudgetUsd = 2.00
+```
+
+Repository ceilings use the full `host/owner/repository` identity and require the `git-metadata` source. Without that consent, the working directory receives an isolated identity and cannot match this entry.
 
 ```bash
 shadowclone run "prepare release notes" --approve push
@@ -143,12 +168,14 @@ Tokens of 24 characters or more that reach 4.5 bits of entropy per character are
 **Third-party tool results are excluded.**
 Distillation inputs allowlist user prompts and developer steering corrections. Tool outputs from database queries, log dumps, and file reads are excluded by category rather than relying on regex filtering.
 
-**Single-command wipe.**
-Wipe the entire local index, profile, checkpoints, and receipts:
+**Shadowclone home wipe.**
+Remove the local index, profile, checkpoints, receipts, and worktrees under `~/.shadowclone/`:
 
 ```bash
 shadowclone forget --all
 ```
+
+Repository-local `.claude/agents/shadowclone.md`, `.claude/skills/shadowclone/SKILL.md`, and `.git/info/exclude` entries created by `shadowclone install` remain until uninstall support lands.
 
 ## Enterprise governance
 

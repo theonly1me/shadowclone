@@ -12,7 +12,7 @@ Three mechanisms address it, and they are independent, so defeating one does not
 
 ## 1. Origin scoping
 
-Every rule records the git remote origins it was learned from. Compilation for a target repo includes only rules whose origin matches that repo's organization, plus rules that have been promoted to global.
+Every rule records the git remote origins it was learned from. The implementation uses normalized `host/owner` as the boundary. On GitHub that owner can be an organization or a personal account, and Shadowclone does not infer a legal employer or enterprise boundary. Compilation for a target repo includes only rules whose owner matches that repo, plus rules that have been promoted to global.
 
 ```
 ~/.shadowclone/profile/

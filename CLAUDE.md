@@ -54,9 +54,9 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 ## The rules that outrank convenience
 
 - **One egress gate.** `redactSecrets` is the only thing between captured text and the network. It lives inside `resolveRedacted`, the only exported function that turns a `TextRef` into a string, so bypassing it takes a new file reader rather than a forgotten call. Never add a second gate downstream as a safety net, and never route around it.
-- **Every capture source is opt-in.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. It needs a flag defaulting to off and a README entry in the same change. A disabled source is never opened, not even to check whether it exists.
+- **Every capture source is opt-in for its contents.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. It needs a flag defaulting to off and a README entry in the same change. Before consent, onboarding may reduce a configured source root to one ephemeral boolean stating that it exists and is non-empty. It never collects entry names, opens an entry, or retains or logs a path, name, count, timestamp, or provider identifier.
 - **Never distil tool results.** The content of any `tool_result`, file contents from Read, Edit, or Write, thinking blocks, and every data-access result never enter the distillation path. Excluded by category, not redacted. `docs/architecture/07-enterprise.md` says why.
-- **Rules stay inside the organization they were learned from.** A rule carries the git remote it came from and compiles only into sessions on that organization's repos, or into `global/` once seen across two organizations. Never pool across organizations.
+- **Rules stay inside the remote owner they were learned from.** A rule carries the git remote it came from and compiles only into sessions under that `host/owner`, or into `global/` once seen under two owners. Never pool across owners.
 - **Never log raw capture.** Log counts, sizes, hashes, and source names. A transcript path names the user's employer in its slug, so log the source name and the offset instead. An error message that interpolates captured text ends up in a crash reporter.
 - **Acting needs per-action approval.** Observing, deriving, and drafting run unattended. Anything that sends, posts, commits, pushes, deletes, or spends asks first, every time, gated per repo. `bypassPermissions` and `--dangerously-skip-permissions` are never passed at any tier.
 
@@ -125,7 +125,8 @@ Spawning a real agent CLI is a manual verification step, never a unit test. The 
 - `docs/architecture/` holds the shape of the system and the reasoning behind each decision. `07-enterprise.md` is for whoever approves this at a company, `08-landscape.md` is what already exists elsewhere.
 - `docs/design/001-agent-transcript-pivot.md` moved capture from shell history to agent session transcripts, replaced the API key with the user's own agent CLI subscription, and compiled the profile into a subagent. Phases 0 through 5 implement it.
 - `docs/design/003-provider-expansion.md` adds reviewed provider metadata and one qualified provider at a time. Phase 6 is implemented and Phase 7 is next.
-- `docs/design/` holds design docs, one file per change, written against `docs/design/template.md`.
+- `docs/design/` holds design docs, one file per change, written against `docs/design/template.md` and listed chronologically in `docs/design/README.md`. Write the design record before implementation, then finalize its decisions and validation before presenting the PR.
+- Every PR assesses documentation impact and updates only the documents affected by its behavior or decisions. Update the Mermaid diagram in `docs/architecture/README.md` when a stage, dependency, trust boundary, or execution path changes.
 - `CONTRIBUTING.md` is for humans.
 
 ## Git
