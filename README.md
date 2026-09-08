@@ -98,6 +98,8 @@ To enable deep distillation through your authenticated agent CLI:
 shadowclone learn --deep
 ```
 
+One deep-learning invocation can attempt at most 20 model calls over five minutes. Extraction and merge share that allowance. Claude also receives a cumulative $2 ceiling. Codex and Cursor do not support a dollar-budget flag, so Shadowclone omits it and keeps their runs bounded by calls and time. Completed checkpoints let the next invocation resume unfinished work.
+
 Install the compiled profile into the current repository:
 
 ```bash

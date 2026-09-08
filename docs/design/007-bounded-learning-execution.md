@@ -116,9 +116,11 @@ A Codex learning runner test uses a one-call limit, confirms the first request h
 
 A deadline test uses a runner that does not settle and proves the coordinator aborts and returns the fixed deadline error. A distillation test creates more than one extraction batch with a one-call allowance, confirms only the first runner invocation occurs, and confirms the second batch fails with the call-limit error.
 
-The Claude isolation test first runs against the current argument builder and fails because project settings remain enabled and `--tools ""` is absent. The Codex budget and distillation ceiling tests first run against the current direct-runner path and fail because `maxBudgetUsd` is forwarded and every batch starts. After implementation, mutate each enforcing branch, print the changed lines, and rerun the focused test to prove it fails for the intended reason.
+The Claude isolation test first ran against the previous argument builder and received `user,project` instead of empty setting sources. The extraction-ceiling test first resolved successfully instead of rejecting before its second batch. These failures established both defects before implementation.
 
-Run `bun run check` after focused tests. Inspect all new `Bun.spawn`, `Bun.write`, errors, and console calls to confirm their payloads and the position of the redaction gate.
+Mutation changed Claude's empty tool value to `default`, and the isolation test received `default` instead of an empty tool list. Mutation weakened `callsUsed >= maximumCalls` to `callsUsed > maximumCalls`, and both the coordinator and distillation tests observed a second underlying call. Mutation treated every provider as dollar-budget capable, and the Codex test failed because its null cost could no longer satisfy the contract. Mutation delayed the deadline by one second, and the hanging-runner test resolved instead of rejecting. Each mutated line was printed before its test, and restoring each line returned the focused suite to green.
+
+`bun run check` passes with TypeScript, Biome over 212 files, 425 convention-checked files, and 245 tests with 1,316 assertions. The architecture overview Mermaid diagram was reviewed and remains accurate because the change strengthens the contract between the existing distill and engine nodes without adding a stage, data store, trust boundary, or execution edge.
 
 ## Open questions
 

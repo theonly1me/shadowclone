@@ -1,4 +1,9 @@
-import type { EngineRunner } from "../engine";
+import {
+  createLearningExecution,
+  type EngineId,
+  type EngineRunner,
+  type LearningExecutionLimits,
+} from "../engine";
 import type { IndexedEvent } from "../index";
 import type { ProfileRule } from "../profile";
 import type { CorrectionSignal } from "../signal";
@@ -21,7 +26,7 @@ export {
 
 export type DistillationResult = {
   readonly rules: readonly ProfileRule[];
-  readonly engineRuns: number[];
+  readonly engineRuns: number;
 };
 
 function structuredValue(run: {
@@ -41,13 +46,18 @@ function structuredValue(run: {
 export async function distillSignals(options: {
   readonly signals: readonly CorrectionSignal[];
   readonly runner: EngineRunner;
+  readonly engine: EngineId;
+  readonly limits?: LearningExecutionLimits;
   readonly workingDirectory: string;
   readonly checkpointDirectory: string;
-  readonly maxBudgetUsd?: number;
   readonly events: readonly IndexedEvent[];
-}): Promise<{ readonly rules: readonly ProfileRule[]; readonly engineRuns: number }> {
+}): Promise<DistillationResult> {
+  const execution = createLearningExecution({
+    engine: options.engine,
+    runner: options.runner,
+    limits: options.limits,
+  });
   const rules: ProfileRule[] = [];
-  let engineRuns = 0;
   const signals = allowlistedSignals({
     signals: options.signals,
     events: options.events,
@@ -64,15 +74,14 @@ export async function distillSignals(options: {
     }
 
     const prompt = await buildDistillPrompt({ signals: batch.signals });
-    const run = await options.runner({
+    const run = await execution.runner({
       prompt,
       cwd: options.workingDirectory,
+      execution: { purpose: "learning" },
       allowedTools: [],
       permissionMode: "dontAsk",
-      maxBudgetUsd: options.maxBudgetUsd,
       outputSchema: distillationOutputSchema,
     });
-    engineRuns += 1;
     if (run.isError) {
       throw new Error("The agent engine failed during distillation");
     }
@@ -97,24 +106,16 @@ export async function distillSignals(options: {
       continue;
     }
 
-    let didMerge = false;
     const mergedRaw = await mergeDistilledRules({
       rules: originRules.map((r) => ({
         title: r.title,
         body: r.body,
         section: r.section,
       })),
-      runner: async (opts) => {
-        didMerge = true;
-        return options.runner(opts);
-      },
+      runner: execution.runner,
       cwd: options.workingDirectory,
-      maxBudgetUsd: options.maxBudgetUsd,
       checkpointDirectory: options.checkpointDirectory,
     });
-    if (didMerge) {
-      engineRuns += 1;
-    }
 
     const originSignals = signals.filter(
       (s) => s.origin.directoryName === originDirectory,
@@ -128,5 +129,5 @@ export async function distillSignals(options: {
     );
   }
 
-  return { rules: finalRules, engineRuns };
+  return { rules: finalRules, engineRuns: execution.callsUsed() };
 }

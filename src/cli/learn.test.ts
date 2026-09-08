@@ -140,6 +140,7 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
     paths,
     deep: true,
     runner,
+    engine: "claude-code",
     managedConfigPath: null,
   });
   expect(engineRuns).toBe(1);

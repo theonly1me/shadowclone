@@ -157,6 +157,6 @@ The richer rejection record makes semantic matching possible but does not perfor
 
 Deep distillation runs against the user's own subscription quota, which is a real and exhaustible resource. It is designed around that from the start rather than after the first angry issue.
 
-Work is batched, and every batch and merge step is checkpointed to `~/.shadowclone/distill/` before the next one starts. A rate limit or a closed laptop costs one batch, not the run. The default model is a cheap tier, since extracting a rule from a pre-filtered correction pair does not need a frontier model. Action is where the good model earns its cost.
+Work is batched, and every batch and merge step is checkpointed to `~/.shadowclone/distill/` before the next one starts. One learning execution owns extraction and merge, with a default limit of 20 attempted calls and five minutes. Claude also receives a cumulative $2 ceiling. Codex and Cursor are bounded by calls and time because they cannot enforce a dollar flag. A stopped run keeps completed checkpoints and resumes from unfinished work.
 
-`shadowclone learn --deep` prints what it is about to spend before it spends it.
+`shadowclone learn --deep` prints the batch count and the applicable execution limits before the first model call.

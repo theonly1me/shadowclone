@@ -19,12 +19,19 @@ export {
   probeCommand,
   type CommandProbe,
 } from "./detect";
+export {
+  createLearningExecution,
+  defaultLearningExecutionLimits,
+  type LearningExecution,
+  type LearningExecutionLimits,
+} from "./learning";
 export { parseClaudeStream } from "./parseClaude";
 export { parseCodexStream } from "./parseCodex";
 export { parseCursorStream } from "./parseCursor";
 export type {
   EngineAction,
   EngineAvailability,
+  EngineExecution,
   EngineId,
   EngineRun,
   EngineRunner,

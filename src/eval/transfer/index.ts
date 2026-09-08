@@ -116,6 +116,7 @@ export async function runTransferEval(
             ...training,
             events,
             call,
+            engine: setup.engine,
             directory: controlDirectory,
           }),
       });

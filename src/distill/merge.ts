@@ -23,7 +23,6 @@ export async function mergeDistilledRules(options: {
   readonly rules: readonly DistilledRule[];
   readonly runner: EngineRunner;
   readonly cwd: string;
-  readonly maxBudgetUsd?: number;
   readonly checkpointDirectory?: string;
 }): Promise<readonly DistilledRule[]> {
   if (options.rules.length <= 1) {
@@ -71,10 +70,10 @@ export async function mergeDistilledRules(options: {
   const run = await options.runner({
     prompt,
     cwd: options.cwd,
+    execution: { purpose: "learning" },
     allowedTools: [],
     permissionMode: "dontAsk",
     outputSchema,
-    maxBudgetUsd: options.maxBudgetUsd,
   });
 
   if (run.isError) {
