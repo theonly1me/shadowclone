@@ -8,11 +8,11 @@ It is a directory of markdown at `~/.shadowclone/profile/`. You can read it, edi
 
 The package keeps profile preferences and Agent Skills separate because they serve different purposes.
 
-Eight concise preferences under `preferences/` record choices across dependency posture, planning threshold, question frequency, and refactor tolerance. Ten Agent Skills under `skills/<name>/SKILL.md` carry routing descriptions, task-specific process, guardrails, and completion evidence. Testing approach is the one skill axis; the other eight skills are independently selectable.
+Each skill is Markdown with strict frontmatter for its stable id, title, optional axis, category, target profile section, and applicability. Its visible content uses the same heading and body shape as a profile rule. `shadowclone skills` lists the library without reading or writing the user's profile.
 
-The comment-policy axis is absent. A repository's comment practice belongs in imported rules and learned evidence rather than a global seed choice.
+`shadowclone init` runs the seed wizard before capture consent when the working directory has no detected rules file. `shadowclone wizard` reruns only those profile choices. Each selected skill becomes an active global declared rule under the stable key `seed:<skill-id>` after the wizard prints all selected titles and receives confirmation.
 
-`shadowclone skills` lists both forms without reading or writing the user's profile. A later setup flow will let the user select guidance and persist it as declared profile records, so package content remains upstream of the editable profile.
+An identical rerun produces the same profile. Choosing a sibling retires the prior unedited axis rule. Editing a seed rule transfers ownership to the user, and deleting one records a rejection, so later wizard runs preserve both decisions. Imported, mined, and manual rules remain outside the seed lifecycle.
 
 ## Two tiers
 

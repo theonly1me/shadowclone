@@ -6,7 +6,7 @@ Make `shadowclone init` establish a declared behavioral profile before it asks f
 
 ## Problem
 
-The current `initialize` writes a disabled config, asks nine yes-or-no questions, and writes the selected config. It asks about all six capture sources even when they have no local data, and a successful first run leaves the user with no behavioral profile unless enough transcript evidence later produces one.
+Before this change, `initialize` wrote a disabled config, asked nine yes-or-no questions, and wrote the selected config. It asked about all six capture sources even when they had no local data, and a successful first run left the user with no behavioral profile unless enough transcript evidence later produced one.
 
 PR 5 supplies six skill axes and seven disciplines, but no command selects them or turns them into declared profile records. A user can inspect the library, yet the main onboarding entry point still begins with data access questions before showing what the product will build.
 
@@ -56,7 +56,8 @@ After consent, `init` prints the existing completion message. When at least one 
 | `src/cli/onboardingPresence.ts` | Reduce fixed rules and source roots to ephemeral booleans |
 | `src/cli/onboardingPresence.test.ts` | Prove exact-name detection, empty-root handling, and source mapping |
 | `src/cli/wizard.ts` | Derive questions, parse closed choices, confirm titles, and update the profile |
-| `src/cli/wizard.test.ts` | Prove confirmation, idempotence, selection changes, and user-edit preservation |
+| `src/cli/wizard.test.ts` | Prove closed choice parsing, confirmation, and idempotence |
+| `src/cli/wizardLifecycle.test.ts` | Prove selection changes, rejection, and user-edit preservation |
 | `src/skills/profile.ts` | Map seed skills to stable declared records and prepare lifecycle changes |
 | `src/skills/index.ts` | Export the profile-selection boundary |
 | `src/profile/index.ts` | Export generated state needed to distinguish selected seed records |
@@ -101,15 +102,15 @@ Stable `seed:` keys bind declared seed rules to registry identity. Free-form use
 
 ## Testing
 
-Add an initialization test before implementation that supplies only one present provider and expects the first consent question after the eight wizard decisions. It must fail because current `initialize` asks Antigravity first and has no wizard.
+The initialization regression test was added before implementation with only Claude Code present. It failed because `initialize` asked for Antigravity consent before any wizard decision. The completed test proves all seven selection prompts and profile confirmation occur before the one relevant provider question, while absent providers are omitted.
 
-Use scratch directories with secret-bearing entry and rules filenames to prove the public presence result contains only a boolean and known source ids. Mutate the directory result to `false`, print the changed line, and confirm the source-presence test fails.
+Scratch-directory tests use secret-bearing entry and rules filenames and prove the public presence result contains only `hasRulesFile` and known source ids. Reversing the one-entry directory predicate made a populated Claude root disappear and an empty Codex root appear, causing two focused failures. Restoring the predicate returned the suite to green.
 
-Add parser fixtures for `0`, `1e0`, duplicate choices, mixed `all`, unknown ids, and partial labels. Mutate the closed-set membership check, print the changed line, and confirm an invalid response is accepted and the test fails.
+Parser fixtures reject `0`, `1e0`, duplicate choices, mixed `all`, unknown ids, and partial labels. Mutating the closed-set branch to return the first skill accepted `0` and failed the parser test. Restoring the branch returned the suite to green.
 
-Add profile integration tests for a declined confirmation producing no files, identical reruns producing identical files, an unedited sibling being retired, a deleted selection remaining rejected, and an edited block remaining verbatim. Mutate the confirmation guard and the retirement filter separately to prove the tests fail for their intended reasons.
+Profile integration tests prove a declined confirmation produces no files, identical reruns produce the same six rules, an unedited sibling is retired, a deleted selection remains rejected, and an edited block remains verbatim. Bypassing confirmation failed the no-write assertion. Bypassing the retirement filter left both axis siblings active and failed the lifecycle assertion. Both suites passed after restoration.
 
-Run `bun run check` and a built CLI smoke test for `wizard`. The manual smoke test uses a scratch home and confirms the printed titles appear before any source consent question.
+`bun run check` passes 260 tests with 1,387 assertions after TypeScript, Biome, and repository convention checks. `bun run build` produces the production bundle. The bundled `wizard` command accepted all seven selection responses, printed the six selected titles, reached confirmation, and printed `Profile unchanged.` when the write was declined. The bundled help output lists `wizard` as a supported command.
 
 ## Open questions
 

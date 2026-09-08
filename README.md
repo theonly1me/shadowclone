@@ -73,22 +73,30 @@ Inspect the seed guidance available for onboarding:
 shadowclone skills
 ```
 
-The library separates eight short profile preferences from ten complete Agent Skills. Preferences record choices such as planning threshold and question frequency. Skills provide task-specific processes, guardrails, and completion criteria for testing, diagnosis, research, design, conflict resolution, scoped changes, TypeScript, and final verification.
+The library contains six groups of mutually exclusive choices and seven independent disciplines. It is readable package content, and listing it does not inspect or change your profile. Onboarding asks for one choice from each group and an explicit set of disciplines.
 
-Agent Skills use the standard `skills/<name>/SKILL.md` layout with routing descriptions. The strict zero-comment rule from this repository is not a general onboarding option. Listing package guidance does not inspect or change your profile, and the setup flow that selects it lands in the next milestone.
-
-Grant consent for desired transcript sources:
+Build a declared profile, then grant consent for desired sources and capabilities:
 
 ```bash
 shadowclone init
 ```
 
-Every source is off until it is enabled here, and two of them read files that are not transcripts:
+When the working directory has no `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`, `init` runs the profile wizard first. It prints every selected title and asks for confirmation before writing the profile. When one of those exact rules files exists, `init` reports its presence and leaves it unread. Capture consent always comes after this profile step.
 
-Before consent, onboarding may check whether a configured source root exists and is non-empty. It keeps only that boolean so it can omit absent providers from its questions. It does not collect entry names, open an entry, or retain or log a source path, name, count, timestamp, or provider identifier.
+Only transcript and history sources with a non-empty configured root receive a consent question. Every source remains off until it is enabled here. Two additional capabilities read files that are neither transcripts nor history:
+
+Before consent, onboarding may check whether a configured source root exists and is non-empty. It keeps only that boolean so it can omit absent providers from its questions. It does not retain or log a source path, entry name, count, timestamp, size, or provider-derived identifier.
 
 - **`git-metadata`** reads the git remote origin of a working directory, so rules can be scoped to the `host/owner` they were learned from. Without it every directory is treated as its own isolated origin.
 - **`agent-context`** reads the user's own `CLAUDE.md` or `AGENTS.md`, their skill markdown, and their agent memory directory. It exists so a transfer evaluation can freeze the same setup for both arms, and it is read only by `shadowclone eval`. Contents pass through redaction before they are written into a snapshot.
+
+Rerun only the profile choices at any time:
+
+```bash
+shadowclone wizard
+```
+
+The rerun preserves edited rules and prior deletions. Confirming a different option retires the unedited seed rule it replaces. It does not repeat capture consent.
 
 Index your historical sessions and build your profile:
 
@@ -212,7 +220,8 @@ Managed policies act as an absolute ceiling. Users cannot enable unapproved sour
 ## CLI commands
 
 ```bash
-shadowclone init                                 # Configure source consent and capabilities
+shadowclone init                                 # Choose a profile, then configure consent
+shadowclone wizard                               # Rerun declared profile choices
 shadowclone skills                               # List packaged behavioral dispositions
 shadowclone learn [--deep] [--dry-run]           # Index sessions and synthesize rules
 shadowclone doctor                               # Inspect active paths, engines, and policies

@@ -14,7 +14,7 @@ Every source is opt-in, named in the config, and listed in the README. The confi
 | `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization scope only, never repository contents |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | Captured as user prompts, no correction signals |
 
-Capture consent protects content. Before consent, onboarding may determine whether a configured source root exists and is non-empty, then use that one ephemeral boolean to omit absent providers from its questions. It does not collect entry names, open an entry, inspect metadata beyond what the boolean needs, or retain or log a path, name, count, timestamp, or provider-specific identifier.
+Capture consent protects content. Before consent, onboarding may determine whether a configured source root exists and is non-empty, then use that one ephemeral boolean to omit absent providers from its questions. Directory checks use `opendir`, read at most one entry, reduce the result immediately to a boolean, and close the directory. File checks reduce existence and non-zero size to the same boolean. The check does not retain or log a path, entry name, count, timestamp, size, or provider-derived identifier.
 
 Reading any source content remains opt-in. A new file, a wider slice of an existing file, or contents where only names were previously read is a new source with its own flag defaulting to off and a README entry in the same change.
 

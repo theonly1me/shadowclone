@@ -24,6 +24,8 @@ Per-change design docs live in `docs/design/`, one file per change, written agai
 
 ```mermaid
 flowchart LR
+    Skills[seed skill library] --> Onboarding[onboarding]
+    Onboarding --> Profile[profile]
     Sources[Enabled local sources] --> Observe[observe]
     Observe --> Index[index]
     Index --> Signal[signal]
@@ -41,6 +43,8 @@ flowchart LR
 
 | Stage | Module | What it does |
 | --- | --- | --- |
+| skills | `src/skills/` | Defines package-owned choices for a declared starting profile |
+| onboarding | `src/cli/init.ts`, `src/cli/wizard.ts` | Selects declared rules before collecting source consent |
 | observe | `src/observe/` | Normalizes agent transcripts into one event stream |
 | index | `src/index/` | A rebuildable SQLite cache of pointers and skeletons |
 | signal | `src/signal/` | Derives behavior in pure code, no model, no network |
