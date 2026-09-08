@@ -1,111 +1,119 @@
-# Seed skill library
+# Seed guidance library
 
 ## Summary
 
-Ship 20 readable behavioral skills as package-owned Markdown, validate them as one typed library, and expose the library through `shadowclone skills`. The library gives the next onboarding change a finite set of user-selectable dispositions without replacing the editable profile format.
+Ship eight concise profile preferences and ten complete Agent Skills as package-owned Markdown. Validate both forms as one typed seed library and expose them through `shadowclone skills` without treating a preference sentence as a skill.
 
 ## Problem
 
-Shadowclone can persist declared profile rules, but it has no starting vocabulary for a user who has not written agent instructions. The planned wizard therefore has nothing stable to present, axis conflicts have no named alternatives, and malformed packaged guidance would fail only after installation.
+Shadowclone needs useful starting behavior for a user who has no existing agent instructions. The first implementation put 20 flat Markdown files under `skills/`, and each file contained one profile-shaped paragraph. Those paragraphs could express a preference, but they did not give an agent a repeatable method for completing a task.
 
-The current package publishes `bin`, `dist`, plugin metadata, and top-level documentation. It does not publish behavioral content or expose a command that lets a user inspect what a later wizard can install.
+The first library also promoted this repository's zero-comment convention into a general onboarding choice. That convention is unusually strict, and the two alternatives in the same axis were compatible with each other rather than mutually exclusive. The resulting question did not represent a sound general preference axis.
 
 ## Prerequisites
 
-PR 3 provides the persistent profile fields that seed skills map to, including `source`, `status`, and `applies-when`. Without that schema, selecting a skill would require a second representation or would discard its applicability.
-
-PR 4 isolates model-backed learning. The seed library itself is offline, but later reconciliation compares its declared rules with learned evidence under that execution contract.
+PR 3 provides persistent profile fields for declared guidance, including `source`, `status`, and `applies-when`. PR 4 isolates model-backed learning. The seed library itself stays offline and package-owned.
 
 ## Design
 
-The repository gains exactly 20 Markdown files under `skills/`. Each document contains YAML frontmatter followed by one profile-shaped block. The visible heading must equal the frontmatter title and the filename must equal `<id>.md`.
+The library has two explicit kinds of guidance.
 
-```markdown
----
-id: comments-none
-title: Write no comments
-axis: comment-policy
-category: communication
-section: engineering
-applies-when:
-  - writing or editing code
----
-## Write no comments
+A profile preference is a short, persistent choice about how the clone should behave across tasks. Preferences live under `preferences/<id>.md`, use the existing profile-block shape, and always belong to an axis. Shortness is appropriate because the file records a choice rather than teaching a procedure.
 
-Write code whose names and structure carry the explanation. Do not add comments.
-```
+An Agent Skill is a task-specific procedure or reference that changes how the clone works when a matching situation arises. Skills follow the open Agent Skills directory shape at `skills/<name>/SKILL.md`. Each one has a routing description, specific trigger, ordered process, guardrails, and a checkable completion condition. Length follows the work required by the skill; filler and generic advice remain invalid.
 
-`axis` is either one kebab-case identifier or `null`. A non-null value makes the skill one option on a mutually exclusive question. `null` makes it an independent discipline. A scalar field makes membership in two axes unrepresentable. `category` is an open kebab-case topic for display and future community packs. `section` uses the existing `ProfileSection` values. `applies-when` is a non-empty list of plain conditions that the profile compiler will consume in PR 10.
+The distinction follows the information hierarchy described by Matt Pocock's [`writing-for-agents`](https://github.com/mattpocock/skills/blob/main/skills/productivity/writing-for-agents/SKILL.md) skill and the [Agent Skills specification](https://agentskills.io/specification). Skill metadata is cheap discovery context, the `SKILL.md` body loads for the matching task, and optional resources load only when a branch needs them.
 
-The six axes and their options are fixed for this seed library:
+### Profile preferences
 
-| Axis | Skill ids |
+The four preference axes are:
+
+| Axis | Choices |
 | --- | --- |
-| `comment-policy` | `comments-none`, `comments-why`, `comments-public` |
-| `testing-approach` | `testing-first`, `testing-risk-based` |
-| `planning-threshold` | `planning-first`, `planning-when-costly` |
-| `question-frequency` | `questions-early`, `questions-autonomous` |
-| `refactor-tolerance` | `refactor-preserve`, `refactor-boundaries` |
-| `dependency-posture` | `dependencies-existing`, `dependencies-mature` |
+| `dependency-posture` | Prefer the existing stack / adopt mature focused dependencies |
+| `planning-threshold` | Plan before changing code / plan only costly changes |
+| `question-frequency` | Ask when intent is unclear / use judgment and keep moving |
+| `refactor-tolerance` | Preserve local structure / refactor when boundaries improve |
 
-The seven disciplines are `investigate-before-editing`, `scope-confirmed-changes`, `verify-and-review`, `prove-regression-tests`, `design-deep-modules`, `resolve-conflicts-by-intent`, and `typescript-type-safety`. Investigation covers systematic debugging, root-cause analysis, and research in unfamiliar systems. Verification includes self-review. The TypeScript discipline carries `language=typescript` rather than applying language-specific rules to every project.
+The comment-policy axis is removed. Shadowclone can learn a user's comment conventions from imported rules and later evidence without offering an uncommon repository rule as a general default.
 
-Every body describes behavior that applies while work is already underway. No skill starts an orchestration flow, defines a slash command, or tells the user how to invoke the product. This excludes task commands such as implementation, ticket conversion, triage, and repository tours.
+### Agent Skills
 
-`loadSeedSkillLibrary` resolves `skills/` from either the source tree or the built package, reads only `.md` files, and sorts filenames before parsing. Bun's YAML parser produces unknown input, then a strict Zod object accepts only `id`, `title`, `axis`, `category`, `section`, and `applies-when`. The loader rejects an unknown field, malformed slug, empty applicability, filename mismatch, title mismatch, duplicate id, or an axis with fewer than two choices. Errors name the packaged filename and never include document contents.
+The package ships ten Agent Skills:
 
-The loader returns all skills, axes with their options, and disciplines. `shadowclone skills` renders the six axes first and the independent disciplines second. It lists ids and titles only, which makes the command deterministic and keeps the full prose in the Markdown files users can inspect.
+| Skill | Kind | Purpose |
+| --- | --- | --- |
+| `testing-first` | `testing-approach` axis | Run a vertical red-green cycle through a public seam |
+| `testing-risk-based` | `testing-approach` axis | Choose tests from concrete regression risk |
+| `diagnose-before-editing` | independent | Reproduce, isolate, explain, then fix a defect |
+| `research-primary-sources` | independent | Resolve an implementation question against authoritative evidence |
+| `prove-regression-tests` | independent | Demonstrate that a regression test detects the removed defect |
+| `design-deep-modules` | independent | Place complexity behind a small, testable interface |
+| `resolve-conflicts-by-intent` | independent | Resolve each conflict from both changes' original intent |
+| `scope-confirmed-changes` | independent | Keep fixes tied to reachable behavior and requested outcomes |
+| `typescript-type-safety` | independent | Preserve value relationships and valid state in TypeScript |
+| `verify-and-review` | independent | Run relevant checks and inspect the final diff before handoff |
 
-The package manifest includes `skills`. The built CLI resolves the sibling package directory, while source execution resolves the repository root. A built-command smoke check proves both layouts instead of assuming bundler behavior.
+Testing approach remains an axis because its two complete workflows make different choices about when the test is written. The other eight skills are independently selectable.
+
+### Skill format
+
+Every skill uses standard `name` and `description` frontmatter. Shadowclone-specific fields live as strings inside the standard `metadata` map: `shadowclone-category`, `shadowclone-section`, `shadowclone-applies-when`, and optional `shadowclone-axis`.
+
+The body starts with one H1 title and contains `## Use when`, `## Process`, `## Guardrails`, and `## Completion` sections. Process steps describe observable actions in order. Completion states evidence an agent can inspect rather than a vague claim that the work is done.
+
+No content is copied from Matt Pocock's repository. Its structure and quality criteria inform original Shadowclone skills.
+
+### Loading and inspection
+
+`loadSeedLibrary` resolves both package directories from the source tree or built package. It reads `preferences/*.md` and `skills/*/SKILL.md`, sorts paths, parses unknown YAML through strict Zod schemas, and rejects duplicate ids, unknown metadata, path-name mismatches, title mismatches, missing skill sections, or axes with fewer than two choices.
+
+The result exposes all guidance, preferences, Agent Skills, axes, and independent skills with names that preserve the distinction. `shadowclone skills` prints preference axes first, skill axes second, then independent skills. It lists ids and titles only and reads no user state.
 
 ## Files
 
 | Path | Change |
 | --- | --- |
-| `skills/*.md` | Add the 20 seed dispositions in the profile block format |
-| `src/skills/schema.ts` | Define strict metadata validation and public types |
-| `src/skills/parse.ts` | Parse one Markdown document and enforce filename and heading identity |
-| `src/skills/index.ts` | Resolve package paths, load the full library, and validate axes and ids |
-| `src/skills/index.test.ts` | Load every packaged skill and reject malformed registry fixtures |
-| `src/cli/skills.ts` | Render and print the deterministic skill listing |
-| `src/cli/skills.test.ts` | Prove every packaged skill is visible through the command renderer |
-| `src/cli/index.ts` | Route `shadowclone skills` and add it to usage |
-| `package.json` | Publish the root `skills` directory |
-| `README.md` | Document the inspection command and the library's role |
-| `docs/architecture/02-profile.md` | Place seed skills upstream of declared profile rules |
-| `docs/design/README.md` | Register this design record chronologically |
+| `preferences/*.md` | Store eight short profile choices under four axes |
+| `skills/*/SKILL.md` | Store ten standard task-specific Agent Skills |
+| `src/skills/schema.ts` | Define the preference, Agent Skill, and library types |
+| `src/skills/parse.ts` | Parse both strict document forms |
+| `src/skills/index.ts` | Resolve package paths and build the combined library |
+| `src/skills/index.test.ts` | Prove standard layout, complete workflows, ids, and axes |
+| `src/cli/skills.ts` | Render preferences and skills as separate groups |
+| `src/cli/skills.test.ts` | Prove every packaged entry is visible once |
+| `package.json` | Publish both package-owned guidance directories |
+| `README.md` | Explain the preference and skill distinction |
+| `docs/architecture/02-profile.md` | Place both seed forms upstream of declared profile records |
+| `docs/design/README.md` | Keep this correction active until validation completes |
 
 ## Data handling
 
-The loader reads package-owned Markdown only. It does not inspect a user's profile, repository instructions, transcripts, home directory, or provider state. The CLI logs packaged ids, titles, and axis names. It makes no network call and writes no file.
+The loader reads package-owned Markdown only. It does not inspect a user's profile, repository instructions, transcripts, home directory, or provider state. The CLI logs package-owned ids, titles, and axis names. It makes no network call and writes no file.
 
 ## Alternatives
 
-**Hardcode the library in TypeScript.** This would make wording changes harder to review, prevent users from reading the shipped source as ordinary Markdown, and require rebuilding community packs.
+**Make every file longer.** Length alone does not make a skill useful. It would preserve the category error and add context without adding a repeatable method.
 
-**Ship one recommended bundle.** This would turn the maintainer's preferences into the user's identity. Named axes preserve strong positions while requiring the user to choose among them in the later wizard.
+**Rename every existing file to a preference.** This would make the short entries honest, but it would leave onboarding without reusable task methods.
 
-**Ship orchestration commands beside dispositions.** Commands answer what operation to run, while this library answers how an agent behaves during work. Mixing them would give `applies-when` two meanings and make transcript reconciliation ambiguous.
+**Keep the comment axis with a milder first choice.** The remaining choices still overlap, and repository comment practice is better learned from repository guidance than selected as a global seed.
 
-**Add a YAML dependency.** The supported Bun runtime already exposes `Bun.YAML.parse`, so another parser adds install and audit cost without adding a capability.
+**Copy established third-party skills.** This would inherit another author's workflow and licensing surface instead of creating behavior that can be selected, edited, and reconciled by Shadowclone.
 
 ## Accepted costs
 
-Twenty files add content-review surface and some package size. The count is accepted because loader complexity does not grow with it, all six axes retain real alternatives, and the user explicitly selected 20 seed skills.
+The package grows because useful procedures contain more than one rule. Progressive disclosure limits the runtime cost: descriptions support routing and full bodies are intended for matching tasks.
 
-Axis and category identifiers are strings rather than a closed TypeScript enum so later community packs do not require a code release. Runtime validation still requires kebab-case values and at least two options for every represented axis.
-
-The initial CLI lists skills but does not install them. Profile writes and user confirmation belong to PR 6, so this PR remains additive and cannot alter a user's clone behavior.
+The combined library has 18 entries rather than the original 20. Count is no longer a target. Every entry must earn its place by expressing either a real choice or a method that changes agent behavior.
 
 ## Testing
 
-The package-library test first ran against the branch head and failed because `src/skills/index.ts` did not exist. This established that the new loader was absent before implementation.
+Add a regression test before implementation that expects standard `skills/<name>/SKILL.md` paths and no `comments-none` entry. It must fail against the flat 20-file library.
 
-Mutation changed `z.strictObject` to `z.object`, and the hostile fixture's unknown `command` field was accepted instead of rejected. Mutation disabled the duplicate-key condition, and Bun's YAML parser replaced the first `id` without an error. Each enforcing line was printed before its focused test, and restoring each line returned the five focused tests to green.
+Add parser fixtures for unknown standard frontmatter, invalid Shadowclone metadata, path-name mismatch, missing required workflow sections, duplicate YAML keys, and duplicate ids. Mutate the section requirement and comment-id exclusion separately to prove their tests catch the regression.
 
-`bun run check` passes with TypeScript, Biome over 218 files, 452 convention-checked files, and 250 tests with 1,345 assertions. `bun run build` produces a 289 KB CLI, and both source and built `skills` commands list all 20 records. The npm package dry run contains 28 entries, including every root skill file.
-
-The architecture overview Mermaid diagram was reviewed and remains accurate because this PR adds inspectable package content without connecting it to the profile write path. That edge lands with the consented setup flow in PR 6.
+Run `bun run check`, build the package, inspect the packed file list, and run both source and built `shadowclone skills` commands.
 
 ## Open questions
 
@@ -113,12 +121,12 @@ None.
 
 ## Decision record
 
-2026-09-08: Ship exactly 20 seed skills because the user selected that count and content volume does not change later machinery.
+2026-09-08: Keep seed guidance package-owned and offline so onboarding remains deterministic.
 
-2026-09-08: Represent six questions as axes and seven behaviors as disciplines so strong preferences are selected rather than imposed.
+2026-09-08: Correct the initial library after review because a profile sentence and an Agent Skill have different jobs.
 
-2026-09-08: Keep each skill in Markdown with strict YAML frontmatter because it is profile prose that users and contributors should be able to read and diff.
+2026-09-08: Remove comment policy because the zero-comment option came from one repository and the remaining options were not exclusive.
 
-2026-09-08: Infer skill kind from nullable scalar `axis` because a separate kind field would duplicate the same state and allow disagreement.
+2026-09-08: Follow the open Agent Skills directory and frontmatter shape so packaged skills are portable and inspectable.
 
-2026-09-08: List skills without installing them because consented profile writes belong to the onboarding PR.
+2026-09-08: Require process, guardrails, and completion evidence so every skill changes an agent's behavior rather than restating a broad preference.
