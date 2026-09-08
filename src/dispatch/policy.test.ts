@@ -15,6 +15,7 @@ test("normalizes a remote without storing credentials", () => {
     ),
   ).toEqual({
     id: "github.com/acme/platform",
+    name: "platform",
     origin: {
       id: "github.com/acme",
       directoryName: "github.com--acme",

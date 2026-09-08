@@ -9,7 +9,7 @@ import {
 } from "../profile";
 import {
   isOriginBlocked,
-  resolveCwdOrigin,
+  resolveRepository,
   type GitRemoteReader,
 } from "../signal";
 
@@ -64,19 +64,19 @@ export async function installLiveClone(options: {
   if (!policy.enabled) {
     throw new Error("Shadowclone is disabled by managed policy");
   }
-  const origin = await resolveCwdOrigin({
+  const repository = await resolveRepository({
     cwd,
     enabled: config.sources["git-metadata"],
     readRemote: options.readRemote,
   });
-  if (isOriginBlocked({ origin, cwd, patterns: policy.blockedOrigins })) {
+  if (isOriginBlocked({ repository, patterns: policy.blockedOrigins })) {
     throw new Error("Managed policy blocks this repository");
   }
   const profile = await compileProfile({
     profileDirectory: paths.profileDirectory,
     outputPath: paths.compiledProfileFile,
-    origin,
-    targetRepo: path.basename(cwd),
+    origin: repository.origin,
+    targetRepo: repository.name,
   });
   await writeAgent({ targetDirectory: cwd, profile });
 

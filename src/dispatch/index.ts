@@ -84,8 +84,7 @@ export async function runHeadlessClone(options: {
   });
   if (
     isOriginBlocked({
-      origin: repository.origin,
-      cwd: targetDirectory,
+      repository,
       patterns: managedPolicy.blockedOrigins,
     })
   ) {

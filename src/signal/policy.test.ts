@@ -38,7 +38,7 @@ test("managed origin patterns remove matching events from derivation", async () 
           ? "git@github.com:acme/repo.git"
           : "git@github.com:other/repo.git",
       ),
-    blockedOrigins: ["github.com/acme/one"],
+    blockedOrigins: ["github.com/acme/repo"],
   });
 
   expect(derived.events).toHaveLength(1);

@@ -7,7 +7,7 @@ import {
 } from "../../config";
 import { detectEngine, type EngineId, type EngineRunner } from "../../engine";
 import { projectPaths, type ProjectPaths } from "../../paths";
-import { isOriginBlocked, resolveCwdOrigin } from "../../signal";
+import { isOriginBlocked, resolveRepository } from "../../signal";
 import {
   defaultRepeat,
   defaultTaskCount,
@@ -77,11 +77,13 @@ export async function setupTransferEval(
     cwd: path.resolve(options.repo ?? process.cwd()),
   });
 
-  const origin = await resolveCwdOrigin({ cwd: repository, enabled: true });
+  const repositoryIdentity = await resolveRepository({
+    cwd: repository,
+    enabled: true,
+  });
   if (
     isOriginBlocked({
-      origin,
-      cwd: repository,
+      repository: repositoryIdentity,
       patterns: policy.blockedOrigins,
     })
   ) {

@@ -1,11 +1,10 @@
-import path from "node:path";
 import { readEffectiveConfig } from "../config";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import { buildCompiledProfile } from "../profile";
 import {
   isOriginBlocked,
-  resolveCwdOrigin,
+  resolveRepository,
   type GitRemoteReader,
 } from "../signal";
 import {
@@ -44,19 +43,19 @@ async function activeProfile(options: LiveHookOptions): Promise<{
   }
   const input = parseHookInput(options.input);
   const cwd = readHookString(input, "cwd") ?? process.cwd();
-  const origin = await resolveCwdOrigin({
+  const repository = await resolveRepository({
     cwd,
     enabled: config.sources["git-metadata"],
     readRemote: options.readRemote,
   });
-  if (isOriginBlocked({ origin, cwd, patterns: policy.blockedOrigins })) {
+  if (isOriginBlocked({ repository, patterns: policy.blockedOrigins })) {
     return null;
   }
   return {
     profile: await buildCompiledProfile({
       profileDirectory: paths.profileDirectory,
-      origin,
-      targetRepo: path.basename(cwd),
+      origin: repository.origin,
+      targetRepo: repository.name,
     }),
   };
 }

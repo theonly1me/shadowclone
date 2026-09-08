@@ -1,5 +1,4 @@
-import path from "node:path";
-import type { OriginScope } from "./types";
+import type { RepositoryIdentity } from "./types";
 
 function matchesPattern(value: string, pattern: string): boolean {
   const expression = pattern
@@ -10,18 +9,15 @@ function matchesPattern(value: string, pattern: string): boolean {
 }
 
 export function isOriginBlocked(options: {
-  readonly origin: OriginScope;
-  readonly cwd: string;
+  readonly repository: RepositoryIdentity;
   readonly patterns: readonly string[];
 }): boolean {
   if (options.patterns.length === 0) {
     return false;
   }
 
-  const repository = options.cwd ? path.basename(options.cwd) : null;
   const values = [
-    options.origin.id,
-    ...(repository ? [`${options.origin.id}/${repository}`] : []),
+    ...new Set([options.repository.origin.id, options.repository.id]),
   ];
 
   return options.patterns.some((pattern) =>
