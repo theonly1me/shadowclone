@@ -16,3 +16,4 @@ The table is chronological by the first recorded decision. Append new records at
 | 2026-09-08 | [007, Bounded learning execution](007-bounded-learning-execution.md) | implemented | Isolate semantic learning and bound its total calls, time, and provider-supported cost |
 | 2026-09-08 | [008, Seed guidance library](008-seed-skill-library.md) | implemented | Separate concise profile preferences from complete task-specific Agent Skills |
 | 2026-09-08 | [009, Onboarding wizard](009-onboarding-wizard.md) | implemented | Select declared behavior before asking only relevant capture consent questions |
+| 2026-09-09 | [010, Import existing repository guidance](010-import-repository-guidance.md) | active | Import supported repository instructions as stable, redacted, repository-scoped profile rules |
