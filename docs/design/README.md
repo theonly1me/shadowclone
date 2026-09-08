@@ -17,4 +17,4 @@ The table is chronological by the first recorded decision. Append new records at
 | 2026-09-08 | [008, Seed guidance library](008-seed-skill-library.md) | implemented | Separate concise profile preferences from complete task-specific Agent Skills |
 | 2026-09-08 | [009, Onboarding wizard](009-onboarding-wizard.md) | implemented | Select declared behavior before asking only relevant capture consent questions |
 | 2026-09-09 | [010, Import existing repository guidance](010-import-repository-guidance.md) | implemented | Import supported repository instructions as stable, redacted, repository-scoped profile rules |
-| 2026-09-09 | [011, Learning report boundary](011-learning-report-boundary.md) | active | Keep structural evidence in a report and write mined rules only through explicit deep distillation |
+| 2026-09-09 | [011, Learning report boundary](011-learning-report-boundary.md) | implemented | Keep structural evidence in a report and write mined rules only through explicit deep distillation |

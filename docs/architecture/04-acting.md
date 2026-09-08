@@ -6,7 +6,7 @@ This document sets the ceiling on what a clone may do, in a session and unattend
 
 `.claude/skills/data-handling/SKILL.md` defines three tiers and this design keeps them.
 
-**Observe and derive** runs unattended with no ceremony. Reading transcripts, mining signals, writing the profile. Nothing leaves the machine except through the engine, under the user's own account.
+**Observe and derive** runs unattended with no ceremony. It reads enabled transcripts, updates the local index, mines aggregate signals, and refreshes compiled local guidance. Writing mined profile rules requires an explicit deep-learning invocation. Nothing leaves the machine except through the engine, under the user's own account.
 
 **Draft** runs unattended. Producing a diff or a message left in a file. Nothing another person can see.
 

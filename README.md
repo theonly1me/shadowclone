@@ -4,7 +4,7 @@ Teach your coding agents to work the way you do.
 
 Shadowclone learns how you work from the AI coding sessions already on your disk, then compiles an editable profile for the agents you already use. The goal is a clone that can reason about work and carry it out the way you would.
 
-Today it imports existing repository guidance, observes enabled Claude Code, Codex, Cursor, and Antigravity transcripts, finds steering signals, writes a local Markdown profile, and can run an evaluation that compares profiled and unprofiled behavior. The next milestone reconciles instructions you wrote with corrections you made during real work. No measured outcome is published yet.
+Today it imports existing repository guidance, observes enabled Claude Code, Codex, Cursor, and Antigravity transcripts, and reports steering signals without rewriting your profile. Explicit deep learning distills eligible moments into local Markdown rules. The next milestone reconciles instructions you wrote with corrections you made during real work. No measured outcome is published yet.
 
 Run the evaluation instrument on your own corpus:
 
@@ -23,11 +23,12 @@ Every turn where you interrupted an agent, refused a tool, corrected a proposal,
 ## The pipeline
 
 ```
-declared repository guidance  ->  redact  ->  profile
-                                              ^
-observe  ->  index  ->  signal  ->  distill  -+->  dispatch / eval
-                          |                   |
-                     zero tokens     user's subscription
+observe  ->  index  ->  signal  ->  report
+                           |
+                           +->  distill  ->  profile  ->  dispatch / eval
+                                 ^             ^
+                    user's subscription       |
+declared repository guidance  ->  redact  -----+
 ```
 
 | Stage | Module | Function |
@@ -35,6 +36,7 @@ observe  ->  index  ->  signal  ->  distill  -+->  dispatch / eval
 | observe | `src/observe/` | Normalizes agent transcripts into one incremental event stream |
 | index | `src/index/` | Rebuildable SQLite cache of byte offsets and event kinds, never text |
 | signal | `src/signal/` | Detects interruptions, plan changes, and tool refusals in pure code |
+| report | `src/profile/mirror.ts` | Shows aggregate behavior and previews deep-learning work without writing profile rules |
 | distill | `src/distill/` | Distills high-signal moments into rules via your installed agent CLI |
 | import | `src/importRules/` | Redacts supported repository instructions and synchronizes one rule per file |
 | profile | `src/profile/` | Plain Markdown rules and subagents scoped globally, by remote owner, or by exact repository |
@@ -112,11 +114,13 @@ shadowclone wizard
 
 The rerun preserves edited rules and prior deletions. Confirming a different option retires the unedited seed rule it replaces. It does not repeat capture consent.
 
-Index your historical sessions and build your profile:
+Index your historical sessions and inspect the behavioral report:
 
 ```bash
 shadowclone learn
 ```
+
+Plain learning updates the local disposable index, prints aggregate session, origin, correction, and deep-learning batch counts, and leaves the profile unchanged.
 
 To preview without writing files or databases:
 
@@ -124,7 +128,7 @@ To preview without writing files or databases:
 shadowclone learn --dry-run
 ```
 
-To enable deep distillation through your authenticated agent CLI:
+To distill eligible correction moments into mined profile rules through your authenticated agent CLI:
 
 ```bash
 shadowclone learn --deep
@@ -238,7 +242,7 @@ shadowclone init                                 # Import or choose a profile, t
 shadowclone import                               # Import or synchronize repository guidance
 shadowclone wizard                               # Rerun declared profile choices
 shadowclone skills                               # List packaged behavioral dispositions
-shadowclone learn [--deep] [--dry-run]           # Index sessions and synthesize rules
+shadowclone learn [--deep] [--dry-run]           # Report sessions, optionally distill rules
 shadowclone doctor                               # Inspect active paths, engines, and policies
 shadowclone install                              # Install profile as .claude/agents/shadowclone.md
 shadowclone run <task> [--approve <action>]      # Dispatch headless clone in a worktree

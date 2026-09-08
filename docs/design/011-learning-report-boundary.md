@@ -86,9 +86,9 @@ The report adds aggregate fields to `MirrorReport`, which requires updating dire
 
 ## Testing
 
-A regression test seeds a profile with declared guidance, runs plain `learn` over a transcript containing a correction marker, and compares every profile file before and after. It fails against the parent branch because structural generation adds an active mined rule. The same test asserts aggregate correction counts and the deep batch preview in captured output.
+A regression test seeds a profile with declared guidance, runs plain `learn` over a transcript containing a correction marker, and compares every profile file before and after. It fails against the parent branch because structural generation adds an active mined rule. Signal and mirror tests separately assert aggregate correction counts and the deep batch preview.
 
-A deep-learning test returns an empty semantic rule list for a real correction moment and proves that no structural profile rule appears. The existing successful deep test continues proving that distilled text is written and captured transcript text is absent.
+A deep-learning test returns an empty semantic rule list for a real pointer-bearing correction moment and proves that no structural profile rule appears. The existing successful deep test continues proving that distilled text is written and captured transcript text is absent.
 
 A session-end test starts with one declared rule and a transcript containing an interruption. It proves the transcript is indexed, `.compiled.md` contains the declared rule, and no generated interruption rule appears. Replacing scoped compilation with the old `buildProfileRules` and `writeProfile` path makes this test fail, which is the mutation check for the removed automatic writer.
 
@@ -96,7 +96,7 @@ A transfer-profile test provides a correction moment and an engine result with n
 
 Signal and mirror tests verify allowed-origin counts, all four correction-kind counts, deep preview grammar for singular and plural values, absence of raw working directories, and removal of the profile-written claim from plain output.
 
-Focused CLI, signal, profile, hook, and transfer tests run during implementation. Final verification runs `bun run check`, the executable build, source and built CLI help, and a package dry run. The data-handling scan inspects each changed `console`, engine, and file-write call and confirms its boundary.
+Focused CLI, signal, profile, hook, and transfer tests passed during implementation. Final verification passed `bun run check` with 296 tests and 1,527 assertions, built the 309 KB executable bundle, confirmed source and built CLI help, and inspected the 26-file package dry run. The data-handling scan found only aggregate `console` output in the changed paths. Plain learning does not resolve a `TextRef` or call an engine. Deep learning still reaches captured text only through `resolveRedacted` inside `buildDistillPrompt`, and session-end compilation writes only the local derived `.compiled.md` file.
 
 ## Open questions
 
