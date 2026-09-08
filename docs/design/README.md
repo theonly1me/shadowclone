@@ -14,3 +14,4 @@ The table is chronological by the first recorded decision. Append new records at
 | 2026-09-08 | [005, Capture and capability truth](005-capture-and-capability-truth.md) | implemented | Permit boolean source presence checks and align public claims with implemented behavior |
 | 2026-09-08 | [006, Profile record lifecycle](006-profile-record-lifecycle.md) | implemented | Keep rule identity stable across wording changes and make profile lifecycle state explicit |
 | 2026-09-08 | [007, Bounded learning execution](007-bounded-learning-execution.md) | implemented | Isolate semantic learning and bound its total calls, time, and provider-supported cost |
+| 2026-09-08 | [008, Seed skill library](008-seed-skill-library.md) | active | Ship 20 validated behavioral dispositions for onboarding and later reconciliation |
