@@ -2,7 +2,7 @@ import packageManifest from "../../package.json";
 import { readEffectiveConfig } from "../config";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { buildCompiledProfile } from "../profile";
+import { compileProfile } from "../profile";
 import {
   isOriginBlocked,
   resolveRepository,
@@ -119,11 +119,15 @@ async function activeProfile(options: {
   ) {
     return "# Shadowclone profile\n";
   }
-  return buildCompiledProfile({
-    profileDirectory: options.paths.profileDirectory,
-    origin: repository.origin,
-    targetRepo: repository.profileFileName,
+  const compilation = await compileProfile({
+    input: {
+      kind: "directory",
+      profileDirectory: options.paths.profileDirectory,
+      origin: repository.origin,
+      targetRepo: repository.profileFileName,
+    },
   });
+  return compilation.markdown;
 }
 
 async function writeMessage(value: Readonly<Record<string, unknown>>): Promise<void> {

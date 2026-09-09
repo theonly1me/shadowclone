@@ -142,9 +142,15 @@ Install the compiled profile into the current repository:
 
 ```bash
 shadowclone install
+shadowclone install --auto-delegate
+shadowclone uninstall
 ```
 
-This writes `.claude/agents/shadowclone.md` and excludes it from git tracking.
+Install writes `.claude/agents/shadowclone.md` and excludes it from git tracking. Pass `--auto-delegate` to also write a `.claude/skills/shadowclone/SKILL.md` workflow that hands bounded parallel work to the clone as a written brief. That routing is a choice you make, not something Shadowclone learned, so it stays off by default.
+
+One compiler produces every clone. It reads global guidance, the matching remote owner, and the one project file for this repository, and it opens nothing else. Selection is deterministic for identical inputs. User-written, declared, and imported guidance ranks ahead of mined guidance, two active choices from the same seed axis cannot both reach an agent, and unsupported or stale mined rules stay out. Each block carries its source and its stated conditions. The output is capped at 16 KiB and only whole blocks are dropped, so no rule is ever cut mid-sentence.
+
+`shadowclone uninstall` removes what install wrote in this repository, including the exclude lines it added, and leaves unrelated `.claude` files alone.
 
 The profile is yours to correct. Editing the visible text of a generated or imported block makes it active user guidance and preserves your version verbatim. Reconciliation can add evidence and a proposal to that metadata without replacing your text. Deleting a rule records its persistent id and last generated text in `.rejected`; deep learning sees a redacted, opaque view of those rejections and omits proposed paraphrases it identifies as equivalent.
 
@@ -215,7 +221,7 @@ Remove the local index, profile, checkpoints, receipts, and worktrees under `~/.
 shadowclone forget --all
 ```
 
-Repository-local `.claude/agents/shadowclone.md`, `.claude/skills/shadowclone/SKILL.md`, and `.git/info/exclude` entries created by `shadowclone install` remain until uninstall support lands.
+Shadowclone records every repository it installs into at `~/.shadowclone/installations.json`, so `forget --all` removes those agent files, delegation skills, and the exclude lines it added before removing the home directory. The manifest stores local directories and fixed artifact names, never profile text. An install created before this manifest existed is not discoverable; run `shadowclone uninstall` in that repository, or `shadowclone install` once to record it.
 
 ## Enterprise governance
 
@@ -246,11 +252,12 @@ shadowclone wizard                               # Rerun declared profile choice
 shadowclone skills                               # List packaged behavioral dispositions
 shadowclone learn [--deep] [--dry-run] [--apply] # Report sessions or reconcile profile guidance
 shadowclone doctor                               # Inspect active paths, engines, and policies
-shadowclone install                              # Install profile as .claude/agents/shadowclone.md
+shadowclone install [--auto-delegate]            # Install profile as .claude/agents/shadowclone.md
+shadowclone uninstall                            # Remove this repository's shadowclone files
 shadowclone run <task> [--approve <action>]      # Dispatch headless clone in a worktree
 shadowclone eval [--sessions N] [--json]         # Measure behavioral deltas against baseline
 shadowclone mcp                                  # Start stdio Model Context Protocol server
-shadowclone forget --all                         # Remove ~/.shadowclone/ completely
+shadowclone forget --all                         # Remove ~/.shadowclone/ and every recorded install
 ```
 
 ## Contributing

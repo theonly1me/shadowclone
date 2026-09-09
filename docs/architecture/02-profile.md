@@ -158,7 +158,19 @@ The trailing metadata is HTML comment syntax so it renders as nothing when the f
 
 Evidence is separated into `for` and `against` identifiers and deduplicated before `supports` and `contradicts` are counted. Current identifiers carry origin, session, timestamp, signal kind, and category. Merged rules union the evidence of their named source rules, and wording changes retain the first constituent's persistent id. Confidence is absent because the previous structural and semantic paths gave the same number two incompatible meanings.
 
-`applies-when` carries explicit conditions for registry and imported guidance. The current compiler preserves the field but does not evaluate task conditions because it does not yet receive task context.
+`applies-when` carries explicit conditions for registry and imported guidance. The compiler renders those conditions beside the rule so the agent applies it in the stated context. It does not match them against task text, because the stored conditions are natural language instructions and substring matching would turn prose into an accidental query language.
+
+## One compiler
+
+`compileProfile` is the only projection from stored profile to agent-facing guidance. Repository installs, live hooks, MCP recall, headless dispatch, both evaluation paths, and the offline cache all call it. It accepts either a profile directory or a set of rules already produced from redacted evidence, and both go through the same selection, rendering, conflict, and budget code.
+
+Directory compilation opens a closed set of paths: `identity.md`, `engineering.md`, `workflow.md`, and `boundaries.md` under `global/` and the matching owner, plus the one exact `projects/<repo>.md` for the active repository. It enumerates no other owner and no other repository. Raw file text supplies identity, source, lifecycle, and counts. Every title, body, and condition placed in agent-facing guidance comes from a whole-file `FileTextRef` resolved through `resolveRedacted`.
+
+Selection is deterministic for identical inputs. Candidate and stale rules are omitted first. User-written, declared, and imported guidance forms one tier that sorts ahead of mined guidance, then higher observation count, then persistent key, then content. A seed axis admits one choice, so a declared choice always wins over a mined sibling and the loser is reported as an axis conflict.
+
+The complete output is capped at 16,384 UTF-8 bytes including the preamble, separators, source labels, and conditions. A block is admitted only when it fits whole, and a block that does not fit is omitted while later smaller blocks stay eligible. No heading, condition, rule body, code fence, or multi-byte character is ever sliced.
+
+The result reports the applied rule keys, the applied block count, and every omission with its reason: candidate, stale, axis conflict, or budget. Dispatch receipts use the applied count, so nested headings inside a projected Agent Skill do not inflate it.
 
 ## Compiling to a subagent
 
@@ -171,6 +183,10 @@ The profile compiles two ways. Into a system prompt, which `03-engine.md` covers
 `src/profile/agent.ts` writes the subagent file: frontmatter with `name`, `description`, `model`, and `tools`, then the compiled profile as the body. Claude Code reads `.claude/agents/*.md` at session start and accepts the same definition as `--agents <json>` on a headless run.
 
 `shadowclone install` performs this compilation for the current repository and registers `.claude/agents/shadowclone.md` in `.git/info/exclude` to prevent personal rules from being committed to shared version control. The plugin also injects the scoped compiled profile through `SessionStart`, and its MCP server exposes the same profile for recall during a live session.
+
+`--auto-delegate` also writes `.claude/skills/shadowclone/SKILL.md`, a workflow that hands a bounded parallel task to the clone as a written brief carrying objective, context, constraints, validation, and expected result. It never forwards the request verbatim. Automatic task routing is product policy, not learned behavior, so the flag records the choice.
+
+Install records what it wrote in `~/.shadowclone/installations.json`. `shadowclone uninstall` removes those artifacts and the exclude lines the installer added for the current repository, and `forget --all` does the same for every recorded repository before removing the home directory. `05-privacy.md` covers what that manifest holds.
 
 Once it exists, the main session calls `Agent(subagent_type: "<name>")` and gets a copy of the user on a subtask. Ten of those on ten tasks is what the project is named after.
 

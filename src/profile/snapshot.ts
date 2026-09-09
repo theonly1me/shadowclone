@@ -2,13 +2,13 @@ import path from "node:path";
 import type { ProjectPaths } from "../paths";
 import { resolveRedacted } from "../redact";
 import { splitProfileBlocks } from "./blocks";
-import { profileMetadataSchema } from "./metadata";
 import { parseProfileBlocks } from "./parse";
 import {
   parseProfileRejectionText,
   type ProfileRejection,
 } from "./state";
 import type { ExistingProfileRule, ProfileRule, ProfileSection } from "./types";
+import { profileBlockMetadata, profileVisibleParts } from "./visible";
 
 export type ProfileSnapshotRule = {
   readonly rule: ProfileRule;
@@ -34,41 +34,6 @@ function profileSection(value: string): ProfileSection | null {
     return value;
   }
   return null;
-}
-
-function visibleParts(block: string): {
-  readonly title: string;
-  readonly body: string;
-} {
-  const visible = block.replace(/\n\n<!-- shadowclone: [^\n]+ -->\s*$/, "").trim();
-  const [heading, ...body] = visible.split("\n");
-  return {
-    title: heading?.replace(/^#+\s*/, "").trim() ?? "",
-    body: body.join("\n").trim(),
-  };
-}
-
-function promptMetadata(block: string): {
-  readonly appliesWhen: readonly string[];
-  readonly proposal: ProfileRule["proposal"];
-} {
-  const match = block.match(/\n\n<!-- shadowclone: ([^\n]+) -->\s*$/);
-  if (!match?.[1]) {
-    return { appliesWhen: [], proposal: null };
-  }
-  let value: unknown;
-  try {
-    value = JSON.parse(match[1]);
-  } catch {
-    return { appliesWhen: [], proposal: null };
-  }
-  const parsed = profileMetadataSchema.safeParse(value);
-  return parsed.success
-    ? {
-        appliesWhen: parsed.data["applies-when"],
-        proposal: parsed.data.proposal,
-      }
-    : { appliesWhen: [], proposal: null };
 }
 
 function locatedRule(options: {
@@ -135,8 +100,8 @@ async function readRules(options: {
     if (!promptBlock) {
       return [];
     }
-    const prompt = visibleParts(promptBlock);
-    const metadata = promptMetadata(promptBlock);
+    const prompt = profileVisibleParts(promptBlock);
+    const metadata = profileBlockMetadata(promptBlock);
     return [{
       rule,
       promptTitle: prompt.title,
