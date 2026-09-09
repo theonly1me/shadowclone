@@ -22,6 +22,7 @@ function profileRule(observations: number): ProfileRule {
     section: "workflow",
     scope: "org",
     originDirectory: "github.com--acme",
+    repositoryName: null,
     source: "mined",
     status: "active",
     proposal: null,
@@ -31,6 +32,7 @@ function profileRule(observations: number): ProfileRule {
     lastSeen: "2026-09-05",
     sessions: 2,
     origins: ["github.com/acme"],
+    importReference: null,
   };
 }
 

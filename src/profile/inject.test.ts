@@ -30,6 +30,7 @@ function rule(options: {
     section: options.section ?? "workflow",
     scope: "org",
     originDirectory: `github.com--${options.owner}`,
+    repositoryName: null,
     source: "mined",
     status: "active",
     proposal: null,
@@ -39,6 +40,7 @@ function rule(options: {
     lastSeen: "2026-09-05",
     sessions: 2,
     origins: [`github.com/${options.owner}`],
+    importReference: null,
   };
 }
 
@@ -46,7 +48,12 @@ test("compiles global and matching organization rules only", async () => {
   const profileDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-inject-"),
   );
-  const globalRule = { ...rule({ owner: "acme", title: "Plan first" }), scope: "global" as const, originDirectory: null };
+  const globalRule = {
+    ...rule({ owner: "acme", title: "Plan first" }),
+    scope: "global" as const,
+    originDirectory: null,
+    repositoryName: null,
+  };
   const acmeRule = rule({ owner: "acme", title: "Use Bun" });
   const otherRule = rule({ owner: "other", title: "Use Cargo" });
   await mkdir(path.join(profileDirectory, "global"), { recursive: true });

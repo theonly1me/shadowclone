@@ -16,6 +16,14 @@ The comment-policy axis is absent. A repository's comment practice belongs in im
 
 An identical rerun produces the same profile. Choosing a sibling retires the prior unedited axis rule. Editing a seed rule transfers ownership to the user, and deleting one records a rejection, so later wizard runs preserve both decisions. Imported, mined, and manual rules remain outside the seed lifecycle.
 
+## Repository guidance import
+
+`shadowclone init` offers to import supported repository guidance before the seed wizard, and `shadowclone import` runs the same synchronization independently. The importer reads root `CLAUDE.md`, root `AGENTS.md`, root `.cursorrules`, and direct skill files under `.claude/skills/` or `.agents/skills/`. Every file is one profile rule. Skill frontmatter is removed, headings are nested beneath the rule title, and fenced code remains intact.
+
+Import is deterministic and calls no engine. A `FileTextRef` reaches `resolveRedacted` before Markdown is transformed or stored. Each rule carries a hashed source locator and hashed aliases for its canonical working directory and, when enabled, remote repository. The state contains no raw source path or remote URL.
+
+An unchanged rerun is byte stable. Source edits revise an unedited rule under the same key. Profile edits remain user-owned, deletions remain rejected, removed sources retire, and renamed sources receive new identities. A Git-identified import lives at `org/<origin>/projects/<safe-name>--<identity-hash>.md`; an import without Git metadata remains under its opaque isolated origin. The compiler admits only the exact project file for the active repository.
+
 ## Two tiers
 
 Sending 562 MB to a model is not affordable. The work splits by whether it needs a model at all.
@@ -153,7 +161,7 @@ The profile compiles two ways. Into a system prompt, which `03-engine.md` covers
 
 Once it exists, the main session calls `Agent(subagent_type: "<name>")` and gets a copy of the user on a subtask. Ten of those on ten tasks is what the project is named after.
 
-Origin scoping applies at compile time here too. The subagent written into a repo's `.claude/agents/` carries `global/` rules plus that repo's owner and matching project file, and nothing from another owner.
+Scope applies at compile time here too. The subagent written into a repo's `.claude/agents/` carries global rules, that remote owner's organization rules, and only the exact matching project file. It receives nothing from another owner or repository.
 
 ## Hand edits and lifecycle
 

@@ -26,10 +26,10 @@ test("reduces a rules file and one populated source to booleans", async () => {
 
   const presence = await detectOnboardingPresence({ paths, workingDirectory });
 
-  expect(presence.hasRulesFile).toBeTrue();
+  expect(presence.hasRepositoryGuidance).toBeTrue();
   expect([...presence.presentCaptureSources]).toEqual(["claude-code"]);
   expect(Object.keys(presence).sort()).toEqual([
-    "hasRulesFile",
+    "hasRepositoryGuidance",
     "presentCaptureSources",
   ]);
 });
@@ -59,6 +59,33 @@ test("detects non-empty file sources without returning their metadata", async ()
   ]);
 });
 
+test("reduces a non-empty repository skill root to one boolean", async () => {
+  const homeDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-presence-"),
+  );
+  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  const skillPath = path.join(
+    homeDirectory,
+    ".agents",
+    "skills",
+    "private-skill",
+    "SKILL.md",
+  );
+  await mkdir(path.dirname(skillPath), { recursive: true });
+  await Bun.write(skillPath, "fixture");
+
+  const presence = await detectOnboardingPresence({
+    paths,
+    workingDirectory: homeDirectory,
+  });
+
+  expect(presence.hasRepositoryGuidance).toBeTrue();
+  expect(Object.keys(presence)).toEqual([
+    "hasRepositoryGuidance",
+    "presentCaptureSources",
+  ]);
+});
+
 test("ignores similar rules filenames and empty source directories", async () => {
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-presence-"),
@@ -72,6 +99,6 @@ test("ignores similar rules filenames and empty source directories", async () =>
     workingDirectory: homeDirectory,
   });
 
-  expect(presence.hasRulesFile).toBeFalse();
+  expect(presence.hasRepositoryGuidance).toBeFalse();
   expect(presence.presentCaptureSources.size).toBe(0);
 });

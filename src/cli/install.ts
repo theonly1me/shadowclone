@@ -76,7 +76,7 @@ export async function installLiveClone(options: {
     profileDirectory: paths.profileDirectory,
     outputPath: paths.compiledProfileFile,
     origin: repository.origin,
-    targetRepo: repository.name,
+    targetRepo: repository.profileFileName,
   });
   await writeAgent({ targetDirectory: cwd, profile });
 

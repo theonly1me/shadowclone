@@ -31,6 +31,7 @@ function profileRuleFromSeedGuidance(guidance: SeedGuidance): ProfileRule {
     section: guidance.section,
     scope: "global",
     originDirectory: null,
+    repositoryName: null,
     source: "declared",
     status: "active",
     proposal: null,
@@ -40,6 +41,7 @@ function profileRuleFromSeedGuidance(guidance: SeedGuidance): ProfileRule {
     lastSeen: "declared",
     sessions: 0,
     origins: [],
+    importReference: null,
   };
 }
 

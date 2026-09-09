@@ -3,6 +3,7 @@ import {
   uniqueProfileEvidence,
 } from "./metadata";
 import { profileFingerprint } from "./render";
+import { splitProfileBlocks } from "./blocks";
 import type {
   ExistingProfileBlock,
   ExistingProfileRule,
@@ -79,6 +80,7 @@ function parseCurrent(options: {
     sessions: result.data.sessions,
     origins: result.data.origins,
     scope: result.data.scope,
+    importReference: result.data["import-reference"],
     fingerprint: result.data.fingerprint,
     content: options.block.trim(),
     edited,
@@ -138,6 +140,7 @@ function parseLegacy(options: {
     }),
     origins,
     scope,
+    importReference: null,
     fingerprint,
     content: options.block.trim(),
     edited,
@@ -163,11 +166,7 @@ function parseBlock(block: string): ExistingProfileBlock {
 export function parseProfileBlocks(
   text: string,
 ): readonly ExistingProfileBlock[] {
-  return text
-    .trim()
-    .split(/\n(?=## )/)
-    .filter((block) => block.trim().length > 0)
-    .map(parseBlock);
+  return splitProfileBlocks(text).map(parseBlock);
 }
 
 export function parseProfileRules(text: string): readonly ExistingProfileRule[] {

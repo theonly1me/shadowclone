@@ -10,6 +10,7 @@ import {
   runSessionStartHook,
 } from "./hooks";
 import { initialize } from "./init";
+import { importRepositoryGuidanceCommand } from "./import";
 import { installLiveClone } from "./install";
 import { learn } from "./learn";
 import { runClone } from "./run";
@@ -17,7 +18,7 @@ import { listSeedGuidance } from "./skills";
 import { runWizard } from "./wizard";
 
 const usage =
-  "Usage: shadowclone <init|wizard|skills|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--repo <path>] [--tasks N] [--engine <id>] [--model <id>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
+  "Usage: shadowclone <init|import|wizard|skills|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--repo <path>] [--tasks N] [--engine <id>] [--model <id>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -40,6 +41,10 @@ async function main(arguments_: readonly string[]): Promise<void> {
   }
   if (command === "init") {
     await initialize();
+    return;
+  }
+  if (command === "import" && rest.length === 0) {
+    await importRepositoryGuidanceCommand();
     return;
   }
   if (command === "wizard" && rest.length === 0) {

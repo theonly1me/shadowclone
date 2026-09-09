@@ -34,6 +34,7 @@ test("installs the scoped profile as a Claude subagent", async () => {
         section: "workflow",
         scope: "org",
         originDirectory: origin.directoryName,
+        repositoryName: null,
         source: "declared",
         status: "active",
         proposal: null,
@@ -43,6 +44,7 @@ test("installs the scoped profile as a Claude subagent", async () => {
         lastSeen: "2026-09-05",
         sessions: 2,
         origins: [origin.id],
+        importReference: null,
       },
     ],
   });

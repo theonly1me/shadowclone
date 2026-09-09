@@ -55,7 +55,7 @@ async function activeProfile(options: LiveHookOptions): Promise<{
     profile: await buildCompiledProfile({
       profileDirectory: paths.profileDirectory,
       origin: repository.origin,
-      targetRepo: repository.name,
+      targetRepo: repository.profileFileName,
     }),
   };
 }
