@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.0.6](https://github.com/theonly1me/shadowclone/compare/v0.0.5...v0.0.6) (2026-09-09)
+
+
+### Features
+
+* **cli:** add profile onboarding wizard ([#56](https://github.com/theonly1me/shadowclone/issues/56)) ([cd4e191](https://github.com/theonly1me/shadowclone/commit/cd4e19157226484ef5843b6bc97d4babd4039aa1))
+* **engine:** bound learning execution ([#54](https://github.com/theonly1me/shadowclone/issues/54)) ([358bac3](https://github.com/theonly1me/shadowclone/commit/358bac3347d14ac3f22319d5f04112b5716cfa96))
+* **guidance:** add seed preference and skill library ([#55](https://github.com/theonly1me/shadowclone/issues/55)) ([1ad3824](https://github.com/theonly1me/shadowclone/commit/1ad382463c8e270ee1940a0d2e90679a8724a80c))
+* **profile:** add persistent rule lifecycle ([#53](https://github.com/theonly1me/shadowclone/issues/53)) ([c5341ed](https://github.com/theonly1me/shadowclone/commit/c5341ed7dc600db572dcae2afda9d65bb024a553))
+
+
+### Fixes
+
+* enforce repository identity and safety boundaries ([#51](https://github.com/theonly1me/shadowclone/issues/51)) ([d428372](https://github.com/theonly1me/shadowclone/commit/d428372a2f89f840cafd95237143d5a3937b6939))
+
+
+### Documentation
+
+* align consent and capability claims ([#52](https://github.com/theonly1me/shadowclone/issues/52)) ([52d10c5](https://github.com/theonly1me/shadowclone/commit/52d10c55a92c01fc2bb9f520e930e9a4642876c8))
+* **architecture:** clarify that tool results are always excluded ([b81afd6](https://github.com/theonly1me/shadowclone/commit/b81afd6b02d334093c695a49f2c85c76e0b070b6))
+
 ## [0.0.5](https://github.com/theonly1me/shadowclone/compare/v0.0.4...v0.0.5) (2026-09-06)
 
 
