@@ -13,7 +13,7 @@ import { initialize } from "./init";
 import { installLiveClone } from "./install";
 import { learn } from "./learn";
 import { runClone } from "./run";
-import { listSeedSkills } from "./skills";
+import { listSeedGuidance } from "./skills";
 import { runWizard } from "./wizard";
 
 const usage =
@@ -47,7 +47,7 @@ async function main(arguments_: readonly string[]): Promise<void> {
     return;
   }
   if (command === "skills" && rest.length === 0) {
-    await listSeedSkills();
+    await listSeedGuidance();
     return;
   }
   if (command === "learn") {

@@ -73,7 +73,9 @@ Inspect the seed guidance available for onboarding:
 shadowclone skills
 ```
 
-The library contains six groups of mutually exclusive choices and seven independent disciplines. It is readable package content, and listing it does not inspect or change your profile. Onboarding asks for one choice from each group and an explicit set of disciplines.
+The library separates eight short profile preferences from ten complete Agent Skills. Preferences record choices such as planning threshold and question frequency. Skills provide task-specific processes, guardrails, and completion criteria for testing, diagnosis, research, design, conflict resolution, scoped changes, TypeScript, and final verification.
+
+Agent Skills use the standard `skills/<name>/SKILL.md` layout with routing descriptions. The strict zero-comment rule from this repository is not a general onboarding option. Listing package guidance does not inspect or change your profile. Onboarding asks for one choice from each of the five guidance axes and an explicit set of eight optional skills.
 
 Build a declared profile, then grant consent for desired sources and capabilities:
 

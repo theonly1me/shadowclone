@@ -7,7 +7,10 @@ import {
   parseProfileBlocks,
   readProfileRejections,
 } from "../profile";
-import { loadSeedSkillLibrary, seedSkillProfileKey } from "../skills";
+import {
+  loadSeedLibrary,
+  seedGuidanceProfileKey,
+} from "../skills";
 import { runWizard } from "./wizard";
 
 async function runChoices(options: {
@@ -17,14 +20,14 @@ async function runChoices(options: {
   const answers = [...options.answers];
   await runWizard({
     paths: options.paths,
-    library: await loadSeedSkillLibrary(),
+    library: await loadSeedLibrary(),
     answer: () => answers.shift() ?? null,
     confirm: () => true,
     writeLine: () => {},
   });
 }
 
-const firstChoices = ["1", "1", "1", "1", "1", "1", "none"];
+const firstChoices = ["1", "1", "1", "1", "1", "none"];
 
 test("retires an unedited sibling when an axis choice changes", async () => {
   const homeDirectory = await mkdtemp(
@@ -34,14 +37,14 @@ test("retires an unedited sibling when an axis choice changes", async () => {
   await runChoices({ paths, answers: firstChoices });
   await runChoices({
     paths,
-    answers: ["2", "1", "1", "1", "1", "1", "none"],
+    answers: ["1", "1", "1", "1", "2", "none"],
   });
 
   const engineering = await Bun.file(
     path.join(paths.profileDirectory, "global/engineering.md"),
   ).text();
-  expect(engineering).not.toContain("## Write no comments");
-  expect(engineering).toContain("## Document public interfaces");
+  expect(engineering).not.toContain("## Test First Through a Public Seam");
+  expect(engineering).toContain("## Test Where Behavior Is at Risk");
 });
 
 test("keeps a deleted selected skill rejected", async () => {
@@ -56,7 +59,7 @@ test("keeps a deleted selected skill rejected", async () => {
   );
   const blocks = parseProfileBlocks(await Bun.file(engineeringPath).text());
   const kept = blocks.filter(
-    (block) => block.key !== seedSkillProfileKey("comments-none"),
+    (block) => block.key !== seedGuidanceProfileKey("testing-first"),
   );
   await Bun.write(
     engineeringPath,
@@ -67,10 +70,10 @@ test("keeps a deleted selected skill rejected", async () => {
 
   const rejections = await readProfileRejections(paths.rejectedProfileFile);
   expect(rejections.map((entry) => entry.key)).toContain(
-    seedSkillProfileKey("comments-none"),
+    seedGuidanceProfileKey("testing-first"),
   );
   expect(await Bun.file(engineeringPath).text()).not.toContain(
-    "## Write no comments",
+    "## Test First Through a Public Seam",
   );
 });
 
@@ -86,17 +89,17 @@ test("preserves an edited seed block when a sibling is selected", async () => {
   );
   const editedBody = "Keep the reasoning in names and tests.";
   const edited = (await Bun.file(engineeringPath).text()).replace(
-    "Write code whose names, types, and structure carry the explanation. Do not add comments. Put durable reasoning in tests, design records, and review text.",
+    "Use this skill when a behavior can be exercised through an interface that callers already use, or through the interface the change is intended to create.",
     editedBody,
   );
   await Bun.write(engineeringPath, edited);
 
   await runChoices({
     paths,
-    answers: ["2", "1", "1", "1", "1", "1", "none"],
+    answers: ["1", "1", "1", "1", "2", "none"],
   });
 
   const current = await Bun.file(engineeringPath).text();
   expect(current).toContain(editedBody);
-  expect(current).toContain("## Document public interfaces");
+  expect(current).toContain("## Test Where Behavior Is at Risk");
 });

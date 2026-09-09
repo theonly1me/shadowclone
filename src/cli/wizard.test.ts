@@ -4,42 +4,53 @@ import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
 import { parseProfileRules } from "../profile";
-import { loadSeedSkillLibrary } from "../skills";
+import {
+  loadSeedLibrary,
+  seedGuidanceProfileKey,
+} from "../skills";
 import {
   parseAxisChoice,
-  parseDisciplineChoices,
+  parseOptionalSkillChoices,
   runWizard,
 } from "./wizard";
 
-const firstChoices = ["1", "1", "1", "1", "1", "1", "none"];
+const firstChoices = ["1", "1", "1", "1", "1", "none"];
 
-test("accepts only displayed axis and discipline choices", async () => {
-  const library = await loadSeedSkillLibrary();
+test("accepts only displayed axis and optional skill choices", async () => {
+  const library = await loadSeedLibrary();
   const [axis] = library.axes;
   if (!axis) {
     throw new Error("The seed library needs an axis");
   }
 
   for (const response of ["0", "1e0", "comments-none", "Write no"]) {
-    expect(parseAxisChoice({ response, skills: axis.skills })).toBeNull();
+    expect(
+      parseAxisChoice({ response, guidance: axis.guidance }),
+    ).toBeNull();
   }
-  expect(parseAxisChoice({ response: "1", skills: axis.skills })?.id).toBe(
-    axis.skills[0]?.id,
+  expect(
+    parseAxisChoice({ response: "1", guidance: axis.guidance })?.id,
+  ).toBe(
+    axis.guidance[0]?.id,
   );
 
   for (const response of ["0", "1,1", "all,1", "unknown", "Verify"]) {
     expect(
-      parseDisciplineChoices({ response, skills: library.disciplines }),
+      parseOptionalSkillChoices({
+        response,
+        skills: library.independentSkills,
+      }),
     ).toBeNull();
   }
   expect(
-    parseDisciplineChoices({ response: "1, 3", skills: library.disciplines })
-      ?.map((skill) => skill.id),
+    parseOptionalSkillChoices({
+      response: "1, 3",
+      skills: library.independentSkills,
+    })?.map((skill) => skill.id),
   ).toEqual(
-    library.disciplines
+    library.independentSkills
       .filter(
-        (_, disciplineIndex) =>
-          disciplineIndex === 0 || disciplineIndex === 2,
+        (_, skillIndex) => skillIndex === 0 || skillIndex === 2,
       )
       .map((skill) => skill.id),
   );
@@ -50,7 +61,7 @@ test("prints every selection and writes nothing when confirmation is declined", 
     path.join(os.tmpdir(), "shadowclone-wizard-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const library = await loadSeedSkillLibrary();
+  const library = await loadSeedLibrary();
   const answers = [...firstChoices];
   const output: string[] = [];
 
@@ -63,10 +74,12 @@ test("prints every selection and writes nothing when confirmation is declined", 
   });
 
   expect(result.written).toBeFalse();
-  expect(result.selectedSkillIds).toHaveLength(6);
-  for (const skillId of result.selectedSkillIds) {
-    const skill = library.skills.find((candidate) => candidate.id === skillId);
-    expect(skill ? output.includes(`  ${skill.title}`) : false).toBeTrue();
+  expect(result.selectedGuidanceIds).toHaveLength(5);
+  for (const guidanceId of result.selectedGuidanceIds) {
+    const entry = library.guidance.find(
+      (candidate) => candidate.id === guidanceId,
+    );
+    expect(entry ? output.includes(`  ${entry.title}`) : false).toBeTrue();
   }
   expect(await Bun.file(paths.profileDirectory).exists()).toBeFalse();
 });
@@ -76,7 +89,7 @@ test("writes stable declared rules on identical reruns", async () => {
     path.join(os.tmpdir(), "shadowclone-wizard-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const library = await loadSeedSkillLibrary();
+  const library = await loadSeedLibrary();
 
   for (let runNumber = 0; runNumber < 2; runNumber += 1) {
     const answers = [...firstChoices];
@@ -94,11 +107,18 @@ test("writes stable declared rules on identical reruns", async () => {
     "global/engineering.md",
   );
   const workflowPath = path.join(paths.profileDirectory, "global/workflow.md");
+  const engineeringText = await Bun.file(engineeringPath).text();
   const rules = [
-    ...parseProfileRules(await Bun.file(engineeringPath).text()),
+    ...parseProfileRules(engineeringText),
     ...parseProfileRules(await Bun.file(workflowPath).text()),
   ];
-  expect(rules).toHaveLength(6);
+  const testingFirst = rules.find(
+    (rule) => rule.key === seedGuidanceProfileKey("testing-first"),
+  );
+  expect(rules).toHaveLength(5);
   expect(rules.every((rule) => rule.source === "declared")).toBeTrue();
   expect(rules.every((rule) => rule.key.startsWith("seed:"))).toBeTrue();
+  expect(testingFirst?.title).toBe("Test First Through a Public Seam");
+  expect(testingFirst?.body).toContain("### Process");
+  expect(engineeringText).not.toContain("\n## Process");
 });

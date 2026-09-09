@@ -4,8 +4,8 @@ import {
   setSourceEnabled,
   writeConfig,
 } from "../config";
-import { projectPaths, type ProjectPaths } from "../paths";
-import type { SeedSkillLibrary } from "../skills";
+import { type ProjectPaths, projectPaths } from "../paths";
+import type { SeedLibrary } from "../skills";
 import {
   detectOnboardingPresence,
   type OnboardingCaptureSourceId,
@@ -37,7 +37,7 @@ export async function initialize(options: {
   readonly paths?: ProjectPaths;
   readonly workingDirectory?: string;
   readonly presence?: OnboardingPresence;
-  readonly library?: SeedSkillLibrary;
+  readonly library?: SeedLibrary;
   readonly answer?: WizardAnswerPrompt;
   readonly ask?: ConsentPrompt;
   readonly writeLine?: (line: string) => void;

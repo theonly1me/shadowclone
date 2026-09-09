@@ -12,6 +12,10 @@ import type {
   SeedPreference,
 } from "./schema";
 
+export {
+  seedGuidanceProfileKey,
+  writeSeedGuidanceSelection,
+} from "./profile";
 export type {
   SeedAgentSkill,
   SeedGuidance,
@@ -19,10 +23,6 @@ export type {
   SeedLibrary,
   SeedPreference,
 } from "./schema";
-export {
-  seedSkillProfileKey,
-  writeSeedSkillSelection,
-} from "./profile";
 
 type SeedDirectories = {
   readonly preferences: string;

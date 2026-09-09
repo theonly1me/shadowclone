@@ -4,8 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { readConfig } from "../config";
 import { createProjectPaths } from "../paths";
-import { loadSeedSkillLibrary } from "../skills";
-import { initialize, type ConsentPrompt } from "./init";
+import { loadSeedLibrary } from "../skills";
+import { type ConsentPrompt, initialize } from "./init";
 import { onboardingCaptureSourceIds } from "./onboardingPresence";
 
 async function initializeWithAllSources(options: {
@@ -28,10 +28,10 @@ test("completes the wizard before filtered source consent", async () => {
     path.join(os.tmpdir(), "shadowclone-onboarding-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const library = await loadSeedSkillLibrary();
+  const library = await loadSeedLibrary();
   const events: string[] = [];
   const output: string[] = [];
-  const answers = ["1", "1", "1", "1", "1", "1", "none"];
+  const answers = ["1", "1", "1", "1", "1", "none"];
 
   await initialize({
     paths,
@@ -57,7 +57,9 @@ test("completes the wizard before filtered source consent", async () => {
   expect(events[0]).toBe("wizard answer");
   expect(events).toContain("Enable Claude Code transcripts?");
   expect(events).not.toContain("Enable Antigravity CLI transcripts?");
-  expect(events.indexOf("Enable Claude Code transcripts?")).toBeGreaterThan(7);
+  expect(events.indexOf("Enable Claude Code transcripts?")).toBeGreaterThan(
+    events.indexOf("Write these rules to your profile?"),
+  );
   expect(output.at(-1)).toBe(
     "Run shadowclone learn to build evidence from the sources you enabled.",
   );

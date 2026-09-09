@@ -1,14 +1,15 @@
-import { promptConfirmation, type ConfirmPrompt } from "./confirm";
-import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import {
-  loadSeedSkillLibrary,
-  writeSeedSkillSelection,
-} from "../skills";
+import { projectPaths } from "../paths";
 import type {
-  SeedSkill,
-  SeedSkillLibrary,
+  SeedAgentSkill,
+  SeedGuidance,
+  SeedLibrary,
 } from "../skills";
+import {
+  loadSeedLibrary,
+  writeSeedGuidanceSelection,
+} from "../skills";
+import { type ConfirmPrompt, promptConfirmation } from "./confirm";
 
 export type WizardAnswerPrompt = (
   question: string,
@@ -16,40 +17,40 @@ export type WizardAnswerPrompt = (
 
 export type WizardResult = {
   readonly written: boolean;
-  readonly selectedSkillIds: readonly string[];
+  readonly selectedGuidanceIds: readonly string[];
 };
 
 function promptForAnswer(question: string): string | null {
   return prompt(question);
 }
 
-function numberedChoices(skills: readonly SeedSkill[]): readonly {
+function numberedChoices<T extends SeedGuidance>(guidance: readonly T[]): readonly {
   readonly number: string;
-  readonly skill: SeedSkill;
+  readonly entry: T;
 }[] {
-  return skills.map((skill, choiceIndex) => ({
+  return guidance.map((entry, choiceIndex) => ({
     number: String(choiceIndex + 1),
-    skill,
+    entry,
   }));
 }
 
 export function parseAxisChoice(options: {
   readonly response: string;
-  readonly skills: readonly SeedSkill[];
-}): SeedSkill | null {
-  const choices = numberedChoices(options.skills);
+  readonly guidance: readonly SeedGuidance[];
+}): SeedGuidance | null {
+  const choices = numberedChoices(options.guidance);
   const response = options.response.trim();
   const allowed = new Set(choices.map((choice) => choice.number));
   if (!allowed.has(response)) {
     return null;
   }
-  return choices.find((choice) => choice.number === response)?.skill ?? null;
+  return choices.find((choice) => choice.number === response)?.entry ?? null;
 }
 
-export function parseDisciplineChoices(options: {
+export function parseOptionalSkillChoices(options: {
   readonly response: string;
-  readonly skills: readonly SeedSkill[];
-}): readonly SeedSkill[] | null {
+  readonly skills: readonly SeedAgentSkill[];
+}): readonly SeedAgentSkill[] | null {
   const response = options.response.trim();
   if (response === "all") {
     return options.skills;
@@ -70,18 +71,18 @@ export function parseDisciplineChoices(options: {
   }
   return choices
     .filter((choice) => unique.has(choice.number))
-    .map((choice) => choice.skill);
+    .map((choice) => choice.entry);
 }
 
-function choiceQuestion(options: {
+function choiceQuestion<T extends SeedGuidance>(options: {
   readonly heading: string;
-  readonly skills: readonly SeedSkill[];
+  readonly guidance: readonly T[];
   readonly suffix?: string;
 }): string {
   return [
     options.heading,
-    ...numberedChoices(options.skills).map(
-      (choice) => `  ${choice.number}. ${choice.skill.title}`,
+    ...numberedChoices(options.guidance).map(
+      (choice) => `  ${choice.number}. ${choice.entry.title}`,
     ),
     ...(options.suffix ? [options.suffix] : []),
   ].join("\n");
@@ -89,43 +90,46 @@ function choiceQuestion(options: {
 
 async function chooseAxis(options: {
   readonly axisId: string;
-  readonly skills: readonly SeedSkill[];
+  readonly guidance: readonly SeedGuidance[];
   readonly answer: WizardAnswerPrompt;
   readonly writeLine: (line: string) => void;
-}): Promise<SeedSkill> {
+}): Promise<SeedGuidance> {
   const question = choiceQuestion({
     heading: `Choose one for ${options.axisId}:`,
-    skills: options.skills,
+    guidance: options.guidance,
   });
   for (;;) {
     const response = await options.answer(question);
     if (response === null) {
       throw new Error("Wizard cancelled before a choice was made");
     }
-    const skill = parseAxisChoice({ response, skills: options.skills });
-    if (skill) {
-      return skill;
+    const guidance = parseAxisChoice({ response, guidance: options.guidance });
+    if (guidance) {
+      return guidance;
     }
     options.writeLine("Choose one of the displayed numbers.");
   }
 }
 
-async function chooseDisciplines(options: {
-  readonly skills: readonly SeedSkill[];
+async function chooseOptionalSkills(options: {
+  readonly skills: readonly SeedAgentSkill[];
   readonly answer: WizardAnswerPrompt;
   readonly writeLine: (line: string) => void;
-}): Promise<readonly SeedSkill[]> {
+}): Promise<readonly SeedAgentSkill[]> {
   const question = choiceQuestion({
-    heading: "Choose disciplines:",
-    skills: options.skills,
+    heading: "Choose optional skills:",
+    guidance: options.skills,
     suffix: "Enter all, none, or comma-separated numbers.",
   });
   for (;;) {
     const response = await options.answer(question);
     if (response === null) {
-      throw new Error("Wizard cancelled before disciplines were chosen");
+      throw new Error("Wizard cancelled before optional skills were chosen");
     }
-    const skills = parseDisciplineChoices({ response, skills: options.skills });
+    const skills = parseOptionalSkillChoices({
+      response,
+      skills: options.skills,
+    });
     if (skills !== null) {
       return skills;
     }
@@ -135,47 +139,51 @@ async function chooseDisciplines(options: {
 
 export async function runWizard(options: {
   readonly paths?: ProjectPaths;
-  readonly library?: SeedSkillLibrary;
+  readonly library?: SeedLibrary;
   readonly answer?: WizardAnswerPrompt;
   readonly confirm?: ConfirmPrompt;
   readonly writeLine?: (line: string) => void;
 } = {}): Promise<WizardResult> {
   const paths = options.paths ?? projectPaths;
-  const library = options.library ?? await loadSeedSkillLibrary();
+  const library = options.library ?? await loadSeedLibrary();
   const answer = options.answer ?? promptForAnswer;
   const confirm = options.confirm ?? promptConfirmation;
   const writeLine = options.writeLine ?? ((line) => console.log(line));
-  const selected: SeedSkill[] = [];
+  const selected: SeedGuidance[] = [];
 
   for (const axis of library.axes) {
     selected.push(
       await chooseAxis({
         axisId: axis.id,
-        skills: axis.skills,
+        guidance: axis.guidance,
         answer,
         writeLine,
       }),
     );
   }
   selected.push(
-    ...await chooseDisciplines({
-      skills: library.disciplines,
+    ...await chooseOptionalSkills({
+      skills: library.independentSkills,
       answer,
       writeLine,
     }),
   );
 
   writeLine("Selected profile rules:");
-  for (const skill of selected) {
-    writeLine(`  ${skill.title}`);
+  for (const entry of selected) {
+    writeLine(`  ${entry.title}`);
   }
-  const selectedSkillIds = selected.map((skill) => skill.id);
+  const selectedGuidanceIds = selected.map((entry) => entry.id);
   if (!(await confirm("Write these rules to your profile?"))) {
     writeLine("Profile unchanged.");
-    return { written: false, selectedSkillIds };
+    return { written: false, selectedGuidanceIds };
   }
 
-  await writeSeedSkillSelection({ paths, library, selectedSkills: selected });
+  await writeSeedGuidanceSelection({
+    paths,
+    library,
+    selectedGuidance: selected,
+  });
   writeLine(`Profile updated with ${selected.length} declared rules.`);
-  return { written: true, selectedSkillIds };
+  return { written: true, selectedGuidanceIds };
 }
