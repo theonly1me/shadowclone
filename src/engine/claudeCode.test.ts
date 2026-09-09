@@ -43,7 +43,11 @@ test("redacts stderr from a failing engine process", async () => {
     stderr: "auth failed for sk-abcdefghijklmnop at /Users/dev/work/acme",
     exitCode: 1,
     run: async (cwd) => {
-      const run = await runClaudeCode({ prompt: "hello", cwd });
+      const run = await runClaudeCode({
+        prompt: "hello",
+        cwd,
+        execution: { purpose: "dispatch" },
+      });
 
       expect(run.isError).toBeTrue();
       expect(run.errorMessage).not.toContain("sk-abcdefghijklmnop");
@@ -68,7 +72,11 @@ test("redacts a rejected command message on a zero exit code", async () => {
     stderr: "",
     exitCode: 0,
     run: async (cwd) => {
-      const run = await runClaudeCode({ prompt: "hello", cwd });
+      const run = await runClaudeCode({
+        prompt: "hello",
+        cwd,
+        execution: { purpose: "dispatch" },
+      });
 
       expect(run.isError).toBeTrue();
       expect(run.errorMessage).not.toContain(

@@ -23,6 +23,7 @@ export async function runReplay(options: {
   const run = await options.runner({
     prompt,
     cwd: options.cwd,
+    execution: { purpose: "evaluation" },
     systemPromptFile: options.systemPromptFile,
     allowedTools: options.allowedTools,
     permissionMode: "dontAsk",

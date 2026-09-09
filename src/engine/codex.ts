@@ -3,6 +3,10 @@ import os from "node:os";
 import path from "node:path";
 import { redactSecrets } from "../redact";
 import { evaluationCommand } from "./evaluationIsolation";
+import {
+  isIsolatedExecution,
+  validateEngineExecution,
+} from "./execution";
 import { parseCodexStream } from "./parseCodex";
 import { buildEnginePrompt } from "./prompt";
 import type {
@@ -12,6 +16,7 @@ import type {
 } from "./types";
 
 function validateCodexOptions(options: EngineRunOptions): void {
+  validateEngineExecution(options);
   if (options.sessionId !== undefined) {
     throw new Error("Codex cannot set a caller-provided session id");
   }
@@ -46,7 +51,8 @@ export function buildCodexArguments(options: {
     "-",
     "--json",
     "--sandbox",
-    options.run.evaluation && options.run.allowedTools?.length !== 0
+    options.run.execution.purpose === "evaluation" &&
+    options.run.allowedTools?.length !== 0
       ? "workspace-write"
       : "read-only",
     "-C",
@@ -58,10 +64,11 @@ export function buildCodexArguments(options: {
     "mcp_servers={}",
   ];
 
-  if (options.run.evaluation) {
+  if (isIsolatedExecution(options.run)) {
     arguments_.push(
       "--ephemeral",
       "--ignore-user-config",
+      "--ignore-rules",
       "-c",
       "features.memories=false",
       "-c",
@@ -91,7 +98,10 @@ export function buildCodexArguments(options: {
     );
   }
 
-  if (options.run.allowedTools?.length === 0) {
+  if (
+    options.run.execution.purpose === "learning" ||
+    options.run.allowedTools?.length === 0
+  ) {
     arguments_.push("--disable", "shell_tool");
   }
 

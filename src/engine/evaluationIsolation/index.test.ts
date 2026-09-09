@@ -27,8 +27,7 @@ test("denies the resolved path so a symbolic link cannot escape the macOS sandbo
       run: {
         prompt: "",
         cwd: root,
-        evaluation: true,
-        evaluationBlockedPaths: [link],
+        execution: { purpose: "evaluation", blockedPaths: [link] },
       },
       platform: "darwin",
     });
@@ -50,8 +49,7 @@ test("covers a temporary directory reached through the platform tmpdir symlink",
       run: {
         prompt: "",
         cwd: directory,
-        evaluation: true,
-        evaluationBlockedPaths: [directory],
+        execution: { purpose: "evaluation", blockedPaths: [directory] },
       },
       platform: "darwin",
     });
@@ -73,8 +71,7 @@ test("mounts the resolved path over a symbolic link on Linux", async () => {
       run: {
         prompt: "",
         cwd: root,
-        evaluation: true,
-        evaluationBlockedPaths: [link],
+        execution: { purpose: "evaluation", blockedPaths: [link] },
       },
       platform: "linux",
     });
@@ -90,7 +87,7 @@ test("leaves the command untouched without evaluation or blocked paths", () => {
   expect(
     evaluationCommand({
       arguments: ["claude", "-p"],
-      run: { prompt: "", cwd: "/tmp", evaluationBlockedPaths: ["/tmp/x"] },
+      run: { prompt: "", cwd: "/tmp", execution: { purpose: "dispatch" } },
       platform: "darwin",
     }),
   ).toEqual(["claude", "-p"]);
@@ -98,7 +95,7 @@ test("leaves the command untouched without evaluation or blocked paths", () => {
   expect(
     evaluationCommand({
       arguments: ["claude", "-p"],
-      run: { prompt: "", cwd: "/tmp", evaluation: true },
+      run: { prompt: "", cwd: "/tmp", execution: { purpose: "evaluation" } },
       platform: "darwin",
     }),
   ).toEqual(["claude", "-p"]);
@@ -111,8 +108,10 @@ test("refuses to run an isolated evaluation on an unsupported platform", () => {
       run: {
         prompt: "",
         cwd: "/tmp",
-        evaluation: true,
-        evaluationBlockedPaths: ["/tmp/control"],
+        execution: {
+          purpose: "evaluation",
+          blockedPaths: ["/tmp/control"],
+        },
       },
       platform: "win32",
     }),

@@ -1,6 +1,10 @@
 import { evaluationCommand } from "./evaluationIsolation";
-import { claudeEvaluationArguments } from "./evaluationArguments";
 import { redactSecrets } from "../redact";
+import { claudeIsolationArguments } from "./claudeIsolation";
+import {
+  isIsolatedExecution,
+  validateEngineExecution,
+} from "./execution";
 import { parseClaudeStream } from "./parseClaude";
 import type {
   EngineRun,
@@ -23,6 +27,7 @@ export function buildClaudeArguments(options: {
   readonly run: EngineRunOptions;
   readonly sessionId: string;
 }): readonly string[] {
+  validateEngineExecution(options.run);
   const arguments_ = [
     "claude",
     "-p",
@@ -32,10 +37,10 @@ export function buildClaudeArguments(options: {
     "--session-id",
     options.sessionId,
     "--setting-sources",
-    options.run.evaluation ? "" : "user,project",
+    isIsolatedExecution(options.run) ? "" : "user,project",
   ];
 
-  arguments_.push(...claudeEvaluationArguments(options.run));
+  arguments_.push(...claudeIsolationArguments(options.run));
 
   if (options.run.systemPromptFile) {
     arguments_.push(

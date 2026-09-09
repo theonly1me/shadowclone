@@ -1,6 +1,6 @@
 # Engine
 
-One interface, two uses, and provider-specific implementations. `src/engine/` is the only place in the project that causes a model to be called. Distillation uses it and dispatch uses it, which means there is one thing to audit rather than two.
+One interface, three execution purposes, and provider-specific implementations. `src/engine/` is the only place in the project that causes a model to be called. Learning, dispatch, and evaluation use it, which leaves one process boundary to audit.
 
 ## No key ships
 
@@ -38,9 +38,18 @@ export type EngineId =
   | "anthropic-api"
   | "openai-compatible";
 
+export type EngineExecution =
+  | { readonly purpose: "dispatch" }
+  | {
+      readonly purpose: "evaluation";
+      readonly blockedPaths?: readonly string[];
+    }
+  | { readonly purpose: "learning" };
+
 export type EngineRunOptions = {
   readonly prompt: string;
   readonly cwd: string;
+  readonly execution: EngineExecution;
   readonly systemPromptFile?: string;
   readonly sessionId?: string;
   readonly model?: string;
@@ -66,7 +75,15 @@ export type EngineRun = {
 };
 ```
 
-An engine that cannot honour an option fails loudly at construction rather than dropping it. Silently ignoring `maxBudgetUsd` is how an unattended run empties a quota overnight.
+An engine that cannot honour an option fails loudly before it spawns rather than dropping it. The required execution purpose prevents evaluation, learning, and dispatch from sharing an accidental default.
+
+## Learning contract
+
+`createLearningExecution` wraps the selected engine once for a complete `learn --deep` invocation. Extraction batches, merge calls, and future reconciliation calls use the same runner. Completed checkpoints consume no call allowance.
+
+The default permits 20 attempted calls over five minutes. Claude also receives a cumulative $2 limit because its provider capability reports native dollar-budget enforcement. Each call receives the remaining amount, and its reported cost is deducted before the next call. Codex and Cursor never receive an unsupported dollar option, so their boundary is the call count and deadline.
+
+Learning cannot load a system prompt file, enable a provider tool, or select a permission mode other than `dontAsk`. Attempts, errors, and timeouts consume a call. Hitting a limit leaves completed checkpoints in place, so another invocation resumes from the next unfinished batch.
 
 ## Claude Code
 
@@ -95,6 +112,8 @@ Generating the id up front means the clone knows where its own transcript will l
 
 `--setting-sources` restricts loaded setting files to user and project tiers, preventing a target repository's `.claude/settings.local.json` from silently widening permissions beyond the resolved dispatch policy ceiling.
 
+Learning uses a separate Claude command. `--restricted`, `--safe-mode`, empty `--setting-sources`, `--tools ""`, strict empty MCP configuration, an MCP deny rule, `--no-session-persistence`, and inline settings remove ambient instructions, tools, hooks, network tools, and native memory. `allowedTools: []` is not treated as the tool boundary because Claude documents that option as an auto-approval control.
+
 The terminal `result` message carries `session_id`, `total_cost_usd`, `duration_ms`, `duration_api_ms`, `num_turns`, `is_error`, `modelUsage`, and `permission_denials`. Everything `EngineRun` needs is in one message, so the stream parser only has to buffer text blocks and wait for `result`.
 
 Permission modes available are `acceptEdits`, `bypassPermissions`, `default`, `dontAsk`, `manual`, `plan`, and `auto`. `dontAsk` inside a throwaway worktree is the unattended default, converting any unallowed tool call into a hard denial. `bypassPermissions` is never used by shadowclone, at any tier, for any repo.
@@ -107,7 +126,7 @@ codex exec - --json --sandbox read-only -C <worktree> -m <model>
 
 `-c key=value` sets any config value per invocation, including `model_reasoning_effort`. `--output-schema <FILE>` gives structured output for distillation, matching `--json-schema` on the Claude side. `-o` writes the last message to a file, which is a simpler read than the event stream when only the final answer is wanted.
 
-The prompt stays on stdin rather than the process list. Distillation disables the shell tool, removes configured MCP servers for the run, selects the read-only sandbox, and parses only completed assistant messages. Codex has no dollar-budget or granular tool-list flags, so the runner rejects those options rather than silently weakening them.
+The prompt stays on stdin rather than the process list. Learning adds `--ephemeral`, `--ignore-user-config`, and `--ignore-rules`, disables instruction, memory, hook, app, plugin, browser, web, image, computer-use, multi-agent, and shell features, clears MCP configuration, and selects the read-only sandbox. Codex has no dollar-budget or granular tool-list flags, so the learning coordinator omits the former and the runner rejects direct requests for either.
 
 ## Cursor
 
@@ -116,7 +135,7 @@ cursor-agent --print --output-format stream-json \
   --sandbox enabled --mode ask --workspace <directory>
 ```
 
-Cursor also receives its prompt on stdin. A no-tools distillation run gets an empty temporary workspace whose project policy denies shell, read, write, web, and MCP tools. Ask or plan mode adds another read-only boundary. The terminal `result` event supplies the final text and duration, and tool result events are ignored. Cursor has no caller-selected session id, dollar budget, or arbitrary granular tool-list mapping, so those requests fail before a process starts.
+Cursor also receives its prompt on stdin. A no-tools run gets an empty temporary workspace whose project policy denies shell, read, write, web, and MCP tools. `CURSOR_CONFIG_DIR` points at a second temporary directory with the same deny policy, so user settings, rules, hooks, and MCP configuration do not enter the run. Ask mode and the enabled sandbox add read-only boundaries. Both directories, including native session state written there, are removed after the process exits. Cursor has no caller-selected session id, dollar budget, or arbitrary granular tool-list mapping, so those requests fail before a process starts.
 
 ## Compiled profile
 

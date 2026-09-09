@@ -57,7 +57,7 @@ test("evaluation forwards the exact model and only enables writes for execution"
     prompt: "task",
     cwd: "/tmp/task",
     model: "gpt-5.6-sol",
-    evaluation: true,
+    execution: { purpose: "evaluation" as const },
   };
   const executionArguments = buildCodexArguments({ run: runConfig });
   expect(executionArguments).toContain("gpt-5.6-sol");
