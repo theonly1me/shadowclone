@@ -46,7 +46,7 @@ Distillation input is restricted by category, and the list is short enough to au
 
 **Never eligible, at any setting.** The content of any `tool_result`. File contents from Read, Edit, or Write. Thinking blocks. Any result from an MCP data-access tool.
 
-That last exclusion is why this is a category rule rather than a redaction rule. The measured corpus holds 328 data-access calls: 194 Loki log queries, 111 Postgres queries, and 23 actor log queries. Those results are production log lines and database rows belonging to customers.
+Tool results can contain production logs, database rows, credentials, third-party data, and other sensitive information that cannot be reliably identified through redaction alone. Shadowclone therefore excludes tool-result payloads categorically rather than attempting to sanitize and reuse their contents.
 
 Pattern matching finds an API key in them and will not find a customer's email address. So they are never read.
 
