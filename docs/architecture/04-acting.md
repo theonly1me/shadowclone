@@ -31,11 +31,13 @@ maxBudgetUsd = 2.00
 allow = []
 ```
 
+Repository policy keys use the full `host/owner/repository` identity and require the `git-metadata` source. When that source is disabled, `resolveRepository` produces an isolated identity, so a named repository entry cannot match.
+
 Promotion is a deliberate edit to a config file, one repo at a time. The entry is a ceiling, not standing approval. A remote action also needs a matching `--approve` on the individual run. There is no global switch that turns delegation on everywhere, because the repo where this is a good idea and the repo where it ends a job are usually on the same laptop.
 
 `src/dispatch/policy.ts` intersects repo policy, per-run approval, and the managed action tier to produce engine arguments. Unattended execution sets `permissionMode: "dontAsk"`, ensuring `allowedTools` acts as an enforced ceiling. A withheld capability becomes a `--disallowedTools` entry. Absence of a tool beats a rule about a tool. The engine never receives wildcard add, commit, or push tools.
 
-Draft tools include inspection, edits, and repository verification commands detected dynamically from project manifests (`package.json`, `Cargo.toml`, `go.mod`, `Makefile`, `pyproject.toml`) or configured per repository with `:*` argument suffixes.
+Draft tools include inspection, edits, and repository verification commands detected dynamically from project manifests (`package.json`, `Cargo.toml`, `go.mod`, `Makefile`, `pyproject.toml`) or configured per repository with `:*` argument suffixes. These are permissions available to the engine. `runHeadlessClone` does not yet require evidence that a verification command ran or succeeded before it commits a successful engine result.
 
 Push safety is handled outside the agent process. Rather than exposing `Bash(git push:*)` to agent execution, the host orchestrator inspects the resulting worktree and performs an explicit `git push --set-upstream origin <branch>` after the run. Commits are likewise created host-side with fixed argument vectors.
 

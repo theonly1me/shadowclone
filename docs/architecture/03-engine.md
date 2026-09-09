@@ -124,4 +124,4 @@ The engine is handed one file, not five. `src/profile/inject.ts` compiles `~/.sh
 
 Compilation is where the profile stops being a document and becomes a prompt, so it is a named step with its own file rather than string building inside the runner.
 
-The compiler reads `global/` and exactly one matching organization directory, strips provenance, and places hand-written rules first. The current confidence threshold is zero until the confidence model in the open questions is settled, so compilation does not silently discard a rule the user can see.
+The compiler reads `global/` and exactly one matching `host/owner` directory, strips provenance, and places hand-written rules first. The current confidence threshold is zero until the confidence model in the open questions is settled, so compilation does not silently discard a rule the user can see.

@@ -14,7 +14,9 @@ Every source is opt-in, named in the config, and listed in the README. The confi
 | `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization scope only, never repository contents |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | Captured as user prompts, no correction signals |
 
-Reading a path to see whether it exists is reading. Nothing under a disabled source is opened, including an existence check.
+Capture consent protects content. Before consent, onboarding may determine whether a configured source root exists and is non-empty, then use that one ephemeral boolean to omit absent providers from its questions. It does not collect entry names, open an entry, inspect metadata beyond what the boolean needs, or retain or log a path, name, count, timestamp, or provider-specific identifier.
+
+Reading any source content remains opt-in. A new file, a wider slice of an existing file, or contents where only names were previously read is a new source with its own flag defaulting to off and a README entry in the same change.
 
 `git-metadata` is separate consent because transcript consent does not imply permission to inspect a repository. When it is disabled, each working directory is hashed into its own isolated origin and its rules never promote to global. When enabled, shadowclone asks git for the local remote origin and reads no repository content.
 

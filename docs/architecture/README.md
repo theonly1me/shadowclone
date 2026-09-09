@@ -18,16 +18,25 @@ It learns from the transcripts your agents already write to disk. It acts by dri
 | `08-landscape.md` | What already exists, the gap, and what to borrow from prior work |
 | `09-evaluation.md` | Replay evaluation against historical baselines and delta scoring |
 
-Per-change design docs live in `docs/design/`, one file per change, written against `docs/design/template.md`.
+Per-change design docs live in `docs/design/`, one file per change, written against `docs/design/template.md` and listed chronologically in `docs/design/README.md`.
 
 ## The loop
 
-```
-observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
-                          |                        |              |
-                     zero tokens          user's subscription     |
-                                                                  v
-                                                                eval
+```mermaid
+flowchart LR
+    Sources[Enabled local sources] --> Observe[observe]
+    Observe --> Index[index]
+    Index --> Signal[signal]
+    Signal --> Profile[profile]
+    Signal --> Distill[distill]
+    Engine[engine] --> Distill
+    Distill --> Profile
+    Profile --> Compiler[compiler]
+    Compiler --> Live[Claude live clone]
+    Compiler --> Dispatch[headless dispatch]
+    Compiler --> Eval[transfer eval]
+    Engine --> Dispatch
+    Engine --> Eval
 ```
 
 | Stage | Module | What it does |
@@ -41,7 +50,7 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
 | eval | `src/eval/` | Replays sessions against baseline and clone to measure delta |
 | engine | `src/engine/` | The one way a model gets called, by any stage |
 
-`src/cli/` is the only place that knows about more than one stage. Stage modules depend downward and never sideways, which is what keeps the egress path auditable by reading one file.
+`src/cli/` coordinates the stages. `src/engine/` is the shared process boundary for distillation, dispatch, and evaluation. Captured text comes into existence only through `resolveRedacted` before it reaches `distill`, which keeps the egress path auditable.
 
 ## Why agent transcripts
 
