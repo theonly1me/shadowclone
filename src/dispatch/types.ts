@@ -18,7 +18,6 @@ export type ResolvedDispatchPolicy = {
   readonly disallowedTools: readonly string[];
   readonly permissionMode: PermissionMode;
   readonly maxBudgetUsd: number;
-  readonly requireCleanExit: boolean;
   readonly grantedActions: readonly ActionCapability[];
   readonly blockedActions: readonly BlockedAction[];
 };
@@ -49,7 +48,6 @@ export type DispatchPolicyInput = {
     | {
         readonly allow: readonly ActionCapability[];
         readonly maxBudgetUsd: number;
-        readonly requireCleanExit: boolean;
       }
     | null;
   readonly approvedActions: readonly ActionCapability[];

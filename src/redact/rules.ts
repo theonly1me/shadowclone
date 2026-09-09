@@ -38,18 +38,18 @@ export const redactionRules: readonly RedactionRule[] = [
   {
     label: "llm-api-key",
     pattern: /\bsk-[A-Za-z0-9_-]{12,}\b/g,
-    replace: sliced("llm-api-key", 7),
+    replace: sliced("llm-api-key", 3),
   },
   {
     label: "github-token",
     pattern:
       /\b(?:gh[porsu]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/g,
-    replace: sliced("github-token", 7),
+    replace: sliced("github-token", 4),
   },
   {
     label: "slack-token",
     pattern: /\bxox[abprs]-[A-Za-z0-9-]{10,}\b/g,
-    replace: sliced("slack-token", 7),
+    replace: sliced("slack-token", 5),
   },
   {
     label: "aws-access-key-id",
@@ -64,7 +64,7 @@ export const redactionRules: readonly RedactionRule[] = [
   {
     label: "hex-secret",
     pattern: /\b[0-9a-f]{32,}\b/gi,
-    replace: sliced("hex-secret", 7),
+    replace: sliced("hex-secret", 0),
   },
   {
     label: "secret-assignment",
@@ -123,14 +123,14 @@ export const redactionRules: readonly RedactionRule[] = [
     label: "high-entropy-string",
     pattern:
       /\b(?=[A-Za-z0-9+/_=-]{40,}\b)(?=[A-Za-z0-9+/_=-]*(?:\d|[A-Z].*[a-z]|[a-z].*[A-Z]))[A-Za-z0-9+/_=-]+\b/g,
-    replace: sliced("high-entropy-string", 7),
+    replace: sliced("high-entropy-string", 0),
   },
   {
     label: "shannon-entropy",
     pattern: /[A-Za-z0-9+/_-]{24,}={0,2}/g,
     replace: slicedAboveEntropy({
       label: "shannon-entropy",
-      keep: 7,
+      keep: 0,
       threshold: entropyThresholdBitsPerCharacter,
     }),
   },

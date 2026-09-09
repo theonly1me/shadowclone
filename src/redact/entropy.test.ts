@@ -61,11 +61,11 @@ test("leaves a mid token equals sign to the long blob rule", () => {
   expect(redacted).toContain("[redacted:high-entropy-string]");
 });
 
-test("slices the token so its shape stays readable", () => {
+test("keeps no part of a token that carries no public prefix", () => {
   const redacted = redactSecrets({
     text: "k7Xq2mZpR8vNwL4tJ6yHbF3sQ9dGcA1e",
     homeDirectory,
   });
 
-  expect(redacted).toBe("k7Xq2mZ...[redacted:shannon-entropy]");
+  expect(redacted).toBe("[redacted:shannon-entropy]");
 });

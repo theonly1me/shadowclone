@@ -107,7 +107,6 @@ test("writes and reads a repository action ceiling", async () => {
       "github.com/acme/platform": {
         allow: ["push", "pr-draft"] as const,
         maxBudgetUsd: 2,
-        requireCleanExit: true,
       },
     },
   };
@@ -115,6 +114,23 @@ test("writes and reads a repository action ceiling", async () => {
   await writeConfig({ config, configPath });
 
   expect(await readConfig({ configPath })).toEqual(config);
+});
+
+test("still reads a repository ceiling written before requireCleanExit was dropped", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const configPath = path.join(directory, "config.toml");
+  const text = `${renderConfig(defaultConfig)}
+[repo."github.com/acme/platform"]
+allow = ["push"]
+maxBudgetUsd = 2
+requireCleanExit = true
+`;
+
+  await Bun.write(configPath, text);
+
+  expect((await readConfig({ configPath })).repo).toEqual({
+    "github.com/acme/platform": { allow: ["push"], maxBudgetUsd: 2 },
+  });
 });
 
 test("rejects unknown source names instead of silently enabling them", async () => {
