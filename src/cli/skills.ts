@@ -36,7 +36,7 @@ export function renderSeedLibrary(library: SeedLibrary): readonly string[] {
   return lines;
 }
 
-export async function listSeedSkills(): Promise<void> {
+export async function listSeedGuidance(): Promise<void> {
   const library = await loadSeedLibrary();
   for (const line of renderSeedLibrary(library)) {
     console.log(line);

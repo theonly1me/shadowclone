@@ -12,7 +12,9 @@ Eight concise preferences under `preferences/` record choices across dependency 
 
 The comment-policy axis is absent. A repository's comment practice belongs in imported rules and learned evidence rather than a global seed choice.
 
-`shadowclone skills` lists both forms without reading or writing the user's profile. A later setup flow will let the user select guidance and persist it as declared profile records, so package content remains upstream of the editable profile.
+`shadowclone skills` lists both forms without reading or writing the user's profile. `shadowclone init` runs the seed wizard before capture consent when the working directory has no detected rules file. `shadowclone wizard` reruns only those profile choices. Each selected preference or skill becomes an active global declared rule under the stable key `seed:<guidance-id>` after the wizard prints every selected title and receives confirmation. Agent Skill section headings are nested inside that rule rather than becoming separate profile blocks.
+
+An identical rerun produces the same profile. Choosing a sibling retires the prior unedited axis rule. Editing a seed rule transfers ownership to the user, and deleting one records a rejection, so later wizard runs preserve both decisions. Imported, mined, and manual rules remain outside the seed lifecycle.
 
 ## Two tiers
 

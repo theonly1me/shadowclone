@@ -3,14 +3,74 @@ import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { readConfig } from "../config";
-import { initialize } from "./init";
+import { createProjectPaths } from "../paths";
+import { loadSeedLibrary } from "../skills";
+import { type ConsentPrompt, initialize } from "./init";
+import { onboardingCaptureSourceIds } from "./onboardingPresence";
+
+async function initializeWithAllSources(options: {
+  readonly configPath: string;
+  readonly ask: ConsentPrompt;
+  readonly writeLine?: (line: string) => void;
+}): Promise<void> {
+  await initialize({
+    ...options,
+    writeLine: options.writeLine ?? (() => {}),
+    presence: {
+      hasRulesFile: true,
+      presentCaptureSources: new Set(onboardingCaptureSourceIds),
+    },
+  });
+}
+
+test("completes the wizard before filtered source consent", async () => {
+  const homeDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-onboarding-"),
+  );
+  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  const library = await loadSeedLibrary();
+  const events: string[] = [];
+  const output: string[] = [];
+  const answers = ["1", "1", "1", "1", "1", "none"];
+
+  await initialize({
+    paths,
+    configPath: paths.configFile,
+    workingDirectory: homeDirectory,
+    presence: {
+      hasRulesFile: false,
+      presentCaptureSources: new Set(["claude-code"]),
+    },
+    library,
+    answer: () => {
+      events.push("wizard answer");
+      return answers.shift() ?? null;
+    },
+    ask: (question) => {
+      events.push(question);
+      return question === "Write these rules to your profile?" ||
+        question === "Enable Claude Code transcripts?";
+    },
+    writeLine: (line) => output.push(line),
+  });
+
+  expect(events[0]).toBe("wizard answer");
+  expect(events).toContain("Enable Claude Code transcripts?");
+  expect(events).not.toContain("Enable Antigravity CLI transcripts?");
+  expect(events.indexOf("Enable Claude Code transcripts?")).toBeGreaterThan(
+    events.indexOf("Write these rules to your profile?"),
+  );
+  expect(output.at(-1)).toBe(
+    "Run shadowclone learn to build evidence from the sources you enabled.",
+  );
+});
 
 test("enables Claude Code only after consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
   const answers = [false, true, false, false, false, false, false, false, false];
 
-  await initialize({
+  await initializeWithAllSources({
     configPath,
     ask: () => answers.shift() ?? false,
   });
@@ -32,7 +92,7 @@ test("enables git metadata only after separate consent", async () => {
   const configPath = path.join(directory, "config.toml");
   const answers = [false, false, false, false, false, false, true, false, false];
 
-  await initialize({
+  await initializeWithAllSources({
     configPath,
     ask: () => answers.shift() ?? false,
   });
@@ -48,7 +108,7 @@ test("enables agent context only after separate consent", async () => {
   const configPath = path.join(directory, "config.toml");
   const answers = [false, false, false, false, false, false, false, true, false];
 
-  await initialize({
+  await initializeWithAllSources({
     configPath,
     ask: () => answers.shift() ?? false,
   });
@@ -63,7 +123,7 @@ test("enables deep distillation only after separate consent", async () => {
   const configPath = path.join(directory, "config.toml");
   const answers = [false, false, false, false, false, false, false, false, true];
 
-  await initialize({
+  await initializeWithAllSources({
     configPath,
     ask: () => answers.shift() ?? false,
   });
@@ -79,7 +139,7 @@ test("enables provider transcripts only after named consent", async () => {
   const questions: string[] = [];
   const answers = [true, false, false, true, true, false, false, false, false];
 
-  await initialize({
+  await initializeWithAllSources({
     configPath,
     ask: (question) => {
       questions.push(question);
@@ -100,11 +160,19 @@ test("keeps every source off when consent is declined", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
 
-  await initialize({
+  const output: string[] = [];
+  await initializeWithAllSources({
     configPath,
     ask: () => false,
+    writeLine: (line) => output.push(line),
   });
 
   const config = await readConfig({ configPath });
   expect(Object.values(config.sources).every((enabled) => !enabled)).toBeTrue();
+  expect(output[0]).toBe(
+    "Existing agent instructions detected and left unread.",
+  );
+  expect(output).not.toContain(
+    "Run shadowclone learn to build evidence from the sources you enabled.",
+  );
 });

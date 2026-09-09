@@ -12,6 +12,10 @@ import type {
   SeedPreference,
 } from "./schema";
 
+export {
+  seedGuidanceProfileKey,
+  writeSeedGuidanceSelection,
+} from "./profile";
 export type {
   SeedAgentSkill,
   SeedGuidance,
