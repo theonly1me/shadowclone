@@ -23,11 +23,12 @@ Two skills in `.claude/skills/` are not optional.
 | `src/index/` | stores cursors and event skeletons in a rebuildable SQLite cache |
 | `src/signal/` | derives structural and correction signals without a model |
 | `src/profile/` | writes scoped markdown and compiles it into a live subagent |
+| `src/profile/compiler/` | the only profile projection, deterministic and capped at 16 KiB |
 | `src/engine/` | drives authenticated Claude Code, Codex, and Cursor CLIs |
 | `src/distill/` | sends only redacted, allowlisted correction moments to the engine |
 | `src/dispatch/` | runs the clone in a worktree and records a receipt |
 | `.claude-plugin/` | injects the profile, ingests one transcript, and recompiles existing guidance at session end |
-| `src/cli/` | provides `init`, `learn`, `doctor`, `install`, `run`, and `forget --all` |
+| `src/cli/` | provides `init`, `learn`, `doctor`, `install`, `uninstall`, `run`, and `forget --all` |
 
 Say this honestly when asked what works: opt-in capture, indexing, the mirror, deep distillation, live profile injection, the Claude subagent, headless worktree dispatch, four provider adapters, and three provider engines are implemented. Real plugin installation, provider corpus checks, and authenticated engine runs are manual checks. Antigravity, API, and local endpoint engines are not built yet.
 
@@ -55,6 +56,7 @@ observe  ->  index  ->  signal  ->  report
 
 ## The rules that outrank convenience
 
+- **One profile projection.** `compileProfile` in `src/profile/compiler/` is the only thing that turns stored profile into agent-facing guidance, for installs, hooks, MCP, dispatch, and both evaluation paths. It opens a closed path set, is deterministic for identical inputs, and caps output at 16 KiB by dropping whole blocks. Never add a second projection, and never render rule text by hand at a call site.
 - **One egress gate.** `redactSecrets` is the only thing between captured text and the network. It lives inside `resolveRedacted`, the only exported function that turns a `TextRef` into a string, so bypassing it takes a new file reader rather than a forgotten call. Never add a second gate downstream as a safety net, and never route around it.
 - **Every capture source is opt-in for its contents.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. It needs a flag defaulting to off and a README entry in the same change. Before consent, onboarding may reduce a configured source root to one ephemeral boolean stating that it exists and is non-empty. It never collects entry names, opens an entry, or retains or logs a path, name, count, timestamp, or provider identifier.
 - **Never distil tool results.** The content of any `tool_result`, file contents from Read, Edit, or Write, thinking blocks, and every data-access result never enter the distillation path. Excluded by category, not redacted. `docs/architecture/07-enterprise.md` says why.
@@ -77,6 +79,8 @@ bun run cli init
 bun run cli learn
 bun run cli doctor
 bun run cli learn --deep
+bun run cli install --auto-delegate
+bun run cli uninstall
 bun run cli run "fix the flaky test"
 ```
 

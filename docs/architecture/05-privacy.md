@@ -80,6 +80,10 @@ The one that is easy to get wrong here: a file path from a transcript is capture
 shadowclone forget --all
 ```
 
-Removes `~/.shadowclone/` entirely: index, profile, checkpoints, receipts, and worktrees. It touches nothing outside that directory, so transcripts, repos, and CLI configs are left alone. Repository-local `.claude/agents/shadowclone.md`, `.claude/skills/shadowclone/SKILL.md`, and `.git/info/exclude` entries created by `shadowclone install` remain until uninstall support lands.
+Removes `~/.shadowclone/` entirely: index, profile, checkpoints, receipts, and worktrees. It also removes what `shadowclone install` wrote into each recorded repository, which is the agent file, the optional delegation skill, and the exclude lines the installer added. Transcripts, repos, and CLI configs are left alone.
+
+`~/.shadowclone/installations.json` is what makes that possible. It holds canonical local repository directories, fixed artifact identifiers, and the exact exclude patterns Shadowclone added. It holds no transcript, profile text, remote URL, prompt, or model output, and it never leaves the machine. Install and uninstall report counts and fixed artifact names without printing a recorded path.
+
+An install created before the manifest existed has no record, so `forget --all` cannot find it. `shadowclone uninstall` removes the known files from the current repository directly.
 
 `shadowclone forget --source claude-code` and `shadowclone forget --repo <name>` are narrower versions for people who want to keep most of a profile.

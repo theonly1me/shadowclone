@@ -1,57 +1,43 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { readEffectiveConfig } from "../config";
-import { projectPaths } from "../paths";
+import { canonicalPath, projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import {
-  compileProfile,
-  writeAgent,
-} from "../profile";
+import { compileProfile, writeAgent } from "../profile";
 import {
   isOriginBlocked,
   resolveRepository,
   type GitRemoteReader,
 } from "../signal";
+import { renderDelegationSkill } from "./delegationSkill";
+import {
+  addGitExcludes,
+  artifactExcludePatterns,
+  artifactRelativePaths,
+} from "./installArtifacts";
+import {
+  mergeInstallation,
+  readInstallations,
+  writeInstallations,
+  type InstalledArtifact,
+} from "./installState";
 
-async function excludeGitFiles(cwd: string): Promise<void> {
-  const child = Bun.spawn({
-    cmd: ["git", "-C", cwd, "rev-parse", "--git-path", "info/exclude"],
-    stdout: "pipe",
-    stderr: "ignore",
-  });
-  if ((await child.exited) !== 0) {
-    return;
-  }
-  const relativeExclude = (await new Response(child.stdout).text()).trim();
-  if (relativeExclude.length === 0) {
-    return;
-  }
-  const excludePath = path.isAbsolute(relativeExclude)
-    ? relativeExclude
-    : path.resolve(cwd, relativeExclude);
-  const excludeFile = Bun.file(excludePath);
-  const existing = (await excludeFile.exists()) ? await excludeFile.text() : "";
-  const patterns = [
-    ".claude/agents/shadowclone.md",
-    ".claude/skills/shadowclone/",
-  ];
-  const missing = patterns.filter((pattern) => !existing.includes(pattern));
-  if (missing.length === 0) {
-    return;
-  }
-  await mkdir(path.dirname(excludePath), { recursive: true });
-  const prefix =
-    existing.length > 0 && !existing.endsWith("\n") ? `${existing}\n` : existing;
-  await Bun.write(excludePath, `${prefix}${missing.join("\n")}\n`);
+async function writeDelegationSkill(cwd: string): Promise<void> {
+  const skillPath = path.join(cwd, artifactRelativePaths["delegation-skill"]);
+  await mkdir(path.dirname(skillPath), { recursive: true });
+  await Bun.write(skillPath, renderDelegationSkill());
 }
 
-export async function installLiveClone(options: {
-  readonly cwd?: string;
-  readonly configPath?: string;
-  readonly paths?: ProjectPaths;
-  readonly readRemote?: GitRemoteReader;
-  readonly managedConfigPath?: string | null;
-} = {}): Promise<void> {
+export async function installLiveClone(
+  options: {
+    readonly cwd?: string;
+    readonly configPath?: string;
+    readonly paths?: ProjectPaths;
+    readonly readRemote?: GitRemoteReader;
+    readonly managedConfigPath?: string | null;
+    readonly autoDelegate?: boolean;
+  } = {},
+): Promise<void> {
   const cwd = options.cwd ?? process.cwd();
   const paths = options.paths ?? projectPaths;
   const { config, policy } = await readEffectiveConfig({
@@ -83,18 +69,26 @@ export async function installLiveClone(options: {
   });
   await writeAgent({ targetDirectory: cwd, profile: compilation.markdown });
 
-  const skillsDirectory = path.join(cwd, ".claude", "skills", "shadowclone");
-  await mkdir(skillsDirectory, { recursive: true });
-  const skillContent = [
-    "---",
-    "name: shadowclone",
-    "description: How to delegate tasks to the shadowclone subagent",
-    "---",
-    "",
-    'When the user asks you to perform a task using shadowclone, or if you believe the task is complex enough to delegate, use the `Agent` tool with `subagent_type: "shadowclone"` to spawn a clone.',
-    "Pass the user's request verbatim in the tool prompt.",
-  ].join("\n");
-  await Bun.write(path.join(skillsDirectory, "SKILL.md"), skillContent);
-  await excludeGitFiles(cwd);
-  console.log("Installed .claude/agents/shadowclone.md for this repository.");
+  const artifacts: InstalledArtifact[] = ["agent"];
+  if (options.autoDelegate === true) {
+    await writeDelegationSkill(cwd);
+    artifacts.push("delegation-skill");
+  }
+  const excludes = await addGitExcludes({
+    cwd,
+    patterns: artifacts.map((artifact) => artifactExcludePatterns[artifact]),
+  });
+  const state = await readInstallations(paths.installationsFile);
+  await writeInstallations({
+    filePath: paths.installationsFile,
+    state: mergeInstallation({
+      state,
+      installation: { directory: canonicalPath(cwd), artifacts, excludes },
+    }),
+  });
+
+  const names = artifacts.map((artifact) => artifactRelativePaths[artifact]);
+  console.log(
+    `Installed ${names.join(" and ")} for this repository, applying ${compilation.appliedRuleCount} profile rules.`,
+  );
 }

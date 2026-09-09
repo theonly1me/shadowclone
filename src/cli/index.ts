@@ -12,6 +12,7 @@ import {
 import { initialize } from "./init";
 import { importRepositoryGuidanceCommand } from "./import";
 import { installLiveClone } from "./install";
+import { uninstallLiveClone } from "./uninstall";
 import { learn } from "./learn";
 import { parseLearnOptions } from "./learnOptions";
 import { runClone } from "./run";
@@ -19,7 +20,7 @@ import { listSeedGuidance } from "./skills";
 import { runWizard } from "./wizard";
 
 const usage =
-  "Usage: shadowclone <init|import|wizard|skills|learn [--deep] [--dry-run] [--apply]|doctor|install|run <task>|eval [--repo <path>] [--tasks N] [--engine <id>] [--model <id>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
+  "Usage: shadowclone <init|import|wizard|skills|learn [--deep] [--dry-run] [--apply]|doctor|install [--auto-delegate]|uninstall|run <task>|eval [--repo <path>] [--tasks N] [--engine <id>] [--model <id>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -69,6 +70,14 @@ async function main(arguments_: readonly string[]): Promise<void> {
   }
   if (command === "install" && rest.length === 0) {
     await installLiveClone();
+    return;
+  }
+  if (command === "install" && rest.length === 1 && rest[0] === "--auto-delegate") {
+    await installLiveClone({ autoDelegate: true });
+    return;
+  }
+  if (command === "uninstall" && rest.length === 0) {
+    await uninstallLiveClone();
     return;
   }
   if (command === "run") {

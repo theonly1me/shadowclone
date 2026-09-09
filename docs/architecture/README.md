@@ -39,6 +39,9 @@ flowchart LR
     Compiler --> Live[Claude live clone]
     Compiler --> Dispatch[headless dispatch]
     Compiler --> Eval[transfer eval]
+    Compiler --> Install[repository install]
+    Install --> Installations[installation manifest]
+    Installations --> Uninstall[uninstall and wipe]
     Engine --> Dispatch
     Engine --> Eval
 ```
@@ -54,6 +57,8 @@ flowchart LR
 | report | `src/profile/mirror.ts` | Renders aggregate evidence and a deep-learning preview without writing rules |
 | distill | `src/distill/` | Turns high signal moments into written rules |
 | profile | `src/profile/` | Plain markdown you can read, edit, and diff |
+| compiler | `src/profile/compiler/` | The one bounded, deterministic projection every clone reads |
+| install | `src/cli/install.ts` | Writes repository artifacts and records them for removal |
 | dispatch | `src/dispatch/` | Runs a task in a worktree and leaves a receipt |
 | eval | `src/eval/` | Replays sessions against baseline and clone to measure delta |
 | engine | `src/engine/` | The one way a model gets called, by any stage |

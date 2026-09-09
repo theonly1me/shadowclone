@@ -92,6 +92,7 @@ test("adds installed files to git info exclude", async () => {
     configPath: paths.configFile,
     paths,
     managedConfigPath: null,
+    autoDelegate: true,
   });
 
   const excludePath = path.join(targetDirectory, ".git", "info", "exclude");

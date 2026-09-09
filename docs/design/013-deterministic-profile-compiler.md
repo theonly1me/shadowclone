@@ -128,6 +128,20 @@ An install created before schema version 1 has no manifest record, so `forget --
 
 Repository directories in the installation manifest reveal local project locations to a person who can already read the user's home directory. They never leave the machine and are required for a one-command cross-repository wipe.
 
+## Validation
+
+`bun run check` passes: typecheck, Biome with its as-cast plugin, the conventions checker, and 326 tests across 96 files, up from 310 with 6 failures at the start of the change.
+
+The redaction gate was proven by replacing the `resolveRedacted` result in `src/profile/compiler/read.ts` with raw file text. The planted-secret assertion failed, and the failure output showed the planted Stripe-shaped key intact in both the rule body and the `Applies when` line. Restoring the gate returned the test to green.
+
+The fixture builds that key from a prefix constant at run time. A literal Stripe-shaped token in a source file trips GitHub push protection, and the test needs the shape rather than the literal.
+
+The transfer-evaluation test was proven by restoring the hand-rolled title and body concatenation in `src/eval/transfer/profile.ts`. The source-label assertion failed. Restoring the compiler call returned it to green.
+
+The dispatch receipt test was proven by restoring heading counting. A rule whose body contains a fenced Markdown sample with two headings reported 3 applied rules instead of 1. Restoring `appliedRuleCount` returned it to green.
+
+The lifecycle walk was run end to end on a scratch home and a scratch repository whose `.git/info/exclude` already contained an unrelated line. Default install wrote the agent alone, `--auto-delegate` added the skill, the manifest recorded both artifacts and both exclude patterns, uninstall removed both files and only the two Shadowclone exclude lines, and `forget --all` after a reinstall removed the repository artifacts and the home directory. The unrelated exclude line survived every step.
+
 ## Testing
 
 Compiler tests first fail against the current split implementation by asserting source labels, visible conditions, lifecycle omission reasons, declared-over-mined axis selection, deterministic bytes, UTF-8 byte accounting, whole-block budget omission, redaction of a planted profile secret, and one result shape for directory and in-memory inputs. The redaction test is proven by temporarily replacing its `resolveRedacted` result with raw file text, printing that changed line, observing the planted secret assertion fail, restoring the gate, and observing it pass.
@@ -141,6 +155,22 @@ Focused tests run after each behavior group, followed by `bun run check`, execut
 ## Open questions
 
 None.
+
+## Implemented behavior
+
+`compileProfile` is the only projection. `buildCompiledProfile` and `src/profile/inject.ts` are gone, and all seven production callers plus both evaluation paths go through the one operation.
+
+Two corrections to this record were made during implementation, both stated rather than applied silently.
+
+The closed path set admits `identity.md`, as designed. No `ProfileSection` writes that file today, so it is admitted and simply absent. `02-profile.md` documents it as part of the layout, so admitting it keeps the two documents in agreement at the cost of one existence check.
+
+The first draft of the privacy test asserted an uppercase `[REDACTED:` marker. `src/redact/replace.ts` emits lowercase `[redacted:<label>]`, and the stripe-key rule keeps its public eight-character prefix, so a planted `sk_live_...` key redacts to `sk_live_...[redacted:stripe-key]`. The assertion was corrected to match the implemented redactor.
+
+Raw and redacted block lists are paired by position. Lifecycle comes from the raw side because `parseCurrent` marks a block edited when its fingerprint does not match, and redacting a secret changes that fingerprint. Reading lifecycle from the redacted side would silently reclassify every secret-bearing rule as hand-written.
+
+`applies-when` is read from the redacted side for the same reason it matters: the mutation proof below showed a planted secret reaching compiled output through the condition line as well as the body.
+
+Uninstall removes the recorded exclude lines for a recorded install. An install predating the manifest has no record, so uninstall falls back to the two exact Shadowclone patterns for the current repository only.
 
 ## Decision record
 
@@ -157,3 +187,11 @@ Cap the complete profile at 16,384 UTF-8 bytes and omit only whole blocks.
 Require `--auto-delegate` before installing the delegation workflow.
 
 Track repository-local artifacts in a versioned local manifest and remove them through `uninstall` or `forget --all`.
+
+Pair raw and redacted profile blocks by position, taking lifecycle from the raw side and every model-facing string from the redacted side.
+
+## Documentation impact
+
+`README.md` documents the compiler contract, `--auto-delegate`, `uninstall`, and the expanded wipe. `CLAUDE.md` adds the compiler boundary as a standing rule and the two new CLI capabilities. `docs/architecture/02-profile.md` gains the one-compiler section. `docs/architecture/05-privacy.md` documents the installation manifest and the expanded wipe. `docs/architecture/README.md` shows installation state and uninstall in the loop.
+
+`01-capture.md`, `03-engine.md`, `04-acting.md`, `06-roadmap.md`, and `07-enterprise.md` were checked and remain accurate. No capture source, engine contract, action tier, build order, or organization boundary changed.
