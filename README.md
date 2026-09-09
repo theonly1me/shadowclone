@@ -67,6 +67,16 @@ Verify your environment and supported provider CLIs:
 shadowclone doctor
 ```
 
+Inspect the seed guidance available for onboarding:
+
+```bash
+shadowclone skills
+```
+
+The library separates eight short profile preferences from ten complete Agent Skills. Preferences record choices such as planning threshold and question frequency. Skills provide task-specific processes, guardrails, and completion criteria for testing, diagnosis, research, design, conflict resolution, scoped changes, TypeScript, and final verification.
+
+Agent Skills use the standard `skills/<name>/SKILL.md` layout with routing descriptions. The strict zero-comment rule from this repository is not a general onboarding option. Listing package guidance does not inspect or change your profile, and the setup flow that selects it lands in the next milestone.
+
 Grant consent for desired transcript sources:
 
 ```bash
@@ -203,6 +213,7 @@ Managed policies act as an absolute ceiling. Users cannot enable unapproved sour
 
 ```bash
 shadowclone init                                 # Configure source consent and capabilities
+shadowclone skills                               # List packaged behavioral dispositions
 shadowclone learn [--deep] [--dry-run]           # Index sessions and synthesize rules
 shadowclone doctor                               # Inspect active paths, engines, and policies
 shadowclone install                              # Install profile as .claude/agents/shadowclone.md
