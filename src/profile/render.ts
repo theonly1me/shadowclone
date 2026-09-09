@@ -1,3 +1,7 @@
+import {
+  encodeProfileMetadata,
+  uniqueProfileEvidence,
+} from "./metadata";
 import type { ProfileRule } from "./types";
 
 export function profileFingerprint(value: string): string {
@@ -7,11 +11,8 @@ export function profileFingerprint(value: string): string {
     .slice(0, 16);
 }
 
-export function semanticRuleKey(title: string): string {
-  return new Bun.CryptoHasher("sha256")
-    .update(`semantic:${title.toLowerCase()}`)
-    .digest("hex")
-    .slice(0, 16);
+export function createProfileRuleKey(): string {
+  return crypto.randomUUID();
 }
 
 export function profileRulePath(rule: ProfileRule): string {
@@ -22,15 +23,23 @@ export function profileRulePath(rule: ProfileRule): string {
 
 export function renderProfileRule(rule: ProfileRule): string {
   const visible = `## ${rule.title}\n\n${rule.body}`;
-  const metadata = [
-    `key=${rule.key}`,
-    `observations=${rule.observations}`,
-    `confidence=${rule.confidence.toFixed(2)}`,
-    `last-seen=${rule.lastSeen}`,
-    `sessions=${rule.sessions}`,
-    `origins=${rule.origins.join(",")}`,
-    `scope=${rule.scope}`,
-    `fingerprint=${profileFingerprint(visible)}`,
-  ].join(" ");
-  return `${visible}\n\n<!-- shadowclone: ${metadata} -->`;
+  const evidence = uniqueProfileEvidence(rule.evidence);
+  const metadata = {
+    schema: 1,
+    key: rule.key,
+    source: rule.source,
+    status: rule.status,
+    proposal: rule.proposal,
+    "applies-when": [...rule.appliesWhen],
+    supports: evidence.for.length,
+    contradicts: evidence.against.length,
+    evidence,
+    observations: rule.observations,
+    "last-seen": rule.lastSeen,
+    sessions: rule.sessions,
+    origins: [...rule.origins],
+    scope: rule.scope,
+    fingerprint: profileFingerprint(visible),
+  };
+  return `${visible}\n\n<!-- shadowclone: ${encodeProfileMetadata(metadata)} -->`;
 }

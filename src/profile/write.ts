@@ -1,185 +1,131 @@
 import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import type { ProjectPaths } from "../paths";
-import { parseProfileBlocks } from "./parse";
 import {
-  profileRulePath,
-  renderProfileRule,
-  semanticRuleKey,
-} from "./render";
+  generatedProfileEntry,
+  prepareProfileWrite,
+} from "./lifecycle";
+import { profileRulePath, renderProfileRule } from "./render";
 import {
-  readProfileState,
-  renderProfileState,
+  renderGeneratedProfileState,
+  renderProfileRejections,
 } from "./state";
-import type { ProfileStateEntry } from "./state";
+import type { GeneratedProfileStateEntry } from "./state";
 import type {
-  ExistingProfileBlock,
-  ExistingProfileRule,
   ProfileRule,
+  ProfileRuleReference,
   ProfileWriteResult,
 } from "./types";
-
-export type ProfileGenerator = "structural" | "distilled" | "all";
-
-function isDistilledRule(rule: ExistingProfileRule): boolean {
-  return semanticRuleKey(rule.title) === rule.key;
-}
-
-function shouldPruneRule(options: {
-  readonly existingRule: ExistingProfileRule;
-  readonly isUpdated: boolean;
-  readonly generator: ProfileGenerator;
-}): boolean {
-  if (options.isUpdated || options.existingRule.edited) {
-    return false;
-  }
-  const isDistilled = isDistilledRule(options.existingRule);
-  if (options.generator === "all") {
-    return true;
-  }
-  if (options.generator === "structural") {
-    return !isDistilled;
-  }
-  return isDistilled;
-}
-
-function resolveGenerator(options: {
-  readonly generator?: ProfileGenerator;
-  readonly rules: readonly ProfileRule[];
-}): ProfileGenerator {
-  if (options.generator) {
-    return options.generator;
-  }
-  const hasDistilled = options.rules.some(
-    (rule) => semanticRuleKey(rule.title) === rule.key,
-  );
-  const hasStructural = options.rules.some(
-    (rule) => semanticRuleKey(rule.title) !== rule.key,
-  );
-  if (hasDistilled && hasStructural) {
-    return "all";
-  }
-  return hasDistilled ? "distilled" : "structural";
-}
-
-const groupRules = (rules: readonly ProfileRule[]) =>
-  Map.groupBy(rules, profileRulePath);
-
-async function readExistingRules(
-  filePath: string,
-): Promise<readonly ExistingProfileBlock[]> {
-  const file = Bun.file(filePath);
-  return (await file.exists()) ? parseProfileBlocks(await file.text()) : [];
-}
-
-const keyFor = (entry: ProfileStateEntry): string =>
-  `${entry.relativePath}\t${entry.key}`;
 
 export async function writeProfile(options: {
   readonly paths: ProjectPaths;
   readonly rules: readonly ProfileRule[];
-  readonly generator?: ProfileGenerator;
+  readonly retired?: readonly ProfileRuleReference[];
 }): Promise<ProfileWriteResult> {
   await mkdir(options.paths.profileDirectory, { recursive: true });
-  const generator = resolveGenerator({
-    generator: options.generator,
+  const prepared = await prepareProfileWrite({
+    paths: options.paths,
     rules: options.rules,
+    retiredReferences: options.retired ?? [],
   });
-  const previous = await readProfileState(options.paths.profileManifestFile);
-  const rejectedEntries = await readProfileState(
-    options.paths.rejectedProfileFile,
-  );
-  const rejected = new Map(
-    rejectedEntries.map((entry) => [keyFor(entry), entry]),
-  );
-  const incoming = groupRules(options.rules);
-  const previousPaths = previous.map((entry) => entry.relativePath);
-  const relativePaths = new Set([...incoming.keys(), ...previousPaths]);
-  const nextState: ProfileStateEntry[] = [];
-  let files = 0;
+  const nextState = new Map<string, GeneratedProfileStateEntry>();
+  const consumed = new Set<string>();
+  let writtenFiles = 0;
   let ruleCount = 0;
 
-  for (const relativePath of relativePaths) {
-    const filePath = path.join(options.paths.profileDirectory, relativePath);
-    const existingRules = await readExistingRules(filePath);
-    const existing = new Map(
-      existingRules.flatMap((rule) =>
-        rule.key === null ? [] : [[rule.key, rule] as const]
-      ),
-    );
-    const incomingRules = incoming.get(relativePath) ?? [];
+  for (const file of prepared.files) {
     const nextBlocks: string[] = [];
-
-    for (const entry of previous.filter(
-      (value) => value.relativePath === relativePath,
-    )) {
-      if (
-        incomingRules.some((rule) => rule.key === entry.key) &&
-        !existing.has(entry.key)
-      ) {
-        rejected.set(keyFor(entry), entry);
-      }
-    }
-
-    for (const existingRule of existingRules) {
-      if (existingRule.key === null) {
-        nextBlocks.push(existingRule.content);
+    for (const block of file.blocks) {
+      if (block.key === null || block.edited || block.source === "user") {
+        nextBlocks.push(block.content);
         continue;
       }
-      const updated = incomingRules.find(
-        (rule) => rule.key === existingRule.key,
+      if (block.legacy || prepared.retired.has(block.key)) {
+        continue;
+      }
+      const replacement = prepared.incoming.get(block.key);
+      if (replacement) {
+        if (profileRulePath(replacement) !== file.relativePath) {
+          continue;
+        }
+        nextBlocks.push(renderProfileRule(replacement));
+        consumed.add(block.key);
+        if (replacement.source !== "user") {
+          nextState.set(
+            block.key,
+            generatedProfileEntry({
+              relativePath: file.relativePath,
+              rule: replacement,
+            }),
+          );
+        }
+        continue;
+      }
+      nextBlocks.push(block.content);
+      nextState.set(
+        block.key,
+        generatedProfileEntry({
+          relativePath: file.relativePath,
+          rule: block,
+        }),
       );
+    }
+    for (const rule of prepared.incomingRules) {
       if (
-        shouldPruneRule({
-          existingRule,
-          isUpdated: updated !== undefined,
-          generator,
-        })
+        profileRulePath(rule) !== file.relativePath ||
+        consumed.has(rule.key) ||
+        prepared.pinned.has(rule.key) ||
+        prepared.retired.has(rule.key) ||
+        prepared.rejections.has(rule.key)
       ) {
         continue;
       }
-      nextBlocks.push(
-        updated && !existingRule.edited
-          ? renderProfileRule(updated)
-          : existingRule.content,
-      );
-      nextState.push({ relativePath, key: existingRule.key });
-    }
-
-    for (const rule of incomingRules) {
-      const entry = { relativePath, key: rule.key };
-      if (!existing.has(rule.key) && !rejected.has(keyFor(entry))) {
-        existing.set(rule.key, {
-          key: rule.key,
-          title: rule.title,
-          fingerprint: "",
-          content: renderProfileRule(rule),
-          edited: false,
-        });
-        nextBlocks.push(renderProfileRule(rule));
-        nextState.push(entry);
+      nextBlocks.push(renderProfileRule(rule));
+      consumed.add(rule.key);
+      if (rule.source !== "user") {
+        nextState.set(
+          rule.key,
+          generatedProfileEntry({
+            relativePath: file.relativePath,
+            rule,
+          }),
+        );
       }
     }
-
     if (nextBlocks.length > 0) {
-      await mkdir(path.dirname(filePath), { recursive: true });
-      await Bun.write(filePath, `${nextBlocks.join("\n\n")}\n`);
-      files += 1;
+      await mkdir(path.dirname(file.filePath), { recursive: true });
+      await Bun.write(file.filePath, `${nextBlocks.join("\n\n")}\n`);
+      writtenFiles += 1;
       ruleCount += nextBlocks.length;
-      continue;
-    }
-    if (existingRules.length > 0) {
-      await rm(filePath, { force: true });
+    } else if (file.blocks.length > 0) {
+      await rm(file.filePath, { force: true });
     }
   }
 
+  for (const entry of prepared.previousEntries) {
+    if (
+      entry.disposition === "present" &&
+      !prepared.incoming.has(entry.key) &&
+      !prepared.pinned.has(entry.key) &&
+      !prepared.retired.has(entry.key)
+    ) {
+      nextState.set(entry.key, entry);
+    }
+  }
+  for (const entry of prepared.retired.values()) {
+    nextState.set(entry.key, entry);
+  }
   await Bun.write(
     options.paths.profileManifestFile,
-    renderProfileState(nextState),
+    renderGeneratedProfileState([...nextState.values()]),
   );
   await Bun.write(
     options.paths.rejectedProfileFile,
-    renderProfileState([...rejected.values()]),
+    renderProfileRejections([...prepared.rejections.values()]),
   );
-  return { files, rules: ruleCount, rejected: rejected.size };
+  return {
+    files: writtenFiles,
+    rules: ruleCount,
+    rejected: prepared.rejections.size,
+  };
 }

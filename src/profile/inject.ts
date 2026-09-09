@@ -6,37 +6,19 @@ import { parseProfileBlocks } from "./parse";
 type CompiledBlock = {
   readonly content: string;
   readonly observations: number;
-  readonly confidence: number;
+  readonly active: boolean;
 };
 
-function metadataNumber(options: {
-  readonly content: string;
-  readonly name: string;
-  readonly fallback: number;
-}): number {
-  const match = options.content.match(
-    new RegExp(`\\b${options.name}=([\\d.]+)`),
-  );
-  const value = match?.[1] ? Number(match[1]) : Number.NaN;
-  return Number.isFinite(value) ? value : options.fallback;
-}
-
-function toCompiledBlock(content: string): CompiledBlock {
-  const manual = !content.includes("<!-- shadowclone:");
+function toCompiledBlock(
+  block: ReturnType<typeof parseProfileBlocks>[number],
+): CompiledBlock {
   return {
-    content: content
+    content: block.content
       .replace(/\n\n<!-- shadowclone: [^\n]+ -->\s*$/, "")
       .trim(),
-    observations: metadataNumber({
-      content,
-      name: "observations",
-      fallback: manual ? Number.MAX_SAFE_INTEGER : 0,
-    }),
-    confidence: metadataNumber({
-      content,
-      name: "confidence",
-      fallback: manual ? 1 : 0,
-    }),
+    observations:
+      block.key === null ? Number.MAX_SAFE_INTEGER : block.observations,
+    active: block.status === "active",
   };
 }
 
@@ -75,7 +57,6 @@ export async function buildCompiledProfile(options: {
   readonly profileDirectory: string;
   readonly origin: OriginScope;
   readonly targetRepo?: string | null;
-  readonly confidenceThreshold?: number;
 }): Promise<string> {
   const directories = [
     path.join(options.profileDirectory, "global"),
@@ -96,14 +77,11 @@ export async function buildCompiledProfile(options: {
       continue;
     }
     const text = await Bun.file(filePath).text();
-    blocks.push(...parseProfileBlocks(text).map((block) =>
-      toCompiledBlock(block.content)
-    ));
+    blocks.push(...parseProfileBlocks(text).map(toCompiledBlock));
   }
 
-  const threshold = options.confidenceThreshold ?? 0;
   const selected = blocks
-    .filter((block) => block.confidence >= threshold)
+    .filter((block) => block.active)
     .sort(
       (left, right) =>
         right.observations - left.observations ||
@@ -121,7 +99,6 @@ export async function compileProfile(options: {
   readonly outputPath: string;
   readonly origin: OriginScope;
   readonly targetRepo?: string | null;
-  readonly confidenceThreshold?: number;
 }): Promise<string> {
   const profile = await buildCompiledProfile(options);
   await mkdir(path.dirname(options.outputPath), { recursive: true });

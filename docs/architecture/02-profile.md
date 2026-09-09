@@ -95,7 +95,7 @@ The layout is scoped by the remote owner a rule was learned from, because a rule
   .generated
 ```
 
-`.generated` holds rule ids and relative profile paths, never captured text. The writer needs that small manifest to tell a newly discovered rule from one the user deleted. Deleted ids move to `.rejected`, and a generated rule with the same key is not written again. The current state cannot recognize a semantic paraphrase with a different key.
+`.generated` is a JSON Lines lifecycle ledger. A present entry holds the rule id, relative path, source, and last generated title and body, which lets the writer recognize a deletion after the Markdown is gone. A retired entry is a tombstone for obsolete generated guidance. `.rejected` holds deleted ids with the same generated text so later reconciliation can compare a new candidate with what the user removed. Legacy 0.0.5 rows contain only a path and key, and their missing text is never invented.
 
 | File | Holds |
 | --- | --- |
@@ -116,14 +116,16 @@ Every rule carries where it came from.
 
 Never presents work as finished without running `bun run typecheck && bun test` first, and says which one was run.
 
-<!-- shadowclone: source=semantic observations=47 confidence=0.94 last-seen=2026-09-04 sessions=3 origins=github.com/acme scope=org -->
+<!-- shadowclone: {"schema":1,"key":"018f7d34-45aa-7a3c-8912-61fc10928d67","source":"mined","status":"active","proposal":null,"applies-when":[],"supports":2,"contradicts":1,"evidence":{"for":["event:one","event:two"],"against":["event:three"]},"observations":3,"last-seen":"2026-09-08","sessions":2,"origins":["github.com/acme"],"scope":"org","fingerprint":"e39c293f6c04933a"} -->
 ```
 
 The trailing metadata is HTML comment syntax so it renders as nothing when the file is read as markdown, and parses reliably when the file is read back. This is the one place in the project where a comment is written, and it is data, not commentary.
 
-Provenance is what makes the profile arguable. A rule claiming 47 observations is a claim the user can check and reject, and rejecting it is how the profile improves. `origins` and `scope` are what the compiler reads to decide whether a rule is allowed into a given session, so they are load bearing rather than informational.
+`source` distinguishes guidance the user declared or wrote from imported and mined guidance. `status` is active, candidate, or stale. Disagreement does not change status: an active user-owned rule stays active while `proposal` carries a pending revision, narrowing, or retirement for the user to decide.
 
-Merged rules compose evidence honestly: the merge step outputs explicit source indices, ensuring each merged rule's observations, sessions, origins, and timestamps represent the exact union of its source signals rather than origin-wide counts. Confidence scores are derived from session recurrence as `min(1, sessions / 3)` and filtered by `distillation.confidenceThreshold`.
+Evidence is separated into `for` and `against` identifiers and deduplicated before `supports` and `contradicts` are counted. Current identifiers carry origin, session, timestamp, signal kind, and category. Merged rules union the evidence of their named source rules, and wording changes retain the first constituent's persistent id. Confidence is absent because the previous structural and semantic paths gave the same number two incompatible meanings.
+
+`applies-when` carries explicit conditions for registry and imported guidance. The current compiler preserves the field but does not evaluate task conditions because it does not yet receive task context.
 
 ## Compiling to a subagent
 
@@ -141,13 +143,15 @@ Once it exists, the main session calls `Agent(subagent_type: "<name>")` and gets
 
 Origin scoping applies at compile time here too. The subagent written into a repo's `.claude/agents/` carries `global/` rules plus that repo's owner and matching project file, and nothing from another owner.
 
-## Hand edits survive and scoped pruning
+## Hand edits and lifecycle
 
 The user editing their own profile is the point, so regeneration must never clobber it.
 
-The writer parses the existing file first. A generated block whose visible title or body no longer matches its stored fingerprint is treated as pinned and carried forward verbatim, including its existing metadata. A generated block removed from its file while its key remains in `.generated` moves to `~/.shadowclone/profile/.rejected`, which prevents that same key from being written again. Paraphrase-aware rejection requires the richer lifecycle record planned for reconciliation.
+The writer parses the existing file first. A generated block whose visible title or body no longer matches its stored fingerprint becomes active user guidance, leaves generated ownership, and is carried forward verbatim. A generated block removed while the same persistent id is proposed moves to `.rejected` with its last generated text. Later wording revisions under that id remain rejected.
 
-Pruning is scoped by regeneration type: rules are only pruned if their specific source (`structural` or `semantic`) was regenerated during that run and the rule is absent from incoming generated rules. Offline structural refreshes (`learn`) never drop distilled rules, while deep distillation (`learn --deep`) refreshes semantic rules and prunes stale predecessors. Internal writes deduplicate rules across identical keys.
+Creation adds an unseen id, revision replaces unedited text under the same id, pinning preserves user text, rejection honors user deletion, and explicit retirement removes obsolete generated text without recording user rejection. Absence from one generation run does not retire a rule. Unedited 0.0.5 template blocks migrate to retired tombstones. Edited legacy blocks become user-owned and keep their text.
+
+The richer rejection record makes semantic matching possible but does not perform it. A separately assigned candidate that paraphrases a rejected rule requires the reconciliation milestone to compare their text.
 
 ## Budget and resumption
 

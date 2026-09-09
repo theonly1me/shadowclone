@@ -120,8 +120,8 @@ Cursor also receives its prompt on stdin. A no-tools distillation run gets an em
 
 ## Compiled profile
 
-The engine is handed one file, not five. `src/profile/inject.ts` compiles `~/.shadowclone/profile/*.md` into `.compiled.md`: rules above a confidence threshold, ordered by observation count, with provenance comments stripped and any `projects/<repo>.md` matching the target repo appended.
+The engine is handed one file, not five. `src/profile/inject.ts` compiles `~/.shadowclone/profile/*.md` into `.compiled.md`: active rules ordered by observation count, with provenance comments stripped and any `projects/<repo>.md` matching the target repo appended. Candidate and stale rules remain visible in the editable profile but do not enter the prompt.
 
 Compilation is where the profile stops being a document and becomes a prompt, so it is a named step with its own file rather than string building inside the runner.
 
-The compiler reads `global/` and exactly one matching `host/owner` directory, strips provenance, and places hand-written rules first. The current confidence threshold is zero until the confidence model in the open questions is settled, so compilation does not silently discard a rule the user can see.
+The compiler reads `global/` and exactly one matching `host/owner` directory, strips provenance, and places handwritten rules first. An active declared or user rule remains selected when contradicting evidence creates a pending proposal. The proposal is for the user to decide and does not silently override their instruction.

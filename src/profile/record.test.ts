@@ -1,0 +1,138 @@
+import { expect, test } from "bun:test";
+import { mkdir, mkdtemp } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import type { OriginScope } from "../signal";
+import {
+  buildCompiledProfile,
+  parseProfileRules,
+  renderProfileRule,
+} from "./index";
+import type { ProfileRule } from "./index";
+
+const completeRule: ProfileRule = {
+  key: "018f7d34-45aa-7a3c-8912-61fc10928d67",
+  title: "Verify focused behavior",
+  body: "Run the narrow check before presenting the change.",
+  section: "workflow",
+  scope: "org",
+  originDirectory: "github.com--acme",
+  source: "declared",
+  status: "active",
+  proposal: {
+    kind: "narrow",
+    text: "Run only the check that exercises the changed behavior.",
+  },
+  appliesWhen: ["task=code-change", "language=typescript"],
+  evidence: {
+    for: ["event:one", "event:one", "event:two"],
+    against: ["event:three", "event:three"],
+  },
+  observations: 3,
+  lastSeen: "2026-09-08",
+  sessions: 2,
+  origins: ["github.com/acme"],
+};
+
+test("round-trips every profile record field and deduplicates evidence", () => {
+  const rendered = renderProfileRule(completeRule);
+  const [parsed] = parseProfileRules(rendered);
+
+  expect(parsed).toMatchObject({
+    key: completeRule.key,
+    title: completeRule.title,
+    body: completeRule.body,
+    source: "declared",
+    status: "active",
+    proposal: completeRule.proposal,
+    appliesWhen: completeRule.appliesWhen,
+    evidence: {
+      for: ["event:one", "event:two"],
+      against: ["event:three"],
+    },
+    observations: 3,
+    lastSeen: "2026-09-08",
+    sessions: 2,
+    origins: ["github.com/acme"],
+    scope: "org",
+    legacy: false,
+  });
+  expect(rendered).toContain('"supports":2');
+  expect(rendered).toContain('"contradicts":1');
+});
+
+test("keeps adversarial proposal text inside one metadata comment", () => {
+  const proposal = "Replace this --> with <!-- escaped metadata.";
+  const rendered = renderProfileRule({
+    ...completeRule,
+    proposal: { kind: "revise", text: proposal },
+  });
+  const [parsed] = parseProfileRules(rendered);
+
+  expect(rendered.match(/<!-- shadowclone:/g)).toHaveLength(1);
+  expect(parsed?.proposal?.text).toBe(proposal);
+});
+
+test("treats edited generated wording as active user guidance", () => {
+  const rendered = renderProfileRule({
+    ...completeRule,
+    status: "candidate",
+    proposal: { kind: "revise", text: "Use different wording." },
+  });
+  const edited = rendered.replace(
+    completeRule.body,
+    "Use the wording the user wrote.",
+  );
+  const [parsed] = parseProfileRules(edited);
+
+  expect(parsed?.source).toBe("user");
+  expect(parsed?.status).toBe("active");
+  expect(parsed?.proposal).toBeNull();
+});
+
+test("compiles contradicted declared guidance while withholding inactive rules", async () => {
+  const profileDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-record-"),
+  );
+  const directory = path.join(
+    profileDirectory,
+    "org",
+    completeRule.originDirectory ?? "isolated",
+  );
+  await mkdir(directory, { recursive: true });
+  await Bun.write(
+    path.join(directory, "workflow.md"),
+    [
+      renderProfileRule({
+        ...completeRule,
+        evidence: { for: ["event:one"], against: ["event:two"] },
+        proposal: { kind: "retire", text: "Stop applying this rule." },
+      }),
+      renderProfileRule({
+        ...completeRule,
+        key: "candidate-rule",
+        title: "Candidate guidance",
+        status: "candidate",
+        proposal: null,
+      }),
+      renderProfileRule({
+        ...completeRule,
+        key: "stale-rule",
+        title: "Stale guidance",
+        status: "stale",
+        proposal: null,
+      }),
+    ].join("\n\n"),
+  );
+  const origin: OriginScope = {
+    id: "github.com/acme",
+    directoryName: "github.com--acme",
+    promotable: true,
+  };
+
+  const profile = await buildCompiledProfile({ profileDirectory, origin });
+
+  expect(profile).toContain(completeRule.title);
+  expect(profile).not.toContain("Candidate guidance");
+  expect(profile).not.toContain("Stale guidance");
+});
