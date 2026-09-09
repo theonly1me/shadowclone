@@ -11,11 +11,8 @@ import {
   readGeneratedProfileState,
   writeProfile,
 } from "../profile";
+import { seedGuidanceProfileKey } from "./key";
 import type { SeedGuidance, SeedLibrary } from "./schema";
-
-export function seedGuidanceProfileKey(guidanceId: string): string {
-  return `seed:${guidanceId}`;
-}
 
 function profileBodyFromSeedGuidance(guidance: SeedGuidance): string {
   return guidance.kind === "skill"

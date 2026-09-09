@@ -31,7 +31,7 @@ export function profileRulePath(rule: ProfileRule): string {
   return `org/${rule.originDirectory}/${rule.section}.md`;
 }
 
-function isSafeProfileSegment(value: string): boolean {
+export function isSafeProfileSegment(value: string): boolean {
   return (
     value.length > 0 &&
     value !== "." &&

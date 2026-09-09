@@ -1,7 +1,7 @@
 import { readEffectiveConfig } from "../config";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { buildCompiledProfile } from "../profile";
+import { compileProfile } from "../profile";
 import {
   isOriginBlocked,
   resolveRepository,
@@ -52,11 +52,16 @@ async function activeProfile(options: LiveHookOptions): Promise<{
     return null;
   }
   return {
-    profile: await buildCompiledProfile({
-      profileDirectory: paths.profileDirectory,
-      origin: repository.origin,
-      targetRepo: repository.profileFileName,
-    }),
+    profile: (
+      await compileProfile({
+        input: {
+          kind: "directory",
+          profileDirectory: paths.profileDirectory,
+          origin: repository.origin,
+          targetRepo: repository.profileFileName,
+        },
+      })
+    ).markdown,
   };
 }
 

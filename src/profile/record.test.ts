@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import type { OriginScope } from "../signal";
 import {
-  buildCompiledProfile,
+  compileProfile,
   parseProfileRules,
   renderProfileRule,
 } from "./index";
@@ -163,9 +163,11 @@ test("compiles contradicted declared guidance while withholding inactive rules",
     promotable: true,
   };
 
-  const profile = await buildCompiledProfile({ profileDirectory, origin });
+  const compilation = await compileProfile({
+    input: { kind: "directory", profileDirectory, origin, targetRepo: null },
+  });
 
-  expect(profile).toContain(completeRule.title);
-  expect(profile).not.toContain("Candidate guidance");
-  expect(profile).not.toContain("Stale guidance");
+  expect(compilation.markdown).toContain(completeRule.title);
+  expect(compilation.markdown).not.toContain("Candidate guidance");
+  expect(compilation.markdown).not.toContain("Stale guidance");
 });

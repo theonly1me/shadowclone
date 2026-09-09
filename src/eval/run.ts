@@ -77,9 +77,13 @@ export async function runEval(options: EvalOptions = {}): Promise<EvalReceipt> {
   await mkdir(profileDir, { recursive: true });
   const compiledProfilePath = path.join(profileDir, "profile.md");
   await compileProfile({
-    profileDirectory: paths.profileDirectory,
+    input: {
+      kind: "directory",
+      profileDirectory: paths.profileDirectory,
+      origin: defaultOrigin,
+      targetRepo: null,
+    },
     outputPath: compiledProfilePath,
-    origin: defaultOrigin,
   });
 
   const sessionResults: EvalSessionResult[] = [];

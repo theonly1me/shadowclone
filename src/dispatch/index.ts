@@ -48,10 +48,6 @@ function taskSlug(task: string): string {
   );
 }
 
-function countProfileRules(profile: string): number {
-  return profile.match(/^## /gm)?.length ?? 0;
-}
-
 export async function runHeadlessClone(options: {
   readonly task: string;
   readonly targetDirectory?: string;
@@ -119,11 +115,14 @@ export async function runHeadlessClone(options: {
     runner: options.commandRunner,
   });
   const compiledProfilePath = path.join(paths.runDirectory(runId), "profile.md");
-  const profile = await compileProfile({
-    profileDirectory: paths.profileDirectory,
+  const compilation = await compileProfile({
+    input: {
+      kind: "directory",
+      profileDirectory: paths.profileDirectory,
+      origin: repository.origin,
+      targetRepo: repository.profileFileName,
+    },
     outputPath: compiledProfilePath,
-    origin: repository.origin,
-    targetRepo: repository.profileFileName,
   });
   const startedAt = options.startedAt ?? new Date().toISOString();
   const run = await runner({
@@ -177,7 +176,7 @@ export async function runHeadlessClone(options: {
     actionsTaken,
     actionsBlockedByPolicy: dispatchPolicy.blockedActions,
     permissionDenials: run.permissionDenials,
-    profileRulesApplied: countProfileRules(profile),
+    profileRulesApplied: compilation.appliedRuleCount,
   };
   await writeReceipt({ runDirectory: paths.runDirectory(runId), receipt });
   if (run.isError) {

@@ -72,13 +72,16 @@ export async function installLiveClone(options: {
   if (isOriginBlocked({ repository, patterns: policy.blockedOrigins })) {
     throw new Error("Managed policy blocks this repository");
   }
-  const profile = await compileProfile({
-    profileDirectory: paths.profileDirectory,
+  const compilation = await compileProfile({
+    input: {
+      kind: "directory",
+      profileDirectory: paths.profileDirectory,
+      origin: repository.origin,
+      targetRepo: repository.profileFileName,
+    },
     outputPath: paths.compiledProfileFile,
-    origin: repository.origin,
-    targetRepo: repository.profileFileName,
   });
-  await writeAgent({ targetDirectory: cwd, profile });
+  await writeAgent({ targetDirectory: cwd, profile: compilation.markdown });
 
   const skillsDirectory = path.join(cwd, ".claude", "skills", "shadowclone");
   await mkdir(skillsDirectory, { recursive: true });

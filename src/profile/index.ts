@@ -1,5 +1,12 @@
 export { renderAgent, writeAgent } from "./agent";
-export { buildCompiledProfile, compileProfile } from "./inject";
+export {
+  compileProfile,
+  defaultProfileByteBudget,
+  type ProfileCompilation,
+  type ProfileCompilationOmission,
+  type ProfileCompilationOmissionReason,
+  type ProfileCompileInput,
+} from "./compiler";
 export {
   parseProfileEvidenceId,
   profileEvidenceId,

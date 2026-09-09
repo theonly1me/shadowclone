@@ -30,9 +30,12 @@ export async function refreshOfflineProfile(options: {
     return;
   }
   await compileProfile({
-    profileDirectory: options.paths.profileDirectory,
+    input: {
+      kind: "directory",
+      profileDirectory: options.paths.profileDirectory,
+      origin: repository.origin,
+      targetRepo: repository.profileFileName,
+    },
     outputPath: options.paths.compiledProfileFile,
-    origin: repository.origin,
-    targetRepo: repository.profileFileName,
   });
 }
