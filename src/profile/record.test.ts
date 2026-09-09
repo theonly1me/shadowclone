@@ -9,6 +9,7 @@ import {
   renderProfileRule,
 } from "./index";
 import type { ProfileRule } from "./index";
+import { profileRuleSchema } from "./metadata";
 
 const completeRule: ProfileRule = {
   key: "018f7d34-45aa-7a3c-8912-61fc10928d67",
@@ -17,6 +18,7 @@ const completeRule: ProfileRule = {
   section: "workflow",
   scope: "org",
   originDirectory: "github.com--acme",
+  repositoryName: null,
   source: "declared",
   status: "active",
   proposal: {
@@ -32,6 +34,7 @@ const completeRule: ProfileRule = {
   lastSeen: "2026-09-08",
   sessions: 2,
   origins: ["github.com/acme"],
+  importReference: null,
 };
 
 test("round-trips every profile record field and deduplicates evidence", () => {
@@ -59,6 +62,36 @@ test("round-trips every profile record field and deduplicates evidence", () => {
   });
   expect(rendered).toContain('"supports":2');
   expect(rendered).toContain('"contradicts":1');
+});
+
+test("requires location fields that agree with profile scope", () => {
+  expect(
+    profileRuleSchema.safeParse({
+      ...completeRule,
+      scope: "project",
+      repositoryName: null,
+    }).success,
+  ).toBeFalse();
+  expect(
+    profileRuleSchema.safeParse({
+      ...completeRule,
+      scope: "global",
+      originDirectory: "github.com--acme",
+      repositoryName: null,
+    }).success,
+  ).toBeFalse();
+});
+
+test("round-trips opaque import identity", () => {
+  const importReference = {
+    repositoryAliases: ["a".repeat(64)],
+    sourceLocator: "b".repeat(64),
+  };
+  const [parsed] = parseProfileRules(
+    renderProfileRule({ ...completeRule, importReference }),
+  );
+
+  expect(parsed?.importReference).toEqual(importReference);
 });
 
 test("keeps adversarial proposal text inside one metadata comment", () => {

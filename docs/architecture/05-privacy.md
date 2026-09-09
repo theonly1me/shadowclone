@@ -20,11 +20,13 @@ Capture consent protects source content. Before consent, onboarding may determin
 
 The check does not collect entry names, open an entry, inspect metadata beyond what the boolean needs, or retain or log a path, name, count, timestamp, or provider-specific identifier. This reveals that a supported provider has local data on the machine, which is accepted because onboarding is about to ask whether to use that provider. A project slug, repository name, transcript name, and transcript content remain unread.
 
+Repository onboarding applies the same rule to declared guidance. It reduces the existence of supported root files or a non-empty supported skill root to one boolean. File names inside skill roots and instruction contents remain unread until the user enables `declared-rules`.
+
 ## No second copy
 
-Shadowclone does not copy transcripts. The index stores offsets, timestamps, tool names, and event kinds. The profile stores rules written about the user, not excerpts from them.
+Shadowclone does not copy transcripts. The index stores offsets, timestamps, tool names, and event kinds. The profile stores derived behavioral rules and redacted repository guidance the user explicitly imported.
 
-Text is materialized in exactly one place, `src/distill/`, held in memory, redacted, sent through the engine, and dropped. Nothing writes captured text to disk at any point in the pipeline.
+Every captured string is materialized through `resolveRedacted`. Transcript excerpts are held in memory under `src/distill/`, sent through the selected engine, and dropped. Repository guidance is redacted first under `src/importRules/`, then stored locally as the profile text the user asked to import. No unredacted captured text is written by either path.
 
 Replay evaluation uses the same path. Its first prompt is resolved through `resolveRedacted` inside `src/distill/replay.ts` before the engine receives it.
 
@@ -50,7 +52,7 @@ Redaction is the wrong control for that. Pattern matching finds an API key and d
 
 So distillation input is an allowlist rather than a blocklist.
 
-Eligible: the user's own prompts, plan and question and denial events, tool call metadata, and the assistant text immediately preceding a correction.
+Eligible for transcript distillation: the user's own prompts, plan and question and denial events, tool call metadata, and the assistant text immediately preceding a correction. Repository guidance is a separate explicitly enabled source and never enters transcript distillation.
 
 Never eligible, at any setting: the content of any `tool_result`, file contents from Read, Edit, or Write, thinking blocks, and every MCP data-access result. `07-enterprise.md` has the full list.
 
@@ -68,7 +70,7 @@ What is not claimed is that shadowclone makes a machine more private than it alr
 
 ## Logging
 
-Counts, byte sizes, hashes, and source names. `indexed 4,182 events from 37 sessions` is a log line. A sample is logged only when redacted and only under an explicit debug flag. No captured text in an error message, because errors reach crash reporters.
+Counts, byte sizes, hashes, and source names. `indexed 4,182 events from 37 sessions` is a log line. Repository import reports counts only and prints no path, title, body, or repository identity. A sample is logged only when redacted and only under an explicit debug flag. No captured text appears in an error message, because errors reach crash reporters.
 
 The one that is easy to get wrong here: a file path from a transcript is captured data. `failed to parse ~/.claude/projects/<slug>/<uuid>.jsonl` names the user's employer in the slug. Log the source name and the offset instead.
 

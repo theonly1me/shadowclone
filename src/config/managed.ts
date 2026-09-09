@@ -83,6 +83,9 @@ export function applyManagedPolicy(options: {
         sourceAllowed("claude-prompts"),
       codex: options.config.sources.codex && sourceAllowed("codex"),
       cursor: options.config.sources.cursor && sourceAllowed("cursor"),
+      "declared-rules":
+        options.config.sources["declared-rules"] &&
+        sourceAllowed("declared-rules"),
       "git-metadata":
         options.config.sources["git-metadata"] &&
         sourceAllowed("git-metadata"),

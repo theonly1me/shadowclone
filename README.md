@@ -4,7 +4,7 @@ Teach your coding agents to work the way you do.
 
 Shadowclone learns how you work from the AI coding sessions already on your disk, then compiles an editable profile for the agents you already use. The goal is a clone that can reason about work and carry it out the way you would.
 
-Today it observes enabled Claude Code, Codex, Cursor, and Antigravity transcripts, finds steering signals, writes a local Markdown profile, and can run an evaluation that compares profiled and unprofiled behavior. The next milestone reconciles instructions you wrote with corrections you made during real work. No measured outcome is published yet.
+Today it imports existing repository guidance, observes enabled Claude Code, Codex, Cursor, and Antigravity transcripts, finds steering signals, writes a local Markdown profile, and can run an evaluation that compares profiled and unprofiled behavior. The next milestone reconciles instructions you wrote with corrections you made during real work. No measured outcome is published yet.
 
 Run the evaluation instrument on your own corpus:
 
@@ -23,9 +23,11 @@ Every turn where you interrupted an agent, refused a tool, corrected a proposal,
 ## The pipeline
 
 ```
-observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch / eval
-                          |                        |
-                     zero tokens          user's subscription
+declared repository guidance  ->  redact  ->  profile
+                                              ^
+observe  ->  index  ->  signal  ->  distill  -+->  dispatch / eval
+                          |                   |
+                     zero tokens     user's subscription
 ```
 
 | Stage | Module | Function |
@@ -34,7 +36,8 @@ observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch / eval
 | index | `src/index/` | Rebuildable SQLite cache of byte offsets and event kinds, never text |
 | signal | `src/signal/` | Detects interruptions, plan changes, and tool refusals in pure code |
 | distill | `src/distill/` | Distills high-signal moments into rules via your installed agent CLI |
-| profile | `src/profile/` | Plain Markdown rules and subagents scoped to remote owners |
+| import | `src/importRules/` | Redacts supported repository instructions and synchronizes one rule per file |
+| profile | `src/profile/` | Plain Markdown rules and subagents scoped globally, by remote owner, or by exact repository |
 | dispatch | `src/dispatch/` | Executes unattended tasks on isolated worktrees with receipts |
 | eval | `src/eval/` | Replays historical prompts through baseline vs clone to score behavioral deltas |
 
@@ -83,14 +86,23 @@ Build a declared profile, then grant consent for desired sources and capabilitie
 shadowclone init
 ```
 
-When the working directory has no `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`, `init` runs the profile wizard first. It prints every selected title and asks for confirmation before writing the profile. When one of those exact rules files exists, `init` reports its presence and leaves it unread. Capture consent always comes after this profile step.
+When the working directory contains `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.claude/skills/*/SKILL.md`, or `.agents/skills/*/SKILL.md`, `init` offers to import that guidance before reading it. Acceptance stores `declared-rules` consent and imports each supported file as one redacted profile rule. Declining import offers the seed wizard separately. When no supported guidance is detected, `init` runs the profile wizard first. Capture consent always comes after this profile step.
 
 Only transcript and history sources with a non-empty configured root receive a consent question. Every source remains off until it is enabled here. Two additional capabilities read files that are neither transcripts nor history:
 
 Before consent, onboarding may check whether a configured source root exists and is non-empty. It keeps only that boolean so it can omit absent providers from its questions. It does not retain or log a source path, entry name, count, timestamp, size, or provider-derived identifier.
 
-- **`git-metadata`** reads the git remote origin of a working directory, so rules can be scoped to the `host/owner` they were learned from. Without it every directory is treated as its own isolated origin.
+- **`declared-rules`** reads only the supported repository guidance paths after consent. Imports are local and deterministic, call no model, and store only redacted content plus opaque synchronization identifiers.
+- **`git-metadata`** reads the git remote origin of a working directory, so rules can be scoped to the `host/owner` or exact repository they came from. Without it every directory is treated as its own isolated origin.
 - **`agent-context`** reads the user's own `CLAUDE.md` or `AGENTS.md`, their skill markdown, and their agent memory directory. It exists so a transfer evaluation can freeze the same setup for both arms, and it is read only by `shadowclone eval`. Contents pass through redaction before they are written into a snapshot.
+
+Import or synchronize repository guidance without repeating the rest of onboarding:
+
+```bash
+shadowclone import
+```
+
+The first run asks once and persists consent. Later runs update unedited imports under the same identity, preserve profile edits, keep deleted rules rejected, and retire unedited rules whose source file disappeared. Enabling Git metadata later moves the same unedited rule from an isolated working-directory scope to an exact repository scope.
 
 Rerun only the profile choices at any time:
 
@@ -128,7 +140,7 @@ shadowclone install
 
 This writes `.claude/agents/shadowclone.md` and excludes it from git tracking.
 
-The profile is yours to correct. Editing the visible text of a generated block makes it active user guidance and preserves your version verbatim. Deleting a generated block records its persistent id and last generated text in `.rejected`, so later wording changes under that id stay rejected. Recognizing a separately created candidate as a paraphrase is part of the reconciliation milestone.
+The profile is yours to correct. Editing the visible text of a generated or imported block makes it active user guidance and preserves your version verbatim. Deleting one records its persistent id and last generated text in `.rejected`, so later wording changes under that id stay rejected. Recognizing a separately created candidate as a paraphrase is part of the reconciliation milestone.
 
 ## Transfer evaluation
 
@@ -222,7 +234,8 @@ Managed policies act as an absolute ceiling. Users cannot enable unapproved sour
 ## CLI commands
 
 ```bash
-shadowclone init                                 # Choose a profile, then configure consent
+shadowclone init                                 # Import or choose a profile, then configure consent
+shadowclone import                               # Import or synchronize repository guidance
 shadowclone wizard                               # Rerun declared profile choices
 shadowclone skills                               # List packaged behavioral dispositions
 shadowclone learn [--deep] [--dry-run]           # Index sessions and synthesize rules

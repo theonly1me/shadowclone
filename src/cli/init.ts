@@ -1,10 +1,14 @@
 import {
   defaultConfig,
+  readManagedPolicy,
   setDeepEnabled,
   setSourceEnabled,
   writeConfig,
 } from "../config";
+import type { ManagedPolicy } from "../config";
+import { importRepositoryGuidance } from "../importRules";
 import { type ProjectPaths, projectPaths } from "../paths";
+import type { GitRemoteReader } from "../signal";
 import type { SeedLibrary } from "../skills";
 import {
   detectOnboardingPresence,
@@ -41,6 +45,9 @@ export async function initialize(options: {
   readonly answer?: WizardAnswerPrompt;
   readonly ask?: ConsentPrompt;
   readonly writeLine?: (line: string) => void;
+  readonly managedConfigPath?: string | null;
+  readonly managedPolicy?: ManagedPolicy;
+  readonly readRemote?: GitRemoteReader;
 } = {}): Promise<void> {
   const paths = options.paths ?? projectPaths;
   const configPath = options.configPath ?? paths.configFile;
@@ -50,9 +57,33 @@ export async function initialize(options: {
   });
   const ask = options.ask ?? promptForConsent;
   const writeLine = options.writeLine ?? ((line) => console.log(line));
+  const policy = options.managedPolicy ?? await readManagedPolicy(
+    options.managedConfigPath === undefined
+      ? paths.managedConfigFile
+      : options.managedConfigPath,
+  );
+  const importAllowed =
+    policy.enabled && policy.allowedSources.includes("declared-rules");
+  let importEnabled = false;
 
-  if (presence.hasRulesFile) {
-    writeLine("Existing agent instructions detected and left unread.");
+  if (presence.hasRepositoryGuidance) {
+    if (importAllowed) {
+      importEnabled = await ask("Import existing repository guidance?");
+    } else {
+      writeLine("Managed policy blocks repository guidance import.");
+    }
+    if (!importEnabled) {
+      writeLine("Existing agent instructions detected and left unread.");
+      if (await ask("Set up a seed profile instead?")) {
+        await runWizard({
+          paths,
+          library: options.library,
+          answer: options.answer,
+          confirm: ask,
+          writeLine,
+        });
+      }
+    }
   } else {
     await runWizard({
       paths,
@@ -84,6 +115,11 @@ export async function initialize(options: {
   );
   config = setSourceEnabled({
     config,
+    source: "declared-rules",
+    enabled: importEnabled,
+  });
+  config = setSourceEnabled({
+    config,
     source: "git-metadata",
     enabled: enableGitMetadata,
   });
@@ -95,8 +131,22 @@ export async function initialize(options: {
   config = setDeepEnabled({ config, enabled: enableDeep });
 
   await writeConfig({ config, configPath });
+  if (importEnabled) {
+    const imported = await importRepositoryGuidance({
+      paths,
+      workingDirectory: options.workingDirectory ?? process.cwd(),
+      gitMetadataEnabled:
+        config.sources["git-metadata"] &&
+        policy.allowedSources.includes("git-metadata"),
+      blockedOrigins: policy.blockedOrigins,
+      readRemote: options.readRemote,
+    });
+    writeLine(
+      `Imported ${imported.imported} repository guidance files; ${imported.preserved} preserved; ${imported.rejected} rejected; ${imported.retired} retired.`,
+    );
+  }
   writeLine(
-    captureEnabled || enableGitMetadata || enableAgentContext || enableDeep
+    captureEnabled || importEnabled || enableGitMetadata || enableAgentContext || enableDeep
       ? "Selected sources and capabilities enabled."
       : "All capture sources remain disabled.",
   );

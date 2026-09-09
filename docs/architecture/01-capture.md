@@ -11,14 +11,17 @@ Every source is opt-in, named in the config, and listed in the README. The confi
 | `claude-prompts` | `~/.claude/history.jsonl` | off | Prompts in the user's own words |
 | `codex` | `~/.codex/sessions/**/*.jsonl` | off | Date partitioned rollouts |
 | `cursor` | `~/.cursor/chats/**/{store.db,meta.json}` | off | Per session SQLite plus cwd and timestamps |
-| `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization scope only, never repository contents |
+| `declared-rules` | repository root instructions and direct agent skill `SKILL.md` files | off | Deterministic redacted profile import |
+| `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization and exact repository scope, never repository contents |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | Captured as user prompts, no correction signals |
 
 Capture consent protects content. Before consent, onboarding may determine whether a configured source root exists and is non-empty, then use that one ephemeral boolean to omit absent providers from its questions. Directory checks use `opendir`, read at most one entry, reduce the result immediately to a boolean, and close the directory. File checks reduce existence and non-zero size to the same boolean. The check does not retain or log a path, entry name, count, timestamp, size, or provider-derived identifier.
 
+Repository guidance presence is reduced to one ephemeral boolean as well. The check covers only root `CLAUDE.md`, root `AGENTS.md`, root `.cursorrules`, and whether `.claude/skills/` or `.agents/skills/` is non-empty. It does not read instruction content or retain an entry name. After `declared-rules` consent, import accepts only those three root files and direct `.claude/skills/*/SKILL.md` or `.agents/skills/*/SKILL.md` files. It rejects symlinks, more than 256 supported files, or more than 2,000,000 total bytes before resolving content.
+
 Reading any source content remains opt-in. A new file, a wider slice of an existing file, or contents where only names were previously read is a new source with its own flag defaulting to off and a README entry in the same change.
 
-`git-metadata` is separate consent because transcript consent does not imply permission to inspect a repository. When it is disabled, each working directory is hashed into its own isolated origin and its rules never promote to global. When enabled, shadowclone asks git for the local remote origin and reads no repository content.
+`git-metadata` is separate consent because transcript or declared-rule consent does not imply permission to inspect a remote. When it is disabled, each working directory is hashed into its own isolated origin and imported rules remain there. When enabled, shadowclone asks git for the local remote origin and uses a safe name plus an identity hash for exact repository profile routing.
 
 ## The normalized event
 

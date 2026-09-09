@@ -9,10 +9,12 @@ export {
   renderProfileRule,
 } from "./render";
 export { buildProfileRules } from "./rules";
+export { mergeProfileImportReference } from "./importReference";
 export type {
   ExistingProfileRule,
   ExistingProfileBlock,
   ProfileEvidence,
+  ProfileImportReference,
   ProfileProposal,
   ProfileProposalKind,
   ProfileRule,

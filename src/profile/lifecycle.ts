@@ -5,8 +5,10 @@ import {
 } from "./files";
 import type { ProfileFile } from "./files";
 import { profileRulePath } from "./render";
+import { mergeProfileImportReference } from "./importReference";
 import {
   readGeneratedProfileState,
+  profileRejectionFromState,
   readProfileRejections,
 } from "./state";
 import type {
@@ -40,19 +42,8 @@ export function generatedProfileEntry(options: {
     title: options.rule.title,
     body: options.rule.body,
     source: options.rule.source,
+    importReference: options.rule.importReference,
     disposition: options.disposition ?? "present",
-  };
-}
-
-function rejectionFrom(
-  entry: GeneratedProfileStateEntry,
-): ProfileRejection {
-  return {
-    relativePath: entry.relativePath,
-    key: entry.key,
-    title: entry.title,
-    body: entry.body,
-    source: entry.source,
   };
 }
 
@@ -86,6 +77,7 @@ function retiredEntry(options: {
         title: null,
         body: null,
         source: null,
+        importReference: null,
         disposition: "retired",
       };
 }
@@ -133,6 +125,18 @@ export async function prepareProfileWrite(options: {
       .filter((entry) => entry.disposition === "retired")
       .map((entry) => [entry.key, entry]),
   );
+  for (const rule of incomingRules) {
+    const rejection = rejections.get(rule.key);
+    if (rejection?.importReference && rule.importReference) {
+      rejections.set(rule.key, {
+        ...rejection,
+        importReference: mergeProfileImportReference({
+          stored: rejection.importReference,
+          incoming: rule.importReference,
+        }),
+      });
+    }
+  }
   const relativePaths = new Set([
     ...incomingRules.map(profileRulePath),
     ...previousEntries.map((entry) => entry.relativePath),
@@ -154,7 +158,7 @@ export async function prepareProfileWrite(options: {
       incoming.has(entry.key) &&
       !existingKeys.has(entry.key)
     ) {
-      rejections.set(entry.key, rejectionFrom(entry));
+      rejections.set(entry.key, profileRejectionFromState(entry));
     }
   }
   for (const reference of options.retiredReferences) {

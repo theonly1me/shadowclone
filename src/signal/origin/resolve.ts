@@ -54,7 +54,7 @@ export async function resolveRepository(options: {
     fallbackKey: options.fallbackKey,
     enabled: false,
   });
-  return { id: origin.id, name: null, origin };
+  return { id: origin.id, name: null, profileFileName: null, origin };
 }
 
 export async function resolveEventRepositories(options: {
@@ -95,7 +95,7 @@ export function getEventRepository(options: {
     return known;
   }
   const origin = isolatedOrigin(key);
-  return { id: origin.id, name: null, origin };
+  return { id: origin.id, name: null, profileFileName: null, origin };
 }
 
 export function getEventOrigin(options: {

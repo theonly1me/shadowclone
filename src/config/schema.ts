@@ -9,6 +9,7 @@ export const sourceIds = [
   "claude-prompts",
   "codex",
   "cursor",
+  "declared-rules",
   "git-metadata",
   "shell",
 ] as const;
@@ -37,6 +38,7 @@ export const defaultConfig: ShadowcloneConfig = {
     "claude-prompts": false,
     codex: false,
     cursor: false,
+    "declared-rules": false,
     "git-metadata": false,
     shell: false,
   },
@@ -54,6 +56,7 @@ const sourcesSchema = z
     "claude-prompts": z.boolean(),
     codex: z.boolean(),
     cursor: z.boolean(),
+    "declared-rules": z.boolean().optional().default(false),
     "git-metadata": z.boolean().optional().default(false),
     shell: z.boolean(),
   });

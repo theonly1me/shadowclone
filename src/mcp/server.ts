@@ -122,7 +122,7 @@ async function activeProfile(options: {
   return buildCompiledProfile({
     profileDirectory: options.paths.profileDirectory,
     origin: repository.origin,
-    targetRepo: repository.name,
+    targetRepo: repository.profileFileName,
   });
 }
 

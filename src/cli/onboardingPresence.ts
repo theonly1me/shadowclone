@@ -15,7 +15,7 @@ export type OnboardingCaptureSourceId =
   (typeof onboardingCaptureSourceIds)[number];
 
 export type OnboardingPresence = {
-  readonly hasRulesFile: boolean;
+  readonly hasRepositoryGuidance: boolean;
   readonly presentCaptureSources: ReadonlySet<OnboardingCaptureSourceId>;
 };
 
@@ -47,14 +47,25 @@ async function anyFileHasContent(
   return (await Promise.all(filePaths.map(fileHasContent))).some(Boolean);
 }
 
-async function hasRulesFile(workingDirectory: string): Promise<boolean> {
+async function hasRepositoryGuidance(
+  workingDirectory: string,
+): Promise<boolean> {
   const filenames = ["CLAUDE.md", "AGENTS.md", ".cursorrules"];
-  return (
+  const rootFileExists = (
     await Promise.all(
       filenames.map((filename) =>
         Bun.file(path.join(workingDirectory, filename)).exists(),
       ),
     )
+  ).some(Boolean);
+  if (rootFileExists) {
+    return true;
+  }
+  return (
+    await Promise.all([
+      directoryHasEntry(path.join(workingDirectory, ".claude", "skills")),
+      directoryHasEntry(path.join(workingDirectory, ".agents", "skills")),
+    ])
   ).some(Boolean);
 }
 
@@ -77,7 +88,9 @@ export async function detectOnboardingPresence(options: {
     }
   }
   return {
-    hasRulesFile: await hasRulesFile(options.workingDirectory),
+    hasRepositoryGuidance: await hasRepositoryGuidance(
+      options.workingDirectory,
+    ),
     presentCaptureSources,
   };
 }
