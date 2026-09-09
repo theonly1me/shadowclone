@@ -4,6 +4,16 @@ The profile is how a clone knows what you would have done. Everything before it 
 
 It is a directory of markdown at `~/.shadowclone/profile/`. You can read it, edit it, delete a line you disagree with, commit it to a private repo, or hand it to a teammate. It is not embeddings and it is not a database, because a user who cannot read what was learned about them cannot consent to it.
 
+## Seed guidance
+
+The package keeps profile preferences and Agent Skills separate because they serve different purposes.
+
+Eight concise preferences under `preferences/` record choices across dependency posture, planning threshold, question frequency, and refactor tolerance. Ten Agent Skills under `skills/<name>/SKILL.md` carry routing descriptions, task-specific process, guardrails, and completion evidence. Testing approach is the one skill axis; the other eight skills are independently selectable.
+
+The comment-policy axis is absent. A repository's comment practice belongs in imported rules and learned evidence rather than a global seed choice.
+
+`shadowclone skills` lists both forms without reading or writing the user's profile. A later setup flow will let the user select guidance and persist it as declared profile records, so package content remains upstream of the editable profile.
+
 ## Two tiers
 
 Sending 562 MB to a model is not affordable. The work splits by whether it needs a model at all.
