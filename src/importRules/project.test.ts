@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
 import {
-  buildCompiledProfile,
+  compileProfile,
   readGeneratedProfileState,
 } from "../profile";
 import { normalizeRemoteRepository } from "../signal";
@@ -69,14 +69,17 @@ test("compiles only the exact project profile for one origin", async () => {
     throw new Error("Expected a normalized test repository");
   }
 
-  const profile = await buildCompiledProfile({
-    profileDirectory: paths.profileDirectory,
-    origin: repository.origin,
-    targetRepo: repository.profileFileName,
+  const compilation = await compileProfile({
+    input: {
+      kind: "directory",
+      profileDirectory: paths.profileDirectory,
+      origin: repository.origin,
+      targetRepo: repository.profileFileName,
+    },
   });
 
-  expect(profile).toContain("Platform guidance.");
-  expect(profile).not.toContain("Console guidance.");
+  expect(compilation.markdown).toContain("Platform guidance.");
+  expect(compilation.markdown).not.toContain("Console guidance.");
 });
 
 test("treats a renamed source as a new imported identity", async () => {
