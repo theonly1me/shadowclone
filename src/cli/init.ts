@@ -2,14 +2,21 @@ import {
   defaultConfig,
   setDeepEnabled,
   setSourceEnabled,
-  type SourceId,
   writeConfig,
 } from "../config";
+import { type ProjectPaths, projectPaths } from "../paths";
+import type { SeedLibrary } from "../skills";
+import {
+  detectOnboardingPresence,
+  type OnboardingCaptureSourceId,
+  type OnboardingPresence,
+} from "./onboardingPresence";
+import { runWizard, type WizardAnswerPrompt } from "./wizard";
 
 export type ConsentPrompt = (question: string) => boolean | Promise<boolean>;
 
 const captureSources: readonly {
-  readonly id: SourceId;
+  readonly id: OnboardingCaptureSourceId;
   readonly question: string;
 }[] = [
   { id: "antigravity", question: "Enable Antigravity CLI transcripts?" },
@@ -27,17 +34,41 @@ function promptForConsent(question: string): boolean {
 
 export async function initialize(options: {
   readonly configPath?: string;
+  readonly paths?: ProjectPaths;
+  readonly workingDirectory?: string;
+  readonly presence?: OnboardingPresence;
+  readonly library?: SeedLibrary;
+  readonly answer?: WizardAnswerPrompt;
   readonly ask?: ConsentPrompt;
+  readonly writeLine?: (line: string) => void;
 } = {}): Promise<void> {
-  await writeConfig({
-    config: defaultConfig,
-    configPath: options.configPath,
+  const paths = options.paths ?? projectPaths;
+  const configPath = options.configPath ?? paths.configFile;
+  const presence = options.presence ?? await detectOnboardingPresence({
+    paths,
+    workingDirectory: options.workingDirectory ?? process.cwd(),
   });
-
   const ask = options.ask ?? promptForConsent;
+  const writeLine = options.writeLine ?? ((line) => console.log(line));
+
+  if (presence.hasRulesFile) {
+    writeLine("Existing agent instructions detected and left unread.");
+  } else {
+    await runWizard({
+      paths,
+      library: options.library,
+      answer: options.answer,
+      confirm: ask,
+      writeLine,
+    });
+  }
+
   let config = defaultConfig;
   let captureEnabled = false;
   for (const source of captureSources) {
+    if (!presence.presentCaptureSources.has(source.id)) {
+      continue;
+    }
     const enabled = await ask(source.question);
     config = setSourceEnabled({ config, source: source.id, enabled });
     captureEnabled = captureEnabled || enabled;
@@ -51,25 +82,27 @@ export async function initialize(options: {
   const enableDeep = await ask(
     "Enable semantic distillation through your authenticated agent CLI?",
   );
-  const scopedConfig = setSourceEnabled({
+  config = setSourceEnabled({
     config,
     source: "git-metadata",
     enabled: enableGitMetadata,
   });
-  const contextConfig = setSourceEnabled({
-    config: scopedConfig,
+  config = setSourceEnabled({
+    config,
     source: "agent-context",
     enabled: enableAgentContext,
   });
-  const completeConfig = setDeepEnabled({
-    config: contextConfig,
-    enabled: enableDeep,
-  });
+  config = setDeepEnabled({ config, enabled: enableDeep });
 
-  await writeConfig({ config: completeConfig, configPath: options.configPath });
-  console.log(
+  await writeConfig({ config, configPath });
+  writeLine(
     captureEnabled || enableGitMetadata || enableAgentContext || enableDeep
       ? "Selected sources and capabilities enabled."
       : "All capture sources remain disabled.",
   );
+  if (captureEnabled) {
+    writeLine(
+      "Run shadowclone learn to build evidence from the sources you enabled.",
+    );
+  }
 }

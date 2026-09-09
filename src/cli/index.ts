@@ -13,10 +13,11 @@ import { initialize } from "./init";
 import { installLiveClone } from "./install";
 import { learn } from "./learn";
 import { runClone } from "./run";
-import { listSeedSkills } from "./skills";
+import { listSeedGuidance } from "./skills";
+import { runWizard } from "./wizard";
 
 const usage =
-  "Usage: shadowclone <init|skills|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--repo <path>] [--tasks N] [--engine <id>] [--model <id>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
+  "Usage: shadowclone <init|wizard|skills|learn [--deep] [--dry-run]|doctor|install|run <task>|eval [--repo <path>] [--tasks N] [--engine <id>] [--model <id>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -41,8 +42,12 @@ async function main(arguments_: readonly string[]): Promise<void> {
     await initialize();
     return;
   }
+  if (command === "wizard" && rest.length === 0) {
+    await runWizard();
+    return;
+  }
   if (command === "skills" && rest.length === 0) {
-    await listSeedSkills();
+    await listSeedGuidance();
     return;
   }
   if (command === "learn") {

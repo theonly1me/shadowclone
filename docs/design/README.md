@@ -15,3 +15,4 @@ The table is chronological by the first recorded decision. Append new records at
 | 2026-09-08 | [006, Profile record lifecycle](006-profile-record-lifecycle.md) | implemented | Keep rule identity stable across wording changes and make profile lifecycle state explicit |
 | 2026-09-08 | [007, Bounded learning execution](007-bounded-learning-execution.md) | implemented | Isolate semantic learning and bound its total calls, time, and provider-supported cost |
 | 2026-09-08 | [008, Seed guidance library](008-seed-skill-library.md) | implemented | Separate concise profile preferences from complete task-specific Agent Skills |
+| 2026-09-08 | [009, Onboarding wizard](009-onboarding-wizard.md) | implemented | Select declared behavior before asking only relevant capture consent questions |

@@ -24,3 +24,7 @@ export type {
   ProfileWriteResult,
 } from "./types";
 export { writeProfile } from "./write";
+export {
+  readGeneratedProfileState,
+  readProfileRejections,
+} from "./state";
