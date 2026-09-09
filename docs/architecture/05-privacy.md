@@ -26,7 +26,7 @@ Repository onboarding applies the same rule to declared guidance. It reduces the
 
 Shadowclone does not copy transcripts. The index stores offsets, timestamps, tool names, and event kinds. The profile stores derived behavioral rules and redacted repository guidance the user explicitly imported.
 
-Every captured string is materialized through `resolveRedacted`. Transcript excerpts are held in memory under `src/distill/`, sent through the selected engine, and dropped. Repository guidance is redacted first under `src/importRules/`, then stored locally as the profile text the user asked to import. No unredacted captured text is written by either path.
+Every captured string is materialized through `resolveRedacted`. Transcript excerpts are held in memory under `src/distill/`, sent through the selected engine, and dropped. Repository guidance is redacted first under `src/importRules/`, then stored locally as the profile text the user asked to import. Deep reconciliation reads profile and rejection files through whole-file `FileTextRef` values and `resolveRedacted` before their text can enter a prompt. Persistent rule, rejection, origin, repository, and evidence identities remain local behind opaque prompt tokens. No unredacted captured text is written by either path.
 
 Replay evaluation uses the same path. Its first prompt is resolved through `resolveRedacted` inside `src/distill/replay.ts` before the engine receives it.
 
@@ -52,7 +52,7 @@ Redaction is the wrong control for that. Pattern matching finds an API key and d
 
 So distillation input is an allowlist rather than a blocklist.
 
-Eligible for transcript distillation: the user's own prompts, plan and question and denial events, tool call metadata, and the assistant text immediately preceding a correction. Repository guidance is a separate explicitly enabled source and never enters transcript distillation.
+Eligible correction evidence: the user's own prompts, plan and question and denial events, tool call metadata, and the assistant text immediately preceding a correction. Existing profile text and prior rejection text enter reconciliation only after their original source was enabled and the stored files pass through `resolveRedacted` again. Package-owned seed siblings may enter as proposal choices.
 
 Never eligible, at any setting: the content of any `tool_result`, file contents from Read, Edit, or Write, thinking blocks, and every MCP data-access result. `07-enterprise.md` has the full list.
 

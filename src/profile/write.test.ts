@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { profileRulePath, writeProfile } from "./index";
+import { parseProfileRules, profileRulePath, writeProfile } from "./index";
 import type { ProfileRule } from "./index";
 
 async function createTestPaths(): Promise<ProjectPaths> {
@@ -93,4 +93,39 @@ test("drops in-flight duplicate rules with the same key", async () => {
   );
   const matches = (await Bun.file(filePath).text()).match(/Runs focused checks/g);
   expect(matches).toHaveLength(1);
+});
+
+test("updates reconciliation metadata without replacing user-edited wording", async () => {
+  const paths = await createTestPaths();
+  const initial = profileRule(2);
+  await writeProfile({ paths, rules: [initial] });
+  const filePath = path.join(paths.profileDirectory, profileRulePath(initial));
+  const userBody = "Run the checks that directly prove the requested behavior.";
+  await Bun.write(
+    filePath,
+    (await Bun.file(filePath).text()).replace(initial.body, userBody),
+  );
+  const [edited] = parseProfileRules(await Bun.file(filePath).text());
+  if (!edited) {
+    throw new Error("Expected the edited profile rule");
+  }
+  const reconciled: ProfileRule = {
+    ...initial,
+    title: edited.title,
+    body: edited.body,
+    source: "user",
+    status: "active",
+    proposal: {
+      kind: "narrow",
+      text: "Limit the rule\n\nRun focused checks for code changes only.",
+    },
+    evidence: { for: initial.evidence.for, against: ["event:two"] },
+  };
+  await writeProfile({ paths, rules: [reconciled] });
+  const text = await Bun.file(filePath).text();
+  const [stored] = parseProfileRules(text);
+  expect(text).toContain(userBody);
+  expect(stored?.source).toBe("user");
+  expect(stored?.proposal).toEqual(reconciled.proposal);
+  expect(stored?.evidence.against).toEqual(["event:two"]);
 });

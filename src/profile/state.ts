@@ -148,6 +148,20 @@ async function stateLines(statePath: string): Promise<readonly string[]> {
     .filter((line) => line.trim().length > 0);
 }
 
+export function parseProfileRejectionText(
+  text: string,
+): readonly ProfileRejection[] {
+  const entries: ProfileRejection[] = [];
+  for (const line of text.split("\n").filter((value) => value.trim().length > 0)) {
+    const entry = parseRejectionLine(line);
+    if (!entry) {
+      throw new Error("Profile rejection state contains an invalid entry");
+    }
+    entries.push(entry);
+  }
+  return entries;
+}
+
 export async function readGeneratedProfileState(
   statePath: string,
 ): Promise<readonly GeneratedProfileStateEntry[]> {
@@ -165,15 +179,7 @@ export async function readGeneratedProfileState(
 export async function readProfileRejections(
   statePath: string,
 ): Promise<readonly ProfileRejection[]> {
-  const entries: ProfileRejection[] = [];
-  for (const line of await stateLines(statePath)) {
-    const entry = parseRejectionLine(line);
-    if (!entry) {
-      throw new Error("Profile rejection state contains an invalid entry");
-    }
-    entries.push(entry);
-  }
-  return entries;
+  return parseProfileRejectionText((await stateLines(statePath)).join("\n"));
 }
 
 export function profileRejectionFromState(

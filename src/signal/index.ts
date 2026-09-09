@@ -94,7 +94,7 @@ export async function deriveSignals(options: {
   const origins = new Map(
     [...repositories].map(([key, repository]) => [key, repository.origin]),
   );
-  const corrections = mineCorrections({ events, origins });
+  const corrections = mineCorrections({ events, repositories });
   const interruptions = corrections.filter(
     (signal) => signal.kind === "interruption",
   );

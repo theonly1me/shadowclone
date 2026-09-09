@@ -138,9 +138,12 @@ test("mines correction markers and renders a text-free mirror", async () => {
     answeredQuestions: 1,
     resolvedPlans: 0,
   });
+  expect(
+    derived.corrections.every((signal) => signal.repositoryName?.startsWith("repo--")),
+  ).toBeTrue();
   expect(output).toContain("No network calls were made.");
   expect(output).toContain("while using Edit");
-  expect(output).toContain("extraction batch");
+  expect(output).toContain("reconciliation batch");
   expect(output).toContain("Profile unchanged.");
   expect(output).not.toContain("Profile written");
   expect(output).not.toContain("/one");

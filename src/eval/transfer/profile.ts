@@ -41,9 +41,11 @@ export async function learnEvaluationProfile(options: {
     checkpointDirectory: path.join(options.directory, crypto.randomUUID()),
   });
 
-  const renderedRules = distilled.rules.map(
+  const renderedRules = distilled.rules
+    .filter((rule) => rule.status === "active")
+    .map(
     (rule) => `## ${rule.title}\n\n${rule.body}`,
-  );
+    );
   return renderedRules.length === 0
     ? "# Shadowclone profile\n"
     : `# Shadowclone profile\n\n${renderedRules.join("\n\n")}\n`;

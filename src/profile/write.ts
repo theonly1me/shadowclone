@@ -12,10 +12,28 @@ import {
   renderProfileRejections,
 } from "./stateRender";
 import type {
+  ExistingProfileRule,
   ProfileRule,
   ProfileRuleReference,
   ProfileWriteResult,
 } from "./types";
+
+function metadataReplacement(options: {
+  readonly block: ExistingProfileRule;
+  readonly incoming: ProfileRule | undefined;
+  readonly relativePath: string;
+}): ProfileRule | null {
+  const incoming = options.incoming;
+  if (
+    incoming?.source !== "user" ||
+    incoming.title !== options.block.title ||
+    incoming.body !== options.block.body ||
+    profileRulePath(incoming) !== options.relativePath
+  ) {
+    return null;
+  }
+  return incoming;
+}
 
 export async function writeProfile(options: {
   readonly paths: ProjectPaths;
@@ -38,6 +56,25 @@ export async function writeProfile(options: {
     for (const block of file.blocks) {
       if (block.key === null) {
         nextBlocks.push(block.content);
+        continue;
+      }
+      const metadataUpdate = metadataReplacement({
+        block,
+        incoming: prepared.incoming.get(block.key),
+        relativePath: file.relativePath,
+      });
+      if (metadataUpdate) {
+        nextBlocks.push(renderProfileRule(metadataUpdate));
+        consumed.add(block.key);
+        if (metadataUpdate.importReference !== null) {
+          nextState.set(
+            block.key,
+            generatedProfileEntry({
+              relativePath: file.relativePath,
+              rule: metadataUpdate,
+            }),
+          );
+        }
         continue;
       }
       if (block.edited || block.source === "user") {
