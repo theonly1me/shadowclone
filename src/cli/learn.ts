@@ -1,30 +1,13 @@
 import { readEffectiveConfig } from "../config";
-import {
-  allowlistedSignals,
-  distillSignals,
-  groupDistillBatches,
-} from "../distill";
-import { detectEngine } from "../engine";
-import {
-  defaultLearningExecutionLimits,
-  type EngineId,
-  type EngineRunner,
-} from "../engine";
-import {
-  ingestSources,
-  openEventIndex,
-} from "../index";
+import { allowlistedSignals, groupDistillBatches } from "../distill";
+import type { EngineId, EngineRunner } from "../engine";
+import { ingestSources, openEventIndex } from "../index";
+import { projectPaths, type ProjectPaths } from "../paths";
+import { renderMirror } from "../profile";
+import { checkMarkerStaleness, deriveSignals, type GitRemoteReader } from "../signal";
+import type { ConfirmPrompt } from "./confirm";
+import { runDeepLearning } from "./deepLearn";
 import { initialize } from "./init";
-import { projectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
-import { getProviderByEngine } from "../provider";
-import {
-  renderMirror,
-  writeProfile,
-} from "../profile";
-import type { ProfileRule } from "../profile";
-import { checkMarkerStaleness, deriveSignals } from "../signal";
-import type { GitRemoteReader } from "../signal";
 
 export async function learn(options: {
   readonly configPath?: string;
@@ -33,43 +16,43 @@ export async function learn(options: {
   readonly readRemote?: GitRemoteReader;
   readonly deep?: boolean;
   readonly dryRun?: boolean;
+  readonly apply?: boolean;
   readonly runner?: EngineRunner;
   readonly engine?: EngineId;
+  readonly confirm?: ConfirmPrompt;
+  readonly writeLine?: (line: string) => void;
   readonly managedConfigPath?: string | null;
 } = {}): Promise<void> {
+  if (options.apply && !options.deep) {
+    throw new Error("learn --apply requires --deep");
+  }
+  if (options.apply && options.dryRun) {
+    throw new Error("learn --apply cannot be combined with --dry-run");
+  }
   const paths = options.paths ?? projectPaths;
   const configPath = options.configPath ?? paths.configFile;
-  const configFile = Bun.file(configPath);
-
-  if (!(await configFile.exists())) {
+  const writeLine = options.writeLine ?? console.log;
+  if (!(await Bun.file(configPath).exists())) {
     if (!process.stdin.isTTY) {
       throw new Error("No configuration found. Run shadowclone init interactively first.");
     }
-    console.log("No configuration found. Running shadowclone init...");
+    writeLine("No configuration found. Running shadowclone init...");
     await initialize({ configPath: options.configPath });
   }
-
   const { config, policy } = await readEffectiveConfig({
     configPath: options.configPath,
-    managedConfigPath:
-      options.managedConfigPath === undefined
-        ? paths.managedConfigFile
-        : options.managedConfigPath,
+    managedConfigPath: options.managedConfigPath === undefined
+      ? paths.managedConfigFile
+      : options.managedConfigPath,
   });
   if (!policy.enabled) {
     throw new Error("Shadowclone is disabled by managed policy");
   }
-  const dbPath =
-    options.databasePath ??
+  const databasePath = options.databasePath ??
     (options.dryRun ? ":memory:" : paths.indexDatabase);
-  const index = await openEventIndex(dbPath);
-
+  const index = await openEventIndex(databasePath);
   try {
-    const summary = await ingestSources({
-      index,
-      config,
-      paths,
-    });
+    const summary = await ingestSources({ index, config, paths });
     const events = index.listEvents();
     const derived = await deriveSignals({
       events,
@@ -78,8 +61,7 @@ export async function learn(options: {
       readRemote: options.readRemote,
       blockedOrigins: policy.blockedOrigins,
     });
-    const markerWarnings = checkMarkerStaleness(events);
-    for (const warning of markerWarnings) {
+    for (const warning of checkMarkerStaleness(events)) {
       console.warn(`Warning: ${warning}`);
     }
     const eligibleSignals = allowlistedSignals({
@@ -91,84 +73,42 @@ export async function learn(options: {
       eligibleCorrectionMoments: eligibleSignals.length,
       extractionBatches: batches.length,
     };
-    if (options.dryRun || !options.deep) {
-      console.log(
-        renderMirror({
-          report: derived.report,
-          deepLearningPreview,
-          networkCallsMade: false,
-        }),
-      );
-      if (summary.rescannedFiles > 0) {
-        console.log(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
-      }
-      return;
-    }
-    let semanticRules: readonly ProfileRule[] = [];
     let networkCallsMade = false;
-    if (!config.distillation.deep) {
-      throw new Error("Deep distillation is disabled in config");
-    }
-    const batchLabel = batches.length === 1 ? "batch" : "batches";
-    console.log(
-      `Deep distillation found ${batches.length} extraction ${batchLabel}.`,
-    );
-    if (batches.length > 0) {
-      if (policy.distillation !== "allowed") {
-        throw new Error("Managed policy does not allow remote distillation");
+    let deepChangesProposed = 0;
+    let profileUpdated = false;
+    if (options.deep) {
+      if (!config.distillation.deep) {
+        throw new Error("Deep distillation is disabled in config");
       }
-      const detection = options.runner
-        ? null
-        : await detectEngine({
-            purpose: "distill",
-            allowedEngines: policy.allowedEngines,
-          });
-      const runner = options.runner ?? detection?.runner;
-      const engine = options.engine ?? detection?.selectedEngine;
-      if (!runner || !engine) {
-        throw new Error("No authenticated agent engine is available");
+      const batchLabel = batches.length === 1 ? "batch" : "batches";
+      writeLine(`Deep learning found ${batches.length} reconciliation ${batchLabel}.`);
+      if (batches.length > 0) {
+        const result = await runDeepLearning({
+          signals: eligibleSignals,
+          events: derived.events,
+          paths,
+          policy,
+          dryRun: options.dryRun ?? false,
+          apply: options.apply ?? false,
+          ...(options.runner ? { runner: options.runner } : {}),
+          ...(options.engine ? { engine: options.engine } : {}),
+          ...(options.confirm ? { confirm: options.confirm } : {}),
+          writeLine,
+        });
+        networkCallsMade = result.networkCallsMade;
+        deepChangesProposed = result.changesProposed;
+        profileUpdated = result.profileUpdated;
       }
-      const supportsCostLimit =
-        getProviderByEngine(engine)?.engine?.capabilities.maxBudgetUsd === true;
-      const limits = defaultLearningExecutionLimits;
-      console.log(
-        [
-          `Learning is limited to ${limits.maximumCalls} total calls and ${limits.timeoutMilliseconds / 1_000} seconds`,
-          supportsCostLimit
-            ? ` with a $${limits.maximumCostUsd.toFixed(2)} total ceiling.`
-            : ".",
-        ].join(""),
-      );
-      const result = await distillSignals({
-        signals: eligibleSignals,
-        runner,
-        engine,
-        limits,
-        workingDirectory: paths.shadowcloneDirectory,
-        checkpointDirectory: paths.distillDirectory,
-        events: derived.events,
-      });
-      semanticRules = result.rules;
-      networkCallsMade = result.engineRuns > 0;
     }
-    if (semanticRules.length > 0) {
-      const sortedRules = [...semanticRules].sort(
-        (left, right) =>
-          right.observations - left.observations ||
-          left.title.localeCompare(right.title),
-      );
-      await writeProfile({ paths, rules: sortedRules });
-    }
-    console.log(
-      renderMirror({
-        report: derived.report,
-        deepLearningPreview,
-        networkCallsMade,
-        deepRulesProduced: semanticRules.length,
-      }),
-    );
+    writeLine(renderMirror({
+      report: derived.report,
+      deepLearningPreview,
+      networkCallsMade,
+      ...(options.deep ? { deepChangesProposed } : {}),
+      profileUpdated,
+    }));
     if (summary.rescannedFiles > 0) {
-      console.log(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
+      writeLine(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
     }
   } finally {
     index.close();

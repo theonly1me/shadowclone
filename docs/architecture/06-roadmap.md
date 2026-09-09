@@ -42,7 +42,7 @@ Status: implementation complete. Local plugin installation and a real authentica
 
 `.claude-plugin/` with a `SessionEnd` hook and an MCP server that loads the profile into the user's live Claude Code sessions. `src/profile/agent.ts` compiles the profile into a `.claude/agents/<name>.md` subagent, so the session can dispatch copies of the user in parallel.
 
-The engine module lands here too for explicit `learn --deep`. The session-end hook ingests its exact transcript and recompiles existing guidance for that repository scope without generating rules or calling an engine.
+The engine module lands here too for explicit `learn --deep`. Deep learning reconciles exact, redacted correction evidence with existing rules and rejected guidance, preserves user authority during disagreement, and withholds mined candidates until three independent sessions support them. The session-end hook ingests its exact transcript and recompiles existing guidance for that repository scope without generating rules or calling an engine.
 
 Proves: install is one command, a normal session gets the user's conventions with no manual step, and `Agent(subagent_type: "<name>")` dispatches a copy of the user from inside that session.
 

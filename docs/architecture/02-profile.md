@@ -30,9 +30,9 @@ Sending 562 MB to a model is not affordable. The work splits by whether it needs
 
 **Structural signals cost zero tokens.** They are computed in pure code over the index. Session and origin counts, tool histograms, plan activity, interruptions, permission denials, answered questions, and resolved plans form the mirror. They are evidence about how a person works, not instructions, so this path reports them without writing profile rules.
 
-**Semantic learning costs tokens, over a very small input.** The correction miner reduces the corpus to the moments that carry preference, roughly a thousand to one. Explicit deep learning resolves only allowlisted correction moments through the redaction gate and asks the selected authenticated agent CLI to produce mined rules.
+**Semantic learning costs tokens, over a very small input.** The correction miner reduces the corpus to the moments that carry preference, roughly a thousand to one. Explicit deep learning resolves allowlisted correction moments and the existing profile through the redaction gate, gives them opaque local tokens, and asks the selected authenticated agent CLI to reconcile support, disagreement, narrowing, new guidance, and prior rejections.
 
-`shadowclone learn` updates the local index and prints the structural report. It leaves every profile file unchanged. `shadowclone learn --deep` is the only observed-behavior path that writes mined rules, and it requires a second explicit enable in the config.
+`shadowclone learn` updates the local index and prints the structural report. It leaves every profile file unchanged. `shadowclone learn --deep` shows the proposed reconciliation and asks once before writing. `--deep --dry-run` runs the same analysis with an in-memory index and no checkpoint or profile write. `--deep --apply` skips the confirmation. Deep learning remains the only observed-behavior path that can write mined rules, and it requires a second explicit enable in the config.
 
 ## Correction mining
 
@@ -89,9 +89,9 @@ $ shadowclone learn
 
   Deep learning would send
     eligible correction moments ..................... 1 of 2
-    extraction batch ................................ 1
+    reconciliation batch ............................ 1
 
-  Profile unchanged. Run shadowclone learn --deep to distill the eligible moments.
+  Profile unchanged. Run shadowclone learn --deep to reconcile the eligible moments.
 ```
 
 The report follows five rules.
@@ -104,7 +104,7 @@ Every line carries a count. A count is a claim the user can dispute and an adjec
 
 Nothing in the output is captured text. Category labels are derived and tool names are tool names. Working directories, origin identifiers, source paths, repository names, and excerpts are absent.
 
-The last section previews how many pointer-bearing moments and extraction batches explicit deep learning would process. Plain learning then states that the profile stayed unchanged.
+The last section previews how many pointer-bearing moments and reconciliation batches explicit deep learning would process. Plain learning then states that the profile stayed unchanged.
 
 The output is judged on one question: does it surprise the person it describes. A profile that could have been written from memory in five minutes is not wrong, it is just not worth running, and it is not worth sharing. The extractors are tuned against that question on the real corpus before anything downstream is built.
 
@@ -149,12 +149,12 @@ Every rule carries where it came from.
 
 Never presents work as finished without running `bun run typecheck && bun test` first, and says which one was run.
 
-<!-- shadowclone: {"schema":1,"key":"018f7d34-45aa-7a3c-8912-61fc10928d67","source":"mined","status":"active","proposal":null,"applies-when":[],"supports":2,"contradicts":1,"evidence":{"for":["event:one","event:two"],"against":["event:three"]},"observations":3,"last-seen":"2026-09-08","sessions":2,"origins":["github.com/acme"],"scope":"org","fingerprint":"e39c293f6c04933a"} -->
+<!-- shadowclone: {"schema":1,"key":"018f7d34-45aa-7a3c-8912-61fc10928d67","source":"mined","status":"stale","proposal":null,"applies-when":[],"supports":2,"contradicts":1,"evidence":{"for":["event:one","event:two"],"against":["event:three"]},"observations":3,"last-seen":"2026-09-08","sessions":2,"origins":["github.com/acme"],"scope":"org","fingerprint":"e39c293f6c04933a"} -->
 ```
 
 The trailing metadata is HTML comment syntax so it renders as nothing when the file is read as markdown, and parses reliably when the file is read back. This is the one place in the project where a comment is written, and it is data, not commentary.
 
-`source` distinguishes guidance the user declared or wrote from imported and mined guidance. `status` is active, candidate, or stale. Disagreement does not change status: an active user-owned rule stays active while `proposal` carries a pending revision, narrowing, or retirement for the user to decide.
+`source` distinguishes guidance the user declared or wrote from imported and mined guidance. `status` is active, candidate, or stale. Declared, imported, and user-owned guidance stays active during disagreement while `proposal` carries a pending revision or narrowing for the user to decide. Contradicted mined guidance becomes stale, and mined guidance with fewer than three supporting sessions remains a candidate.
 
 Evidence is separated into `for` and `against` identifiers and deduplicated before `supports` and `contradicts` are counted. Current identifiers carry origin, session, timestamp, signal kind, and category. Merged rules union the evidence of their named source rules, and wording changes retain the first constituent's persistent id. Confidence is absent because the previous structural and semantic paths gave the same number two incompatible meanings.
 
@@ -184,12 +184,12 @@ The writer parses the existing file first. A generated block whose visible title
 
 Creation adds an unseen id, revision replaces unedited text under the same id, pinning preserves user text, rejection honors user deletion, and explicit retirement removes obsolete generated text without recording user rejection. Absence from one generation run does not retire a rule. Unedited 0.0.5 template blocks migrate to retired tombstones. Edited legacy blocks become user-owned and keep their text.
 
-The richer rejection record makes semantic matching possible but does not perform it. A separately assigned candidate that paraphrases a rejected rule requires the reconciliation milestone to compare their text.
+Deep reconciliation compares each proposed new rule with a redacted view of these rejection records. A semantic match names an opaque rejection token and is omitted before any new profile key or Markdown block is created.
 
 ## Budget and resumption
 
 Deep distillation runs against the user's own subscription quota, which is a real and exhaustible resource. It is designed around that from the start rather than after the first angry issue.
 
-Work is batched, and every batch and merge step is checkpointed to `~/.shadowclone/distill/` before the next one starts. One learning execution owns extraction and merge, with a default limit of 20 attempted calls and five minutes. Claude also receives a cumulative $2 ceiling. Codex and Cursor are bounded by calls and time because they cannot enforce a dollar flag. A stopped run keeps completed checkpoints and resumes from unfinished work.
+Work is batched by origin and exact repository. Every reconciliation and merge step is checkpointed to `~/.shadowclone/distill/` before the next one starts. A reconciliation checkpoint hashes the complete redacted prompt, output schema, and learner version, so changes to evidence, existing guidance, rejections, or the model contract invalidate stale output. One learning execution owns reconciliation and merge, with a default limit of 20 attempted calls and five minutes. Claude also receives a cumulative $2 ceiling. Codex and Cursor are bounded by calls and time because they cannot enforce a dollar flag. A stopped run keeps completed checkpoints and resumes from unfinished work.
 
-`shadowclone learn --deep` prints the batch count and the applicable execution limits before the first model call.
+`shadowclone learn --deep` prints the batch count and applicable execution limits before the first model call, then prints a rule-level comparison before any profile write.

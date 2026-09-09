@@ -4,7 +4,7 @@ Teach your coding agents to work the way you do.
 
 Shadowclone learns how you work from the AI coding sessions already on your disk, then compiles an editable profile for the agents you already use. The goal is a clone that can reason about work and carry it out the way you would.
 
-Today it imports existing repository guidance, observes enabled Claude Code, Codex, Cursor, and Antigravity transcripts, and reports steering signals without rewriting your profile. Explicit deep learning distills eligible moments into local Markdown rules. The next milestone reconciles instructions you wrote with corrections you made during real work. No measured outcome is published yet.
+Today it imports existing repository guidance, observes enabled Claude Code, Codex, Cursor, and Antigravity transcripts, and reports steering signals without rewriting your profile. Explicit deep learning reconciles eligible moments with the guidance and rejections you already own, then proposes local Markdown changes for review. No measured outcome is published yet.
 
 Run the evaluation instrument on your own corpus:
 
@@ -37,7 +37,7 @@ declared repository guidance  ->  redact  -----+
 | index | `src/index/` | Rebuildable SQLite cache of byte offsets and event kinds, never text |
 | signal | `src/signal/` | Detects interruptions, plan changes, and tool refusals in pure code |
 | report | `src/profile/mirror.ts` | Shows aggregate behavior and previews deep-learning work without writing profile rules |
-| distill | `src/distill/` | Distills high-signal moments into rules via your installed agent CLI |
+| distill | `src/distill/` | Reconciles high-signal moments with existing guidance via your installed agent CLI |
 | import | `src/importRules/` | Redacts supported repository instructions and synchronizes one rule per file |
 | profile | `src/profile/` | Plain Markdown rules and subagents scoped globally, by remote owner, or by exact repository |
 | dispatch | `src/dispatch/` | Executes unattended tasks on isolated worktrees with receipts |
@@ -128,13 +128,15 @@ To preview without writing files or databases:
 shadowclone learn --dry-run
 ```
 
-To distill eligible correction moments into mined profile rules through your authenticated agent CLI:
+To reconcile eligible correction moments with your existing profile through your authenticated agent CLI:
 
 ```bash
 shadowclone learn --deep
 ```
 
-One deep-learning invocation can attempt at most 20 model calls over five minutes. Extraction and merge share that allowance. Claude also receives a cumulative $2 ceiling. Codex and Cursor do not support a dollar-budget flag, so Shadowclone omits it and keeps their runs bounded by calls and time. Completed checkpoints let the next invocation resume unfinished work.
+Deep learning shows reinforcement, contradiction, narrowing, and new-rule proposals, then asks once before writing. Declared, imported, and user-owned rules remain active during disagreement. Mined guidance becomes active after support from three independent sessions; earlier guidance remains a candidate. Pass `--deep --dry-run` to run the same bounded analysis without writing the index, checkpoints, or profile, or `--deep --apply` to accept the displayed changes without the prompt.
+
+One deep-learning invocation can attempt at most 20 model calls over five minutes. Reconciliation and merge share that allowance. Claude also receives a cumulative $2 ceiling. Codex and Cursor do not support a dollar-budget flag, so Shadowclone omits it and keeps their runs bounded by calls and time. Completed checkpoints are bound to the redacted prompt, schema, and learner version so an unchanged invocation can resume safely.
 
 Install the compiled profile into the current repository:
 
@@ -144,7 +146,7 @@ shadowclone install
 
 This writes `.claude/agents/shadowclone.md` and excludes it from git tracking.
 
-The profile is yours to correct. Editing the visible text of a generated or imported block makes it active user guidance and preserves your version verbatim. Deleting one records its persistent id and last generated text in `.rejected`, so later wording changes under that id stay rejected. Recognizing a separately created candidate as a paraphrase is part of the reconciliation milestone.
+The profile is yours to correct. Editing the visible text of a generated or imported block makes it active user guidance and preserves your version verbatim. Reconciliation can add evidence and a proposal to that metadata without replacing your text. Deleting a rule records its persistent id and last generated text in `.rejected`; deep learning sees a redacted, opaque view of those rejections and omits proposed paraphrases it identifies as equivalent.
 
 ## Transfer evaluation
 
@@ -198,7 +200,7 @@ Agent transcripts contain private code, environment variables, internal hosts, a
 The SQLite index stores file offsets, timestamps, and event kinds. Raw transcripts are never duplicated to a secondary store.
 
 **Sliced secret redaction.**
-Distillation excerpts pass through a deterministic sliced replacer before reaching any model. Secrets keep identifying prefixes (such as `AKIA` or `sk_live_`) while stripping high-entropy characters, keeping code context intact without leaking credentials.
+Distillation excerpts, existing profile rules, and rejection text pass through the same deterministic sliced replacer before reaching any model. Secrets keep identifying prefixes (such as `AKIA` or `sk_live_`) while stripping high-entropy characters, keeping code context intact without leaking credentials. Persistent rule, rejection, origin, repository, and evidence identities are replaced with prompt-local opaque tokens.
 
 **Shannon entropy layer.**
 Tokens of 24 characters or more that reach 4.5 bits of entropy per character are sliced under the `shannon-entropy` label, even when they match no known vendor pattern. Long identifiers, file paths, and UUIDs measure below that threshold and stay readable.
@@ -242,7 +244,7 @@ shadowclone init                                 # Import or choose a profile, t
 shadowclone import                               # Import or synchronize repository guidance
 shadowclone wizard                               # Rerun declared profile choices
 shadowclone skills                               # List packaged behavioral dispositions
-shadowclone learn [--deep] [--dry-run]           # Report sessions, optionally distill rules
+shadowclone learn [--deep] [--dry-run] [--apply] # Report sessions or reconcile profile guidance
 shadowclone doctor                               # Inspect active paths, engines, and policies
 shadowclone install                              # Install profile as .claude/agents/shadowclone.md
 shadowclone run <task> [--approve <action>]      # Dispatch headless clone in a worktree

@@ -29,23 +29,30 @@ function countLabel(options: {
 
 function resultLine(options: {
   readonly eligibleCorrectionMoments: number;
-  readonly deepRulesProduced: number | undefined;
+  readonly deepChangesProposed: number | undefined;
+  readonly profileUpdated: boolean;
 }): string {
-  if (options.deepRulesProduced === undefined) {
+  if (options.deepChangesProposed === undefined) {
     return options.eligibleCorrectionMoments === 0
       ? "  Profile unchanged. No correction moments are eligible for deep learning."
-      : "  Profile unchanged. Run shadowclone learn --deep to distill the eligible moments.";
+      : "  Profile unchanged. Run shadowclone learn --deep to reconcile the eligible moments.";
   }
-  if (options.deepRulesProduced === 0) {
+  if (options.deepChangesProposed === 0) {
     return "  Deep learning produced no profile rules. Profile unchanged.";
   }
   const ruleLabel = countLabel({
-    count: options.deepRulesProduced,
+    count: options.deepChangesProposed,
     singular: "rule",
     plural: "rules",
   });
+  if (!options.profileUpdated) {
+    return [
+      `  Deep learning proposed ${options.deepChangesProposed} profile ${ruleLabel}.`,
+      "Profile unchanged.",
+    ].join(" ");
+  }
   return [
-    `  Deep learning produced ${options.deepRulesProduced} distilled profile ${ruleLabel}.`,
+    `  Deep learning applied ${options.deepChangesProposed} profile ${ruleLabel}.`,
     "Profile updated at ~/.shadowclone/profile/.",
   ].join(" ");
 }
@@ -57,7 +64,8 @@ export function renderMirror(options: {
     readonly extractionBatches: number;
   };
   readonly networkCallsMade?: boolean;
-  readonly deepRulesProduced?: number;
+  readonly deepChangesProposed?: number;
+  readonly profileUpdated?: boolean;
 }): string {
   const report = options.report;
   const megabytes = (report.corpus.bytes / 1_048_576).toFixed(1);
@@ -97,8 +105,8 @@ export function renderMirror(options: {
   });
   const batchLabel = countLabel({
     count: options.deepLearningPreview.extractionBatches,
-    singular: "extraction batch",
-    plural: "extraction batches",
+    singular: "reconciliation batch",
+    plural: "reconciliation batches",
   });
   const sessionLabel = countLabel({
     count: report.corpus.sessions,
@@ -166,7 +174,8 @@ export function renderMirror(options: {
     resultLine({
       eligibleCorrectionMoments:
         options.deepLearningPreview.eligibleCorrectionMoments,
-      deepRulesProduced: options.deepRulesProduced,
+      deepChangesProposed: options.deepChangesProposed,
+      profileUpdated: options.profileUpdated ?? false,
     }),
   ].join("\n");
 }

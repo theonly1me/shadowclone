@@ -58,6 +58,7 @@ test("removes a tool result pointer before a distillation batch", () => {
       directoryName: "github.com--acme",
       promotable: true,
     },
+    repositoryName: null,
     textRefs: [ref],
   };
 
@@ -82,6 +83,7 @@ test("allows assistant text only through a correction signal", () => {
       directoryName: "github.com--acme",
       promotable: true,
     },
+    repositoryName: null,
     textRefs: [ref],
   };
 

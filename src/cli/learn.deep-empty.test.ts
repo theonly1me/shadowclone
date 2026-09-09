@@ -70,7 +70,7 @@ test("deep learn does not substitute structural rules for an empty result", asyn
       sessionId: "deep-session",
       transcriptPath: null,
       text: "",
-      structured: { rules: [] },
+      structured: { existingRules: [], newRules: [] },
       costUsd: 0.01,
       durationMs: 100,
       turns: 1,

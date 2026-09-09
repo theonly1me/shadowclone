@@ -5,43 +5,57 @@ import {
   type LearningExecutionLimits,
 } from "../engine";
 import type { IndexedEvent } from "../index";
-import type { ProfileRule } from "../profile";
+import type { ProfileRule, ProfileSnapshot } from "../profile";
 import type { CorrectionSignal } from "../signal";
-import { buildDistillPrompt, groupDistillBatches } from "./batch";
-import { readCheckpoint, writeCheckpoint } from "./checkpoint";
+import type { SeedLibrary } from "../skills";
+import {
+  finalizeReconciliationChanges,
+  mergeProfileRuleUpdates,
+} from "./aggregate";
+import { groupDistillBatches } from "./batch";
+import { consolidateNewRules } from "./consolidate";
 import { allowlistedSignals } from "./eligible";
-import { mergeDistilledRules } from "./merge";
-import { profileRules } from "./profile";
-import { distillationOutputSchema } from "./schema";
+import {
+  applyReconciliation,
+  buildReconciliationPrompt,
+  createReconciliationContext,
+  runReconciliation,
+  type ReconciliationChange,
+} from "./reconcile";
 
-export { buildDistillPrompt, groupDistillBatches, type DistillBatch } from "./batch";
+export { groupDistillBatches, type DistillBatch } from "./batch";
+export { checkpointId, reconciliationLearnerVersion } from "./checkpoint";
 export { allowlistedSignals, isEligibleForDistillation } from "./eligible";
+export {
+  buildReconciliationPrompt,
+  parseReconciliationOutput,
+  reconciliationOutputSchema,
+  renderReconciliationChanges,
+  type ReconciliationChange,
+  type ReconciliationOutput,
+} from "./reconcile";
 export { runReplay } from "./replay";
 export {
   distillationMergeOutputSchema,
-  distillationOutputSchema,
   parseDistilledRules,
   type DistilledRule,
 } from "./schema";
 
 export type DistillationResult = {
   readonly rules: readonly ProfileRule[];
+  readonly changes: readonly ReconciliationChange[];
   readonly engineRuns: number;
+  readonly rejectedMatches: number;
 };
 
-function structuredValue(run: {
-  readonly structured: unknown;
-  readonly text: string;
-}): unknown {
-  if (run.structured !== null && run.structured !== undefined) {
-    return run.structured;
-  }
-  try {
-    return JSON.parse(run.text);
-  } catch {
-    throw new Error("The engine returned no structured distillation result");
-  }
-}
+const emptyProfile: ProfileSnapshot = { rules: [], rejections: [] };
+const emptyLibrary: SeedLibrary = {
+  guidance: [],
+  preferences: [],
+  skills: [],
+  axes: [],
+  independentSkills: [],
+};
 
 export async function distillSignals(options: {
   readonly signals: readonly CorrectionSignal[];
@@ -49,85 +63,63 @@ export async function distillSignals(options: {
   readonly engine: EngineId;
   readonly limits?: LearningExecutionLimits;
   readonly workingDirectory: string;
-  readonly checkpointDirectory: string;
+  readonly checkpointDirectory?: string | null;
   readonly events: readonly IndexedEvent[];
+  readonly profile?: ProfileSnapshot;
+  readonly seedLibrary?: SeedLibrary;
 }): Promise<DistillationResult> {
   const execution = createLearningExecution({
     engine: options.engine,
     runner: options.runner,
     limits: options.limits,
   });
-  const rules: ProfileRule[] = [];
   const signals = allowlistedSignals({
     signals: options.signals,
     events: options.events,
   }).filter((signal) => signal.textRefs.length > 0);
+  const appliedRules: ProfileRule[] = [];
+  const changes: ReconciliationChange[] = [];
+  let rejectedMatches = 0;
 
   for (const batch of groupDistillBatches({ signals })) {
-    const checkpoint = await readCheckpoint({
-      checkpointDirectory: options.checkpointDirectory,
+    const context = createReconciliationContext({
       batch,
+      profile: options.profile ?? emptyProfile,
+      library: options.seedLibrary ?? emptyLibrary,
     });
-    if (checkpoint !== null) {
-      rules.push(...checkpoint);
-      continue;
-    }
-
-    const prompt = await buildDistillPrompt({ signals: batch.signals });
-    const run = await execution.runner({
+    const prompt = await buildReconciliationPrompt({ context });
+    const output = await runReconciliation({
       prompt,
-      cwd: options.workingDirectory,
-      execution: { purpose: "learning" },
-      allowedTools: [],
-      permissionMode: "dontAsk",
-      outputSchema: distillationOutputSchema,
-    });
-    if (run.isError) {
-      throw new Error("The agent engine failed during distillation");
-    }
-    const batchRules = profileRules({
-      value: structuredValue(run),
-      signals: batch.signals,
-    });
-    await writeCheckpoint({
-      checkpointDirectory: options.checkpointDirectory,
-      batch,
-      rules: batchRules,
-    });
-    rules.push(...batchRules);
-  }
-
-  const rulesByOrigin = Map.groupBy(rules, (rule) => rule.originDirectory);
-  const finalRules: ProfileRule[] = [];
-
-  for (const [originDirectory, originRules] of rulesByOrigin.entries()) {
-    if (originRules.length <= 1) {
-      finalRules.push(...originRules);
-      continue;
-    }
-
-    const mergedRaw = await mergeDistilledRules({
-      rules: originRules.map((r) => ({
-        title: r.title,
-        body: r.body,
-        section: r.section,
-      })),
       runner: execution.runner,
-      cwd: options.workingDirectory,
-      checkpointDirectory: options.checkpointDirectory,
+      workingDirectory: options.workingDirectory,
+      ...(options.checkpointDirectory
+        ? { checkpointDirectory: options.checkpointDirectory }
+        : {}),
     });
-
-    const originSignals = signals.filter(
-      (s) => s.origin.directoryName === originDirectory,
-    );
-    finalRules.push(
-      ...profileRules({
-        value: { rules: mergedRaw },
-        signals: originSignals,
-        originRules,
-      }),
-    );
+    const applied = applyReconciliation({ output, context });
+    appliedRules.push(...applied.rules);
+    changes.push(...applied.changes);
+    rejectedMatches += applied.rejectedMatches;
   }
 
-  return { rules: finalRules, engineRuns: execution.callsUsed() };
+  const newKeys = new Set(
+    changes.filter((change) => change.kind === "new").map((change) => change.after.key),
+  );
+  const existingRules = mergeProfileRuleUpdates(
+    appliedRules.filter((rule) => !newKeys.has(rule.key)),
+  );
+  const newRules = await consolidateNewRules({
+    rules: appliedRules.filter((rule) => newKeys.has(rule.key)),
+    runner: execution.runner,
+    workingDirectory: options.workingDirectory,
+    ...(options.checkpointDirectory
+      ? { checkpointDirectory: options.checkpointDirectory }
+      : {}),
+  });
+  return {
+    rules: [...existingRules, ...newRules],
+    changes: finalizeReconciliationChanges({ changes, existingRules, newRules }),
+    engineRuns: execution.callsUsed(),
+    rejectedMatches,
+  };
 }

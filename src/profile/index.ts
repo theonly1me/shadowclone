@@ -1,7 +1,18 @@
 export { renderAgent, writeAgent } from "./agent";
 export { buildCompiledProfile, compileProfile } from "./inject";
+export {
+  parseProfileEvidenceId,
+  profileEvidenceId,
+  profileEvidenceStatistics,
+} from "./evidence";
 export { renderMirror } from "./mirror";
 export { parseProfileBlocks, parseProfileRules } from "./parse";
+export {
+  readProfileSnapshot,
+  type ProfileSnapshot,
+  type ProfileSnapshotRejection,
+  type ProfileSnapshotRule,
+} from "./snapshot";
 export {
   createProfileRuleKey,
   profileFingerprint,
@@ -27,5 +38,6 @@ export type {
 export { writeProfile } from "./write";
 export {
   readGeneratedProfileState,
+  parseProfileRejectionText,
   readProfileRejections,
 } from "./state";

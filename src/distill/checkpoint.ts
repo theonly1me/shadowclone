@@ -1,48 +1,62 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import type { ProfileRule } from "../profile";
-import { profileRuleSchema } from "../profile/metadata";
-import type { DistillBatch } from "./batch";
+import {
+  parseReconciliationOutput,
+  reconciliationOutputSchema,
+  type ReconciliationOutput,
+} from "./reconcile";
 
-export function checkpointId(batch: DistillBatch): string {
-  const identity = batch.signals.map((signal) => ({
-    kind: signal.kind,
-    sessionId: signal.sessionId,
-    timestamp: signal.timestamp,
-    refs: signal.textRefs,
-  }));
+export const reconciliationLearnerVersion = "reconciliation-v1";
+
+export function checkpointId(options: {
+  readonly prompt: string;
+  readonly outputSchema?: unknown;
+  readonly learnerVersion?: string;
+}): string {
+  const identity = JSON.stringify({
+    prompt: options.prompt,
+    outputSchema: options.outputSchema ?? reconciliationOutputSchema,
+    learnerVersion: options.learnerVersion ?? reconciliationLearnerVersion,
+  });
   return new Bun.CryptoHasher("sha256")
-    .update(`${batch.origin.id}:${JSON.stringify(identity)}`)
+    .update(identity)
     .digest("hex")
     .slice(0, 24);
 }
 
+function checkpointPath(options: {
+  readonly checkpointDirectory: string;
+  readonly prompt: string;
+}): string {
+  return path.join(
+    options.checkpointDirectory,
+    `${checkpointId({ prompt: options.prompt })}.json`,
+  );
+}
+
 export async function readCheckpoint(options: {
   readonly checkpointDirectory: string;
-  readonly batch: DistillBatch;
-}): Promise<readonly ProfileRule[] | null> {
-  const file = Bun.file(
-    path.join(options.checkpointDirectory, `${checkpointId(options.batch)}.json`),
-  );
+  readonly prompt: string;
+}): Promise<ReconciliationOutput | null> {
+  const file = Bun.file(checkpointPath(options));
   if (!(await file.exists())) {
     return null;
   }
-  const value: unknown = await file.json();
-  return Array.isArray(value) ? value.filter(isProfileRule) : null;
-}
-
-function isProfileRule(value: unknown): value is ProfileRule {
-  return profileRuleSchema.safeParse(value).success;
+  try {
+    return parseReconciliationOutput(await file.json());
+  } catch {
+    return null;
+  }
 }
 
 export async function writeCheckpoint(options: {
   readonly checkpointDirectory: string;
-  readonly batch: DistillBatch;
-  readonly rules: readonly ProfileRule[];
+  readonly prompt: string;
+  readonly output: ReconciliationOutput;
 }): Promise<void> {
   await mkdir(options.checkpointDirectory, { recursive: true });
   await Bun.write(
-    path.join(options.checkpointDirectory, `${checkpointId(options.batch)}.json`),
-    `${JSON.stringify(options.rules, null, 2)}\n`,
+    checkpointPath(options),
+    `${JSON.stringify(options.output, null, 2)}\n`,
   );
 }
