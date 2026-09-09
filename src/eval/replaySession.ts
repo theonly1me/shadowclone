@@ -35,6 +35,7 @@ export async function replaySession(options: {
     const baselineRun = await options.runner({
       prompt: options.prompt,
       cwd: baselineCwd,
+      execution: { purpose: "evaluation" },
       sessionId: crypto.randomUUID(),
       permissionMode: "dontAsk",
       maxBudgetUsd: options.maxBudgetUsd ?? 0.5,
@@ -63,6 +64,7 @@ export async function replaySession(options: {
     const cloneRun = await options.runner({
       prompt: options.prompt,
       cwd: cloneCwd,
+      execution: { purpose: "evaluation" },
       systemPromptFile: options.compiledProfilePath,
       sessionId: crypto.randomUUID(),
       permissionMode: "dontAsk",

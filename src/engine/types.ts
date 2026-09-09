@@ -26,9 +26,18 @@ export type EngineAction = {
   readonly succeeded?: boolean | null;
 };
 
+export type EngineExecution =
+  | { readonly purpose: "dispatch" }
+  | {
+      readonly purpose: "evaluation";
+      readonly blockedPaths?: readonly string[];
+    }
+  | { readonly purpose: "learning" };
+
 export type EngineRunOptions = {
   readonly prompt: string;
   readonly cwd: string;
+  readonly execution: EngineExecution;
   readonly systemPromptFile?: string;
   readonly sessionId?: string;
   readonly model?: string;
@@ -38,8 +47,6 @@ export type EngineRunOptions = {
   readonly maxBudgetUsd?: number;
   readonly outputSchema?: unknown;
   readonly signal?: AbortSignal;
-  readonly evaluation?: boolean;
-  readonly evaluationBlockedPaths?: readonly string[];
 };
 
 export type EngineRun = {

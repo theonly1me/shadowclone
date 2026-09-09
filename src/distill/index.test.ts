@@ -118,6 +118,7 @@ test("redacts excerpts before the engine and resumes from checkpoints", async ()
   const options = {
     signals,
     runner,
+    engine: "claude-code" as const,
     workingDirectory: directory,
     checkpointDirectory: path.join(directory, "checkpoints"),
     events: [indexedPrompt({ sourcePath })],
@@ -161,6 +162,7 @@ test("records independent supporting evidence without a confidence score", async
   const options = {
     signals,
     runner,
+    engine: "claude-code" as const,
     workingDirectory: directory,
     checkpointDirectory: path.join(directory, "checkpoints"),
     events: [

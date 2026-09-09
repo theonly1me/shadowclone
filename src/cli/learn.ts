@@ -5,7 +5,11 @@ import {
   groupDistillBatches,
 } from "../distill";
 import { detectEngine } from "../engine";
-import type { EngineRunner } from "../engine";
+import {
+  defaultLearningExecutionLimits,
+  type EngineId,
+  type EngineRunner,
+} from "../engine";
 import {
   ingestSources,
   openEventIndex,
@@ -13,6 +17,7 @@ import {
 import { initialize } from "./init";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
+import { getProviderByEngine } from "../provider";
 import {
   buildProfileRules,
   profileRulePath,
@@ -31,6 +36,7 @@ export async function learn(options: {
   readonly deep?: boolean;
   readonly dryRun?: boolean;
   readonly runner?: EngineRunner;
+  readonly engine?: EngineId;
   readonly managedConfigPath?: string | null;
 } = {}): Promise<void> {
   const paths = options.paths ?? projectPaths;
@@ -101,7 +107,7 @@ export async function learn(options: {
       );
       const batches = groupDistillBatches({ signals: eligibleSignals });
       console.log(
-        `Deep distillation will run up to ${batches.length} agent batches.`,
+        `Deep distillation found ${batches.length} extraction batches.`,
       );
       if (batches.length > 0) {
         if (policy.distillation !== "allowed") {
@@ -114,12 +120,26 @@ export async function learn(options: {
               allowedEngines: policy.allowedEngines,
             });
         const runner = options.runner ?? detection?.runner;
-        if (!runner) {
+        const engine = options.engine ?? detection?.selectedEngine;
+        if (!runner || !engine) {
           throw new Error("No authenticated agent engine is available");
         }
+        const supportsCostLimit =
+          getProviderByEngine(engine)?.engine?.capabilities.maxBudgetUsd === true;
+        const limits = defaultLearningExecutionLimits;
+        console.log(
+          [
+            `Learning is limited to ${limits.maximumCalls} total calls and ${limits.timeoutMilliseconds / 1_000} seconds`,
+            supportsCostLimit
+              ? ` with a $${limits.maximumCostUsd.toFixed(2)} total ceiling.`
+              : ".",
+          ].join(""),
+        );
         const result = await distillSignals({
           signals: eligibleSignals,
           runner,
+          engine,
+          limits,
           workingDirectory: paths.shadowcloneDirectory,
           checkpointDirectory: paths.distillDirectory,
           events: derived.events,

@@ -1,5 +1,6 @@
 import path from "node:path";
 import { distillSignals } from "../../distill";
+import type { EngineId } from "../../engine";
 import type { IndexedEvent } from "../../index";
 import { buildProfileRules } from "../../profile";
 import { deriveSignals } from "../../signal";
@@ -10,6 +11,7 @@ export async function learnEvaluationProfile(options: {
   readonly training: readonly Evidence[];
   readonly cutoff: number;
   readonly call: ModelCall;
+  readonly engine: EngineId;
   readonly directory: string;
 }): Promise<string> {
   const sessions = new Set(options.training.map((entry) => entry.sessionId));
@@ -41,6 +43,7 @@ export async function learnEvaluationProfile(options: {
         prompt: run.prompt,
         outputSchema: run.outputSchema,
       }),
+    engine: options.engine,
     workingDirectory: options.directory,
     checkpointDirectory: path.join(options.directory, crypto.randomUUID()),
   });

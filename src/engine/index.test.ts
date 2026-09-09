@@ -35,6 +35,7 @@ test("builds bounded Claude arguments without a prompt or bypass mode", () => {
     run: {
       prompt: "private prompt",
       cwd: "/worktree",
+      execution: { purpose: "dispatch" },
       systemPromptFile: "/profile.md",
       allowedTools: ["Edit"],
       permissionMode: "dontAsk",
@@ -60,6 +61,7 @@ test("omits allowedTools flag when empty list is supplied", () => {
     run: {
       prompt: "private prompt",
       cwd: "/worktree",
+      execution: { purpose: "dispatch" },
       allowedTools: [],
       permissionMode: "dontAsk",
     },
@@ -98,6 +100,7 @@ test("builds bounded provider arguments without prompts or bypass flags", () => 
   const run = {
     prompt: "private prompt",
     cwd: "/worktree",
+    execution: { purpose: "dispatch" as const },
     allowedTools: [],
     permissionMode: "dontAsk" as const,
   };
@@ -117,13 +120,19 @@ test("builds bounded provider arguments without prompts or bypass flags", () => 
 test("fails when a provider cannot enforce a requested ceiling", () => {
   expect(() =>
     buildCodexArguments({
-      run: { prompt: "task", cwd: "/repo", maxBudgetUsd: 1 },
+      run: {
+        prompt: "task",
+        cwd: "/repo",
+        execution: { purpose: "dispatch" },
+        maxBudgetUsd: 1,
+      },
     }),
   ).toThrow("dollar budget");
   expect(() =>
     buildCursorArguments({
       prompt: "task",
       cwd: "/repo",
+      execution: { purpose: "dispatch" },
       disallowedTools: ["Bash(git push:*)"],
     }),
   ).toThrow("granular tool denylist");

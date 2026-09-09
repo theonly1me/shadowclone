@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { parseCursorStream } from "./parseCursor";
+import { validateEngineExecution } from "./execution";
 import { buildEnginePrompt } from "./prompt";
 import type {
   EngineRun,
@@ -10,6 +11,7 @@ import type {
 } from "./types";
 
 function validateCursorOptions(options: EngineRunOptions): void {
+  validateEngineExecution(options);
   if (options.sessionId !== undefined) {
     throw new Error("Cursor cannot set a caller-provided session id");
   }
@@ -57,6 +59,7 @@ export function buildCursorArguments(
 async function runCursorProcess(options: {
   readonly run: EngineRunOptions;
   readonly workspace: string;
+  readonly environment?: Readonly<Record<string, string | undefined>>;
 }): Promise<EngineRun> {
   const prompt = await buildEnginePrompt({
     run: options.run,
@@ -69,6 +72,7 @@ async function runCursorProcess(options: {
       "--trust",
     ],
     cwd: options.workspace,
+    env: options.environment,
     stdin: "pipe",
     stdout: "pipe",
     stderr: "ignore",
@@ -88,33 +92,55 @@ export async function runCursorAgent(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
   validateCursorOptions(options);
-  if (options.allowedTools?.length !== 0) {
+  const requiresIsolation =
+    options.execution.purpose === "learning" || options.allowedTools?.length === 0;
+  if (!requiresIsolation) {
     return runCursorProcess({ run: options, workspace: options.cwd });
   }
-  const workspace = await mkdtemp(
+  const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-cursor-"),
   );
+  const workspace = path.join(directory, "workspace");
+  const isolatedConfigDirectory = path.join(directory, "config");
   const configDirectory = path.join(workspace, ".cursor");
-  await mkdir(configDirectory, { recursive: true });
-  await Bun.write(
-    path.join(configDirectory, "cli.json"),
-    JSON.stringify({
-      version: 1,
-      permissions: {
-        allow: [],
-        deny: [
-          "Shell(*)",
-          "Read(*)",
-          "Write(*)",
-          "WebFetch(*)",
-          "Mcp(*:*)",
-        ],
-      },
-    }),
-  );
+  const deniedPermissions = [
+    "Shell(*)",
+    "Read(*)",
+    "Write(*)",
+    "WebFetch(*)",
+    "Mcp(*:*)",
+  ];
+  await Promise.all([
+    mkdir(configDirectory, { recursive: true }),
+    mkdir(isolatedConfigDirectory, { recursive: true }),
+  ]);
+  await Promise.all([
+    Bun.write(
+      path.join(configDirectory, "cli.json"),
+      JSON.stringify({
+        version: 1,
+        permissions: { allow: [], deny: deniedPermissions },
+      }),
+    ),
+    Bun.write(
+      path.join(isolatedConfigDirectory, "cli-config.json"),
+      JSON.stringify({
+        version: 1,
+        editor: { vimMode: false },
+        permissions: { allow: [], deny: deniedPermissions },
+      }),
+    ),
+  ]);
   try {
-    return await runCursorProcess({ run: options, workspace });
+    return await runCursorProcess({
+      run: options,
+      workspace,
+      environment: {
+        ...process.env,
+        CURSOR_CONFIG_DIR: isolatedConfigDirectory,
+      },
+    });
   } finally {
-    await rm(workspace, { recursive: true, force: true });
+    await rm(directory, { recursive: true, force: true });
   }
 }

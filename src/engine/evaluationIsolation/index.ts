@@ -6,8 +6,11 @@ export function evaluationCommand(options: {
   readonly run: EngineRunOptions;
   readonly platform?: NodeJS.Platform;
 }): readonly string[] {
-  const requestedPaths = options.run.evaluationBlockedPaths ?? [];
-  if (!options.run.evaluation || requestedPaths.length === 0) {
+  if (options.run.execution.purpose !== "evaluation") {
+    return options.arguments;
+  }
+  const requestedPaths = options.run.execution.blockedPaths ?? [];
+  if (requestedPaths.length === 0) {
     return options.arguments;
   }
 
