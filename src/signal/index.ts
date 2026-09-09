@@ -19,11 +19,16 @@ import type {
 
 export type MirrorReport = {
   readonly corpus: CorpusSummary;
+  readonly originCount: number;
+  readonly correctionCounts: {
+    readonly interruptions: number;
+    readonly permissionDenials: number;
+    readonly answeredQuestions: number;
+    readonly resolvedPlans: number;
+  };
   readonly interruptions: readonly CountedCategory[];
   readonly denials: readonly CountedCategory[];
-  readonly answeredQuestions: number;
   readonly askedQuestions: number;
-  readonly resolvedPlans: number;
   readonly presentedPlans: number;
   readonly structural: StructuralSummary;
 };
@@ -96,6 +101,17 @@ export async function deriveSignals(options: {
   const denials = corrections.filter(
     (signal) => signal.kind === "permission-denied",
   );
+  const answeredQuestions = corrections.filter(
+    (signal) => signal.kind === "question-answered",
+  );
+  const resolvedPlans = corrections.filter(
+    (signal) => signal.kind === "plan-resolved",
+  );
+  const originCount = new Set(
+    events.map(
+      (event) => getEventRepository({ event, repositories }).origin.id,
+    ),
+  ).size;
 
   return {
     corrections,
@@ -103,15 +119,16 @@ export async function deriveSignals(options: {
     origins,
     report: {
       corpus: options.corpus,
+      originCount,
+      correctionCounts: {
+        interruptions: interruptions.length,
+        permissionDenials: denials.length,
+        answeredQuestions: answeredQuestions.length,
+        resolvedPlans: resolvedPlans.length,
+      },
       interruptions: countSignals(interruptions),
       denials: countSignals(denials),
-      answeredQuestions: corrections.filter(
-        (signal) => signal.kind === "question-answered",
-      ).length,
       askedQuestions: countKind(events, "question-asked"),
-      resolvedPlans: corrections.filter(
-        (signal) => signal.kind === "plan-resolved",
-      ).length,
       presentedPlans: countKind(events, "plan-presented"),
       structural: deriveStructural(events),
     },

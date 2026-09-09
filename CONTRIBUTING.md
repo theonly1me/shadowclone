@@ -23,7 +23,7 @@ bun install
 bun run check
 ```
 
-`bun run cli init` writes the opt-in config. `bun run cli learn` ingests enabled sources without making a network call. `bun run cli learn --deep` is the separate, consented path through a selected authenticated agent CLI. `bun run cli run "<task>"` explicitly approves one local worktree, branch, and commit for that task.
+`bun run cli init` writes the opt-in config. `bun run cli learn` ingests enabled sources and reports aggregate behavior without changing the profile or making a network call. `bun run cli learn --deep` is the separate, consented path that writes mined rules through a selected authenticated agent CLI. `bun run cli run "<task>"` explicitly approves one local worktree, branch, and commit for that task.
 
 ## The gate
 
@@ -110,5 +110,4 @@ If you are unsure whether your change touches egress, it touches egress. Say so 
 If you find a string that gets past `src/redact/`, that is the most valuable bug report this project can get. Open an issue describing the **shape** of the string, not the string itself. "A GitLab personal access token starting `glpat-` is not matched" is enough to write the pattern and the test.
 
 `SECURITY.md` covers the reports that go through private reporting instead.
-
 

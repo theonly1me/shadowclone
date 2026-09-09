@@ -24,15 +24,15 @@ Import is deterministic and calls no engine. A `FileTextRef` reaches `resolveRed
 
 An unchanged rerun is byte stable. Source edits revise an unedited rule under the same key. Profile edits remain user-owned, deletions remain rejected, removed sources retire, and renamed sources receive new identities. A Git-identified import lives at `org/<origin>/projects/<safe-name>--<identity-hash>.md`; an import without Git metadata remains under its opaque isolated origin. The compiler admits only the exact project file for the active repository.
 
-## Two tiers
+## Evidence and learning
 
 Sending 562 MB to a model is not affordable. The work splits by whether it needs a model at all.
 
-**Structural signals cost zero tokens.** They are computed in pure code over the index. Tool histograms, which commands run before work is called done, flag preferences, branch naming, session length and turn counts, time of day, how often plan mode is used, which repos get worked on. This tier alone produces a profile that is recognisably a particular person, and it runs with no network call.
+**Structural signals cost zero tokens.** They are computed in pure code over the index. Session and origin counts, tool histograms, plan activity, interruptions, permission denials, answered questions, and resolved plans form the mirror. They are evidence about how a person works, not instructions, so this path reports them without writing profile rules.
 
-**Semantic signals cost tokens, over a very small input.** The correction miner reduces the corpus to the moments that carry preference, roughly a thousand to one. What reaches a model is a few hundred KB of extracted moments, never a raw transcript.
+**Semantic learning costs tokens, over a very small input.** The correction miner reduces the corpus to the moments that carry preference, roughly a thousand to one. Explicit deep learning resolves only allowlisted correction moments through the redaction gate and asks the selected authenticated agent CLI to produce mined rules.
 
-`shadowclone learn` runs tier one and is free. `shadowclone learn --deep` adds tier two and requires a second explicit enable in the config.
+`shadowclone learn` updates the local index and prints the structural report. It leaves every profile file unchanged. `shadowclone learn --deep` is the only observed-behavior path that writes mined rules, and it requires a second explicit enable in the config.
 
 ## Correction mining
 
@@ -42,7 +42,7 @@ Six extractors, ordered by yield measured against a real 562 MB corpus of 372 se
 
 **Interruption, 994 found.** The user stopped the agent mid work. Claude Code writes the exact marker `[Request interrupted by user`, so extraction is a string match with no inference. What was running when it was stopped is the signal, and this is the single richest source in the corpus.
 
-**Tool denial, 445 found.** A permission request the user refused, marked by `user doesn't want to proceed with this tool use`. These populate `boundaries.md` as advice to ask before similar actions. The transcript currently retains only the tool family, so one denied Bash command cannot block every Bash command. Hard enforcement waits for a privacy-safe action fingerprint that can also be computed from live hook input. Claude Code reports `permission_denials` on the terminal `result` message of a headless run, so a clone's own denials need no parsing at all.
+**Tool denial, 445 found.** A permission request the user refused, marked by `user doesn't want to proceed with this tool use`. The mirror reports these by tool family, and explicit deep learning may use their redacted context as evidence. One denied Bash command cannot become a blanket Bash rule from the family name alone. Hard enforcement waits for a privacy-safe action fingerprint that can also be computed from live hook input. Claude Code reports `permission_denials` on the terminal `result` message of a headless run, so a clone's own denials need no parsing at all.
 
 **Question answered, 313 found.** An `AskUserQuestion` call paired with the option the user picked. The unchosen options are negative examples, which are rarer and more valuable than positive ones.
 
@@ -58,40 +58,53 @@ The miner runs over the index and emits `Signal` values holding `TextRef` pointe
 
 ## The mirror
 
-`shadowclone learn` prints before it writes, and what it prints is the first proof that the profile is you. A developer has never been shown how they actually work with an agent, and the terminal output is where that happens, so its shape is specified here rather than left to whoever writes the CLI.
+`shadowclone learn` prints measured evidence without changing the profile. A developer has rarely been shown how they actually work with an agent, and the terminal output is where that becomes visible, so its shape is specified here rather than left to whoever writes the CLI.
 
-The block below is a specification of shape, not a result. The session count, size, day count, and the three totals are measured on the development corpus. Every line beneath them is invented to show what a line looks like, and nothing has produced those categories or those numbers yet.
+The block below is the output from the end-to-end fixture used by the learning command test. It specifies the same shape used for a real corpus without publishing a product result from test data.
 
 ```
 $ shadowclone learn
 
-  Read 372 sessions, 562 MB, 30 active days.   No network calls were made.
+  Read 1 session, 0.0 MB, 1 active day across 1 origin. No network calls were made.
 
-  You stop the agent most often when it
-    starts editing before showing a plan .......... 211
-    writes comments ............................... 89
-    runs a broader command than you would ......... 74
+  Correction moments found
+    interruptions ................................... 1
+    permission denials .............................. 0
+    answered questions .............................. 1
+    resolved plans .................................. 0
 
-  You have refused these tools 445 times
-    Bash(rm *) .................................... 61
-    Bash(git push *) .............................. 44
+  You stop the agent most often
+    while using Edit ................................ 1
 
-  When it asked, you chose
-    the smaller diff .............................. 38 of 41
-    plan mode first ............................... 29 of 31
+  You have refused tools 0 times
+    no tool refusals indexed ........................ 0
 
-  Profile written to ~/.shadowclone/profile/. Open it. Argue with it.
+  When the agent asked, you answered
+    agent questions ................................. 1 of 1
+    presented plans ................................. 0 of 0
+
+  Your most used agent tools
+    AskUserQuestion ................................. 1
+    Edit ............................................ 1
+
+  Deep learning would send
+    eligible correction moments ..................... 1 of 2
+    extraction batch ................................ 1
+
+  Profile unchanged. Run shadowclone learn --deep to distill the eligible moments.
 ```
 
-Four rules govern the output.
+The report follows five rules.
 
-The first line states the source counts and that no network call was made. It is printed only when that is true, which it always is for `learn` without `--deep`.
+The first line states corpus and allowed-origin counts and whether an engine call was made. Plain learning always states that no network call was made.
 
-Sections are ordered by measured yield, interruptions first.
+Correction kinds are counted separately before ranked categories, with interruptions first.
 
 Every line carries a count. A count is a claim the user can dispute and an adjective is not.
 
-Nothing in the output is captured text. Category labels are derived and tool names are tool names. The one exception is the tool pattern in a denial, which is already a pattern rather than a command.
+Nothing in the output is captured text. Category labels are derived and tool names are tool names. Working directories, origin identifiers, source paths, repository names, and excerpts are absent.
+
+The last section previews how many pointer-bearing moments and extraction batches explicit deep learning would process. Plain learning then states that the profile stayed unchanged.
 
 The output is judged on one question: does it surprise the person it describes. A profile that could have been written from memory in five minutes is not wrong, it is just not worth running, and it is not worth sharing. The extractors are tuned against that question on the real corpus before anything downstream is built.
 

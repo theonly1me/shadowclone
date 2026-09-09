@@ -53,10 +53,9 @@ export async function runSessionEndHook(options: {
   if (!policy.enabled || !config.sources["claude-code"]) {
     return;
   }
-  const sourcePath = readHookString(
-    parseHookInput(options.input),
-    "transcript_path",
-  );
+  const input = parseHookInput(options.input);
+  const sourcePath = readHookString(input, "transcript_path");
+  const cwd = readHookString(input, "cwd") ?? process.cwd();
   if (
     sourcePath === null ||
     !(await isInsideDirectory({
@@ -71,9 +70,9 @@ export async function runSessionEndHook(options: {
   try {
     await ingestClaudeTranscript({ index, sourcePath });
     await refreshOfflineProfile({
-      index,
       config,
       paths,
+      cwd,
       readRemote: options.readRemote,
       blockedOrigins: policy.blockedOrigins,
     });

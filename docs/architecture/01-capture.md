@@ -131,6 +131,6 @@ Three, arriving in this order, all reading the same cursors.
 
 A Claude Code `SessionEnd` hook, shipped in `.claude-plugin/`. Hooks receive `transcript_path` on stdin, so the hook ingests exactly one known file and never scans a directory. This is what makes shadowclone feel like it has no moving parts.
 
-Both triggers are built. The hook first checks effective source consent and managed policy, rejects paths outside the Claude projects directory, and then advances the same cursor used by `learn`.
+Both triggers are built. The hook first checks effective source consent and managed policy, rejects paths outside the Claude projects directory, and then advances the same cursor used by `learn`. It recompiles existing active guidance for the session's repository scope and never manufactures profile rules from the ingested events.
 
 A long running daemon for people who want continuous learning and queued work. It adds no capability, only latency reduction, which is why it is last.

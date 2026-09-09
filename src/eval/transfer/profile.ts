@@ -2,7 +2,6 @@ import path from "node:path";
 import { distillSignals } from "../../distill";
 import type { EngineId } from "../../engine";
 import type { IndexedEvent } from "../../index";
-import { buildProfileRules } from "../../profile";
 import { deriveSignals } from "../../signal";
 import type { Evidence, ModelCall } from "./types";
 
@@ -28,12 +27,6 @@ export async function learnEvaluationProfile(options: {
     corpus: { sessions: sessions.size, bytes: 0, activeDays: 0 },
   });
 
-  const structuralRules = buildProfileRules({
-    events,
-    signals: derived.corrections,
-    origins: derived.origins,
-  });
-
   const distilled = await distillSignals({
     events,
     signals: derived.corrections,
@@ -48,8 +41,10 @@ export async function learnEvaluationProfile(options: {
     checkpointDirectory: path.join(options.directory, crypto.randomUUID()),
   });
 
-  const rules =
-    distilled.rules.length > 0 ? distilled.rules : structuralRules;
-
-  return `# Shadowclone profile\n\n${rules.map((rule) => `## ${rule.title}\n\n${rule.body}`).join("\n\n")}\n`;
+  const renderedRules = distilled.rules.map(
+    (rule) => `## ${rule.title}\n\n${rule.body}`,
+  );
+  return renderedRules.length === 0
+    ? "# Shadowclone profile\n"
+    : `# Shadowclone profile\n\n${renderedRules.join("\n\n")}\n`;
 }

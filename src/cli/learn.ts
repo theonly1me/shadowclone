@@ -19,8 +19,6 @@ import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import { getProviderByEngine } from "../provider";
 import {
-  buildProfileRules,
-  profileRulePath,
   renderMirror,
   writeProfile,
 } from "../profile";
@@ -84,88 +82,91 @@ export async function learn(options: {
     for (const warning of markerWarnings) {
       console.warn(`Warning: ${warning}`);
     }
-    if (options.dryRun) {
-      console.log(renderMirror({ report: derived.report, networkCallsMade: false }));
+    const eligibleSignals = allowlistedSignals({
+      signals: derived.corrections,
+      events: derived.events,
+    }).filter((signal) => signal.textRefs.length > 0);
+    const batches = groupDistillBatches({ signals: eligibleSignals });
+    const deepLearningPreview = {
+      eligibleCorrectionMoments: eligibleSignals.length,
+      extractionBatches: batches.length,
+    };
+    if (options.dryRun || !options.deep) {
+      console.log(
+        renderMirror({
+          report: derived.report,
+          deepLearningPreview,
+          networkCallsMade: false,
+        }),
+      );
+      if (summary.rescannedFiles > 0) {
+        console.log(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
+      }
       return;
     }
-    const structuralRules = buildProfileRules({
-      events: derived.events,
-      signals: derived.corrections,
-      origins: derived.origins,
-    });
     let semanticRules: readonly ProfileRule[] = [];
     let networkCallsMade = false;
-    if (options.deep) {
-      if (!config.distillation.deep) {
-        throw new Error("Deep distillation is disabled in config");
-      }
-      const eligibleSignals = allowlistedSignals({
-        signals: derived.corrections,
-        events: derived.events,
-      }).filter(
-        (signal) => signal.textRefs.length > 0,
-      );
-      const batches = groupDistillBatches({ signals: eligibleSignals });
-      console.log(
-        `Deep distillation found ${batches.length} extraction batches.`,
-      );
-      if (batches.length > 0) {
-        if (policy.distillation !== "allowed") {
-          throw new Error("Managed policy does not allow remote distillation");
-        }
-        const detection = options.runner
-          ? null
-          : await detectEngine({
-              purpose: "distill",
-              allowedEngines: policy.allowedEngines,
-            });
-        const runner = options.runner ?? detection?.runner;
-        const engine = options.engine ?? detection?.selectedEngine;
-        if (!runner || !engine) {
-          throw new Error("No authenticated agent engine is available");
-        }
-        const supportsCostLimit =
-          getProviderByEngine(engine)?.engine?.capabilities.maxBudgetUsd === true;
-        const limits = defaultLearningExecutionLimits;
-        console.log(
-          [
-            `Learning is limited to ${limits.maximumCalls} total calls and ${limits.timeoutMilliseconds / 1_000} seconds`,
-            supportsCostLimit
-              ? ` with a $${limits.maximumCostUsd.toFixed(2)} total ceiling.`
-              : ".",
-          ].join(""),
-        );
-        const result = await distillSignals({
-          signals: eligibleSignals,
-          runner,
-          engine,
-          limits,
-          workingDirectory: paths.shadowcloneDirectory,
-          checkpointDirectory: paths.distillDirectory,
-          events: derived.events,
-        });
-        semanticRules = result.rules;
-        networkCallsMade = result.engineRuns > 0;
-      }
+    if (!config.distillation.deep) {
+      throw new Error("Deep distillation is disabled in config");
     }
-    const usesSemanticRules = options.deep && semanticRules.length > 0;
-    const profileRules = usesSemanticRules ? semanticRules : structuralRules;
-    const sortedRules = [...profileRules].sort(
-      (left, right) =>
-        right.observations - left.observations ||
-        left.title.localeCompare(right.title),
+    const batchLabel = batches.length === 1 ? "batch" : "batches";
+    console.log(
+      `Deep distillation found ${batches.length} extraction ${batchLabel}.`,
     );
-    await writeProfile({
-      paths,
-      rules: sortedRules,
-      retired: usesSemanticRules
-        ? structuralRules.map((rule) => ({
-            relativePath: profileRulePath(rule),
-            key: rule.key,
-          }))
-        : [],
-    });
-    console.log(renderMirror({ report: derived.report, networkCallsMade }));
+    if (batches.length > 0) {
+      if (policy.distillation !== "allowed") {
+        throw new Error("Managed policy does not allow remote distillation");
+      }
+      const detection = options.runner
+        ? null
+        : await detectEngine({
+            purpose: "distill",
+            allowedEngines: policy.allowedEngines,
+          });
+      const runner = options.runner ?? detection?.runner;
+      const engine = options.engine ?? detection?.selectedEngine;
+      if (!runner || !engine) {
+        throw new Error("No authenticated agent engine is available");
+      }
+      const supportsCostLimit =
+        getProviderByEngine(engine)?.engine?.capabilities.maxBudgetUsd === true;
+      const limits = defaultLearningExecutionLimits;
+      console.log(
+        [
+          `Learning is limited to ${limits.maximumCalls} total calls and ${limits.timeoutMilliseconds / 1_000} seconds`,
+          supportsCostLimit
+            ? ` with a $${limits.maximumCostUsd.toFixed(2)} total ceiling.`
+            : ".",
+        ].join(""),
+      );
+      const result = await distillSignals({
+        signals: eligibleSignals,
+        runner,
+        engine,
+        limits,
+        workingDirectory: paths.shadowcloneDirectory,
+        checkpointDirectory: paths.distillDirectory,
+        events: derived.events,
+      });
+      semanticRules = result.rules;
+      networkCallsMade = result.engineRuns > 0;
+    }
+    if (semanticRules.length > 0) {
+      const sortedRules = [...semanticRules].sort(
+        (left, right) =>
+          right.observations - left.observations ||
+          left.title.localeCompare(right.title),
+      );
+      await writeProfile({ paths, rules: sortedRules });
+    }
+    console.log(
+      renderMirror({
+        report: derived.report,
+        deepLearningPreview,
+        networkCallsMade,
+        deepRulesProduced: semanticRules.length,
+      }),
+    );
     if (summary.rescannedFiles > 0) {
       console.log(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
     }

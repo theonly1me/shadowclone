@@ -26,7 +26,7 @@ Two skills in `.claude/skills/` are not optional.
 | `src/engine/` | drives authenticated Claude Code, Codex, and Cursor CLIs |
 | `src/distill/` | sends only redacted, allowlisted correction moments to the engine |
 | `src/dispatch/` | runs the clone in a worktree and records a receipt |
-| `.claude-plugin/` | injects the profile, enforces boundaries, and learns at session end |
+| `.claude-plugin/` | injects the profile, ingests one transcript, and recompiles existing guidance at session end |
 | `src/cli/` | provides `init`, `learn`, `doctor`, `install`, `run`, and `forget --all` |
 
 Say this honestly when asked what works: opt-in capture, indexing, the mirror, deep distillation, live profile injection, the Claude subagent, headless worktree dispatch, four provider adapters, and three provider engines are implemented. Real plugin installation, provider corpus checks, and authenticated engine runs are manual checks. Antigravity, API, and local endpoint engines are not built yet.
@@ -34,7 +34,9 @@ Say this honestly when asked what works: opt-in capture, indexing, the mirror, d
 ## What is being built
 
 ```
-observe  ->  index  ->  signal  ->  distill  ->  profile  ->  dispatch
+observe  ->  index  ->  signal  ->  report
+                           |
+                           +->  distill  ->  profile  ->  dispatch
 ```
 
 | Stage | Module | Phase |
