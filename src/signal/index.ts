@@ -5,8 +5,8 @@ import type {
 import { mineCorrections } from "./corrections";
 import { isOriginBlocked } from "./blockedOrigin";
 import {
-  getEventOrigin,
-  resolveEventOrigins,
+  getEventRepository,
+  resolveEventRepositories,
 } from "./origin";
 import type { GitRemoteReader } from "./origin";
 import { countSignals, deriveStructural } from "./structural";
@@ -46,11 +46,12 @@ export type {
 export { isOriginBlocked } from "./blockedOrigin";
 export {
   getEventOrigin,
+  getEventRepository,
   normalizeRemoteOrigin,
   normalizeRemoteRepository,
   readGitRemote,
   resolveCwdOrigin,
-  resolveEventOrigins,
+  resolveEventRepositories,
   resolveRepository,
   type GitRemoteReader,
 } from "./origin";
@@ -74,17 +75,19 @@ export async function deriveSignals(options: {
   readonly readRemote?: GitRemoteReader;
   readonly blockedOrigins?: readonly string[];
 }): Promise<DerivedSignals> {
-  const origins = await resolveEventOrigins({
+  const repositories = await resolveEventRepositories({
     events: options.events,
     enabled: options.gitMetadataEnabled,
     readRemote: options.readRemote,
   });
   const events = options.events.filter((event) =>
     !isOriginBlocked({
-      origin: getEventOrigin({ event, origins }),
-      cwd: event.cwd,
+      repository: getEventRepository({ event, repositories }),
       patterns: options.blockedOrigins ?? [],
     })
+  );
+  const origins = new Map(
+    [...repositories].map(([key, repository]) => [key, repository.origin]),
   );
   const corrections = mineCorrections({ events, origins });
   const interruptions = corrections.filter(

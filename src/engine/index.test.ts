@@ -133,7 +133,7 @@ test("detects authenticated engines in selection order", async () => {
   const checked: string[] = [];
   const detection = await detectEngine({
     purpose: "distill",
-    probe: (command) => {
+    probe: ({ command }) => {
       checked.push(command.join(" "));
       return Promise.resolve(true);
     },
@@ -155,7 +155,7 @@ test("detects authenticated engines in selection order", async () => {
 test("falls back to Codex when Claude is unavailable", async () => {
   const detection = await detectEngine({
     purpose: "distill",
-    probe: (command) =>
+    probe: ({ command }) =>
       Promise.resolve(
         command[0] === "codex" || command[0] === "cursor-agent",
       ),

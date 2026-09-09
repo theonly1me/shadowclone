@@ -8,6 +8,7 @@ export type OriginScope = {
 
 export type RepositoryIdentity = {
   readonly id: string;
+  readonly name: string | null;
   readonly origin: OriginScope;
 };
 

@@ -5,7 +5,6 @@ import { resolveDispatchPolicy } from "./index";
 const configuredPolicy = {
   allow: ["push", "pr-draft"] as const,
   maxBudgetUsd: 3,
-  requireCleanExit: true,
 };
 
 test("normalizes a remote without storing credentials", () => {
@@ -15,6 +14,7 @@ test("normalizes a remote without storing credentials", () => {
     ),
   ).toEqual({
     id: "github.com/acme/platform",
+    name: "platform",
     origin: {
       id: "github.com/acme",
       directoryName: "github.com--acme",

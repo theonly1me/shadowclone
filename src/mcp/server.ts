@@ -1,4 +1,3 @@
-import path from "node:path";
 import packageManifest from "../../package.json";
 import { readEffectiveConfig } from "../config";
 import { projectPaths } from "../paths";
@@ -6,7 +5,7 @@ import type { ProjectPaths } from "../paths";
 import { buildCompiledProfile } from "../profile";
 import {
   isOriginBlocked,
-  resolveCwdOrigin,
+  resolveRepository,
   type GitRemoteReader,
 } from "../signal";
 
@@ -107,15 +106,14 @@ async function activeProfile(options: {
   if (!policy.enabled) {
     return "# Shadowclone profile\n";
   }
-  const origin = await resolveCwdOrigin({
+  const repository = await resolveRepository({
     cwd: options.cwd,
     enabled: config.sources["git-metadata"],
     readRemote: options.readRemote,
   });
   if (
     isOriginBlocked({
-      origin,
-      cwd: options.cwd,
+      repository,
       patterns: policy.blockedOrigins,
     })
   ) {
@@ -123,8 +121,8 @@ async function activeProfile(options: {
   }
   return buildCompiledProfile({
     profileDirectory: options.paths.profileDirectory,
-    origin,
-    targetRepo: path.basename(options.cwd),
+    origin: repository.origin,
+    targetRepo: repository.name,
   });
 }
 
