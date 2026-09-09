@@ -3,18 +3,24 @@ export { buildCompiledProfile, compileProfile } from "./inject";
 export { renderMirror } from "./mirror";
 export { parseProfileBlocks, parseProfileRules } from "./parse";
 export {
+  createProfileRuleKey,
   profileFingerprint,
   profileRulePath,
   renderProfileRule,
-  semanticRuleKey,
 } from "./render";
 export { buildProfileRules } from "./rules";
 export type {
   ExistingProfileRule,
   ExistingProfileBlock,
+  ProfileEvidence,
+  ProfileProposal,
+  ProfileProposalKind,
   ProfileRule,
+  ProfileRuleReference,
   ProfileScope,
   ProfileSection,
+  ProfileSource,
+  ProfileStatus,
   ProfileWriteResult,
 } from "./types";
-export { writeProfile, type ProfileGenerator } from "./write";
+export { writeProfile } from "./write";

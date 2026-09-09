@@ -7,6 +7,7 @@ import type {
   ProfileRule,
   ProfileSection,
 } from "./types";
+import { profileEvidenceId } from "./evidence";
 
 type RuleObservation = {
   readonly key: string;
@@ -16,7 +17,7 @@ type RuleObservation = {
   readonly origin: OriginScope;
   readonly timestamp: number;
   readonly sessionId: string;
-  readonly opportunities: number;
+  readonly evidenceId: string;
 };
 
 function stableKey(value: string): string {
@@ -62,10 +63,6 @@ function signalText(signal: CorrectionSignal): {
 function signalObservations(
   signals: readonly CorrectionSignal[],
 ): readonly RuleObservation[] {
-  const totals = Map.groupBy(
-    signals,
-    (signal) => `${signal.origin.id}:${signal.kind}`,
-  );
   return signals.map((signal) => {
     const text = signalText(signal);
     return {
@@ -74,12 +71,16 @@ function signalObservations(
       origin: signal.origin,
       timestamp: signal.timestamp,
       sessionId: signal.sessionId,
-      opportunities:
-        totals.get(`${signal.origin.id}:${signal.kind}`)?.length ?? 1,
+      evidenceId: profileEvidenceId({
+        originId: signal.origin.id,
+        sessionId: signal.sessionId,
+        timestamp: signal.timestamp,
+        kind: signal.kind,
+        category: signal.category,
+      }),
     };
   });
 }
-
 
 function aggregateRule(options: {
   readonly observations: readonly RuleObservation[];
@@ -100,9 +101,6 @@ function aggregateRule(options: {
   const lastSeenTimestamp = Math.max(
     ...options.observations.map((observation) => observation.timestamp),
   );
-  const opportunities = Math.max(
-    ...options.observations.map((observation) => observation.opportunities),
-  );
 
   return {
     key: first.key,
@@ -112,8 +110,19 @@ function aggregateRule(options: {
     scope: options.scope,
     originDirectory:
       options.scope === "org" ? first.origin.directoryName : null,
+    source: "mined",
+    status: "active",
+    proposal: null,
+    appliesWhen: [],
+    evidence: {
+      for: [
+        ...new Set(
+          options.observations.map((observation) => observation.evidenceId),
+        ),
+      ],
+      against: [],
+    },
     observations: options.observations.length,
-    confidence: Math.min(1, options.observations.length / opportunities),
     lastSeen:
       lastSeenTimestamp > 0
         ? new Date(lastSeenTimestamp).toISOString().slice(0, 10)

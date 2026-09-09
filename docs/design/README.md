@@ -12,3 +12,4 @@ The table is chronological by the first recorded decision. Append new records at
 | 2026-09-06 | [Evaluation representation](eval-representation.md) | implemented | Compare replay behavior through privacy-safe action fingerprints |
 | 2026-09-08 | [004, Confirmed safety fixes](004-confirmed-safety-fixes.md) | implemented | Correct repository identity, redaction, probe, install, and dispatch configuration defects |
 | 2026-09-08 | [005, Capture and capability truth](005-capture-and-capability-truth.md) | implemented | Permit boolean source presence checks and align public claims with implemented behavior |
+| 2026-09-08 | [006, Profile record lifecycle](006-profile-record-lifecycle.md) | implemented | Keep rule identity stable across wording changes and make profile lifecycle state explicit |

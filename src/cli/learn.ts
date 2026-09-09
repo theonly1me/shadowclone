@@ -15,6 +15,7 @@ import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import {
   buildProfileRules,
+  profileRulePath,
   renderMirror,
   writeProfile,
 } from "../profile";
@@ -137,7 +138,12 @@ export async function learn(options: {
     await writeProfile({
       paths,
       rules: sortedRules,
-      generator: usesSemanticRules ? "all" : "structural",
+      retired: usesSemanticRules
+        ? structuralRules.map((rule) => ({
+            relativePath: profileRulePath(rule),
+            key: rule.key,
+          }))
+        : [],
     });
     console.log(renderMirror({ report: derived.report, networkCallsMade }));
     if (summary.rescannedFiles > 0) {
