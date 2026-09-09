@@ -27,6 +27,7 @@ function signals(options: {
     sessionId: `session-${signalIndex}`,
     timestamp: 1_788_537_600_000 + signalIndex,
     origin: origin(),
+    repositoryName: null,
     textRefs: [
       {
         type: "file" as const,
@@ -78,11 +79,15 @@ test("one learning allowance stops before a second extraction batch", async () =
       transcriptPath: null,
       text: "",
       structured: {
-        rules: [
+        existingRules: [],
+        newRules: [
           {
             title: "Prefer the smaller change",
             body: "Choose the smallest change that solves the problem.",
             section: "workflow",
+            observed: "The user asked for a smaller change.",
+            evidenceTokens: ["evidence-1"],
+            rejectionToken: "",
           },
         ],
       },

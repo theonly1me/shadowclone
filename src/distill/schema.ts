@@ -8,31 +8,6 @@ export type DistilledRule = {
   readonly sources?: readonly number[];
 };
 
-export const distillationOutputSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["rules"],
-  properties: {
-    rules: {
-      type: "array",
-      maxItems: 8,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["title", "body", "section"],
-        properties: {
-          title: { type: "string", maxLength: 120 },
-          body: { type: "string", maxLength: 600 },
-          section: {
-            type: "string",
-            enum: ["engineering", "workflow", "boundaries"],
-          },
-        },
-      },
-    },
-  },
-} as const;
-
 export const distillationMergeOutputSchema = {
   type: "object",
   additionalProperties: false,
@@ -44,7 +19,7 @@ export const distillationMergeOutputSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["title", "body", "section"],
+        required: ["title", "body", "section", "sources"],
         properties: {
           title: { type: "string", maxLength: 120 },
           body: { type: "string", maxLength: 600 },
@@ -54,6 +29,7 @@ export const distillationMergeOutputSchema = {
           },
           sources: {
             type: "array",
+            minItems: 1,
             items: { type: "integer" },
           },
         },

@@ -111,7 +111,7 @@ export async function initialize(options: {
     "Enable reading agent instructions, skills and native memory for frozen eval baselines?",
   );
   const enableDeep = await ask(
-    "Enable semantic distillation through your authenticated agent CLI?",
+    "Allow deep learning to send redacted correction evidence and profile guidance through your authenticated agent CLI?",
   );
   config = setSourceEnabled({
     config,

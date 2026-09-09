@@ -26,6 +26,7 @@ export type CorrectionSignal = {
   readonly sessionId: string;
   readonly timestamp: number;
   readonly origin: OriginScope;
+  readonly repositoryName: string | null;
   readonly textRefs: readonly TextRef[];
 };
 

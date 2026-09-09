@@ -1,8 +1,8 @@
 import type { IndexedEvent } from "../index";
-import { getEventOrigin } from "./origin";
+import { getEventRepository } from "./origin";
 import type {
   CorrectionSignal,
-  OriginScope,
+  RepositoryIdentity,
 } from "./types";
 
 function previousAgentAction(
@@ -47,7 +47,7 @@ function createSignal(options: {
   readonly category: string;
   readonly label: string;
   readonly event: IndexedEvent;
-  readonly origin: OriginScope;
+  readonly repository: RepositoryIdentity;
   readonly relatedEvent?: IndexedEvent | null;
 }): CorrectionSignal {
   const textRefs = [options.relatedEvent?.textRef, options.event.textRef].filter(
@@ -59,14 +59,15 @@ function createSignal(options: {
     label: options.label,
     sessionId: options.event.sessionId,
     timestamp: options.event.timestamp,
-    origin: options.origin,
+    origin: options.repository.origin,
+    repositoryName: options.repository.profileFileName,
     textRefs,
   };
 }
 
 function mineSession(options: {
   readonly events: readonly IndexedEvent[];
-  readonly origins: ReadonlyMap<string, OriginScope>;
+  readonly repositories: ReadonlyMap<string, RepositoryIdentity>;
 }): readonly CorrectionSignal[] {
   const signals: CorrectionSignal[] = [];
   const history: IndexedEvent[] = [];
@@ -74,7 +75,10 @@ function mineSession(options: {
   let pendingPlan: IndexedEvent | null = null;
 
   for (const event of options.events) {
-    const origin = getEventOrigin({ event, origins: options.origins });
+    const repository = getEventRepository({
+      event,
+      repositories: options.repositories,
+    });
     if (event.kind === "interruption") {
       const preceding = previousAgentAction(history);
       const category = interruptionCategory(preceding);
@@ -83,7 +87,7 @@ function mineSession(options: {
           kind: "interruption",
           ...category,
           event,
-          origin,
+          repository,
           relatedEvent: preceding,
         }),
       );
@@ -97,7 +101,7 @@ function mineSession(options: {
           category: `tool:${toolName}`,
           label: toolName,
           event,
-          origin,
+          repository,
           relatedEvent: preceding,
         }),
       );
@@ -116,7 +120,7 @@ function mineSession(options: {
             category: "agent-question",
             label: "an agent question",
             event,
-            origin,
+            repository,
             relatedEvent: pendingQuestion,
           }),
         );
@@ -131,7 +135,7 @@ function mineSession(options: {
             category: "presented-plan",
             label: "a presented plan",
             event,
-            origin,
+            repository,
             relatedEvent: pendingPlan,
           }),
         );
@@ -146,13 +150,13 @@ function mineSession(options: {
 
 export function mineCorrections(options: {
   readonly events: readonly IndexedEvent[];
-  readonly origins: ReadonlyMap<string, OriginScope>;
+  readonly repositories: ReadonlyMap<string, RepositoryIdentity>;
 }): readonly CorrectionSignal[] {
   const sessions = Map.groupBy(
     options.events,
     (event) => `${event.source}:${event.sessionId}`,
   );
   return [...sessions.values()].flatMap((events) =>
-    mineSession({ events, origins: options.origins }),
+    mineSession({ events, repositories: options.repositories }),
   );
 }

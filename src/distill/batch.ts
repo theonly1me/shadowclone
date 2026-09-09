@@ -1,4 +1,3 @@
-import { resolveRedacted } from "../redact";
 import type {
   CorrectionSignal,
   OriginScope,
@@ -6,6 +5,7 @@ import type {
 
 export type DistillBatch = {
   readonly origin: OriginScope;
+  readonly repositoryName: string | null;
   readonly signals: readonly CorrectionSignal[];
 };
 
@@ -19,7 +19,10 @@ export function groupDistillBatches(options: {
   }
 
   const batches: DistillBatch[] = [];
-  const grouped = Map.groupBy(options.signals, (signal) => signal.origin.id);
+  const grouped = Map.groupBy(
+    options.signals,
+    (signal) => `${signal.origin.id}\u0000${signal.repositoryName ?? ""}`,
+  );
   for (const signals of grouped.values()) {
     const [first] = signals;
     if (!first) {
@@ -28,46 +31,10 @@ export function groupDistillBatches(options: {
     for (let offset = 0; offset < signals.length; offset += batchSize) {
       batches.push({
         origin: first.origin,
+        repositoryName: first.repositoryName,
         signals: signals.slice(offset, offset + batchSize),
       });
     }
   }
   return batches;
-}
-
-export async function buildDistillPrompt(options: {
-  readonly signals: readonly CorrectionSignal[];
-  readonly maxExcerptCharacters?: number;
-}): Promise<string> {
-  const originIds = new Set(options.signals.map((signal) => signal.origin.id));
-  if (originIds.size > 1) {
-    throw new Error("A distillation request must contain one origin");
-  }
-  const maxExcerptCharacters = options.maxExcerptCharacters ?? 4_000;
-  const moments: string[] = [];
-
-  for (const signal of options.signals) {
-    const excerpts: string[] = [];
-    for (const ref of signal.textRefs) {
-      const text = await resolveRedacted({ ref });
-      if (text.length > 0) {
-        excerpts.push(text.slice(0, maxExcerptCharacters));
-      }
-    }
-    moments.push(
-      [
-        `Kind: ${signal.kind}`,
-        `Pattern: ${signal.label}`,
-        ...excerpts.map((excerpt) => `Excerpt:\n${excerpt}`),
-      ].join("\n"),
-    );
-  }
-
-  return [
-    "Turn these correction moments into short, reusable engineering rules.",
-    "Use only the evidence shown. Do not repeat secrets or private identifiers.",
-    "Return JSON matching the supplied schema.",
-    "",
-    moments.join("\n\n"),
-  ].join("\n");
 }

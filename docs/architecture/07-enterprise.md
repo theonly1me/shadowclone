@@ -50,7 +50,7 @@ Tool results can contain production logs, database rows, credentials, third-part
 
 Pattern matching finds an API key in them and will not find a customer's email address. So they are never read.
 
-**Every distillation batch is single origin.** One organization's transcripts produce one organization's rules. Content from two organizations is never in the same request.
+**Every distillation batch has one origin and exact repository scope.** One organization's transcripts produce one organization's rules. Global rules, matching owner rules, and only the exact repository's project rules may enter reconciliation. Content from two organizations or sibling repositories is never in the same request. Existing rule, rejection, origin, repository, and evidence identities stay local behind opaque tokens.
 
 ## 3. Managed policy
 

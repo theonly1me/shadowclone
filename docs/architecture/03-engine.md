@@ -79,7 +79,7 @@ An engine that cannot honour an option fails loudly before it spawns rather than
 
 ## Learning contract
 
-`createLearningExecution` wraps the selected engine once for a complete `learn --deep` invocation. Extraction batches, merge calls, and future reconciliation calls use the same runner. Completed checkpoints consume no call allowance.
+`createLearningExecution` wraps the selected engine once for a complete `learn --deep` invocation. Reconciliation batches and consolidation calls use the same runner. Completed checkpoints consume no call allowance.
 
 The default permits 20 attempted calls over five minutes. Claude also receives a cumulative $2 limit because its provider capability reports native dollar-budget enforcement. Each call receives the remaining amount, and its reported cost is deducted before the next call. Codex and Cursor never receive an unsupported dollar option, so their boundary is the call count and deadline.
 

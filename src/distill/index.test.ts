@@ -5,7 +5,7 @@ import path from "node:path";
 import type { EngineRun, EngineRunner } from "../engine";
 import type { IndexedEvent } from "../index";
 import type { CorrectionSignal, OriginScope } from "../signal";
-import { buildDistillPrompt, distillSignals } from "./index";
+import { distillSignals, groupDistillBatches } from "./index";
 
 const plantedSecret = "sk-proj-distillSecret123456789";
 
@@ -24,6 +24,7 @@ function signal(options: {
     sessionId: "session-1",
     timestamp: 1_788_537_600_000,
     origin: options.origin,
+    repositoryName: null,
     textRefs: [
       {
         type: "file",
@@ -42,11 +43,15 @@ function successfulRun(): EngineRun {
     transcriptPath: null,
     text: "",
     structured: {
-      rules: [
+      existingRules: [],
+      newRules: [
         {
           title: "Review edits before continuing",
           body: "Pause after an edit and verify its direction.",
           section: "workflow",
+          observed: "The user repeatedly interrupted edits.",
+          evidenceTokens: ["evidence-1", "evidence-2"],
+          rejectionToken: "",
         },
       ],
     },
@@ -88,7 +93,7 @@ function indexedPrompt(options: {
   };
 }
 
-test("refuses mixed-origin input before resolving any pointer", async () => {
+test("separates repository scopes before resolving any pointer", () => {
   const first = signal({
     sourcePath: "/must/not/be/read-one",
     origin: origin("github.com/one"),
@@ -98,9 +103,7 @@ test("refuses mixed-origin input before resolving any pointer", async () => {
     origin: origin("github.com/two"),
   });
 
-  await expect(
-    buildDistillPrompt({ signals: [first, second] }),
-  ).rejects.toThrow("one origin");
+  expect(groupDistillBatches({ signals: [first, second] })).toHaveLength(2);
 });
 
 test("redacts excerpts before the engine and resumes from checkpoints", async () => {
@@ -152,6 +155,7 @@ test("records independent supporting evidence without a confidence score", async
     sessionId,
     timestamp,
     origin: orig,
+    repositoryName: null,
     textRefs: [{ type: "file", sourcePath, byteOffset: 0, byteLength: 16 }],
   });
   const signals = [
@@ -175,7 +179,7 @@ test("records independent supporting evidence without a confidence score", async
   expect(result.rules.length).toBe(1);
   expect(result.rules[0]?.sessions).toBe(2);
   expect(result.rules[0]?.source).toBe("mined");
-  expect(result.rules[0]?.status).toBe("active");
+  expect(result.rules[0]?.status).toBe("candidate");
   expect(result.rules[0]?.evidence.for).toHaveLength(2);
   expect(result.rules[0]?.evidence.against).toEqual([]);
 });

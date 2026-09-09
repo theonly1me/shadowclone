@@ -36,7 +36,7 @@ Reinforcement unions returned evidence into `evidence.for`. Contradiction and na
 
 New mined rules start in the batch origin at organization scope. They receive only the evidence tokens returned for that rule. Three independent sessions make them active; one or two make them candidates. Consolidation merges only new mined rules, retains the first persistent key, and unions the exact evidence arrays of the source indices returned by the bounded merge call. Updates to the same existing rule across batches also union evidence by persistent key.
 
-`checkpointId` hashes the complete redacted prompt, output schema, and a named learner version. The prompt already includes batch identity, existing rules, axis choices, rejected guidance, and evidence, so any relevant learner change invalidates stale output. Checkpoints store parsed reconciliation output and derived rules, never prompts or excerpts. Dry runs disable checkpoint reads and writes.
+`checkpointId` hashes the complete redacted prompt, output schema, and a named learner version. The prompt already includes existing rules, axis choices, rejected guidance, and evidence, so any relevant learner change invalidates stale output. Checkpoints store parsed reconciliation output, never prompts or excerpts. New mined keys derive deterministically from the local scope, returned guidance, and validated evidence, so replaying a checkpoint preserves identity. Dry runs disable checkpoint reads and writes.
 
 Plain `learn` remains the report from design record 011. `learn --deep --dry-run` uses an in-memory index, runs bounded reconciliation, prints the profile comparison, and writes no index, checkpoint, or profile state. Default deep learning prints the same comparison and asks once before applying it. Declining leaves the profile unchanged. `learn --deep --apply` applies without the confirmation prompt. `--apply` requires `--deep` and cannot be combined with `--dry-run`.
 
@@ -51,6 +51,7 @@ The comparison names the current source, current guidance, observed pattern, pro
 | `src/signal/index.ts` | Pass resolved repositories into correction mining |
 | `src/profile/snapshot.ts` | Read writable and redacted reconciliation views from the profile |
 | `src/profile/evidence.ts` | Parse durable evidence identifiers for session and origin counts |
+| `src/profile/mirror.ts` | Distinguish proposed rules from an accepted profile write |
 | `src/profile/state.ts` | Parse rejection state from already redacted text |
 | `src/profile/write.ts` | Permit metadata-only reconciliation updates to edited user-owned rules |
 | `src/distill/reconcile/types.ts` | Define prompt context, verdict, change, and result contracts |
@@ -59,22 +60,31 @@ The comparison names the current source, current guidance, observed pattern, pro
 | `src/distill/reconcile/schema.ts` | Validate rule-specific verdicts and proposals |
 | `src/distill/reconcile/apply.ts` | Apply authority, evidence, proposal, threshold, and rejection rules |
 | `src/distill/reconcile/render.ts` | Render a local review diff without raw excerpts or local identifiers |
+| `src/distill/aggregate.ts` | Union repeated updates to one persistent rule |
+| `src/distill/consolidate.ts` | Preserve identity and exact evidence while merging new rules |
 | `src/distill/index.ts` | Run reconciliation under one bounded execution and consolidate new rules |
 | `src/distill/checkpoint.ts` | Bind checkpoints to prompt, schema, and learner version |
 | `src/distill/merge.ts` | Bind consolidation checkpoints and union source-rule evidence |
+| `src/distill/profile.ts` | Remove the batch-wide evidence attribution path |
 | `src/cli/learn.ts` | Add review, confirmation, dry-run, and direct-apply behavior |
+| `src/cli/deepLearn.ts` | Isolate bounded semantic review from indexing and reporting |
 | `src/cli/index.ts` | Parse and validate `learn --apply` |
+| `src/cli/learnOptions.ts` | Reject invalid deep-learning flag combinations before work starts |
+| `src/cli/init.ts` | Name redacted profile guidance in deep-learning consent |
 | `src/eval/transfer/profile.ts` | Compile only active reconciled rules into the temporary evaluation profile |
 | `README.md` | Document reconciliation, review, and apply behavior |
 | `docs/architecture/02-profile.md` | Replace extraction-only deep learning with the reconciliation contract |
+| `docs/architecture/03-engine.md` | Name reconciliation and consolidation as the shared bounded execution |
+| `docs/architecture/05-privacy.md` | Document redacted profile input and opaque prompt identities |
 | `docs/architecture/06-roadmap.md` | Mark reconciliation behavior in the implemented learning phase |
+| `docs/architecture/07-enterprise.md` | Tighten the batch boundary to an exact repository scope |
 | `docs/design/README.md` | Register this design and its implementation status |
 
 ## Data handling
 
-The feature reads enabled transcript pointers, local profile Markdown, local lifecycle state, and package-owned seed guidance. Transcript text enters a prompt only when `buildDistillPrompt` resolves an allowlisted `TextRef`. Existing profile and rejection text enters a prompt only from a whole-file `FileTextRef` resolved by `resolveRedacted`. The single `redactSecrets` gate remains inside `resolveRedacted` for both paths.
+The feature reads enabled transcript pointers, local profile Markdown, local lifecycle state, and package-owned seed guidance. Transcript text enters a prompt only when `buildReconciliationPrompt` resolves an allowlisted `TextRef`. Existing profile and rejection text enters a prompt only from a whole-file `FileTextRef` resolved by `resolveRedacted`. The single `redactSecrets` gate remains inside `resolveRedacted` for both paths.
 
-The model sees redacted text plus opaque per-prompt tokens. It does not receive transcript paths, profile paths, working directories, Git remotes, origin identifiers, repository names, persistent rule keys, durable evidence identifiers, or rejection keys. Checkpoints contain validated verdicts or derived profile rules with no excerpt text. Local terminal output may show redacted model summaries and proposed rule text because review is the user control surface for the explicit deep-learning action.
+The model sees redacted text plus opaque per-prompt tokens. It does not receive transcript paths, profile paths, working directories, Git remotes, origin identifiers, repository names, persistent rule keys, durable evidence identifiers, or rejection keys. Checkpoints contain validated verdicts and proposals with no excerpt text. Local terminal output may show redacted model summaries and proposed rule text because review is the user control surface for the explicit deep-learning action.
 
 Default and applied runs store profile changes and checkpoints under the existing user-owned Shadowclone directory. Dry run uses an in-memory index, disables checkpoints, and stores no result. No telemetry or new network path is added. Engine calls remain isolated with no tools and pass through the bounded learning runner.
 
@@ -117,6 +127,8 @@ Profile lifecycle tests prove a metadata-only proposal update preserves edited u
 Checkpoint tests change the prompt, schema, and learner version independently and prove each change produces a different id. Repeated identical inputs reuse the checkpoint without another engine call. The existing call, deadline, and provider-supported cost tests continue to cover the complete reconciliation and consolidation execution.
 
 Focused tests run during implementation, followed by `bun run check`, build, source and built CLI help, and package dry run. The data-handling scan accounts for every prompt, file read, write, and console output added by this change.
+
+Final verification passed `bun run check` with 310 tests and 1,591 assertions, built the 323 KB executable bundle, confirmed the same `--deep`, `--dry-run`, and `--apply` help from source and built entry points, and inspected the 26-file package payload. Focused tests prove authority preservation, concrete axis and free-form proposals, three-session activation, rule-specific evidence union, semantic rejection matching, exact-project scoping, checkpoint invalidation, metadata-only updates, confirmation control, and a write-free semantic dry run. The data-handling scan found one prompt builder: transcript pointers and whole profile files reach it only through `resolveRedacted`, while persistent identities stay behind local opaque tokens.
 
 ## Open questions
 
