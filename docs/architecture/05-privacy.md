@@ -38,7 +38,7 @@ The property test that redaction is idempotent continues to hold, and an adversa
 
 ## Third-party data is never read
 
-Transcripts hold data that does not belong to the user. The measured corpus contains 328 data-access tool calls: 194 Loki log queries, 111 Postgres queries, and 23 actor log queries. Those results are production log lines and database rows belonging to customers.
+Tool results can contain production logs, database rows, credentials, third-party data, and other sensitive information that cannot be reliably identified through redaction alone. Shadowclone therefore excludes tool-result payloads categorically rather than attempting to sanitize and reuse their contents.
 
 Redaction is the wrong control for that. Pattern matching finds an API key and does not find a customer's email address sitting in a log dump, and no amount of extra patterns fixes a category error.
 
