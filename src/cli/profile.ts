@@ -1,32 +1,38 @@
 import type { ShadowcloneConfig } from "../config";
-import type { EventIndex } from "../index";
 import type { ProjectPaths } from "../paths";
 import {
-  buildProfileRules,
-  writeProfile,
+  compileProfile,
 } from "../profile";
-import { deriveSignals } from "../signal";
-import type { GitRemoteReader } from "../signal";
+import {
+  isOriginBlocked,
+  resolveRepository,
+  type GitRemoteReader,
+} from "../signal";
 
 export async function refreshOfflineProfile(options: {
-  readonly index: EventIndex;
   readonly config: ShadowcloneConfig;
   readonly paths: ProjectPaths;
+  readonly cwd: string;
   readonly readRemote?: GitRemoteReader;
   readonly blockedOrigins?: readonly string[];
 }): Promise<void> {
-  const events = options.index.listEvents();
-  const derived = await deriveSignals({
-    events,
-    corpus: options.index.getCorpusSummary(),
-    gitMetadataEnabled: options.config.sources["git-metadata"],
+  const repository = await resolveRepository({
+    cwd: options.cwd,
+    enabled: options.config.sources["git-metadata"],
     readRemote: options.readRemote,
-    blockedOrigins: options.blockedOrigins,
   });
-  const rules = buildProfileRules({
-    events: derived.events,
-    signals: derived.corrections,
-    origins: derived.origins,
+  if (
+    isOriginBlocked({
+      repository,
+      patterns: options.blockedOrigins ?? [],
+    })
+  ) {
+    return;
+  }
+  await compileProfile({
+    profileDirectory: options.paths.profileDirectory,
+    outputPath: options.paths.compiledProfileFile,
+    origin: repository.origin,
+    targetRepo: repository.profileFileName,
   });
-  await writeProfile({ paths: options.paths, rules });
 }

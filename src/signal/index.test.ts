@@ -3,7 +3,7 @@ import type {
   CorpusSummary,
   IndexedEvent,
 } from "../index";
-import { buildProfileRules, renderMirror } from "../profile";
+import { renderMirror } from "../profile";
 import { deriveSignals, normalizeRemoteOrigin } from "./index";
 
 const corpus: CorpusSummary = {
@@ -122,60 +122,26 @@ test("mines correction markers and renders a text-free mirror", async () => {
           : "https://github.com/other/repo.git",
       ),
   });
-  const output = renderMirror({ report: derived.report });
+  const output = renderMirror({
+    report: derived.report,
+    deepLearningPreview: {
+      eligibleCorrectionMoments: 1,
+      extractionBatches: 1,
+    },
+  });
 
   expect(derived.report.interruptions[0]?.label).toBe("while using Edit");
-  expect(derived.report.answeredQuestions).toBe(1);
+  expect(derived.report.originCount).toBe(2);
+  expect(derived.report.correctionCounts).toEqual({
+    interruptions: 2,
+    permissionDenials: 0,
+    answeredQuestions: 1,
+    resolvedPlans: 0,
+  });
   expect(output).toContain("No network calls were made.");
   expect(output).toContain("while using Edit");
+  expect(output).toContain("extraction batch");
+  expect(output).toContain("Profile unchanged.");
+  expect(output).not.toContain("Profile written");
   expect(output).not.toContain("/one");
-});
-
-test("promotes a rule only after two remote organizations", async () => {
-  const derived = await deriveSignals({
-    events,
-    corpus,
-    gitMetadataEnabled: true,
-    readRemote: (cwd) =>
-      Promise.resolve(
-        cwd === "/one"
-          ? "git@github.com:acme/repo.git"
-          : "https://github.com/other/repo.git",
-      ),
-  });
-  const rules = buildProfileRules({
-    events,
-    signals: derived.corrections,
-    origins: derived.origins,
-  });
-  const interruption = rules.find((rule) =>
-    rule.title.includes("while using Edit")
-  );
-
-  expect(interruption?.scope).toBe("global");
-  expect(interruption?.origins).toEqual([
-    "github.com/acme",
-    "github.com/other",
-  ]);
-});
-
-test("keeps a rule inside one remote organization", async () => {
-  const oneOrganizationEvents = events.filter((value) => value.cwd === "/one");
-  const derived = await deriveSignals({
-    events: oneOrganizationEvents,
-    corpus: { ...corpus, sessions: 1 },
-    gitMetadataEnabled: true,
-    readRemote: () => Promise.resolve("git@github.com:acme/repo.git"),
-  });
-  const rules = buildProfileRules({
-    events: oneOrganizationEvents,
-    signals: derived.corrections,
-    origins: derived.origins,
-  });
-  const interruption = rules.find((rule) =>
-    rule.title.includes("while using Edit")
-  );
-
-  expect(interruption?.scope).toBe("org");
-  expect(interruption?.originDirectory).toBe("github.com--acme");
 });

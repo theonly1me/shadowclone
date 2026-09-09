@@ -18,7 +18,7 @@ Every interaction with an agent CLI leaves traces on disk:
 - Interruptions and denied command executions.
 - Verification loops run in bash or terminal windows.
 
-Rather than relying on third-party cloud vectors or proprietary memory databases, Shadowclone treats local transcript history as a verifiable data source. By parsing local logs deterministically, extracting behavioral signals, and synthesizing human-readable guidelines, developers can compile persistent profiles directly from their everyday work.
+Rather than relying on third-party cloud vectors or proprietary memory databases, Shadowclone treats local transcript history as a verifiable data source. It parses enabled logs deterministically and reports behavioral signals locally. When the user explicitly enables deep learning, it distills redacted correction moments into human-readable profile rules through the agent CLI they already use.
 
 ## Open Source and Privacy First
 

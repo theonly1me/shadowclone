@@ -8,7 +8,6 @@ export {
   profileRulePath,
   renderProfileRule,
 } from "./render";
-export { buildProfileRules } from "./rules";
 export { mergeProfileImportReference } from "./importReference";
 export type {
   ExistingProfileRule,

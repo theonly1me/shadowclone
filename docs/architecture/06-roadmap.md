@@ -22,7 +22,7 @@ Proves: a full ingest completes, a second run is incremental, and a secret plant
 
 Status: mirror implementation complete. The pure replay scorer is built, but executable replay and real corpus tuning remain tracked in issue #14.
 
-Structural derivation and the correction miner. `shadowclone learn` prints the profile to the terminal and writes it to `~/.shadowclone/profile/`. Zero model calls in this phase, and the first line of output says so.
+Structural derivation and the correction miner. `shadowclone learn` prints aggregate evidence and a deep-learning preview while leaving the profile unchanged. It makes zero model calls, and the first line of output says so.
 
 Declared repository guidance follows a second zero-model path. `shadowclone import` synchronizes supported root instructions and direct agent skills into repository-scoped profile rules after separate consent. It preserves user edits and rejections through the same profile lifecycle used by learned rules.
 
@@ -30,7 +30,7 @@ Proves: the output surprises its own author. This is the quality bar for the who
 
 Run it on the real 562 MB corpus and read it. A profile that says "runs tests, uses plan mode, prefers Bun" is something a good engineer writes in five minutes. A profile that names what you interrupt the agent for, in order, with counts, is something nobody has seen. Tune the extractors until it is the second one.
 
-Later phases build in parallel rather than waiting. They consume the profile and none of them improves it.
+Later phases consume the measured moments. Explicit deep learning in phase 3 is the path that turns them into mined profile rules.
 
 Also in this phase, the replay eval. Take a past session, hand its first prompt to an engine with the profile loaded, and compare what the clone did with what the user did: tools chosen, verification ritual, files touched, plan before edit. Score it. The corpus is 372 ground-truth test cases and they cost nothing. This is what turns "acts like you" from a claim into a number in the README.
 
@@ -42,7 +42,7 @@ Status: implementation complete. Local plugin installation and a real authentica
 
 `.claude-plugin/` with a `SessionEnd` hook and an MCP server that loads the profile into the user's live Claude Code sessions. `src/profile/agent.ts` compiles the profile into a `.claude/agents/<name>.md` subagent, so the session can dispatch copies of the user in parallel.
 
-The engine module lands here too, since the hook needs the Claude Code runner for `learn --deep`.
+The engine module lands here too for explicit `learn --deep`. The session-end hook ingests its exact transcript and recompiles existing guidance for that repository scope without generating rules or calling an engine.
 
 Proves: install is one command, a normal session gets the user's conventions with no manual step, and `Agent(subagent_type: "<name>")` dispatches a copy of the user from inside that session.
 

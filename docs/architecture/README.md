@@ -31,7 +31,7 @@ flowchart LR
     Sources[Enabled local sources] --> Observe[observe]
     Observe --> Index[index]
     Index --> Signal[signal]
-    Signal --> Profile[profile]
+    Signal --> Report[learning report]
     Signal --> Distill[distill]
     Engine[engine] --> Distill
     Distill --> Profile
@@ -51,6 +51,7 @@ flowchart LR
 | observe | `src/observe/` | Normalizes agent transcripts into one event stream |
 | index | `src/index/` | A rebuildable SQLite cache of pointers and skeletons |
 | signal | `src/signal/` | Derives behavior in pure code, no model, no network |
+| report | `src/profile/mirror.ts` | Renders aggregate evidence and a deep-learning preview without writing rules |
 | distill | `src/distill/` | Turns high signal moments into written rules |
 | profile | `src/profile/` | Plain markdown you can read, edit, and diff |
 | dispatch | `src/dispatch/` | Runs a task in a worktree and leaves a receipt |
