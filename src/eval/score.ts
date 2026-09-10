@@ -1,9 +1,5 @@
 import path from "node:path";
-import type {
-  ReplayScore,
-  ScoreDelta,
-  SessionBehavior,
-} from "./types";
+import type { ReplayScore, SessionBehavior } from "./types";
 
 function normalizeString(value: string): string {
   return path.posix.normalize(value.replaceAll("\\", "/"));
@@ -62,49 +58,5 @@ export function scoreReplay(options: {
     files,
     planning,
     total,
-  };
-}
-
-export function computeScoreDelta(options: {
-  readonly baseline: ReplayScore;
-  readonly clone: ReplayScore;
-}): ScoreDelta {
-  const deltaVal = (c: number | null, b: number | null): number | null => {
-    if (c === null || b === null) {
-      return null;
-    }
-    return c - b;
-  };
-  return {
-    tools: options.clone.tools - options.baseline.tools,
-    verification: deltaVal(
-      options.clone.verification,
-      options.baseline.verification,
-    ),
-    files: deltaVal(options.clone.files, options.baseline.files),
-    planning: options.clone.planning - options.baseline.planning,
-    total: options.clone.total - options.baseline.total,
-  };
-}
-
-function averageDimension(
-  values: readonly (number | null)[],
-): number | null {
-  const numbers = values.filter((value): value is number => value !== null);
-  return numbers.length > 0
-    ? numbers.reduce((accumulator, value) => accumulator + value, 0) /
-        numbers.length
-    : null;
-}
-
-export function averageMetrics(
-  metrics: readonly (ReplayScore | ScoreDelta)[],
-): ReplayScore {
-  return {
-    tools: averageDimension(metrics.map((metric) => metric.tools)) ?? 0,
-    verification: averageDimension(metrics.map((metric) => metric.verification)),
-    files: averageDimension(metrics.map((metric) => metric.files)),
-    planning: averageDimension(metrics.map((metric) => metric.planning)) ?? 0,
-    total: averageDimension(metrics.map((metric) => metric.total)) ?? 0,
   };
 }
