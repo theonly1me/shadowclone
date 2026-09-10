@@ -20,3 +20,4 @@ The table is chronological by the first recorded decision. Append new records at
 | 2026-09-09 | [011, Learning report boundary](011-learning-report-boundary.md) | implemented | Keep structural evidence in a report and write mined rules only through explicit deep distillation |
 | 2026-09-09 | [012, Deep learning reconciliation](012-deep-learning-reconciliation.md) | implemented | Reconcile redacted evidence with existing guidance before applying profile changes |
 | 2026-09-09 | [013, Deterministic profile compiler and reversible installs](013-deterministic-profile-compiler.md) | implemented | Project every clone through one bounded compiler and track repository-local artifacts for removal |
+| 2026-09-10 | [014, Execution and storage boundaries](014-execution-and-storage-boundaries.md) | implemented | Enforce every documented boundary in the process, and state only what the code does |
