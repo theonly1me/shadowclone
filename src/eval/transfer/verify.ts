@@ -1,8 +1,10 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import { denySubpathRules, maskArguments } from "../../engine";
 import { canonicalPath } from "../../paths";
 import { redactSecrets } from "../../redact";
+import { sensitivePaths } from "./sensitivePaths";
 import type { CheckResult } from "./types";
 
 const packageManifestSchema = z.object({
@@ -13,11 +15,17 @@ export function verificationArguments(options: {
   readonly directory: string;
   readonly arguments: readonly string[];
   readonly platform: NodeJS.Platform;
+  readonly homeDirectory?: string;
 }): readonly string[] {
   const directory = canonicalPath(options.directory);
+  const blocked = sensitivePaths(options.homeDirectory);
 
   if (options.platform === "darwin") {
-    const profile = `(version 1)(allow default)(deny network*)(deny file-write*)(allow file-write* (subpath ${JSON.stringify(directory)})(subpath "/private/tmp")(subpath "/dev"))`;
+    const denied = denySubpathRules({
+      paths: blocked.map((entry) => entry.path),
+      operations: ["file-read*", "file-write*"],
+    });
+    const profile = `(version 1)(allow default)(deny network*)(deny file-write*)(allow file-write* (subpath ${JSON.stringify(directory)})(subpath "/private/tmp")(subpath "/dev"))${denied}`;
     return ["sandbox-exec", "-p", profile, ...options.arguments];
   }
 
@@ -35,6 +43,7 @@ export function verificationArguments(options: {
       "/dev",
       "--proc",
       "/proc",
+      ...maskArguments(blocked),
       "--bind",
       directory,
       directory,

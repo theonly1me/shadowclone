@@ -1,4 +1,5 @@
 import { canonicalPath } from "../../paths";
+import { denySubpathRules, maskArguments } from "./blocked";
 import type { EngineRunOptions } from "../types";
 
 export function evaluationCommand(options: {
@@ -18,28 +19,27 @@ export function evaluationCommand(options: {
   const blockedPaths = requestedPaths.map(canonicalPath);
 
   if (platform === "darwin") {
-    const predicates = blockedPaths
-      .map((directory) => `(subpath ${JSON.stringify(directory)})`)
-      .join(" ");
-
-    const sandboxProfile = `(version 1)(allow default)(deny file-read* ${predicates})(deny file-write* ${predicates})`;
+    const sandboxProfile = `(version 1)(allow default)${denySubpathRules({
+      paths: blockedPaths,
+      operations: ["file-read*", "file-write*"],
+    })}`;
 
     return ["sandbox-exec", "-p", sandboxProfile, ...options.arguments];
   }
 
   if (platform === "linux") {
-    const tmpfsArguments = blockedPaths.flatMap((directory) => [
-      "--tmpfs",
-      directory,
-    ]);
-
     return [
       "bwrap",
       "--die-with-parent",
       "--bind",
       "/",
       "/",
-      ...tmpfsArguments,
+      ...maskArguments(
+        blockedPaths.map((directory) => ({
+          path: directory,
+          kind: "directory" as const,
+        })),
+      ),
       "--",
       ...options.arguments,
     ];
