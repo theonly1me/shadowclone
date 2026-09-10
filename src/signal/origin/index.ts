@@ -10,4 +10,5 @@ export {
   resolveCwdOrigin,
   resolveEventRepositories,
   resolveRepository,
+  type OriginBindingStore,
 } from "./resolve";

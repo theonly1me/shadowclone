@@ -10,6 +10,7 @@ import { EventIndex } from "./store";
 import type { IngestSummary } from "./types";
 
 export { EventIndex } from "./store";
+export type { BoundRepository } from "./originBinding";
 export type {
   CorpusSummary,
   IndexedEvent,

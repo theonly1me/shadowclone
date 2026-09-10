@@ -60,6 +60,7 @@ export async function learn(options: {
       gitMetadataEnabled: config.sources["git-metadata"],
       readRemote: options.readRemote,
       blockedOrigins: policy.blockedOrigins,
+      bindings: index,
     });
     for (const warning of checkMarkerStaleness(events)) {
       console.warn(`Warning: ${warning}`);

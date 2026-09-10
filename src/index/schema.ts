@@ -1,6 +1,6 @@
 import type { Database } from "bun:sqlite";
 
-const schemaVersion = 2;
+const schemaVersion = 3;
 
 function resetOutdatedSchema(database: Database): void {
   const version = database
@@ -12,6 +12,7 @@ function resetOutdatedSchema(database: Database): void {
   database.exec(`
     DROP TABLE IF EXISTS events;
     DROP TABLE IF EXISTS cursors;
+    DROP TABLE IF EXISTS origin_bindings;
   `);
 }
 
@@ -44,6 +45,16 @@ export function createSchema(database: Database): void {
       tool_name TEXT,
       is_error INTEGER NOT NULL,
       text_ref TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS origin_bindings (
+      origin_key TEXT PRIMARY KEY,
+      repository_id TEXT NOT NULL,
+      repository_name TEXT,
+      profile_file_name TEXT,
+      origin_id TEXT NOT NULL,
+      origin_directory TEXT NOT NULL,
+      origin_promotable INTEGER NOT NULL
     );
 
     CREATE INDEX IF NOT EXISTS events_source_path

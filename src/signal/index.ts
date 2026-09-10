@@ -8,7 +8,7 @@ import {
   getEventRepository,
   resolveEventRepositories,
 } from "./origin";
-import type { GitRemoteReader } from "./origin";
+import type { GitRemoteReader, OriginBindingStore } from "./origin";
 import { countSignals, deriveStructural } from "./structural";
 import type {
   CorrectionSignal,
@@ -60,6 +60,7 @@ export {
   resolveRepository,
   type GitRemoteReader,
 } from "./origin";
+export type { OriginBindingStore } from "./origin";
 export {
   checkMarkerStaleness,
   computeSourceHealth,
@@ -79,11 +80,13 @@ export async function deriveSignals(options: {
   readonly gitMetadataEnabled: boolean;
   readonly readRemote?: GitRemoteReader;
   readonly blockedOrigins?: readonly string[];
+  readonly bindings?: OriginBindingStore;
 }): Promise<DerivedSignals> {
   const repositories = await resolveEventRepositories({
     events: options.events,
     enabled: options.gitMetadataEnabled,
     readRemote: options.readRemote,
+    bindings: options.bindings,
   });
   const events = options.events.filter((event) =>
     !isOriginBlocked({

@@ -57,10 +57,19 @@ export async function resolveRepository(options: {
   return { id: origin.id, name: null, profileFileName: null, origin };
 }
 
+export type OriginBindingStore = {
+  readonly getOriginBinding: (originKey: string) => RepositoryIdentity | null;
+  readonly bindOrigin: (options: {
+    readonly originKey: string;
+    readonly repository: RepositoryIdentity;
+  }) => void;
+};
+
 export async function resolveEventRepositories(options: {
   readonly events: readonly IndexedEvent[];
   readonly enabled: boolean;
   readonly readRemote?: GitRemoteReader;
+  readonly bindings?: OriginBindingStore;
 }): Promise<ReadonlyMap<string, RepositoryIdentity>> {
   const repositories = new Map<string, RepositoryIdentity>();
   const readRemote = options.readRemote ?? readGitRemote;
@@ -71,15 +80,20 @@ export async function resolveEventRepositories(options: {
       continue;
     }
 
-    repositories.set(
-      key,
-      await resolveRepository({
-        cwd: event.cwd,
-        fallbackKey: key,
-        enabled: options.enabled,
-        readRemote,
-      }),
-    );
+    const bound = options.bindings?.getOriginBinding(key) ?? null;
+    if (bound !== null) {
+      repositories.set(key, bound);
+      continue;
+    }
+
+    const resolved = await resolveRepository({
+      cwd: event.cwd,
+      fallbackKey: key,
+      enabled: options.enabled,
+      readRemote,
+    });
+    repositories.set(key, resolved);
+    options.bindings?.bindOrigin({ originKey: key, repository: resolved });
   }
 
   return repositories;

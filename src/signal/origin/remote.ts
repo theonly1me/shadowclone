@@ -17,35 +17,74 @@ export function isolatedOrigin(key: string): OriginScope {
   };
 }
 
-function remoteParts(remote: string): {
+type RemoteParts = {
   readonly host: string;
   readonly owner: string;
   readonly repository: string;
-} | null {
-  const trimmed = remote.trim();
-  const secureShellMatch = trimmed.match(
-    /^(?:[^@]+@)?([^/:]+):([^/]+)\/(.+)$/,
-  );
-  if (secureShellMatch) {
-    const [, host, owner, repository] = secureShellMatch;
-    return host && owner && repository
-      ? { host, owner, repository: repository.replace(/\.git$/, "") }
-      : null;
-  }
+};
 
+function splitRemotePath(remotePath: string): {
+  readonly owner: string;
+  readonly repository: string;
+} | null {
+  const segments = remotePath
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => decodeURIComponent(segment));
+  const repository = segments.at(-1);
+  if (repository === undefined || segments.length < 2) {
+    return null;
+  }
+  if (segments.some((segment) => segment === "." || segment === "..")) {
+    return null;
+  }
+  return {
+    owner: segments.slice(0, -1).join("/"),
+    repository: repository.replace(/\.git$/, ""),
+  };
+}
+
+function urlRemoteParts(remote: string): RemoteParts | null {
+  let parsed: URL;
   try {
-    const parsed = new URL(trimmed);
-    const [owner, repository] = parsed.pathname.split("/").filter(Boolean);
-    return owner && repository
-      ? {
-          host: parsed.hostname,
-          owner: decodeURIComponent(owner),
-          repository: decodeURIComponent(repository).replace(/\.git$/, ""),
-        }
-      : null;
+    parsed = new URL(remote);
   } catch {
     return null;
   }
+  if (parsed.hostname.length === 0) {
+    return null;
+  }
+  const parts = splitRemotePath(parsed.pathname);
+  return parts === null
+    ? null
+    : {
+        host:
+          parsed.port.length > 0
+            ? `${parsed.hostname}:${parsed.port}`
+            : parsed.hostname,
+        owner: parts.owner,
+        repository: parts.repository,
+      };
+}
+
+function secureShellRemoteParts(remote: string): RemoteParts | null {
+  const match = remote.match(/^(?:[^@/]+@)?([^/:]+):([^/].*)$/);
+  if (!match) {
+    return null;
+  }
+  const [, host, remotePath] = match;
+  if (!host || !remotePath) {
+    return null;
+  }
+  const parts = splitRemotePath(remotePath);
+  return parts === null
+    ? null
+    : { host, owner: parts.owner, repository: parts.repository };
+}
+
+function remoteParts(remote: string): RemoteParts | null {
+  const trimmed = remote.trim();
+  return urlRemoteParts(trimmed) ?? secureShellRemoteParts(trimmed);
 }
 
 export function normalizeRemoteOrigin(remote: string): OriginScope | null {

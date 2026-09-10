@@ -9,6 +9,11 @@ import type {
   CorpusSummary,
   IndexedEvent,
 } from "./types";
+import {
+  readOriginBinding,
+  writeOriginBinding,
+  type BoundRepository,
+} from "./originBinding";
 import { saveObservationBatch } from "./write";
 
 type CursorRow = {
@@ -136,6 +141,21 @@ export class EventIndex {
 
   countSessions(): number {
     return this.getCorpusSummary().sessions;
+  }
+
+  getOriginBinding(originKey: string): BoundRepository | null {
+    return readOriginBinding({ database: this.#database, originKey });
+  }
+
+  bindOrigin(options: {
+    readonly originKey: string;
+    readonly repository: BoundRepository;
+  }): void {
+    writeOriginBinding({
+      database: this.#database,
+      originKey: options.originKey,
+      repository: options.repository,
+    });
   }
 
   close(): void {
