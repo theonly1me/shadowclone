@@ -1,6 +1,6 @@
-import { stat } from "node:fs/promises";
 import { z } from "zod";
 import type { EngineId } from "../engine";
+import { readRootOwnedFile } from "./managedFile";
 import {
   sourceIds,
   type ShadowcloneConfig,
@@ -106,14 +106,9 @@ export async function readManagedPolicy(
   if (managedConfigPath === null) {
     return defaultManagedPolicy;
   }
-  const file = Bun.file(managedConfigPath);
-  if (!(await file.exists())) {
+  if (!(await Bun.file(managedConfigPath).exists())) {
     return defaultManagedPolicy;
   }
-  const metadata = await stat(managedConfigPath);
-  if (metadata.uid !== 0) {
-    throw new Error("Managed policy must be owned by root");
-  }
-  const value: unknown = await file.json();
+  const value: unknown = JSON.parse(await readRootOwnedFile(managedConfigPath));
   return parseManagedPolicy(value);
 }

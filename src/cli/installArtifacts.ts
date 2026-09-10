@@ -1,5 +1,6 @@
 import { mkdir, rm, rmdir } from "node:fs/promises";
 import path from "node:path";
+import { resolveArtifactPath } from "./installTarget";
 import type { InstalledArtifact } from "./installState";
 
 export const artifactRelativePaths: Readonly<
@@ -94,17 +95,24 @@ export async function removeArtifacts(options: {
 }): Promise<number> {
   let removed = 0;
   for (const artifact of options.artifacts) {
-    const artifactPath = path.join(
-      options.directory,
-      artifactRelativePaths[artifact],
-    );
+    const artifactPath = await resolveArtifactPath({
+      root: options.directory,
+      relativePath: artifactRelativePaths[artifact],
+    });
+    if (artifactPath === null) {
+      continue;
+    }
     if (await Bun.file(artifactPath).exists()) {
       removed += 1;
     }
     await rm(artifactPath, { force: true });
   }
-  await rmdir(path.join(options.directory, ownedLeafDirectory)).catch(
-    () => undefined,
-  );
+  const leafDirectory = await resolveArtifactPath({
+    root: options.directory,
+    relativePath: ownedLeafDirectory,
+  });
+  if (leafDirectory !== null) {
+    await rmdir(leafDirectory).catch(() => undefined);
+  }
   return removed;
 }
