@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ownedWrite } from "../storage";
 
 export type InstalledArtifact = "agent" | "delegation-skill";
 
@@ -48,10 +49,10 @@ export async function writeInstallations(options: {
   readonly filePath: string;
   readonly state: InstallationState;
 }): Promise<void> {
-  await Bun.write(
-    options.filePath,
-    `${JSON.stringify(options.state, null, 2)}\n`,
-  );
+  await ownedWrite({
+    path: options.filePath,
+    content: `${JSON.stringify(options.state, null, 2)}\n`,
+  });
 }
 
 export function findInstallation(options: {

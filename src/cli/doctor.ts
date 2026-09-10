@@ -17,6 +17,7 @@ import {
   computeSourceHealth,
   type SourceMarkerHealth,
 } from "../signal";
+import { repairOwnedTree } from "../storage";
 
 export function renderProviderSupport(): readonly string[] {
   return providerDefinitions.map((definition) => {
@@ -60,7 +61,16 @@ export async function doctor(options: {
   readonly probe?: CommandProbe;
   readonly managedConfigPath?: string | null;
   readonly databasePath?: string;
+  readonly shadowcloneDirectory?: string;
 } = {}): Promise<void> {
+  const repaired = await repairOwnedTree(
+    options.shadowcloneDirectory ?? projectPaths.shadowcloneDirectory,
+  );
+  if (repaired.directories > 0 || repaired.files > 0) {
+    console.log(
+      `Tightened permissions on ${repaired.directories} directories and ${repaired.files} files.`,
+    );
+  }
   const managedConfigPath =
     options.managedConfigPath === undefined
       ? projectPaths.managedConfigFile

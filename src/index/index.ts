@@ -1,10 +1,10 @@
 import { Database } from "bun:sqlite";
-import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { ShadowcloneConfig } from "../config";
 import { observeAll } from "../observe";
 import { observeClaudeCodeFile } from "../observe/adapters/claudeCode";
 import type { ProjectPaths } from "../paths";
+import { ownedDirectory, ownedFile } from "../storage";
 import { createSchema } from "./schema";
 import { EventIndex } from "./store";
 import type { IngestSummary } from "./types";
@@ -17,9 +17,12 @@ export type {
 } from "./types";
 
 export async function openEventIndex(databasePath: string): Promise<EventIndex> {
-  await mkdir(path.dirname(databasePath), { recursive: true });
+  await ownedDirectory(path.dirname(databasePath));
   const database = new Database(databasePath, { create: true });
   createSchema(database);
+  for (const suffix of ["", "-wal", "-shm"]) {
+    await ownedFile(`${databasePath}${suffix}`);
+  }
   return new EventIndex(database);
 }
 

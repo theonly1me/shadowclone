@@ -38,6 +38,13 @@ export {
   type Worktree,
 } from "./worktree";
 
+function taskHash(task: string): string {
+  return new Bun.CryptoHasher("sha256")
+    .update(task)
+    .digest("hex")
+    .slice(0, 16);
+}
+
 function taskSlug(task: string): string {
   return (
     task
@@ -107,7 +114,8 @@ export async function runHeadlessClone(options: {
   }
 
   const runId = options.runId ?? crypto.randomUUID();
-  const branch = `shadowclone/${taskSlug(options.task)}-${runId.slice(0, 8)}`;
+  const slug = taskSlug(options.task);
+  const branch = `shadowclone/${slug}-${runId.slice(0, 8)}`;
   const worktree = await createWorktree({
     targetDirectory,
     worktreeDirectory: paths.worktreeDirectory(runId),
@@ -160,13 +168,13 @@ export async function runHeadlessClone(options: {
   }
   const receipt: RunReceipt = {
     runId,
-    task: options.task,
+    taskSlug: slug,
+    taskHash: taskHash(options.task),
     repo: repository.id,
     branch,
     engine: run.engine,
     model: null,
     sessionId: run.sessionId,
-    transcriptPath: run.transcriptPath,
     startedAt,
     durationMs: run.durationMs,
     costUsd: run.costUsd,

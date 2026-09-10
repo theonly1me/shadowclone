@@ -1,5 +1,5 @@
-import { mkdir, rename } from "node:fs/promises";
 import path from "node:path";
+import { ownedWrite } from "../../storage";
 import { fingerprint } from "./structured";
 import type { PreparedEval, TransferReceipt } from "./types";
 
@@ -7,15 +7,10 @@ export async function saveReceipt(options: {
   readonly directory: string;
   readonly receipt: TransferReceipt;
 }): Promise<void> {
-  await mkdir(options.directory, { recursive: true, mode: 0o700 });
-  const temporaryPath = path.join(
-    options.directory,
-    `${crypto.randomUUID()}.tmp`,
-  );
-  await Bun.write(temporaryPath, JSON.stringify(options.receipt, null, 2), {
-    mode: 0o600,
+  await ownedWrite({
+    path: path.join(options.directory, "receipt.json"),
+    content: JSON.stringify(options.receipt, null, 2),
   });
-  await rename(temporaryPath, path.join(options.directory, "receipt.json"));
 }
 
 export function initialReceipt(prepared: PreparedEval): TransferReceipt {

@@ -1,5 +1,5 @@
-import { mkdir } from "node:fs/promises";
 import path from "node:path";
+import { ownedWrite } from "../storage";
 import {
   parseReconciliationOutput,
   reconciliationOutputSchema,
@@ -54,9 +54,8 @@ export async function writeCheckpoint(options: {
   readonly prompt: string;
   readonly output: ReconciliationOutput;
 }): Promise<void> {
-  await mkdir(options.checkpointDirectory, { recursive: true });
-  await Bun.write(
-    checkpointPath(options),
-    `${JSON.stringify(options.output, null, 2)}\n`,
-  );
+  await ownedWrite({
+    path: checkpointPath(options),
+    content: `${JSON.stringify(options.output, null, 2)}\n`,
+  });
 }

@@ -1,5 +1,5 @@
-import { mkdir } from "node:fs/promises";
 import path from "node:path";
+import { ownedDirectory } from "../storage";
 import {
   runCommand,
   type CommandRunner,
@@ -48,7 +48,7 @@ export async function createWorktree(options: {
     cwd: repoDirectory,
     failure: "Target repository has no current commit",
   });
-  await mkdir(path.dirname(options.worktreeDirectory), { recursive: true });
+  await ownedDirectory(path.dirname(options.worktreeDirectory));
   const result = await runner({
     command: [
       "git",
