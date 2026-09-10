@@ -141,7 +141,10 @@ export async function runHeadlessClone(options: {
       "Do not merge or force push under any circumstance.",
     ].join("\n"),
     cwd: worktree.worktreeDirectory,
-    execution: { purpose: "dispatch" },
+    execution: {
+      purpose: "dispatch",
+      allowedDomains: dispatchPolicy.allowedDomains,
+    },
     systemPromptFile: compiledProfilePath,
     sessionId: runId,
     allowedTools: dispatchPolicy.allowedTools,

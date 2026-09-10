@@ -1,13 +1,14 @@
-import { isIsolatedExecution } from "./execution";
-import type { EngineRunOptions } from "./types";
+import type { EngineExecution, EngineRunOptions } from "./types";
+
+function executionDomains(execution: EngineExecution): readonly string[] {
+  return execution.purpose === "dispatch"
+    ? execution.allowedDomains ?? []
+    : [];
+}
 
 export function claudeIsolationArguments(
   run: EngineRunOptions,
 ): readonly string[] {
-  if (!isIsolatedExecution(run)) {
-    return [];
-  }
-
   const noTools =
     run.execution.purpose === "learning" || run.allowedTools?.length === 0;
   const tools = noTools ? "" : "Read,Edit,Write,Glob,Grep,Bash";
@@ -21,7 +22,7 @@ export function claudeIsolationArguments(
       autoAllowBashIfSandboxed: true,
       excludedCommands: [],
       network: {
-        allowedDomains: [],
+        allowedDomains: executionDomains(run.execution),
         allowLocalBinding: false,
       },
     },

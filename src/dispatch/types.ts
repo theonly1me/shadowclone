@@ -20,6 +20,7 @@ export type ResolvedDispatchPolicy = {
   readonly maxBudgetUsd: number;
   readonly grantedActions: readonly ActionCapability[];
   readonly blockedActions: readonly BlockedAction[];
+  readonly allowedDomains: readonly string[];
 };
 
 export type RunReceipt = {

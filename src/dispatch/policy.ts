@@ -11,6 +11,8 @@ const baseDraftTools = [
   "Bash(git diff:*)",
 ];
 
+const githubDomains = ["github.com", "api.github.com"] as const;
+
 function actionToolFor(action: ActionCapability): string | null {
   if (action === "pr-draft") {
     return "Bash(gh pr create --draft:*)";
@@ -72,6 +74,9 @@ export function resolveDispatchPolicy(
       }),
     ...permanentlyBlockedTools,
   ];
+  const needsNetwork = grantedActions.some(
+    (action) => actionToolFor(action) !== null,
+  );
   return {
     allowedTools,
     disallowedTools,
@@ -79,5 +84,6 @@ export function resolveDispatchPolicy(
     maxBudgetUsd: configured.maxBudgetUsd,
     grantedActions,
     blockedActions,
+    allowedDomains: needsNetwork ? [...githubDomains] : [],
   };
 }

@@ -1,8 +1,9 @@
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { parseCursorStream } from "./parseCursor";
+import { runnerEnvironment } from "./environment";
 import { validateEngineExecution } from "./execution";
+import { parseCursorStream } from "./parseCursor";
 import { buildEnginePrompt } from "./prompt";
 import type {
   EngineRun,
@@ -136,7 +137,7 @@ export async function runCursorAgent(
       run: options,
       workspace,
       environment: {
-        ...process.env,
+        ...runnerEnvironment({ engine: "cursor-agent" }),
         CURSOR_CONFIG_DIR: isolatedConfigDirectory,
       },
     });

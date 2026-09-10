@@ -2,11 +2,9 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { redactSecrets } from "../redact";
+import { runnerEnvironment } from "./environment";
 import { evaluationCommand } from "./evaluationIsolation";
-import {
-  isIsolatedExecution,
-  validateEngineExecution,
-} from "./execution";
+import { validateEngineExecution } from "./execution";
 import { parseCodexStream } from "./parseCodex";
 import { buildEnginePrompt } from "./prompt";
 import type {
@@ -64,39 +62,37 @@ export function buildCodexArguments(options: {
     "mcp_servers={}",
   ];
 
-  if (isIsolatedExecution(options.run)) {
-    arguments_.push(
-      "--ephemeral",
-      "--ignore-user-config",
-      "--ignore-rules",
-      "-c",
-      "features.memories=false",
-      "-c",
-      "features.hooks=false",
-      "-c",
-      "features.skip_host_skill_discovery=true",
-      "-c",
-      "project_doc_max_bytes=0",
-      "-c",
-      "features.apps=false",
-      "-c",
-      "features.plugins=false",
-      "-c",
-      "features.browser_use=false",
-      "-c",
-      "features.computer_use=false",
-      "-c",
-      "features.image_generation=false",
-      "-c",
-      "features.view_image=false",
-      "-c",
-      "features.multi_agent_v2=false",
-      "-c",
-      'web_search="disabled"',
-      "-c",
-      "sandbox_workspace_write.network_access=false",
-    );
-  }
+  arguments_.push(
+    "--ephemeral",
+    "--ignore-user-config",
+    "--ignore-rules",
+    "-c",
+    "features.memories=false",
+    "-c",
+    "features.hooks=false",
+    "-c",
+    "features.skip_host_skill_discovery=true",
+    "-c",
+    "project_doc_max_bytes=0",
+    "-c",
+    "features.apps=false",
+    "-c",
+    "features.plugins=false",
+    "-c",
+    "features.browser_use=false",
+    "-c",
+    "features.computer_use=false",
+    "-c",
+    "features.image_generation=false",
+    "-c",
+    "features.view_image=false",
+    "-c",
+    "features.multi_agent_v2=false",
+    "-c",
+    'web_search="disabled"',
+    "-c",
+    "sandbox_workspace_write.network_access=false",
+  );
 
   if (
     options.run.execution.purpose === "learning" ||
@@ -136,6 +132,7 @@ async function runCodexProcess(options: {
       }),
     ],
     cwd: options.run.cwd,
+    env: runnerEnvironment({ engine: "codex" }),
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",

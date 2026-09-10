@@ -1,10 +1,8 @@
 import { evaluationCommand } from "./evaluationIsolation";
 import { redactSecrets } from "../redact";
 import { claudeIsolationArguments } from "./claudeIsolation";
-import {
-  isIsolatedExecution,
-  validateEngineExecution,
-} from "./execution";
+import { allowsRemoteActions, runnerEnvironment } from "./environment";
+import { validateEngineExecution } from "./execution";
 import { parseClaudeStream } from "./parseClaude";
 import type {
   EngineRun,
@@ -37,7 +35,7 @@ export function buildClaudeArguments(options: {
     "--session-id",
     options.sessionId,
     "--setting-sources",
-    isIsolatedExecution(options.run) ? "" : "user,project",
+    "",
   ];
 
   arguments_.push(...claudeIsolationArguments(options.run));
@@ -111,7 +109,10 @@ export async function runClaudeCode(
   const child = Bun.spawn({
     cmd: [...evaluationCommand({ arguments: buildClaudeArguments({ run: options, sessionId }), run: options })],
     cwd: options.cwd,
-    env: process.env,
+    env: runnerEnvironment({
+      engine: "claude-code",
+      allowRemoteActions: allowsRemoteActions(options.execution),
+    }),
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",

@@ -27,7 +27,10 @@ export type EngineAction = {
 };
 
 export type EngineExecution =
-  | { readonly purpose: "dispatch" }
+  | {
+      readonly purpose: "dispatch";
+      readonly allowedDomains?: readonly string[];
+    }
   | {
       readonly purpose: "evaluation";
       readonly blockedPaths?: readonly string[];
