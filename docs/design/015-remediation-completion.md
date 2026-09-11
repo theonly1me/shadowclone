@@ -52,7 +52,7 @@ Oversized inputs are skipped or rejected with visible accounting. Unsafe or unsu
 
 ## Testing
 
-The local full gate passed with 409 tests, including typecheck and lint. One intervening rerun timed out in the engine stderr fixture; focused tests and a subsequent full run passed without suppression or a timeout increase. Synthetic macOS integration checks ran outside the nested workspace sandbox and passed 15 assertions covering permitted workspace writes, blocked outside writes, blocked source/control/credential reads, protected Git metadata, and denied loopback networking. The captured-byte identity regression fails when its hash check is removed and passes with the check restored. A permission-repair regression and sandbox path-canonicalization regression also reproduced before correction.
+The local full gate passed with 410 tests, including typecheck and lint. One intervening rerun timed out in the engine stderr fixture; focused tests and a subsequent full run passed without suppression or a timeout increase. Synthetic macOS integration checks ran outside the nested workspace sandbox and passed 20 assertions covering permitted workspace writes, blocked outside writes, blocked source/control/credential reads, protected Git metadata, denied loopback networking, and evaluation writes confined to the workspace. The evaluation write test also fails with the restriction removed and passes when restored. The captured-byte identity regression fails when its hash check is removed and passes with the check restored. A permission-repair regression and sandbox path-canonicalization regression also reproduced before correction.
 
 The build and npm package dry run passed. The package includes the data-handling statement and security policy and excludes local plans, transcripts, and resume state. Current tracked files contain none of the identifying provenance patterns audited for this change. The approved issue and PR-body corrections were re-fetched and verified.
 
@@ -69,3 +69,5 @@ None. Deferred decisions and accepted items remain listed in the local handoff p
 2026-09-11: Protect generated state without modifying executable checkout content. Keep private resumable evidence separate from shareable metrics.
 
 2026-09-11: Linux CI confirmed that the verifier write probe must target a host path outside its private `/tmp` mount. The fixture now exercises the read-only host mount and retains the existing write, credential, control-state, and network assertions.
+
+2026-09-11: Evaluation agent wrappers also confine writes to the invocation workspace and isolate Linux process/IPC namespaces. The accepted host-read access does not authorize host writes. Authentication refresh that needs host writes must happen outside the evaluation invocation.

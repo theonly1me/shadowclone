@@ -8,11 +8,7 @@ import { evaluationCommand } from "./evaluationIsolation";
 import { validateEngineExecution } from "./execution";
 import { parseCodexStream } from "./parseCodex";
 import { buildEnginePrompt } from "./prompt";
-import type {
-  EngineRun,
-  EngineRunOptions,
-  PermissionMode,
-} from "./types";
+import type { EngineRun, EngineRunOptions, PermissionMode } from "./types";
 
 function validateCodexOptions(options: EngineRunOptions): void {
   validateEngineExecution(options);
@@ -125,10 +121,26 @@ async function runCodexProcess(options: {
   const fallbackSessionId = crypto.randomUUID();
   const startedAt = Date.now();
 
-  const { exitCode, stdout: stream, stderr } = await runProcess({
-    arguments: evaluationCommand({ arguments: buildCodexArguments(options), run: options.run }),
+  const {
+    exitCode,
+    stdout: stream,
+    stderr,
+  } = await runProcess({
+    arguments: evaluationCommand({
+      arguments: buildCodexArguments(options),
+      run: options.run,
+    }),
     cwd: options.run.cwd,
-    environment: runnerEnvironment({ engine: "codex" }),
+    environment: {
+      ...runnerEnvironment({ engine: "codex" }),
+      ...(options.run.execution.purpose === "evaluation"
+        ? {
+            TMPDIR: options.run.cwd,
+            TMP: options.run.cwd,
+            TEMP: options.run.cwd,
+          }
+        : {}),
+    },
     input: prompt,
     signal: options.run.signal,
   });
@@ -155,9 +167,7 @@ async function runCodexProcess(options: {
   return run;
 }
 
-export async function runCodex(
-  options: EngineRunOptions,
-): Promise<EngineRun> {
+export async function runCodex(options: EngineRunOptions): Promise<EngineRun> {
   validateCodexOptions(options);
 
   if (options.outputSchema === undefined) {

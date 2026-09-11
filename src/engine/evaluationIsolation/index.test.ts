@@ -98,7 +98,7 @@ test("wraps dispatch even when no additional paths are blocked", () => {
       run: { prompt: "", cwd: "/tmp", execution: { purpose: "evaluation" } },
       platform: "darwin",
     }),
-  ).toEqual(["claude", "-p"]);
+  ).toContain("sandbox-exec");
 });
 
 test("refuses to run an isolated evaluation on an unsupported platform", () => {

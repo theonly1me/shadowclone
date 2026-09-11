@@ -5,10 +5,7 @@ import { claudeIsolationArguments } from "./claudeIsolation";
 import { runnerEnvironment } from "./environment";
 import { validateEngineExecution } from "./execution";
 import { parseClaudeStream } from "./parseClaude";
-import type {
-  EngineRun,
-  EngineRunOptions,
-} from "./types";
+import type { EngineRun, EngineRunOptions } from "./types";
 
 function appendList(options: {
   readonly arguments_: string[];
@@ -57,10 +54,7 @@ export function buildClaudeArguments(options: {
   }
 
   if (options.run.maxBudgetUsd !== undefined) {
-    arguments_.push(
-      "--max-budget-usd",
-      options.run.maxBudgetUsd.toString(),
-    );
+    arguments_.push("--max-budget-usd", options.run.maxBudgetUsd.toString());
   }
 
   if (options.run.outputSchema !== undefined) {
@@ -106,17 +100,30 @@ export async function runClaudeCode(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
   const sessionId = options.sessionId ?? crypto.randomUUID();
+  const temporaryDirectory =
+    options.execution.purpose === "dispatch"
+      ? (options.execution.temporaryDirectory ?? options.cwd)
+      : options.cwd;
 
-  const { exitCode, stdout: stream, stderr } = await runProcess({
-    arguments: evaluationCommand({ arguments: buildClaudeArguments({ run: options, sessionId }), run: options }),
+  const {
+    exitCode,
+    stdout: stream,
+    stderr,
+  } = await runProcess({
+    arguments: evaluationCommand({
+      arguments: buildClaudeArguments({ run: options, sessionId }),
+      run: options,
+    }),
     cwd: options.cwd,
     environment: {
       ...runnerEnvironment({ engine: "claude-code" }),
-      ...(options.execution.purpose === "dispatch" ? {
-        TMPDIR: options.execution.temporaryDirectory ?? options.cwd,
-        TMP: options.execution.temporaryDirectory ?? options.cwd,
-        TEMP: options.execution.temporaryDirectory ?? options.cwd,
-      } : {}),
+      ...(options.execution.purpose !== "learning"
+        ? {
+            TMPDIR: temporaryDirectory,
+            TMP: temporaryDirectory,
+            TEMP: temporaryDirectory,
+          }
+        : {}),
     },
     input: options.prompt,
     signal: options.signal,

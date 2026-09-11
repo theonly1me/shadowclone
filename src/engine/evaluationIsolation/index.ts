@@ -9,24 +9,27 @@ export function evaluationCommand(options: {
   readonly platform?: NodeJS.Platform;
 }): readonly string[] {
   if (options.run.execution.purpose === "dispatch") {
-    return dispatchCommand({ ...options, platform: options.platform ?? process.platform });
+    return dispatchCommand({
+      ...options,
+      platform: options.platform ?? process.platform,
+    });
   }
   if (options.run.execution.purpose !== "evaluation") {
     return options.arguments;
   }
   const requestedPaths = options.run.execution.blockedPaths ?? [];
-  if (requestedPaths.length === 0) {
-    return options.arguments;
-  }
 
   const platform = options.platform ?? process.platform;
   const blockedPaths = requestedPaths.map(canonicalPath);
+  const directory = canonicalPath(options.run.cwd);
 
   if (platform === "darwin") {
-    const sandboxProfile = `(version 1)(allow default)${denySubpathRules({
-      paths: blockedPaths,
-      operations: ["file-read*", "file-write*"],
-    })}`;
+    const sandboxProfile = `(version 1)(allow default)(deny file-write*)(allow file-write* (subpath ${JSON.stringify(directory)})(literal "/dev/null"))${denySubpathRules(
+      {
+        paths: blockedPaths,
+        operations: ["file-read*", "file-write*"],
+      },
+    )}`;
 
     return ["sandbox-exec", "-p", sandboxProfile, ...options.arguments];
   }
@@ -35,9 +38,21 @@ export function evaluationCommand(options: {
     return [
       "bwrap",
       "--die-with-parent",
+      "--unshare-pid",
+      "--unshare-ipc",
+      "--new-session",
+      "--cap-drop",
+      "ALL",
+      "--ro-bind",
+      "/",
+      "/",
       "--bind",
-      "/",
-      "/",
+      directory,
+      directory,
+      "--proc",
+      "/proc",
+      "--dev",
+      "/dev",
       ...maskArguments(
         blockedPaths.map((directory) => ({
           path: directory,
