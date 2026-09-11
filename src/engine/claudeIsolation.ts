@@ -1,13 +1,14 @@
-import { isIsolatedExecution } from "./execution";
-import type { EngineRunOptions } from "./types";
+import type { EngineExecution, EngineRunOptions } from "./types";
+
+function executionDomains(execution: EngineExecution): readonly string[] {
+  return execution.purpose === "dispatch"
+    ? (execution.allowedDomains ?? [])
+    : [];
+}
 
 export function claudeIsolationArguments(
   run: EngineRunOptions,
 ): readonly string[] {
-  if (!isIsolatedExecution(run)) {
-    return [];
-  }
-
   const noTools =
     run.execution.purpose === "learning" || run.allowedTools?.length === 0;
   const tools = noTools ? "" : "Read,Edit,Write,Glob,Grep,Bash";
@@ -18,10 +19,23 @@ export function claudeIsolationArguments(
       enabled: true,
       failIfUnavailable: true,
       allowUnsandboxedCommands: false,
-      autoAllowBashIfSandboxed: true,
+      autoAllowBashIfSandboxed: run.execution.purpose !== "dispatch",
       excludedCommands: [],
+      filesystem: {
+        allowWrite: [run.cwd],
+        denyWrite: [
+          "**/.git/**",
+          "**/.claude/**",
+          "**/.codex/**",
+          "**/.mcp.json",
+        ],
+        denyRead:
+          run.execution.purpose === "dispatch"
+            ? ["~/.ssh", "~/.aws", "~/.config/gh", "~/.netrc", "~/.npmrc"]
+            : [],
+      },
       network: {
-        allowedDomains: [],
+        allowedDomains: executionDomains(run.execution),
         allowLocalBinding: false,
       },
     },

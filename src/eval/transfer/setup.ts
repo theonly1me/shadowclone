@@ -1,12 +1,12 @@
+import type { ResolvedTransferSetup } from "./setupTypes";
+import { readBoundedFile } from "../../io/files";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import {
   readEffectiveConfig,
-  type ManagedPolicy,
-  type ShadowcloneConfig,
 } from "../../config";
-import { detectEngine, type EngineId, type EngineRunner } from "../../engine";
-import { projectPaths, type ProjectPaths } from "../../paths";
+import { detectEngine} from "../../engine";
+import { projectPaths } from "../../paths";
 import { isOriginBlocked, resolveRepository } from "../../signal";
 import {
   defaultRepeat,
@@ -15,25 +15,7 @@ import {
 } from "./budget";
 import { command } from "./command";
 import { readReceipt } from "./resume";
-import type { TransferOptions, TransferReceipt } from "./types";
-
-export interface ResolvedTransferSetup {
-  readonly paths: ProjectPaths;
-  readonly config: ShadowcloneConfig;
-  readonly policy: ManagedPolicy;
-  readonly repository: string;
-  readonly evalId: string;
-  readonly directory: string;
-  readonly saved: TransferReceipt | null;
-  readonly engine: EngineId;
-  readonly runner: EngineRunner;
-  readonly model: string;
-  readonly count: number;
-  readonly repeat: number;
-  readonly timeoutSeconds: number;
-  readonly maxBudgetUsd: number | undefined;
-  readonly since: number;
-}
+import type { TransferOptions } from "./types";
 
 function parsePositiveInteger(options: {
   readonly value: number | undefined;
@@ -110,11 +92,13 @@ export async function setupTransferEval(
 
   const directory = path.join(paths.shadowcloneDirectory, "eval", evalId);
 
-  const saved = options.evalId
-    ? readReceipt(
-        await Bun.file(path.join(directory, "receipt.json")).text(),
-      )
-    : null;
+  const savedText = options.evalId ? await readBoundedFile({
+    filePath: path.join(directory, "state.json"), roots: [paths.shadowcloneDirectory], maximumBytes: 32 * 1024 * 1024,
+  }) : null;
+  if (options.evalId && savedText === null) {
+    throw new Error("Evaluation state is unavailable or unsupported; legacy receipts cannot resume safely");
+  }
+  const saved = savedText === null ? null : readReceipt(savedText);
 
   const requestedEngine = options.engine ?? saved?.prepared.engine;
   if (
@@ -166,7 +150,14 @@ export async function setupTransferEval(
   });
 
   const maxBudgetUsd =
-    options.maxBudgetUsd ?? saved?.prepared.maxBudgetUsd ?? undefined;
+    options.maxBudgetUsd ?? saved?.prepared.maxBudgetUsd ?? (engine === "claude-code" ? 2 : undefined);
+
+  if (maxBudgetUsd !== undefined && (!Number.isFinite(maxBudgetUsd) || maxBudgetUsd <= 0)) {
+    throw new Error("Evaluation budget must be positive");
+  }
+  if (engine === "codex" && maxBudgetUsd !== undefined) {
+    throw new Error("Codex cannot enforce --max-budget-usd; use task counts and timeouts");
+  }
 
   const since = options.since ? Date.parse(options.since) : 0;
   if (!Number.isFinite(since)) {

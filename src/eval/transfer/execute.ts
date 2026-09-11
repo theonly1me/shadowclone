@@ -2,6 +2,7 @@ import { redactSecrets } from "../../redact";
 import { installContext } from "./context";
 import { prepareDependencies } from "./dependencies";
 import { judge } from "./judge";
+import { judgeEvidence } from "./judgeEvidence";
 import { observeRun } from "./observeRun";
 import { createSnapshot } from "./snapshot";
 import type {
@@ -53,21 +54,19 @@ export async function executeTask(options: {
       execute: true,
     });
 
-    const verification = await verifyWorkspace({
-      directory: snapshot.directory,
-      timeoutSeconds: options.prepared.timeoutSeconds,
-    });
-
     const observed = await observeRun({
       directory: snapshot.directory,
       run,
       initialCommit: snapshot.initialCommit,
     });
 
-    const evidence = JSON.stringify({
-      observed,
-      independentVerification: verification,
+    const verification = await verifyWorkspace({
+      directory: snapshot.directory,
+      timeoutSeconds: options.prepared.timeoutSeconds,
+      blockedPaths: [options.judgeDirectory, options.prepared.repository],
     });
+
+    const evidence = judgeEvidence({ observed, verification });
 
     const judgedCorrectness = await judge({
       requirements: options.task.completion,
@@ -79,9 +78,7 @@ export async function executeTask(options: {
     const correctness = [...verification, ...judgedCorrectness];
 
     const preferences = await judge({
-      requirements: options.task.preferences.map(
-        (check) => check.requirement,
-      ),
+      requirements: options.task.preferences.map((check) => check.requirement),
       evidence,
       call: options.call,
       cwd: options.judgeDirectory,

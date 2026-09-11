@@ -4,7 +4,7 @@ One interface, three execution purposes, and provider-specific implementations. 
 
 ## No key ships
 
-Shadowclone does not have an API key, does not ask for one, and has no server to hold one. It runs the agent CLI already installed and already logged in on the machine.
+Shadowclone has no hosted collection service and does not require a project account. Provider CLIs use their existing authentication and may receive explicitly allowlisted provider credentials. It runs the agent CLI already installed and already logged in on the machine.
 
 | Engine | Auth it inherits | Status | Cost to the user |
 | --- | --- | --- | --- |
@@ -87,36 +87,11 @@ Learning cannot load a system prompt file, enable a provider tool, or select a p
 
 ## Claude Code
 
-```
-claude -p "<task>" \
-  --output-format stream-json \
-  --append-system-prompt-file ~/.shadowclone/profile/.compiled.md \
-  --session-id <uuid> \
-  --permission-mode dontAsk \
-  --setting-sources user,project \
-  --allowedTools "Read" "Edit" "Bash(bun test)" \
-  --max-budget-usd 2.00 \
-  --model sonnet \
-  --add-dir <worktree>
-```
+The runner sends the prompt on stdin, disables native hooks and session persistence, clears settings sources and MCP configuration, and uses explicit tool permissions. Learning disables tools. Dispatch adds an outer OS boundary and disables automatic approval of sandboxed shell commands so the resolved tool policy still applies.
 
-Two flags carry more weight than the rest.
+The shared process runner limits stdout and stderr and terminates the process group on overflow, timeout, or cancellation. Structured output is accepted only after a complete result. Provider authentication and billing remain provider responsibilities.
 
-`--session-id` accepts a UUID that becomes the transcript filename under `~/.claude/projects/<slug>/`. Verified against real transcripts on disk, where filename and the records' `sessionId` field matched in every case checked.
-
-Generating the id up front means the clone knows where its own transcript will land, so a clone run is observable by the same pipeline that observes the user.
-
-`--agents <json>` accepts the same subagent definition that `src/profile/agent.ts` writes to `.claude/agents/`, so a headless run can carry a clone subagent without touching the repo. `02-profile.md` covers the compilation.
-
-`--append-system-prompt-file` injects the compiled profile without replacing Claude Code's own system prompt, so the clone keeps its normal competence and gains the user's habits on top. Replacing the system prompt with `--system-prompt-file` produces a worse agent that sounds more like the user, which is the wrong trade.
-
-`--setting-sources` restricts loaded setting files to user and project tiers, preventing a target repository's `.claude/settings.local.json` from silently widening permissions beyond the resolved dispatch policy ceiling.
-
-Learning uses a separate Claude command. `--restricted`, `--safe-mode`, empty `--setting-sources`, `--tools ""`, strict empty MCP configuration, an MCP deny rule, `--no-session-persistence`, and inline settings remove ambient instructions, tools, hooks, network tools, and native memory. `allowedTools: []` is not treated as the tool boundary because Claude documents that option as an auto-approval control.
-
-The terminal `result` message carries `session_id`, `total_cost_usd`, `duration_ms`, `duration_api_ms`, `num_turns`, `is_error`, `modelUsage`, and `permission_denials`. Everything `EngineRun` needs is in one message, so the stream parser only has to buffer text blocks and wait for `result`.
-
-Permission modes available are `acceptEdits`, `bypassPermissions`, `default`, `dontAsk`, `manual`, `plan`, and `auto`. `dontAsk` inside a throwaway worktree is the unattended default, converting any unallowed tool call into a hard denial. `bypassPermissions` is never used by shadowclone, at any tier, for any repo.
+The implementation uses [Claude Code's sandbox settings](https://code.claude.com/docs/en/sandboxing) and [permission controls](https://code.claude.com/docs/en/permissions). Native permission rules and filesystem sandbox rules cover different paths and must be tested together. Missing isolation fails closed.
 
 ## Codex
 
@@ -139,8 +114,6 @@ Cursor also receives its prompt on stdin. A no-tools run gets an empty temporary
 
 ## Compiled profile
 
-The engine is handed one file, not five. `src/profile/inject.ts` compiles `~/.shadowclone/profile/*.md` into `.compiled.md`: active rules ordered by observation count, with provenance comments stripped and any `projects/<repo>.md` matching the target repo appended. Candidate and stale rules remain visible in the editable profile but do not enter the prompt.
+`src/profile/compiler/` reads one bounded snapshot per selected profile file. It projects global, matching owner, and exact repository guidance into at most 16 KiB, dropping whole blocks when needed. User and declared guidance outrank mined candidates. A pending mined proposal does not silently replace an active user instruction.
 
-Compilation is where the profile stops being a document and becomes a prompt, so it is a named step with its own file rather than string building inside the runner.
-
-The compiler reads `global/` and exactly one matching `host/owner` directory, strips provenance, and places handwritten rules first. An active declared or user rule remains selected when contradicting evidence creates a pending proposal. The proposal is for the user to decide and does not silently override their instruction.
+The raw metadata and redacted visible text come from the same bytes. Compilation does not claim that pattern redaction detects every kind of sensitive content.

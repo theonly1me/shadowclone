@@ -34,7 +34,6 @@ export {
   type ReconciliationChange,
   type ReconciliationOutput,
 } from "./reconcile";
-export { runReplay } from "./replay";
 export {
   distillationMergeOutputSchema,
   parseDistilledRules,
@@ -59,6 +58,7 @@ const emptyLibrary: SeedLibrary = {
 
 export async function distillSignals(options: {
   readonly signals: readonly CorrectionSignal[];
+  readonly sourceRoots?: readonly string[];
   readonly runner: EngineRunner;
   readonly engine: EngineId;
   readonly limits?: LearningExecutionLimits;
@@ -87,7 +87,7 @@ export async function distillSignals(options: {
       profile: options.profile ?? emptyProfile,
       library: options.seedLibrary ?? emptyLibrary,
     });
-    const prompt = await buildReconciliationPrompt({ context });
+    const prompt = await buildReconciliationPrompt({ context, sourceRoots: options.sourceRoots });
     const output = await runReconciliation({
       prompt,
       runner: execution.runner,

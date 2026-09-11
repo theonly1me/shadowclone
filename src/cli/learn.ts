@@ -60,6 +60,7 @@ export async function learn(options: {
       gitMetadataEnabled: config.sources["git-metadata"],
       readRemote: options.readRemote,
       blockedOrigins: policy.blockedOrigins,
+      bindings: index,
     });
     for (const warning of checkMarkerStaleness(events)) {
       console.warn(`Warning: ${warning}`);
@@ -107,6 +108,9 @@ export async function learn(options: {
       ...(options.deep ? { deepChangesProposed } : {}),
       profileUpdated,
     }));
+    if (summary.omittedRecords > 0) {
+      writeLine(`Skipped ${summary.omittedRecords} oversized transcript records.`);
+    }
     if (summary.rescannedFiles > 0) {
       writeLine(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
     }

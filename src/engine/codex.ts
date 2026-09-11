@@ -1,19 +1,14 @@
+import { runProcess } from "../io/process";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { redactSecrets } from "../redact";
+import { runnerEnvironment } from "./environment";
 import { evaluationCommand } from "./evaluationIsolation";
-import {
-  isIsolatedExecution,
-  validateEngineExecution,
-} from "./execution";
+import { validateEngineExecution } from "./execution";
 import { parseCodexStream } from "./parseCodex";
 import { buildEnginePrompt } from "./prompt";
-import type {
-  EngineRun,
-  EngineRunOptions,
-  PermissionMode,
-} from "./types";
+import type { EngineRun, EngineRunOptions, PermissionMode } from "./types";
 
 function validateCodexOptions(options: EngineRunOptions): void {
   validateEngineExecution(options);
@@ -64,39 +59,37 @@ export function buildCodexArguments(options: {
     "mcp_servers={}",
   ];
 
-  if (isIsolatedExecution(options.run)) {
-    arguments_.push(
-      "--ephemeral",
-      "--ignore-user-config",
-      "--ignore-rules",
-      "-c",
-      "features.memories=false",
-      "-c",
-      "features.hooks=false",
-      "-c",
-      "features.skip_host_skill_discovery=true",
-      "-c",
-      "project_doc_max_bytes=0",
-      "-c",
-      "features.apps=false",
-      "-c",
-      "features.plugins=false",
-      "-c",
-      "features.browser_use=false",
-      "-c",
-      "features.computer_use=false",
-      "-c",
-      "features.image_generation=false",
-      "-c",
-      "features.view_image=false",
-      "-c",
-      "features.multi_agent_v2=false",
-      "-c",
-      'web_search="disabled"',
-      "-c",
-      "sandbox_workspace_write.network_access=false",
-    );
-  }
+  arguments_.push(
+    "--ephemeral",
+    "--ignore-user-config",
+    "--ignore-rules",
+    "-c",
+    "features.memories=false",
+    "-c",
+    "features.hooks=false",
+    "-c",
+    "features.skip_host_skill_discovery=true",
+    "-c",
+    "project_doc_max_bytes=0",
+    "-c",
+    "features.apps=false",
+    "-c",
+    "features.plugins=false",
+    "-c",
+    "features.browser_use=false",
+    "-c",
+    "features.computer_use=false",
+    "-c",
+    "features.image_generation=false",
+    "-c",
+    "features.view_image=false",
+    "-c",
+    "features.multi_agent_v2=false",
+    "-c",
+    'web_search="disabled"',
+    "-c",
+    "sandbox_workspace_write.network_access=false",
+  );
 
   if (
     options.run.execution.purpose === "learning" ||
@@ -128,28 +121,29 @@ async function runCodexProcess(options: {
   const fallbackSessionId = crypto.randomUUID();
   const startedAt = Date.now();
 
-  const process = Bun.spawn({
-    cmd: [
-      ...evaluationCommand({
-        arguments: buildCodexArguments(options),
-        run: options.run,
-      }),
-    ],
+  const {
+    exitCode,
+    stdout: stream,
+    stderr,
+  } = await runProcess({
+    arguments: evaluationCommand({
+      arguments: buildCodexArguments(options),
+      run: options.run,
+    }),
     cwd: options.run.cwd,
-    stdin: "pipe",
-    stdout: "pipe",
-    stderr: "pipe",
+    environment: {
+      ...runnerEnvironment({ engine: "codex" }),
+      ...(options.run.execution.purpose === "evaluation"
+        ? {
+            TMPDIR: options.run.cwd,
+            TMP: options.run.cwd,
+            TEMP: options.run.cwd,
+          }
+        : {}),
+    },
+    input: prompt,
     signal: options.run.signal,
   });
-
-  process.stdin.write(prompt);
-  process.stdin.end();
-
-  const [exitCode, stream, stderr] = await Promise.all([
-    process.exited,
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
-  ]);
 
   const run = parseCodexStream({
     stream,
@@ -173,9 +167,7 @@ async function runCodexProcess(options: {
   return run;
 }
 
-export async function runCodex(
-  options: EngineRunOptions,
-): Promise<EngineRun> {
+export async function runCodex(options: EngineRunOptions): Promise<EngineRun> {
   validateCodexOptions(options);
 
   if (options.outputSchema === undefined) {

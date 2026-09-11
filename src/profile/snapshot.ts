@@ -1,6 +1,7 @@
+import { maximumProfileBytes } from "../io/limits";
 import path from "node:path";
 import type { ProjectPaths } from "../paths";
-import { resolveRedacted } from "../redact";
+import { materializeSnapshot } from "../redact";
 import { splitProfileBlocks } from "./blocks";
 import { parseProfileBlocks } from "./parse";
 import {
@@ -81,13 +82,17 @@ async function readRules(options: {
   readonly relativePath: string;
 }): Promise<readonly ProfileSnapshotRule[]> {
   const filePath = path.join(options.profileDirectory, options.relativePath);
-  const file = Bun.file(filePath);
-  const rawText = await file.text();
-  const promptText = await resolveRedacted({
-    ref: { type: "file", sourcePath: filePath, byteOffset: 0, byteLength: file.size },
+  const snapshot = await materializeSnapshot({
+    filePath,
+    roots: [options.profileDirectory],
+    maximumBytes: maximumProfileBytes,
+    parse: parseProfileBlocks,
   });
-  const rawBlocks = parseProfileBlocks(rawText);
-  const promptBlocks = splitProfileBlocks(promptText);
+  if (snapshot === null) {
+    return [];
+  }
+  const rawBlocks = snapshot.parsed;
+  const promptBlocks = splitProfileBlocks(snapshot.redacted);
   return rawBlocks.flatMap((block, index) => {
     if (block.key === null) {
       return [];
@@ -113,16 +118,17 @@ async function readRules(options: {
 }
 
 async function readRejections(paths: ProjectPaths): Promise<readonly ProfileSnapshotRejection[]> {
-  const file = Bun.file(paths.rejectedProfileFile);
-  if (!(await file.exists())) {
+  const snapshot = await materializeSnapshot({
+    filePath: paths.rejectedProfileFile,
+    roots: [paths.profileDirectory],
+    maximumBytes: maximumProfileBytes,
+    parse: parseProfileRejectionText,
+  });
+  if (snapshot === null) {
     return [];
   }
-  const raw = parseProfileRejectionText(await file.text());
-  const prompt = parseProfileRejectionText(
-    await resolveRedacted({
-      ref: { type: "file", sourcePath: paths.rejectedProfileFile, byteOffset: 0, byteLength: file.size },
-    }),
-  );
+  const raw = snapshot.parsed;
+  const prompt = parseProfileRejectionText(snapshot.redacted);
   return raw.flatMap((rejection, index) => {
     const redacted = prompt[index];
     return redacted

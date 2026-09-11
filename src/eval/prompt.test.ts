@@ -105,9 +105,9 @@ test("strips stacked and repeated leading slash commands", () => {
 test("preserves unix file paths starting with slashes", () => {
   expect(
     stripLeadingSlashCommands(
-      "/Users/atchyut/Developer/playground/shadowclone is broken",
+      "/Users/example/projects/example is broken",
     ),
-  ).toBe("/Users/atchyut/Developer/playground/shadowclone is broken");
+  ).toBe("/Users/example/projects/example is broken");
   expect(
     stripLeadingSlashCommands("/var/folders/13/test.txt has an error"),
   ).toBe("/var/folders/13/test.txt has an error");

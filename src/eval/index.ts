@@ -4,13 +4,5 @@ export {
   extractVerificationToken,
   normalizeRepoPath,
 } from "./behavior";
-export { runEval, type EvalOptions } from "./run";
-export { computeScoreDelta, scoreReplay } from "./score";
-export type {
-  EvalReceipt,
-  EvalSessionResult,
-  EvalSkippedSession,
-  ReplayScore,
-  ScoreDelta,
-  SessionBehavior,
-} from "./types";
+export { scoreReplay } from "./score";
+export type { ReplayScore, SessionBehavior } from "./types";

@@ -123,6 +123,7 @@ test("redacts excerpts before the engine and resumes from checkpoints", async ()
     runner,
     engine: "claude-code" as const,
     workingDirectory: directory,
+    sourceRoots: [directory],
     checkpointDirectory: path.join(directory, "checkpoints"),
     events: [indexedPrompt({ sourcePath })],
   };
@@ -168,6 +169,7 @@ test("records independent supporting evidence without a confidence score", async
     runner,
     engine: "claude-code" as const,
     workingDirectory: directory,
+    sourceRoots: [directory],
     checkpointDirectory: path.join(directory, "checkpoints"),
     events: [
       indexedPrompt({ sourcePath, sessionId: "session-1", byteLength: 16 }),

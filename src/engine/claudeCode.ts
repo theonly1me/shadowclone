@@ -1,15 +1,11 @@
+import { runProcess } from "../io/process";
 import { evaluationCommand } from "./evaluationIsolation";
 import { redactSecrets } from "../redact";
 import { claudeIsolationArguments } from "./claudeIsolation";
-import {
-  isIsolatedExecution,
-  validateEngineExecution,
-} from "./execution";
+import { runnerEnvironment } from "./environment";
+import { validateEngineExecution } from "./execution";
 import { parseClaudeStream } from "./parseClaude";
-import type {
-  EngineRun,
-  EngineRunOptions,
-} from "./types";
+import type { EngineRun, EngineRunOptions } from "./types";
 
 function appendList(options: {
   readonly arguments_: string[];
@@ -37,7 +33,7 @@ export function buildClaudeArguments(options: {
     "--session-id",
     options.sessionId,
     "--setting-sources",
-    isIsolatedExecution(options.run) ? "" : "user,project",
+    "",
   ];
 
   arguments_.push(...claudeIsolationArguments(options.run));
@@ -58,10 +54,7 @@ export function buildClaudeArguments(options: {
   }
 
   if (options.run.maxBudgetUsd !== undefined) {
-    arguments_.push(
-      "--max-budget-usd",
-      options.run.maxBudgetUsd.toString(),
-    );
+    arguments_.push("--max-budget-usd", options.run.maxBudgetUsd.toString());
   }
 
   if (options.run.outputSchema !== undefined) {
@@ -107,25 +100,34 @@ export async function runClaudeCode(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
   const sessionId = options.sessionId ?? crypto.randomUUID();
+  const temporaryDirectory =
+    options.execution.purpose === "dispatch"
+      ? (options.execution.temporaryDirectory ?? options.cwd)
+      : options.cwd;
 
-  const child = Bun.spawn({
-    cmd: [...evaluationCommand({ arguments: buildClaudeArguments({ run: options, sessionId }), run: options })],
+  const {
+    exitCode,
+    stdout: stream,
+    stderr,
+  } = await runProcess({
+    arguments: evaluationCommand({
+      arguments: buildClaudeArguments({ run: options, sessionId }),
+      run: options,
+    }),
     cwd: options.cwd,
-    env: process.env,
-    stdin: "pipe",
-    stdout: "pipe",
-    stderr: "pipe",
+    environment: {
+      ...runnerEnvironment({ engine: "claude-code" }),
+      ...(options.execution.purpose !== "learning"
+        ? {
+            TMPDIR: temporaryDirectory,
+            TMP: temporaryDirectory,
+            TEMP: temporaryDirectory,
+          }
+        : {}),
+    },
+    input: options.prompt,
     signal: options.signal,
   });
-
-  child.stdin.write(options.prompt);
-  child.stdin.end();
-
-  const [exitCode, stream, stderr] = await Promise.all([
-    child.exited,
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
-  ]);
 
   const run = parseClaudeStream({ stream, fallbackSessionId: sessionId });
 

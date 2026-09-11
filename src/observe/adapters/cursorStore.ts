@@ -1,11 +1,11 @@
+import {
+  maximumTextBytes,
+  maximumTranscriptWindowBytes,
+} from "../../io/limits";
 import { Database } from "bun:sqlite";
 import { stat } from "node:fs/promises";
 import path from "node:path";
-import {
-  isRecord,
-  readString,
-  readTimestamp,
-} from "../record";
+import { isRecord, readString, readTimestamp } from "../record";
 import type { FileCursor } from "../types";
 
 export type CursorBlob = {
@@ -70,7 +70,7 @@ function decodeBlob(data: Uint8Array): unknown {
 
 async function readSidecar(sourcePath: string): Promise<unknown> {
   const sidecar = Bun.file(path.join(path.dirname(sourcePath), "meta.json"));
-  if (!(await sidecar.exists())) {
+  if (!(await sidecar.exists()) || sidecar.size > maximumTextBytes) {
     return null;
   }
   try {
@@ -132,6 +132,18 @@ export async function readCursorStore(options: {
   let database: Database | null = null;
   try {
     database = openCursorDatabase(options.sourcePath);
+    const totalBytes =
+      database
+        .query<{ bytes: number }, []>(
+          "SELECT coalesce(sum(length(data) + length(id) + 64), 0) AS bytes FROM blobs",
+        )
+        .get()?.bytes ?? 0;
+    if (totalBytes > maximumTranscriptWindowBytes) {
+      console.warn(
+        "cursor: skipped a store exceeding the capture window limit",
+      );
+      return null;
+    }
     const blobs = database
       .query<BlobRow, []>("SELECT id, data FROM blobs ORDER BY rowid")
       .all()
@@ -141,7 +153,9 @@ export async function readCursorStore(options: {
       });
     const storedMeta = decodeMeta(
       database
-        .query<MetaRow, []>("SELECT value FROM meta WHERE key = '0'")
+        .query<MetaRow, []>(
+          "SELECT value FROM meta WHERE key = '0' AND length(value) <= 1048576",
+        )
         .get()?.value ?? "",
     );
     const sidecar = await readSidecar(options.sourcePath);

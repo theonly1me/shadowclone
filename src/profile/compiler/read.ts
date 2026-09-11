@@ -1,14 +1,12 @@
 import path from "node:path";
-import { resolveRedacted } from "../../redact";
+import { materializeSnapshot } from "../../redact";
+import { maximumProfileBytes } from "../../io/limits";
 import type { OriginScope } from "../../signal";
 import { splitProfileBlocks } from "../blocks";
 import { parseProfileBlocks } from "../parse";
 import { isSafeProfileSegment } from "../render";
 import type { ExistingProfileBlock, ProfileRule } from "../types";
-import {
-  profileBlockMetadata,
-  stripProfileMetadata,
-} from "../visible";
+import { profileBlockMetadata, stripProfileMetadata } from "../visible";
 import type { CompilerBlock } from "./types";
 
 const scopeFilenames = [
@@ -68,24 +66,21 @@ function compilerBlock(options: {
   };
 }
 
-async function readScopeFile(
-  filePath: string,
-): Promise<readonly CompilerBlock[]> {
-  const file = Bun.file(filePath);
-  if (!(await file.exists())) {
+async function readScopeFile(options: {
+  readonly filePath: string;
+  readonly profileDirectory: string;
+}): Promise<readonly CompilerBlock[]> {
+  const snapshot = await materializeSnapshot({
+    filePath: options.filePath,
+    roots: [options.profileDirectory],
+    maximumBytes: maximumProfileBytes,
+    parse: parseProfileBlocks,
+  });
+  if (snapshot === null) {
     return [];
   }
-  const rawBlocks = parseProfileBlocks(await file.text());
-  const redactedBlocks = splitProfileBlocks(
-    await resolveRedacted({
-      ref: {
-        type: "file",
-        sourcePath: filePath,
-        byteOffset: 0,
-        byteLength: file.size,
-      },
-    }),
-  );
+  const rawBlocks = snapshot.parsed;
+  const redactedBlocks = splitProfileBlocks(snapshot.redacted);
   if (rawBlocks.length !== redactedBlocks.length) {
     return [];
   }
@@ -107,7 +102,10 @@ export async function readCompilerBlocks(options: {
       origin: options.origin,
       targetRepo: options.targetRepo,
     }).map((relativePath) =>
-      readScopeFile(path.join(options.profileDirectory, relativePath)),
+      readScopeFile({
+        filePath: path.join(options.profileDirectory, relativePath),
+        profileDirectory: options.profileDirectory,
+      }),
     ),
   );
   return files.flat();

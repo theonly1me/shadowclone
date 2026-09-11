@@ -1,8 +1,10 @@
+import { runProcess } from "../io/process";
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { parseCursorStream } from "./parseCursor";
+import { runnerEnvironment } from "./environment";
 import { validateEngineExecution } from "./execution";
+import { parseCursorStream } from "./parseCursor";
 import { buildEnginePrompt } from "./prompt";
 import type {
   EngineRun,
@@ -66,24 +68,13 @@ async function runCursorProcess(options: {
     outputSchemaInPrompt: true,
   });
   const fallbackSessionId = crypto.randomUUID();
-  const process = Bun.spawn({
-    cmd: [
-      ...buildCursorArguments({ ...options.run, cwd: options.workspace }),
-      "--trust",
-    ],
+  const { exitCode, stdout: stream } = await runProcess({
+    arguments: [...buildCursorArguments({ ...options.run, cwd: options.workspace }), "--trust"],
     cwd: options.workspace,
-    env: options.environment,
-    stdin: "pipe",
-    stdout: "pipe",
-    stderr: "ignore",
+    environment: options.environment ?? runnerEnvironment({ engine: "cursor-agent" }),
+    input: prompt,
     signal: options.run.signal,
   });
-  process.stdin.write(prompt);
-  process.stdin.end();
-  const [exitCode, stream] = await Promise.all([
-    process.exited,
-    new Response(process.stdout).text(),
-  ]);
   const run = parseCursorStream({ stream, fallbackSessionId });
   return exitCode === 0 ? run : { ...run, isError: true };
 }
@@ -136,7 +127,7 @@ export async function runCursorAgent(
       run: options,
       workspace,
       environment: {
-        ...process.env,
+        ...runnerEnvironment({ engine: "cursor-agent" }),
         CURSOR_CONFIG_DIR: isolatedConfigDirectory,
       },
     });

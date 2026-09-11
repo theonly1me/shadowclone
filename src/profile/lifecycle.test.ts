@@ -29,7 +29,7 @@ function profileRule(options: {
     ...options,
     section: "workflow",
     scope: "org",
-    originDirectory: "github.com--acme",
+    originDirectory: "github.com--acme--936913df4a5c268b",
     repositoryName: null,
     source: "mined",
     status: "active",
@@ -58,7 +58,7 @@ function legacyBlock(options: {
 
 test("migrates edited legacy text and retires unedited template output", async () => {
   const paths = await createTestPaths();
-  const relativePath = "org/github.com--acme/workflow.md";
+  const relativePath = "org/github.com--acme--936913df4a5c268b/workflow.md";
   const filePath = path.join(paths.profileDirectory, relativePath);
   const uneditedVisible = "## Template advice\n\nAsk a question after every denial.";
   const originalEditedVisible = "## Review changes\n\nReview every generated change.";

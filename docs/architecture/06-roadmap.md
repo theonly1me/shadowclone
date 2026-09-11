@@ -12,7 +12,7 @@ Proves: nothing regressed, and there is one place to look for what gets touched 
 
 ## Phase 1, observe and index
 
-Status: implementation complete. Real corpus verification requires explicit source consent.
+Status: implementation complete. Session-based verification requires explicit source consent.
 
 `AgentEvent`, `TextRef`, `resolveRedacted`, the cursor, the Claude Code adapter, the SQLite index, and `shadowclone learn` doing a real ingest of the local corpus.
 
@@ -20,7 +20,7 @@ Proves: a full ingest completes, a second run is incremental, and a secret plant
 
 ## Phase 2, the mirror
 
-Status: mirror implementation complete. The pure replay scorer is built, but executable replay and real corpus tuning remain tracked in issue #14.
+Status: mirror implementation complete. The pure replay scorer remains a utility. Executable evaluation now uses the transfer evaluator; paid evaluation remains deferred.
 
 Structural derivation and the correction miner. `shadowclone learn` prints aggregate evidence and a deep-learning preview while leaving the profile unchanged. It makes zero model calls, and the first line of output says so.
 
@@ -28,13 +28,9 @@ Declared repository guidance follows a second zero-model path. `shadowclone impo
 
 Proves: the output surprises its own author. This is the quality bar for the whole project.
 
-Run it on the real 562 MB corpus and read it. A profile that says "runs tests, uses plan mode, prefers Bun" is something a good engineer writes in five minutes. A profile that names what you interrupt the agent for, in order, with counts, is something nobody has seen. Tune the extractors until it is the second one.
+Evaluate aggregate correction counts across enabled sessions and inspect whether the report identifies useful repeated steering. Structural counts do not establish alignment, task quality, or productivity.
 
-Later phases consume the measured moments. Explicit deep learning in phase 3 is the path that turns them into mined profile rules.
-
-Also in this phase, the replay eval. Take a past session, hand its first prompt to an engine with the profile loaded, and compare what the clone did with what the user did: tools chosen, verification ritual, files touched, plan before edit. Score it. The corpus is 372 ground-truth test cases and they cost nothing. This is what turns "acts like you" from a claim into a number in the README.
-
-The pure four-dimension scorer lands with the mirror. Connecting it to an observed engine run requires behavior extraction that does not store raw tool input, so issue #14 tracks the executable `shadowclone eval` path.
+Explicit deep learning turns eligible moments into mined profile rules. Executable evaluation now uses the [transfer evaluator](09-evaluation.md), which tests qualifying tasks for correctness and preference adherence. It consumes provider quota and remains unrun for this remediation.
 
 ## Phase 3, the clone inside your session
 
@@ -46,7 +42,7 @@ The engine module lands here too for explicit `learn --deep`. Deep learning reco
 
 Proves: install is one command, a normal session gets the user's conventions with no manual step, and `Agent(subagent_type: "<name>")` dispatches a copy of the user from inside that session.
 
-This is the first phase where shadowclone is a clone rather than a profile, and the first thing that runs before any clone has been trusted.
+This is the first phase where shadowclone is usable through a live agent, and the first thing that runs before any clone has been trusted.
 
 ## Phase 4, the clone while you are away
 
@@ -58,7 +54,7 @@ Proves: a task produces a worktree, a branch, a commit, and a receipt, with noth
 
 ## Phase 5, more providers
 
-Status: implementation complete. Real Codex and Cursor corpora and authenticated runs remain manual verification.
+Status: implementation complete. Codex and Cursor session parsing and authenticated runs remain manual verification.
 
 The Codex adapter and engine, then Cursor. Codex is a parser. Cursor is a different reader, since its chat state is a per session SQLite database rather than JSONL.
 
@@ -66,7 +62,7 @@ Cursor required the approved evolution of `TextRef` from a file range into a fil
 
 ## Phase 6, provider capabilities and Antigravity
 
-Status: implementation complete. Real Antigravity corpus verification requires explicit source consent.
+Status: implementation complete. Antigravity session verification requires explicit source consent.
 
 Add the static provider capability registry, purpose-aware engine selection, and separate observe, distill, and dispatch support reporting. Add Antigravity's off-by-default generated-log adapter. Record its engine capabilities, but do not add a runner while the CLI lacks a per-run deny-all tool policy.
 
@@ -78,13 +74,13 @@ One stacked PR per provider, initially GitHub Copilot CLI, OpenCode, Aider, and 
 
 Each provider may ship observation, distillation, and dispatch independently. A provider with no local transcript stays out of observation. A provider with no enforceable no-tools mode stays out of distillation. A provider with no enforceable budget or granular tool policy stays out of dispatch.
 
-Proves: provider breadth grows by adding registry metadata and boundary implementations rather than weakening the common pipeline.
+Proves: provider breadth grows by adding registry metadata and boundary implementations that preserve the common pipeline.
 
 ## Later, and deliberately not now
 
 **Learning from merge outcomes.** The diff between what a clone wrote and what the user shipped is the strongest correction signal available. It needs clone output good enough to be worth reviewing, so it waits until phase 4 has been used in anger.
 
-**Claims about productivity multiples.** None are made until the replay eval produces a number. The honest value is bounded and measurable, the agent stops repeating corrections it has already received, and a bounded number that holds beats a large one that does not.
+**Claims about productivity multiples.** No improvement is claimed without a measurement designed to support it. Transfer-evaluation outcomes do not measure user correction time or productivity.
 
 **A daemon.** Adds latency reduction and queued work, no new capability. The hook covers most of the value at a fraction of the moving parts.
 
@@ -92,4 +88,4 @@ Proves: provider breadth grows by adding registry metadata and boundary implemen
 
 **Multiple concurrent clones.** Parallel worktrees on separate tasks, with results merged back. The name promises this and the architecture allows it, but one clone has to be good before several are useful.
 
-**Profile sharing.** A profile is a portable markdown directory, so exporting a team lead's workflow rules is close to free. It is also the fastest way to leak an employer's internal details, so it needs a scrubbing step designed on purpose rather than a zip command.
+**Profile sharing.** A profile is a portable markdown directory, so exporting a team lead's workflow rules is close to free. It is also the fastest way to leak an employer's internal details, so any sharing feature needs a separate review and disclosure design.

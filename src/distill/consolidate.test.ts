@@ -17,7 +17,7 @@ function rule(sessionIndex: number): ProfileRule {
     body: "Choose the smallest change that satisfies the request.",
     section: "workflow",
     scope: "org",
-    originDirectory: "github.com--acme",
+    originDirectory: "github.com--acme--936913df4a5c268b",
     repositoryName: null,
     source: "mined",
     status: "candidate",

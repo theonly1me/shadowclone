@@ -55,7 +55,7 @@ test("removes a tool result pointer before a distillation batch", () => {
     timestamp: 0,
     origin: {
       id: "github.com/acme",
-      directoryName: "github.com--acme",
+      directoryName: "github.com--acme--936913df4a5c268b",
       promotable: true,
     },
     repositoryName: null,
@@ -80,7 +80,7 @@ test("allows assistant text only through a correction signal", () => {
     timestamp: 0,
     origin: {
       id: "github.com/acme",
-      directoryName: "github.com--acme",
+      directoryName: "github.com--acme--936913df4a5c268b",
       promotable: true,
     },
     repositoryName: null,

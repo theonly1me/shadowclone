@@ -1,3 +1,9 @@
+import { readBoundedFile, safeFilePath } from "../io/files";
+import { maximumTextBytes } from "../io/limits";
+import { parseTextRef } from "../observe";
+import { projectPaths } from "../paths";
+import { captureRoots } from "./roots";
+export { captureRoots } from "./roots";
 import os from "node:os";
 import { Database } from "bun:sqlite";
 import type { TextRef } from "../observe";
@@ -96,10 +102,10 @@ async function resolveSqliteText(
   try {
     database = new Database(ref.sourcePath, { readonly: true, strict: true });
     const row = database
-      .query<{ readonly data: Uint8Array }, [string]>(
-        "SELECT data FROM blobs WHERE id = ?",
+      .query<{ readonly data: Uint8Array }, [string, number]>(
+        "SELECT data FROM blobs WHERE id = ? AND length(data) <= ?",
       )
-      .get(ref.blobId);
+      .get(ref.blobId, maximumTextBytes);
     if (row === null) {
       return "";
     }
@@ -117,24 +123,38 @@ async function resolveSqliteText(
 
 export async function resolveRedacted(options: {
   readonly ref: TextRef;
+  readonly roots?: readonly string[];
 }): Promise<string> {
-  if (options.ref.type === "sqlite-blob") {
-    const text = await resolveSqliteText(options.ref);
-    return redactSecrets({ text });
-  }
-  const file = Bun.file(options.ref.sourcePath);
-  if (
-    !(await file.exists()) ||
-    file.size < options.ref.byteOffset + options.ref.byteLength
-  ) {
+  const ref = parseTextRef(options.ref);
+  if (ref === null) {
     return "";
   }
+  const roots = options.roots ?? captureRoots(projectPaths);
+  if (ref.type === "sqlite-blob") {
+    const sourcePath = await safeFilePath({ filePath: ref.sourcePath, roots });
+    if (sourcePath === null) {
+      return "";
+    }
+    return redactSecrets({ text: await resolveSqliteText({ ...ref, sourcePath }) });
+  }
+  const text = await readBoundedFile({
+    filePath: ref.sourcePath,
+    roots,
+    maximumBytes: maximumTextBytes,
+    offset: ref.byteOffset,
+    length: ref.byteLength,
+    fileIdentity: ref.fileIdentity,
+    contentHash: ref.contentHash,
+  });
+  return redactSecrets({ text: text ?? "" });
+}
 
-  const text = await file
-    .slice(
-      options.ref.byteOffset,
-      options.ref.byteOffset + options.ref.byteLength,
-    )
-    .text();
-  return redactSecrets({ text });
+export async function materializeSnapshot<Value>(options: {
+  readonly filePath: string;
+  readonly roots: readonly string[];
+  readonly maximumBytes: number;
+  readonly parse: (text: string) => Value;
+}): Promise<{ readonly parsed: Value; readonly redacted: string } | null> {
+  const text = await readBoundedFile(options);
+  return text === null ? null : { parsed: options.parse(text), redacted: redactSecrets({ text }) };
 }

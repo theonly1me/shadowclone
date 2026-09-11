@@ -1,6 +1,6 @@
-import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { EngineRunner } from "../engine";
+import { ownedWrite } from "../storage";
 import {
   distillationMergeOutputSchema,
   parseDistilledRules,
@@ -123,11 +123,10 @@ export async function mergeDistilledRules(options: {
       return options.rules;
     }
     if (checkpointPath) {
-      await mkdir(path.dirname(checkpointPath), { recursive: true });
-      await Bun.write(
-        checkpointPath,
-        `${JSON.stringify({ rules: parsed }, null, 2)}\n`,
-      );
+      await ownedWrite({
+        path: checkpointPath,
+        content: `${JSON.stringify({ rules: parsed }, null, 2)}\n`,
+      });
     }
     return parsed;
   } catch {

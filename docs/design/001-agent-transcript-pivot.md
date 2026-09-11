@@ -97,7 +97,7 @@ The gate relocation is a deliberate amendment to the rule in `.claude/skills/dat
 
 Redaction rules grow to cover transcript content: absolute paths outside the home directory, internal hostnames and private IP ranges, email addresses, cloud resource identifiers, and database connection strings. No existing rule is removed.
 
-Third-party data in tool results is excluded by category rather than redacted. The measured corpus holds 328 data-access calls, 194 Loki queries, 111 Postgres queries, and 23 actor log queries, whose results are customer log lines and database rows. Pattern matching cannot reliably find a customer email in a log dump, so those results are never read into the distillation path at all.
+Third-party data in tool results is excluded by category rather than redacted. Tool-result payloads can contain sensitive information. Pattern matching cannot reliably find a customer email in a log dump, so those results are never read into the distillation path at all.
 
 Derived rules are scoped to the organization they were learned from and are never compiled into a session targeting a different organization. This is the control that makes the tool usable on a work laptop, and it has no equivalent in the previous design because the previous design had one source and no concept of a target repo.
 
@@ -117,7 +117,7 @@ Acting is tiered per `data-handling`. Observe, derive, and draft run unattended.
 
 **Keep the gate at the collector exit and rely on the wiring test.** Consistent with what is written today, and it does not survive going from one source to four with five downstream stages. Making the mistake loud is weaker than making it impossible.
 
-**Redact third-party data harder instead of excluding it.** More permissive, and a category error. Redaction matches patterns, and a customer name in a log line matches no pattern. Excluding tool results costs some context about what the user was doing and removes the entire class of failure.
+**Redact third-party data harder instead of excluding it.** More permissive, and a category error. Redaction matches patterns, and a customer name in a log line matches no pattern. Excluding tool results removes this payload category from distillation but does not remove sensitive text that appears in eligible user messages.
 
 **One global profile with no origin scoping.** Simpler, better rules sooner, and unusable at any company. It moves data derived in an employer's repo into sessions on repos the employer has no relationship with.
 
@@ -135,7 +135,7 @@ Structural signals alone produce a partial profile. Anyone who never enables dee
 
 The correction miner's regex based extractor will produce false positives, so some rules will be wrong. Provenance and user editing are the correction mechanism, which means the profile is wrong until someone reads it.
 
-Origin scoping makes the profile worse at first. A rule observed only in one organization stays there, so a user who works mostly in one repo gets a smaller `global/` profile than a single pooled profile would give them. Automatic promotion at two organizations and manual promotion are the mitigations, and neither recovers the full pooled quality.
+Origin scoping makes the profile worse at first. A rule observed only in one organization stays there, so a user who works mostly in one repo gets a smaller `global/` profile than a single pooled profile would give them. Global guidance requires deliberate user review. Automatic promotion from two owners is not implemented.
 
 Excluding tool results removes real signal. Knowing that a test failed and what the failure was would improve a rule about verification habits. That signal is given up, deliberately, because the same field can hold a customer's data.
 
@@ -201,7 +201,7 @@ Rules are scoped to the organization they were learned from, because the subscri
 
 A rule promotes to global after being observed in two or more distinct organizations, because a habit that survives across employers is the person's rather than any employer's.
 
-Third-party data is excluded from distillation by category instead of being redacted, because redaction matches patterns and customer data is not a pattern.
+Tool-result payloads are excluded from distillation by category. Enabled user messages can still contain sensitive prose that pattern redaction does not recognize.
 
 Managed policy is a root owned file whose every field is a ceiling, because an administrator needs to constrain a fleet without editing anyone's home directory.
 

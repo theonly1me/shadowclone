@@ -8,7 +8,7 @@ import type { ProfileRule } from "./index";
 
 const acmeOrigin: OriginScope = {
   id: "github.com/acme",
-  directoryName: "github.com--acme",
+  directoryName: "github.com--acme--936913df4a5c268b",
   promotable: true,
 };
 

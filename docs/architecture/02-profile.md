@@ -30,7 +30,7 @@ Sending 562 MB to a model is not affordable. The work splits by whether it needs
 
 **Structural signals cost zero tokens.** They are computed in pure code over the index. Session and origin counts, tool histograms, plan activity, interruptions, permission denials, answered questions, and resolved plans form the mirror. They are evidence about how a person works, not instructions, so this path reports them without writing profile rules.
 
-**Semantic learning costs tokens, over a very small input.** The correction miner reduces the corpus to the moments that carry preference, roughly a thousand to one. Explicit deep learning resolves allowlisted correction moments and the existing profile through the redaction gate, gives them opaque local tokens, and asks the selected authenticated agent CLI to reconcile support, disagreement, narrowing, new guidance, and prior rejections.
+**Semantic learning costs tokens, over a very small input.** The correction miner reduces the corpus to the moments that carry preference, using explicit eligibility rules. Explicit deep learning resolves allowlisted correction moments and the existing profile through the redaction gate, gives them opaque local tokens, and asks the selected authenticated agent CLI to reconcile support, disagreement, narrowing, new guidance, and prior rejections.
 
 `shadowclone learn` updates the local index and prints the structural report. It leaves every profile file unchanged. `shadowclone learn --deep` shows the proposed reconciliation and asks once before writing. `--deep --dry-run` runs the same analysis with an in-memory index and no checkpoint or profile write. `--deep --apply` skips the confirmation. Deep learning remains the only observed-behavior path that can write mined rules, and it requires a second explicit enable in the config.
 
@@ -38,7 +38,7 @@ Sending 562 MB to a model is not affordable. The work splits by whether it needs
 
 The highest value record in a transcript is the moment the user overrode the agent. It is a labeled preference pair, produced for free by someone doing their job, and it is grounded in what they did rather than what they would say about themselves in a settings page.
 
-Six extractors, ordered by yield measured against a real 562 MB corpus of 372 sessions. The counts below are from that machine and are what the implementation should expect to find, not estimates.
+Across 372 sessions, the structural counts below were observed. They describe that sample only; they do not predict another corpus or measure clone quality.
 
 **Interruption, 994 found.** The user stopped the agent mid work. Claude Code writes the exact marker `[Request interrupted by user`, so extraction is a string match with no inference. What was running when it was stopped is the signal, and this is the single richest source in the corpus.
 
@@ -52,15 +52,15 @@ Six extractors, ordered by yield measured against a real 562 MB corpus of 372 se
 
 **Correction prompt, 13 found in 682 prompts.** A user turn opening with no, don't, actually, instead, revert, or wrong. This was expected to be a high yield extractor and it is not: it fires on 1.9 percent of prompts. It ships last, or not at all, and nothing in the design should depend on it.
 
-The structured markers the harness already writes are worth far more than any heuristic over prose. Roughly 1,750 zero-ambiguity correction events exist without a single regex over user text.
+The structured markers the harness already writes are worth far more than any heuristic over prose. Structured markers can identify candidate steering events, but a marker alone does not establish a durable user preference.
 
-The miner runs over the index and emits `Signal` values holding `TextRef` pointers. Text is materialized only inside `src/distill/`, once, redacted, and dropped.
+The miner runs over the index and emits `Signal` values holding `TextRef` pointers. Eligible excerpts are materialized through the bounded redaction helpers before prompt construction; private checkpoints and evaluation state can retain derived or selected content.
 
 ## The mirror
 
 `shadowclone learn` prints measured evidence without changing the profile. A developer has rarely been shown how they actually work with an agent, and the terminal output is where that becomes visible, so its shape is specified here rather than left to whoever writes the CLI.
 
-The block below is the output from the end-to-end fixture used by the learning command test. It specifies the same shape used for a real corpus without publishing a product result from test data.
+The block below is the output from the end-to-end fixture used by the learning command test. It illustrates the supported profile shape; fixture output is not a product result.
 
 ```
 $ shadowclone learn
@@ -106,7 +106,7 @@ Nothing in the output is captured text. Category labels are derived and tool nam
 
 The last section previews how many pointer-bearing moments and reconciliation batches explicit deep learning would process. Plain learning then states that the profile stayed unchanged.
 
-The output is judged on one question: does it surprise the person it describes. A profile that could have been written from memory in five minutes is not wrong, it is just not worth running, and it is not worth sharing. The extractors are tuned against that question on the real corpus before anything downstream is built.
+The output is judged on one question: does it surprise the person it describes. A profile that could have been written from memory in five minutes is not wrong, it is just not worth running, and it is not worth sharing. Transfer evaluations can test whether the derived guidance improves held-out task outcomes; this is separate from extractor correctness.
 
 ## Files
 

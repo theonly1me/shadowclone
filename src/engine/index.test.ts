@@ -46,10 +46,7 @@ test("builds bounded Claude arguments without a prompt or bypass mode", () => {
   expect(arguments_).toContain("--append-system-prompt-file");
   expect(arguments_).toContain("--allowedTools");
   expect(arguments_).toContain("Edit");
-  expect(arguments_).toContain("--setting-sources");
-  expect(arguments_).toContain("user,project");
   expect(arguments_).toContain("dontAsk");
-  expect(arguments_).not.toContain("");
   expect(arguments_).not.toContain("private prompt");
   expect(arguments_).not.toContain("bypassPermissions");
   expect(arguments_).not.toContain("--dangerously-skip-permissions");

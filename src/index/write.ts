@@ -59,15 +59,16 @@ export function saveObservationBatch(options: {
       }
 
       options.database
-        .query<void, [string, string, number, number, number]>(
+        .query<void, [string, string, number, number, number, string | null, number, number]>(
           `INSERT INTO cursors (
-            source_path, source, byte_size, modified_at, byte_offset
-          ) VALUES (?, ?, ?, ?, ?)
+            source_path, source, byte_size, modified_at, byte_offset, identity, discarding, omitted_records
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(source_path) DO UPDATE SET
             source = excluded.source,
             byte_size = excluded.byte_size,
             modified_at = excluded.modified_at,
-            byte_offset = excluded.byte_offset`,
+            byte_offset = excluded.byte_offset,
+            identity = excluded.identity, discarding = excluded.discarding, omitted_records = excluded.omitted_records`,
         )
         .run(
           observationBatch.sourcePath,
@@ -75,6 +76,9 @@ export function saveObservationBatch(options: {
           observationBatch.cursor.byteSize,
           observationBatch.cursor.modifiedAt,
           observationBatch.cursor.byteOffset,
+          observationBatch.cursor.identity ?? null,
+          observationBatch.cursor.discarding ? 1 : 0,
+          observationBatch.cursor.omittedRecords ?? 0,
         );
     },
   );

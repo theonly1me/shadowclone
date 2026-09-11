@@ -12,6 +12,15 @@ export {
   runCursorAgent,
 } from "./cursorAgent";
 export {
+  denySubpathRules,
+  maskArguments,
+  type BlockedPath,
+} from "./evaluationIsolation/blocked";
+export {
+  allowsRemoteActions,
+  runnerEnvironment,
+} from "./environment";
+export {
   detectClaudeCode,
   detectCodex,
   detectCursorAgent,

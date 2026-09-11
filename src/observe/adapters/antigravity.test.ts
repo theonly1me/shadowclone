@@ -115,7 +115,7 @@ test("indexes Antigravity text pointers without tool results or thinking", async
   ]);
   const prompt = events[0];
   const promptText = prompt?.textRef
-    ? await resolveRedacted({ ref: prompt.textRef })
+    ? await resolveRedacted({ ref: prompt.textRef, roots: [path.dirname(prompt.textRef.sourcePath)] })
     : "";
   expect(prompt?.sessionId).toBe("conversation-fixture");
   expect(promptText).not.toContain(plantedSecret);

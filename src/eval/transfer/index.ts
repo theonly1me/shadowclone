@@ -1,3 +1,5 @@
+import { lockEvaluation } from "./lock";
+import { evaluationBudget } from "./accounting";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -31,8 +33,17 @@ export async function runTransferEval(
     path.join(os.tmpdir(), "shadowclone-eval-control-"),
   );
 
+  let releaseLock: (() => Promise<void>) | null = null;
   try {
+    releaseLock = await lockEvaluation(setup.directory);
+    const budget = await evaluationBudget({
+      directory: setup.directory,
+      resume: setup.saved !== null,
+      limitUsd: setup.maxBudgetUsd,
+      maximumCalls: invocationCeiling({ tasks: setup.count, repeat: setup.repeat }),
+    });
     const call = modelCaller({
+      budget,
       runner: setup.runner,
       engine: setup.engine,
       model: setup.model,
@@ -71,6 +82,7 @@ export async function runTransferEval(
         events,
         repository: setup.repository,
         config: setup.config,
+        paths: setup.paths,
       });
 
       const revListOutput = await command({
@@ -122,7 +134,7 @@ export async function runTransferEval(
       });
 
       receipt = initialReceipt({
-        schemaVersion: 2,
+        schemaVersion: 3,
         evalId: setup.evalId,
         repository: setup.repository,
         engine: setup.engine,
@@ -145,6 +157,10 @@ export async function runTransferEval(
       json: options.json ?? false,
     });
   } finally {
-    await rm(controlDirectory, { recursive: true, force: true });
+    try {
+      await rm(controlDirectory, { recursive: true, force: true });
+    } finally {
+      await releaseLock?.();
+    }
   }
 }

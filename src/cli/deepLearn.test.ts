@@ -11,7 +11,7 @@ import { runDeepLearning } from "./deepLearn";
 
 const origin: OriginScope = {
   id: "github.com/acme",
-  directoryName: "github.com--acme",
+  directoryName: "github.com--acme--936913df4a5c268b",
   promotable: true,
 };
 

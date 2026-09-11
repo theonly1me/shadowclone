@@ -1,6 +1,6 @@
-import { mkdir, rm } from "node:fs/promises";
-import path from "node:path";
+import { rm } from "node:fs/promises";
 import type { ProjectPaths } from "../paths";
+import { ownedDirectory, ownedWrite } from "../storage";
 import {
   generatedProfileEntry,
   prepareProfileWrite,
@@ -40,7 +40,7 @@ export async function writeProfile(options: {
   readonly rules: readonly ProfileRule[];
   readonly retired?: readonly ProfileRuleReference[];
 }): Promise<ProfileWriteResult> {
-  await mkdir(options.paths.profileDirectory, { recursive: true });
+  await ownedDirectory(options.paths.profileDirectory);
   const prepared = await prepareProfileWrite({
     paths: options.paths,
     rules: options.rules,
@@ -143,8 +143,10 @@ export async function writeProfile(options: {
       }
     }
     if (nextBlocks.length > 0) {
-      await mkdir(path.dirname(file.filePath), { recursive: true });
-      await Bun.write(file.filePath, `${nextBlocks.join("\n\n")}\n`);
+      await ownedWrite({
+        path: file.filePath,
+        content: `${nextBlocks.join("\n\n")}\n`,
+      });
       writtenFiles += 1;
       ruleCount += nextBlocks.length;
     } else if (file.blocks.length > 0) {
@@ -165,14 +167,14 @@ export async function writeProfile(options: {
   for (const entry of prepared.retired.values()) {
     nextState.set(entry.key, entry);
   }
-  await Bun.write(
-    options.paths.profileManifestFile,
-    renderGeneratedProfileState([...nextState.values()]),
-  );
-  await Bun.write(
-    options.paths.rejectedProfileFile,
-    renderProfileRejections([...prepared.rejections.values()]),
-  );
+  await ownedWrite({
+    path: options.paths.profileManifestFile,
+    content: renderGeneratedProfileState([...nextState.values()]),
+  });
+  await ownedWrite({
+    path: options.paths.rejectedProfileFile,
+    content: renderProfileRejections([...prepared.rejections.values()]),
+  });
   return {
     files: writtenFiles,
     rules: ruleCount,

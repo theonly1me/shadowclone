@@ -44,7 +44,7 @@ export type DelegationTask = {
 
 export type PreparedEval = {
   readonly context: readonly { readonly relativePath: string; readonly content: string }[];
-  readonly schemaVersion: 2;
+  readonly schemaVersion: 3;
   readonly evalId: string;
   readonly repository: string;
   readonly engine: EngineId;
@@ -76,7 +76,7 @@ export type TransferRun = {
 };
 
 export type TransferReceipt = {
-  readonly schemaVersion: 2;
+  readonly schemaVersion: 3;
   readonly evalId: string;
   readonly status: "complete" | "insufficient-evidence" | "incomplete";
   readonly preparedFingerprint: string;

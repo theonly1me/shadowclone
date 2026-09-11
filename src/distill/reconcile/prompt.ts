@@ -1,5 +1,9 @@
 import { resolveRedacted } from "../../redact";
-import type { PromptEvidence, PromptRule, ReconciliationContext } from "./types";
+import type {
+  PromptEvidence,
+  PromptRule,
+  ReconciliationContext,
+} from "./types";
 
 function ruleText(rule: PromptRule): string {
   const options = rule.axisOptions.flatMap((option) => [
@@ -14,7 +18,9 @@ function ruleText(rule: PromptRule): string {
     `Applies when: ${rule.snapshot.promptAppliesWhen.join(", ") || "always"}`,
     `Evidence: ${rule.snapshot.rule.evidence.for.length} supporting, ${rule.snapshot.rule.evidence.against.length} contradicting`,
     ...(rule.snapshot.promptProposal
-      ? [`Pending ${rule.snapshot.promptProposal.kind}: ${rule.snapshot.promptProposal.text}`]
+      ? [
+          `Pending ${rule.snapshot.promptProposal.kind}: ${rule.snapshot.promptProposal.text}`,
+        ]
       : []),
     ...options,
   ].join("\n");
@@ -23,10 +29,11 @@ function ruleText(rule: PromptRule): string {
 async function evidenceText(options: {
   readonly evidence: PromptEvidence;
   readonly maxExcerptCharacters: number;
+  readonly sourceRoots?: readonly string[];
 }): Promise<string> {
   const excerpts: string[] = [];
   for (const ref of options.evidence.signal.textRefs) {
-    const text = await resolveRedacted({ ref });
+    const text = await resolveRedacted({ ref, roots: options.sourceRoots });
     if (text.length > 0) {
       excerpts.push(text.slice(0, options.maxExcerptCharacters));
     }
@@ -41,11 +48,13 @@ async function evidenceText(options: {
 export async function buildReconciliationPrompt(options: {
   readonly context: ReconciliationContext;
   readonly maxExcerptCharacters?: number;
+  readonly sourceRoots?: readonly string[];
 }): Promise<string> {
   const evidence = await Promise.all(
     options.context.evidence.map((entry) =>
       evidenceText({
         evidence: entry,
+        sourceRoots: options.sourceRoots,
         maxExcerptCharacters: options.maxExcerptCharacters ?? 4_000,
       }),
     ),

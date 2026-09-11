@@ -1,9 +1,12 @@
-import { mkdir } from "node:fs/promises";
-import path from "node:path";
+import { resolveInstallTarget } from "./installTarget";
+import {
+  checkArtifactWrite,
+  writeInstalledArtifact,
+} from "./artifactOwnership";
 import { readEffectiveConfig } from "../config";
 import { canonicalPath, projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { compileProfile, writeAgent } from "../profile";
+import { compileProfile, renderAgent } from "../profile";
 import {
   isOriginBlocked,
   resolveRepository,
@@ -17,16 +20,11 @@ import {
 } from "./installArtifacts";
 import {
   mergeInstallation,
+  findInstallation,
   readInstallations,
   writeInstallations,
   type InstalledArtifact,
 } from "./installState";
-
-async function writeDelegationSkill(cwd: string): Promise<void> {
-  const skillPath = path.join(cwd, artifactRelativePaths["delegation-skill"]);
-  await mkdir(path.dirname(skillPath), { recursive: true });
-  await Bun.write(skillPath, renderDelegationSkill());
-}
 
 export async function installLiveClone(
   options: {
@@ -50,6 +48,9 @@ export async function installLiveClone(
   if (!policy.enabled) {
     throw new Error("Shadowclone is disabled by managed policy");
   }
+  if (await resolveInstallTarget({ directory: canonicalPath(cwd) }) === null) {
+    throw new Error("Install requires a repository root");
+  }
   const repository = await resolveRepository({
     cwd,
     enabled: config.sources["git-metadata"],
@@ -67,23 +68,40 @@ export async function installLiveClone(
     },
     outputPath: paths.compiledProfileFile,
   });
-  await writeAgent({ targetDirectory: cwd, profile: compilation.markdown });
-
-  const artifacts: InstalledArtifact[] = ["agent"];
-  if (options.autoDelegate === true) {
-    await writeDelegationSkill(cwd);
-    artifacts.push("delegation-skill");
+  const state = await readInstallations(paths.installationsFile);
+  const directory = canonicalPath(cwd);
+  const installation = findInstallation({ state, directory });
+  const artifacts: InstalledArtifact[] = options.autoDelegate
+    ? ["agent", "delegation-skill"]
+    : ["agent"];
+  const targets = await Promise.all(
+    artifacts.map((artifact) =>
+      checkArtifactWrite({ directory, artifact, installation }),
+    ),
+  );
+  const fingerprints: Partial<Record<InstalledArtifact, string>> = {};
+  for (const [index, artifact] of artifacts.entries()) {
+    const target = targets[index];
+    if (!target) {
+      throw new Error("Installation target is unavailable");
+    }
+    fingerprints[artifact] = await writeInstalledArtifact({
+      target,
+      content:
+        artifact === "agent"
+          ? renderAgent({ profile: compilation.markdown })
+          : renderDelegationSkill(),
+    });
   }
   const excludes = await addGitExcludes({
     cwd,
     patterns: artifacts.map((artifact) => artifactExcludePatterns[artifact]),
   });
-  const state = await readInstallations(paths.installationsFile);
   await writeInstallations({
     filePath: paths.installationsFile,
     state: mergeInstallation({
       state,
-      installation: { directory: canonicalPath(cwd), artifacts, excludes },
+      installation: { directory, artifacts, excludes, fingerprints },
     }),
   });
 

@@ -1,7 +1,7 @@
+import { resolveInstallTarget } from "./installTarget";
 import { canonicalPath, projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import {
-  artifactExcludePatterns,
   removeArtifacts,
   removeGitExcludes,
 } from "./installArtifacts";
@@ -27,19 +27,22 @@ export async function uninstallLiveClone(
   const cwd = options.cwd ?? process.cwd();
   const paths = options.paths ?? projectPaths;
   const directory = canonicalPath(cwd);
+  if (await resolveInstallTarget({ directory }) === null) {
+    throw new Error("Uninstall requires a repository root");
+  }
   const state = await readInstallations(paths.installationsFile);
   const recorded = findInstallation({ state, directory });
   const removed = await removeArtifacts({
     directory: cwd,
     artifacts: recorded?.artifacts ?? knownArtifacts,
+    installation: recorded,
   });
   await removeGitExcludes({
     cwd,
     patterns:
-      recorded?.excludes ??
-      knownArtifacts.map((artifact) => artifactExcludePatterns[artifact]),
+      recorded?.excludes ?? [],
   });
-  if (recorded !== null) {
+  if (recorded !== null && removed === recorded.artifacts.length) {
     await writeInstallations({
       filePath: paths.installationsFile,
       state: removeInstallation({ state, directory }),

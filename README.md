@@ -9,7 +9,7 @@ Today it imports existing repository guidance, observes enabled Claude Code, Cod
 Run the evaluation instrument on your own corpus:
 
 ```bash
-shadowclone eval --sessions 10
+shadowclone eval --tasks 5 --engine codex
 ```
 
 ## What Shadowclone is
@@ -41,7 +41,7 @@ declared repository guidance  ->  redact  -----+
 | import | `src/importRules/` | Redacts supported repository instructions and synchronizes one rule per file |
 | profile | `src/profile/` | Plain Markdown rules and subagents scoped globally, by remote owner, or by exact repository |
 | dispatch | `src/dispatch/` | Executes unattended tasks on isolated worktrees with receipts |
-| eval | `src/eval/` | Replays historical prompts through baseline vs clone to score behavioral deltas |
+| eval | `src/eval/` | Runs qualifying tasks at historical commits and compares baseline and clone correctness and preference adherence |
 
 Model calls run through `claude`, `codex`, or `cursor-agent`. There is no shadowclone API key, no telemetry, and no hosted server.
 
@@ -56,7 +56,7 @@ Implementation support is tracked separately for each use. A provider appearing 
 | Cursor | yes | yes | no | no | no |
 | Antigravity | yes | no | no | no | no |
 
-`shadowclone doctor` checks installed and authenticated engines. Real provider corpora, plugin installation, and authenticated engine runs remain manual verification steps.
+`shadowclone doctor` checks installed and authenticated engines. Provider compatibility, plugin installation, and authenticated engine runs require separate verification.
 
 ## Quickstart
 
@@ -95,7 +95,7 @@ Only transcript and history sources with a non-empty configured root receive a c
 Before consent, onboarding may check whether a configured source root exists and is non-empty. It keeps only that boolean so it can omit absent providers from its questions. It does not retain or log a source path, entry name, count, timestamp, size, or provider-derived identifier.
 
 - **`declared-rules`** reads only the supported repository guidance paths after consent. Imports are local and deterministic, call no model, and store only redacted content plus opaque synchronization identifiers.
-- **`git-metadata`** reads the git remote origin of a working directory, so rules can be scoped to the `host/owner` or exact repository they came from. Without it every directory is treated as its own isolated origin.
+- **`git-metadata`** reads the git remote origin of a working directory, so rules can be scoped to the `host/owner` or exact repository they came from. Without it every directory is treated as its own isolated origin. Previously observed session bindings persist across index migrations. Unbound sessions predating the current index stay isolated because their historical owner cannot be established.
 - **`agent-context`** reads the user's own `CLAUDE.md` or `AGENTS.md`, their skill markdown, and their agent memory directory. It exists so a transfer evaluation can freeze the same setup for both arms, and it is read only by `shadowclone eval`. Contents pass through redaction before they are written into a snapshot.
 
 Import or synchronize repository guidance without repeating the rest of onboarding:
@@ -148,9 +148,9 @@ shadowclone uninstall
 
 Install writes `.claude/agents/shadowclone.md` and excludes it from git tracking. Pass `--auto-delegate` to also write a `.claude/skills/shadowclone/SKILL.md` workflow that hands bounded parallel work to the clone as a written brief. That routing is a choice you make, not something Shadowclone learned, so it stays off by default.
 
-One compiler produces every clone. It reads global guidance, the matching remote owner, and the one project file for this repository, and it opens nothing else. Selection is deterministic for identical inputs. User-written, declared, and imported guidance ranks ahead of mined guidance, two active choices from the same seed axis cannot both reach an agent, and unsupported or stale mined rules stay out. Each block carries its source and its stated conditions. The output is capped at 16 KiB and only whole blocks are dropped, so no rule is ever cut mid-sentence.
+One compiler produces every clone. It selects global guidance, the matching remote owner, and the project file for this repository. Each input file is bounded and materialized once. Selection is deterministic for identical inputs. User-written, declared, and imported guidance ranks ahead of mined guidance, two active choices from the same seed axis cannot both reach an agent, and unsupported or stale mined rules stay out. Each block carries its source and its stated conditions. The output is capped at 16 KiB and only whole blocks are dropped, so no rule is ever cut mid-sentence.
 
-`shadowclone uninstall` removes what install wrote in this repository, including the exclude lines it added, and leaves unrelated `.claude` files alone.
+`shadowclone uninstall` removes recorded files whose content still matches the installation fingerprint and the exclude lines it added. Modified, unrelated, and unverifiable files remain.
 
 The profile is yours to correct. Editing the visible text of a generated or imported block makes it active user guidance and preserves your version verbatim. Reconciliation can add evidence and a proposal to that metadata without replacing your text. Deleting a rule records its persistent id and last generated text in `.rejected`; deep learning sees a redacted, opaque view of those rejections and omits proposed paraphrases it identifies as equivalent.
 
@@ -163,16 +163,17 @@ shadowclone eval --tasks 5 --engine codex
 ```
 
 The evaluator selects historical requests that name an identifiable starting commit, rebuilds each one as an isolated git snapshot at that commit, and runs the task twice:
+
 1. **Baseline run:** the agent with frozen instructions and no profile.
 2. **Clone run:** the same agent with the profile learned from sessions strictly earlier than the task.
 
 Arm order alternates between repetitions, and the profile is learned only from evidence that predates the task and shares no session with it.
 
-Each run is graded two ways. The repository's own `test` and `typecheck` scripts run inside a `sandbox-exec` or `bubblewrap` boundary with no network. A blind judge then grades the observed files and actions twice with the requirement order reversed, and any disagreement between the two passes is recorded as uncertain rather than resolved.
+Each run is graded two ways. The repository's own `test` and `typecheck` scripts run inside a `sandbox-exec` or `bubblewrap` boundary with no network. A blind judge then grades the observed files and actions twice with the requirement order reversed, and disagreements between the two passes are recorded as uncertain.
 
-The command previews how many agent invocations it may spend and asks before starting. Pass `--yes` to skip the prompt, or `--json` for machine-readable output.
+Interactive runs preview invocation limits and budget behavior before starting. Claude defaults to a $2 total requested budget shared across all evaluation phases and retries. Codex uses call and time limits and rejects dollar caps. Provider billing may exceed a limit during an in-flight request. Pass `--yes` to skip the prompt, or `--json` for a reduced machine-readable report.
 
-Receipts are written to `~/.shadowclone/eval/<evalId>/receipt.json` after every run, so `--eval-id <id>` resumes an interrupted evaluation against the same frozen tasks.
+Private frozen inputs are saved in `~/.shadowclone/eval/<evalId>/state.json`, cumulative usage in `budget.json`, and reduced metrics in `report.json`. `--eval-id <id>` resumes compatible state without resetting its budget. Older state without trustworthy accounting is rejected. Do not share private state files.
 
 ## Unattended dispatch
 
@@ -196,36 +197,32 @@ Repository ceilings use the full `host/owner/repository` identity and require th
 
 ```bash
 shadowclone run "prepare release notes" --approve push
+shadowclone run "open a draft for the fix" --approve push --approve pr-draft
+shadowclone run "reply with the findings" --approve pr-reply --pr 123
 ```
 
-## Ground-truth privacy
+GitHub actions run through host helpers scoped to the approved repository. PR replies require an explicit PR number. The agent does not receive a GitHub token or unrestricted `gh` tools.
 
-Agent transcripts contain private code, environment variables, internal hosts, and customer data. Shadowclone protects data through structural guarantees:
+## Data handling
 
-**Pointers instead of text copies.**
-The SQLite index stores file offsets, timestamps, and event kinds. Raw transcripts are never duplicated to a secondary store.
+[Data handling](docs/data-handling.md) describes consent, local storage, provider requests, retention, deletion, and execution permissions. [SECURITY.md](SECURITY.md) explains reporting and the supported boundaries.
 
-**Sliced secret redaction.**
-Distillation excerpts, existing profile rules, and rejection text pass through the same deterministic sliced replacer before reaching any model. Secrets keep identifying prefixes (such as `AKIA` or `sk_live_`) while stripping high-entropy characters, keeping code context intact without leaking credentials. Persistent rule, rejection, origin, repository, and evidence identities are replaced with prompt-local opaque tokens.
+The index stores metadata and pointers instead of whole transcript text. Selected and derived content can remain in profiles, checkpoints, and private evaluation state. Generated state uses private filesystem permissions, not encryption.
 
-**Shannon entropy layer.**
-Tokens of 24 characters or more that reach 4.5 bits of entropy per character are sliced under the `shannon-entropy` label, even when they match no known vendor pattern. Long identifiers, file paths, and UUIDs measure below that threshold and stay readable.
+Learning excludes tool-result payloads and thinking blocks. Eligible prompts and assistant context can still contain sensitive information. Pattern redaction can miss secrets or confidential prose and can remove harmless text; it is not comprehensive personal-data or credential detection.
 
-**Third-party tool results are excluded.**
-Distillation inputs allowlist user prompts and developer steering corrections. Tool outputs from database queries, log dumps, and file reads are excluded by category rather than relying on regex filtering.
-
-**Shadowclone home wipe.**
-Remove the local index, profile, checkpoints, receipts, and worktrees under `~/.shadowclone/`:
+Remove Shadowclone's local data with:
 
 ```bash
 shadowclone forget --all
 ```
 
-Shadowclone records every repository it installs into at `~/.shadowclone/installations.json`, so `forget --all` removes those agent files, delegation skills, and the exclude lines it added before removing the home directory. The manifest stores local directories and fixed artifact names, never profile text. An install created before this manifest existed is not discoverable; run `shadowclone uninstall` in that repository, or `shadowclone install` once to record it.
+This deletes its worktrees too, including unfinished work. It attempts removal of matching recorded repository installs and preserves modified or unverifiable artifacts. Source transcripts, remote branches and PRs, provider copies, backups, and Git history remain. Older installations without fingerprints may require manual cleanup.
 
 ## Enterprise governance
 
-Security teams can enforce policy ceilings fleet-wide via root-owned managed configuration:
+Security teams can configure ceilings for this installation via root-owned managed configuration:
+
 - **macOS:** `/Library/Application Support/shadowclone/managed.json`
 - **Linux:** `/etc/shadowclone/managed.json`
 
@@ -234,7 +231,7 @@ Security teams can enforce policy ceilings fleet-wide via root-owned managed con
   "enabled": true,
   "allowedSources": ["claude-code"],
   "allowedEngines": ["claude-code"],
-  "distillation": "local-only",
+  "distillation": "allowed",
   "originScope": "strict",
   "blockedOrigins": ["github.com/acme/security-*"],
   "maxActionTier": "draft"
@@ -255,9 +252,9 @@ shadowclone doctor                               # Inspect active paths, engines
 shadowclone install [--auto-delegate]            # Install profile as .claude/agents/shadowclone.md
 shadowclone uninstall                            # Remove this repository's shadowclone files
 shadowclone run <task> [--approve <action>]      # Dispatch headless clone in a worktree
-shadowclone eval [--sessions N] [--json]         # Measure behavioral deltas against baseline
+shadowclone eval [--tasks N] [--json]            # Compare baseline and clone on qualifying tasks
 shadowclone mcp                                  # Start stdio Model Context Protocol server
-shadowclone forget --all                         # Remove ~/.shadowclone/ and every recorded install
+shadowclone forget --all                         # Delete local state and matching recorded installs
 ```
 
 ## Contributing

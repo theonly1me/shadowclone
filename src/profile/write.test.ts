@@ -21,7 +21,7 @@ function profileRule(observations: number): ProfileRule {
     body: "Run the narrow check before the full suite.",
     section: "workflow",
     scope: "org",
-    originDirectory: "github.com--acme",
+    originDirectory: "github.com--acme--936913df4a5c268b",
     repositoryName: null,
     source: "mined",
     status: "active",

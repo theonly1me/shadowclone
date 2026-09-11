@@ -5,10 +5,12 @@ import {
   type ObservationBatch,
   type TextRef,
 } from "../observe";
-import type {
-  CorpusSummary,
-  IndexedEvent,
-} from "./types";
+import type { CorpusSummary, IndexedEvent } from "./types";
+import {
+  readOriginBinding,
+  writeOriginBinding,
+  type BoundRepository,
+} from "./originBinding";
 import { saveObservationBatch } from "./write";
 
 type CursorRow = {
@@ -16,6 +18,9 @@ type CursorRow = {
   readonly byte_size: number;
   readonly modified_at: number;
   readonly byte_offset: number;
+  readonly identity: string | null;
+  readonly discarding: number;
+  readonly omitted_records: number;
 };
 
 type EventRow = {
@@ -77,7 +82,7 @@ export class EventIndex {
   getCursor(sourcePath: string): FileCursor | null {
     const row = this.#database
       .query<CursorRow, [string]>(
-        `SELECT source_path, byte_size, modified_at, byte_offset
+        `SELECT source_path, byte_size, modified_at, byte_offset, identity, discarding, omitted_records
          FROM cursors WHERE source_path = ?`,
       )
       .get(sourcePath);
@@ -89,6 +94,13 @@ export class EventIndex {
           byteSize: row.byte_size,
           modifiedAt: row.modified_at,
           byteOffset: row.byte_offset,
+          ...(row.identity === null
+            ? {}
+            : {
+                identity: row.identity,
+                discarding: row.discarding === 1,
+                omittedRecords: row.omitted_records,
+              }),
         };
   }
 
@@ -136,6 +148,31 @@ export class EventIndex {
 
   countSessions(): number {
     return this.getCorpusSummary().sessions;
+  }
+
+  getOriginObservationStart(): number {
+    return (
+      this.#database
+        .query<{ started_at: number }, []>(
+          "SELECT started_at FROM origin_observation WHERE singleton = 1",
+        )
+        .get()?.started_at ?? Number.POSITIVE_INFINITY
+    );
+  }
+
+  getOriginBinding(originKey: string): BoundRepository | null {
+    return readOriginBinding({ database: this.#database, originKey });
+  }
+
+  bindOrigin(options: {
+    readonly originKey: string;
+    readonly repository: BoundRepository;
+  }): void {
+    writeOriginBinding({
+      database: this.#database,
+      originKey: options.originKey,
+      repository: options.repository,
+    });
   }
 
   close(): void {

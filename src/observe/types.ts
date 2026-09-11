@@ -1,6 +1,10 @@
+import path from "node:path";
+import { maximumTextBytes } from "../io/limits";
 import type { SourceId } from "../config";
 
 export type FileTextRef = {
+  readonly contentHash?: string;
+  readonly fileIdentity?: string;
   readonly type: "file";
   readonly sourcePath: string;
   readonly byteOffset: number;
@@ -22,27 +26,51 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 }
 
 export function parseTextRef(value: unknown): TextRef | null {
-  if (!isRecord(value) || typeof value.sourcePath !== "string") {
+  if (
+    !isRecord(value) ||
+    typeof value.sourcePath !== "string" ||
+    !path.isAbsolute(value.sourcePath)
+  ) {
     return null;
   }
   if (
     value.type === "file" &&
     typeof value.byteOffset === "number" &&
-    typeof value.byteLength === "number"
+    typeof value.byteLength === "number" &&
+    Number.isSafeInteger(value.byteOffset) &&
+    value.byteOffset >= 0 &&
+    Number.isSafeInteger(value.byteLength) &&
+    value.byteLength > 0 &&
+    value.byteLength <= maximumTextBytes &&
+    Number.isSafeInteger(value.byteOffset + value.byteLength) &&
+    (value.contentHash === undefined ||
+      (typeof value.contentHash === "string" &&
+        /^[a-f0-9]{64}$/.test(value.contentHash))) &&
+    (value.fileIdentity === undefined || typeof value.fileIdentity === "string")
   ) {
     return {
       type: "file",
       sourcePath: value.sourcePath,
       byteOffset: value.byteOffset,
       byteLength: value.byteLength,
+      ...(typeof value.contentHash === "string"
+        ? { contentHash: value.contentHash }
+        : {}),
+      ...(typeof value.fileIdentity === "string"
+        ? { fileIdentity: value.fileIdentity }
+        : {}),
     };
   }
   if (
     value.type !== "sqlite-blob" ||
     typeof value.blobId !== "string" ||
     !Array.isArray(value.jsonPath) ||
+    value.jsonPath.length > 32 ||
+    value.blobId.length > 512 ||
     !value.jsonPath.every(
-      (part) => typeof part === "string" || typeof part === "number",
+      (part) =>
+        typeof part === "string" ||
+        (typeof part === "number" && Number.isSafeInteger(part) && part >= 0),
     ) ||
     (value.unwrap !== null && value.unwrap !== "user-query")
   ) {
@@ -62,6 +90,9 @@ export function textRefKey(ref: TextRef): string {
 }
 
 export type FileCursor = {
+  readonly identity?: string;
+  readonly discarding?: boolean;
+  readonly omittedRecords?: number;
   readonly sourcePath: string;
   readonly byteSize: number;
   readonly modifiedAt: number;

@@ -48,7 +48,9 @@
     "skills",
     ".claude-plugin",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md",
+    "docs/data-handling.md"
   ],
   "dependencies": {
     "bun": "^1.4.2",

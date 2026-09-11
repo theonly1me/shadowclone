@@ -1,5 +1,4 @@
-import { mkdir } from "node:fs/promises";
-import path from "node:path";
+import { ownedWrite } from "../../storage";
 import { seedGuidanceProfileKey } from "../../skills/key";
 import { loadSeedLibrary } from "../../skills/library";
 import { compilerBlocksFromRules, readCompilerBlocks } from "./read";
@@ -71,8 +70,10 @@ export async function compileProfile(options: {
     byteBudget: options.byteBudget ?? defaultProfileByteBudget,
   });
   if (options.outputPath !== undefined) {
-    await mkdir(path.dirname(options.outputPath), { recursive: true });
-    await Bun.write(options.outputPath, compilation.markdown);
+    await ownedWrite({
+      path: options.outputPath,
+      content: compilation.markdown,
+    });
   }
   return {
     ...compilation,

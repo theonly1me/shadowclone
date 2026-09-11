@@ -9,7 +9,7 @@ The table is chronological by the first recorded decision. Append new records at
 | 2026-09-05 | [001, Agent transcript learning](001-agent-transcript-pivot.md) | implemented | Learn from existing agent transcripts and act through the user's authenticated agent CLI |
 | 2026-09-05 | [002, CI and release](002-ci-and-release.md) | implemented | Run the repository gate on Linux and macOS and publish from version tags |
 | 2026-09-05 | [003, Provider expansion](003-provider-expansion.md) | active | Qualify observation, distillation, and dispatch support independently for each provider |
-| 2026-09-06 | [Evaluation representation](eval-representation.md) | implemented | Compare replay behavior through privacy-safe action fingerprints |
+| 2026-09-06 | [Evaluation representation](eval-representation.md) | implemented | Historical replay representation; executable evaluation is now transfer-based |
 | 2026-09-08 | [004, Confirmed safety fixes](004-confirmed-safety-fixes.md) | implemented | Correct repository identity, redaction, probe, install, and dispatch configuration defects |
 | 2026-09-08 | [005, Capture and capability truth](005-capture-and-capability-truth.md) | implemented | Permit boolean source presence checks and align public claims with implemented behavior |
 | 2026-09-08 | [006, Profile record lifecycle](006-profile-record-lifecycle.md) | implemented | Keep rule identity stable across wording changes and make profile lifecycle state explicit |
@@ -20,3 +20,5 @@ The table is chronological by the first recorded decision. Append new records at
 | 2026-09-09 | [011, Learning report boundary](011-learning-report-boundary.md) | implemented | Keep structural evidence in a report and write mined rules only through explicit deep distillation |
 | 2026-09-09 | [012, Deep learning reconciliation](012-deep-learning-reconciliation.md) | implemented | Reconcile redacted evidence with existing guidance before applying profile changes |
 | 2026-09-09 | [013, Deterministic profile compiler and reversible installs](013-deterministic-profile-compiler.md) | implemented | Project every clone through one bounded compiler and track repository-local artifacts for removal |
+| 2026-09-10 | [014, Execution and storage boundaries](014-execution-and-storage-boundaries.md) | superseded in part | Initial execution and storage corrections; completion is tracked in 015 |
+| 2026-09-11 | [015, Remediation completion](015-remediation-completion.md) | active | Finish resource, execution, scope, and documentation corrections in one PR |
