@@ -60,7 +60,7 @@ The architecture diagram separates `signal -> report` from `signal -> distill ->
 
 Plain learning reads only sources already enabled by the user and stores the existing event skeletons, cursors, and text pointers in the local disposable index. It does not resolve captured text, call an engine, or write profile content. Its output contains aggregate counts, derived category labels, and tool names, with no transcript paths, working directories, origin identifiers, repository names, or captured excerpts.
 
-Deep learning retains the existing egress path. Eligible `TextRef` values are materialized only by `buildDistillPrompt`, which calls `resolveRedacted`; `resolveRedacted` contains the single `redactSecrets` gate before text reaches the authenticated agent engine. This change adds no network call and no second redaction gate.
+Deep learning retains the existing egress path. Eligible transcript `TextRef` values are materialized through `resolveRedacted`, which applies `redactSecrets` before the learning prompt is built. This change adds no network call and no second redaction gate.
 
 Session end reads the exact transcript path supplied by the hook only after Claude source consent and managed policy checks. The adapter stores pointers and event metadata in the local index. Scoped compilation reads the existing local profile and writes the derived `.compiled.md` file locally. Neither the hook nor transfer fallback adds an egress path, telemetry, or raw-content logging.
 

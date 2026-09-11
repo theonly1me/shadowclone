@@ -1,8 +1,8 @@
 # Architecture
 
-Shadowclone becomes you. It learns how you work from the transcripts your AI coding agents already write, compiles that into subagents that are copies of you, and runs them in parallel inside the agent you already use or headless while you are away.
+Shadowclone aims to help agents follow the way you work. It compiles editable behavioral guidance from enabled sources for live subagents and bounded headless tasks. Human-equivalent reasoning is a goal, not an established capability.
 
-It learns from the transcripts your agents already write to disk. It acts by driving the agent CLIs you already pay for. It never holds an API key and it has no server.
+It learns from the transcripts your agents already write to disk. It acts by driving the agent CLIs you already pay for. It has no hosted collection service; provider processes may receive their own configured authentication.
 
 ## Documents
 
@@ -16,7 +16,7 @@ It learns from the transcripts your agents already write to disk. It acts by dri
 | `06-roadmap.md` | Build order and what is deliberately not built yet |
 | `07-enterprise.md` | Organization boundaries, and what to hand a security reviewer |
 | `08-landscape.md` | What already exists, the gap, and what to borrow from prior work |
-| `09-evaluation.md` | Replay evaluation against historical baselines and delta scoring |
+| `09-evaluation.md` | Experimental transfer evaluation, cumulative budgets, and private resume state |
 
 Per-change design docs live in `docs/design/`, one file per change, written against `docs/design/template.md` and listed chronologically in `docs/design/README.md`.
 
@@ -44,6 +44,11 @@ flowchart LR
     Installations --> Uninstall[uninstall and wipe]
     Engine --> Dispatch
     Engine --> Eval
+    Eval --> Ledger[total budget ledger]
+    Eval --> State[private resume state]
+    Eval --> Metrics[reduced metrics report]
+    Eval --> Verify[isolated verification]
+    Dispatch --> Host[approved host Git and GitHub actions]
 ```
 
 | Stage | Module | What it does |
@@ -60,10 +65,10 @@ flowchart LR
 | compiler | `src/profile/compiler/` | The one bounded, deterministic projection every clone reads |
 | install | `src/cli/install.ts` | Writes repository artifacts and records them for removal |
 | dispatch | `src/dispatch/` | Runs a task in a worktree and leaves a receipt |
-| eval | `src/eval/` | Replays sessions against baseline and clone to measure delta |
+| eval | `src/eval/` | Compares historical task outcomes with and without learned guidance |
 | engine | `src/engine/` | The one way a model gets called, by any stage |
 
-`src/cli/` coordinates the stages. `src/engine/` is the shared process boundary for distillation, dispatch, and evaluation. Captured text comes into existence only through `resolveRedacted` before it reaches `distill` or repository guidance import, which keeps every materialization path auditable.
+`src/cli/` coordinates the stages. `src/engine/` is the shared process boundary for distillation, dispatch, and evaluation. Selected captured text and profile snapshots pass through the shared bounded materialization and redaction service before learning or import. Verification output remains outside judge evidence.
 
 ## Why agent transcripts
 
@@ -75,9 +80,7 @@ Most people are not heavy terminal users, so for most people the file is close t
 
 Agent transcripts record the opposite: a turn by turn recording of a person steering an agent, which is the job the clone has to do.
 
-On the machine this was designed against, `~/.claude/projects/` holds 372 transcripts, 562 MB, 175,218 records and 43,022 tool calls across 30 active days. `~/.claude/history.jsonl` holds 742 prompts in the user's own words. `~/.codex/sessions/` holds the same for Codex.
-
-Every Claude Code and Codex user is producing that corpus and nothing reads it.
+Session histories can contain repeated steering decisions. Whether those observations produce useful transferable guidance remains an evaluation question.
 
 ## Why the user's own subscription
 
@@ -85,7 +88,7 @@ Shadowclone calls no model API of its own. It shells out to `claude`, `codex`, o
 
 This is a product decision before it is a technical one. Asking a new user to paste an API key is the single largest drop off in a local AI tool, and it puts the maintainer on the hook for other people's inference bills. Driving the installed CLI removes both. If you can run `claude`, you can run shadowclone.
 
-It also gives the privacy statement: shadowclone sends nothing anywhere your own agent is not already sending it, under your own account. `03-engine.md` covers the abstraction and the fallbacks, including a planned local path through Ollama for people who want zero egress.
+It also gives the privacy statement: model work uses the selected provider account, and Shadowclone chooses additional derived inputs to send through it. `03-engine.md` covers the abstraction and the fallbacks, including a planned local path through Ollama for people who want zero egress.
 
 ## What is settled and what is not
 
@@ -95,8 +98,8 @@ Five questions were open in the previous version of this document. Four are now 
 
 **What is the vault's schema, and is it files or a database.** Both, split by purpose. Plain markdown holds what was learned about the user, because a user who cannot read what was learned about them cannot consent to it. SQLite holds source locators and skeletons, and is declared a disposable cache that can be deleted and rebuilt. See `02-profile.md`.
 
-**What triggers the clone.** A CLI command, a Claude Code `SessionEnd` hook, or a long running daemon, in that order of arrival. Incremental cursors make all three cheap. See `01-capture.md`.
+**What triggers the clone.** A CLI command or a Claude Code `SessionEnd` hook. A daemon is not implemented. Incremental cursors make all three cheap. See `01-capture.md`.
 
 **How does the act stage get its capabilities.** It does not get capabilities of its own. It borrows the agent CLI's tools and narrows them with a per repo policy. See `04-acting.md`.
 
-**What is the retention window.** Still open, and it is now a smaller question than it was, because shadowclone stores pointers rather than copies. See `05-privacy.md`.
+**What is the retention window.** No automatic expiry is implemented. Private derived artifacts persist until removed. See `05-privacy.md`.

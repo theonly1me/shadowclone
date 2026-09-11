@@ -1,3 +1,4 @@
+import { runProcess } from "../io/process";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -124,29 +125,13 @@ async function runCodexProcess(options: {
   const fallbackSessionId = crypto.randomUUID();
   const startedAt = Date.now();
 
-  const process = Bun.spawn({
-    cmd: [
-      ...evaluationCommand({
-        arguments: buildCodexArguments(options),
-        run: options.run,
-      }),
-    ],
+  const { exitCode, stdout: stream, stderr } = await runProcess({
+    arguments: evaluationCommand({ arguments: buildCodexArguments(options), run: options.run }),
     cwd: options.run.cwd,
-    env: runnerEnvironment({ engine: "codex" }),
-    stdin: "pipe",
-    stdout: "pipe",
-    stderr: "pipe",
+    environment: runnerEnvironment({ engine: "codex" }),
+    input: prompt,
     signal: options.run.signal,
   });
-
-  process.stdin.write(prompt);
-  process.stdin.end();
-
-  const [exitCode, stream, stderr] = await Promise.all([
-    process.exited,
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
-  ]);
 
   const run = parseCodexStream({
     stream,

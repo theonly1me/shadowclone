@@ -1,4 +1,4 @@
-import { Command } from "commander";
+import { Command, CommanderError } from "commander";
 import type { TransferOptions } from "../eval/transfer";
 import {
   defaultTimeoutSeconds,
@@ -84,11 +84,7 @@ export function parseTransferArguments(
   }
 
   const engine = options.engine;
-  if (
-    engine !== undefined &&
-    engine !== "codex" &&
-    engine !== "claude-code"
-  ) {
+  if (engine !== undefined && engine !== "codex" && engine !== "claude-code") {
     throw new Error("Evaluation supports codex and claude-code");
   }
 
@@ -123,14 +119,22 @@ export async function transferEvalCommand(
   argumentsList: readonly string[],
   options: { readonly ask?: ConfirmPrompt } = {},
 ): Promise<void> {
-  const parsed = parseTransferArguments(argumentsList);
+  let parsed: TransferOptions;
+  try {
+    parsed = parseTransferArguments(argumentsList);
+  } catch (error) {
+    if (error instanceof CommanderError && error.code === "commander.helpDisplayed") {
+      return;
+    }
+    throw error;
+  }
   const ask = options.ask ?? promptConfirmation;
 
   if (!parsed.yes && !parsed.json && process.stdin.isTTY) {
     const invocations = invocationCeiling(parsed);
     const timeoutSeconds = parsed.timeoutSeconds ?? defaultTimeoutSeconds;
     const approved = await ask(
-      `Running eval as up to ${invocations} agent invocations, each up to ${timeoutSeconds}s. Proceed?`,
+      `Running eval as up to ${invocations} agent invocations, each up to ${timeoutSeconds}s. Claude uses a $${parsed.maxBudgetUsd ?? 2} total budget; Codex uses call/time limits and rejects dollar caps. Provider billing can exceed an in-flight limit. Proceed?`,
     );
     if (!approved) {
       console.log("Evaluation cancelled.");

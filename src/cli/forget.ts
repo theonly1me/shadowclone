@@ -24,15 +24,20 @@ export async function forgetAll(
       skipped += 1;
       continue;
     }
-    await removeArtifacts({
+    const removed = await removeArtifacts({
       directory: root,
       artifacts: installation.artifacts,
+      installation,
     });
     await removeGitExcludes({
       cwd: root,
       patterns: installation.excludes,
     });
-    repositories += 1;
+    if (removed < installation.artifacts.length) {
+      skipped += 1;
+    } else {
+      repositories += 1;
+    }
   }
   await rm(paths.shadowcloneDirectory, { recursive: true, force: true });
   console.log(
@@ -40,7 +45,7 @@ export async function forgetAll(
   );
   if (skipped > 0) {
     console.log(
-      `Skipped ${skipped} recorded install(s) that no longer resolve to a repository.`,
+      `Skipped ${skipped} recorded install(s) with missing, edited, unverified, or unsafe artifacts; inspect those repositories manually.`,
     );
   }
 }

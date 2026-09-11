@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { ownedWrite } from "../storage";
 import path from "node:path";
 
 export function renderAgent(options: {
@@ -34,7 +34,6 @@ export async function writeAgent(options: {
     "agents",
   );
   const outputPath = path.join(agentsDirectory, `${name}.md`);
-  await mkdir(agentsDirectory, { recursive: true });
-  await Bun.write(outputPath, renderAgent(options));
+  await ownedWrite({ path: outputPath, content: renderAgent(options) });
   return outputPath;
 }

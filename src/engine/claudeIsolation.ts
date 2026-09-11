@@ -2,7 +2,7 @@ import type { EngineExecution, EngineRunOptions } from "./types";
 
 function executionDomains(execution: EngineExecution): readonly string[] {
   return execution.purpose === "dispatch"
-    ? execution.allowedDomains ?? []
+    ? (execution.allowedDomains ?? [])
     : [];
 }
 
@@ -19,8 +19,21 @@ export function claudeIsolationArguments(
       enabled: true,
       failIfUnavailable: true,
       allowUnsandboxedCommands: false,
-      autoAllowBashIfSandboxed: true,
+      autoAllowBashIfSandboxed: run.execution.purpose !== "dispatch",
       excludedCommands: [],
+      filesystem: {
+        allowWrite: [run.cwd],
+        denyWrite: [
+          "**/.git/**",
+          "**/.claude/**",
+          "**/.codex/**",
+          "**/.mcp.json",
+        ],
+        denyRead:
+          run.execution.purpose === "dispatch"
+            ? ["~/.ssh", "~/.aws", "~/.config/gh", "~/.netrc", "~/.npmrc"]
+            : [],
+      },
       network: {
         allowedDomains: executionDomains(run.execution),
         allowLocalBinding: false,

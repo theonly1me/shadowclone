@@ -19,7 +19,7 @@ Two skills in `.claude/skills/` are not optional.
 | --- | --- |
 | `src/config/` | stores explicit source consent, with every source off by default |
 | `src/observe/` | reads enabled Claude Code, Codex, Cursor, Antigravity, Claude prompt, and shell sources incrementally |
-| `src/redact/` | resolves pointers into redacted text, the single egress gate |
+| `src/redact/` | validates bounded source references and materializes redacted text |
 | `src/index/` | stores cursors and event skeletons in a rebuildable SQLite cache |
 | `src/signal/` | derives structural and correction signals without a model |
 | `src/profile/` | writes scoped markdown and compiles it into a live subagent |

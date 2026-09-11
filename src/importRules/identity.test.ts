@@ -68,7 +68,7 @@ test("promotes an isolated import under the same opaque identity", async () => {
   const promoted = await currentRule(paths);
   expect(promoted.rule.key).toBe(isolated.rule.key);
   expect(promoted.entry.relativePath).toStartWith(
-    "org/github.com--acme/projects/",
+    "org/github.com--acme--936913df4a5c268b/projects/",
   );
   expect(promoted.entry.relativePath).not.toContain("../");
   expect(await Bun.file(isolated.profilePath).exists()).toBeFalse();

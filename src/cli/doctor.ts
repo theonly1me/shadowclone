@@ -1,22 +1,11 @@
-import {
-  detectEngine,
-  type CommandProbe,
-  type EngineId,
-} from "../engine";
-import {
-  readManagedPolicy,
-  type DistillationPolicy,
-} from "../config";
+import path from "node:path";
+import { migrateOriginProfiles } from "../profile/migrateOrigins";
+import { detectEngine, type CommandProbe, type EngineId } from "../engine";
+import { readManagedPolicy, type DistillationPolicy } from "../config";
 import { openEventIndex } from "../index";
 import { projectPaths } from "../paths";
-import {
-  getProviderSupport,
-  providerDefinitions,
-} from "../provider";
-import {
-  computeSourceHealth,
-  type SourceMarkerHealth,
-} from "../signal";
+import { getProviderSupport, providerDefinitions } from "../provider";
+import { computeSourceHealth, type SourceMarkerHealth } from "../signal";
 import { repairOwnedTree } from "../storage";
 
 export function renderProviderSupport(): readonly string[] {
@@ -57,18 +46,31 @@ export function renderMarkerHealth(options: {
   });
 }
 
-export async function doctor(options: {
-  readonly probe?: CommandProbe;
-  readonly managedConfigPath?: string | null;
-  readonly databasePath?: string;
-  readonly shadowcloneDirectory?: string;
-} = {}): Promise<void> {
+export async function doctor(
+  options: {
+    readonly probe?: CommandProbe;
+    readonly managedConfigPath?: string | null;
+    readonly databasePath?: string;
+    readonly shadowcloneDirectory?: string;
+  } = {},
+): Promise<void> {
   const repaired = await repairOwnedTree(
     options.shadowcloneDirectory ?? projectPaths.shadowcloneDirectory,
   );
   if (repaired.directories > 0 || repaired.files > 0) {
     console.log(
       `Tightened permissions on ${repaired.directories} directories and ${repaired.files} files.`,
+    );
+  }
+  const migration = await migrateOriginProfiles(
+    path.join(
+      options.shadowcloneDirectory ?? projectPaths.shadowcloneDirectory,
+      "profile",
+    ),
+  );
+  if (migration.migrated > 0 || migration.isolated > 0) {
+    console.log(
+      `Migrated ${migration.migrated} legacy origin scopes; ${migration.isolated} ambiguous scopes remain isolated for manual review.`,
     );
   }
   const managedConfigPath =

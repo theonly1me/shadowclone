@@ -1,9 +1,7 @@
 import path from "node:path";
+import { normalizeRemoteRepository } from "../signal/origin/remote";
 import { ownedDirectory } from "../storage";
-import {
-  runCommand,
-  type CommandRunner,
-} from "./command";
+import { runCommand, type CommandRunner } from "./command";
 
 export type Worktree = {
   readonly repoDirectory: string;
@@ -116,8 +114,7 @@ export async function inspectWorktree(options: {
     diff.exitCode === 0 ? diff.stdout.split("\n").filter(Boolean) : [];
   return {
     filesChanged: [...new Set([...committedFiles, ...uncommittedFiles])],
-    commits:
-      log.exitCode === 0 ? log.stdout.split("\n").filter(Boolean) : [],
+    commits: log.exitCode === 0 ? log.stdout.split("\n").filter(Boolean) : [],
     isClean: status.exitCode === 0 && uncommittedFiles.length === 0,
   };
 }
@@ -144,12 +141,7 @@ export async function commitWorktree(options: {
   const committed =
     staged.exitCode === 0
       ? await runner({
-          command: [
-            "git",
-            "commit",
-            "-m",
-            "chore: apply shadowclone task",
-          ],
+          command: ["git", "commit", "-m", "chore: apply shadowclone task"],
           cwd: options.worktree.worktreeDirectory,
         })
       : null;
@@ -161,9 +153,24 @@ export async function commitWorktree(options: {
 
 export async function pushWorktree(options: {
   readonly worktree: Worktree;
+  readonly repositoryId: string;
   readonly runner?: CommandRunner;
 }): Promise<boolean> {
   const runner = options.runner ?? runCommand;
+  const remote = await runner({
+    command: ["git", "remote", "get-url", "--push", "--all", "origin"],
+    cwd: options.worktree.repoDirectory,
+  });
+  const urls = remote.stdout.trim().split("\n");
+  const [url] = urls;
+  if (
+    remote.exitCode !== 0 ||
+    urls.length !== 1 ||
+    !url ||
+    normalizeRemoteRepository(url)?.id !== options.repositoryId
+  ) {
+    throw new Error("Push destination does not match the approved repository");
+  }
   const result = await runner({
     command: [
       "git",

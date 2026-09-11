@@ -1,18 +1,14 @@
+import { runHostCommand } from "../io/hostCommand";
 import { lstat, realpath } from "node:fs/promises";
 import path from "node:path";
 
 export type GitTopLevelReader = (directory: string) => Promise<string | null>;
 
 async function readGitTopLevel(directory: string): Promise<string | null> {
-  const child = Bun.spawn({
-    cmd: ["git", "-C", directory, "rev-parse", "--show-toplevel"],
-    stdout: "pipe",
-    stderr: "ignore",
+  const { exitCode, stdout } = await runHostCommand({
+    arguments: ["git", "rev-parse", "--show-toplevel"],
+    cwd: directory,
   });
-  const [exitCode, stdout] = await Promise.all([
-    child.exited,
-    new Response(child.stdout).text(),
-  ]);
   const value = stdout.trim();
   return exitCode === 0 && value.length > 0 ? value : null;
 }

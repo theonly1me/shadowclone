@@ -1,32 +1,25 @@
 # Security
 
-shadowclone reads the AI coding sessions on your disk, so a bug here leaks source code, hostnames, or credentials that belong to you or your employer. A report about that is the most valuable thing this project can receive.
+Shadowclone handles potentially sensitive local transcripts and derived profiles. Its protections cover specific consent, materialization, storage, and execution boundaries. They do not guarantee the absence of vulnerabilities. See [Data handling](docs/data-handling.md) for the public statement.
 
 ## Reporting
 
-Use private reporting on this repository: **Security**, then **Report a vulnerability**. That keeps the details out of public issues until there is a fix. There is no bounty and no response time promise, since this is a side project.
+Use the repository **Security** tab, then **Report a vulnerability**, for unintended disclosure, unsafe execution, unauthorized writes or deletion, or policy bypass. Keep exploit details private until a fix is available. There is no bounty or guaranteed response time.
 
-Do not open a public issue for anything in the list below.
+Useful reports include a synthetic reproduction, affected version and platform, expected boundary, and observed behavior. Do not post real credentials, transcripts, private evaluation state, or identifying local paths. A redaction pattern suggestion can be a public issue if it contains only a synthetic example and does not disclose an exploitable private detail.
 
-## What counts
+## Boundaries
 
-- A secret, a file's contents, or a tool result reaching a model, a log line, an error message, or a committed fixture.
-- A capture source that gets read without the config flag naming it, including reading a path only to learn whether it exists.
-- A rule learned in one organization's repository compiling into a session on another organization's repository.
-- Anything that sends, posts, commits, pushes, deletes, or spends without approval for that specific action.
-- User configuration widening a limit that root owned managed policy set.
-
-## Redaction gaps
-
-A string that gets past redaction is a redaction gap, and it belongs in a public issue describing the **shape** of the string, never the string itself. `CONTRIBUTING.md` has the section on what that report looks like. Use private reporting when the report cannot be written without the string, or when the gap is one of the failures listed above.
+- Source contents require source consent. Onboarding may perform a boolean presence check before asking. Git metadata and instruction/context import have separate consent.
+- Learning excludes tool-result payloads and thinking blocks. Pattern redaction of eligible text is incomplete by nature; sensitive prose may remain.
+- Compilation selects global guidance and matching remote-owner/repository scope. Remote ownership is a technical identifier, not proof of a legal organization or employer boundary.
+- Invoking headless `run` approves its local worktree, branch, and commit. Push and PR actions require matching repository ceilings and explicit grants for that run. PR replies require a named PR number. The host agent's permissions govern live installed clones.
+- Unattended execution and independent verification use supported OS isolation. Verification has no provider credentials or network. Provider runtime access remains a separate trust decision.
+- Managed policy must be a bounded regular file under a trusted directory chain. User configuration cannot widen its ceilings.
+- Generated private state uses restrictive filesystem modes, not encryption. Same-account malware, administrators, providers, and external backups are outside that protection.
 
 ## Releases
 
-Before 1.0, only the newest release gets fixes.
+Before 1.0, only the newest release receives fixes. The release workflow runs required checks before release creation and npm publication. It publishes `@shadowclone/cli` with npm provenance through GitHub Actions.
 
-Release archives are built by `.github/workflows/release.yml` from a tagged commit and carry a build provenance attestation, so a download can be checked against the workflow and commit that produced it:
-
-```bash
-gh attestation verify shadowclone-darwin-arm64.tar.gz --repo theonly1me/shadowclone
-shasum -a 256 -c SHA256SUMS.txt
-```
+The current release process does not produce standalone platform archives, a `SHA256SUMS.txt` file, or downloadable GitHub build-attestation bundles. There are no archive-verification commands for those artifacts. Inspect the npm package's provenance and the matching workflow run when assessing a published version. Provenance identifies the build path; it does not certify the package's security.

@@ -11,6 +11,7 @@ export type IngestSummary = {
   readonly sessions: number;
   readonly bytesRead: number;
   readonly rescannedFiles: number;
+  readonly omittedRecords: number;
 };
 
 export type CorpusSummary = {

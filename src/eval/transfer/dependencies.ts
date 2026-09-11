@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { cp, lstat, readlink, rm, symlink } from "node:fs/promises";
+import { cp, lstat, realpath, rm, symlink } from "node:fs/promises";
 import path from "node:path";
 
 const supportedLockfiles = [
@@ -35,6 +35,9 @@ export async function prepareDependencies(options: {
       throw new Error("Dependency lock unavailable");
     }
 
+    if (historicalFile.size > 8 * 1024 * 1024 || currentFile.size > 8 * 1024 * 1024) {
+      throw new Error("Dependency lock exceeds the size limit");
+    }
     const beforeBuffer = await historicalFile.arrayBuffer();
     const afterBuffer = await currentFile.arrayBuffer();
     if (Bun.hash(beforeBuffer) !== Bun.hash(afterBuffer)) {
@@ -52,6 +55,11 @@ export async function prepareDependencies(options: {
     );
   }
 
+  const sourceStats = await lstat(sourceNodeModules);
+  if (!sourceStats.isDirectory() || sourceStats.isSymbolicLink()) {
+    throw new Error("Dependency root must be a regular directory");
+  }
+  const repositoryRoot = await realpath(options.repository);
   const destinationNodeModules = path.join(options.directory, "node_modules");
   await cp(sourceNodeModules, destinationNodeModules, {
     recursive: true,
@@ -72,13 +80,9 @@ export async function prepareDependencies(options: {
     }
 
     const originalLink = path.join(sourceNodeModules, relativePath);
-    const linkDestination = await readlink(targetPath);
-    const originalTarget = path.resolve(
-      path.dirname(originalLink),
-      linkDestination,
-    );
+    const originalTarget = await realpath(originalLink);
 
-    if (!originalTarget.startsWith(`${options.repository}${path.sep}`)) {
+    if (!originalTarget.startsWith(`${repositoryRoot}${path.sep}`)) {
       throw new Error(
         "Dependency links outside the repository cannot be replayed",
       );
@@ -86,9 +90,13 @@ export async function prepareDependencies(options: {
 
     const mappedTarget = path.join(
       options.directory,
-      path.relative(options.repository, originalTarget),
+      path.relative(repositoryRoot, originalTarget),
     );
 
+    const mappedResolved = await realpath(mappedTarget).catch(() => null);
+    if (mappedResolved !== null && !mappedResolved.startsWith(`${options.directory}${path.sep}`)) {
+      throw new Error("Dependency target escapes the snapshot");
+    }
     await rm(targetPath);
 
     await symlink(

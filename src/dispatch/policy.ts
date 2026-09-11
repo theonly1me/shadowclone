@@ -58,16 +58,9 @@ export function resolveDispatchPolicy(
     "Bash(bun run typecheck:*)",
   ];
   const draftTools = [...baseDraftTools, ...verificationTools];
-  const allowedTools = [
-    ...draftTools,
-    ...grantedActions.flatMap((action) => {
-      const tool = actionToolFor(action);
-      return tool ? [tool] : [];
-    }),
-  ];
+  const allowedTools = draftTools;
   const disallowedTools = [
     ...actionCapabilities
-      .filter((action) => !grantedActions.includes(action))
       .flatMap((action) => {
         const tool = actionToolFor(action);
         return tool ? [tool] : [];
@@ -86,4 +79,23 @@ export function resolveDispatchPolicy(
     blockedActions,
     allowedDomains: needsNetwork ? [...githubDomains] : [],
   };
+}
+
+export function validateRemoteGrants(options: {
+  readonly grantedActions: readonly ActionCapability[];
+  readonly pullRequestNumber?: number;
+}): void {
+  if (
+    options.grantedActions.includes("pr-reply") &&
+    (!Number.isSafeInteger(options.pullRequestNumber) ||
+      (options.pullRequestNumber ?? 0) < 1)
+  ) {
+    throw new Error("PR replies require an explicit --pr number");
+  }
+  if (
+    options.grantedActions.includes("pr-draft") &&
+    !options.grantedActions.includes("push")
+  ) {
+    throw new Error("Draft PR creation also requires push approval");
+  }
 }

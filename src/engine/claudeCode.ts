@@ -1,7 +1,8 @@
+import { runProcess } from "../io/process";
 import { evaluationCommand } from "./evaluationIsolation";
 import { redactSecrets } from "../redact";
 import { claudeIsolationArguments } from "./claudeIsolation";
-import { allowsRemoteActions, runnerEnvironment } from "./environment";
+import { runnerEnvironment } from "./environment";
 import { validateEngineExecution } from "./execution";
 import { parseClaudeStream } from "./parseClaude";
 import type {
@@ -106,27 +107,20 @@ export async function runClaudeCode(
 ): Promise<EngineRun> {
   const sessionId = options.sessionId ?? crypto.randomUUID();
 
-  const child = Bun.spawn({
-    cmd: [...evaluationCommand({ arguments: buildClaudeArguments({ run: options, sessionId }), run: options })],
+  const { exitCode, stdout: stream, stderr } = await runProcess({
+    arguments: evaluationCommand({ arguments: buildClaudeArguments({ run: options, sessionId }), run: options }),
     cwd: options.cwd,
-    env: runnerEnvironment({
-      engine: "claude-code",
-      allowRemoteActions: allowsRemoteActions(options.execution),
-    }),
-    stdin: "pipe",
-    stdout: "pipe",
-    stderr: "pipe",
+    environment: {
+      ...runnerEnvironment({ engine: "claude-code" }),
+      ...(options.execution.purpose === "dispatch" ? {
+        TMPDIR: options.execution.temporaryDirectory ?? options.cwd,
+        TMP: options.execution.temporaryDirectory ?? options.cwd,
+        TEMP: options.execution.temporaryDirectory ?? options.cwd,
+      } : {}),
+    },
+    input: options.prompt,
     signal: options.signal,
   });
-
-  child.stdin.write(options.prompt);
-  child.stdin.end();
-
-  const [exitCode, stream, stderr] = await Promise.all([
-    child.exited,
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
-  ]);
 
   const run = parseClaudeStream({ stream, fallbackSessionId: sessionId });
 

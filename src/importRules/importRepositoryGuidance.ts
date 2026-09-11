@@ -129,7 +129,9 @@ export async function importRepositoryGuidance(options: {
     sources.map((source) => sourceLocator(source.relativePath)),
   );
   const rules: ProfileRule[] = [];
-  const resolveText = options.resolveText ?? resolveRedacted;
+  const resolveText: RedactedResolver = options.resolveText ?? ((request) =>
+    resolveRedacted({ ...request, roots: [options.workingDirectory] })
+  );
 
   for (const source of sources) {
     const locator = sourceLocator(source.relativePath);

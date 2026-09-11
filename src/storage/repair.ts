@@ -19,6 +19,7 @@ function isMissing(error: unknown): boolean {
 
 async function repairEntry(options: {
   readonly entryPath: string;
+  readonly root: string;
   readonly summary: { directories: number; files: number; skipped: number };
 }): Promise<void> {
   const stats = await lstat(options.entryPath);
@@ -28,10 +29,15 @@ async function repairEntry(options: {
       await chmod(options.entryPath, ownedDirectoryMode);
       options.summary.directories += 1;
     }
+    if (options.entryPath === path.join(options.root, "worktrees")) {
+      options.summary.skipped += 1;
+      return;
+    }
     const entries = await readdir(options.entryPath);
     for (const entry of entries) {
       await repairEntry({
         entryPath: path.join(options.entryPath, entry),
+        root: options.root,
         summary: options.summary,
       });
     }
@@ -53,7 +59,7 @@ export async function repairOwnedTree(root: string): Promise<RepairSummary> {
   const summary = { directories: 0, files: 0, skipped: 0 };
 
   try {
-    await repairEntry({ entryPath: root, summary });
+    await repairEntry({ entryPath: root, root, summary });
   } catch (error) {
     if (!isMissing(error)) {
       throw error;

@@ -3,7 +3,7 @@ import { Database } from "bun:sqlite";
 import { createSchema } from "../../index/schema";
 import { EventIndex } from "../../index/store";
 import type { IndexedEvent } from "../../index";
-import { resolveEventRepositories } from "./resolve";
+import { eventOriginKey, resolveEventRepositories } from "./resolve";
 
 function event(cwd: string): IndexedEvent {
   return {
@@ -13,7 +13,7 @@ function event(cwd: string): IndexedEvent {
     sessionId: "session-one",
     eventId: "event-one",
     parentEventId: null,
-    timestamp: 1,
+    timestamp: Date.now(),
     cwd,
     gitBranch: null,
     kind: "user-prompt",
@@ -46,8 +46,8 @@ test("a working directory keeps the owner it was first resolved under", async ()
     bindings: index,
   });
 
-  expect(first.get("/work/platform")?.origin.id).toBe("github.com/first-owner");
-  expect(second.get("/work/platform")?.origin.id).toBe(
+  expect(first.get(eventOriginKey(event("/work/platform")))?.origin.id).toBe("github.com/first-owner");
+  expect(second.get(eventOriginKey(event("/work/platform")))?.origin.id).toBe(
     "github.com/first-owner",
   );
   index.close();
@@ -62,7 +62,7 @@ test("without a binding store the current remote wins every time", async () => {
     readRemote: async () => "git@github.com:second-owner/platform.git",
   });
 
-  expect(second.get("/work/platform")?.origin.id).toBe(
+  expect(second.get(eventOriginKey(event("/work/platform")))?.origin.id).toBe(
     "github.com/second-owner",
   );
 });
@@ -70,7 +70,7 @@ test("without a binding store the current remote wins every time", async () => {
 test("a binding is recorded the first time a directory resolves", async () => {
   const index = openIndex();
 
-  expect(index.getOriginBinding("/work/platform")).toBeNull();
+  expect(index.getOriginBinding(eventOriginKey(event("/work/platform")))).toBeNull();
   await resolveEventRepositories({
     events: [event("/work/platform")],
     enabled: true,
@@ -78,13 +78,13 @@ test("a binding is recorded the first time a directory resolves", async () => {
     bindings: index,
   });
 
-  expect(index.getOriginBinding("/work/platform")?.origin.id).toBe(
+  expect(index.getOriginBinding(eventOriginKey(event("/work/platform")))?.origin.id).toBe(
     "github.com/first-owner",
   );
   index.close();
 });
 
-test("a directory resolved without git consent binds as isolated and stays isolated", async () => {
+test("disabled git metadata stays isolated without recording a permanent binding", async () => {
   const index = openIndex();
   const events = [event("/work/platform")];
 
@@ -95,7 +95,7 @@ test("a directory resolved without git consent binds as isolated and stays isola
     bindings: index,
   });
 
-  expect(withoutConsent.get("/work/platform")?.origin.promotable).toBeFalse();
-  expect(index.getOriginBinding("/work/platform")?.origin.promotable).toBeFalse();
+  expect(withoutConsent.get(eventOriginKey(event("/work/platform")))?.origin.promotable).toBeFalse();
+  expect(index.getOriginBinding(eventOriginKey(event("/work/platform")))).toBeNull();
   index.close();
 });

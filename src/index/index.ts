@@ -17,11 +17,20 @@ export type {
   IngestSummary,
 } from "./types";
 
-export async function openEventIndex(databasePath: string): Promise<EventIndex> {
-  await ownedDirectory(path.dirname(databasePath));
+export async function openEventIndex(
+  databasePath: string,
+): Promise<EventIndex> {
+  if (databasePath !== ":memory:") {
+    await ownedDirectory(path.dirname(databasePath));
+    for (const suffix of ["", "-wal", "-shm"]) {
+      await ownedFile(`${databasePath}${suffix}`);
+    }
+  }
   const database = new Database(databasePath, { create: true });
   createSchema(database);
-  for (const suffix of ["", "-wal", "-shm"]) {
+  for (const suffix of databasePath === ":memory:"
+    ? []
+    : ["", "-wal", "-shm"]) {
     await ownedFile(`${databasePath}${suffix}`);
   }
   return new EventIndex(database);
@@ -36,12 +45,19 @@ export async function ingestSources(options: {
   let events = 0;
   let bytesRead = 0;
   let rescannedFiles = 0;
+  let omittedRecords = 0;
 
   for await (const batch of observeAll({
     config: options.config,
     paths: options.paths,
     getCursor: (sourcePath) => options.index.getCursor(sourcePath),
   })) {
+    const previous = options.index.getCursor(batch.sourcePath);
+    omittedRecords += Math.max(
+      0,
+      (batch.cursor.omittedRecords ?? 0) -
+        (batch.rescanned ? 0 : (previous?.omittedRecords ?? 0)),
+    );
     options.index.saveBatch(batch);
     files += 1;
     events += batch.events.length;
@@ -55,6 +71,7 @@ export async function ingestSources(options: {
     sessions: options.index.countSessions(),
     bytesRead,
     rescannedFiles,
+    omittedRecords,
   };
 }
 

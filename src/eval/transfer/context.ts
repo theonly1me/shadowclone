@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { lstat, mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { EngineId } from "../../engine";
-import { redactSecrets } from "../../redact";
+import { materializeSnapshot } from "../../redact";
 
 export type ContextFile = {
   readonly relativePath: string;
@@ -47,7 +47,16 @@ export async function captureContext(options: {
       throw new Error("Agent context exceeds the evaluation snapshot limit");
     }
 
-    const content = redactSecrets({ text: await file.text() });
+    const snapshot = await materializeSnapshot({
+      filePath: fileOptions.absolute,
+      roots: [options.home],
+      maximumBytes: 2_000_000,
+      parse: () => null,
+    });
+    if (snapshot === null) {
+      throw new Error("Agent context could not be read safely");
+    }
+    const content = snapshot.redacted;
     if (
       content.includes("shadowclone hook") ||
       content.includes("# Shadowclone profile")

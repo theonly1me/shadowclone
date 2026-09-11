@@ -1,3 +1,4 @@
+import { originDirectoryName } from "../signal/origin/remote";
 import type { Database } from "bun:sqlite";
 
 export type BoundRepository = {
@@ -40,7 +41,7 @@ export function readOriginBinding(options: {
         profileFileName: row.profile_file_name,
         origin: {
           id: row.origin_id,
-          directoryName: row.origin_directory,
+          directoryName: originDirectoryName(row.origin_id),
           promotable: row.origin_promotable === 1,
         },
       };

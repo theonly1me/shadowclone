@@ -39,7 +39,7 @@ test("a port distinguishes two hosts at the same name", () => {
   expect(standard?.id).toBe("git.example.com/team");
   expect(alternate?.id).toBe("git.example.com:2222/team");
   expect(standard?.id).not.toBe(alternate?.id);
-  expect(alternate?.directoryName).toBe("git.example.com--2222--team");
+  expect(alternate?.directoryName).toBe("git.example.com--2222--team--a1acd481aa078b93");
 });
 
 test("the url and scp forms of one nested remote agree", () => {
@@ -60,7 +60,7 @@ test("a plain github remote keeps its existing identity", () => {
     normalizeRemoteOrigin("https://private-token@github.com/Acme/platform.git"),
   ).toEqual({
     id: "github.com/acme",
-    directoryName: "github.com--acme",
+    directoryName: "github.com--acme--936913df4a5c268b",
     promotable: true,
   });
   expect(normalizeRemoteRepository("git@github.com:acme/secret-api.git")?.id).toBe(

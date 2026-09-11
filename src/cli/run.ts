@@ -21,6 +21,7 @@ function collectApprovals(
 
 export function parseRunArguments(arguments_: readonly string[]): {
   readonly task: string;
+  readonly pullRequestNumber?: number;
   readonly approvedActions: readonly ActionCapability[];
 } {
   const program = new Command()
@@ -30,6 +31,7 @@ export function parseRunArguments(arguments_: readonly string[]): {
     .allowUnknownOption(true)
     .allowExcessArguments(true)
     .argument("[task...]")
+    .option("--pr <number>", "Approved target PR for pr-reply")
     .option(
       "--approve <action>",
       "Approved action capability",
@@ -46,10 +48,16 @@ export function parseRunArguments(arguments_: readonly string[]): {
 
   const options = program.opts<{
     readonly approve: readonly ActionCapability[];
+    readonly pr?: string;
   }>();
 
+  const pullRequestNumber = options.pr === undefined ? undefined : Number(options.pr);
+  if (pullRequestNumber !== undefined && (!Number.isSafeInteger(pullRequestNumber) || pullRequestNumber < 1)) {
+    throw new Error("--pr must be a positive integer");
+  }
   return {
     task,
+    ...(pullRequestNumber === undefined ? {} : { pullRequestNumber }),
     approvedActions: [...new Set(options.approve)],
   };
 }

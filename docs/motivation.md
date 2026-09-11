@@ -12,23 +12,26 @@ While individual tool ecosystems offer per-project instructions or generic memor
 
 ## The Architectural Premise: The Disk Already Knows
 
-Every interaction with an agent CLI leaves traces on disk:
+Supported agent CLIs can leave traces on disk:
 - CLI session transcripts (JSONL logs, history databases).
 - User corrections following failed tool calls or rejected proposals.
 - Interruptions and denied command executions.
 - Verification loops run in bash or terminal windows.
 
-Rather than relying on third-party cloud vectors or proprietary memory databases, Shadowclone treats local transcript history as a verifiable data source. It parses enabled logs deterministically and reports behavioral signals locally. When the user explicitly enables deep learning, it distills redacted correction moments into human-readable profile rules through the agent CLI they already use.
+Shadowclone uses enabled local transcript history as evidence of past interactions. It parses enabled logs deterministically and reports behavioral signals locally. When the user explicitly enables deep learning, it distills redacted correction moments into human-readable profile rules through the agent CLI they already use.
 
 ## Open Source and Privacy First
 
-Shadowclone is designed with strict boundaries suited for privacy-conscious developers and engineering organizations:
-- **Zero telemetry**: No outbound network requests are made to hosted Shadowclone services. No usage statistics, tokens, or transcript contents leave your machine.
-- **Local-first redaction**: Sensitive data (API tokens, private keys, authorization headers, absolute home paths) are redacted deterministically using regular expressions and Shannon entropy checks before any optional semantic distillation.
-- **Human-editable profiles**: Output profiles are plain Markdown (`~/.shadowclone/profile/` and `.claude/agents/shadowclone.md`). Engineers can review, modify, or delete any rule at any time.
-- **Falsifiable evaluation**: Rather than trusting subjective impressions, `shadowclone eval` replays benchmark prompts from historical sessions against both baseline and cloned configurations to measure delta in tool selection, file modifications, and verification runs.
-- **Managed policy compliance**: For teams working with proprietary code, system administrators can define immutable policy files (`/etc/shadowclone/policy.toml`) to enforce capture source consent and action ceilings fleet-wide.
+Shadowclone provides inspectable local controls:
+
+- **No project telemetry**: The code does not implement hosted Shadowclone collection, analytics, or crash reporting; model operations send selected inputs through the user's authenticated agent provider.
+- **Pattern redaction**: Materialization removes recognized secret patterns and home-path prefixes, with documented false positives and missed formats.
+- **Editable profiles**: Profile Markdown can be reviewed, corrected, disabled, or deleted by its owner.
+- **Transfer evaluation**: Qualifying historical tasks run against baseline and cloned configurations, with independent repository checks and provisional semantic judgments of correctness and preference adherence.
+- **Managed policy**: Supported root-owned configuration restricts this installation's sources, engines, and action tiers; it does not control other programs or establish organizational compliance.
+
+See [Data handling](data-handling.md) for storage, provider transmission, retention, and execution limits.
 
 ## Not Another Agent Framework
 
-Shadowclone is not a new agent runtime, chat client, or prompt framework. It operates purely as a compiler: ingesting existing transcripts, extracting engineering preferences, and producing standard configuration files that existing developer agents already understand.
+Shadowclone is not a new agent runtime, chat client, or prompt framework. It combines capture, learning, compilation, and scoped execution: ingesting existing transcripts, extracting engineering preferences, and producing standard configuration files that existing developer agents already understand.

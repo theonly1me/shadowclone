@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { IndexedEvent } from "../../index";
 import type {
   OriginScope,
@@ -11,10 +12,8 @@ import {
 } from "./remote";
 import type { GitRemoteReader } from "./remote";
 
-function eventOriginKey(event: IndexedEvent): string {
-  return event.cwd.length > 0
-    ? event.cwd
-    : `${event.source}:${event.sessionId}`;
+export function eventOriginKey(event: IndexedEvent): string {
+  return JSON.stringify([event.source, event.sessionId, event.cwd ? path.resolve(event.cwd) : ""]);
 }
 
 export async function resolveCwdOrigin(options: {
@@ -58,6 +57,7 @@ export async function resolveRepository(options: {
 }
 
 export type OriginBindingStore = {
+  readonly getOriginObservationStart?: () => number;
   readonly getOriginBinding: (originKey: string) => RepositoryIdentity | null;
   readonly bindOrigin: (options: {
     readonly originKey: string;
@@ -80,20 +80,24 @@ export async function resolveEventRepositories(options: {
       continue;
     }
 
-    const bound = options.bindings?.getOriginBinding(key) ?? null;
+    const bound = options.enabled ? options.bindings?.getOriginBinding(key) ?? null : null;
     if (bound !== null) {
       repositories.set(key, bound);
       continue;
     }
 
+    const observedSince = options.bindings?.getOriginObservationStart?.() ?? 0;
+    const hasObservedHistory = event.timestamp >= observedSince;
     const resolved = await resolveRepository({
       cwd: event.cwd,
       fallbackKey: key,
-      enabled: options.enabled,
+      enabled: options.enabled && hasObservedHistory,
       readRemote,
     });
     repositories.set(key, resolved);
-    options.bindings?.bindOrigin({ originKey: key, repository: resolved });
+    if (options.enabled && resolved.origin.promotable) {
+      options.bindings?.bindOrigin({ originKey: key, repository: resolved });
+    }
   }
 
   return repositories;

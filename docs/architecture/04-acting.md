@@ -1,97 +1,42 @@
 # Acting
 
-This document sets the ceiling on what a clone may do, in a session and unattended.
+Shadowclone supports live installed agents and unattended worktrees. The permissions differ between these paths and must not be conflated.
 
-## Tiers
+## Live agents
 
-`.claude/skills/data-handling/SKILL.md` defines three tiers and this design keeps them.
+`shadowclone install` writes a compiled agent definition into the current repository. The host agent session decides its tools and approvals. The installed profile supplies behavioral guidance; it does not add the headless OS boundary to that session. The optional delegation skill routes bounded tasks to this agent.
 
-**Observe and derive** runs unattended with no ceremony. It reads enabled transcripts, updates the local index, mines aggregate signals, and refreshes compiled local guidance. Writing mined profile rules requires an explicit deep-learning invocation. Nothing leaves the machine except through the engine, under the user's own account.
+## Headless policy
 
-**Draft** runs unattended. Producing a diff or a message left in a file. Nothing another person can see.
+Invoking `shadowclone run "<task>"` authorizes one local worktree, branch, and commit of a successful agent result. The agent receives inspection, editing, and supported verification tools. Native hooks, ambient settings, integrations, and session persistence are disabled. An outer process boundary confines writes and protects source and control state. The provider's Bash sandbox adds filesystem and network restrictions.
 
-**Act** changes state outside the run. Committing, pushing, opening a PR, replying to a review, commenting on an issue. This tier requires explicit approval for the action, bounded by a per-repo ceiling.
-
-## Two ways a clone runs
-
-**As a subagent, inside the user's own session.** The profile compiles to `.claude/agents/<name>.md`, and the main session dispatches copies of the user onto subtasks with the `Agent` tool, several at once. The user is present, the session's permission mode applies, and every action is visible in the transcript being written. This is the primary way clones spawn, because it composes with the tool already open and needs no worktree, no policy resolution, and no receipt. It is also where the multiplier lives, since one person does one thing at a time and ten subagents do ten.
-
-**Headless, in a worktree.** `shadowclone run` for work that happens while the user is away. This is the path the rest of this document governs, because nobody is watching it.
-
-## The policy
-
-Full delegation is the goal and an empty allowlist is the default. Invoking `shadowclone run "<task>"` explicitly approves one worktree, branch, and local commit for that task. A fresh install can do that and nothing else, on any repo, with no configuration.
+Repository ceilings and per-run grants are intersected with managed policy. An empty remote allowlist still permits the authorized local task. Remote operations need both a matching repository entry and a grant on that invocation:
 
 ```toml
-[repo."github.com/atchyut/shadowclone"]
+[repo."github.com/example/project"]
 allow = ["push", "pr-draft", "pr-reply"]
 maxBudgetUsd = 2.00
-
-[repo."github.com/employer/platform"]
-allow = []
 ```
 
-Repository policy keys use the full `host/owner/repository` identity and require the `git-metadata` source. When that source is disabled, `resolveRepository` produces an isolated identity, so a named repository entry cannot match.
-
-Promotion is a deliberate edit to a config file, one repo at a time. The entry is a ceiling, not standing approval. A remote action also needs a matching `--approve` on the individual run. There is no global switch that turns delegation on everywhere, because the repo where this is a good idea and the repo where it ends a job are usually on the same laptop.
-
-`src/dispatch/policy.ts` intersects repo policy, per-run approval, and the managed action tier to produce engine arguments. Unattended execution sets `permissionMode: "dontAsk"`, ensuring `allowedTools` acts as an enforced ceiling. A withheld capability becomes a `--disallowedTools` entry. Absence of a tool beats a rule about a tool. The engine never receives wildcard add, commit, or push tools.
-
-Draft tools include inspection, edits, and repository verification commands detected dynamically from project manifests (`package.json`, `Cargo.toml`, `go.mod`, `Makefile`, `pyproject.toml`) or configured per repository with `:*` argument suffixes. These are permissions available to the engine. `runHeadlessClone` does not yet require evidence that a verification command ran or succeeded before it commits a successful engine result.
-
-Push safety is handled outside the agent process. Rather than exposing `Bash(git push:*)` to agent execution, the host orchestrator inspects the resulting worktree and performs an explicit `git push --set-upstream origin <branch>` after the run. Commits are likewise created host-side with fixed argument vectors.
-
-## A run
-
-1. Resolve the policy for the target repo. No entry means draft tier.
-2. `git worktree add ~/.shadowclone/worktrees/<runId> -b shadowclone/<slug>`. The user's working tree is never the working directory of a clone.
-3. Compile the profile for this repo into `.compiled.md`.
-4. Generate a run UUID and pass it as `--session-id`, so the clone's transcript is findable.
-5. Run the engine with the policy's tools, `dontAsk` permission mode, and budget.
-6. Commit a successful change with fixed `git add --all` and `git commit` argument vectors.
-7. If push was approved, execute host-side upstream push.
-8. Inspect the worktree and write `~/.shadowclone/runs/<runId>/receipt.json`.
-9. Leave the worktree in place for review.
-
-## The receipt
-
-Every run produces one, and it is the artifact that makes delegation reviewable rather than mysterious.
-
-```json
-{
-  "runId": "...",
-  "task": "...",
-  "repo": "...",
-  "branch": "shadowclone/fix-flaky-collector-test",
-  "engine": "claude-code",
-  "model": "...",
-  "sessionId": "...",
-  "transcriptPath": "~/.claude/projects/.../<sessionId>.jsonl",
-  "startedAt": "...",
-  "durationMs": 0,
-  "costUsd": 0,
-  "turns": 0,
-  "filesChanged": [],
-  "commits": [],
-  "actionsTaken": ["commit"],
-  "actionsBlockedByPolicy": ["push"],
-  "permissionDenials": [],
-  "profileRulesApplied": 34
-}
+```bash
+shadowclone run "prepare the fix" --approve push --approve pr-draft
+shadowclone run "reply with the review findings" --approve pr-reply --pr 123
 ```
 
-`actionsBlockedByPolicy` is there so the user can see what the clone wanted to do and could not. That list is the best available evidence for whether a repo is ready to be promoted, and it is also a correction signal in its own right.
+Named repository ceilings require Git metadata consent. A draft PR also requires push approval. PR replies require a positive target PR number. GitHub operations use host helpers with the resolved repository and explicit arguments. The agent supplies structured draft text, not a shell command or repository selector, and does not receive a GitHub token.
 
-## Learning from its own runs
+Automatic host Git operations disable hooks, file monitors, signing, and ambient global configuration. Executable local filters and unsupported transports are refused. Push targets the resolved branch on origin; force push and merge are not granted.
 
-The clone's transcript is written to the same place the user's transcripts are written, in the same format, and the run receipt records exactly where. The observe stage reads it with no special case.
+## Run lifecycle
 
-What closes the loop is the user's response to the work. A branch that gets merged is a positive example. A branch that gets deleted unreviewed is a negative one. A branch the user rewrites before merging is the most valuable record in the system, because the diff between what the clone wrote and what shipped is a correction pair with no ambiguity in it.
+The host resolves policy, creates a private worktree, compiles the selected profile, and starts a bounded agent process. A successful engine result is committed locally. Approved remote actions run through host helpers. A private receipt records identifiers, timing, changed paths, commits, and action outcomes. The worktree remains for review.
 
-That last one is the strongest signal shadowclone can produce and it is deliberately not in the first release. It needs the profile to be good enough that clone runs are worth reviewing at all, and until then it would be learning from noise.
+A successful engine result is not proof that every available verification command ran. `actionsBlockedByPolicy` lists unavailable capabilities, not evidence that the agent tried them. Native session persistence is disabled, so a receipt does not promise a provider transcript file.
 
-## What is never allowed
+Branches use an opaque run suffix and a fixed task prefix. Receipts retain a task hash without raw task text or a task-derived slug. Repository identifiers and changed relative paths remain potentially identifying private data. Inspect receipts before sharing them.
 
-No tier and no allowlist entry grants any of these.
+## Resource and trust limits
 
-`--dangerously-skip-permissions` and `--permission-mode bypassPermissions` are never passed. `git push --force` in any form. Any write to a branch a human is working on. Any action on a repo with no policy entry. Any spend above the run's `maxBudgetUsd`. Merging a pull request, at any tier, ever.
+Provider output is bounded, and overflow or cancellation terminates the process group. A provider-supported cost limit is requested, but in-flight billing may exceed the nominal amount. Unsupported isolation fails closed. These controls do not certify the provider runtime or operating system.
+
+Learning from later review, merge, or rejection of the resulting branch is not implemented. Session-end ingestion updates structural evidence; explicit deep learning reconciles eligible profile changes.

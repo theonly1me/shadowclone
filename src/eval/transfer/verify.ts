@@ -1,3 +1,7 @@
+import { readBoundedFile } from "../../io/files";
+import { runProcess } from "../../io/process";
+import { mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
@@ -16,16 +20,27 @@ export function verificationArguments(options: {
   readonly arguments: readonly string[];
   readonly platform: NodeJS.Platform;
   readonly homeDirectory?: string;
+  readonly temporaryDirectory?: string;
+  readonly blockedPaths?: readonly string[];
 }): readonly string[] {
   const directory = canonicalPath(options.directory);
-  const blocked = sensitivePaths(options.homeDirectory);
+  const blocked = [
+    ...sensitivePaths(options.homeDirectory),
+    ...(options.blockedPaths ?? []).map((entry) => ({
+      path: canonicalPath(entry),
+      kind: "directory" as const,
+    })),
+  ];
+  const temporary = canonicalPath(
+    options.temporaryDirectory ?? options.directory,
+  );
 
   if (options.platform === "darwin") {
     const denied = denySubpathRules({
       paths: blocked.map((entry) => entry.path),
       operations: ["file-read*", "file-write*"],
     });
-    const profile = `(version 1)(allow default)(deny network*)(deny file-write*)(allow file-write* (subpath ${JSON.stringify(directory)})(subpath "/private/tmp")(subpath "/dev"))${denied}`;
+    const profile = `(version 1)(allow default)(deny network*)(deny file-write*)(allow file-write* (subpath ${JSON.stringify(directory)})(subpath ${JSON.stringify(temporary)})(literal "/dev/null"))(deny appleevent-send)(deny mach-lookup)(deny ipc-posix-shm*)(deny ipc-posix-sem*)(deny signal (require-not (target self)))${denied}`;
     return ["sandbox-exec", "-p", profile, ...options.arguments];
   }
 
@@ -34,6 +49,11 @@ export function verificationArguments(options: {
       "bwrap",
       "--die-with-parent",
       "--unshare-net",
+      "--unshare-pid",
+      "--unshare-ipc",
+      "--new-session",
+      "--cap-drop",
+      "ALL",
       "--ro-bind",
       "/",
       "/",
@@ -43,10 +63,13 @@ export function verificationArguments(options: {
       "/dev",
       "--proc",
       "/proc",
-      ...maskArguments(blocked),
+      ...maskArguments(blocked.filter((entry) => existsSync(entry.path))),
       "--bind",
       directory,
       directory,
+      "--bind",
+      temporary,
+      temporary,
       "--chdir",
       directory,
       "--",
@@ -78,32 +101,31 @@ async function runCheck(options: {
   readonly directory: string;
   readonly arguments: readonly string[];
   readonly timeoutSeconds: number;
+  readonly blockedPaths?: readonly string[];
 }): Promise<CheckResult> {
-  const child = Bun.spawn({
-    cmd: [
-      ...verificationArguments({
-        directory: options.directory,
-        arguments: options.arguments,
-        platform: process.platform,
-      }),
-    ],
+  const temporaryDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-verify-"),
+  );
+  const result = await runProcess({
+    arguments: verificationArguments({
+      directory: options.directory,
+      arguments: options.arguments,
+      platform: process.platform,
+      temporaryDirectory,
+      blockedPaths: options.blockedPaths,
+    }),
     cwd: options.directory,
-    stdout: "pipe",
-    stderr: "pipe",
-    env: {
+    environment: {
       PATH: process.env.PATH,
-      HOME: options.directory,
-      TMPDIR: options.directory,
+      HOME: temporaryDirectory,
+      TMPDIR: temporaryDirectory,
+      TMP: temporaryDirectory,
+      TEMP: temporaryDirectory,
       CI: "true",
     },
-    signal: AbortSignal.timeout(options.timeoutSeconds * 1000),
-  });
-
-  const [exitCode, standardOutput, standardError] = await Promise.all([
-    child.exited,
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
-  ]);
+    timeoutMilliseconds: options.timeoutSeconds * 1000,
+  }).finally(() => rm(temporaryDirectory, { recursive: true, force: true }));
+  const { exitCode, stdout: standardOutput, stderr: standardError } = result;
 
   const evidenceText = `Exit code ${exitCode}\n${standardOutput.slice(-12000)}\n${standardError.slice(-4000)}`;
 
@@ -117,22 +139,27 @@ async function runCheck(options: {
 export async function verifyWorkspace(options: {
   readonly directory: string;
   readonly timeoutSeconds: number;
+  readonly blockedPaths?: readonly string[];
 }): Promise<readonly CheckResult[]> {
-  const manifestFile = Bun.file(path.join(options.directory, "package.json"));
-  if (!(await manifestFile.exists())) {
+  const manifest = await readBoundedFile({
+    filePath: path.join(options.directory, "package.json"),
+    roots: [options.directory],
+    maximumBytes: 1024 * 1024,
+  });
+  if (manifest === null) {
     return [
       {
         requirement: "Independent repository verification",
         verdict: "uncertain",
-        evidence: "No supported package manifest",
+        evidence: "No safe supported package manifest within the size limit",
       },
     ];
   }
 
-  const manifestData = await manifestFile.json();
+  const manifestData: unknown = JSON.parse(manifest);
   const parsedManifest = packageManifestSchema.safeParse(manifestData);
   const scripts = parsedManifest.success
-    ? parsedManifest.data.scripts ?? {}
+    ? (parsedManifest.data.scripts ?? {})
     : {};
 
   const scriptNames = ["test", "typecheck"].filter(
@@ -156,6 +183,7 @@ export async function verifyWorkspace(options: {
       directory: options.directory,
       arguments: [packageManager, "run", scriptName],
       timeoutSeconds: options.timeoutSeconds,
+      blockedPaths: options.blockedPaths,
     });
     results.push(checkResult);
   }

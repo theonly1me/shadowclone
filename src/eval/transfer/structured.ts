@@ -73,7 +73,7 @@ export const transferRunSchema = z.object({
 });
 
 export const preparedEvalSchema = z.object({
-  schemaVersion: z.literal(2),
+  schemaVersion: z.literal(3),
   evalId: z.string().min(1),
   repository: z.string().min(1),
   engine: z.enum(["codex", "claude-code"]),
@@ -87,7 +87,7 @@ export const preparedEvalSchema = z.object({
 });
 
 export const receiptSchema = z.object({
-  schemaVersion: z.literal(2),
+  schemaVersion: z.literal(3),
   evalId: z.string().min(1),
   status: z.enum(["complete", "insufficient-evidence", "incomplete"]),
   preparedFingerprint: z.string().min(1),

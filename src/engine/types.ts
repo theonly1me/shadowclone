@@ -29,6 +29,9 @@ export type EngineAction = {
 export type EngineExecution =
   | {
       readonly purpose: "dispatch";
+      readonly blockedPaths?: readonly string[];
+      readonly repositoryDirectory?: string;
+      readonly temporaryDirectory?: string;
       readonly allowedDomains?: readonly string[];
     }
   | {

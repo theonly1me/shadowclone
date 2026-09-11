@@ -1,7 +1,8 @@
+import { projectPaths, type ProjectPaths } from "../../paths";
 import path from "node:path";
 import type { ShadowcloneConfig } from "../../config";
 import type { IndexedEvent } from "../../index";
-import { resolveRedacted } from "../../redact";
+import { captureRoots, resolveRedacted } from "../../redact";
 import { extractPromptText } from "../prompt";
 import type { Evidence } from "./types";
 
@@ -11,6 +12,7 @@ export async function collectEvidence(options: {
   readonly events: readonly IndexedEvent[];
   readonly repository: string;
   readonly config: ShadowcloneConfig;
+  readonly paths?: ProjectPaths;
 }): Promise<readonly Evidence[]> {
   const eligibleEvents = options.events
     .filter((event) => {
@@ -36,7 +38,7 @@ export async function collectEvidence(options: {
       continue;
     }
 
-    const rawText = await resolveRedacted({ ref: event.textRef });
+    const rawText = await resolveRedacted({ ref: event.textRef, roots: captureRoots(options.paths ?? projectPaths) });
     const promptText = extractPromptText(rawText);
 
     if (promptText && promptText.length <= 12000) {

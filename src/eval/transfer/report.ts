@@ -1,4 +1,4 @@
-import { redactSecrets } from "../../redact";
+import { publicReport } from "./publicReport";
 import type { TransferReceipt, TransferRun } from "./types";
 
 export interface EvaluationSummary {
@@ -86,13 +86,20 @@ export function printReport(options: {
   readonly json: boolean;
 }): void {
   if (options.json) {
-    console.log(redactSecrets({ text: JSON.stringify(options.receipt) }));
+    console.log(
+      JSON.stringify({
+        ...publicReport(options.receipt),
+        summary: summarize(options.receipt),
+      }),
+    );
     return;
   }
 
   const summary = summarize(options.receipt);
 
-  console.log(`Evaluation ${options.receipt.evalId}: ${options.receipt.status}`);
+  console.log(
+    `Evaluation ${options.receipt.evalId}: ${options.receipt.status}`,
+  );
   console.log(
     `${options.receipt.prepared.tasks.length} tasks; ${options.receipt.prepared.exclusions.length} excluded`,
   );

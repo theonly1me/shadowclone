@@ -20,7 +20,7 @@ Design record 011 removes structural rule generation, leaving deep learning as t
 
 ## Design
 
-The reconciliation input has two local views. The writable view contains parsed profile rules and rejection records exactly as they exist on disk. The prompt view reads the same files through `FileTextRef` and `resolveRedacted` before parsing them. The learner uses prompt-view titles and bodies for model input and writable-view records only when applying validated verdicts. Profile content therefore uses the same single redaction gate as transcript excerpts.
+The reconciliation input has two local views. The writable view contains parsed profile rules and rejection records exactly as they exist on disk. The completed implementation in [015](015-remediation-completion.md) derives both views from one bounded snapshot through `materializeSnapshot`. The learner uses prompt-view titles and bodies for model input and writable-view records only when applying validated verdicts. Profile content therefore uses the same single redaction gate as transcript excerpts.
 
 Profile discovery scans only Markdown beneath `global/` and `org/`. It ignores `.compiled.md` and rejects paths outside the closed profile shape. Standard section filenames recover `engineering`, `workflow`, or `boundaries`; exact project files recover `engineering`, which is the only section repository import currently writes. Rules without persistent metadata remain user text outside automated reconciliation.
 
@@ -82,7 +82,7 @@ The comparison names the current source, current guidance, observed pattern, pro
 
 ## Data handling
 
-The feature reads enabled transcript pointers, local profile Markdown, local lifecycle state, and package-owned seed guidance. Transcript text enters a prompt only when `buildReconciliationPrompt` resolves an allowlisted `TextRef`. Existing profile and rejection text enters a prompt only from a whole-file `FileTextRef` resolved by `resolveRedacted`. The single `redactSecrets` gate remains inside `resolveRedacted` for both paths.
+The feature reads enabled transcript pointers, local profile Markdown, local lifecycle state, and package-owned seed guidance. Transcript text enters a prompt only when `buildReconciliationPrompt` resolves an allowlisted `TextRef`. Existing profile and rejection text enters a prompt through `materializeSnapshot`. Both materialization helpers apply `redactSecrets` before returning prompt content.
 
 The model sees redacted text plus opaque per-prompt tokens. It does not receive transcript paths, profile paths, working directories, Git remotes, origin identifiers, repository names, persistent rule keys, durable evidence identifiers, or rejection keys. Checkpoints contain validated verdicts and proposals with no excerpt text. Local terminal output may show redacted model summaries and proposed rule text because review is the user control surface for the explicit deep-learning action.
 

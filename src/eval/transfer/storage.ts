@@ -1,3 +1,4 @@
+import { publicReport } from "./publicReport";
 import path from "node:path";
 import { ownedWrite } from "../../storage";
 import { fingerprint } from "./structured";
@@ -8,14 +9,18 @@ export async function saveReceipt(options: {
   readonly receipt: TransferReceipt;
 }): Promise<void> {
   await ownedWrite({
-    path: path.join(options.directory, "receipt.json"),
+    path: path.join(options.directory, "state.json"),
     content: JSON.stringify(options.receipt, null, 2),
+  });
+  await ownedWrite({
+    path: path.join(options.directory, "report.json"),
+    content: JSON.stringify(publicReport(options.receipt), null, 2),
   });
 }
 
 export function initialReceipt(prepared: PreparedEval): TransferReceipt {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     evalId: prepared.evalId,
     prepared,
     preparedFingerprint: fingerprint(prepared),

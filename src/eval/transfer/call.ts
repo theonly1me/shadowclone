@@ -1,9 +1,11 @@
+import type { EvaluationBudget } from "./accounting";
 import { redactSecrets } from "../../redact";
 import type { EngineId, EngineRunner } from "../../engine";
 import type { ModelCall } from "./types";
 
 export function modelCaller(options: {
   readonly runner: EngineRunner;
+  readonly budget: EvaluationBudget;
   readonly engine: EngineId;
   readonly model: string;
   readonly timeoutSeconds: number;
@@ -34,6 +36,7 @@ export function modelCaller(options: {
         : []),
     ];
 
+    const remaining = await options.budget.reserve();
     const run = await options.runner({
       prompt: request.prompt,
       cwd: request.cwd,
@@ -42,11 +45,15 @@ export function modelCaller(options: {
       outputSchema: request.outputSchema,
       permissionMode: "dontAsk",
       ...(request.execute ? {} : { allowedTools: [] }),
-      ...(options.maxBudgetUsd === undefined
+      ...(remaining === undefined
         ? {}
-        : { maxBudgetUsd: options.maxBudgetUsd }),
+        : { maxBudgetUsd: remaining }),
       signal: AbortSignal.timeout(options.timeoutSeconds * 1000),
+    }).catch(async (error: unknown) => {
+      await options.budget.settle(null);
+      throw error;
     });
+    await options.budget.settle(run.costUsd);
 
     if (run.isError) {
       const message = run.errorMessage ?? "Evaluation engine failed";

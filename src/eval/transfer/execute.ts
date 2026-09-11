@@ -63,6 +63,7 @@ export async function executeTask(options: {
     const verification = await verifyWorkspace({
       directory: snapshot.directory,
       timeoutSeconds: options.prepared.timeoutSeconds,
+      blockedPaths: [options.judgeDirectory, options.prepared.repository],
     });
 
     const evidence = judgeEvidence({ observed, verification });
@@ -77,9 +78,7 @@ export async function executeTask(options: {
     const correctness = [...verification, ...judgedCorrectness];
 
     const preferences = await judge({
-      requirements: options.task.preferences.map(
-        (check) => check.requirement,
-      ),
+      requirements: options.task.preferences.map((check) => check.requirement),
       evidence,
       call: options.call,
       cwd: options.judgeDirectory,

@@ -1,3 +1,4 @@
+import { dispatchCommand } from "../dispatchIsolation";
 import { canonicalPath } from "../../paths";
 import { denySubpathRules, maskArguments } from "./blocked";
 import type { EngineRunOptions } from "../types";
@@ -7,6 +8,9 @@ export function evaluationCommand(options: {
   readonly run: EngineRunOptions;
   readonly platform?: NodeJS.Platform;
 }): readonly string[] {
+  if (options.run.execution.purpose === "dispatch") {
+    return dispatchCommand({ ...options, platform: options.platform ?? process.platform });
+  }
   if (options.run.execution.purpose !== "evaluation") {
     return options.arguments;
   }

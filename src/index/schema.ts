@@ -1,23 +1,36 @@
 import type { Database } from "bun:sqlite";
 
-const schemaVersion = 3;
+const schemaVersion = 5;
 
 function resetOutdatedSchema(database: Database): void {
   const version = database
     .query<{ readonly user_version: number }, []>("PRAGMA user_version")
     .get()?.user_version;
-  if (version === schemaVersion) {
+  if (version === schemaVersion || version === 4 || version === 3) {
     return;
   }
   database.exec(`
     DROP TABLE IF EXISTS events;
     DROP TABLE IF EXISTS cursors;
-    DROP TABLE IF EXISTS origin_bindings;
   `);
 }
 
 export function createSchema(database: Database): void {
+  const previousVersion = database
+    .query<{ user_version: number }, []>("PRAGMA user_version")
+    .get()?.user_version;
   resetOutdatedSchema(database);
+  const columns = database
+    .query<{ name: string }, []>("PRAGMA table_info(cursors)")
+    .all();
+  if (
+    columns.length > 0 &&
+    !columns.some((column) => column.name === "identity")
+  ) {
+    database.exec(
+      "ALTER TABLE cursors ADD COLUMN identity TEXT; ALTER TABLE cursors ADD COLUMN discarding INTEGER NOT NULL DEFAULT 0; ALTER TABLE cursors ADD COLUMN omitted_records INTEGER NOT NULL DEFAULT 0;",
+    );
+  }
   database.exec(`
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
@@ -27,7 +40,10 @@ export function createSchema(database: Database): void {
       source TEXT NOT NULL,
       byte_size INTEGER NOT NULL,
       modified_at REAL NOT NULL,
-      byte_offset INTEGER NOT NULL
+      byte_offset INTEGER NOT NULL,
+      identity TEXT,
+      discarding INTEGER NOT NULL DEFAULT 0,
+      omitted_records INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS events (
@@ -46,6 +62,13 @@ export function createSchema(database: Database): void {
       is_error INTEGER NOT NULL,
       text_ref TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS origin_observation (
+      singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+      started_at INTEGER NOT NULL
+    );
+
+    INSERT OR IGNORE INTO origin_observation VALUES (1, ${Date.now()});
 
     CREATE TABLE IF NOT EXISTS origin_bindings (
       origin_key TEXT PRIMARY KEY,
@@ -66,4 +89,14 @@ export function createSchema(database: Database): void {
 
     PRAGMA user_version = ${schemaVersion};
   `);
+  if (previousVersion === 3 || previousVersion === 4) {
+    database.exec(`
+    INSERT OR IGNORE INTO origin_bindings
+      SELECT DISTINCT json_array(events.source, events.session_id, events.cwd),
+        binding.repository_id, binding.repository_name, binding.profile_file_name,
+        binding.origin_id, binding.origin_directory, binding.origin_promotable
+      FROM events JOIN origin_bindings AS binding ON binding.origin_key = events.cwd;
+
+    `);
+  }
 }

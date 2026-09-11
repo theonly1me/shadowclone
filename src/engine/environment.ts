@@ -15,13 +15,13 @@ const baseKeys = [
   "NODE_EXTRA_CA_CERTS",
 ] as const;
 
-const engineKeyPrefixes: Readonly<Record<EngineId, readonly string[]>> = {
-  "claude-code": ["ANTHROPIC_", "CLAUDE_CODE_"],
-  codex: ["OPENAI_", "CODEX_"],
-  "cursor-agent": ["CURSOR_"],
-  antigravity: ["GEMINI_", "GOOGLE_"],
-  "anthropic-api": ["ANTHROPIC_"],
-  "openai-compatible": ["OPENAI_"],
+const engineKeys: Readonly<Record<EngineId, readonly string[]>> = {
+  "claude-code": ["ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL"],
+  codex: ["OPENAI_API_KEY", "OPENAI_BASE_URL"],
+  "cursor-agent": ["CURSOR_API_KEY"],
+  antigravity: ["GEMINI_API_KEY", "GOOGLE_API_KEY"],
+  "anthropic-api": ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL"],
+  "openai-compatible": ["OPENAI_API_KEY", "OPENAI_BASE_URL"],
 };
 
 const remoteActionKeys = ["GH_TOKEN", "GITHUB_TOKEN", "GH_HOST"] as const;
@@ -39,7 +39,7 @@ export function runnerEnvironment(options: {
   readonly source?: Readonly<Record<string, string | undefined>>;
 }): Record<string, string> {
   const source = options.source ?? process.env;
-  const prefixes = engineKeyPrefixes[options.engine];
+  const keys = engineKeys[options.engine];
   const environment: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(source)) {
@@ -47,7 +47,7 @@ export function runnerEnvironment(options: {
       continue;
     }
     const isBase = baseKeys.some((baseKey) => baseKey === key);
-    const isEngine = prefixes.some((prefix) => key.startsWith(prefix));
+    const isEngine = keys.includes(key);
     const isRemote =
       options.allowRemoteActions === true &&
       remoteActionKeys.some((remoteKey) => remoteKey === key);

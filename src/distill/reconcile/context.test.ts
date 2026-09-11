@@ -7,7 +7,7 @@ import { createReconciliationContext } from "./context";
 
 const origin: OriginScope = {
   id: "github.com/acme",
-  directoryName: "github.com--acme",
+  directoryName: "github.com--acme--936913df4a5c268b",
   promotable: true,
 };
 const library: SeedLibrary = {

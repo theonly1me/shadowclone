@@ -1,3 +1,4 @@
+import { constants } from "node:fs";
 import { lstat, open } from "node:fs/promises";
 import path from "node:path";
 
@@ -83,7 +84,7 @@ export async function readRootOwnedFile(filePath: string): Promise<string> {
   );
   const link = toPathStats(await lstat(filePath));
 
-  const handle = await open(filePath, "r");
+  const handle = await open(filePath, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   try {
     const opened = toPathStats(await handle.stat());
     const failure = managedStatsFailure({
@@ -93,7 +94,12 @@ export async function readRootOwnedFile(filePath: string): Promise<string> {
     if (failure !== null) {
       throw new Error(failure);
     }
-    return await handle.readFile("utf8");
+    const buffer = Buffer.alloc(1024 * 1024 + 1);
+    const read = await handle.read(buffer, 0, buffer.length, 0);
+    if (read.bytesRead > 1024 * 1024) {
+      throw new Error("Managed policy exceeds the size limit");
+    }
+    return buffer.subarray(0, read.bytesRead).toString("utf8");
   } finally {
     await handle.close();
   }
