@@ -9,6 +9,7 @@ test("verification enforces host write and credential read restrictions", async 
   const root = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-sandbox-test-"),
   );
+  const outsideRoot = await mkdtemp(path.join(process.cwd(), ".shadowclone-verifier-test-"));
   try {
     const directory = path.join(root, "workspace");
     const temporaryDirectory = path.join(root, "temporary");
@@ -17,7 +18,7 @@ test("verification enforces host write and credential read restrictions", async 
     await mkdir(temporaryDirectory);
     await mkdir(path.join(homeDirectory, ".ssh"), { recursive: true });
     const credential = path.join(homeDirectory, ".ssh", "sentinel");
-    const outside = path.join(root, "outside");
+    const outside = path.join(outsideRoot, "outside");
     const control = path.join(root, "control");
     await mkdir(control);
     await writeFile(path.join(control, "judge"), "protected-evidence");
@@ -94,5 +95,6 @@ test("verification enforces host write and credential read restrictions", async 
     }
   } finally {
     await rm(root, { recursive: true, force: true });
+    await rm(outsideRoot, { recursive: true, force: true });
   }
 });

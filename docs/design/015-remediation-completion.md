@@ -67,3 +67,5 @@ None. Deferred decisions and accepted items remain listed in the local handoff p
 2026-09-11: Complete all approved remediation in one PR. Keep the release PR and history rewrite separate.
 
 2026-09-11: Protect generated state without modifying executable checkout content. Keep private resumable evidence separate from shareable metrics.
+
+2026-09-11: Linux CI confirmed that the verifier write probe must target a host path outside its private `/tmp` mount. The fixture now exercises the read-only host mount and retains the existing write, credential, control-state, and network assertions.
