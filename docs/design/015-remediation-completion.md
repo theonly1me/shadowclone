@@ -56,7 +56,7 @@ The local full gate passed with 409 tests, including typecheck and lint. One int
 
 The build and npm package dry run passed. The package includes the data-handling statement and security policy and excludes local plans, transcripts, and resume state. Current tracked files contain none of the identifying provenance patterns audited for this change. The approved issue and PR-body corrections were re-fetched and verified.
 
-Linux and macOS integration tests are required in CI. Paid provider evaluations and real authenticated CLI task execution remain deferred; synthetic wrapper tests do not establish provider compatibility. Process groups are terminated on cancellation and overflow; Linux additionally isolates process and IPC namespaces. These are specific controls, not a claim of complete isolation from all same-account processes.
+Linux and macOS integration tests are required in CI. The first Linux run passed 407 regular tests but could not start either sandbox probe. CI now checks namespace startup explicitly and enables unprivileged namespaces on its disposable Ubuntu runner when needed; production still fails closed when the sandbox is unavailable. See the [Ubuntu namespace restrictions](https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007). Paid provider evaluations and real authenticated CLI task execution remain deferred; synthetic wrapper tests do not establish provider compatibility. Process groups are terminated on cancellation and overflow; Linux additionally isolates process and IPC namespaces. These are specific controls, not a claim of complete isolation from all same-account processes.
 
 ## Open questions
 

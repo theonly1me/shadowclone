@@ -43,7 +43,7 @@ test("verification enforces host write and credential read restrictions", async 
     const probe = await execute(["/usr/bin/true"]).catch(() => null);
     if (probe === null || probe.exitCode !== 0) {
       if (process.env.CI) {
-        throw new Error("Required verification sandbox is unavailable in CI");
+        throw new Error(`Required verification sandbox is unavailable in CI: ${probe?.stderr.trim() || "process did not start"}`);
       }
       console.log(
         "Sandbox integration unavailable inside the current host sandbox; run the targeted check outside it.",
