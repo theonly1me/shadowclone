@@ -77,6 +77,12 @@ test("evaluation forwards the exact model and only enables writes for execution"
   expect(executionArguments).toContain(
     'default_permissions="shadowclone-evaluation"',
   );
+  const permissionValue = executionArguments.find((argument) =>
+    argument.startsWith("permissions.shadowclone-evaluation="),
+  );
+  expect(permissionValue).toContain('"/tmp/task"="write"');
+  expect(permissionValue).not.toContain('":tmpdir"');
+  expect(permissionValue).not.toContain('":slash_tmp"');
   expect(executionArguments.join(" ")).toContain('":root"="deny"');
   expect(executionArguments.join(" ")).toContain(
     '"/private/profile"="deny"',

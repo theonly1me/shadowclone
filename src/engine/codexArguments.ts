@@ -56,12 +56,11 @@ function evaluationPermissionValue(options: {
   const filesystem = [
     `${JSON.stringify(":root")}="deny"`,
     `${JSON.stringify(":minimal")}="read"`,
-    `${JSON.stringify(":tmpdir")}="deny"`,
-    `${JSON.stringify(":slash_tmp")}="deny"`,
     ...blockedPaths.map(
       (blockedPath) =>
         `${JSON.stringify(canonicalPath(blockedPath))}="deny"`,
     ),
+    `${JSON.stringify(canonicalPath(options.run.cwd))}="write"`,
     `${JSON.stringify(canonicalPath(options.temporaryDirectory))}="write"`,
   ];
 
