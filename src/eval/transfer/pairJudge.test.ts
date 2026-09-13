@@ -83,6 +83,11 @@ test("a majority of two passes carries the verdict", async () => {
   });
 
   expect(result.clone.correctness[0]?.verdict).toBe("pass");
+  expect(result.clone.correctness[0]?.votes).toEqual([
+    { verdict: "pass", evidence: "pass correctness" },
+    { verdict: "fail", evidence: "fail correctness" },
+    { verdict: "pass", evidence: "pass correctness" },
+  ]);
 });
 
 test("incomplete checks fail after retries", async () => {

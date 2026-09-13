@@ -38,6 +38,7 @@ function integrityCheck(options: {
     requirement: options.requirement,
     verdict: unchanged ? "pass" : "fail",
     evidence: unchanged ? "Unchanged" : "Changed during evaluation",
+    votes: [],
   };
 }
 

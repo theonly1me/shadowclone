@@ -69,7 +69,7 @@ test("an expired one-task attempt records timeout status before coding", async (
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-eval-deadline-"));
   const profile = "Use complete names.";
   const prepared: PreparedEval = {
-    schemaVersion: 9,
+    schemaVersion: 10,
     evalId: "00000000-0000-4000-8000-000000000001",
     suiteId: "00000000-0000-4000-8000-000000000002",
     repository: directory,
@@ -97,7 +97,7 @@ test("an expired one-task attempt records timeout status before coding", async (
     timeoutSeconds: 60,
     maxBudgetUsd: null,
     dirtyFileCount: 0,
-    preflight: [{ requirement: "Snapshot", verdict: "pass", evidence: "ok" }],
+    preflight: [{ requirement: "Snapshot", verdict: "pass", evidence: "ok", votes: [] }],
   };
   let calls = 0;
   try {

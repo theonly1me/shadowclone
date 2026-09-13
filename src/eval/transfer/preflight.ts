@@ -6,6 +6,7 @@ export function preflightChecks(): readonly CheckResult[] {
     requirement: "The current committed HEAD can be isolated for evaluation.",
     verdict: "pass",
     evidence: "A disposable snapshot was created without copying dependencies.",
+    votes: [],
   }];
 }
 

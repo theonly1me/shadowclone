@@ -8,6 +8,7 @@ const passed: CheckResult = {
   requirement: "Reviewable code",
   verdict: "pass",
   evidence: "Observed",
+  votes: [],
 };
 const profile = "Use complete names.";
 const task: DelegationTask = {

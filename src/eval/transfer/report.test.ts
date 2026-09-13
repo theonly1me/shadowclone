@@ -9,6 +9,7 @@ const passed: CheckResult = {
   requirement: "Check",
   verdict: "pass",
   evidence: "Observed",
+  votes: [],
 };
 const failed: CheckResult = { ...passed, verdict: "fail" };
 
@@ -38,7 +39,7 @@ function run(options: {
 function receipt() {
   const profile = "private profile";
   return initialReceipt({
-    schemaVersion: 9,
+    schemaVersion: 10,
     evalId: "00000000-0000-4000-8000-000000000001",
     suiteId: "00000000-0000-4000-8000-000000000002",
     repository: "/private/repository",

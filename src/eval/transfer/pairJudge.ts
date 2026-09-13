@@ -119,6 +119,7 @@ function majority(options: {
       evidence: checks.map((check, voteIndex) =>
         `Vote ${voteIndex + 1}: ${redactSecrets({ text: check.evidence })}`
       ).join("\n"),
+      votes: checks,
     };
   });
 }

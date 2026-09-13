@@ -20,7 +20,7 @@ export async function saveReceipt(options: {
 
 export function initialReceipt(prepared: PreparedEval): TransferReceipt {
   return {
-    schemaVersion: 9,
+    schemaVersion: 10,
     evalId: prepared.evalId,
     prepared,
     preparedFingerprint: fingerprint(prepared),

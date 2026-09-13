@@ -41,7 +41,7 @@ test("a failed arm leaves every completed run in a resumable receipt", async () 
     });
     const profile = "Use complete names.";
     const prepared: PreparedEval = {
-      schemaVersion: 9,
+      schemaVersion: 10,
       evalId: "00000000-0000-4000-8000-000000000001",
       suiteId: "00000000-0000-4000-8000-000000000002",
       repository,
@@ -69,7 +69,7 @@ test("a failed arm leaves every completed run in a resumable receipt", async () 
       timeoutSeconds: 60,
       maxBudgetUsd: null,
       dirtyFileCount: 0,
-      preflight: [{ requirement: "Snapshot", verdict: "pass", evidence: "ok" }],
+      preflight: [{ requirement: "Snapshot", verdict: "pass", evidence: "ok", votes: [] }],
     };
     const calls: string[] = [];
     await expect(executeTransferRuns({

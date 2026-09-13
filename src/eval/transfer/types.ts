@@ -75,10 +75,16 @@ export type EvaluationProgress = {
   readonly updatedAt: string;
 };
 
+export type CheckVote = {
+  readonly verdict: "pass" | "fail";
+  readonly evidence: string;
+};
+
 export type CheckResult = {
   readonly requirement: string;
   readonly verdict: "pass" | "fail";
   readonly evidence: string;
+  readonly votes: readonly CheckVote[];
 };
 
 export type ContextFile = {
@@ -97,7 +103,7 @@ export type EvaluationSuite = {
 };
 
 export type PreparedEval = Omit<EvaluationSuite, "schemaVersion"> & {
-  readonly schemaVersion: 9;
+  readonly schemaVersion: 10;
   readonly evalId: string;
   readonly engine: EngineId;
   readonly model: string;
@@ -128,7 +134,7 @@ export type TransferRun = {
 };
 
 export type TransferReceipt = {
-  readonly schemaVersion: 9;
+  readonly schemaVersion: 10;
   readonly evalId: string;
   readonly status: "running" | "pass" | "fail" | "error";
   readonly preparedFingerprint: string;

@@ -137,7 +137,7 @@ export async function prepareEvaluation(options: {
   }
   return {
     ...suite,
-    schemaVersion: 9,
+    schemaVersion: 10,
     evalId: options.setup.evalId,
     engine: options.setup.engine,
     model: options.setup.model,

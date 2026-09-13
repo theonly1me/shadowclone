@@ -11,6 +11,7 @@ export function reviewabilityChecks(options: {
       evidence: options.repositoryChanged
         ? "The disposable snapshot contains changed files."
         : "The disposable snapshot contains no changed files.",
+      votes: [],
     },
     {
       requirement: "The complete code change fits within the grading limit.",
@@ -18,6 +19,7 @@ export function reviewabilityChecks(options: {
       evidence: options.truncated
         ? "The captured change exceeded the grading limit."
         : "The complete captured change is available to the judges.",
+      votes: [],
     },
   ];
 }

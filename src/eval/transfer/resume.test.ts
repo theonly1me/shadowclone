@@ -6,7 +6,7 @@ import { fingerprint } from "./structured";
 function receipt() {
   const profile = "profile";
   return initialReceipt({
-    schemaVersion: 9,
+    schemaVersion: 10,
     evalId: "00000000-0000-4000-8000-000000000001",
     suiteId: "00000000-0000-4000-8000-000000000002",
     repository: "/repository",
@@ -25,7 +25,7 @@ function receipt() {
       fingerprint: fingerprint(profile),
       ruleCount: 1,
     },
-    preflight: [{ requirement: "test", verdict: "pass", evidence: "ok" }],
+    preflight: [{ requirement: "test", verdict: "pass", evidence: "ok", votes: [] }],
     tasks: [{
       id: "task",
       startingCommit: "commit",
@@ -38,7 +38,7 @@ function receipt() {
   });
 }
 
-test("reads schema 8 receipts as resumable", () => {
+test("reads schema 10 receipts as resumable", () => {
   const parsed = readReceipt(JSON.stringify(receipt()));
   expect(parsed.status).toBe("running");
   expect(parsed.prepared.reasoningEffort).toBe("medium");
@@ -53,7 +53,7 @@ test("rejects altered frozen settings and older receipts", () => {
   expect(() => readReceipt(JSON.stringify(modified))).toThrow("modified");
   expect(() => readReceipt(JSON.stringify({
     ...original,
-    schemaVersion: 7,
+    schemaVersion: 9,
   }))).toThrow("Unsupported");
 });
 

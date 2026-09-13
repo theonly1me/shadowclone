@@ -10,6 +10,10 @@ const checkSchema = z.strictObject({
   requirement: z.string().min(1),
   verdict: checkVerdictSchema,
   evidence: z.string(),
+  votes: z.array(z.strictObject({
+    verdict: checkVerdictSchema,
+    evidence: z.string(),
+  })),
 });
 
 const contextSchema = z.strictObject({
@@ -85,7 +89,7 @@ const progressSchema = z.strictObject({
 });
 
 const preparedSchema = z.strictObject({
-  schemaVersion: z.literal(9),
+  schemaVersion: z.literal(10),
   evalId: z.uuid(),
   suiteId: z.uuid(),
   repository: z.string().min(1),
@@ -105,7 +109,7 @@ const preparedSchema = z.strictObject({
 });
 
 export const receiptSchema = z.strictObject({
-  schemaVersion: z.literal(9),
+  schemaVersion: z.literal(10),
   evalId: z.uuid(),
   status: z.enum(["running", "pass", "fail", "error"]),
   preparedFingerprint: z.string().min(1),
