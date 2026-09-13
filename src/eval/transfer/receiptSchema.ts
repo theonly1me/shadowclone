@@ -3,6 +3,7 @@ import {
   checkVerdictSchema,
   dependencyModeSchema,
   dependencyStateSchema,
+  preferenceVerdictSchema,
   reasoningEffortSchema,
 } from "./structured";
 
@@ -12,6 +13,14 @@ const checkSchema = z.strictObject({
   evidence: z.string(),
   votes: z.array(z.strictObject({
     verdict: checkVerdictSchema,
+    evidence: z.string(),
+  })),
+});
+
+const preferenceResultSchema = checkSchema.extend({
+  verdict: preferenceVerdictSchema,
+  votes: z.array(z.strictObject({
+    verdict: preferenceVerdictSchema,
     evidence: z.string(),
   })),
 });
@@ -33,14 +42,21 @@ const taskSchema = z.strictObject({
   prompt: z.string().min(1),
   completion: z.array(z.string().min(1)).min(1),
   preferences: z.array(
-    z.strictObject({ requirement: z.string().min(1) }),
+    z.strictObject({
+      requirement: z.string().min(1),
+      source: z.strictObject({
+        relativePath: z.string().min(1),
+        heading: z.string(),
+        line: z.number().int().positive(),
+      }),
+    }),
   ).min(1),
   profile: z.string().min(1),
   profileFingerprint: z.string().min(1),
 });
 
 export const evaluationSuiteSchema = z.strictObject({
-  schemaVersion: z.literal(2),
+  schemaVersion: z.literal(3),
   suiteId: z.uuid(),
   repository: z.string().min(1),
   baseCommit: z.string().min(1),
@@ -63,7 +79,7 @@ const runSchema = z.strictObject({
   verification: z.array(checkSchema),
   safety: z.array(checkSchema),
   correctness: z.array(checkSchema),
-  preferences: z.array(checkSchema),
+  preferences: z.array(preferenceResultSchema),
 });
 
 const progressSchema = z.strictObject({
@@ -89,7 +105,7 @@ const progressSchema = z.strictObject({
 });
 
 const preparedSchema = z.strictObject({
-  schemaVersion: z.literal(10),
+  schemaVersion: z.literal(11),
   evalId: z.uuid(),
   suiteId: z.uuid(),
   repository: z.string().min(1),
@@ -109,7 +125,7 @@ const preparedSchema = z.strictObject({
 });
 
 export const receiptSchema = z.strictObject({
-  schemaVersion: z.literal(10),
+  schemaVersion: z.literal(11),
   evalId: z.uuid(),
   status: z.enum(["running", "pass", "fail", "error"]),
   preparedFingerprint: z.string().min(1),

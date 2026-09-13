@@ -8,10 +8,7 @@ import { readReceipt } from "./resume";
 import { disposeSnapshotTemplates } from "./snapshot";
 import { initialReceipt } from "./storage";
 import { fingerprint } from "./structured";
-import type {
-  EvaluationProgress,
-  PreparedEval,
-} from "./types";
+import type { EvaluationProgress, PreparedEval } from "./types";
 
 async function fixture(): Promise<{
   readonly directory: string;
@@ -68,7 +65,7 @@ test("shows every stage and gives personal context only to the skills and clone 
   );
   const profile = "Use complete names.";
   const prepared: PreparedEval = {
-    schemaVersion: 10,
+    schemaVersion: 11,
     evalId: "00000000-0000-4000-8000-000000000001",
     suiteId: "00000000-0000-4000-8000-000000000002",
     repository: repository.directory,
@@ -87,7 +84,9 @@ test("shows every stage and gives personal context only to the skills and clone 
       startingCommit: repository.commit,
       prompt: "Create a new parser utility and focused tests.",
       completion: ["The parser works"],
-      preferences: [{ requirement: "Use complete names" }],
+      preferences: [{ requirement: "Use complete names", source: {
+        relativePath: "profile.md", heading: "", line: 1,
+      } }],
       profile,
       profileFingerprint: fingerprint(profile),
     }],

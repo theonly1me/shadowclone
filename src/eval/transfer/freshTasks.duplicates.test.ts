@@ -83,11 +83,7 @@ test("rejects duplicate generated tasks after bounded retries", async () => {
       tasks: ["first", "second"].map(() => ({
         prompt: "Implement the same parser helper.",
         completion: ["The helper works"],
-        preferences: [
-          { requirement: "Use complete names" },
-          { requirement: "Avoid unnecessary comments" },
-          { requirement: "Keep each file under 200 lines" },
-        ],
+        preferenceSources: ["profile.md"],
       })),
     });
   };

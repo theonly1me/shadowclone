@@ -16,7 +16,9 @@ const task: DelegationTask = {
   startingCommit: "commit",
   prompt: "Add a new parser utility and tests.",
   completion: ["The parser works"],
-  preferences: [{ requirement: "Use complete names" }],
+  preferences: [{ requirement: "Use complete names", source: {
+    relativePath: "profile.md", heading: "", line: 1,
+  } }],
   profile,
   profileFingerprint: fingerprint(profile),
 };
@@ -48,8 +50,10 @@ test("grades every arm with independent judge calls", async () => {
     runs,
     task,
     directory: "/tmp",
-    call: async () => {
+    call: async (options) => {
       calls += 1;
+      expect(options.prompt).toContain(JSON.stringify(task.preferences));
+      expect(options.prompt).toContain(task.prompt);
       const candidate = {
         correctness: [{ verdict: "pass" as const, evidence: "meets behavior" }],
         preferences: [{ verdict: "pass" as const, evidence: "follows guidance" }],

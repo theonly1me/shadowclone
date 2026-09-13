@@ -1,5 +1,5 @@
 import { redactSecrets } from "../../redact";
-import { evaluationArmOrder, type EvaluationArm } from "./arms";
+import { type EvaluationArm, evaluationArmOrder } from "./arms";
 import { judgeArms } from "./pairJudge";
 import type {
   DelegationTask,
@@ -50,8 +50,9 @@ export async function gradeArms(options: {
   }
   try {
     const judgments = await judgeArms({
+      taskPrompt: options.task.prompt,
       correctness: options.task.completion,
-      preferences: options.task.preferences.map((check) => check.requirement),
+      preferences: options.task.preferences,
       evidence,
       cwd: options.directory,
       call: options.call,

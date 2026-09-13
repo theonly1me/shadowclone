@@ -84,11 +84,7 @@ test("prepares a supplied fresh task from HEAD without rewriting it", async () =
       tasks: [{
         prompt: "A rewritten prompt",
         completion: ["The parser helper is covered by tests"],
-        preferences: [
-          { requirement: "Use complete variable names" },
-          { requirement: "Avoid unnecessary comments" },
-          { requirement: "Keep each file under 200 lines" },
-        ],
+        preferenceSources: ["profile.md"],
       }],
     });
   };
@@ -119,11 +115,7 @@ test("rejects externally dependent generated tasks after bounded retries", async
       tasks: [{
         prompt: "Update the Staging OAuth resources.",
         completion: ["The Staging service returns the new resources"],
-        preferences: [
-          { requirement: "Keep changes scoped" },
-          { requirement: "Avoid unnecessary comments" },
-          { requirement: "Keep each file under 200 lines" },
-        ],
+        preferenceSources: ["profile.md"],
       }],
     });
   };
@@ -152,11 +144,7 @@ test("rejects a supplied task that requires a permanent action", async () => {
       tasks: [{
         prompt: "A safe rewritten task",
         completion: ["The release is available"],
-        preferences: [
-          { requirement: "Keep changes scoped" },
-          { requirement: "Avoid unnecessary comments" },
-          { requirement: "Keep each file under 200 lines" },
-        ],
+        preferenceSources: ["profile.md"],
       }],
     });
   };

@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { evaluationArmOrder } from "./arms";
 import { judgeArms } from "./pairJudge";
+import { sourceRules } from "./preferenceRules";
 
 function engineRun(structured: unknown) {
   return {
@@ -32,12 +33,18 @@ const evidence = {
   clone: "third candidate diff",
 } as const;
 
+const preferences = sourceRules({
+  relativePath: "skills/0/clean-code/SKILL.md",
+  content: "Uses complete names",
+});
+
 test("each judge call receives one anonymous arm's evidence", async () => {
   const votes: number[] = [];
   const prompts: string[] = [];
   const result = await judgeArms({
+    taskPrompt: "Add a parser and tests.",
     correctness: ["Implementation works"],
-    preferences: ["Uses complete names"],
+    preferences,
     evidence,
     cwd: "/tmp",
     call: async (options) => {
@@ -70,8 +77,9 @@ test("each judge call receives one anonymous arm's evidence", async () => {
 test("a majority of two passes carries the verdict", async () => {
   let callCount = 0;
   const result = await judgeArms({
+    taskPrompt: "Add a parser and tests.",
     correctness: ["Implementation works"],
-    preferences: ["Uses complete names"],
+    preferences,
     evidence,
     cwd: "/tmp",
     call: async () => {
@@ -92,11 +100,40 @@ test("a majority of two passes carries the verdict", async () => {
 
 test("incomplete checks fail after retries", async () => {
   await expect(judgeArms({
+    taskPrompt: "Add a parser and tests.",
     correctness: ["Implementation works"],
-    preferences: ["Uses complete names"],
+    preferences,
     evidence,
     cwd: "/tmp",
     call: async () => engineRun({ correctness: [], preferences: [] }),
     onVote: async () => undefined,
   })).rejects.toThrow("Judge returned incomplete checks");
+});
+
+test("judges receive exact sourced rules and can abstain only on preferences", async () => {
+  const taskPrompt = "Implement parseRetryAfter(value: string, now: Date) and tests.";
+  const rules = sourceRules({
+    relativePath: "skills/0/clean-code/SKILL.md",
+    content: "# TypeScript\n- Two or more arguments take a single options object. This applies to internal helpers too.",
+  });
+  const result = await judgeArms({
+    taskPrompt,
+    correctness: ["Parses the header"],
+    preferences: rules,
+    evidence,
+    cwd: "/tmp",
+    call: async (options) => {
+      expect(options.prompt).toContain(JSON.stringify(rules));
+      expect(options.prompt).toContain(taskPrompt);
+      expect(options.prompt).toContain("not internal helpers");
+      return engineRun({
+        correctness: [{ verdict: "fail", evidence: "Header parsing is missing" }],
+        preferences: [{ verdict: "not-applicable", evidence: "Only the task-required API has two inputs; there are no helpers" }],
+      });
+    },
+    onVote: async () => undefined,
+  });
+  expect(result.clone.correctness[0]?.verdict).toBe("fail");
+  expect(result.clone.preferences[0]?.verdict).toBe("not-applicable");
+  expect(result.clone.preferences[0]?.votes).toHaveLength(3);
 });

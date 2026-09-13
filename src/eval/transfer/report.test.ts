@@ -39,7 +39,7 @@ function run(options: {
 function receipt() {
   const profile = "private profile";
   return initialReceipt({
-    schemaVersion: 10,
+    schemaVersion: 11,
     evalId: "00000000-0000-4000-8000-000000000001",
     suiteId: "00000000-0000-4000-8000-000000000002",
     repository: "/private/repository",
@@ -64,7 +64,9 @@ function receipt() {
       startingCommit: "private-commit",
       prompt: "private prompt",
       completion: ["private completion"],
-      preferences: [{ requirement: "private preference" }],
+      preferences: [{ requirement: "private preference", source: {
+        relativePath: "profile.md", heading: "", line: 1,
+      } }],
       profile,
       profileFingerprint: fingerprint(profile),
     }],
@@ -94,7 +96,7 @@ test("reports a quantified pass without exposing task content", () => {
   expect(report).toContain(
     "Decision grade: no; requires at least 3 tasks x 2 repeats",
   );
-  expect(report).toContain("three blinded rotated code-review votes");
+  expect(report).toContain("three independent blinded votes per arm");
   for (const privateText of [
     "/private/repository",
     "private prompt",
@@ -123,4 +125,25 @@ test("returns a useful fail for no lift or a correctness regression", () => {
   };
   expect(evaluationStatus(noLift)).toBe("fail");
   expect(evaluationStatus(regression)).toBe("fail");
+});
+
+test("not-applicable preferences earn no points and leave the denominator", () => {
+  const complete = {
+    ...receipt(),
+    runs: [{
+      ...run({ arm: "clone", preference: passed }),
+      preferences: [passed, failed, {
+        ...passed,
+        verdict: "not-applicable" as const,
+      }],
+    }],
+  };
+  expect(summarize(complete).arms.clone.adherence).toBe(0.5);
+  expect(summarize({
+    ...complete,
+    runs: complete.runs.map((candidate) => ({
+      ...candidate,
+      preferences: [{ ...passed, verdict: "not-applicable" as const }],
+    })),
+  }).arms.clone.adherence).toBe(0);
 });

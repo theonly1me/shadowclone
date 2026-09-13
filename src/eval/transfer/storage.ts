@@ -20,7 +20,7 @@ export async function saveReceipt(options: {
 
 export function initialReceipt(prepared: PreparedEval): TransferReceipt {
   return {
-    schemaVersion: 10,
+    schemaVersion: 11,
     evalId: prepared.evalId,
     prepared,
     preparedFingerprint: fingerprint(prepared),
@@ -39,10 +39,10 @@ export function initialReceipt(prepared: PreparedEval): TransferReceipt {
     status: "running",
     limitations: [
       "Semantic judgments are automated and should be reproduced before publishing product claims.",
-      "Repository guidance is available to both arms. Only the clone arm receives the frozen personal agent environment and Shadowclone profile.",
+      "Repository guidance is available to all three arms. Skills and clone receive the frozen personal environment; only clone also receives the Shadowclone profile.",
       "Tasks start from the committed HEAD. Uncommitted source changes are deliberately excluded.",
       "Execution runs without network access, dependency installation, commits, pushes, or writes to the source repository.",
-      "Three blinded paired code-review votes grade correctness and preference adherence. Missing evidence is a failure, while malformed evidence is an infrastructure error.",
+      "Three independent blinded votes per arm grade correctness and verbatim preference rules. Not-applicable rules are excluded from adherence; missing compliance evidence fails.",
       "The evaluator reviews bounded code changes directly and does not run the repository-wide test, typecheck, lint, or build graph.",
       "The configured model prepares, executes, and judges the suite. Reuse the suite ID to compare another engine on identical tasks.",
     ],

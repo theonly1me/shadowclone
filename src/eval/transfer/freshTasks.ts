@@ -5,6 +5,7 @@ import {
   candidateExclusionReason,
 } from "./candidateValidation";
 import { installContext } from "./context";
+import { preferenceSources, resolvePreferenceRules } from "./preferenceRules";
 import { createSnapshot } from "./snapshot";
 import {
   fingerprint,
@@ -50,7 +51,8 @@ async function generate(options: {
   readonly call: ModelCall;
   readonly directory: string;
   readonly contextPrompt: string;
-}): Promise<ReturnType<typeof generatedTasksSchema.parse>> {
+  readonly sources: readonly ContextFile[];
+}) {
   let lastFailure = "No structured task result";
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const response = await options.call({
@@ -71,8 +73,9 @@ async function generate(options: {
         "Name the intended area in the prompt. Require only new implementation and test files, with no edits to existing tracked files or project wiring.",
         "Choose tasks that expose meaningful choices in naming, types, API shape, composition, edge cases, and test design.",
         "Exclude tasks needing external services, network access, new dependencies, migrations, deployment, credentials, commits, pushes, or writes outside the repository.",
-        "Select three to five genuinely applicable engineering requirements for each task, drawn from both the frozen personal skills under .eval-context/skills and the personal guidance below. Do not reveal or paraphrase those preferences in the task prompt.",
-        "Every preference requirement must be one that a specific skill or guidance rule explicitly addresses, so that an agent without them would plausibly violate it.",
+        "Select every applicable whole preference source by its exact relativePath from availablePreferenceSources. Include baseline engineering skills that apply to all coding tasks and relevant task-specific skills, instructions, or profile guidance.",
+        "Do not write, summarize, or select individual preference requirements. Every rule block in each selected source will be included verbatim, without a rule-count cap. Judges determine applicability later.",
+        "Do not reveal or paraphrase personal preferences in the task prompt. Do not impose signatures or organization that conflict with those preferences unless the supplied task explicitly requires them.",
         "Completion requirements describe requested behavior. Preference requirements describe how the implementation should be engineered.",
         "Write each completion requirement as one specific, individually checkable statement about observable behavior. Do not bundle several behaviors into one requirement, and do not use thoroughly, comprehensively, robustly, or similar unmeasurable words.",
         "Do not make repository-wide checks part of the completion requirements. The resulting code and tests will be reviewed directly.",
@@ -81,6 +84,9 @@ async function generate(options: {
           count: options.count,
           suppliedTask: options.suppliedTask ?? null,
           profile: options.profile,
+          availablePreferenceSources: options.sources.map((source) =>
+            source.relativePath
+          ),
           previousFailure: attempt === 0 ? null : lastFailure,
         }),
       ].join("\n"),
@@ -101,7 +107,20 @@ async function generate(options: {
       lastFailure = "Generated tasks must be distinct";
       continue;
     }
-    const failure = parsed.data.tasks
+    let tasks: readonly Pick<DelegationTask, "prompt" | "completion" | "preferences">[];
+    try {
+      tasks = parsed.data.tasks.map((task) => ({
+        ...task,
+        preferences: resolvePreferenceRules({
+          sources: options.sources,
+          selectedPaths: task.preferenceSources,
+        }),
+      }));
+    } catch {
+      lastFailure = "Preparation selected an unknown preference source";
+      continue;
+    }
+    const failure = tasks
       .map((task) => invalidTaskReason({
         ...task,
         prompt: options.suppliedTask ?? task.prompt,
@@ -112,7 +131,7 @@ async function generate(options: {
       lastFailure = failure;
       continue;
     }
-    return parsed.data;
+    return tasks;
   }
   throw new Error(redactSecrets({ text: lastFailure }));
 }
@@ -145,8 +164,9 @@ export async function prepareFreshTasks(options: {
       call: options.call,
       directory: snapshot.directory,
       contextPrompt,
+      sources: preferenceSources(options),
     });
-    return generated.tasks.map((task) => {
+    return generated.map((task) => {
       const prompt = options.suppliedTask ?? task.prompt;
       return {
         id: fingerprint({ prompt, completion: task.completion }).slice(0, 16),

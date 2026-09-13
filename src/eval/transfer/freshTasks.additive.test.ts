@@ -56,6 +56,14 @@ function response(structured: unknown) {
 }
 
 test("generates additive coding work from frozen personal context", async () => {
+  const requirements = [
+    "- Use complete names.",
+    "- No any or type assertions.",
+    "- Write zero comments. Zero exceptions.",
+    "- Keep every file under 200 lines, tests included.",
+    "- Never void a promise.",
+    "- Two or more arguments take a single options object, never positional. This applies to internal helpers too.",
+  ];
   const repository = await repositoryFixture();
   let prompt = "";
   let contextInstalled = false;
@@ -70,11 +78,7 @@ test("generates additive coding work from frozen personal context", async () => 
         prompt:
           "Create a new parser utility module and focused tests in the utilities package.",
         completion: ["The parser handles empty and populated input"],
-        preferences: [
-          { requirement: "Use complete names" },
-          { requirement: "Keep the public API type safe" },
-          { requirement: "Avoid unnecessary comments" },
-        ],
+        preferenceSources: ["skills/0/clean-code/SKILL.md"],
       }],
     });
   };
@@ -87,14 +91,22 @@ test("generates additive coding work from frozen personal context", async () => 
       profile: "Use complete names.",
       context: [{
         relativePath: "skills/0/clean-code/SKILL.md",
-        content: "Keep public APIs type safe.",
+        content: ["# Clean code", ...requirements].join("\n"),
       }],
       call,
     });
     expect(contextInstalled).toBeTrue();
     expect(prompt).toContain("Require only new implementation and test files");
-    expect(prompt).toContain("Select three to five genuinely applicable");
-    expect(tasks[0]?.preferences).toHaveLength(3);
+    expect(prompt).toContain("Select every applicable whole preference source");
+    expect(prompt).not.toContain("Select three to five");
+    expect(tasks[0]?.preferences).toEqual(requirements.map((requirement, index) => ({
+      requirement,
+      source: {
+        relativePath: "skills/0/clean-code/SKILL.md",
+        heading: "Clean code",
+        line: index + 2,
+      },
+    })));
   } finally {
     await rm(repository.directory, { recursive: true, force: true });
   }

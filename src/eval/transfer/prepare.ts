@@ -75,7 +75,7 @@ async function freshSuite(options: {
     call: options.call,
   });
   const suite: EvaluationSuite = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     suiteId: crypto.randomUUID(),
     repository: options.setup.repository,
     baseCommit: options.commit,
@@ -137,7 +137,7 @@ export async function prepareEvaluation(options: {
   }
   return {
     ...suite,
-    schemaVersion: 10,
+    schemaVersion: 11,
     evalId: options.setup.evalId,
     engine: options.setup.engine,
     model: options.setup.model,

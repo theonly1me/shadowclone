@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const checkVerdictSchema = z.enum(["pass", "fail"]);
+export const preferenceVerdictSchema = z.enum(["pass", "fail", "not-applicable"]);
 export const reasoningEffortSchema = z.enum([
   "low",
   "medium",
@@ -15,14 +16,10 @@ export const dependencyStateSchema = z.enum([
   "exact",
 ]);
 
-const preferenceCheckSchema = z.strictObject({
-  requirement: z.string().min(1).max(1_000),
-});
-
 export const generatedTaskSchema = z.strictObject({
   prompt: z.string().min(1).max(4_000),
   completion: z.array(z.string().min(1).max(1_000)).min(1).max(5),
-  preferences: z.array(preferenceCheckSchema).min(1).max(5),
+  preferenceSources: z.array(z.string().min(1)).min(1),
 });
 
 export const generatedTasksSchema = z.strictObject({
@@ -41,7 +38,7 @@ export const generatedTasksOutputSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["prompt", "completion", "preferences"],
+        required: ["prompt", "completion", "preferenceSources"],
         properties: {
           prompt: { type: "string", minLength: 1, maxLength: 4000 },
           completion: {
@@ -50,22 +47,10 @@ export const generatedTasksOutputSchema = {
             maxItems: 5,
             items: { type: "string", minLength: 1, maxLength: 1000 },
           },
-          preferences: {
+          preferenceSources: {
             type: "array",
             minItems: 1,
-            maxItems: 5,
-            items: {
-              type: "object",
-              additionalProperties: false,
-              required: ["requirement"],
-              properties: {
-                requirement: {
-                  type: "string",
-                  minLength: 1,
-                  maxLength: 1000,
-                },
-              },
-            },
+            items: { type: "string", minLength: 1 },
           },
         },
       },

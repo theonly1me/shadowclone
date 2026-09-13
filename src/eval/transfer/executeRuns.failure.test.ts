@@ -41,7 +41,7 @@ test("a failed arm leaves every completed run in a resumable receipt", async () 
     });
     const profile = "Use complete names.";
     const prepared: PreparedEval = {
-      schemaVersion: 10,
+      schemaVersion: 11,
       evalId: "00000000-0000-4000-8000-000000000001",
       suiteId: "00000000-0000-4000-8000-000000000002",
       repository,
@@ -57,7 +57,9 @@ test("a failed arm leaves every completed run in a resumable receipt", async () 
         startingCommit: commit,
         prompt: "Write a parser.",
         completion: ["The parser works"],
-        preferences: [{ requirement: "Use complete names" }],
+        preferences: [{ requirement: "Use complete names", source: {
+          relativePath: "profile.md", heading: "", line: 1,
+        } }],
         profile,
         profileFingerprint: fingerprint(profile),
       }],

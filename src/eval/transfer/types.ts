@@ -36,6 +36,11 @@ export type TransferOptions = {
 
 export type PreferenceCheck = {
   readonly requirement: string;
+  readonly source: {
+    readonly relativePath: string;
+    readonly heading: string;
+    readonly line: number;
+  };
 };
 
 export type DelegationTask = {
@@ -75,16 +80,18 @@ export type EvaluationProgress = {
   readonly updatedAt: string;
 };
 
-export type CheckVote = {
-  readonly verdict: "pass" | "fail";
+export type PreferenceVerdict = "pass" | "fail" | "not-applicable";
+
+export type CheckVote<Verdict extends PreferenceVerdict = "pass" | "fail"> = {
+  readonly verdict: Verdict;
   readonly evidence: string;
 };
 
-export type CheckResult = {
+export type CheckResult<Verdict extends PreferenceVerdict = "pass" | "fail"> = {
   readonly requirement: string;
-  readonly verdict: "pass" | "fail";
+  readonly verdict: Verdict;
   readonly evidence: string;
-  readonly votes: readonly CheckVote[];
+  readonly votes: readonly CheckVote<Verdict>[];
 };
 
 export type ContextFile = {
@@ -93,7 +100,7 @@ export type ContextFile = {
 };
 
 export type EvaluationSuite = {
-  readonly schemaVersion: 2;
+  readonly schemaVersion: 3;
   readonly suiteId: string;
   readonly repository: string;
   readonly baseCommit: string;
@@ -103,7 +110,7 @@ export type EvaluationSuite = {
 };
 
 export type PreparedEval = Omit<EvaluationSuite, "schemaVersion"> & {
-  readonly schemaVersion: 10;
+  readonly schemaVersion: 11;
   readonly evalId: string;
   readonly engine: EngineId;
   readonly model: string;
@@ -130,11 +137,11 @@ export type TransferRun = {
   readonly verification: readonly CheckResult[];
   readonly safety: readonly CheckResult[];
   readonly correctness: readonly CheckResult[];
-  readonly preferences: readonly CheckResult[];
+  readonly preferences: readonly CheckResult<PreferenceVerdict>[];
 };
 
 export type TransferReceipt = {
-  readonly schemaVersion: 10;
+  readonly schemaVersion: 11;
   readonly evalId: string;
   readonly status: "running" | "pass" | "fail" | "error";
   readonly preparedFingerprint: string;

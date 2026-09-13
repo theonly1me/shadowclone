@@ -1,5 +1,5 @@
 import { redactSecrets } from "../../redact";
-import { evaluationArmOrder, type EvaluationArm } from "./arms";
+import { type EvaluationArm, evaluationArmOrder } from "./arms";
 import type { TransferReceipt, TransferRun } from "./types";
 
 export interface ArmSummary {
@@ -30,11 +30,14 @@ function successful(run: TransferRun): boolean {
 }
 
 function adherence(run: TransferRun): number {
-  if (run.preferences.length === 0) {
+  const applicable = run.preferences.filter((check) =>
+    check.verdict !== "not-applicable"
+  );
+  if (applicable.length === 0) {
     return 0;
   }
-  return run.preferences.filter((check) => check.verdict === "pass").length /
-    run.preferences.length;
+  return applicable.filter((check) => check.verdict === "pass").length /
+    applicable.length;
 }
 
 function mean(values: readonly number[]): number {
@@ -142,7 +145,7 @@ export function reportLines(receipt: TransferReceipt): readonly string[] {
     `Profile: ${receipt.prepared.profileSnapshot.ruleCount} frozen current rules`,
     `${receipt.prepared.tasks.length} tasks x ${receipt.prepared.repeat} repeats; ${summary.sampleSize} compared samples`,
     `Decision grade: ${decisionGrade ? "yes" : "no"}; requires at least 3 tasks x 2 repeats`,
-    "Review method: three blinded rotated code-review votes; repository-wide checks not run",
+    "Review method: three independent blinded votes per arm against verbatim source rules; not-applicable preferences excluded; repository-wide checks not run",
     ...evaluationArmOrder.map((arm) =>
       `  ${arm.padEnd(7)} success ${percentage(summary.arms[arm].success)}; adherence ${percentage(summary.arms[arm].adherence)}`
     ),
