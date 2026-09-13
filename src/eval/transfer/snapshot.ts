@@ -1,12 +1,25 @@
-import { lstat, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { command } from "./command";
+import { isolateNativeGuidance } from "./nativeIsolation";
+import { validateSnapshotLinks } from "./snapshotLinks";
+
+export { validateSnapshotLinks } from "./snapshotLinks";
 
 export interface SnapshotResult {
   readonly directory: string;
   readonly initialCommit: string;
   readonly cleanup: () => Promise<void>;
+}
+
+const templates = new Map<string, Promise<SnapshotResult>>();
+
+function templateKey(options: {
+  readonly repository: string;
+  readonly commit: string;
+}): string {
+  return `${options.repository}\u0000${options.commit}`;
 }
 
 const restrictedSettingsPaths = [
@@ -16,9 +29,14 @@ const restrictedSettingsPaths = [
   ".codex",
   ".claude/agents/shadowclone.md",
   ".claude/skills/shadowclone",
+  ".claude/skills/shadowclone-context",
+  ".agents/skills/shadowclone-context",
+  ".cursor/hooks.json",
+  ".cursor/rules/shadowclone.mdc",
+  ".cursor/skills/shadowclone-context",
 ] as const;
 
-export async function createSnapshot(options: {
+async function buildSnapshotTemplate(options: {
   readonly repository: string;
   readonly commit: string;
 }): Promise<SnapshotResult> {
@@ -47,18 +65,7 @@ export async function createSnapshot(options: {
 
     await rm(archivePath);
 
-    const globScanner = new Bun.Glob("**/*").scan({
-      cwd: directory,
-      dot: true,
-      onlyFiles: false,
-    });
-
-    for await (const matchPath of globScanner) {
-      const entryStats = await lstat(path.join(directory, matchPath));
-      if (entryStats.isSymbolicLink()) {
-        throw new Error("Task snapshot contains a symbolic link");
-      }
-    }
+    await validateSnapshotLinks(directory);
 
     for (const relativePath of restrictedSettingsPaths) {
       await rm(path.join(directory, relativePath), {
@@ -67,6 +74,7 @@ export async function createSnapshot(options: {
       });
     }
 
+    await isolateNativeGuidance(directory);
     await command({
       arguments: ["git", "init", "--quiet"],
       cwd: directory,
@@ -112,4 +120,63 @@ export async function createSnapshot(options: {
     await rm(directory, { recursive: true, force: true });
     throw error;
   }
+}
+
+export async function createSnapshot(options: {
+  readonly repository: string;
+  readonly commit: string;
+}): Promise<SnapshotResult> {
+  const key = templateKey(options);
+  let templatePromise = templates.get(key);
+  if (!templatePromise) {
+    templatePromise = buildSnapshotTemplate(options);
+    templates.set(key, templatePromise);
+  }
+
+  let template: SnapshotResult;
+  try {
+    template = await templatePromise;
+  } catch (error) {
+    if (templates.get(key) === templatePromise) {
+      templates.delete(key);
+    }
+    throw error;
+  }
+
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-transfer-"),
+  );
+  try {
+    const source = `${template.directory}${path.sep}.`;
+    const preferredArguments = process.platform === "darwin"
+      ? ["cp", "-Rc", source, directory]
+      : ["cp", "-R", "--reflink=auto", source, directory];
+    try {
+      await command({ arguments: preferredArguments, cwd: directory });
+    } catch {
+      await command({
+        arguments: ["cp", "-R", source, directory],
+        cwd: directory,
+      });
+    }
+    return {
+      directory,
+      initialCommit: template.initialCommit,
+      cleanup: async () => {
+        await rm(directory, { recursive: true, force: true });
+      },
+    };
+  } catch (error) {
+    await rm(directory, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+export async function disposeSnapshotTemplates(): Promise<void> {
+  const pendingTemplates = [...templates.values()];
+  templates.clear();
+  const results = await Promise.allSettled(pendingTemplates);
+  await Promise.all(results.flatMap((result) =>
+    result.status === "fulfilled" ? [result.value.cleanup()] : []
+  ));
 }

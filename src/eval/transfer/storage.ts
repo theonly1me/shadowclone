@@ -20,18 +20,31 @@ export async function saveReceipt(options: {
 
 export function initialReceipt(prepared: PreparedEval): TransferReceipt {
   return {
-    schemaVersion: 2,
+    schemaVersion: 9,
     evalId: prepared.evalId,
     prepared,
     preparedFingerprint: fingerprint(prepared),
     runs: [],
-    status:
-      prepared.tasks.length === 0 ? "insufficient-evidence" : "incomplete",
+    progress: {
+      stage: "ready",
+      taskIndex: null,
+      taskCount: prepared.tasks.length,
+      repeatIndex: null,
+      repeatCount: prepared.repeat,
+      arm: null,
+      voteIndex: null,
+      voteCount: null,
+      updatedAt: new Date().toISOString(),
+    },
+    status: "running",
     limitations: [
-      "Automatic semantic judgments are provisional and do not measure actual user correction time.",
-      "Existing Markdown instructions, skills and memory are frozen and supplied to both arms. Native discovery and mutable memory are disabled; executable skill dependencies and custom hooks are not reproduced.",
-      "Only requests with explicit starting-commit evidence qualify. Coverage may be low.",
-      "Task outcomes are graded from observed files and actions; missing verification evidence remains uncertain.",
+      "Semantic judgments are automated and should be reproduced before publishing product claims.",
+      "Repository guidance is available to both arms. Only the clone arm receives the frozen personal agent environment and Shadowclone profile.",
+      "Tasks start from the committed HEAD. Uncommitted source changes are deliberately excluded.",
+      "Execution runs without network access, dependency installation, commits, pushes, or writes to the source repository.",
+      "Three blinded paired code-review votes grade correctness and preference adherence. Missing evidence is a failure, while malformed evidence is an infrastructure error.",
+      "The evaluator reviews bounded code changes directly and does not run the repository-wide test, typecheck, lint, or build graph.",
+      "The configured model prepares, executes, and judges the suite. Reuse the suite ID to compare another engine on identical tasks.",
     ],
   };
 }

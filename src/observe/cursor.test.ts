@@ -29,6 +29,22 @@ test("advances only through complete JSONL records", async () => {
   expect(second?.values[0]?.value).toEqual({ value: 2 });
 });
 
+test("skips an invalid completed record without losing later records", async () => {
+  const sourcePath = await createTranscript(
+    '{"value":1}\nnot-json\n{"value":2}\n',
+  );
+  const result = await readJsonLines({ sourcePath, cursor: null });
+
+  expect(result?.values.map((line) => line.value)).toEqual([
+    { value: 1 },
+    { value: 2 },
+  ]);
+  expect(result?.invalidRecords).toBe(1);
+  expect(result?.cursor.byteOffset).toBe(
+    '{"value":1}\nnot-json\n{"value":2}\n'.length,
+  );
+});
+
 test("returns no bytes for an unchanged file", async () => {
   const sourcePath = await createTranscript('{"value":1}\n');
   const first = await readJsonLines({ sourcePath, cursor: null });

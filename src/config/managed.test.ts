@@ -19,6 +19,7 @@ test("managed policy can only narrow user source consent", () => {
       "declared-rules": true,
       "git-metadata": true,
       shell: false,
+      "skill-library": true,
     },
     distillation: { deep: true },
   };

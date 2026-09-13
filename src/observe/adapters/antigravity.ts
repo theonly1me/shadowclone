@@ -157,6 +157,7 @@ export async function observeAntigravityFile(options: {
     cursor: result.cursor,
     rescanned: result.rescanned,
     bytesRead: result.bytesRead,
+    invalidRecords: result.invalidRecords,
   };
 }
 

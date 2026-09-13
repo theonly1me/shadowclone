@@ -16,6 +16,7 @@ export type CursorRead<Value> = {
   readonly cursor: FileCursor;
   readonly rescanned: boolean;
   readonly bytesRead: number;
+  readonly invalidRecords: number;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -55,6 +56,7 @@ async function getLineBoundaries(options: {
       cursor: previous,
       rescanned: false,
       bytesRead: 0,
+      invalidRecords: 0,
     };
   }
 
@@ -108,6 +110,7 @@ async function getLineBoundaries(options: {
     },
     rescanned,
     bytesRead: bytes.length,
+    invalidRecords: 0,
   };
 }
 
@@ -121,19 +124,19 @@ export async function readJsonLines(options: {
   }
 
   const decoder = new TextDecoder();
-  const values = result.values.map((line) => {
-    let value: unknown;
+  const values: JsonLine[] = [];
+  let invalidRecords = 0;
+  for (const line of result.values) {
     try {
-      value = JSON.parse(decoder.decode(line.bytes));
+      values.push({
+        value: JSON.parse(decoder.decode(line.bytes)),
+        ref: line.ref,
+      });
     } catch {
-      throw new Error(
-        `Transcript record is invalid at byte offset ${line.ref.byteOffset}`,
-      );
+      invalidRecords += 1;
     }
-    return { value, ref: line.ref };
-  });
-
-  return { ...result, values };
+  }
+  return { ...result, values, invalidRecords };
 }
 
 export async function readLineRefs(options: {

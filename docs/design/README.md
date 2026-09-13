@@ -20,3 +20,9 @@ The table is chronological by the first recorded decision. Append new records at
 | 2026-09-09 | [011, Learning report boundary](011-learning-report-boundary.md) | implemented | Keep structural evidence in a report and write mined rules only through explicit deep distillation |
 | 2026-09-09 | [012, Deep learning reconciliation](012-deep-learning-reconciliation.md) | implemented | Reconcile redacted evidence with existing guidance before applying profile changes |
 | 2026-09-09 | [013, Deterministic profile compiler and reversible installs](013-deterministic-profile-compiler.md) | implemented | Project every clone through one bounded compiler and track repository-local artifacts for removal |
+| 2026-09-11 | [014, Main agent delivery](014-main-agent-delivery.md) | implemented | Deliver scoped preferences through native instructions and hooks while preserving user-owned files |
+| 2026-09-11 | [015, Automatic preference learning](015-automatic-preference-learning.md) | implemented | Learn only from durable user steering, bound automatic catch-up, and preserve reversible profile updates |
+| 2026-09-11 | [016, Skill maintenance](016-skill-maintenance.md) | implemented | Assess consented skill roots, preserve user and package ownership, and share bounded learning execution |
+| 2026-09-12 | [017, Self-improving portable agent environment](017-self-improving-agent-environment.md) | implemented | Deliver live guidance to main agents, learn from selected sessions, synchronize personal skills, and evaluate fresh work |
+| 2026-09-13 | [018, Incremental learning repair](018-incremental-learning-repair.md) | implemented | Migrate legacy rules, refuse silent profile loss, learn from the requested session, and catch up across the whole history |
+| 2026-09-13 | [019, Launch readiness](019-launch-readiness.md) | implementing | Give spawned Claude subagents the live profile, shorten setup and evaluation, and keep learning bounded |

@@ -86,6 +86,30 @@ test("Claude receives the remaining cumulative dollar limit", async () => {
   expect(budgets).toEqual([2, 1.25]);
 });
 
+test("Claude failures are not hidden by missing cost telemetry", async () => {
+  const runner: EngineRunner = () => Promise.resolve({
+    ...result({ engine: "claude-code", costUsd: null }),
+    isError: true,
+    errorMessage: "Unsupported provider option",
+  });
+  const execution = createLearningExecution({
+    engine: "claude-code",
+    runner,
+    limits: {
+      maximumCalls: 2,
+      timeoutMilliseconds: 5_000,
+      maximumCostUsd: 2,
+    },
+  });
+
+  expect((await execution.runner(learningRequest())).errorMessage).toBe(
+    "Unsupported provider option",
+  );
+  await expect(execution.runner(learningRequest())).rejects.toThrow(
+    "Learning cost limit reached",
+  );
+});
+
 test("the shared deadline stops a runner that does not settle", async () => {
   const runner: EngineRunner = async () => {
     await Bun.sleep(100);

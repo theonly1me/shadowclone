@@ -32,16 +32,16 @@ test("names the failing setting rather than the last check that ran", () => {
   ).toThrow("must be a boolean");
 
   expect(() => parseConfig(config({ distillation: {} }))).toThrow(
-    "only the deep setting",
+    "deep and optional automatic settings",
   );
 
   expect(() => parseConfig(config({ distillation: { deep: "yes" } }))).toThrow(
-    "distillation.deep must be a boolean",
+    "distillation.deep and distillation.automatic must be booleans",
   );
 
   expect(() =>
     parseConfig(config({ distillation: { deep: false, extra: 1 } })),
-  ).toThrow("only the deep setting");
+  ).toThrow("deep and optional automatic settings");
 });
 
 test("separates an unsupported schema version from a missing one", () => {

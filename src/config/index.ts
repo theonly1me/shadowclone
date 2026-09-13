@@ -117,6 +117,6 @@ export function setDeepEnabled(options: {
 }): ShadowcloneConfig {
   return {
     ...options.config,
-    distillation: { deep: options.enabled },
+    distillation: { ...options.config.distillation, deep: options.enabled, ...(options.enabled ? {} : { automatic: false }) },
   };
 }

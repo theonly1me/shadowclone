@@ -64,6 +64,7 @@ async function setupTestEnvironment(homeDirectory: string) {
     },
     rescanned: false,
     bytesRead: secretText.length,
+    invalidRecords: 0,
   });
   index.close();
   return paths;

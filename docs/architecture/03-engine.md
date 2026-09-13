@@ -75,11 +75,11 @@ export type EngineRun = {
 };
 ```
 
-An engine that cannot honour an option fails loudly before it spawns rather than dropping it. The required execution purpose prevents evaluation, learning, and dispatch from sharing an accidental default.
+An engine that cannot honour an option fails before it spawns. The required execution purpose prevents evaluation, learning, and dispatch from sharing an accidental default.
 
 ## Learning contract
 
-`createLearningExecution` wraps the selected engine once for a complete `learn --deep` invocation. Reconciliation batches and consolidation calls use the same runner. Completed checkpoints consume no call allowance.
+`createLearningExecution` wraps the selected engine once for a complete `learn --deep` invocation or first setup learning pass. Concurrent reconciliation batches and later consolidation calls share its whole-run allowance. Completed checkpoints consume no call allowance.
 
 The default permits 20 attempted calls over five minutes. Claude also receives a cumulative $2 limit because its provider capability reports native dollar-budget enforcement. Each call receives the remaining amount, and its reported cost is deducted before the next call. Codex and Cursor never receive an unsupported dollar option, so their boundary is the call count and deadline.
 
@@ -112,7 +112,7 @@ Generating the id up front means the clone knows where its own transcript will l
 
 `--setting-sources` restricts loaded setting files to user and project tiers, preventing a target repository's `.claude/settings.local.json` from silently widening permissions beyond the resolved dispatch policy ceiling.
 
-Learning uses a separate Claude command. `--restricted`, `--safe-mode`, empty `--setting-sources`, `--tools ""`, strict empty MCP configuration, an MCP deny rule, `--no-session-persistence`, and inline settings remove ambient instructions, tools, hooks, network tools, and native memory. `allowedTools: []` is not treated as the tool boundary because Claude documents that option as an auto-approval control.
+Learning uses a separate Claude command. `--safe-mode`, empty `--setting-sources`, `--tools ""`, strict empty MCP configuration, an MCP deny rule, `--no-session-persistence`, and inline settings remove ambient instructions, tools, hooks, network tools, and native memory. `allowedTools: []` is not treated as the tool boundary because Claude documents that option as an auto-approval control. Obsolete `--restricted` is omitted because current Claude Code rejects it and safe mode now provides the customization boundary.
 
 The terminal `result` message carries `session_id`, `total_cost_usd`, `duration_ms`, `duration_api_ms`, `num_turns`, `is_error`, `modelUsage`, and `permission_denials`. Everything `EngineRun` needs is in one message, so the stream parser only has to buffer text blocks and wait for `result`.
 
@@ -126,7 +126,7 @@ codex exec - --json --sandbox read-only -C <worktree> -m <model>
 
 `-c key=value` sets any config value per invocation, including `model_reasoning_effort`. `--output-schema <FILE>` gives structured output for distillation, matching `--json-schema` on the Claude side. `-o` writes the last message to a file, which is a simpler read than the event stream when only the final answer is wanted.
 
-The prompt stays on stdin rather than the process list. Learning adds `--ephemeral`, `--ignore-user-config`, and `--ignore-rules`, disables instruction, memory, hook, app, plugin, browser, web, image, computer-use, multi-agent, and shell features, clears MCP configuration, and selects the read-only sandbox. Codex has no dollar-budget or granular tool-list flags, so the learning coordinator omits the former and the runner rejects direct requests for either.
+The prompt stays on stdin and does not enter the process list. Learning adds `--ephemeral`, `--ignore-user-config`, and `--ignore-rules`, disables instruction, memory, hook, app, plugin, browser, web, image, computer-use, multi-agent, and shell features, clears MCP configuration, and selects the read-only sandbox. Codex has no dollar-budget or granular tool-list flags, so the learning coordinator omits the former and the runner rejects direct requests for either.
 
 ## Cursor
 
@@ -141,6 +141,6 @@ Cursor also receives its prompt on stdin. A no-tools run gets an empty temporary
 
 The engine is handed one file, not five. `src/profile/inject.ts` compiles `~/.shadowclone/profile/*.md` into `.compiled.md`: active rules ordered by observation count, with provenance comments stripped and any `projects/<repo>.md` matching the target repo appended. Candidate and stale rules remain visible in the editable profile but do not enter the prompt.
 
-Compilation is where the profile stops being a document and becomes a prompt, so it is a named step with its own file rather than string building inside the runner.
+Compilation turns the profile into a prompt through a named step with its own file.
 
 The compiler reads `global/` and exactly one matching `host/owner` directory, strips provenance, and places handwritten rules first. An active declared or user rule remains selected when contradicting evidence creates a pending proposal. The proposal is for the user to decide and does not silently override their instruction.

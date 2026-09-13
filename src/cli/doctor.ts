@@ -8,7 +8,11 @@ import {
   type DistillationPolicy,
 } from "../config";
 import { openEventIndex } from "../index";
+import { integrationHealth } from "../integrations";
 import { projectPaths } from "../paths";
+import { readLearningState } from "../learning";
+import { readEffectiveConfig } from "../config";
+import { listSkillProposals, readMaintenanceState } from "../skillMaintenance";
 import {
   getProviderSupport,
   providerDefinitions,
@@ -101,6 +105,13 @@ export async function doctor(options: {
   for (const line of renderProviderSupport()) {
     console.log(line);
   }
+  for (const line of await integrationHealth({ managedConfigPath })) console.log(line);
+  const { config } = await readEffectiveConfig({ managedConfigPath });
+  const learning = await readLearningState(projectPaths);
+  console.log(`Automatic learning: ${config.distillation.automatic ? "enabled" : "disabled"}; last attempt ${learning.status}.`);
+  const skills = await readMaintenanceState(projectPaths);
+  const proposals = await listSkillProposals(projectPaths);
+  console.log(`Skill maintenance: ${config.sources["skill-library"] ? "enabled" : "disabled"}; ${skills.roots.filter((root) => root.enabled).length} root(s), ${proposals.filter((proposal) => proposal.status === "pending").length} pending proposal(s).`);
   const dbFile = Bun.file(options.databasePath ?? projectPaths.indexDatabase);
   if (await dbFile.exists()) {
     const index = await openEventIndex(

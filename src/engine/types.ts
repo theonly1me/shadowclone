@@ -14,6 +14,16 @@ export type PermissionMode =
   | "plan"
   | "auto";
 
+export const reasoningEfforts = [
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
+
+export type ReasoningEffort = (typeof reasoningEfforts)[number];
+
 export type PermissionDenial = {
   readonly toolName: string;
   readonly toolUseId: string | null;
@@ -30,6 +40,7 @@ export type EngineExecution =
   | { readonly purpose: "dispatch" }
   | {
       readonly purpose: "evaluation";
+      readonly access?: "read" | "write";
       readonly blockedPaths?: readonly string[];
     }
   | { readonly purpose: "learning" };
@@ -41,6 +52,7 @@ export type EngineRunOptions = {
   readonly systemPromptFile?: string;
   readonly sessionId?: string;
   readonly model?: string;
+  readonly reasoningEffort?: ReasoningEffort;
   readonly allowedTools?: readonly string[];
   readonly disallowedTools?: readonly string[];
   readonly permissionMode?: PermissionMode;

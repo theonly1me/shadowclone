@@ -2,9 +2,9 @@ import { entropyThresholdBitsPerCharacter } from "./entropy";
 import {
   type Redactor,
   sliced,
+  assignedSecret,
   slicedAboveEntropy,
   slicedPrefix,
-  slicedTail,
 } from "./replace";
 
 export type RedactionRule = {
@@ -69,8 +69,8 @@ export const redactionRules: readonly RedactionRule[] = [
   {
     label: "secret-assignment",
     pattern:
-      /\b([A-Za-z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|CREDENTIALS|AUTH)(?:_[A-Za-z0-9]+)?)(\s*[:=]\s*)(?:\\"[^"\\\n]+\\"|\\'[^'\\\n]+\\'|"(?:\\.|[^"\\\n])+"|'(?:\\.|[^'\\\n])+'|[^\s"'[\n]+)/gi,
-    replace: slicedTail("secret-assignment", 0),
+      /\b([A-Za-z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|CREDENTIALS|AUTH)(?:_[A-Za-z0-9]+)?)(\s*[:=]\s*)(?:\\"[^"\\\n]+\\"|\\'[^'\\\n]+\\'|"(?:\\.|[^"\\\n])+"|'(?:\\.|[^'\\\n])+'|[^\s"'`[\](){},;\n]+)/gi,
+    replace: assignedSecret({ label: "secret-assignment", keep: 0 }),
   },
   {
     label: "database-url",
@@ -123,7 +123,11 @@ export const redactionRules: readonly RedactionRule[] = [
     label: "high-entropy-string",
     pattern:
       /\b(?=[A-Za-z0-9+/_=-]{40,}\b)(?=[A-Za-z0-9+/_=-]*(?:\d|[A-Z].*[a-z]|[a-z].*[A-Z]))[A-Za-z0-9+/_=-]+\b/g,
-    replace: sliced("high-entropy-string", 0),
+    replace: slicedAboveEntropy({
+      label: "high-entropy-string",
+      keep: 0,
+      threshold: entropyThresholdBitsPerCharacter,
+    }),
   },
   {
     label: "shannon-entropy",

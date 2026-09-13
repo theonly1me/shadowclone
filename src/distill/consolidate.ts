@@ -1,5 +1,6 @@
 import type { EngineRunner } from "../engine";
 import {
+  isExplicitProfileEvidence,
   profileEvidenceStatistics,
   type ProfileEvidence,
   type ProfileRule,
@@ -53,7 +54,10 @@ async function consolidateOrigin(options: {
     return [{
       ...combined,
       ...statistics,
-      status: statistics.sessions >= 3 ? "active" as const : "candidate" as const,
+      status:
+        evidence.for.some(isExplicitProfileEvidence) || statistics.sessions >= 3
+          ? "active" as const
+          : "candidate" as const,
     }];
   });
 }

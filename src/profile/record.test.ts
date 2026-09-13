@@ -5,6 +5,7 @@ import path from "node:path";
 import type { OriginScope } from "../signal";
 import {
   compileProfile,
+  explicitProfileEvidence,
   parseProfileRules,
   renderProfileRule,
 } from "./index";
@@ -150,6 +151,17 @@ test("compiles contradicted declared guidance while withholding inactive rules",
       }),
       renderProfileRule({
         ...completeRule,
+        key: "explicit-candidate-rule",
+        title: "Explicit candidate guidance",
+        status: "candidate",
+        proposal: null,
+        evidence: {
+          for: completeRule.evidence.for.map(explicitProfileEvidence),
+          against: [],
+        },
+      }),
+      renderProfileRule({
+        ...completeRule,
         key: "stale-rule",
         title: "Stale guidance",
         status: "stale",
@@ -168,6 +180,7 @@ test("compiles contradicted declared guidance while withholding inactive rules",
   });
 
   expect(compilation.markdown).toContain(completeRule.title);
+  expect(compilation.markdown).toContain("Explicit candidate guidance");
   expect(compilation.markdown).not.toContain("Candidate guidance");
   expect(compilation.markdown).not.toContain("Stale guidance");
 });

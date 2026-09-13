@@ -1,15 +1,32 @@
-import type { EngineId, EngineRunner } from "../../engine";
+import type {
+  EngineId,
+  EngineRunner,
+  ReasoningEffort,
+} from "../../engine";
 import type { ProjectPaths } from "../../paths";
+import type { EvaluationArm } from "./arms";
+
+export const dependencyModes = ["current"] as const;
+export type DependencyMode = (typeof dependencyModes)[number];
+
+export type DependencyState =
+  | "not-required"
+  | "not-installed"
+  | "exact";
 
 export type TransferOptions = {
   readonly repo?: string;
+  readonly task?: string;
+  readonly suiteId?: string;
   readonly model?: string;
   readonly engine?: EngineId;
+  readonly reasoningEffort?: ReasoningEffort;
+  readonly dependencyMode?: DependencyMode;
   readonly tasks?: number;
   readonly repeat?: number;
   readonly timeoutSeconds?: number;
+  readonly deadlineSeconds?: number;
   readonly evalId?: string;
-  readonly since?: string;
   readonly json?: boolean;
   readonly yes?: boolean;
   readonly maxBudgetUsd?: number;
@@ -17,70 +34,106 @@ export type TransferOptions = {
   readonly runner?: EngineRunner;
 };
 
-export type Evidence = {
-  readonly id: string;
-  readonly sessionId: string;
-  readonly timestamp: number;
-  readonly text: string;
-};
-
 export type PreferenceCheck = {
   readonly requirement: string;
-  readonly evidenceId: string;
-  readonly quote: string;
 };
 
 export type DelegationTask = {
   readonly id: string;
-  readonly sourceSession: string;
   readonly startingCommit: string;
   readonly prompt: string;
   readonly completion: readonly string[];
   readonly preferences: readonly PreferenceCheck[];
-  readonly training: readonly Evidence[];
   readonly profile: string;
   readonly profileFingerprint: string;
 };
 
-export type PreparedEval = {
-  readonly context: readonly { readonly relativePath: string; readonly content: string }[];
+export type EvaluationProfileSnapshot = {
+  readonly kind: "current";
+  readonly fingerprint: string;
+  readonly ruleCount: number;
+};
+
+export type EvaluationProgress = {
+  readonly stage:
+    | "ready"
+    | "snapshot"
+    | "coding"
+    | "collecting"
+    | "safety"
+    | "judging"
+    | "timeout"
+    | "complete"
+    | "error";
+  readonly taskIndex: number | null;
+  readonly taskCount: number;
+  readonly repeatIndex: number | null;
+  readonly repeatCount: number;
+  readonly arm: EvaluationArm | null;
+  readonly voteIndex: number | null;
+  readonly voteCount: number | null;
+  readonly updatedAt: string;
+};
+
+export type CheckResult = {
+  readonly requirement: string;
+  readonly verdict: "pass" | "fail";
+  readonly evidence: string;
+};
+
+export type ContextFile = {
+  readonly relativePath: string;
+  readonly content: string;
+};
+
+export type EvaluationSuite = {
   readonly schemaVersion: 2;
-  readonly evalId: string;
+  readonly suiteId: string;
   readonly repository: string;
+  readonly baseCommit: string;
+  readonly context: readonly ContextFile[];
+  readonly profileSnapshot: EvaluationProfileSnapshot;
+  readonly tasks: readonly DelegationTask[];
+};
+
+export type PreparedEval = Omit<EvaluationSuite, "schemaVersion"> & {
+  readonly schemaVersion: 9;
+  readonly evalId: string;
   readonly engine: EngineId;
   readonly model: string;
+  readonly reasoningEffort: ReasoningEffort | null;
+  readonly dependencyMode: DependencyMode;
   readonly repeat: number;
   readonly timeoutSeconds: number;
   readonly maxBudgetUsd: number | null;
-  readonly tasks: readonly DelegationTask[];
-  readonly exclusions: readonly { readonly sessionId: string; readonly reason: string }[];
-};
-
-export type Verdict = "pass" | "fail" | "uncertain";
-export type CheckResult = {
-  readonly requirement: string;
-  readonly verdict: Verdict;
-  readonly evidence: string;
+  readonly dirtyFileCount: number;
+  readonly preflight: readonly CheckResult[];
 };
 
 export type TransferRun = {
   readonly taskId: string;
   readonly repeat: number;
-  readonly arm: "baseline" | "clone";
+  readonly arm: EvaluationArm;
+  readonly phase: "evidence" | "complete";
   readonly sessionId: string | null;
   readonly failure: string | null;
   readonly durationMs: number;
   readonly costUsd: number | null;
+  readonly dependencyState: DependencyState | null;
+  readonly observed: string | null;
+  readonly verification: readonly CheckResult[];
+  readonly safety: readonly CheckResult[];
   readonly correctness: readonly CheckResult[];
   readonly preferences: readonly CheckResult[];
 };
 
 export type TransferReceipt = {
-  readonly schemaVersion: 2;
+  readonly schemaVersion: 9;
   readonly evalId: string;
-  readonly status: "complete" | "insufficient-evidence" | "incomplete";
+  readonly status: "running" | "pass" | "fail" | "error";
   readonly preparedFingerprint: string;
   readonly runs: readonly TransferRun[];
+  readonly progress: EvaluationProgress | null;
   readonly prepared: PreparedEval;
   readonly limitations: readonly string[];
 };
@@ -88,6 +141,7 @@ export type TransferReceipt = {
 export type ModelCall = (options: {
   readonly prompt: string;
   readonly cwd: string;
-  readonly execute?: boolean;
+  readonly access?: "none" | "read" | "write";
+  readonly blockedPaths?: readonly string[];
   readonly outputSchema?: unknown;
 }) => ReturnType<EngineRunner>;

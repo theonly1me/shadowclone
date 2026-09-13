@@ -1,5 +1,6 @@
 import type { ProjectPaths } from "../paths";
 import { projectPaths } from "../paths";
+import { refreshIntegrations } from "../integrations";
 import type {
   SeedAgentSkill,
   SeedGuidance,
@@ -7,6 +8,7 @@ import type {
 } from "../skills";
 import {
   loadSeedLibrary,
+  installSeedSkills,
   writeSeedGuidanceSelection,
 } from "../skills";
 import { type ConfirmPrompt, promptConfirmation } from "./confirm";
@@ -14,7 +16,6 @@ import { type ConfirmPrompt, promptConfirmation } from "./confirm";
 export type WizardAnswerPrompt = (
   question: string,
 ) => string | null | Promise<string | null>;
-
 export type WizardResult = {
   readonly written: boolean;
   readonly selectedGuidanceIds: readonly string[];
@@ -23,7 +24,6 @@ export type WizardResult = {
 function promptForAnswer(question: string): string | null {
   return prompt(question);
 }
-
 function numberedChoices<T extends SeedGuidance>(guidance: readonly T[]): readonly {
   readonly number: string;
   readonly entry: T;
@@ -33,7 +33,6 @@ function numberedChoices<T extends SeedGuidance>(guidance: readonly T[]): readon
     entry,
   }));
 }
-
 export function parseAxisChoice(options: {
   readonly response: string;
   readonly guidance: readonly SeedGuidance[];
@@ -46,7 +45,6 @@ export function parseAxisChoice(options: {
   }
   return choices.find((choice) => choice.number === response)?.entry ?? null;
 }
-
 export function parseOptionalSkillChoices(options: {
   readonly response: string;
   readonly skills: readonly SeedAgentSkill[];
@@ -168,22 +166,35 @@ export async function runWizard(options: {
       writeLine,
     }),
   );
-
   writeLine("Selected profile rules:");
   for (const entry of selected) {
     writeLine(`  ${entry.title}`);
   }
   const selectedGuidanceIds = selected.map((entry) => entry.id);
-  if (!(await confirm("Write these rules to your profile?"))) {
+  if (!(await confirm("Install these preferences and skills?"))) {
     writeLine("Profile unchanged.");
     return { written: false, selectedGuidanceIds };
   }
 
+  const selectedSkills = selected.filter(
+    (entry): entry is SeedAgentSkill => entry.kind === "skill",
+  );
+  const installedSkills = await installSeedSkills({
+    paths,
+    skills: selectedSkills,
+    availableSkills: library.skills,
+  });
+  const selectedPreferences = selected.filter(
+    (entry) => entry.kind === "preference",
+  );
   await writeSeedGuidanceSelection({
     paths,
     library,
-    selectedGuidance: selected,
+    selectedGuidance: selectedPreferences,
   });
-  writeLine(`Profile updated with ${selected.length} declared rules.`);
+  await refreshIntegrations({ paths, configPath: paths.configFile });
+  writeLine(
+    `Profile updated with ${selectedPreferences.length} preferences; ${installedSkills.installed} skills installed, ${installedSkills.removed} removed, ${installedSkills.preserved} edited skills preserved.`,
+  );
   return { written: true, selectedGuidanceIds };
 }

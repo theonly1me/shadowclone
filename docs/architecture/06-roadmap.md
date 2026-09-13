@@ -20,7 +20,7 @@ Proves: a full ingest completes, a second run is incremental, and a secret plant
 
 ## Phase 2, the mirror
 
-Status: mirror implementation complete. The pure replay scorer is built, but executable replay and real corpus tuning remain tracked in issue #14.
+Status: mirror implementation complete. Real corpus tuning requires explicit source consent.
 
 Structural derivation and the correction miner. `shadowclone learn` prints aggregate evidence and a deep-learning preview while leaving the profile unchanged. It makes zero model calls, and the first line of output says so.
 
@@ -32,21 +32,17 @@ Run it on the real 562 MB corpus and read it. A profile that says "runs tests, u
 
 Later phases consume the measured moments. Explicit deep learning in phase 3 is the path that turns them into mined profile rules.
 
-Also in this phase, the replay eval. Take a past session, hand its first prompt to an engine with the profile loaded, and compare what the clone did with what the user did: tools chosen, verification ritual, files touched, plan before edit. Score it. The corpus is 372 ground-truth test cases and they cost nothing. This is what turns "acts like you" from a claim into a number in the README.
-
-The pure four-dimension scorer lands with the mirror. Connecting it to an observed engine run requires behavior extraction that does not store raw tool input, so issue #14 tracks the executable `shadowclone eval` path.
-
-## Phase 3, the clone inside your session
+## Phase 3, the environment inside your session
 
 Status: implementation complete. Local plugin installation and a real authenticated engine run remain manual verification.
 
-`.claude-plugin/` with a `SessionEnd` hook and an MCP server that loads the profile into the user's live Claude Code sessions. `src/profile/agent.ts` compiles the profile into a `.claude/agents/<name>.md` subagent, so the session can dispatch copies of the user in parallel.
+`.claude-plugin/` with lifecycle hooks and an MCP server loads the profile into the user's live Claude Code sessions. `src/profile/agent.ts` also supports an optional `.claude/agents/<name>.md` subagent for independent delegated work.
 
 The engine module lands here too for explicit `learn --deep`. Deep learning reconciles exact, redacted correction evidence with existing rules and rejected guidance, preserves user authority during disagreement, and withholds mined candidates until three independent sessions support them. The session-end hook ingests its exact transcript and recompiles existing guidance for that repository scope without generating rules or calling an engine.
 
-Proves: install is one command, a normal session gets the user's conventions with no manual step, and `Agent(subagent_type: "<name>")` dispatches a copy of the user from inside that session.
+Proves: install is one command, a normal session gets the user's conventions with no manual step, and an optional `Agent(subagent_type: "<name>")` dispatches a copy of the user when delegation is useful.
 
-This is the first phase where shadowclone is a clone rather than a profile, and the first thing that runs before any clone has been trusted.
+This is the first phase where shadowclone can act as a clone inside the user's session, and the first thing that runs before any clone has been trusted.
 
 ## Phase 4, the clone while you are away
 
@@ -60,7 +56,7 @@ Proves: a task produces a worktree, a branch, a commit, and a receipt, with noth
 
 Status: implementation complete. Real Codex and Cursor corpora and authenticated runs remain manual verification.
 
-The Codex adapter and engine, then Cursor. Codex is a parser. Cursor is a different reader, since its chat state is a per session SQLite database rather than JSONL.
+The Codex adapter and engine, then Cursor. Codex is a parser. Cursor reads per-session SQLite chat state.
 
 Cursor required the approved evolution of `TextRef` from a file range into a file-or-SQLite pointer and a disposable index rebuild. Provider events still required no changes to `signal` or `profile`; `distill` only changed pointer identity handling and retains the same eligibility policy. This is also the hedge against a single vendor shipping the Claude-only version natively, so it is earlier than it would otherwise be.
 
@@ -68,23 +64,37 @@ Cursor required the approved evolution of `TextRef` from a file range into a fil
 
 Status: implementation complete. Real Antigravity corpus verification requires explicit source consent.
 
-Add the static provider capability registry, purpose-aware engine selection, and separate observe, distill, and dispatch support reporting. Add Antigravity's off-by-default generated-log adapter. Record its engine capabilities, but do not add a runner while the CLI lacks a per-run deny-all tool policy.
+Add the static provider capability registry, purpose-aware engine selection, and separate observe, distill, dispatch, and native-delivery support reporting. Add Antigravity's off-by-default generated-log adapter and native hook locations. Record its engine capabilities, but do not add a runner while the CLI lacks a per-run deny-all tool policy.
 
 Proves: adding a provider cannot overstate its security controls, and Antigravity can join observation without being falsely advertised for distillation or dispatch.
 
-## Phase 7, verified provider breadth
+## Phase 7, self-improving portable environment
+
+Status: implementation complete. Authenticated evaluation remains a release gate.
+
+Default to global main-agent delivery through stable provider pointers and live scoped session hooks. Let the active agent request bounded learning for a useful session through an opaque token, and interpret an interruption with the user's following message. Activate explicit reusable guidance from one session while keeping inferred guidance behind three independent sessions.
+
+Install complete starter skills into a canonical personal library and synchronize copies across Claude Code, Codex, Cursor, and Antigravity-compatible locations. Preserve user edits, expose divergent copies as conflicts, and let enabled deep learning keep managed preference additions current.
+
+Replace historical-only transfer selection with fresh additive coding tasks on current HEAD. Run snapshot preflight before measured spend, prohibit permanent and external actions, review bounded code changes through three blinded paired votes, expose persisted stage progress, and report success, adherence, lift, paired outcomes, and regressions.
+
+Proves: the user's ordinary agent sees current guidance without selecting a custom subagent, personal workflows survive provider changes, learning happens only from deliberately useful sessions, and evaluation always returns a quantified pass, fail, or infrastructure error.
+
+Launch readiness adds a `SubagentStart` hook so spawned Claude subagents inherit the current profile, a three-question default setup with a bounded first learning pass, concurrent reconciliation, and independent eval snapshots with concurrent arms and judging. The subagents' sessions add to the consented corpus used for later learning. Authenticated transfer evaluation remains the release gate.
+
+## Phase 8, verified provider breadth
 
 One stacked PR per provider, initially GitHub Copilot CLI, OpenCode, Aider, and Amp. Gemini CLI is excluded in favor of its Antigravity successor. Goose, Amazon Q or Kiro, Windsurf, Cline, and newly verified transcript-producing CLIs follow the same qualification gate.
 
 Each provider may ship observation, distillation, and dispatch independently. A provider with no local transcript stays out of observation. A provider with no enforceable no-tools mode stays out of distillation. A provider with no enforceable budget or granular tool policy stays out of dispatch.
 
-Proves: provider breadth grows by adding registry metadata and boundary implementations rather than weakening the common pipeline.
+Proves: provider breadth grows through registry metadata and boundary implementations while keeping the common pipeline intact.
 
 ## Later, and deliberately not now
 
 **Learning from merge outcomes.** The diff between what a clone wrote and what the user shipped is the strongest correction signal available. It needs clone output good enough to be worth reviewing, so it waits until phase 4 has been used in anger.
 
-**Claims about productivity multiples.** None are made until the replay eval produces a number. The honest value is bounded and measurable, the agent stops repeating corrections it has already received, and a bounded number that holds beats a large one that does not.
+**Claims about productivity multiples.** None are made until the fresh transfer evaluation produces a decision-grade result. The honest value is bounded and measurable, and a number that holds beats a large one that does not.
 
 **A daemon.** Adds latency reduction and queued work, no new capability. The hook covers most of the value at a fraction of the moving parts.
 
@@ -92,4 +102,4 @@ Proves: provider breadth grows by adding registry metadata and boundary implemen
 
 **Multiple concurrent clones.** Parallel worktrees on separate tasks, with results merged back. The name promises this and the architecture allows it, but one clone has to be good before several are useful.
 
-**Profile sharing.** A profile is a portable markdown directory, so exporting a team lead's workflow rules is close to free. It is also the fastest way to leak an employer's internal details, so it needs a scrubbing step designed on purpose rather than a zip command.
+**Profile sharing.** A profile is a portable markdown directory, so exporting a team lead's workflow rules is close to free. It could leak an employer's internal details, so it needs a deliberate scrubbing step.

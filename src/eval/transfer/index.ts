@@ -1,150 +1,99 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { openEventIndex } from "../../index";
 import { invocationCeiling } from "./budget";
 import { modelCaller } from "./call";
-import { command } from "./command";
-import { captureContext } from "./context";
-import { collectEvidence } from "./evidence";
+import { throwIfEvaluationExpired, withEvaluationDeadline } from "./deadline";
 import { executeTransferRuns } from "./executeRuns";
-import { prepareTasks } from "./prepare";
-import { learnEvaluationProfile } from "./profile";
+import { prepareEvaluation } from "./prepare";
+import { stepLine } from "./progress";
 import { setupTransferEval } from "./setup";
+import { disposeSnapshotTemplates } from "./snapshot";
 import { initialReceipt, saveReceipt } from "./storage";
-import type { TransferOptions, TransferReceipt } from "./types";
+import type {
+  TransferOptions,
+  TransferReceipt,
+} from "./types";
 
-export type { TransferOptions, TransferReceipt } from "./types";
 export {
   defaultRepeat,
   defaultTaskCount,
   defaultTimeoutSeconds,
   invocationCeiling,
 } from "./budget";
+export {
+  type DependencyMode,
+  dependencyModes,
+  type TransferOptions,
+  type TransferReceipt,
+} from "./types";
 
 export async function runTransferEval(
-  options: TransferOptions = {},
+  transferOptions: TransferOptions = {},
 ): Promise<TransferReceipt> {
-  const setup = await setupTransferEval(options);
-
-  const controlDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-eval-control-"),
-  );
-
-  try {
-    const call = modelCaller({
-      runner: setup.runner,
-      engine: setup.engine,
-      model: setup.model,
-      timeoutSeconds: setup.timeoutSeconds,
-      maxBudgetUsd: setup.maxBudgetUsd,
-      blockedPaths: [setup.repository, setup.paths.shadowcloneDirectory],
-      controlDirectory,
-      maximumCalls: invocationCeiling({
-        tasks: setup.count,
-        repeat: setup.repeat,
-      }),
-    });
-
-    let receipt: TransferReceipt;
-
-    if (setup.saved) {
-      receipt = setup.saved;
-
-      if (
-        receipt.prepared.repository !== setup.repository ||
-        receipt.prepared.engine !== setup.engine ||
-        receipt.prepared.model !== setup.model ||
-        receipt.prepared.repeat !== setup.repeat ||
-        receipt.prepared.timeoutSeconds !== setup.timeoutSeconds
-      ) {
-        throw new Error(
-          "Rerun repository, engine and model must match the frozen evaluation",
-        );
+  const startedAt = Date.now();
+  const possibleSingleAttempt = transferOptions.evalId !== undefined ||
+    (transferOptions.tasks === 1 || transferOptions.task !== undefined) &&
+      transferOptions.repeat === 1;
+  return withEvaluationDeadline({
+    enabled: possibleSingleAttempt,
+    ...(transferOptions.deadlineSeconds === undefined
+      ? {}
+      : { durationMs: transferOptions.deadlineSeconds * 1_000 }),
+    operation: async ({ disable }) => {
+      const setup = await setupTransferEval(transferOptions);
+      if (setup.count !== 1 || setup.repeat !== 1) {
+        disable();
       }
-    } else {
-      const index = await openEventIndex(setup.paths.indexDatabase);
-      const events = index.listEvents();
-      index.close();
-
-      const evidence = await collectEvidence({
-        events,
-        repository: setup.repository,
-        config: setup.config,
-      });
-
-      const revListOutput = await command({
-        arguments: ["git", "rev-list", "--all"],
-        cwd: setup.repository,
-      });
-      const commits = new Set(revListOutput.split("\n"));
-
-      const context = await captureContext({
-        enabled: setup.config.sources["agent-context"],
-        home: os.homedir(),
-        repository: setup.repository,
-        engine: setup.engine,
-      });
-
-      const prepared = await prepareTasks({
-        evidence,
-        commits,
-        count: setup.count,
-        since: setup.since,
-        call,
-        cwd: controlDirectory,
-        resolveCommit: async ({ timestamp }) => {
-          try {
-            const hash = await command({
-              arguments: [
-                "git",
-                "log",
-                "-n",
-                "1",
-                `--before=${new Date(timestamp).toISOString()}`,
-                "--format=%H",
-              ],
-              cwd: setup.repository,
-            });
-            return hash.trim() || null;
-          } catch {
-            return null;
-          }
-        },
-        learnProfile: (training) =>
-          learnEvaluationProfile({
-            ...training,
-            events,
-            call,
-            engine: setup.engine,
-            directory: controlDirectory,
+      throwIfEvaluationExpired();
+      const onStep = (message: string): void => {
+        if (!(transferOptions.json ?? false)) {
+          console.log(stepLine({ message, startedAt }));
+        }
+      };
+      const controlDirectory = await mkdtemp(
+        path.join(os.tmpdir(), "shadowclone-eval-control-"),
+      );
+      try {
+        const call = modelCaller({
+          runner: setup.runner,
+          engine: setup.engine,
+          model: setup.model,
+          reasoningEffort: setup.reasoningEffort,
+          timeoutSeconds: setup.timeoutSeconds,
+          maxBudgetUsd: setup.maxBudgetUsd,
+          blockedPaths: [setup.repository, setup.paths.shadowcloneDirectory],
+          controlDirectory,
+          maximumCalls: invocationCeiling({
+            tasks: setup.count,
+            repeat: setup.repeat,
           }),
-      });
-
-      receipt = initialReceipt({
-        schemaVersion: 2,
-        evalId: setup.evalId,
-        repository: setup.repository,
-        engine: setup.engine,
-        model: setup.model,
-        repeat: setup.repeat,
-        timeoutSeconds: setup.timeoutSeconds,
-        context,
-        maxBudgetUsd: setup.maxBudgetUsd ?? null,
-        ...prepared,
-      });
-    }
-
-    await saveReceipt({ directory: setup.directory, receipt });
-
-    return await executeTransferRuns({
-      receipt,
-      directory: setup.directory,
-      controlDirectory,
-      call,
-      json: options.json ?? false,
-    });
-  } finally {
-    await rm(controlDirectory, { recursive: true, force: true });
-  }
+        });
+        const receipt = setup.saved ?? initialReceipt(
+          await prepareEvaluation({
+            setup,
+            call,
+            json: transferOptions.json ?? false,
+            onStep,
+          }),
+        );
+        throwIfEvaluationExpired();
+        await saveReceipt({ directory: setup.directory, receipt });
+        onStep(`Evaluation ${receipt.evalId} is ready`);
+        return await executeTransferRuns({
+          receipt,
+          directory: setup.directory,
+          controlDirectory,
+          call,
+          json: transferOptions.json ?? false,
+          startedAt,
+        });
+      } finally {
+        await Promise.all([
+          rm(controlDirectory, { recursive: true, force: true }),
+          disposeSnapshotTemplates(),
+        ]);
+      }
+    },
+  });
 }

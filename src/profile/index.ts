@@ -2,13 +2,19 @@ export { renderAgent, writeAgent } from "./agent";
 export {
   compileProfile,
   defaultProfileByteBudget,
+  profileScopePaths,
   type ProfileCompilation,
   type ProfileCompilationOmission,
   type ProfileCompilationOmissionReason,
   type ProfileCompileInput,
 } from "./compiler";
 export {
+  activatesFromSessions,
+  effectiveProfileStatus,
+  independentSessionThreshold,
   parseProfileEvidenceId,
+  explicitProfileEvidence,
+  isExplicitProfileEvidence,
   profileEvidenceId,
   profileEvidenceStatistics,
 } from "./evidence";

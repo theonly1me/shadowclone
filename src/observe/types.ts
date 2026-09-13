@@ -108,6 +108,7 @@ export type ObservationBatch = {
   readonly cursor: FileCursor;
   readonly rescanned: boolean;
   readonly bytesRead: number;
+  readonly invalidRecords: number;
 };
 
 export type CursorLookup = (

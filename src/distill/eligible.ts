@@ -36,6 +36,7 @@ export function allowlistedSignals(options: {
   );
   return options.signals.map((signal) => ({
     ...signal,
+    contextRefs: (signal.contextRefs ?? []).filter((ref) => assistantReferences.has(textRefKey(ref))),
     textRefs: signal.textRefs.filter((ref) => {
       const key = textRefKey(ref);
       return (

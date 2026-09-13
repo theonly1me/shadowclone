@@ -20,7 +20,9 @@ What already exists, checked in September 2026, and the gap shadowclone occupies
 
 ## The product gap
 
-Shadowclone combines five capabilities that the reviewed tools separate.
+Shadowclone combines eight capabilities that the reviewed tools separate.
+
+First-party instruction tools, including Claude Code's `/doctor`, optimize one vendor's files from their text. They do not see the user's repeated corrections across sessions or maintain another vendor's setup. Anthropic's suggested rule to "match the surrounding code's comment density" would erase a deliberate zero-comments preference. Shadowclone carries that taste into ordinary agents and delegated clones, then learns from the transcripts those clones produce.
 
 **Historical cold start.** Native auto memory starts empty on day one, and `tellonce` learns from sessions after installation. The measured development corpus already holds 994 interruptions and 445 denials in `~/.claude/projects/`, and Shadowclone can start from that existing history on the first run.
 
@@ -28,18 +30,24 @@ Shadowclone combines five capabilities that the reviewed tools separate.
 
 **Remote-owner scoping.** Native memory scopes by project directory path on disk. Shadowclone scopes rules to normalized `host/owner` identities and compiles one matching owner at a time. This is a coarse remote boundary, not proof of an employer or legal organization boundary.
 
-**Dispatchable subagents.** Native auto memory maintains user and feedback notes for the current agent. Shadowclone compiles steering moments into a Claude subagent definition and can run a headless clone with provider-enforced tool permissions and a receipt. Host-enforced verification remains planned work.
+**Main-agent delivery.** Native memory and instruction files are tied to one provider. Shadowclone gives the ordinary Claude Code, Codex, Cursor, and Antigravity session a stable native pointer and injects the current scoped profile at session start. A user does not need to select a custom subagent to receive their guidance.
+
+**Portable personal skills.** Shadowclone installs complete starter skills into one canonical personal library and synchronizes provider-specific copies while preserving edits and conflicts. Skill maintenance can apply supported preference additions without replacing technical workflows.
+
+**Tested transfer.** A fresh current-HEAD evaluation runs matched baseline and profile arms, independently verifies the repository, uses three binary judge votes, and reports task success, preference adherence, lift, paired outcomes, and regressions.
+
+**Optional delegated work.** Shadowclone can compile the same profile into a Claude subagent or run a headless clone with provider-enforced tool permissions and a receipt. Delegation is an additional execution mode, not the only way the profile reaches an agent.
 
 **The user's existing subscriptions.** Hermes needs Nous Portal or keys. `mem0` runs a paid extraction model. Native auto memory is tied to one vendor. Shadowclone shells out to authenticated CLIs already on the machine and holds no API keys.
 
 ## What to borrow
 
-TRACE shows that boundaries enforced as checks beat boundaries injected as instructions, by their numbers roughly 2 percent violations against 37 percent. Shadowclone cannot apply that result to bare tool-family denials. Until observation stores a privacy-safe action fingerprint that a live hook can reproduce, `boundaries.md` stays advisory in the system prompt rather than blocking every invocation of a tool.
+TRACE reports roughly 2 percent violations with enforced checks and 37 percent with instructions. Shadowclone cannot apply that result to bare tool-family denials. Until observation stores a privacy-safe action fingerprint that a live hook can reproduce, `boundaries.md` stays advisory in the system prompt.
 
 The 20,574 session study's taxonomy, seven forms of misalignment covering how agents read projects, interpret intent, follow rules, bound actions, implement, and report progress, is a better category scheme for the mirror's output than anything invented here. The extractors should label into it.
 
 ## Positioning
 
-Shadowclone learns how a developer works from agent transcripts already on disk, combines enabled sources across vendors, scopes learned rules by remote owner, and compiles the result into agents that run through subscriptions the developer already pays for.
+Shadowclone turns how a developer works into a portable, tested environment for the coding agents they already use. It learns from enabled transcripts across vendors, scopes guidance by remote owner and repository, keeps personal skills synchronized, delivers the current profile to the main agent, and tests the resulting behavior through the developer's existing subscriptions.
 
 The honest caveat is that the correction-mining category has 7 stars and one paper in it. That is an open field and an unproven market at the same time, and the 241.7k stars on Hermes are the evidence that the appetite for an agent that grows with its user is real.

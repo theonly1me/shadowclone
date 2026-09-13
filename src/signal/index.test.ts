@@ -125,7 +125,7 @@ test("mines correction markers and renders a text-free mirror", async () => {
   const output = renderMirror({
     report: derived.report,
     deepLearningPreview: {
-      eligibleCorrectionMoments: 1,
+      eligibleSteeringEpisodes: 1,
       extractionBatches: 1,
     },
   });

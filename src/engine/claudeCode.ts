@@ -53,6 +53,10 @@ export function buildClaudeArguments(options: {
     arguments_.push("--model", options.run.model);
   }
 
+  if (options.run.reasoningEffort) {
+    arguments_.push("--effort", options.run.reasoningEffort);
+  }
+
   if (options.run.permissionMode) {
     arguments_.push("--permission-mode", options.run.permissionMode);
   }

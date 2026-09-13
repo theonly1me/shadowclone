@@ -23,7 +23,7 @@
     "@types/bun": "latest",
     "typescript": "~5.9"
   },
-  "description": "Learns how you work from the AI coding sessions already on your disk, then runs copies of you inside the agent you already use.",
+  "description": "Turns how you work into a portable, tested environment for the coding agents you already use.",
   "license": "MIT",
   "repository": {
     "type": "git",

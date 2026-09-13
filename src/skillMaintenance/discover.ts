@@ -1,0 +1,66 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fingerprint, readLocalText } from "../localFiles";
+import { canonicalPath } from "../paths";
+import { resolveRedacted } from "../redact";
+import { parseSkillDocument, validateSkillReferences } from "./document";
+import { skillTarget } from "./state";
+import type { DiscoveredSkill, SkillRoot } from "./types";
+
+export async function discoverSkills(roots: readonly SkillRoot[]): Promise<{ readonly skills: readonly DiscoveredSkill[]; readonly invalid: number; readonly duplicates: number }> {
+  const skills: DiscoveredSkill[] = [];
+  const visited = new Set<string>();
+  let invalid = 0;
+  let totalBytes = 0;
+  let discovered = 0;
+  for (const root of roots) {
+    if (!existsSync(root.directory)) continue;
+    for await (const relativePath of new Bun.Glob("**/SKILL.md").scan({ cwd: root.directory, onlyFiles: true, followSymlinks: false, dot: false })) {
+      if (relativePath.split(path.sep).some((segment) => segment === "shadowclone-context" || segment.startsWith("shadowclone-local-"))) continue;
+      discovered += 1;
+      if (discovered > 500 || relativePath.split(path.sep).length > 12) throw new Error("Skill library exceeds discovery limits; configure smaller roots");
+      const filePath = skillTarget({ directory: root.directory, relativePath });
+      const identity = canonicalPath(filePath);
+      if (visited.has(identity)) continue;
+      visited.add(identity);
+      const size = Bun.file(filePath).size;
+      totalBytes += size;
+      if (totalBytes > 8_000_000) throw new Error("Skill library exceeds the total byte limit");
+      try {
+        if (size > 48_000) throw new Error("Skill exceeds the supported size");
+        const raw = await readLocalText(filePath);
+        if (raw === null) continue;
+        const redacted = await resolveRedacted({ ref: { type: "file", sourcePath: filePath, byteOffset: 0, byteLength: size } });
+        const document = parseSkillDocument(redacted);
+        if (document.metadata.name !== path.basename(path.dirname(filePath))) throw new Error("Skill name does not match its directory");
+        await validateSkillReferences({ filePath, text: document.body });
+        skills.push({ id: fingerprint(identity), root, relativePath, raw, redacted, fingerprint: fingerprint(raw), name: document.metadata.name, description: document.metadata.description, body: document.body });
+      } catch { invalid += 1; }
+    }
+  }
+  const groups = [...Map.groupBy(
+    skills,
+    (skill) => `${skill.root.scope}:${skill.root.cwd}:${skill.name}`,
+  ).values()];
+  const duplicates = groups.reduce((count, group) =>
+    new Set(group.map((skill) => skill.fingerprint)).size > 1
+      ? count + group.length - 1
+      : count,
+  0);
+  const distinct = groups.flatMap((group) => {
+    if (new Set(group.map((skill) => skill.fingerprint)).size > 1) {
+      return group;
+    }
+    const canonical = group.find((skill) =>
+      skill.root.directory.includes(`${path.sep}.agents${path.sep}skills`)
+    );
+    return [canonical ?? group[0]].filter(
+      (skill): skill is DiscoveredSkill => skill !== undefined,
+    );
+  });
+  return {
+    skills: distinct.sort((left, right) => left.id.localeCompare(right.id)),
+    invalid,
+    duplicates,
+  };
+}

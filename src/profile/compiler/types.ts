@@ -5,8 +5,9 @@ export type ProfileCompileInput =
   | {
       readonly kind: "directory";
       readonly profileDirectory: string;
-      readonly origin: OriginScope;
+      readonly origin: OriginScope | null;
       readonly targetRepo: string | null;
+      readonly scope?: "global" | "scoped" | "combined";
     }
   | {
       readonly kind: "rules";

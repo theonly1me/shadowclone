@@ -46,7 +46,7 @@ Distillation input is restricted by category, and the list is short enough to au
 
 **Never eligible, at any setting.** The content of any `tool_result`. File contents from Read, Edit, or Write. Thinking blocks. Any result from an MCP data-access tool.
 
-Tool results can contain production logs, database rows, credentials, third-party data, and other sensitive information that cannot be reliably identified through redaction alone. Shadowclone therefore excludes tool-result payloads categorically rather than attempting to sanitize and reuse their contents.
+Tool results can contain production logs, database rows, credentials, third-party data, and other sensitive information that cannot be reliably identified through redaction alone. Shadowclone excludes tool-result payloads by category.
 
 Pattern matching finds an API key in them and will not find a customer's email address. So they are never read.
 
@@ -75,7 +75,7 @@ These paths require root to write, so a user cannot grant themselves more than p
 }
 ```
 
-Managed policy is read before user config and every field is a ceiling rather than a default. User config can be more restrictive and never less. `"enabled": false` is a hard stop that no user setting overrides. `"distillation": "local-only"` permits the Ollama engine and forbids every hosted one. `"maxActionTier": "draft"` removes push and pull request capability regardless of any repo allowlist.
+Managed policy is read before user config and every field is a ceiling. User config can be more restrictive and never less. `"enabled": false` is a hard stop that no user setting overrides. `"distillation": "local-only"` forbids hosted engines; the planned local endpoint engine is not yet implemented. `"maxActionTier": "draft"` removes push and pull request capability regardless of any repo allowlist.
 
 Phase 3 implements the root ownership check, source and engine ceilings, distillation ceiling, hard stop, and blocked origin filtering. Phase 4 applies the action tier to unattended dispatch.
 

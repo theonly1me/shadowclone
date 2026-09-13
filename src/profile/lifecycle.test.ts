@@ -4,12 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import {
-  parseProfileRules,
-  profileFingerprint,
-  profileRulePath,
-  writeProfile,
-} from "./index";
+import { parseProfileRules, profileRulePath, writeProfile } from "./index";
 import { readGeneratedProfileState, readProfileRejections } from "./state";
 import type { ProfileRule } from "./types";
 
@@ -43,55 +38,6 @@ function profileRule(options: {
     importReference: null,
   };
 }
-
-function legacyBlock(options: {
-  readonly key: string;
-  readonly visible: string;
-  readonly fingerprint: string;
-}): string {
-  return [
-    options.visible,
-    "",
-    `<!-- shadowclone: key=${options.key} observations=2 confidence=0.80 last-seen=2026-09-05 sessions=1 origins=github.com/acme scope=org fingerprint=${options.fingerprint} -->`,
-  ].join("\n");
-}
-
-test("migrates edited legacy text and retires unedited template output", async () => {
-  const paths = await createTestPaths();
-  const relativePath = "org/github.com--acme/workflow.md";
-  const filePath = path.join(paths.profileDirectory, relativePath);
-  const uneditedVisible = "## Template advice\n\nAsk a question after every denial.";
-  const originalEditedVisible = "## Review changes\n\nReview every generated change.";
-  const editedVisible = "## Review changes\n\nReview the focused diff before continuing.";
-  const unedited = legacyBlock({
-    key: "legacy-template",
-    visible: uneditedVisible,
-    fingerprint: profileFingerprint(uneditedVisible),
-  });
-  const edited = legacyBlock({
-    key: "legacy-edited",
-    visible: editedVisible,
-    fingerprint: profileFingerprint(originalEditedVisible),
-  });
-  await Bun.write(filePath, `${unedited}\n\n${edited}\n`);
-  await Bun.write(
-    paths.profileManifestFile,
-    `${relativePath}\tlegacy-template\n${relativePath}\tlegacy-edited\n`,
-  );
-
-  await writeProfile({ paths, rules: [] });
-
-  const migrated = await Bun.file(filePath).text();
-  const [parsed] = parseProfileRules(migrated);
-  const generated = await readGeneratedProfileState(paths.profileManifestFile);
-  expect(migrated).toBe(`${edited}\n`);
-  expect(parsed?.source).toBe("user");
-  expect(parsed?.evidence).toEqual({ for: [], against: [] });
-  expect(generated).toContainEqual(
-    expect.objectContaining({ key: "legacy-template", disposition: "retired" }),
-  );
-  expect(generated.some((entry) => entry.key === "legacy-edited")).toBeFalse();
-});
 
 test("revises wording without changing the persisted key", async () => {
   const paths = await createTestPaths();

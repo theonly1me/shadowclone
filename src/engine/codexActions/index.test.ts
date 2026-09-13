@@ -1,5 +1,8 @@
 import { expect, test } from "bun:test";
-import { buildCodexArguments } from "../codex";
+import {
+  buildCodexArguments,
+  codexProcessArguments,
+} from "../codex";
 import { parseCodexStream } from "../parseCodex";
 
 function parseStreamEvents(events: readonly unknown[]) {
@@ -57,14 +60,44 @@ test("evaluation forwards the exact model and only enables writes for execution"
     prompt: "task",
     cwd: "/tmp/task",
     model: "gpt-5.6-sol",
-    execution: { purpose: "evaluation" as const },
+    reasoningEffort: "xhigh" as const,
+    execution: {
+      purpose: "evaluation" as const,
+      access: "write" as const,
+      blockedPaths: ["/private/profile"],
+    },
   };
-  const executionArguments = buildCodexArguments({ run: runConfig });
+  const executionArguments = buildCodexArguments({
+    run: runConfig,
+    temporaryDirectory: "/private/tmp/shadowclone-codex-test",
+  });
   expect(executionArguments).toContain("gpt-5.6-sol");
-  expect(executionArguments).toContain("workspace-write");
-  expect(executionArguments).toContain("--ephemeral");
+  expect(executionArguments).toContain('model_reasoning_effort="xhigh"');
+  expect(executionArguments).not.toContain("--sandbox");
+  expect(executionArguments).toContain(
+    'default_permissions="shadowclone-evaluation"',
+  );
+  expect(executionArguments.join(" ")).toContain('":root"="deny"');
+  expect(executionArguments.join(" ")).toContain(
+    '"/private/profile"="deny"',
+  );
+  expect(executionArguments.join(" ")).toContain(
+    '"/private/tmp/shadowclone-codex-test"="write"',
+  );
   expect(
-    buildCodexArguments({ run: { ...runConfig, allowedTools: [] } }),
+    codexProcessArguments({
+      arguments: executionArguments,
+      run: runConfig,
+      platform: "darwin",
+    }),
+  ).toEqual(executionArguments);
+  expect(executionArguments).toContain("--ephemeral");
+  const readConfig = {
+    ...runConfig,
+    execution: { ...runConfig.execution, access: "read" as const },
+  };
+  expect(
+    buildCodexArguments({ run: { ...readConfig, allowedTools: [] } }),
   ).toContain("read-only");
   expect(() =>
     buildCodexArguments({ run: { ...runConfig, maxBudgetUsd: 1 } }),

@@ -2,7 +2,8 @@ import { existsSync } from "node:fs";
 import { lstat, mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { EngineId } from "../../engine";
-import { redactSecrets } from "../../redact";
+import { resolveRedacted } from "../../redact";
+import { stripManagedGuidance } from "../../integrations";
 
 export type ContextFile = {
   readonly relativePath: string;
@@ -21,8 +22,18 @@ export async function captureContext(options: {
 
   const roots =
     options.engine === "codex"
-      ? [".codex/skills", ".agents/skills"]
-      : [".claude/skills", ".agents/skills"];
+      ? [
+          path.join(options.home, ".codex/skills"),
+          path.join(options.home, ".agents/skills"),
+          path.join(options.repository, ".codex/skills"),
+          path.join(options.repository, ".agents/skills"),
+        ]
+      : [
+          path.join(options.home, ".claude/skills"),
+          path.join(options.home, ".agents/skills"),
+          path.join(options.repository, ".claude/skills"),
+          path.join(options.repository, ".agents/skills"),
+        ];
   const files: ContextFile[] = [];
   let totalBytes = 0;
 
@@ -47,7 +58,15 @@ export async function captureContext(options: {
       throw new Error("Agent context exceeds the evaluation snapshot limit");
     }
 
-    const content = redactSecrets({ text: await file.text() });
+    const redacted = await resolveRedacted({
+      ref: {
+        type: "file",
+        sourcePath: fileOptions.absolute,
+        byteOffset: 0,
+        byteLength: file.size,
+      },
+    });
+    const content = stripManagedGuidance(redacted);
     if (
       content.includes("shadowclone hook") ||
       content.includes("# Shadowclone profile")
@@ -60,8 +79,7 @@ export async function captureContext(options: {
     files.push({ relativePath: fileOptions.relative, content });
   }
 
-  for (const [rootIndex, root] of roots.entries()) {
-    const directory = path.join(options.home, root);
+  for (const [rootIndex, directory] of roots.entries()) {
     if (!existsSync(directory)) {
       continue;
     }
@@ -72,7 +90,9 @@ export async function captureContext(options: {
       onlyFiles: true,
       dot: false,
     })) {
-      if (relative.split(path.sep).includes("shadowclone")) {
+      if (relative.split(path.sep).some((segment) =>
+        segment === "shadowclone" || segment === "shadowclone-context"
+      )) {
         continue;
       }
       await addFile({
@@ -147,8 +167,7 @@ export async function installContext(options: {
   }
 
   return [
-    "Your existing instructions, skills and memory were frozen for this task.",
-    "Read the repository AGENTS.md and CLAUDE.md instructions when present. Read .eval-context/instructions and .eval-context/memory before working; select relevant skills under .eval-context/skills.",
-    "These files describe the normal setup and are identical for every run.",
+    "Your personal instructions, skills and memory were frozen for this task.",
+    "Read .eval-context/instructions and .eval-context/memory before working; select relevant skills under .eval-context/skills.",
   ].join("\n");
 }

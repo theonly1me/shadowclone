@@ -6,15 +6,15 @@ This document sets the ceiling on what a clone may do, in a session and unattend
 
 `.claude/skills/data-handling/SKILL.md` defines three tiers and this design keeps them.
 
-**Observe and derive** runs unattended with no ceremony. It reads enabled transcripts, updates the local index, mines aggregate signals, and refreshes compiled local guidance. Writing mined profile rules requires an explicit deep-learning invocation. Nothing leaves the machine except through the engine, under the user's own account.
+**Observe and derive** runs unattended with consent. It reads enabled transcripts, updates the local index, mines aggregate signals, and refreshes compiled local guidance. Default setup can write mined profile rules during its bounded first pass when background learning is enabled. Manual `learn --deep` also proposes rules for approval. Eligible excerpts leave the machine only through the user's authenticated agent CLI after redaction.
 
 **Draft** runs unattended. Producing a diff or a message left in a file. Nothing another person can see.
 
 **Act** changes state outside the run. Committing, pushing, opening a PR, replying to a review, commenting on an issue. This tier requires explicit approval for the action, bounded by a per-repo ceiling.
 
-## Two ways a clone runs
+## Optional delegated execution
 
-**As a subagent, inside the user's own session.** The profile compiles to `.claude/agents/<name>.md`, and the main session dispatches copies of the user onto subtasks with the `Agent` tool, several at once. The user is present, the session's permission mode applies, and every action is visible in the transcript being written. This is the primary way clones spawn, because it composes with the tool already open and needs no worktree, no policy resolution, and no receipt. It is also where the multiplier lives, since one person does one thing at a time and ten subagents do ten.
+**As a subagent inside the user's own session.** Claude's `SubagentStart` hook injects the current compiled profile into spawned subagents. It does not create a second learning request. An optional repository `--subagent` installation also writes `.claude/agents/<name>.md` for explicit dispatch through the `Agent` tool. The session's permission mode applies, and its transcript can feed later learning. Main-agent delivery remains the default product path.
 
 **Headless, in a worktree.** `shadowclone run` for work that happens while the user is away. This is the path the rest of this document governs, because nobody is watching it.
 
@@ -55,7 +55,7 @@ Push safety is handled outside the agent process. Rather than exposing `Bash(git
 
 ## The receipt
 
-Every run produces one, and it is the artifact that makes delegation reviewable rather than mysterious.
+Every run produces one, so the user can review delegated work.
 
 ```json
 {

@@ -44,7 +44,7 @@ For a provider with dollar-budget support, each call receives the remaining tota
 
 `learn` passes the detected engine beside its runner. Tests or other programmatic callers that inject a runner must also name its engine because capability decisions cannot be inferred safely before the first process call. The CLI reports the fixed call and time ceilings and whether the selected engine also receives the dollar ceiling.
 
-Claude learning runs use `--restricted`, `--safe-mode`, `--no-session-persistence`, empty `--setting-sources`, strict empty MCP configuration, `--tools ""`, and an MCP deny rule. Inline settings disable hooks, automatic memory, network tools, and unsandboxed commands. The explicit learning contract determines the arguments even when the working directory contains permissive project settings.
+Claude learning runs use `--safe-mode`, `--no-session-persistence`, empty `--setting-sources`, strict empty MCP configuration, `--tools ""`, and an MCP deny rule. Inline settings disable hooks, automatic memory, network tools, and unsandboxed commands. The explicit learning contract determines the arguments even when the working directory contains permissive project settings.
 
 Codex learning runs use read-only sandboxing, `approval_policy="never"`, `--ephemeral`, `--ignore-user-config`, `--ignore-rules`, an empty MCP configuration, disabled shell, web, app, plugin, browser, image, computer-use, memory, hook, and multi-agent features, and no project instruction discovery. Codex receives no dollar flag.
 
@@ -104,13 +104,13 @@ A manual deep-learning run can stop before the corpus is complete. Successful ex
 
 The first release uses fixed defaults rather than new configuration keys or CLI flags. This keeps the execution boundary small while reconciliation is being built. User-configurable limits can extend the same validated contract later without changing provider adapters.
 
-Claude learning now requires a CLI version that supports `--restricted`. An older installation fails visibly at process startup instead of running with weaker isolation.
+Claude learning requires a CLI version that supports safe mode and no session persistence. Current Claude Code rejects the removed `--restricted` option, so safe mode and the explicit empty tool and configuration boundaries carry the isolation contract.
 
 Cursor authentication with an isolated configuration root still requires real macOS and Linux verification. Browser or key-based authentication remains provider-owned, while all mutable CLI configuration and native run state is directed to the temporary root.
 
 ## Testing
 
-A Claude argument fixture places permissive tool, hook, and MCP settings in the working directory and asserts the learning command still carries empty setting sources, safe and restricted modes, no session persistence, an empty built-in tool list, strict empty MCP configuration, and disabled hooks and memory.
+A Claude argument fixture places permissive tool, hook, and MCP settings in the working directory and asserts the learning command carries empty setting sources, safe mode, no session persistence, an empty built-in tool list, strict empty MCP configuration, and disabled hooks and memory.
 
 A Codex learning runner test uses a one-call limit, confirms the first request has no `maxBudgetUsd`, and confirms the second request fails before the underlying runner runs. A Claude budget test confirms the second call receives the first call's reported cost subtracted from the total.
 

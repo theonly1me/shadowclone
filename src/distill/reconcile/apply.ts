@@ -1,8 +1,20 @@
 import {
+  isExplicitProfileEvidence,
   profileEvidenceStatistics,
-  type ProfileProposal,
   type ProfileRule,
 } from "../../profile";
+import {
+  assessedContext,
+  explicitEvidenceTokens,
+  globalEvidenceTokens,
+} from "./assessments";
+import { materializeEvidenceIds, unionEvidence } from "./evidence";
+import { reconciliationProposal } from "./proposal";
+import {
+  assessedScopePromotions,
+  learnedRuleLocation,
+  promoteGlobalRule,
+} from "./scope";
 import type {
   AppliedReconciliation,
   PromptRule,
@@ -10,52 +22,17 @@ import type {
   ReconciliationExistingRule,
   ReconciliationOutput,
 } from "./types";
-
-function union(values: readonly string[], additions: readonly string[]): readonly string[] {
-  return [...new Set([...values, ...additions])];
-}
-
-function evidenceIds(options: {
-  readonly tokens: readonly string[];
-  readonly context: ReconciliationContext;
-}): readonly string[] {
-  const allowed = new Map(
-    options.context.evidence.map((entry) => [entry.token, entry.evidenceId]),
-  );
-  return [...new Set(options.tokens.flatMap((token) => {
-    const evidenceId = allowed.get(token);
-    return evidenceId ? [evidenceId] : [];
-  }))];
-}
-
-function proposal(options: {
-  readonly result: ReconciliationExistingRule;
-  readonly promptRule: PromptRule;
-}): ProfileProposal | null {
-  const axis = options.promptRule.axisOptions.find(
-    (entry) => entry.token === options.result.axisChoiceToken,
-  );
-  const title = axis?.title ?? options.result.proposedTitle;
-  const body = axis?.body ?? options.result.proposedBody;
-  if (!title || !body) {
-    return options.promptRule.snapshot.rule.proposal;
-  }
-  return {
-    kind: options.result.verdict === "narrows" ? "narrow" : "revise",
-    text: axis
-      ? `${title}\n\n${body}\n\nApplies when: ${axis.appliesWhen.join(", ")}`
-      : `${title}\n\n${body}`,
-  };
-}
-
 function applyExisting(options: {
   readonly result: ReconciliationExistingRule;
   readonly promptRule: PromptRule;
   readonly context: ReconciliationContext;
+  readonly explicitTokens: ReadonlySet<string>;
+  readonly globalTokens: ReadonlySet<string>;
 }): ProfileRule | null {
-  const additions = evidenceIds({
+  const additions = materializeEvidenceIds({
     tokens: options.result.evidenceTokens,
     context: options.context,
+    explicitTokens: options.explicitTokens,
   });
   if (additions.length === 0) {
     return null;
@@ -63,34 +40,45 @@ function applyExisting(options: {
   const current = options.promptRule.snapshot.rule;
   const reinforces = options.result.verdict === "reinforces";
   const evidence = {
-    for: reinforces ? union(current.evidence.for, additions) : current.evidence.for,
+    for: reinforces
+      ? unionEvidence(current.evidence.for, additions)
+      : current.evidence.for,
     against: reinforces
       ? current.evidence.against
-      : union(current.evidence.against, additions),
+      : unionEvidence(current.evidence.against, additions),
   };
   const statistics = profileEvidenceStatistics({ rule: current, evidence });
   const status = current.source !== "mined"
     ? "active" as const
     : options.result.verdict !== "reinforces"
       ? "stale" as const
-      : statistics.sessions >= 3
+      : evidence.for.some(isExplicitProfileEvidence) || statistics.sessions >= 3
         ? "active" as const
         : "candidate" as const;
-  return {
+  const updated: ProfileRule = {
     ...current,
     ...statistics,
     evidence,
     status,
     proposal: reinforces
       ? current.proposal
-      : proposal({ result: options.result, promptRule: options.promptRule }),
+      : reconciliationProposal({
+          result: options.result,
+          promptRule: options.promptRule,
+        }),
   };
+  return promoteGlobalRule({
+    rule: updated,
+    tokens: options.result.evidenceTokens,
+    context: options.context,
+    globalTokens: options.globalTokens,
+  });
 }
-
 function emptyMinedRule(options: {
   readonly result: ReconciliationOutput["newRules"][number];
   readonly context: ReconciliationContext;
   readonly evidence: readonly string[];
+  readonly globalTokens: ReadonlySet<string>;
 }): ProfileRule {
   const [first] = options.context.evidence;
   const key = new Bun.CryptoHasher("sha256")
@@ -103,14 +91,17 @@ function emptyMinedRule(options: {
     }))
     .digest("hex")
     .slice(0, 24);
+  const location = learnedRuleLocation({
+    tokens: options.result.evidenceTokens,
+    context: options.context,
+    globalTokens: options.globalTokens,
+  });
   const base: ProfileRule = {
     key: `mined:${key}`,
     title: options.result.title,
     body: options.result.body,
     section: options.result.section,
-    scope: "org",
-    originDirectory: options.context.batch.origin.directoryName,
-    repositoryName: null,
+    ...location,
     source: "mined",
     status: "candidate",
     proposal: null,
@@ -126,7 +117,10 @@ function emptyMinedRule(options: {
   return {
     ...base,
     ...statistics,
-    status: statistics.sessions >= 3 ? "active" : "candidate",
+    status: options.evidence.some(isExplicitProfileEvidence) ||
+      statistics.sessions >= 3
+      ? "active"
+      : "candidate",
   };
 }
 
@@ -134,6 +128,9 @@ export function applyReconciliation(options: {
   readonly output: ReconciliationOutput;
   readonly context: ReconciliationContext;
 }): AppliedReconciliation {
+  const explicitTokens = explicitEvidenceTokens(options.output);
+  const globalTokens = globalEvidenceTokens(options.output);
+  options = { ...options, context: assessedContext(options) };
   const promptRules = new Map(options.context.rules.map((entry) => [entry.token, entry]));
   const rules: ProfileRule[] = [];
   const changes: AppliedReconciliation["changes"][number][] = [];
@@ -142,7 +139,13 @@ export function applyReconciliation(options: {
     if (!promptRule) {
       continue;
     }
-    const after = applyExisting({ result, promptRule, context: options.context });
+    const after = applyExisting({
+      result,
+      promptRule,
+      context: options.context,
+      explicitTokens,
+      globalTokens,
+    });
     if (!after) {
       continue;
     }
@@ -154,6 +157,21 @@ export function applyReconciliation(options: {
       after,
     });
   }
+  const updatedKeys = new Set(rules.map((rule) => rule.key));
+  for (const { before, after } of assessedScopePromotions({
+      rules: options.context.rules,
+      context: options.context,
+      globalTokens,
+      excludedKeys: updatedKeys,
+    })) {
+    rules.push(after);
+    changes.push({
+      kind: "scope",
+      observed: "The explicit preference applies across repositories.",
+      before,
+      after,
+    });
+  }
   const rejectionTokens = new Set(options.context.rejections.map((entry) => entry.token));
   let rejectedMatches = 0;
   for (const result of options.output.newRules) {
@@ -161,11 +179,20 @@ export function applyReconciliation(options: {
       rejectedMatches += 1;
       continue;
     }
-    const evidence = evidenceIds({ tokens: result.evidenceTokens, context: options.context });
+    const evidence = materializeEvidenceIds({
+      tokens: result.evidenceTokens,
+      context: options.context,
+      explicitTokens,
+    });
     if (evidence.length === 0) {
       continue;
     }
-    const after = emptyMinedRule({ result, context: options.context, evidence });
+    const after = emptyMinedRule({
+      result,
+      context: options.context,
+      evidence,
+      globalTokens,
+    });
     rules.push(after);
     changes.push({ kind: "new", observed: result.observed, before: null, after });
   }

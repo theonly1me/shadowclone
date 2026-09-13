@@ -1,11 +1,16 @@
+import type { EngineId, EngineRun, EngineRunner, ReasoningEffort } from "../../engine";
 import { redactSecrets } from "../../redact";
-import type { EngineId, EngineRunner } from "../../engine";
+import {
+  evaluationSignal,
+  throwIfEvaluationExpired,
+} from "./deadline";
 import type { ModelCall } from "./types";
 
 export function modelCaller(options: {
   readonly runner: EngineRunner;
   readonly engine: EngineId;
   readonly model: string;
+  readonly reasoningEffort?: ReasoningEffort;
   readonly timeoutSeconds: number;
   readonly maxBudgetUsd?: number;
   readonly blockedPaths?: readonly string[];
@@ -22,6 +27,7 @@ export function modelCaller(options: {
   const callLimit = options.maximumCalls ?? 200;
 
   return async (request) => {
+    throwIfEvaluationExpired();
     if (totalCalls >= callLimit) {
       throw new Error("Evaluation invocation limit reached");
     }
@@ -29,24 +35,49 @@ export function modelCaller(options: {
 
     const blockedPaths = [
       ...(options.blockedPaths ?? []),
-      ...(request.execute && options.controlDirectory
+      ...(request.access === "write" && options.controlDirectory
         ? [options.controlDirectory]
         : []),
+      ...(request.blockedPaths ?? []),
     ];
 
-    const run = await options.runner({
+    const access = request.access;
+    const execution = access === "read" || access === "write"
+      ? { purpose: "evaluation" as const, access, blockedPaths }
+      : { purpose: "evaluation" as const, blockedPaths };
+    const signal = evaluationSignal();
+    let run: EngineRun;
+    try {
+      run = await options.runner({
       prompt: request.prompt,
       cwd: request.cwd,
       model: options.model,
-      execution: { purpose: "evaluation", blockedPaths },
+      reasoningEffort: options.reasoningEffort,
+      execution,
       outputSchema: request.outputSchema,
       permissionMode: "dontAsk",
-      ...(request.execute ? {} : { allowedTools: [] }),
+      ...(request.access === "write"
+        ? {}
+        : request.access === "read" && options.engine === "claude-code"
+          ? { allowedTools: ["Read", "Glob", "Grep"] }
+          : request.access === "none"
+            ? { allowedTools: [] }
+            : {}),
       ...(options.maxBudgetUsd === undefined
         ? {}
         : { maxBudgetUsd: options.maxBudgetUsd }),
-      signal: AbortSignal.timeout(options.timeoutSeconds * 1000),
-    });
+        signal: signal
+          ? AbortSignal.any([
+              signal,
+              AbortSignal.timeout(options.timeoutSeconds * 1000),
+            ])
+          : AbortSignal.timeout(options.timeoutSeconds * 1000),
+      });
+    } catch (error) {
+      throwIfEvaluationExpired();
+      throw error;
+    }
+    throwIfEvaluationExpired();
 
     if (run.isError) {
       const message = run.errorMessage ?? "Evaluation engine failed";

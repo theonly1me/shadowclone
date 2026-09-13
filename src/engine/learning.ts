@@ -21,9 +21,32 @@ export const defaultLearningExecutionLimits: LearningExecutionLimits = {
   maximumCostUsd: 2,
 };
 
+export const setupLearningLimits: LearningExecutionLimits = {
+  maximumCalls: 12,
+  timeoutMilliseconds: 90_000,
+  maximumCostUsd: 1,
+};
+
+export function learningExecutionLimitsForCalls(
+  maximumCalls: number,
+): LearningExecutionLimits {
+  const perCall = {
+    timeoutMilliseconds: defaultLearningExecutionLimits.timeoutMilliseconds /
+      defaultLearningExecutionLimits.maximumCalls,
+    costUsd: defaultLearningExecutionLimits.maximumCostUsd /
+      defaultLearningExecutionLimits.maximumCalls,
+  };
+  return {
+    maximumCalls,
+    timeoutMilliseconds: maximumCalls * perCall.timeoutMilliseconds,
+    maximumCostUsd: maximumCalls * perCall.costUsd,
+  };
+}
+
 export type LearningExecution = {
   readonly runner: EngineRunner;
   readonly callsUsed: () => number;
+  readonly callsRemaining: () => number;
 };
 
 function validateLimits(limits: LearningExecutionLimits): void {
@@ -133,6 +156,10 @@ export function createLearningExecution(options: {
         !Number.isFinite(result.costUsd) ||
         result.costUsd < 0
       ) {
+        if (result.isError) {
+          costUsed = limits.maximumCostUsd;
+          return result;
+        }
         throw new Error("Learning engine did not report a valid cost");
       }
       costUsed += result.costUsd;
@@ -144,5 +171,5 @@ export function createLearningExecution(options: {
     return result;
   };
 
-  return { runner, callsUsed: () => callsUsed };
+  return { runner, callsUsed: () => callsUsed, callsRemaining: () => limits.maximumCalls - callsUsed };
 }

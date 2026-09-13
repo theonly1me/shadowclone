@@ -32,6 +32,7 @@ export async function ingestSources(options: {
   let events = 0;
   let bytesRead = 0;
   let rescannedFiles = 0;
+  let invalidRecords = 0;
 
   for await (const batch of observeAll({
     config: options.config,
@@ -43,6 +44,7 @@ export async function ingestSources(options: {
     events += batch.events.length;
     bytesRead += batch.bytesRead;
     rescannedFiles += batch.rescanned ? 1 : 0;
+    invalidRecords += batch.invalidRecords;
   }
 
   return {
@@ -51,6 +53,7 @@ export async function ingestSources(options: {
     sessions: options.index.countSessions(),
     bytesRead,
     rescannedFiles,
+    invalidRecords,
   };
 }
 

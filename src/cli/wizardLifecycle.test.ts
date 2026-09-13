@@ -1,16 +1,9 @@
 import { expect, test } from "bun:test";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
-import {
-  parseProfileBlocks,
-  readProfileRejections,
-} from "../profile";
-import {
-  loadSeedLibrary,
-  seedGuidanceProfileKey,
-} from "../skills";
+import { loadSeedLibrary } from "../skills";
 import { runWizard } from "./wizard";
 
 async function runChoices(options: {
@@ -27,79 +20,78 @@ async function runChoices(options: {
   });
 }
 
+function skillPath(options: {
+  readonly home: string;
+  readonly provider: ".agents" | ".claude";
+  readonly name: string;
+}): string {
+  return path.join(
+    options.home,
+    options.provider,
+    "skills",
+    options.name,
+    "SKILL.md",
+  );
+}
+
 const firstChoices = ["1", "1", "1", "1", "1", "none"];
+const secondChoices = ["1", "1", "1", "1", "2", "none"];
 
-test("retires an unedited sibling when an axis choice changes", async () => {
-  const homeDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-wizard-life-"),
-  );
-  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+test("removes an unedited starter skill when its axis choice changes", async () => {
+  const home = await mkdtemp(path.join(os.tmpdir(), "shadowclone-wizard-life-"));
+  const paths = createProjectPaths({ homeDirectory: home, platform: "darwin" });
   await runChoices({ paths, answers: firstChoices });
-  await runChoices({
-    paths,
-    answers: ["1", "1", "1", "1", "2", "none"],
+  await runChoices({ paths, answers: secondChoices });
+
+  expect(await Bun.file(skillPath({
+    home,
+    provider: ".agents",
+    name: "testing-first",
+  })).exists()).toBeFalse();
+  expect(await Bun.file(skillPath({
+    home,
+    provider: ".agents",
+    name: "testing-risk-based",
+  })).exists()).toBeTrue();
+});
+
+test("repairs a missing copy of a selected portable skill", async () => {
+  const home = await mkdtemp(path.join(os.tmpdir(), "shadowclone-wizard-life-"));
+  const paths = createProjectPaths({ homeDirectory: home, platform: "darwin" });
+  await runChoices({ paths, answers: firstChoices });
+  const claudeSkill = skillPath({
+    home,
+    provider: ".claude",
+    name: "testing-first",
   });
+  await rm(path.dirname(claudeSkill), { recursive: true, force: true });
 
-  const engineering = await Bun.file(
-    path.join(paths.profileDirectory, "global/engineering.md"),
-  ).text();
-  expect(engineering).not.toContain("## Test First Through a Public Seam");
-  expect(engineering).toContain("## Test Where Behavior Is at Risk");
+  await runChoices({ paths, answers: firstChoices });
+
+  expect(await Bun.file(claudeSkill).exists()).toBeTrue();
 });
 
-test("keeps a deleted selected skill rejected", async () => {
-  const homeDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-wizard-life-"),
-  );
-  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+test("preserves an edited starter skill when a sibling is selected", async () => {
+  const home = await mkdtemp(path.join(os.tmpdir(), "shadowclone-wizard-life-"));
+  const paths = createProjectPaths({ homeDirectory: home, platform: "darwin" });
   await runChoices({ paths, answers: firstChoices });
-  const engineeringPath = path.join(
-    paths.profileDirectory,
-    "global/engineering.md",
-  );
-  const blocks = parseProfileBlocks(await Bun.file(engineeringPath).text());
-  const kept = blocks.filter(
-    (block) => block.key !== seedGuidanceProfileKey("testing-first"),
-  );
-  await Bun.write(
-    engineeringPath,
-    `${kept.map((block) => block.content).join("\n\n")}\n`,
-  );
-
-  await runChoices({ paths, answers: firstChoices });
-
-  const rejections = await readProfileRejections(paths.rejectedProfileFile);
-  expect(rejections.map((entry) => entry.key)).toContain(
-    seedGuidanceProfileKey("testing-first"),
-  );
-  expect(await Bun.file(engineeringPath).text()).not.toContain(
-    "## Test First Through a Public Seam",
-  );
-});
-
-test("preserves an edited seed block when a sibling is selected", async () => {
-  const homeDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-wizard-life-"),
-  );
-  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  await runChoices({ paths, answers: firstChoices });
-  const engineeringPath = path.join(
-    paths.profileDirectory,
-    "global/engineering.md",
-  );
+  const firstSkill = skillPath({
+    home,
+    provider: ".agents",
+    name: "testing-first",
+  });
   const editedBody = "Keep the reasoning in names and tests.";
-  const edited = (await Bun.file(engineeringPath).text()).replace(
-    "Use this skill when a behavior can be exercised through an interface that callers already use, or through the interface the change is intended to create.",
-    editedBody,
+  await Bun.write(
+    firstSkill,
+    `${await Bun.file(firstSkill).text()}\n${editedBody}\n`,
   );
-  await Bun.write(engineeringPath, edited);
 
-  await runChoices({
-    paths,
-    answers: ["1", "1", "1", "1", "2", "none"],
-  });
+  await runChoices({ paths, answers: secondChoices });
 
-  const current = await Bun.file(engineeringPath).text();
-  expect(current).toContain(editedBody);
-  expect(current).toContain("## Test Where Behavior Is at Risk");
+  expect(await Bun.file(firstSkill).text()).toContain(editedBody);
+  expect(await Bun.file(skillPath({
+    home,
+    provider: ".agents",
+    name: "testing-risk-based",
+  })).exists()).toBeTrue();
 });

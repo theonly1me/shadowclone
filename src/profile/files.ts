@@ -1,4 +1,5 @@
 import path from "node:path";
+import { readLocalText } from "../localFiles";
 import { parseProfileBlocks } from "./parse";
 import type {
   ExistingProfileBlock,
@@ -9,6 +10,7 @@ export type ProfileFile = {
   readonly relativePath: string;
   readonly filePath: string;
   readonly blocks: readonly ExistingProfileBlock[];
+  readonly content: string | null;
 };
 
 const profileRoots = new Set(["global", "org"]);
@@ -34,11 +36,9 @@ async function readProfileFile(options: {
     throw new Error("Profile state contains an invalid relative path");
   }
   const filePath = path.join(options.profileDirectory, options.relativePath);
-  const file = Bun.file(filePath);
-  const blocks = (await file.exists())
-    ? parseProfileBlocks(await file.text())
-    : [];
-  return { relativePath: options.relativePath, filePath, blocks };
+  const content = await readLocalText(filePath);
+  const blocks = content === null ? [] : parseProfileBlocks(content);
+  return { relativePath: options.relativePath, filePath, blocks, content };
 }
 
 export function readProfileFiles(options: {

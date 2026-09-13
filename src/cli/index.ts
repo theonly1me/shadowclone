@@ -11,19 +11,22 @@ import {
 } from "./hooks";
 import { initialize } from "./init";
 import { importRepositoryGuidanceCommand } from "./import";
-import { installLiveClone } from "./install";
-import { uninstallLiveClone } from "./uninstall";
+import { handleNativeCommand } from "./native";
+import { handlePreferenceCommand } from "./preferences";
 import { learn } from "./learn";
 import { parseLearnOptions } from "./learnOptions";
 import { runClone } from "./run";
 import { listSeedGuidance } from "./skills";
+import { handleSkillMaintenance } from "./skillMaintenance";
 import { runWizard } from "./wizard";
 
 const usage =
-  "Usage: shadowclone <init|import|wizard|skills|learn [--deep] [--dry-run] [--apply]|doctor|install [--auto-delegate]|uninstall|run <task>|eval [--repo <path>] [--tasks N] [--engine <id>] [--model <id>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
+  "Usage: shadowclone <init [--advanced]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|learn --session <token>|doctor|install [--agent claude-code|codex|cursor|antigravity|all] [--global|--repo] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--repo]|context|sync|run <task>|eval [--repo <path>] [--task <prompt>|--tasks N|--suite-id <id>] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
+  console.log("Preferences: remember [--repo|--global] <text>, history [revision-id], undo <revision-id>, learning enable|disable|status");
+  console.log("Skill maintenance: skills configure [--repo|--global], skills list|update|pending, skills show|apply|reject <id>, skills manage <skill-id>, skills disable");
 }
 
 function printVersion(): void {
@@ -42,7 +45,12 @@ async function main(arguments_: readonly string[]): Promise<void> {
     return;
   }
   if (command === "init") {
-    await initialize();
+    if (rest.length > 1 || (rest.length === 1 && rest[0] !== "--advanced")) {
+      printUsage();
+      process.exitCode = 1;
+      return;
+    }
+    await initialize({ advanced: rest[0] === "--advanced" });
     return;
   }
   if (command === "import" && rest.length === 0) {
@@ -57,6 +65,8 @@ async function main(arguments_: readonly string[]): Promise<void> {
     await listSeedGuidance();
     return;
   }
+  if (command === "skills" && await handleSkillMaintenance(rest)) return;
+  if (await handlePreferenceCommand({ command, arguments: rest })) return;
   if (command === "learn") {
     const options = parseLearnOptions(rest);
     if (options) {
@@ -68,18 +78,7 @@ async function main(arguments_: readonly string[]): Promise<void> {
     await doctor();
     return;
   }
-  if (command === "install" && rest.length === 0) {
-    await installLiveClone();
-    return;
-  }
-  if (command === "install" && rest.length === 1 && rest[0] === "--auto-delegate") {
-    await installLiveClone({ autoDelegate: true });
-    return;
-  }
-  if (command === "uninstall" && rest.length === 0) {
-    await uninstallLiveClone();
-    return;
-  }
+  if (await handleNativeCommand({ command, arguments: rest })) return;
   if (command === "run") {
     await runClone(rest);
     return;

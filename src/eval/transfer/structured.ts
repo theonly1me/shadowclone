@@ -1,100 +1,106 @@
 import { z } from "zod";
 
-export const preferenceCheckSchema = z.object({
-  requirement: z.string().min(1),
-  evidenceId: z.string().min(1),
-  quote: z.string().min(10),
+export const checkVerdictSchema = z.enum(["pass", "fail"]);
+export const reasoningEffortSchema = z.enum([
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+]);
+export const dependencyModeSchema = z.literal("current");
+export const dependencyStateSchema = z.enum([
+  "not-required",
+  "not-installed",
+  "exact",
+]);
+
+const preferenceCheckSchema = z.strictObject({
+  requirement: z.string().min(1).max(1_000),
 });
 
-export const preparedTaskResponseSchema = z.object({
-  eligible: z.boolean(),
-  reason: z.string().optional(),
-  startingCommit: z.string().optional(),
-  completion: z.array(z.string().min(1)).optional(),
-  preferences: z.array(preferenceCheckSchema).optional(),
+export const generatedTaskSchema = z.strictObject({
+  prompt: z.string().min(1).max(4_000),
+  completion: z.array(z.string().min(1).max(1_000)).min(1).max(5),
+  preferences: z.array(preferenceCheckSchema).min(1).max(5),
 });
 
-export const checkVerdictSchema = z.enum(["pass", "fail", "uncertain"]);
+export const generatedTasksSchema = z.strictObject({
+  tasks: z.array(generatedTaskSchema).min(1).max(10),
+});
 
-export const singleJudgmentCheckSchema = z.object({
+export const generatedTasksOutputSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["tasks"],
+  properties: {
+    tasks: {
+      type: "array",
+      minItems: 1,
+      maxItems: 10,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["prompt", "completion", "preferences"],
+        properties: {
+          prompt: { type: "string", minLength: 1, maxLength: 4000 },
+          completion: {
+            type: "array",
+            minItems: 1,
+            maxItems: 5,
+            items: { type: "string", minLength: 1, maxLength: 1000 },
+          },
+          preferences: {
+            type: "array",
+            minItems: 1,
+            maxItems: 5,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["requirement"],
+              properties: {
+                requirement: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 1000,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+export const singleJudgmentCheckSchema = z.strictObject({
   verdict: checkVerdictSchema,
   evidence: z.string().min(1),
 });
 
-export const judgeResponseSchema = z.object({
+export const judgeResponseSchema = z.strictObject({
   checks: z.array(singleJudgmentCheckSchema),
 });
 
-export const contextFileSchema = z.object({
-  relativePath: z.string().min(1),
-  content: z.string(),
-});
-
-export const evidenceSchema = z.object({
-  id: z.string().min(1),
-  sessionId: z.string().min(1),
-  timestamp: z.number(),
-  text: z.string(),
-});
-
-export const taskSchema = z.object({
-  id: z.string().min(1),
-  sourceSession: z.string().min(1),
-  startingCommit: z.string().min(1),
-  prompt: z.string().min(1),
-  completion: z.array(z.string().min(1)),
-  preferences: z.array(preferenceCheckSchema),
-  training: z.array(evidenceSchema),
-  profile: z.string(),
-  profileFingerprint: z.string().min(1),
-});
-
-export const exclusionSchema = z.object({
-  sessionId: z.string().min(1),
-  reason: z.string().min(1),
-});
-
-export const checkResultSchema = z.object({
-  requirement: z.string().min(1),
-  verdict: checkVerdictSchema,
-  evidence: z.string(),
-});
-
-export const transferRunSchema = z.object({
-  taskId: z.string().min(1),
-  repeat: z.number().int().nonnegative(),
-  arm: z.enum(["baseline", "clone"]),
-  sessionId: z.string().nullable(),
-  failure: z.string().nullable(),
-  durationMs: z.number().nonnegative(),
-  costUsd: z.number().nullable(),
-  correctness: z.array(checkResultSchema),
-  preferences: z.array(checkResultSchema),
-});
-
-export const preparedEvalSchema = z.object({
-  schemaVersion: z.literal(2),
-  evalId: z.string().min(1),
-  repository: z.string().min(1),
-  engine: z.enum(["codex", "claude-code"]),
-  model: z.string().min(1),
-  repeat: z.number().int().positive(),
-  timeoutSeconds: z.number().positive(),
-  maxBudgetUsd: z.number().nullable(),
-  context: z.array(contextFileSchema),
-  tasks: z.array(taskSchema),
-  exclusions: z.array(exclusionSchema),
-});
-
-export const receiptSchema = z.object({
-  schemaVersion: z.literal(2),
-  evalId: z.string().min(1),
-  status: z.enum(["complete", "insufficient-evidence", "incomplete"]),
-  preparedFingerprint: z.string().min(1),
-  runs: z.array(transferRunSchema),
-  prepared: preparedEvalSchema,
-  limitations: z.array(z.string()),
-});
+export const judgeOutputSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["checks"],
+  properties: {
+    checks: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["verdict", "evidence"],
+        properties: {
+          verdict: { type: "string", enum: ["pass", "fail"] },
+          evidence: { type: "string", minLength: 1 },
+        },
+      },
+    },
+  },
+} as const;
 
 export function parseJson(text: string): unknown {
   try {
@@ -104,50 +110,36 @@ export function parseJson(text: string): unknown {
   }
 }
 
-export function matchedPreferenceChecks(options: {
-  readonly checks: readonly {
-    readonly requirement: string;
-    readonly evidenceId: string;
-    readonly quote: string;
-  }[];
-  readonly evidence: readonly {
-    readonly id: string;
-    readonly text: string;
-  }[];
-}):
-  | readonly {
-      readonly requirement: string;
-      readonly evidenceId: string;
-      readonly quote: string;
-    }[]
-  | null {
-  const matched = options.checks.flatMap((entry) => {
-    const source = options.evidence.find(
-      (candidate) => candidate.id === entry.evidenceId,
+export function structuredValue(run: {
+  readonly structured: unknown;
+  readonly text: string;
+}): unknown {
+  if (run.structured !== null && run.structured !== undefined) {
+    return run.structured;
+  }
+  return parseJson(run.text);
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function canonicalValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(canonicalValue);
+  }
+  if (isRecord(value)) {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, entry]) => [key, canonicalValue(entry)]),
     );
-
-    if (
-      !source ||
-      entry.quote.length < 10 ||
-      !source.text.includes(entry.quote)
-    ) {
-      return [];
-    }
-
-    return [
-      {
-        requirement: entry.requirement,
-        evidenceId: entry.evidenceId,
-        quote: entry.quote,
-      },
-    ];
-  });
-
-  return matched.length === options.checks.length ? matched : null;
+  }
+  return value;
 }
 
 export function fingerprint(value: unknown): string {
   return new Bun.CryptoHasher("sha256")
-    .update(JSON.stringify(value))
+    .update(JSON.stringify(canonicalValue(value)))
     .digest("hex");
 }

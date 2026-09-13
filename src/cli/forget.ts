@@ -3,11 +3,17 @@ import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import { removeArtifacts, removeGitExcludes } from "./installArtifacts";
 import { readInstallations } from "./installState";
+import { readIntegrations, uninstallIntegration } from "../integrations";
+import { removeSkillMaintenance } from "../skillMaintenance";
 
 export async function forgetAll(
   options: { readonly paths?: ProjectPaths } = {},
 ): Promise<void> {
   const paths = options.paths ?? projectPaths;
+  await removeSkillMaintenance(paths);
+  for (const integration of await readIntegrations(paths)) {
+    await uninstallIntegration({ integration, paths });
+  }
   const state = await readInstallations(paths.installationsFile);
   let repositories = 0;
   for (const installation of state.installations) {

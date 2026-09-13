@@ -1,8 +1,13 @@
-export const defaultTaskCount = 5;
+export const defaultTaskCount = 3;
 export const defaultRepeat = 2;
-export const defaultTimeoutSeconds = 600;
+export const defaultTimeoutSeconds = 1200;
 
-const callsPerRun = 12;
+const preparationCalls = 3;
+const executionCallsPerTask = 12;
+
+export function preparationCandidateLimit(tasks: number): number {
+  return tasks > 0 ? preparationCalls : 0;
+}
 
 export function invocationCeiling(options: {
   readonly tasks?: number;
@@ -11,5 +16,8 @@ export function invocationCeiling(options: {
   const tasks = options.tasks ?? defaultTaskCount;
   const repeat = options.repeat ?? defaultRepeat;
 
-  return tasks * (repeat * callsPerRun + callsPerRun);
+  return (
+    preparationCandidateLimit(tasks) +
+    tasks * repeat * executionCallsPerTask
+  );
 }

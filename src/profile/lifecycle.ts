@@ -82,26 +82,6 @@ function retiredEntry(options: {
       };
 }
 
-function recordLegacyRetirements(options: {
-  readonly files: readonly ProfileFile[];
-  readonly retired: Map<string, GeneratedProfileStateEntry>;
-}): void {
-  for (const file of options.files) {
-    for (const block of file.blocks) {
-      if (block.key !== null && block.legacy && !block.edited) {
-        options.retired.set(block.key, {
-          ...generatedProfileEntry({
-            relativePath: file.relativePath,
-            rule: block,
-            disposition: "retired",
-          }),
-          source: null,
-        });
-      }
-    }
-  }
-}
-
 export async function prepareProfileWrite(options: {
   readonly paths: ProjectPaths;
   readonly rules: readonly ProfileRule[];
@@ -167,7 +147,6 @@ export async function prepareProfileWrite(options: {
       retiredEntry({ reference, incoming, files, previous }),
     );
   }
-  recordLegacyRetirements({ files, retired });
 
   const pinned = new Set(
     files.flatMap((file) =>

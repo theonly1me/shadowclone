@@ -2,6 +2,7 @@ import path from "node:path";
 import { resolveRedacted } from "../../redact";
 import type { OriginScope } from "../../signal";
 import { splitProfileBlocks } from "../blocks";
+import { effectiveProfileStatus } from "../evidence";
 import { parseProfileBlocks } from "../parse";
 import { isSafeProfileSegment } from "../render";
 import type { ExistingProfileBlock, ProfileRule } from "../types";
@@ -19,13 +20,14 @@ const scopeFilenames = [
 ] as const;
 
 export function profileScopePaths(options: {
-  readonly origin: OriginScope;
+  readonly origin: OriginScope | null;
   readonly targetRepo: string | null;
+  readonly scope?: "global" | "scoped" | "combined";
 }): readonly string[] {
-  const globalPaths = scopeFilenames.map((filename) =>
+  const globalPaths = options.scope === "scoped" ? [] : scopeFilenames.map((filename) =>
     path.join("global", filename),
   );
-  if (!isSafeProfileSegment(options.origin.directoryName)) {
+  if (options.scope === "global" || options.origin === null || !isSafeProfileSegment(options.origin.directoryName)) {
     return globalPaths;
   }
   const organization = path.join("org", options.origin.directoryName);
@@ -61,7 +63,7 @@ function compilerBlock(options: {
   return {
     ruleKey: options.block.key,
     source: options.block.source,
-    status: options.block.status,
+    status: effectiveProfileStatus(options.block),
     observations: options.block.observations,
     visible,
     appliesWhen: profileBlockMetadata(options.redactedBlock).appliesWhen,
@@ -99,13 +101,15 @@ async function readScopeFile(
 
 export async function readCompilerBlocks(options: {
   readonly profileDirectory: string;
-  readonly origin: OriginScope;
+  readonly origin: OriginScope | null;
   readonly targetRepo: string | null;
+  readonly scope?: "global" | "scoped" | "combined";
 }): Promise<readonly CompilerBlock[]> {
   const files = await Promise.all(
     profileScopePaths({
       origin: options.origin,
       targetRepo: options.targetRepo,
+      scope: options.scope,
     }).map((relativePath) =>
       readScopeFile(path.join(options.profileDirectory, relativePath)),
     ),

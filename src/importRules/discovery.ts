@@ -86,7 +86,7 @@ async function skillGuidance(options: {
   }
   const sources: RepositoryGuidanceSource[] = [];
   for (const entry of entries) {
-    if (entry.name === "shadowclone") {
+    if (entry.name === "shadowclone" || entry.name === "shadowclone-context") {
       continue;
     }
     if (entry.isSymbolicLink()) {

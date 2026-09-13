@@ -1,6 +1,6 @@
 # shadowclone
 
-Becomes the user. Learns how they work from the AI coding sessions they already run, then runs as them: a subagent spawned in parallel inside their own Claude Code session, and a headless clone in a worktree when they are away. A shadow clone, in the Naruto sense.
+Turns engineering preferences and personal skills learned from existing AI coding sessions into a portable, tested environment for the user's main Claude Code, Codex, Cursor, or Antigravity agent. Optional Claude subagents and headless worktree dispatch apply the same profile to delegated work.
 
 It is not a daemon. The agent CLIs already write their own transcripts to disk, so observation needs no background process. See `docs/architecture/06-roadmap.md` for why a daemon is deferred.
 
@@ -22,22 +22,29 @@ Two skills in `.claude/skills/` are not optional.
 | `src/redact/` | resolves pointers into redacted text, the single egress gate |
 | `src/index/` | stores cursors and event skeletons in a rebuildable SQLite cache |
 | `src/signal/` | derives structural and correction signals without a model |
-| `src/profile/` | writes scoped markdown and compiles it into a live subagent |
+| `src/profile/` | writes scoped markdown consumed by every agent-facing projection |
 | `src/profile/compiler/` | the only profile projection, deterministic and capped at 16 KiB |
+| `src/integrations/` | installs stable native pointers, injects current scoped guidance, and tracks useful sessions |
 | `src/engine/` | drives authenticated Claude Code, Codex, and Cursor CLIs |
 | `src/distill/` | sends only redacted, allowlisted correction moments to the engine |
+| `src/learning/` | runs separately consented bounded catch-up over durable user steering |
+| `src/changes/` | keeps local before/after revisions and refuses conflicting undo |
+| `src/skillMaintenance/` | synchronizes portable skill copies, assesses consented skills, and separates managed additions from reviewed changes |
 | `src/dispatch/` | runs the clone in a worktree and records a receipt |
-| `.claude-plugin/` | injects the profile, ingests one transcript, and recompiles existing guidance at session end |
+| `src/eval/transfer/` | compares fresh current-HEAD tasks through matched baseline and clone arms with binary quantified grading |
+| `.claude-plugin/` | supports Claude plugin profile injection and bounded transcript ingestion |
 | `src/cli/` | provides `init`, `learn`, `doctor`, `install`, `uninstall`, `run`, and `forget --all` |
 
-Say this honestly when asked what works: opt-in capture, indexing, the mirror, deep distillation, live profile injection, the Claude subagent, headless worktree dispatch, four provider adapters, and three provider engines are implemented. Real plugin installation, provider corpus checks, and authenticated engine runs are manual checks. Antigravity, API, and local endpoint engines are not built yet.
+Say this honestly when asked what works: opt-in capture, indexing, the mirror, deep distillation, useful-session learning, live main-agent profile injection, portable personal skills, the optional Claude subagent, headless worktree dispatch, fresh transfer evaluation, four provider adapters, and three provider engines are implemented. Real plugin installation, provider corpus checks, and authenticated engine runs remain manual checks. Antigravity has observation and native delivery but no distillation or evaluation engine. API and local endpoint engines are not built.
 
 ## What is being built
 
 ```
 observe  ->  index  ->  signal  ->  report
                            |
-                           +->  distill  ->  profile  ->  dispatch
+                           +->  distill  ->  profile  ->  native agents / dispatch / eval
+                                                  |
+                                                  +-> portable skills
 ```
 
 | Stage | Module | Phase |
@@ -58,9 +65,9 @@ observe  ->  index  ->  signal  ->  report
 
 - **One profile projection.** `compileProfile` in `src/profile/compiler/` is the only thing that turns stored profile into agent-facing guidance, for installs, hooks, MCP, dispatch, and both evaluation paths. It opens a closed path set, is deterministic for identical inputs, and caps output at 16 KiB by dropping whole blocks. Never add a second projection, and never render rule text by hand at a call site.
 - **One egress gate.** `redactSecrets` is the only thing between captured text and the network. It lives inside `resolveRedacted`, the only exported function that turns a `TextRef` into a string, so bypassing it takes a new file reader rather than a forgotten call. Never add a second gate downstream as a safety net, and never route around it.
-- **Every capture source is opt-in for its contents.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. It needs a flag defaulting to off and a README entry in the same change. Before consent, onboarding may reduce a configured source root to one ephemeral boolean stating that it exists and is non-empty. It never collects entry names, opens an entry, or retains or logs a path, name, count, timestamp, or provider identifier.
+- **Every capture source is opt-in for its contents.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. Each source keeps its own flag, defaulting to off, and a README entry in the same change. Setup can group the consent question only after it names every detected source path. Before consent, onboarding may reduce a configured source root to one ephemeral boolean stating that it exists and is non-empty. It never collects entry names, opens an entry, or retains or logs a path, name, count, timestamp, or provider identifier.
 - **Never distil tool results.** The content of any `tool_result`, file contents from Read, Edit, or Write, thinking blocks, and every data-access result never enter the distillation path. Excluded by category, not redacted. `docs/architecture/07-enterprise.md` says why.
-- **Rules stay inside the remote owner they were learned from.** A rule carries the git remote it came from and compiles only into sessions under that `host/owner`, or into `global/` once seen under two owners. Never pool across owners.
+- **Rules stay inside the remote owner they were learned from.** A rule carries the git remote it came from and compiles only into sessions under that `host/owner`. It reaches `global/` only when reconciliation marks its evidence explicit and global. Never pool across owners.
 - **Never log raw capture.** Log counts, sizes, hashes, and source names. A transcript path names the user's employer in its slug, so log the source name and the offset instead. An error message that interpolates captured text ends up in a crash reporter.
 - **Acting needs per-action approval.** Observing, deriving, and drafting run unattended. Anything that sends, posts, commits, pushes, deletes, or spends asks first, every time, gated per repo. `bypassPermissions` and `--dangerously-skip-permissions` are never passed at any tier.
 
@@ -79,9 +86,10 @@ bun run cli init
 bun run cli learn
 bun run cli doctor
 bun run cli learn --deep
-bun run cli install --auto-delegate
+bun run cli install --agent all --global
 bun run cli uninstall
 bun run cli run "fix the flaky test"
+bun run cli eval --task "make one bounded change" --repeat 1
 ```
 
 `bun run check` is the gate. Run it before presenting, and expect CI to run the same three commands on Linux and macOS.

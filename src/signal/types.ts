@@ -14,6 +14,7 @@ export type RepositoryIdentity = {
 };
 
 export type CorrectionSignalKind =
+  | "user-steering"
   | "interruption"
   | "permission-denied"
   | "question-answered"
@@ -28,6 +29,7 @@ export type CorrectionSignal = {
   readonly origin: OriginScope;
   readonly repositoryName: string | null;
   readonly textRefs: readonly TextRef[];
+  readonly contextRefs?: readonly TextRef[];
 };
 
 export type CountedCategory = {

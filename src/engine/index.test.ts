@@ -39,6 +39,7 @@ test("builds bounded Claude arguments without a prompt or bypass mode", () => {
       systemPromptFile: "/profile.md",
       allowedTools: ["Edit"],
       permissionMode: "dontAsk",
+      reasoningEffort: "xhigh",
       maxBudgetUsd: 1,
     },
   });
@@ -49,6 +50,7 @@ test("builds bounded Claude arguments without a prompt or bypass mode", () => {
   expect(arguments_).toContain("--setting-sources");
   expect(arguments_).toContain("user,project");
   expect(arguments_).toContain("dontAsk");
+  expect(arguments_[arguments_.indexOf("--effort") + 1]).toBe("xhigh");
   expect(arguments_).not.toContain("");
   expect(arguments_).not.toContain("private prompt");
   expect(arguments_).not.toContain("bypassPermissions");

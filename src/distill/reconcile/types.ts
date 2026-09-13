@@ -26,6 +26,13 @@ export type ReconciliationNewRule = {
 export type ReconciliationOutput = {
   readonly existingRules: readonly ReconciliationExistingRule[];
   readonly newRules: readonly ReconciliationNewRule[];
+  readonly assessments?: readonly {
+    readonly evidenceToken: string;
+    readonly intent: "preference" | "correction" | "approval" | "additional-context" | "cancellation" | "unknown";
+    readonly durable: boolean;
+    readonly explicit?: boolean;
+    readonly scope: "global" | "repository";
+  }[];
 };
 
 export type PromptAxisOption = {
@@ -60,7 +67,7 @@ export type ReconciliationContext = {
 };
 
 export type ReconciliationChange = {
-  readonly kind: ReconciliationVerdict | "new";
+  readonly kind: ReconciliationVerdict | "new" | "scope";
   readonly observed: string;
   readonly before: ProfileRule | null;
   readonly after: ProfileRule;

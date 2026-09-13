@@ -83,3 +83,47 @@ test("retains only the vendor prefix of a recognized token", () => {
     expect(item.value.startsWith(item.retained)).toBeTrue();
   }
 });
+
+test("retains repository relative paths that only look high entropy", () => {
+  const paths = [
+    "packages/pika/src/collections/chunkByWeight.ts",
+    "packages/pika/src/collections/chunkByWeight.test.ts",
+    "apps/apex-backend/src/controllers/runDirector.ts",
+    "packages/domains/src/scheduling/backoffDelays.ts",
+    "src/eval/transfer/candidateValidation.test.ts",
+  ];
+
+  for (const value of paths) {
+    expect(redact(value)).toBe(value);
+  }
+});
+
+test("still removes a high entropy secret of the same length as a path", () => {
+  expect(redact("Bkx2VBx7BisAV5M+7v+b=vo5DdbCz6F+UqtwxqOP3S3U9zQr")).toBe(
+    "[redacted:high-entropy-string]",
+  );
+});
+
+test("retains ordinary code that names keys, tokens, and secrets", () => {
+  const code = [
+    "delete: (key: Key) => boolean;",
+    "const key = { id: 1 };",
+    "token: string",
+    "secret: SecretType",
+    "function readAuth(authState: AuthState) { return authState; }",
+  ];
+
+  for (const line of code) {
+    expect(redact(line)).toBe(line);
+  }
+});
+
+test("still removes a secret shaped assignment beside that code", () => {
+  for (const assignment of [
+    'const apiKey = "sk-live-abc123def456ghi789jkl";',
+    "PASSWORD=correcthorsebatterystaple",
+    "API_KEY=abc123def456",
+  ]) {
+    expect(redact(assignment)).toContain("[redacted:secret-assignment]");
+  }
+});

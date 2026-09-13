@@ -56,3 +56,25 @@ export function slicedAboveEntropy(options: {
       ? redact(substring)
       : substring;
 }
+
+export function assignedSecret(options: {
+  readonly label: string;
+  readonly keep: number;
+}): Redactor {
+  const redact = slicedTail(options.label, options.keep);
+  return (
+    substring: string,
+    keyGroup?: string,
+    separatorGroup?: string,
+  ): string => {
+    const key = keyGroup ?? "";
+    const separator = separatorGroup ?? "";
+    const value = substring.slice(key.length + separator.length);
+    if (/^\\?["']/.test(value)) {
+      return redact(substring, key, separator);
+    }
+    const secretShaped = value.length >= 20 ||
+      (value.length >= 8 && /[0-9\-_+/=]/.test(value));
+    return secretShaped ? redact(substring, key, separator) : substring;
+  };
+}

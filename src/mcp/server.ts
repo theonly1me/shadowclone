@@ -1,13 +1,9 @@
 import packageManifest from "../../package.json";
-import { readEffectiveConfig } from "../config";
+import { preferenceTools, runPreferenceTool } from "./preferences";
+import { compileContext } from "../integrations";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { compileProfile } from "../profile";
-import {
-  isOriginBlocked,
-  resolveRepository,
-  type GitRemoteReader,
-} from "../signal";
+import type { GitRemoteReader } from "../signal";
 
 type JsonRpcId = string | number | null;
 
@@ -35,6 +31,7 @@ function parseRequest(value: unknown): JsonRpcRequest | null {
 export function handleMcpRequest(options: {
   readonly request: JsonRpcRequest;
   readonly profile: string;
+  readonly toolResult?: Readonly<Record<string, unknown>> | null;
 }): Readonly<Record<string, unknown>> | null {
   const base = { jsonrpc: "2.0", id: options.request.id };
   if (options.request.method === "initialize") {
@@ -52,6 +49,7 @@ export function handleMcpRequest(options: {
       ...base,
       result: {
         tools: [
+          ...preferenceTools,
           {
             name: "shadowclone_profile",
             description:
@@ -63,6 +61,7 @@ export function handleMcpRequest(options: {
     };
   }
   if (options.request.method === "tools/call") {
+    if (options.toolResult) return { ...base, result: options.toolResult };
     const params = isRecord(options.request.params)
       ? options.request.params
       : {};
@@ -96,38 +95,7 @@ async function activeProfile(options: {
   readonly readRemote?: GitRemoteReader;
   readonly managedConfigPath?: string | null;
 }): Promise<string> {
-  const { config, policy } = await readEffectiveConfig({
-    configPath: options.configPath,
-    managedConfigPath:
-      options.managedConfigPath === undefined
-        ? options.paths.managedConfigFile
-        : options.managedConfigPath,
-  });
-  if (!policy.enabled) {
-    return "# Shadowclone profile\n";
-  }
-  const repository = await resolveRepository({
-    cwd: options.cwd,
-    enabled: config.sources["git-metadata"],
-    readRemote: options.readRemote,
-  });
-  if (
-    isOriginBlocked({
-      repository,
-      patterns: policy.blockedOrigins,
-    })
-  ) {
-    return "# Shadowclone profile\n";
-  }
-  const compilation = await compileProfile({
-    input: {
-      kind: "directory",
-      profileDirectory: options.paths.profileDirectory,
-      origin: repository.origin,
-      targetRepo: repository.profileFileName,
-    },
-  });
-  return compilation.markdown;
+  return await compileContext(options) ?? "# Shadowclone profile\n";
 }
 
 async function writeMessage(value: Readonly<Record<string, unknown>>): Promise<void> {
@@ -174,7 +142,10 @@ export async function serveMcp(options: {
                     managedConfigPath: options.managedConfigPath,
                   })
                 : "";
-            const response = handleMcpRequest({ request, profile });
+            const toolResult = request.method === "tools/call"
+              ? await runPreferenceTool({ params: request.params, cwd, paths, managedConfigPath: options.managedConfigPath, readRemote: options.readRemote })
+              : null;
+            const response = handleMcpRequest({ request, profile, toolResult });
             if (response !== null) {
               await writeMessage(response);
             }

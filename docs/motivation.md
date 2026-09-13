@@ -1,34 +1,37 @@
-# Motivation and Design Philosophy
+# Motivation
 
-## The Problem: Repetitive Agent Onboarding
+## The problem
 
-Developers who work with coding agent CLIs (Claude Code, Codex, Cursor) often find themselves repeatedly establishing context in new sessions:
-- Which test runners and verification flags are standard for the repository.
-- Which tools or command patterns are disallowed or discouraged.
-- Architectural conventions and file boundaries that should be preserved.
-- Workflow expectations around planning, editing, and commit etiquette.
+Developers using Claude Code, Codex, Cursor, or Antigravity re-establish the same context in every new session. Which command verifies a change. Which patterns the repository avoids. How much to touch in one pass. When to ask before acting.
 
-While individual tool ecosystems offer per-project instructions or generic memory files, developers frequently move between multiple repositories, branches, and toolchains. Without structured memory extraction, maintaining these rules requires writing extensive manual prompts or continually correcting the agent in-session.
+Per-project instruction files help inside one repository. They do not follow a developer across repositories, branches, or agent products, and they record what someone remembered to write down instead of how that person actually works.
 
-## The Architectural Premise: The Disk Already Knows
+## The evidence already on disk
 
-Every interaction with an agent CLI leaves traces on disk:
-- CLI session transcripts (JSONL logs, history databases).
-- User corrections following failed tool calls or rejected proposals.
-- Interruptions and denied command executions.
-- Verification loops run in bash or terminal windows.
+Agent CLIs write session transcripts as they go. Those transcripts hold the corrections a developer makes, the plans they reject, the commands they interrupt, and the preferences they state in their own words.
 
-Rather than relying on third-party cloud vectors or proprietary memory databases, Shadowclone treats local transcript history as a verifiable data source. It parses enabled logs deterministically and reports behavioral signals locally. When the user explicitly enables deep learning, it distills redacted correction moments into human-readable profile rules through the agent CLI they already use.
+Shadowclone reads those transcripts and derives engineering preferences from them. It runs no background process and needs no API key, because the data is already on disk and the analysis runs through the developer's own authenticated agent CLI.
 
-## Open Source and Privacy First
+## What it produces
 
-Shadowclone is designed with strict boundaries suited for privacy-conscious developers and engineering organizations:
-- **Zero telemetry**: No outbound network requests are made to hosted Shadowclone services. No usage statistics, tokens, or transcript contents leave your machine.
-- **Local-first redaction**: Sensitive data (API tokens, private keys, authorization headers, absolute home paths) are redacted deterministically using regular expressions and Shannon entropy checks before any optional semantic distillation.
-- **Human-editable profiles**: Output profiles are plain Markdown (`~/.shadowclone/profile/` and `.claude/agents/shadowclone.md`). Engineers can review, modify, or delete any rule at any time.
-- **Falsifiable evaluation**: Rather than trusting subjective impressions, `shadowclone eval` replays benchmark prompts from historical sessions against both baseline and cloned configurations to measure delta in tool selection, file modifications, and verification runs.
-- **Managed policy compliance**: For teams working with proprietary code, system administrators can define immutable policy files (`/etc/shadowclone/policy.toml`) to enforce capture source consent and action ceilings fleet-wide.
+A profile of plain Markdown rules under `~/.shadowclone/profile/`, each scoped to the git remote it was learned from. One deterministic compiler turns that profile into the guidance every agent sees, capped at 16 KiB.
 
-## Not Another Agent Framework
+`shadowclone install` delivers the profile to the main agent through native session hooks, so ordinary sessions receive it without anyone selecting a subagent. Subagents and headless worktree runs stay available as options.
 
-Shadowclone is not a new agent runtime, chat client, or prompt framework. It operates purely as a compiler: ingesting existing transcripts, extracting engineering preferences, and producing standard configuration files that existing developer agents already understand.
+## Boundaries
+
+**Consent per source.** Every capture source is named in `~/.shadowclone/config.toml` and defaults to off. `shadowclone init` is the only thing that turns one on, and it names each source as it does.
+
+**One egress gate.** `redactSecrets` sits inside the only function that turns a stored pointer into text. Secrets are matched by pattern and by Shannon entropy before anything reaches a model. Tool results, file contents, and thinking blocks never enter distillation at all.
+
+**Local storage.** The profile is Markdown a developer can read, edit, or delete. The index is a rebuildable SQLite cache of pointers, never captured text. Nothing is uploaded or backed up, and `shadowclone forget --all` removes all of it in one step.
+
+**Approval to act.** Observing, deriving, and drafting run unattended. Anything that sends, commits, pushes, or spends asks first, for each action.
+
+**Managed policy.** An administrator can install an immutable policy at `/Library/Application Support/shadowclone/managed.json` on macOS or `/etc/shadowclone/managed.json` on Linux. It restricts sources, engines, distillation, and the action ceiling across a fleet.
+
+## Measuring whether it helps
+
+`shadowclone eval` generates fresh coding tasks from a repository's current commit and runs each one twice in matched disposable snapshots, once with the profile and once without. Three blinded paired code reviews grade correctness and preference adherence.
+
+The report states task success, adherence lift, paired wins and losses, regressions, and sample size. A run of one task once is labelled as a smoke test and does not support a decision.

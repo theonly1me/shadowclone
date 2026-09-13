@@ -49,8 +49,9 @@ function getManagedConfigFile(platform: NodeJS.Platform): string | null {
 export function createProjectPaths(options: {
   readonly homeDirectory: string;
   readonly platform: NodeJS.Platform;
+  readonly codexHomeDirectory?: string;
 }): ProjectPaths {
-  const shadowcloneDirectory = path.join(options.homeDirectory, ".shadowclone");
+  const shadowcloneDirectory = path.join(canonicalPath(options.homeDirectory), ".shadowclone");
   const profileDirectory = path.join(shadowcloneDirectory, "profile");
 
   return {
@@ -73,7 +74,7 @@ export function createProjectPaths(options: {
     ),
     claudeProjectsDirectory: path.join(options.homeDirectory, ".claude", "projects"),
     claudePromptHistoryFile: path.join(options.homeDirectory, ".claude", "history.jsonl"),
-    codexSessionsDirectory: path.join(options.homeDirectory, ".codex", "sessions"),
+    codexSessionsDirectory: path.join(options.codexHomeDirectory ?? path.join(options.homeDirectory, ".codex"), "sessions"),
     cursorChatsDirectory: path.join(options.homeDirectory, ".cursor", "chats"),
     shellHistoryFiles: [
       path.join(options.homeDirectory, ".zsh_history"),
@@ -89,4 +90,5 @@ export function createProjectPaths(options: {
 export const projectPaths = createProjectPaths({
   homeDirectory: os.homedir(),
   platform: process.platform,
+  codexHomeDirectory: process.env.CODEX_HOME,
 });

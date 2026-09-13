@@ -1,20 +1,29 @@
-import { existsSync } from "node:fs";
 import path from "node:path";
 import {
   readEffectiveConfig,
   type ManagedPolicy,
   type ShadowcloneConfig,
 } from "../../config";
-import { detectEngine, type EngineId, type EngineRunner } from "../../engine";
+import {
+  detectEngine,
+  type EngineId,
+  type EngineRunner,
+  type ReasoningEffort,
+} from "../../engine";
 import { projectPaths, type ProjectPaths } from "../../paths";
-import { isOriginBlocked, resolveRepository } from "../../signal";
+import {
+  isOriginBlocked,
+  resolveRepository,
+  type RepositoryIdentity,
+} from "../../signal";
 import {
   defaultRepeat,
   defaultTaskCount,
   defaultTimeoutSeconds,
 } from "./budget";
 import { command } from "./command";
-import { readReceipt } from "./resume";
+import { resolveEvaluationLocation } from "./location";
+import { validateResumeOptions } from "./resume";
 import type { TransferOptions, TransferReceipt } from "./types";
 
 export interface ResolvedTransferSetup {
@@ -22,30 +31,31 @@ export interface ResolvedTransferSetup {
   readonly config: ShadowcloneConfig;
   readonly policy: ManagedPolicy;
   readonly repository: string;
+  readonly repositoryIdentity: RepositoryIdentity;
   readonly evalId: string;
   readonly directory: string;
   readonly saved: TransferReceipt | null;
   readonly engine: EngineId;
   readonly runner: EngineRunner;
   readonly model: string;
+  readonly reasoningEffort: ReasoningEffort | undefined;
   readonly count: number;
   readonly repeat: number;
   readonly timeoutSeconds: number;
   readonly maxBudgetUsd: number | undefined;
-  readonly since: number;
+  readonly suppliedTask: string | undefined;
+  readonly suiteId: string | undefined;
 }
 
-function parsePositiveInteger(options: {
+function positiveInteger(options: {
   readonly value: number | undefined;
   readonly fallback: number;
   readonly name: string;
 }): number {
   const value = options.value ?? options.fallback;
-
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new Error(`${options.name} must be a positive integer`);
   }
-
   return value;
 }
 
@@ -57,137 +67,97 @@ export async function setupTransferEval(
     configPath: paths.configFile,
     managedConfigPath: paths.managedConfigFile,
   });
-
   if (!policy.enabled) {
     throw new Error("Shadowclone is disabled by managed policy");
   }
-
   if (!config.sources["git-metadata"]) {
-    throw new Error(
-      "Repository eval requires consent for git-metadata in shadowclone init",
-    );
+    throw new Error("Repository eval requires git-metadata consent");
   }
-
   if (policy.distillation !== "allowed" || !config.distillation.deep) {
-    throw new Error("Automatic evaluation requires permitted deep distillation");
+    throw new Error("Evaluation requires permitted deep distillation");
   }
 
   const repository = await command({
     arguments: ["git", "rev-parse", "--show-toplevel"],
     cwd: path.resolve(options.repo ?? process.cwd()),
   });
-
   const repositoryIdentity = await resolveRepository({
     cwd: repository,
     enabled: true,
   });
-  if (
-    isOriginBlocked({
-      repository: repositoryIdentity,
-      patterns: policy.blockedOrigins,
-    })
-  ) {
+  if (isOriginBlocked({
+    repository: repositoryIdentity,
+    patterns: policy.blockedOrigins,
+  })) {
     throw new Error("Managed policy blocks this repository");
   }
 
-  const evalId = options.evalId ?? crypto.randomUUID();
-  const knownEvaluationIds = new Set<string>();
-  const evalDirectory = path.join(paths.shadowcloneDirectory, "eval");
-
-  if (existsSync(evalDirectory)) {
-    const scanner = new Bun.Glob("*").scan({
-      cwd: evalDirectory,
-      onlyFiles: false,
+  const location = await resolveEvaluationLocation({
+    paths,
+    requestedId: options.evalId,
+  });
+  if (location.saved) {
+    validateResumeOptions({
+      receipt: location.saved,
+      requested: options,
+      repository,
+      commit: await command({
+        arguments: ["git", "rev-parse", "HEAD"],
+        cwd: repository,
+      }),
     });
-    for await (const entryName of scanner) {
-      knownEvaluationIds.add(entryName);
-    }
   }
-
-  if (options.evalId && !knownEvaluationIds.has(options.evalId)) {
-    throw new Error("Unknown evaluation id");
-  }
-
-  const directory = path.join(paths.shadowcloneDirectory, "eval", evalId);
-
-  const saved = options.evalId
-    ? readReceipt(
-        await Bun.file(path.join(directory, "receipt.json")).text(),
-      )
-    : null;
-
-  const requestedEngine = options.engine ?? saved?.prepared.engine;
-  if (
-    requestedEngine &&
-    !policy.allowedEngines.includes(requestedEngine)
-  ) {
+  const requestedEngine = options.engine ?? location.saved?.prepared.engine;
+  if (requestedEngine && !policy.allowedEngines.includes(requestedEngine)) {
     throw new Error("Managed policy blocks this engine");
   }
-
   const detection = await detectEngine({
     purpose: "eval",
-    allowedEngines: requestedEngine
-      ? [requestedEngine]
-      : policy.allowedEngines,
+    allowedEngines: requestedEngine ? [requestedEngine] : policy.allowedEngines,
   });
-
   const engine = requestedEngine ?? detection.selectedEngine;
   const runner = options.runner ?? detection.runner;
-
-  if (
-    !runner ||
-    !engine ||
-    !new Set(["codex", "claude-code"]).has(engine)
-  ) {
+  if (!runner || !engine || !["codex", "claude-code"].includes(engine)) {
     throw new Error("No authenticated evaluation engine available");
   }
 
-  const model =
-    options.model ??
-    saved?.prepared.model ??
-    (engine === "codex" ? "gpt-5.6-sol" : "sonnet");
-
-  const count = parsePositiveInteger({
-    value: options.tasks,
-    fallback: defaultTaskCount,
+  const count = positiveInteger({
+    value: options.task ? 1 : options.tasks,
+    fallback: location.saved?.prepared.tasks.length ?? defaultTaskCount,
     name: "tasks",
   });
-
-  const repeat = parsePositiveInteger({
-    value: options.repeat,
-    fallback: saved?.prepared.repeat ?? defaultRepeat,
-    name: "repeat",
-  });
-
-  const timeoutSeconds = parsePositiveInteger({
-    value: options.timeoutSeconds,
-    fallback: saved?.prepared.timeoutSeconds ?? defaultTimeoutSeconds,
-    name: "timeout-seconds",
-  });
-
-  const maxBudgetUsd =
-    options.maxBudgetUsd ?? saved?.prepared.maxBudgetUsd ?? undefined;
-
-  const since = options.since ? Date.parse(options.since) : 0;
-  if (!Number.isFinite(since)) {
-    throw new Error("Invalid --since date");
+  if (count > 10) {
+    throw new Error("tasks cannot exceed 10");
   }
-
   return {
     paths,
     config,
     policy,
     repository,
-    evalId,
-    directory,
-    saved,
+    repositoryIdentity,
+    evalId: location.evalId,
+    directory: location.directory,
+    saved: location.saved,
     engine,
     runner,
-    model,
+    model: options.model ?? location.saved?.prepared.model ??
+      (engine === "codex" ? "gpt-5.6-sol" : "sonnet"),
+    reasoningEffort: options.reasoningEffort ??
+      location.saved?.prepared.reasoningEffort ?? undefined,
     count,
-    repeat,
-    timeoutSeconds,
-    maxBudgetUsd,
-    since,
+    repeat: positiveInteger({
+      value: options.repeat,
+      fallback: location.saved?.prepared.repeat ?? defaultRepeat,
+      name: "repeat",
+    }),
+    timeoutSeconds: positiveInteger({
+      value: options.timeoutSeconds,
+      fallback: location.saved?.prepared.timeoutSeconds ?? defaultTimeoutSeconds,
+      name: "timeout-seconds",
+    }),
+    maxBudgetUsd: options.maxBudgetUsd ??
+      location.saved?.prepared.maxBudgetUsd ?? undefined,
+    suppliedTask: options.task,
+    suiteId: options.suiteId,
   };
 }
