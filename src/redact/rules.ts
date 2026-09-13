@@ -69,7 +69,7 @@ export const redactionRules: readonly RedactionRule[] = [
   {
     label: "secret-assignment",
     pattern:
-      /\b([A-Za-z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|CREDENTIALS|AUTH)(?:_[A-Za-z0-9]+)?)(\s*[:=]\s*)(?:\\"[^"\\\n]+\\"|\\'[^'\\\n]+\\'|"(?:\\.|[^"\\\n])+"|'(?:\\.|[^'\\\n])+'|[^\s"'`[\](){},;\n]+)/gi,
+      /\b([A-Za-z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|CREDENTIALS|AUTH)(?:_[A-Za-z0-9]+)?)(\s*[:=]\s*)(?:\\"[^"\\\n]+\\"|\\'[^'\\\n]+\\'|"(?:\\.|[^"\\\n])+"|'(?:\\.|[^'\\\n])+'|[^\s"'`[\](){},;.\n]+)/gi,
     replace: assignedSecret({ label: "secret-assignment", keep: 0 }),
   },
   {

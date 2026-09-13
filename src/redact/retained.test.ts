@@ -111,6 +111,9 @@ test("retains ordinary code that names keys, tokens, and secrets", () => {
     "token: string",
     "secret: SecretType",
     "function readAuth(authState: AuthState) { return authState; }",
+    "const evictedKey = this.evictOldestIfNeeded();",
+    "const firstKey = namespaceEntries.keys().next().value;",
+    'cache.set({ namespace: "one", key: "a", value: 1 });',
   ];
 
   for (const line of code) {
@@ -123,6 +126,7 @@ test("still removes a secret shaped assignment beside that code", () => {
     'const apiKey = "sk-live-abc123def456ghi789jkl";',
     "PASSWORD=correcthorsebatterystaple",
     "API_KEY=abc123def456",
+    'AUTH_TOKEN: "ghp_abc123def456"',
   ]) {
     expect(redact(assignment)).toContain("[redacted:secret-assignment]");
   }
