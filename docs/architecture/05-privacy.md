@@ -23,6 +23,8 @@ Every source has its own flag in `~/.shadowclone/config.toml`, and every flag de
 
 Before consent, setup checks only whether a configured root exists and has content. It reduces that check to a temporary boolean. It reads at most one directory entry and retains no name or path. Absent transcript sources stay disabled even if the grouped answer is yes. The local instruction and skill roots are read only after their corresponding consent.
 
+Evaluation evidence is one deliberate exception. The changed files, diff, and recorded actions an evaluation arm produces go to the judging model without redaction, because the same provider and model just wrote that code in the same evaluation. Redacting it protects nothing and corrupts the measurement by mangling ordinary identifiers. Evaluation snapshots are disposable copies of the committed repository, the personal context directory is excluded from collected evidence, and receipts stay under `~/.shadowclone`.
+
 ## One redaction gate
 
 Agent events in the disposable SQLite index carry `TextRef` pointers, event kinds, timestamps, and tool metadata. They do not carry captured text. `resolveRedacted` in `src/redact/` is the only exported function that turns a captured pointer into text. It calls `redactSecrets` before the excerpt can reach distillation, an authenticated agent CLI, or a model-facing evaluation snapshot. Repository guidance and consented agent context also pass through this gate. Raw transcripts are never copied into a Shadowclone store.

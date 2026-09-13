@@ -1,7 +1,6 @@
 import { lstat } from "node:fs/promises";
 import path from "node:path";
 import type { EngineRun } from "../../engine";
-import { redactSecrets } from "../../redact";
 import { command } from "./command";
 
 const ignoredTopLevelDirectories = new Set([
@@ -90,17 +89,12 @@ export async function observeRun(options: {
 
   return {
     evidence: JSON.stringify({
-      files: files.map((file) => ({
-        path: redactSecrets({ text: file.path }),
-        content: redactSecrets({ text: file.content }),
-      })),
-      diff: redactSecrets({ text: diff }),
-      changedPaths: [...paths].map((entry) => redactSecrets({ text: entry })),
+      files,
+      diff,
+      changedPaths: [...paths],
       repositoryChanged: paths.size > 0,
       truncated: isTruncated,
-      actions: JSON.parse(
-        redactSecrets({ text: JSON.stringify(options.run.actions) }),
-      ),
+      actions: options.run.actions,
     }),
     repositoryChanged: paths.size > 0,
     truncated: isTruncated,

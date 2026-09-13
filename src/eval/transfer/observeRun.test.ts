@@ -127,7 +127,7 @@ function engineRun() {
   };
 }
 
-test("evidence stays parseable when changed files contain secret assignments", async () => {
+test("evidence carries changed code verbatim for the judging model", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "observe-secret-"));
   try {
     await Bun.write(path.join(directory, "seed.ts"), "export const seed = 1;\n");
@@ -163,8 +163,9 @@ test("evidence stays parseable when changed files contain secret assignments", a
     const cacheFile = parsed.files.find((file: { path: string }) =>
       file.path.endsWith("cache.ts")
     );
-    expect(cacheFile.content).not.toContain("sk-live-abc123def456ghi789jkl");
     expect(cacheFile.content).toContain("delete: (key: Key) => boolean");
+    expect(cacheFile.content).toContain('const record = { key: { id: 1 }');
+    expect(cacheFile.content).not.toContain("[redacted:");
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
