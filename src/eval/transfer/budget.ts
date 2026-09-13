@@ -3,7 +3,7 @@ export const defaultRepeat = 2;
 export const defaultTimeoutSeconds = 1200;
 
 const preparationCalls = 3;
-const executionCallsPerTask = 12;
+const executionCallsPerTask = 14;
 
 export function preparationCandidateLimit(tasks: number): number {
   return tasks > 0 ? preparationCalls : 0;

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { evaluationArmOrder } from "./arms";
-import { judgeArms, rotatedArms } from "./pairJudge";
+import { judgeArms } from "./pairJudge";
 
 function engineRun(structured: unknown) {
   return {
@@ -32,12 +32,7 @@ const evidence = {
   clone: "third candidate diff",
 } as const;
 
-test("rotation presents every arm first exactly once across three votes", () => {
-  const leaders = [0, 1, 2].map((offset) => rotatedArms(offset)[0]);
-  expect([...leaders].sort()).toEqual([...evaluationArmOrder].sort());
-});
-
-test("blinded rotated votes grade all three arms independently", async () => {
+test("each judge call receives one anonymous arm's evidence", async () => {
   const votes: number[] = [];
   const prompts: string[] = [];
   const result = await judgeArms({
@@ -47,11 +42,7 @@ test("blinded rotated votes grade all three arms independently", async () => {
     cwd: "/tmp",
     call: async (options) => {
       prompts.push(options.prompt);
-      return engineRun({
-        first: candidate("pass"),
-        second: candidate("pass"),
-        third: candidate("pass"),
-      });
+      return engineRun(candidate("pass"));
     },
     onVote: async (vote) => {
       votes.push(vote);
@@ -59,11 +50,16 @@ test("blinded rotated votes grade all three arms independently", async () => {
   });
 
   expect(votes).toEqual([1, 2, 3]);
-  expect(prompts).toHaveLength(3);
+  expect(prompts).toHaveLength(evaluationArmOrder.length * 3);
   for (const prompt of prompts) {
-    for (const arm of evaluationArmOrder) {
-      expect(prompt).not.toContain(`"${arm}"`);
-    }
+    const includedEvidence = Object.values(evidence).filter((candidateEvidence) =>
+      prompt.includes(candidateEvidence),
+    );
+    expect(includedEvidence).toHaveLength(1);
+  }
+  for (const candidateEvidence of Object.values(evidence)) {
+    expect(prompts.filter((prompt) => prompt.includes(candidateEvidence)))
+      .toHaveLength(3);
   }
   for (const arm of evaluationArmOrder) {
     expect(result[arm].correctness[0]?.verdict).toBe("pass");
@@ -72,20 +68,16 @@ test("blinded rotated votes grade all three arms independently", async () => {
 });
 
 test("a majority of two passes carries the verdict", async () => {
-  let call = 0;
+  let callCount = 0;
   const result = await judgeArms({
     correctness: ["Implementation works"],
     preferences: ["Uses complete names"],
     evidence,
     cwd: "/tmp",
     call: async () => {
-      call += 1;
-      const verdict = call === 2 ? "fail" : "pass";
-      return engineRun({
-        first: candidate(verdict),
-        second: candidate(verdict),
-        third: candidate(verdict),
-      });
+      callCount += 1;
+      const vote = Math.ceil(callCount / evaluationArmOrder.length);
+      return engineRun(candidate(vote === 2 ? "fail" : "pass"));
     },
     onVote: async () => undefined,
   });
@@ -93,13 +85,13 @@ test("a majority of two passes carries the verdict", async () => {
   expect(result.clone.correctness[0]?.verdict).toBe("pass");
 });
 
-test("an incomplete candidate set fails after retries", async () => {
+test("incomplete checks fail after retries", async () => {
   await expect(judgeArms({
     correctness: ["Implementation works"],
     preferences: ["Uses complete names"],
     evidence,
     cwd: "/tmp",
-    call: async () => engineRun({ first: candidate("pass") }),
+    call: async () => engineRun({ correctness: [], preferences: [] }),
     onVote: async () => undefined,
-  })).rejects.toThrow("Judge returned an invalid verdict");
+  })).rejects.toThrow("Judge returned incomplete checks");
 });

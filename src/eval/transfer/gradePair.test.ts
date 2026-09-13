@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { evaluationArmOrder, type EvaluationArm } from "./arms";
+import { type EvaluationArm, evaluationArmOrder } from "./arms";
 import { gradeArms } from "./gradePair";
 import { fingerprint } from "./structured";
 import type { CheckResult, DelegationTask, TransferRun } from "./types";
@@ -39,7 +39,7 @@ function evidence(arm: EvaluationArm): TransferRun {
   };
 }
 
-test("grades every arm from one blinded judging pass", async () => {
+test("grades every arm with independent judge calls", async () => {
   const runs = evaluationArmOrder.map(evidence);
   let calls = 0;
 
@@ -58,7 +58,7 @@ test("grades every arm from one blinded judging pass", async () => {
         sessionId: "judge",
         transcriptPath: null,
         text: "",
-        structured: { first: candidate, second: candidate, third: candidate },
+        structured: candidate,
         costUsd: null,
         durationMs: 1,
         turns: 1,
@@ -71,7 +71,7 @@ test("grades every arm from one blinded judging pass", async () => {
     onVote: async () => undefined,
   });
 
-  expect(calls).toBe(3);
+  expect(calls).toBe(evaluationArmOrder.length * 3);
   expect(graded.map((run) => run.arm)).toEqual([...evaluationArmOrder]);
   for (const run of graded) {
     expect(run.phase).toBe("complete");

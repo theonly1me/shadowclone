@@ -159,7 +159,7 @@ test("shows every stage and gives personal context only to the skills and clone 
           sessionId: "judge",
           transcriptPath: null,
           text: "",
-          structured: { first: candidate(), second: candidate(), third: candidate() },
+          structured: candidate(),
           costUsd: null,
           durationMs: 1,
           turns: 1,
