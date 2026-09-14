@@ -25,14 +25,14 @@ Source detection checks whether a configured root has content. A directory check
 
 Learning sends eligible redacted excerpts through your own authenticated agent CLI. Evaluation also gives that CLI access to a disposable repository snapshot and sends generated code to judges without redaction. Use only repositories you are authorized to send to that provider. A remote action from `shadowclone run` needs separate approval for that run. There is no Shadowclone service, API key, account, or telemetry. The profile is Markdown under `~/.shadowclone/profile/`; you can read, edit, or delete it. `shadowclone forget --all` removes Shadowclone's local state and recorded integrations, preserving unrelated content and stopping on conflicting edits. Your original transcripts remain where your agents wrote them. [Privacy design](docs/architecture/05-privacy.md).
 
-## Start from this checkout
+## Install
 
 ```bash
-bun install
-bun run cli init
+npm install -g @shadowclone/cli
+shadowclone init
 ```
 
-The package release follows the evaluation and packaging gates. The commands below use `shadowclone`, the installed binary name; from this checkout, use `bun run cli` in its place.
+The commands below use the installed `shadowclone` binary. From this checkout, use `bun run cli` in its place.
 
 `init` shows the detected agents and source paths, then asks three questions, each defaulting to yes:
 
