@@ -37,7 +37,6 @@ export {
   type ReconciliationChange,
   type ReconciliationOutput,
 } from "./reconcile";
-export { runReplay } from "./replay";
 export {
   distillationMergeOutputSchema,
   parseDistilledRules,
@@ -62,6 +61,7 @@ const emptyLibrary: SeedLibrary = {
 
 export async function distillSignals(options: {
   readonly signals: readonly CorrectionSignal[];
+  readonly sourceRoots?: readonly string[];
   readonly runner: EngineRunner;
   readonly engine: EngineId;
   readonly limits?: LearningExecutionLimits;
@@ -81,7 +81,10 @@ export async function distillSignals(options: {
     signals: options.signals,
     events: options.events,
   }).filter((signal) => signal.textRefs.length > 0);
-  const { signals, excerpts } = await materializeEvidence(eligible);
+  const { signals, excerpts } = await materializeEvidence({
+    signals: eligible,
+    sourceRoots: options.sourceRoots,
+  });
   const appliedRules: ProfileRule[] = [];
   const changes: ReconciliationChange[] = [];
   let rejectedMatches = 0;

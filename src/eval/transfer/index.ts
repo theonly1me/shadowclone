@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { invocationCeiling } from "./budget";
 import { modelCaller } from "./call";
+import { evaluationBudget } from "./accounting";
 import { throwIfEvaluationExpired, withEvaluationDeadline } from "./deadline";
 import { executeTransferRuns } from "./executeRuns";
 import { prepareEvaluation } from "./prepare";
@@ -55,7 +56,17 @@ export async function runTransferEval(
         path.join(os.tmpdir(), "shadowclone-eval-control-"),
       );
       try {
+        const callBudget = await evaluationBudget({
+          directory: setup.directory,
+          resume: setup.saved !== null,
+          limitUsd: setup.maxBudgetUsd,
+          maximumCalls: invocationCeiling({
+            tasks: setup.count,
+            repeat: setup.repeat,
+          }),
+        });
         const call = modelCaller({
+          budget: callBudget,
           runner: setup.runner,
           engine: setup.engine,
           model: setup.model,
@@ -64,10 +75,6 @@ export async function runTransferEval(
           maxBudgetUsd: setup.maxBudgetUsd,
           blockedPaths: [setup.repository, setup.paths.shadowcloneDirectory],
           controlDirectory,
-          maximumCalls: invocationCeiling({
-            tasks: setup.count,
-            repeat: setup.repeat,
-          }),
         });
         const receipt = setup.saved ?? initialReceipt(
           await prepareEvaluation({

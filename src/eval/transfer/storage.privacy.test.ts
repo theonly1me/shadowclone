@@ -43,7 +43,7 @@ test("public reports omit private content while resume state retains it privatel
             taskId: "private-task",
             repeat: 0,
             arm: "clone",
-            phase: "error",
+            phase: "complete",
             failureStage: "judging",
             observed: "private-code",
             verification: [],

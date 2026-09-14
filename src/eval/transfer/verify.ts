@@ -9,7 +9,15 @@ import { denySubpathRules, maskArguments } from "../../engine";
 import { canonicalPath } from "../../paths";
 import { redactSecrets } from "../../redact";
 import { sensitivePaths } from "./sensitivePaths";
-import type { CheckResult } from "./types";
+import type { CheckVote } from "./types";
+
+type VerificationVerdict = "pass" | "fail" | "uncertain";
+type VerificationResult = {
+  readonly requirement: string;
+  readonly verdict: VerificationVerdict;
+  readonly evidence: string;
+  readonly votes: readonly CheckVote<"pass" | "fail">[];
+};
 
 const packageManifestSchema = z.object({
   scripts: z.record(z.string(), z.string()).optional(),
@@ -102,7 +110,7 @@ async function runCheck(options: {
   readonly arguments: readonly string[];
   readonly timeoutSeconds: number;
   readonly blockedPaths?: readonly string[];
-}): Promise<CheckResult> {
+}): Promise<VerificationResult> {
   const temporaryDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-verify-"),
   );
@@ -133,6 +141,7 @@ async function runCheck(options: {
     requirement: `Independent check: ${options.arguments.join(" ")}`,
     verdict: exitCode === 0 ? "pass" : "fail",
     evidence: redactSecrets({ text: evidenceText }),
+    votes: [],
   };
 }
 
@@ -140,7 +149,7 @@ export async function verifyWorkspace(options: {
   readonly directory: string;
   readonly timeoutSeconds: number;
   readonly blockedPaths?: readonly string[];
-}): Promise<readonly CheckResult[]> {
+}): Promise<readonly VerificationResult[]> {
   const manifest = await readBoundedFile({
     filePath: path.join(options.directory, "package.json"),
     roots: [options.directory],
@@ -152,6 +161,7 @@ export async function verifyWorkspace(options: {
         requirement: "Independent repository verification",
         verdict: "uncertain",
         evidence: "No safe supported package manifest within the size limit",
+        votes: [],
       },
     ];
   }
@@ -171,12 +181,13 @@ export async function verifyWorkspace(options: {
         requirement: "Independent repository verification",
         verdict: "uncertain",
         evidence: "No test or typecheck script",
+        votes: [],
       },
     ];
   }
 
   const packageManager = detectPackageManager(options.directory);
-  const results: CheckResult[] = [];
+  const results: VerificationResult[] = [];
 
   for (const scriptName of scriptNames) {
     const checkResult = await runCheck({
