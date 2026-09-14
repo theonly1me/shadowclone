@@ -19,7 +19,7 @@ export const dependencyStateSchema = z.enum([
 export const generatedTaskSchema = z.strictObject({
   prompt: z.string().min(1).max(4_000),
   completion: z.array(z.string().min(1).max(1_000)).min(1).max(5),
-  preferenceSources: z.array(z.string().min(1)).min(1),
+  preferenceSources: z.array(z.string().min(1)),
 });
 
 export const generatedTasksSchema = z.strictObject({
@@ -49,7 +49,6 @@ export const generatedTasksOutputSchema = {
           },
           preferenceSources: {
             type: "array",
-            minItems: 1,
             items: { type: "string", minLength: 1 },
           },
         },

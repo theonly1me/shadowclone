@@ -1,5 +1,7 @@
 # Give profile rules persistent identity and an explicit lifecycle
 
+The legacy-retirement policy in this record was corrected by [design 018](018-incremental-learning-repair.md), which preserves and migrates legacy guidance. The lifecycle model remains in use.
+
 ## Summary
 
 Profile rules become versioned records whose identity survives wording changes. Each generated Markdown block records its source, lifecycle status, pending proposal, applicability conditions, and deduplicated supporting and contradicting evidence. The writer treats creation, revision, pinning, rejection, and retirement as distinct state transitions, migrates edited 0.0.5 blocks as user-owned text, and retires unedited 0.0.5 template output instead of presenting it as valid learning.

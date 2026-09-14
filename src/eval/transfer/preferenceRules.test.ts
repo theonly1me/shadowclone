@@ -68,3 +68,24 @@ test("rejects invented source paths instead of accepting invented criteria", () 
     selectedPaths: ["skills/not-captured/SKILL.md"],
   })).toThrow("unknown preference source");
 });
+
+test("mandatory skill coverage does not depend on its name or model selection", () => {
+  const rules = resolvePreferenceRules({
+    sources: [
+      {
+        relativePath: "skills/0/engineering-conventions/SKILL.md",
+        content: "---\nname: engineering-conventions\ndescription: Apply to all coding tasks.\n---\nUse options objects for multiple arguments.",
+      },
+      {
+        relativePath: "skills/0/review/SKILL.md",
+        content: "---\nname: review\ndescription: Use only for PR reviews.\n---\nAn example mentions on every task.",
+      },
+      { relativePath: "profile.md", content: "Use full names." },
+    ],
+    selectedPaths: ["profile.md"],
+  });
+  expect(rules.map((rule) => rule.requirement)).toEqual([
+    "Use options objects for multiple arguments.",
+    "Use full names.",
+  ]);
+});

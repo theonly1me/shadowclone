@@ -102,13 +102,13 @@ claude -p "<task>" \
 
 Two flags carry more weight than the rest.
 
-`--session-id` accepts a UUID that becomes the transcript filename under `~/.claude/projects/<slug>/`. Verified against real transcripts on disk, where filename and the records' `sessionId` field matched in every case checked.
+`--session-id` supplies a caller-selected UUID for the Claude run. The adapter uses that identifier to locate the provider-owned transcript under `~/.claude/projects/<slug>/`.
 
 Generating the id up front means the clone knows where its own transcript will land, so a clone run is observable by the same pipeline that observes the user.
 
 `--agents <json>` accepts the same subagent definition that `src/profile/agent.ts` writes to `.claude/agents/`, so a headless run can carry a clone subagent without touching the repo. `02-profile.md` covers the compilation.
 
-`--append-system-prompt-file` injects the compiled profile without replacing Claude Code's own system prompt, so the clone keeps its normal competence and gains the user's habits on top. Replacing the system prompt with `--system-prompt-file` produces a worse agent that sounds more like the user, which is the wrong trade.
+`--append-system-prompt-file` adds compiled preferences without replacing Claude Code's system prompt. Whether that additional guidance helps is measured separately through evaluation.
 
 `--setting-sources` restricts loaded setting files to user and project tiers, preventing a target repository's `.claude/settings.local.json` from silently widening permissions beyond the resolved dispatch policy ceiling.
 
@@ -139,7 +139,7 @@ Cursor also receives its prompt on stdin. A no-tools run gets an empty temporary
 
 ## Compiled profile
 
-The engine is handed one file, not five. `src/profile/inject.ts` compiles `~/.shadowclone/profile/*.md` into `.compiled.md`: active rules ordered by observation count, with provenance comments stripped and any `projects/<repo>.md` matching the target repo appended. Candidate and stale rules remain visible in the editable profile but do not enter the prompt.
+The engine receives guidance from `compileProfile` in `src/profile/compiler/`. It selects active global, matching-owner, and exact-project rules, prioritizes user-authoritative guidance, and caps output at 16 KiB by omitting whole blocks. Provenance metadata, candidate rules, and stale rules do not enter the prompt.
 
 Compilation turns the profile into a prompt through a named step with its own file.
 

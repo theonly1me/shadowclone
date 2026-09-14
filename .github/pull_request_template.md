@@ -29,6 +29,6 @@ If it does, tick every line. An unticked box is a question for the reviewer, not
 -->
 
 - [ ] Any new capture source has an opt-in flag and a README entry in this PR
-- [ ] Everything that reaches the network passes `redactSecrets`
+- [ ] Learning capture passes `redactSecrets`; any code execution or judging follows its documented authorization boundary
 - [ ] No raw capture in a log line, an error message, or a test fixture
 - [ ] A test exercises the real entry point, not just the redaction function

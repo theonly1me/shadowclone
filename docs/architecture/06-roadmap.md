@@ -1,6 +1,6 @@
 # Roadmap
 
-Build order, and what each phase has to prove before the next one starts. A phase is done when its verification passes, not when its code exists.
+Implementation milestones and remaining validation. Earlier phases describe build order, not the current user workflow. Current behavior is documented in the other architecture pages; [the early evaluation report](../../evals.md) records the evidence available so far.
 
 ## Phase 0, foundation
 
@@ -26,9 +26,7 @@ Structural derivation and the correction miner. `shadowclone learn` prints aggre
 
 Declared repository guidance follows a second zero-model path. `shadowclone import` synchronizes supported root instructions and direct agent skills into repository-scoped profile rules after separate consent. It preserves user edits and rejections through the same profile lifecycle used by learned rules.
 
-Proves: the output surprises its own author. This is the quality bar for the whole project.
-
-Run it on the real 562 MB corpus and read it. A profile that says "runs tests, uses plan mode, prefers Bun" is something a good engineer writes in five minutes. A profile that names what you interrupt the agent for, in order, with counts, is something nobody has seen. Tune the extractors until it is the second one.
+Proves: the report accurately counts supported interaction markers without presenting them as learned instructions. Fixture checks cover the distinction; assessment of learning quality uses separately consented evidence.
 
 Later phases consume the measured moments. Explicit deep learning in phase 3 is the path that turns them into mined profile rules.
 
@@ -38,9 +36,9 @@ Status: implementation complete. Local plugin installation and a real authentica
 
 `.claude-plugin/` with lifecycle hooks and an MCP server loads the profile into the user's live Claude Code sessions. `src/profile/agent.ts` also supports an optional `.claude/agents/<name>.md` subagent for independent delegated work.
 
-The engine module lands here too for explicit `learn --deep`. Deep learning reconciles exact, redacted correction evidence with existing rules and rejected guidance, preserves user authority during disagreement, and withholds mined candidates until three independent sessions support them. The session-end hook ingests its exact transcript and recompiles existing guidance for that repository scope without generating rules or calling an engine.
+The engine module supports explicit `learn --deep`. Current learning reconciles redacted user steering with existing rules and rejected guidance. Explicit reusable guidance can activate from one session; inferred guidance needs three independent sessions. The legacy plugin end hook ingests and recompiles existing guidance. Native automatic learning additionally requires a useful-session request and separate consent.
 
-Proves: install is one command, a normal session gets the user's conventions with no manual step, and an optional `Agent(subagent_type: "<name>")` dispatches a copy of the user when delegation is useful.
+Proves: normal sessions receive the scoped profile through supported native delivery, and optional delegated work receives the same guidance. Successful delivery does not itself prove adherence.
 
 This is the first phase where shadowclone can act as a clone inside the user's session, and the first thing that runs before any clone has been trusted.
 
@@ -70,21 +68,21 @@ Proves: adding a provider cannot overstate its security controls, and Antigravit
 
 ## Phase 7, self-improving portable environment
 
-Status: implementation complete. Authenticated evaluation remains a release gate.
+Status: implementation complete, including judging and recovery repairs. Four exploratory tasks have completed across all three arms. Repeated-run validation, known judge issues, and broader provider qualification remain open.
 
 Default to global main-agent delivery through stable provider pointers and live scoped session hooks. Let the active agent request bounded learning for a useful session through an opaque token, and interpret an interruption with the user's following message. Activate explicit reusable guidance from one session while keeping inferred guidance behind three independent sessions.
 
 Install complete starter skills into a canonical personal library and synchronize copies across Claude Code, Codex, Cursor, and Antigravity-compatible locations. Preserve user edits, expose divergent copies as conflicts, and let enabled deep learning keep managed preference additions current.
 
-Replace historical-only transfer selection with fresh additive coding tasks on current HEAD. Run snapshot preflight before measured spend, prohibit permanent and external actions, review bounded code changes through three blinded paired votes, expose persisted stage progress, and report success, adherence, lift, paired outcomes, and regressions.
+Use fresh additive coding tasks on current HEAD for transfer evaluation. Run snapshot preflight before measured spend, prohibit permanent and external actions, and compare repository-only Bare, personal-context Skills, and profile-equipped Clone. Freeze source-backed code criteria, save three independent votes per criterion, resume missing judging work, and report completion separately from preference lift and correctness.
 
-Proves: the user's ordinary agent sees current guidance without selecting a custom subagent, personal workflows survive provider changes, learning happens only from deliberately useful sessions, and evaluation always returns a quantified pass, fail, or infrastructure error.
+Proves: native delivery carries current guidance, portable copies preserve user ownership, and learning requires an explicitly useful session. Evaluation must retain completed work and make incomplete or failed grading visible. It is valid for the profile-equipped arm to tie or lose.
 
-Launch readiness adds a `SubagentStart` hook so spawned Claude subagents inherit the current profile, a three-question default setup with a bounded first learning pass, concurrent reconciliation, and independent eval snapshots with concurrent arms and judging. The subagents' sessions add to the consented corpus used for later learning. Authenticated transfer evaluation remains the release gate.
+Launch readiness adds a `SubagentStart` hook so spawned Claude subagents inherit the current profile, a three-question default setup with a bounded first learning pass, concurrent reconciliation, and independent eval snapshots with concurrent arms. Only eligible user steering from consented sessions can update learned guidance. The current evaluation evidence does not establish a productivity gain or broad launch readiness.
 
 ## Phase 8, verified provider breadth
 
-One stacked PR per provider, initially GitHub Copilot CLI, OpenCode, Aider, and Amp. Gemini CLI is excluded in favor of its Antigravity successor. Goose, Amazon Q or Kiro, Windsurf, Cline, and newly verified transcript-producing CLIs follow the same qualification gate.
+Qualify additional providers one at a time. Candidate integrations are a backlog, not promised support. Each needs current documentation or clean-room format notes, synthetic fixtures, and enforceable controls before its support is advertised.
 
 Each provider may ship observation, distillation, and dispatch independently. A provider with no local transcript stays out of observation. A provider with no enforceable no-tools mode stays out of distillation. A provider with no enforceable budget or granular tool policy stays out of dispatch.
 
@@ -92,14 +90,14 @@ Proves: provider breadth grows through registry metadata and boundary implementa
 
 ## Later, and deliberately not now
 
-**Learning from merge outcomes.** The diff between what a clone wrote and what the user shipped is the strongest correction signal available. It needs clone output good enough to be worth reviewing, so it waits until phase 4 has been used in anger.
+**Learning from merge outcomes.** User revisions may provide useful evidence, but merge or deletion alone does not establish intent. This source is not implemented.
 
-**Claims about productivity multiples.** None are made until the fresh transfer evaluation produces a decision-grade result. The honest value is bounded and measurable, and a number that holds beats a large one that does not.
+**Claims about productivity multiples.** Preference evaluation does not measure productivity. A time-saving claim needs a separate study, even if preference scores improve.
 
 **A daemon.** Adds latency reduction and queued work, no new capability. The hook covers most of the value at a fraction of the moving parts.
 
 **Task intake from issue trackers.** Picking up work assigned on GitHub or Linear is what makes "while you are away" literal. It is gated on delegation being trusted, which is gated on receipts being boring to read.
 
-**Multiple concurrent clones.** Parallel worktrees on separate tasks, with results merged back. The name promises this and the architecture allows it, but one clone has to be good before several are useful.
+**Multiple concurrent clones.** Parallel worktrees on separate tasks need coordination, conflict handling, and measured usefulness before becoming a supported workflow.
 
 **Profile sharing.** A profile is a portable markdown directory, so exporting a team lead's workflow rules is close to free. It could leak an employer's internal details, so it needs a deliberate scrubbing step.

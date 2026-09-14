@@ -30,7 +30,7 @@ An unchanged rerun is byte stable. Source edits revise an unedited rule under th
 
 ## Evidence and learning
 
-Sending 562 MB to a model is not affordable. The work splits by whether it needs a model at all.
+Learning sends bounded eligible excerpts, not whole transcripts. The work splits by whether it needs a model at all.
 
 **Structural signals cost zero tokens.** They are computed in pure code over the index. Session and origin counts, tool histograms, plan activity, interruptions, permission denials, answered questions, and resolved plans form the mirror. They are evidence about how a person works, not instructions, so this path reports them without writing profile rules.
 
@@ -46,21 +46,19 @@ Profile writes record local before/after revisions and compare destinations befo
 
 ## Correction mining
 
-The following historical counts describe observable events, not labeled preferences. An interruption is often just a pause while the user supplies more information. Production learning uses user steering episodes and semantic assessment, not these counters.
+These markers describe observable events, not labeled preferences. An interruption can be a pause while the user supplies more information. Production learning uses user steering episodes and semantic assessment, not these counters.
 
-The counts below came from one 562 MB corpus of 372 sessions. They describe structural markers, not evaluated rules.
+**Interruption.** Claude Code writes the marker `[Request interrupted by user`. The report counts it and the interrupted tool family without assuming disapproval.
 
-**Interruption, 994 found.** Claude Code writes the marker `[Request interrupted by user`. The report counts it and the interrupted tool family without assuming disapproval.
+**Tool denial.** The mirror reports refused permission requests by tool family. A refusal alone supplies no preference evidence and cannot create a blanket tool rule.
 
-**Tool denial, 445 found.** The mirror reports refused permission requests by tool family. A refusal alone supplies no preference evidence and cannot create a blanket tool rule.
+**Question answered.** An `AskUserQuestion` call paired with the option the user picked.
 
-**Question answered, 313 found.** An `AskUserQuestion` call paired with the option the user picked.
-
-**Plan resolution, 570 plan calls found.** An `ExitPlanMode` call and the following user turn indicate approval or redirection.
+**Plan resolution.** An `ExitPlanMode` call and the following user turn indicate approval or redirection.
 
 **Undo.** An edit that reverts a region the agent wrote in the same session. Not yet counted.
 
-**Correction prompt, 13 found in 682 prompts.** A user turn opening with no, don't, actually, instead, revert, or wrong. The low marker rate means learning cannot depend on this form alone.
+**Correction prompt.** A user turn opening with no, don't, actually, instead, revert, or wrong. Durable steering does not need one of these prefixes, so learning cannot depend on this form alone.
 
 Structured markers reliably establish that an interaction happened. They do not establish the user's intent. Only assessed durable user evidence reaches rule reconciliation.
 
@@ -100,7 +98,7 @@ The layout is scoped by the remote owner a rule was learned from, because a rule
       engineering.md
       boundaries.md
       projects/platform.md
-    github.com--atchyut/
+    github.com--example-personal/
       engineering.md
   .rejected
   .generated
@@ -116,7 +114,7 @@ The layout is scoped by the remote owner a rule was learned from, because a rule
 | `boundaries.md` | What the user has denied and where the agent should ask. Advisory until denials identify the action. |
 | `projects/<repo>.md` | Per repo specifics that do not generalize. |
 
-A rule starts under the `host/owner` identity where it was observed. It moves to `global/` when it has been observed under two or more distinct owners, because a habit that survives across those boundaries belongs to the person, or when the user promotes it by hand. Compilation for a target repo reads `global/` plus the one matching owner directory and nothing else. Repository-specific profile files are supported under that owner at `projects/<repo>.md`, but mined rules currently target owner or global scope.
+A learned rule stays in its exact repository scope when that identity is available, or its isolated owner scope otherwise. Reconciliation permits global scope only from assessed explicit global guidance; seeing a rule under two owners does not automatically make it global. The user can also record global guidance directly. Compilation reads global rules, the matching owner, and only the exact matching project file.
 
 ## Provenance
 

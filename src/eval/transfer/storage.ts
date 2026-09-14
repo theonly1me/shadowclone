@@ -20,7 +20,7 @@ export async function saveReceipt(options: {
 
 export function initialReceipt(prepared: PreparedEval): TransferReceipt {
   return {
-    schemaVersion: 11,
+    schemaVersion: 12,
     evalId: prepared.evalId,
     prepared,
     preparedFingerprint: fingerprint(prepared),
@@ -42,7 +42,7 @@ export function initialReceipt(prepared: PreparedEval): TransferReceipt {
       "Repository guidance is available to all three arms. Skills and clone receive the frozen personal environment; only clone also receives the Shadowclone profile.",
       "Tasks start from the committed HEAD. Uncommitted source changes are deliberately excluded.",
       "Execution runs without network access, dependency installation, commits, pushes, or writes to the source repository.",
-      "Three independent blinded votes per arm grade correctness and verbatim preference rules. Not-applicable rules are excluded from adherence; missing compliance evidence fails.",
+      "Three independent blinded votes per arm grade correctness and source-backed coding preferences separately. Every arm uses the same frozen preference denominator.",
       "The evaluator reviews bounded code changes directly and does not run the repository-wide test, typecheck, lint, or build graph.",
       "The configured model prepares, executes, and judges the suite. Reuse the suite ID to compare another engine on identical tasks.",
     ],

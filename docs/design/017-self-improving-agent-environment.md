@@ -28,11 +28,11 @@ Onboarding installs selected starter skills as complete directories in `~/.agent
 
 `shadowclone eval` starts every task from the repository's current committed HEAD and ignores uncommitted files with a visible count. The evaluator accepts one supplied implementation task, generates a bounded set of fresh tasks, or loads a frozen suite. Generated tasks add a self-contained module or function and focused tests through new files in an existing package. Preflight proves that HEAD can be isolated. No phase copies dependencies, installs packages, runs lifecycle scripts, or executes repository-wide verification. Generated and supplied tasks cannot require commits, pushes, deployments, migrations, external services, credentials, network access, new dependencies, or writes outside the isolated snapshot.
 
-Every task runs baseline and clone arms against identical snapshots, model settings, and requirements. Native Shadowclone discovery is removed from both arms. The baseline keeps repository-native guidance; only the clone receives the frozen personal instructions, relevant skills, memory, and current profile. Each run persists observed code evidence before judging so a failed judge can resume without repeating coding work. Three blind paired code-review votes produce a binary result for every correctness and preference requirement, with candidate order swapped for the middle vote. Deterministic checks cover reviewability and Git integrity. Missing, malformed after two retries, incomplete, or truncated evidence fails or produces an infrastructure error; it never creates an unknown outcome.
+The original two-arm design was extended to bare, skills, and clone arms. All receive the same repository snapshot and task. Skills and clone receive the same frozen personal instructions, skills, and memory; only clone adds the compiled profile. Native Shadowclone discovery is disabled in each arm. [Design 020](020-preference-judging.md) defines the current frozen rubric, independent candidate grading, immediate vote checkpoints, and recovery behavior.
 
 Elapsed progress identifies preparation, task, repetition, arm, execution stage, and judge vote. The current stage is also persisted in the private receipt, so long-running work can be inspected from another process.
 
-The final evaluation status is `PASS`, `FAIL`, or infrastructure `ERROR`. Reports include baseline and clone task success, baseline and clone preference adherence, percentage-point lift, relative improvement when defined, paired wins, ties, losses, correctness regressions, safety regressions, and sample size. Passing requires positive preference-adherence lift, nonzero clone task success, no worse task success, no correctness regression, no safety regression, and every expected pair. A one-task, one-repeat run is labeled as a smoke test and is not decision-grade. Suites can be reused across engines through `--suite-id`; interrupted executions resume through `--eval-id` only when all frozen inputs still match.
+Completion is separate from measured improvement. Reports show correctness and preference adherence per arm, profile and library lift, paired outcomes, regressions, and sample size. Missing grades are ungraded. A complete tie or loss is valid. The CLI labels at least three tasks with two repeats as decision-grade, but that threshold is not statistical validation. Frozen suites support comparison across engines; evaluation resume validates the saved inputs and retries missing work.
 
 ## Files
 
@@ -50,7 +50,7 @@ The final evaluation status is `PASS`, `FAIL`, or infrastructure `ERROR`. Report
 
 ## Data handling
 
-Native start hooks read only the current scoped profile through `compileProfile`. Session-learning state stores an opaque random token, an integration identifier, a hash of the provider session identifier, and timestamps under `~/.shadowclone`; it does not store the raw provider identifier or transcript text. Transcript excerpts still enter model-facing learning only through `resolveRedacted`, and only enabled sources are read. Skill assessment reads only configured, consented roots and resolves skill text through `resolveRedacted`; portable synchronization is local and makes no model call. Evaluation reads the current committed repository, optionally reads consented agent context through `resolveRedacted`, and sends task, profile, changed-file, diff, action, and judge evidence through the existing engine and redaction boundaries. Suites and private receipts stay under `~/.shadowclone`. No telemetry or new hosted service is added.
+Native start hooks read the scoped profile through `compileProfile`. Session-learning state stores opaque tokens, hashed provider session identifiers, and timestamps, not transcript text. Learning and skill assessment resolve consented text through `resolveRedacted`; portable synchronization is local. Evaluation separately authorizes the coding provider to read the repository snapshot and sends unredacted generated code to judges. Suites and receipts remain local under `~/.shadowclone`. No telemetry or hosted service is added.
 
 ## Alternatives
 
@@ -64,7 +64,7 @@ Native start hooks read only the current scoped profile through `compileProfile`
 
 **Retain historical tasks as the only evaluator input.** Rejected because it couples evaluation to transcript timing, old repository states, and old dependency trees. Fresh bounded work on current HEAD measures whether the current profile helps now.
 
-**Allow uncertain judge outcomes.** Rejected because an evaluation that cannot classify its evidence does not support a product decision. Independent binary votes, strict evidence requirements, and an explicit infrastructure error separate product failure from evaluator failure.
+**Treat missing judgments as failed criteria.** Rejected because an evaluator failure is not evidence of poor code. Valid verdicts are binary; missing work stays ungraded and can be resumed.
 
 ## Accepted costs
 
@@ -74,17 +74,17 @@ Portable skill replication uses more local disk space and surfaces conflicts tha
 
 Fresh generated tasks test current usefulness but do not recreate a historical user's intended implementation.
 
-Three judge votes and two execution arms increase authenticated agent usage. The CLI displays the maximum invocation count before starting.
+Three votes per criterion across three execution arms increase authenticated agent usage. The CLI displays the maximum invocation count before starting.
 
-Binary missing-evidence failure is intentionally strict and can lower measured scores when an agent completed work but left inadequate observable proof.
+Evidence must be complete enough to review. Missing code or judge responses produce incomplete results, not invented grades.
 
 ## Testing
 
-Unit tests cover native target paths, stable pointers, hook payloads, opaque session state, explicit request gating, stop-followup episodes, activation thresholds, full-directory skill replication, missing-copy repair, divergent-copy conflicts, edited-starter preservation, current-HEAD snapshots, additive-task constraints, unsafe-task rejection, clone-only context, dependency-free preflight, immutable Git metadata, paired candidate-order reversal, three-vote judging, binary reports, progress persistence, suite validation, and evidence-preserving resume.
+Unit tests cover native delivery, useful-session consent, activation thresholds, skill synchronization and conflicts, snapshot isolation, safe task constraints, arm-specific context, three-vote judging, saved progress, suite validation, and evidence-preserving resume. Judging regression fixtures are documented in design 020.
 
-The repository gate runs type checking, lint, all tests, and the production build. Regression tests are mutation-proven by temporarily removing the behavior they protect, printing the mutated line, observing the focused test fail, restoring the implementation, and observing the same test pass.
+The repository gate runs type checking, lint, and tests; the production build is a separate release check. Regression tests are mutation-proven by temporarily removing the behavior they protect, printing the changed line, observing the focused test fail, restoring the implementation, and observing the same test pass.
 
-An authenticated smoke evaluation runs one task once from a real repository. A decision-grade evaluation runs three tasks twice with one engine, then can reuse the frozen suite with a second engine. The README can publish only aggregate outcomes and sample size, without engine, model, repository, task, prompt, diff, or private receipt contents.
+Live validation begins with one bounded task before a larger suite. Public summaries should state the model settings, arm setup, abstract tasks, scores, and relevant limitations. [The evaluation report](../../evals.md) records four exploratory tasks with one implementation per arm and task.
 
 ## Open questions
 
@@ -104,4 +104,4 @@ Selected starter skills become a portable synchronized personal library because 
 
 Fresh current-HEAD tasks replace historical-only selection because evaluation must work on any suitable repository without depending on its installed dependency tree.
 
-Evaluation outcomes are binary and quantified because pass, fail, lift, and regression counts support product decisions while unknown classifications do not.
+Validated criterion votes are binary, while evaluation completion and measured improvement are reported independently.

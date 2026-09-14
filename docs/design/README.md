@@ -2,7 +2,7 @@
 
 Every product or architecture change starts with a design record written against `template.md`. Write it before implementation, then finalize its decisions and validation before presenting the pull request. Each pull request checks whether public documentation, contributor rules, the capability matrix, or the architecture diagram changed in meaning and updates only the affected documents.
 
-The table is chronological by the first recorded decision. Append new records at the bottom so a future contributor can follow why the system changed over time.
+The table is chronological by the first recorded decision. Append new records at the bottom so a future contributor can follow why the system changed over time. These records describe decisions and validation at the time of a change; implemented does not mean every original detail is still current. Later records supersede earlier ones. The [architecture](../architecture/README.md) and [README](../../README.md) describe current behavior, and [evals.md](../../evals.md) holds the reported evaluation results.
 
 | Date | Record | Status | Decision |
 | --- | --- | --- | --- |
@@ -25,4 +25,5 @@ The table is chronological by the first recorded decision. Append new records at
 | 2026-09-11 | [016, Skill maintenance](016-skill-maintenance.md) | implemented | Assess consented skill roots, preserve user and package ownership, and share bounded learning execution |
 | 2026-09-12 | [017, Self-improving portable agent environment](017-self-improving-agent-environment.md) | implemented | Deliver live guidance to main agents, learn from selected sessions, synchronize personal skills, and evaluate fresh work |
 | 2026-09-13 | [018, Incremental learning repair](018-incremental-learning-repair.md) | implemented | Migrate legacy rules, refuse silent profile loss, learn from the requested session, and catch up across the whole history |
-| 2026-09-13 | [019, Launch readiness](019-launch-readiness.md) | implementing | Give spawned Claude subagents the live profile, shorten setup and evaluation, and keep learning bounded |
+| 2026-09-13 | [019, Launch readiness](019-launch-readiness.md) | implementation complete; validation limits remain | Give spawned Claude subagents the live profile, shorten setup and evaluation, and keep learning bounded |
+| 2026-09-14 | [020, Preference judging and recovery](020-preference-judging.md) | implemented; judging limitations documented | Freeze source-backed coding criteria, checkpoint judge votes, recover missing work, and separate completion from improvement |

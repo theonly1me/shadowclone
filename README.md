@@ -1,8 +1,8 @@
 # shadowclone
 
-Shadowclone learns your engineering taste from the coding-agent sessions already on your machine. It turns repeated corrections, explicit preferences, and existing instructions into one editable profile and a portable skill library. Claude Code, Codex, Cursor, and Antigravity can use that profile in ordinary sessions. When you delegate work, each clone inherits the same guidance. The clones' sessions become new transcripts, so their work can improve the profile they all share.
+Shadowclone learns engineering preferences from coding-agent sessions you choose to share with it. It turns explicit guidance and corrections into an editable profile, and keeps a portable personal skill library in sync. Claude Code, Codex, Cursor, and Antigravity can receive that profile in ordinary sessions. Supported delegated runs use the same guidance.
 
-The profile is more than scaffolding for a model. A stronger model may need fewer generic instructions, but it does not know that you require zero comments, complete variable names, or small files. First-party tools such as Claude Code's `/doctor` rightsize one vendor's instruction files from their text. They cannot see how you corrected agents across sessions or keep other vendors in sync. Anthropic's suggested replacement for an explicit comment rule, "match the surrounding code's comment density," would lose this repository's zero-comments preference.
+The profile adds context to an existing model; it does not train a new one or guarantee that every instruction will be followed. With separate learning consent, useful sessions can update the guidance for later work. [Why I built it](docs/motivation.md).
 
 ## Privacy comes first
 
@@ -23,7 +23,7 @@ Every source has its own setting, defaults off, and appears by name before conse
 
 Source detection checks whether a configured root has content. A directory check reads at most one entry to establish that fact and retains no name before consent. Agent transcripts can contain private code, credentials, internal hosts, and customer data. Shadowclone never copies raw transcripts into its store. Its SQLite index holds pointers and event kinds. Eligible excerpts pass through `resolveRedacted`, the single secret-redaction gate, before a model receives them. Tool results, file-read contents, thinking blocks, and data-access results are excluded from learning by category.
 
-Learning and evaluation send only redacted excerpts through your own authenticated agent CLI. A remote action from `shadowclone run` needs separate approval for that run. There is no Shadowclone service, API key, account, or telemetry. The profile is Markdown under `~/.shadowclone/profile/`; you can read, edit, or delete it. `shadowclone forget --all` removes Shadowclone's local state and recorded integrations in one step. Your original transcripts remain where your agents wrote them. [Privacy design](docs/architecture/05-privacy.md).
+Learning sends eligible redacted excerpts through your own authenticated agent CLI. Evaluation also gives that CLI access to a disposable repository snapshot and sends generated code to judges without redaction. Use only repositories you are authorized to send to that provider. A remote action from `shadowclone run` needs separate approval for that run. There is no Shadowclone service, API key, account, or telemetry. The profile is Markdown under `~/.shadowclone/profile/`; you can read, edit, or delete it. `shadowclone forget --all` removes Shadowclone's local state and recorded integrations, preserving unrelated content and stopping on conflicting edits. Your original transcripts remain where your agents wrote them. [Privacy design](docs/architecture/05-privacy.md).
 
 ## Start from this checkout
 
@@ -66,13 +66,23 @@ Portable skills live in `~/.agents/skills` and sync to supported provider locati
 
 `shadowclone doctor` reports installation and engine status. `shadowclone context` prints the compiled profile for the current scope. `shadowclone history` shows local revisions, and `shadowclone undo <revision-id>` restores one when no later edit conflicts.
 
-Transfer evaluation compares a repository-native baseline with a clone using the frozen personal environment on fresh tasks from committed HEAD. It uses isolated snapshots, checks the code change and Git integrity, and grades both arms with three blinded votes. The command reports task success, preference adherence, lift, and regressions. A one-task run is a smoke test; the standard decision run uses three tasks and two repetitions. No transfer result is claimed here before the evaluation gate runs. [Evaluation design](docs/architecture/09-evaluation.md).
+Transfer evaluation compares three matched setups: repository guidance only, that guidance plus the existing personal skill/context library, and both plus the Shadowclone profile. It freezes a source-backed coding-preference rubric before execution and saves three blinded votes per check. Correctness is graded separately. Missing grades are reported as ungraded, and a completed evaluation does not require Clone to win. [Evaluation design](docs/architecture/09-evaluation.md).
 
 ```bash
-shadowclone eval --repo /path/to/repository --engine codex --model gpt-5.6-luna --reasoning-effort medium --tasks 3 --repeat 2
+shadowclone eval --repo /path/to/repository --engine codex --model gpt-5.6-sol --reasoning-effort medium --tasks 3 --repeat 2
 ```
 
 `shadowclone run "fix the flaky test"` runs a headless clone in a local worktree and records a receipt. The invocation approves one worktree, branch, and local commit. Remote actions also need a matching repository policy ceiling and `--approve` for that run. No action approval carries to the next run. [Acting policy](docs/architecture/04-acting.md).
+
+## Early evaluation results
+
+Across four small TypeScript tasks using GPT-5.6 Sol at medium reasoning effort, the recorded preference scores were:
+
+| Repository only (Bare) | Personal skills/context (Skills) | Skills/context + profile (Clone) |
+| ---: | ---: | ---: |
+| 55/68 (80.9%) | 59/68 (86.8%) | 62/68 (91.2%) |
+
+These are guideline checks passed, not correctness or productivity scores. The skills were existing user-written or user-guided instructions, potentially outdated and not tuned for this comparison. This was one implementation per arm per task, with known judging limitations. Read [the tasks, setup, results, and caveats](evals.md) before drawing broader conclusions.
 
 ## Commands
 

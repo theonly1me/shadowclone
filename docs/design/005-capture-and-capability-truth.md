@@ -1,5 +1,7 @@
 # Align capture consent and capability claims
 
+This records the initial consent and capability audit. Current capabilities are in the [architecture](../architecture/README.md); [design 013](013-deterministic-profile-compiler.md) added reversible installs, and [design 012](012-deep-learning-reconciliation.md) tightened global rule scope.
+
 ## Summary
 
 Shadowclone permits a boolean presence check for a disabled capture source while keeping its contents, entry names, paths, and metadata behind explicit consent. The public documentation states the product mission and implemented capabilities without claiming an unpublished evaluation result, distinguishes owner-scoped profile rules from repository-scoped action policy, documents the profile edit and deletion lifecycle, and says which installed artifacts `forget --all` leaves behind. A chronological design index and maintained Mermaid architecture diagram give later changes one place to record their reasoning and system impact.
@@ -28,7 +30,7 @@ The README opens with the clone mission: Shadowclone learns how a developer work
 
 One provider capability matrix records observation, deep distillation, live clone, headless dispatch, and transfer evaluation separately. Claude Code implements all five. Codex implements observation, distillation, and transfer evaluation. Cursor implements observation and distillation. Antigravity implements observation. Authentication and real-corpus verification remain manual checks and are stated separately from implementation.
 
-Profile scope and action scope use their actual identifiers. Learned profile rules are stored under `host/owner` and may promote to global after evidence from two owners. Repository action configuration uses `[repo."host/owner/repository"]` and requires `git-metadata`. Without it, `resolveRepository` returns an isolated identity, so that repository entry cannot match.
+Profile scope and action scope use distinct identifiers. Owner scope uses `host/owner`; exact repository scope uses `host/owner/repository`. Repeated evidence across owners does not automatically make a rule global. Current reconciliation requires explicit, globally scoped evidence. Repository action configuration uses `[repo."host/owner/repository"]` and requires `git-metadata`; without it, the repository stays isolated and that policy entry cannot match.
 
 The dispatch description says the engine receives detected verification command permissions. It does not say those commands are executed or checked. Host-enforced verification remains future dispatch lifecycle work.
 

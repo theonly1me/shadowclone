@@ -23,23 +23,23 @@ This document sets the ceiling on what a clone may do, in a session and unattend
 Full delegation is the goal and an empty allowlist is the default. Invoking `shadowclone run "<task>"` explicitly approves one worktree, branch, and local commit for that task. A fresh install can do that and nothing else, on any repo, with no configuration.
 
 ```toml
-[repo."github.com/atchyut/shadowclone"]
+[repo."github.com/example-personal/sample"]
 allow = ["push", "pr-draft", "pr-reply"]
 maxBudgetUsd = 2.00
 
-[repo."github.com/employer/platform"]
+[repo."github.com/example-team/service"]
 allow = []
 ```
 
 Repository policy keys use the full `host/owner/repository` identity and require the `git-metadata` source. When that source is disabled, `resolveRepository` produces an isolated identity, so a named repository entry cannot match.
 
-Promotion is a deliberate edit to a config file, one repo at a time. The entry is a ceiling, not standing approval. A remote action also needs a matching `--approve` on the individual run. There is no global switch that turns delegation on everywhere, because the repo where this is a good idea and the repo where it ends a job are usually on the same laptop.
+Promotion is a deliberate edit to a config file, one repo at a time. The entry is a ceiling, not standing approval. A remote action also needs a matching `--approve` on the individual run. There is no global switch that grants remote actions everywhere.
 
 `src/dispatch/policy.ts` intersects repo policy, per-run approval, and the managed action tier to produce engine arguments. Unattended execution sets `permissionMode: "dontAsk"`, ensuring `allowedTools` acts as an enforced ceiling. A withheld capability becomes a `--disallowedTools` entry. Absence of a tool beats a rule about a tool. The engine never receives wildcard add, commit, or push tools.
 
 Draft tools include inspection, edits, and repository verification commands detected dynamically from project manifests (`package.json`, `Cargo.toml`, `go.mod`, `Makefile`, `pyproject.toml`) or configured per repository with `:*` argument suffixes. These are permissions available to the engine. `runHeadlessClone` does not yet require evidence that a verification command ran or succeeded before it commits a successful engine result.
 
-Push safety is handled outside the agent process. Rather than exposing `Bash(git push:*)` to agent execution, the host orchestrator inspects the resulting worktree and performs an explicit `git push --set-upstream origin <branch>` after the run. Commits are likewise created host-side with fixed argument vectors.
+Push safety is handled outside the agent process. The agent receives no `Bash(git push:*)` permission. The host orchestrator inspects the resulting worktree and performs an explicitly approved `git push --set-upstream origin <branch>` after the run. Commits are likewise created host-side with fixed argument vectors.
 
 ## A run
 
@@ -86,12 +86,10 @@ Every run produces one, so the user can review delegated work.
 
 The clone's transcript is written to the same place the user's transcripts are written, in the same format, and the run receipt records exactly where. The observe stage reads it with no special case.
 
-What closes the loop is the user's response to the work. A branch that gets merged is a positive example. A branch that gets deleted unreviewed is a negative one. A branch the user rewrites before merging is the most valuable record in the system, because the diff between what the clone wrote and what shipped is a correction pair with no ambiguity in it.
-
-That last one is the strongest signal shadowclone can produce and it is deliberately not in the first release. It needs the profile to be good enough that clone runs are worth reviewing at all, and until then it would be learning from noise.
+Current learning relies on explicit reusable user guidance and assessed corrections in consented sessions. Merge outcomes and rewritten diffs are a possible future source, not an implemented feedback channel. A merge or deletion alone does not establish why the user made that decision.
 
 ## What is never allowed
 
 No tier and no allowlist entry grants any of these.
 
-`--dangerously-skip-permissions` and `--permission-mode bypassPermissions` are never passed. `git push --force` in any form. Any write to a branch a human is working on. Any action on a repo with no policy entry. Any spend above the run's `maxBudgetUsd`. Merging a pull request, at any tier, ever.
+`--dangerously-skip-permissions` and `--permission-mode bypassPermissions` are never passed. Force pushes, writes to a branch a human is using, remote actions without both a policy ceiling and per-run approval, spending above an enforced run budget, and merging pull requests are forbidden. The explicit `run` invocation can still authorize its bounded local worktree and commit when no remote-action policy exists.

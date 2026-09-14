@@ -1,5 +1,7 @@
 # Main Agent Delivery
 
+[Design 017](017-self-improving-agent-environment.md) replaces copied profile text with stable pointers and live native hooks, retaining the ownership and scope rules introduced here.
+
 ## Summary
 
 Shadowclone installs the shared compiled profile into the main Claude Code, Codex, and Cursor agent. Installation supports personal global defaults and repository guidance, preserves existing files, and keeps subagents optional.

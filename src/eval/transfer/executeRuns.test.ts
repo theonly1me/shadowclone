@@ -5,6 +5,7 @@ import path from "node:path";
 import { command } from "./command";
 import { executeTransferRuns } from "./executeRuns";
 import { readReceipt } from "./resume";
+import { batchReply } from "./judgeFixtures";
 import { disposeSnapshotTemplates } from "./snapshot";
 import { initialReceipt } from "./storage";
 import { fingerprint } from "./structured";
@@ -48,13 +49,6 @@ async function fixture(): Promise<{
   };
 }
 
-function candidate() {
-  return {
-    correctness: [{ verdict: "pass", evidence: "Code meets behavior" }],
-    preferences: [{ verdict: "pass", evidence: "Code follows guidance" }],
-  } as const;
-}
-
 test("shows every stage and gives personal context only to the skills and clone arms", async () => {
   const repository = await fixture();
   const outputDirectory = await mkdtemp(
@@ -65,7 +59,7 @@ test("shows every stage and gives personal context only to the skills and clone 
   );
   const profile = "Use complete names.";
   const prepared: PreparedEval = {
-    schemaVersion: 11,
+    schemaVersion: 12,
     evalId: "00000000-0000-4000-8000-000000000001",
     suiteId: "00000000-0000-4000-8000-000000000002",
     repository: repository.directory,
@@ -153,20 +147,7 @@ test("shows every stage and gives personal context only to the skills and clone 
             errorMessage: null,
           };
         }
-        return {
-          engine: "codex",
-          sessionId: "judge",
-          transcriptPath: null,
-          text: "",
-          structured: candidate(),
-          costUsd: null,
-          durationMs: 1,
-          turns: 1,
-          actions: [],
-          permissionDenials: [],
-          isError: false,
-          errorMessage: null,
-        };
+        return batchReply(options);
       },
     });
     expect(contextPresence.toSorted()).toEqual([false, true, true]);
@@ -188,7 +169,7 @@ test("shows every stage and gives personal context only to the skills and clone 
     ] as const) {
       expect(stages).toContain(stage);
     }
-    expect(progress.filter((event) => event.stage === "judging")).toHaveLength(3);
+    expect(progress.filter((event) => event.stage === "judging")).toHaveLength(9);
   } finally {
     await disposeSnapshotTemplates();
     await rm(repository.directory, { recursive: true, force: true });

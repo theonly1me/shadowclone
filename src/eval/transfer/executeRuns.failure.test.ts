@@ -41,7 +41,7 @@ test("a failed arm leaves every completed run in a resumable receipt", async () 
     });
     const profile = "Use complete names.";
     const prepared: PreparedEval = {
-      schemaVersion: 11,
+      schemaVersion: 12,
       evalId: "00000000-0000-4000-8000-000000000001",
       suiteId: "00000000-0000-4000-8000-000000000002",
       repository,
@@ -104,7 +104,7 @@ test("a failed arm leaves every completed run in a resumable receipt", async () 
     })).rejects.toThrow("Resume with --eval-id");
     expect(calls).toHaveLength(3);
     const saved = readReceipt(await Bun.file(path.join(directory, "receipt.json")).text());
-    expect(saved.status).toBe("running");
+    expect(saved.status).toBe("error");
     expect(saved.progress?.stage).toBe("error");
     const persisted = receiptSchema.parse(parseJson(await Bun.file(path.join(
       directory,

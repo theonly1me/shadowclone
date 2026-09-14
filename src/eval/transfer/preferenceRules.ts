@@ -74,6 +74,17 @@ export function sourceRules(source: ContextFile): readonly PreferenceCheck[] {
   return rules;
 }
 
+function appliesToEveryTask(source: ContextFile): boolean {
+  if (!source.relativePath.endsWith("/SKILL.md")) {
+    return false;
+  }
+  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n(?:---|\.\.\.)(?:\r?\n|$)/
+    .exec(source.content)?.[1];
+  return frontmatter !== undefined &&
+    /\b(?:on|for|to) (?:every|all) (?:coding |implementation |code )?tasks?\b/i
+      .test(frontmatter);
+}
+
 export function resolvePreferenceRules(options: {
   readonly sources: readonly ContextFile[];
   readonly selectedPaths: readonly string[];
@@ -82,7 +93,11 @@ export function resolvePreferenceRules(options: {
     options.sources.map((source) => [source.relativePath, source]),
   );
   const rules = new Map<string, PreferenceCheck>();
-  for (const relativePath of options.selectedPaths) {
+  const selectedPaths = new Set([
+    ...options.sources.filter(appliesToEveryTask).map((source) => source.relativePath),
+    ...options.selectedPaths,
+  ]);
+  for (const relativePath of selectedPaths) {
     const source = sources.get(relativePath);
     if (!source) {
       throw new Error("Preparation selected an unknown preference source");

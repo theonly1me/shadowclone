@@ -6,6 +6,7 @@ import { preflightRepository } from "./preflight";
 import { loadEvaluationProfile } from "./profile";
 import type { ResolvedTransferSetup } from "./setup";
 import { fingerprint } from "./structured";
+import { codeRubricVersion } from "./rubricScope";
 import { loadSuite, saveSuite } from "./suite";
 import type {
   EvaluationSuite,
@@ -41,6 +42,9 @@ function validateSuite(options: {
   }
   if (options.suite.baseCommit !== options.commit) {
     throw new Error("Evaluation suite requires its original repository HEAD");
+  }
+  if (options.suite.tasks.some((task) => task.preferences.some((check) => check.rubric?.version !== codeRubricVersion))) {
+    throw new Error("This suite uses a historical rubric. Prepare a new evaluation; historical results are unchanged.");
   }
   if (options.suite.profileSnapshot.fingerprint !== fingerprint(options.profile)) {
     throw new Error("Evaluation suite requires its original frozen profile");
@@ -137,7 +141,7 @@ export async function prepareEvaluation(options: {
   }
   return {
     ...suite,
-    schemaVersion: 11,
+    schemaVersion: 12,
     evalId: options.setup.evalId,
     engine: options.setup.engine,
     model: options.setup.model,

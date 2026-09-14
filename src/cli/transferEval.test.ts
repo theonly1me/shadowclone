@@ -3,7 +3,7 @@ import { invocationCeiling } from "../eval/transfer";
 import { parseTransferArguments, transferEvalCommand } from "./transferEval";
 
 test("invocation ceiling reserves task preparation and execution calls", () => {
-  expect(invocationCeiling({ tasks: 1, repeat: 1 })).toBe(17);
+  expect(invocationCeiling({ tasks: 1, repeat: 1 })).toBe(114);
 });
 
 test("parses explicit Codex model and bounded task execution", () => {

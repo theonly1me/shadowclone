@@ -75,7 +75,7 @@ export type AgentEvent = {
 
 ## Incremental reads
 
-The corpus grows about 19 MB a day on a single active machine. Full rescans are not an option after the first run.
+Session history grows as the user works. Incremental reads avoid reprocessing unchanged JSONL files on every run.
 
 Each file gets a cursor row: `sourcePath`, `byteSize`, `modifiedAt`, `byteOffset`. Transcripts are append only JSONL, so a later run seeks to `byteOffset` and reads forward. Three cases have to be handled and each has a defined answer.
 
@@ -89,9 +89,9 @@ A partial trailing line is never parsed. The cursor advances only to the last by
 
 ## Claude Code adapter
 
-The format has four traps and all four have bitten this design already.
+The adapter handles the following format distinctions.
 
-**Assistant records are one per content block.** A single API message is written as several records sharing `message.id` and `requestId`, each carrying one block and an `apiBlockIndex`. Counting records as turns overcounts by roughly three times. Group by `message.id` before deriving anything about turns or pacing.
+**Assistant records are one per content block.** A single API message can be written as several records sharing `message.id` and `requestId`, each carrying one block and an `apiBlockIndex`. Counting records as turns overcounts multi-block messages. Group by `message.id` before deriving turn counts.
 
 **Tool results arrive as user records.** A `user` record whose `message.content` is an array of `{tool_use_id, type: "tool_result", content, is_error}` is a result, not a prompt. A `user` record whose `message.content` is a plain string is a real typed prompt. The type of that field is the discriminator.
 
@@ -127,7 +127,7 @@ Reporting is counts only. `indexed 4,182 events from 37 sessions` is a log line.
 
 On-demand and native lifecycle paths share the same cursors.
 
-`shadowclone learn` on demand. This is the only trigger the first release needs.
+`shadowclone learn` provides the explicit on-demand path. Consented setup and native lifecycle learning are additional bounded paths.
 
 A Claude Code `SessionEnd` hook shipped in `.claude-plugin/` receives `transcript_path` on stdin, ingests exactly one known file, and never scans a directory.
 

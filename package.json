@@ -48,6 +48,7 @@
     "skills",
     ".claude-plugin",
     "README.md",
+    "evals.md",
     "LICENSE"
   ],
   "dependencies": {

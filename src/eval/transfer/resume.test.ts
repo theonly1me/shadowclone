@@ -6,7 +6,7 @@ import { fingerprint } from "./structured";
 function receipt() {
   const profile = "profile";
   return initialReceipt({
-    schemaVersion: 11,
+    schemaVersion: 12,
     evalId: "00000000-0000-4000-8000-000000000001",
     suiteId: "00000000-0000-4000-8000-000000000002",
     repository: "/repository",
@@ -40,7 +40,7 @@ function receipt() {
   });
 }
 
-test("reads schema 11 receipts as resumable", () => {
+test("reads schema 12 receipts as resumable", () => {
   const parsed = readReceipt(JSON.stringify(receipt()));
   expect(parsed.status).toBe("running");
   expect(parsed.prepared.reasoningEffort).toBe("medium");

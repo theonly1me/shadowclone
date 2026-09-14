@@ -1,5 +1,7 @@
 # Automatic Preference Learning
 
+[Design 017](017-self-improving-agent-environment.md) adds an explicit useful-session request, and [design 018](018-incremental-learning-repair.md) replaces the rolling lookback window with a durable processed ledger.
+
 ## Summary
 
 Shadowclone learns from user steering episodes and applies supported profile changes automatically after explicit setup consent. Stop events remain descriptive statistics and never independently support a preference. Local history and undo make each profile change inspectable and recoverable.

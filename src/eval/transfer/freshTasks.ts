@@ -5,7 +5,8 @@ import {
   candidateExclusionReason,
 } from "./candidateValidation";
 import { installContext } from "./context";
-import { preferenceSources, resolvePreferenceRules } from "./preferenceRules";
+import { preferenceSources } from "./preferenceRules";
+import { compileCodeRubric } from "./codeRubric";
 import { createSnapshot } from "./snapshot";
 import {
   fingerprint,
@@ -24,6 +25,9 @@ function invalidTaskReason(task: {
   readonly preferences: readonly { readonly requirement: string }[];
   readonly additive: boolean;
 }): string | null {
+  if (forbiddenTask.test([task.prompt, ...task.completion].join("\n"))) {
+    return "Task requires a forbidden external or permanent action";
+  }
   const candidateReason = candidateExclusionReason({
     prompt: task.prompt,
     completion: task.completion,
@@ -31,9 +35,6 @@ function invalidTaskReason(task: {
   });
   if (candidateReason) {
     return candidateReason;
-  }
-  if (forbiddenTask.test([task.prompt, ...task.completion].join("\n"))) {
-    return "Task requires a forbidden external or permanent action";
   }
   if (task.additive) {
     const additiveReason = additiveTaskExclusionReason(task);
@@ -73,8 +74,7 @@ async function generate(options: {
         "Name the intended area in the prompt. Require only new implementation and test files, with no edits to existing tracked files or project wiring.",
         "Choose tasks that expose meaningful choices in naming, types, API shape, composition, edge cases, and test design.",
         "Exclude tasks needing external services, network access, new dependencies, migrations, deployment, credentials, commits, pushes, or writes outside the repository.",
-        "Select every applicable whole preference source by its exact relativePath from availablePreferenceSources. Include baseline engineering skills that apply to all coding tasks and relevant task-specific skills, instructions, or profile guidance.",
-        "Do not write, summarize, or select individual preference requirements. Every rule block in each selected source will be included verbatim, without a rule-count cap. Judges determine applicability later.",
+        "The code-preference rubric is compiled independently from frozen guidance. Do not select, write, or summarize preference requirements. Return an empty preferenceSources list; it is not used for grading.",
         "Do not reveal or paraphrase personal preferences in the task prompt. Do not impose signatures or organization that conflict with those preferences unless the supplied task explicitly requires them.",
         "Completion requirements describe requested behavior. Preference requirements describe how the implementation should be engineered.",
         "Write each completion requirement as one specific, individually checkable statement about observable behavior. Do not bundle several behaviors into one requirement, and do not use thoroughly, comprehensively, robustly, or similar unmeasurable words.",
@@ -111,13 +111,10 @@ async function generate(options: {
     try {
       tasks = parsed.data.tasks.map((task) => ({
         ...task,
-        preferences: resolvePreferenceRules({
-          sources: options.sources,
-          selectedPaths: task.preferenceSources,
-        }),
+        preferences: compileCodeRubric(options.sources),
       }));
     } catch {
-      lastFailure = "Preparation selected an unknown preference source";
+      lastFailure = "Could not compile the frozen code-preference rubric";
       continue;
     }
     const failure = tasks

@@ -17,10 +17,7 @@ export function readReceipt(text: string): TransferReceipt {
       throw new Error("Modified frozen profile");
     }
   }
-  return {
-    ...receipt,
-    status: "running",
-  };
+  return receipt;
 }
 
 export function validateResumeOptions(options: {

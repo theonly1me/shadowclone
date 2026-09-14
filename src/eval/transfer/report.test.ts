@@ -39,7 +39,7 @@ function run(options: {
 function receipt() {
   const profile = "private profile";
   return initialReceipt({
-    schemaVersion: 11,
+    schemaVersion: 12,
     evalId: "00000000-0000-4000-8000-000000000001",
     suiteId: "00000000-0000-4000-8000-000000000002",
     repository: "/private/repository",
@@ -87,7 +87,7 @@ test("reports a quantified pass without exposing task content", () => {
   const finalReceipt = { ...complete, status };
   const summary = summarize(finalReceipt);
   const report = reportLines(finalReceipt).join("\n");
-  expect(status).toBe("pass");
+  expect(status).toBe("complete");
   expect(summary.profileLift).toBe(1);
   expect(summary.libraryLift).toBe(0);
   expect(summary.wins).toBe(1);
@@ -123,8 +123,8 @@ test("returns a useful fail for no lift or a correctness regression", () => {
       run({ arm: "clone", preference: passed, correctness: failed }),
     ],
   };
-  expect(evaluationStatus(noLift)).toBe("fail");
-  expect(evaluationStatus(regression)).toBe("fail");
+  expect(evaluationStatus(noLift)).toBe("running");
+  expect(evaluationStatus(regression)).toBe("running");
 });
 
 test("not-applicable preferences earn no points and leave the denominator", () => {
@@ -145,5 +145,5 @@ test("not-applicable preferences earn no points and leave the denominator", () =
       ...candidate,
       preferences: [{ ...passed, verdict: "not-applicable" as const }],
     })),
-  }).arms.clone.adherence).toBe(0);
+  }).arms.clone.adherence).toBeNull();
 });

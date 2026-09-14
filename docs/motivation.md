@@ -1,37 +1,27 @@
-# Motivation
+# Why I built Shadowclone
 
-## The problem
+I kept repeating the same preferences to coding agents. How much to change at once. How I wanted code organized. When I wanted a plan before edits. The agent could often do the task, but I still had to explain how I wanted it done.
 
-Developers using Claude Code, Codex, Cursor, or Antigravity re-establish the same context in every new session. Which command verifies a change. Which patterns the repository avoids. How much to touch in one pass. When to ask before acting.
+Instruction files and skills helped. I do not think they are a bad approach. The problem was keeping them current and carrying them between tools. Some instructions reflected an older preference. Others had never been written down because they came up as corrections during ordinary work.
 
-Per-project instruction files help inside one repository. They do not follow a developer across repositories, branches, or agent products, and they record what someone remembered to write down instead of how that person actually works.
+That is the problem I am trying to solve with Shadowclone. It reads the sessions a user explicitly enables, looks for reusable guidance, and keeps an editable profile that can be supplied to their existing coding agent. It can also keep personal skills synchronized. It does not train a new model or turn every past action into an instruction.
 
-## The evidence already on disk
+## What I want it to get right
 
-Agent CLIs write session transcripts as they go. Those transcripts hold the corrections a developer makes, the plans they reject, the commands they interrupt, and the preferences they state in their own words.
+I want to repeat myself less without losing control over what the agent learns. A temporary exception should stay temporary. An interruption should not automatically become a preference. A rule learned in one repository should not quietly appear in an unrelated one.
 
-Shadowclone reads those transcripts and derives engineering preferences from them. It runs no background process and needs no API key, because the data is already on disk and the analysis runs through the developer's own authenticated agent CLI.
+The profile needs to be readable and correctable. I want to see what was learned, change wording I disagree with, and remove guidance that no longer fits. If the profile becomes another large instruction file that I cannot understand or maintain, the project has missed its purpose.
 
-## What it produces
+Normal sessions are the starting point. Delegated work can use the same profile, but I do not want useful guidance to depend on adopting a new agent or running everything through a custom subagent.
 
-A profile of plain Markdown rules under `~/.shadowclone/profile/`, each scoped to the git remote it was learned from. One deterministic compiler turns that profile into the guidance every agent sees, capped at 16 KiB.
+## What the early results tell me
 
-`shadowclone install` delivers the profile to the main agent through native session hooks, so ordinary sessions receive it without anyone selecting a subagent. Subagents and headless worktree runs stay available as options.
+In a small four-task comparison, the profile-equipped setup followed more of the measured preferences than the repository-only baseline. It also scored above the existing skills setup on two tasks and tied on two. That is encouraging, but the sample is small and the judges still made mistakes. The [evaluation write-up](../evals.md) includes the tasks, scores, and those limitations.
 
-## Boundaries
+I do not have evidence for a productivity multiplier or a claim that a profile always beats well-maintained instructions. The useful question is narrower: does it help the agent follow the guidance the user actually wants on the next task? A tie or a loss is worth reporting too.
 
-**Consent per source.** Every capture source is named in `~/.shadowclone/config.toml` and defaults to off. `shadowclone init` is the only thing that turns one on, and it names each source as it does.
+## What I am not willing to trade away
 
-**One egress gate.** `redactSecrets` sits inside the only function that turns a stored pointer into text. Secrets are matched by pattern and by Shannon entropy before anything reaches a model. Tool results, file contents, and thinking blocks never enter distillation at all.
+These sessions can contain sensitive material. Learning has to be opt-in, the derived profile has to stay under the user's control, and model use has to be explicit. Local storage does not mean that analysis stays offline: eligible redacted excerpts go through the selected authenticated agent CLI. Evaluation also exposes the chosen repository snapshot and generated code to that provider.
 
-**Local storage.** The profile is Markdown a developer can read, edit, or delete. The index is a rebuildable SQLite cache of pointers, never captured text. Nothing is uploaded or backed up, and `shadowclone forget --all` removes all of it in one step.
-
-**Approval to act.** Observing, deriving, and drafting run unattended. Anything that sends, commits, pushes, or spends asks first, for each action.
-
-**Managed policy.** An administrator can install an immutable policy at `/Library/Application Support/shadowclone/managed.json` on macOS or `/etc/shadowclone/managed.json` on Linux. It restricts sources, engines, distillation, and the action ceiling across a fleet.
-
-## Measuring whether it helps
-
-`shadowclone eval` generates fresh coding tasks from a repository's current commit and runs each one twice in matched disposable snapshots, once with the profile and once without. Three blinded paired code reviews grade correctness and preference adherence.
-
-The report states task success, adherence lift, paired wins and losses, regressions, and sample size. A run of one task once is labelled as a smoke test and does not support a decision.
+The current system is still early. Redaction is not a guarantee of anonymity, guidance can be wrong, and extra instructions can make an agent worse. I want the project to make those failures visible and easy to correct. That seems more useful than promising a perfect copy of how someone works.

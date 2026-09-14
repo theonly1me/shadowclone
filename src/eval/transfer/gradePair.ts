@@ -1,31 +1,11 @@
 import { redactSecrets } from "../../redact";
-import { type EvaluationArm, evaluationArmOrder } from "./arms";
-import { judgeArms } from "./pairJudge";
-import type {
-  DelegationTask,
-  ModelCall,
-  TransferRun,
-} from "./types";
+import { evaluationArmOrder } from "./arms";
+import { judgeCandidate } from "./pairJudge";
+import type { DelegationTask, ModelCall, TransferRun } from "./types";
 
 export function hasGradeableEvidence(run: TransferRun): boolean {
-  return run.observed !== null &&
-    run.dependencyState !== null &&
-    run.verification.length > 0 &&
-    run.safety.length > 0;
-}
-
-function failedRun(options: {
-  readonly run: TransferRun;
-  readonly error: unknown;
-}): TransferRun {
-  return {
-    ...options.run,
-    failure: redactSecrets({
-      text: options.error instanceof Error
-        ? options.error.message
-        : "Evaluation grading failed",
-    }),
-  };
+  return run.observed !== null && run.dependencyState !== null &&
+    run.verification.length > 0 && run.safety.length > 0;
 }
 
 export async function gradeArms(options: {
@@ -34,42 +14,44 @@ export async function gradeArms(options: {
   readonly call: ModelCall;
   readonly directory: string;
   readonly onVote: (vote: number) => Promise<void>;
+  readonly onRun?: (run: TransferRun) => Promise<void>;
 }): Promise<readonly TransferRun[]> {
-  const byArm = new Map(options.runs.map((run) => [run.arm, run]));
-  const evidence: Record<EvaluationArm, string> = {
-    bare: "",
-    skills: "",
-    clone: "",
-  };
-  for (const arm of evaluationArmOrder) {
-    const observed = byArm.get(arm)?.observed;
-    if (observed === null || observed === undefined) {
-      throw new Error("Evaluation evidence is missing");
+  const runs = evaluationArmOrder.map((arm) => {
+    const run = options.runs.find((candidate) => candidate.arm === arm);
+    if (!run || run.observed === null) throw new Error("Evaluation evidence is missing");
+    return run;
+  });
+  return Promise.all(runs.map(async (run) => {
+    if (run.phase === "complete" && run.failure === null) return run;
+    let current: TransferRun = { ...run, failure: null, failureStage: null };
+    try {
+      const judgment = await judgeCandidate({
+        taskPrompt: options.task.prompt,
+        correctness: options.task.completion,
+        preferences: options.task.preferences,
+        evidence: run.observed ?? "",
+        cwd: options.directory,
+        call: options.call,
+        saved: run.judging,
+        onVote: options.onVote,
+        onCheckpoint: async (judging) => {
+          current = { ...current, judging };
+          await options.onRun?.(current);
+        },
+      });
+      current = {
+        ...current, phase: "complete",
+        correctness: [...run.verification, ...judgment.correctness],
+        preferences: judgment.preferences,
+      };
+    } catch (error) {
+      current = {
+        ...current,
+        failureStage: "judging",
+        failure: redactSecrets({ text: error instanceof Error ? error.message : "Evaluation grading failed" }).slice(0, 800),
+      };
     }
-    evidence[arm] = observed;
-  }
-  try {
-    const judgments = await judgeArms({
-      taskPrompt: options.task.prompt,
-      correctness: options.task.completion,
-      preferences: options.task.preferences,
-      evidence,
-      cwd: options.directory,
-      call: options.call,
-      onVote: options.onVote,
-    });
-    return evaluationArmOrder.flatMap((arm) => {
-      const run = byArm.get(arm);
-      return run
-        ? [{
-            ...run,
-            phase: "complete" as const,
-            correctness: [...run.verification, ...judgments[arm].correctness],
-            preferences: judgments[arm].preferences,
-          }]
-        : [];
-    });
-  } catch (error) {
-    return options.runs.map((run) => failedRun({ run, error }));
-  }
+    await options.onRun?.(current);
+    return current;
+  }));
 }

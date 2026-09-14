@@ -1,4 +1,6 @@
-# Check every change in CI and ship the CLI as a signed release
+# CI and release pipeline: original design
+
+The CI and lint decisions below remain in use. The compiled-archive release proposal was superseded by Release Please and npm publishing; [Contributing](../../CONTRIBUTING.md#releasing) documents the current process.
 
 ## Summary
 
@@ -6,7 +8,7 @@ Every push and pull request runs `bun run typecheck`, `bun run lint`, and `bun t
 
 ## Problem
 
-Nothing checks a change today. `CONTRIBUTING.md` says `bun run typecheck` and `bun test` are "what CI will run", and there is no CI, so the gate holds only while whoever wrote the diff remembers to run it. Six stacked pull requests are open, and the tip of that stack is 107 source files and 82 tests that no machine has ever checked.
+Before this change, the repository had no automated CI gate. Type checking and tests depended on contributors running them locally.
 
 The conventions the project cares about most are the ones no tool checks. A lint pass over the tip of the stack finds `let fileStats;` in `src/observe/cursor.ts`, an implicit `any` that `tsc --noEmit` accepts because TypeScript widens it later. The 200 line file limit, the zero comment rule, and the em-dash ban are enforced by review alone, and review is where an assistant's diff is most likely to be trusted.
 

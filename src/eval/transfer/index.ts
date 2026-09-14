@@ -36,13 +36,13 @@ export async function runTransferEval(
     (transferOptions.tasks === 1 || transferOptions.task !== undefined) &&
       transferOptions.repeat === 1;
   return withEvaluationDeadline({
-    enabled: possibleSingleAttempt,
+    enabled: possibleSingleAttempt || transferOptions.deadlineSeconds !== undefined,
     ...(transferOptions.deadlineSeconds === undefined
       ? {}
       : { durationMs: transferOptions.deadlineSeconds * 1_000 }),
     operation: async ({ disable }) => {
       const setup = await setupTransferEval(transferOptions);
-      if (setup.count !== 1 || setup.repeat !== 1) {
+      if ((setup.count !== 1 || setup.repeat !== 1) && transferOptions.deadlineSeconds === undefined) {
         disable();
       }
       throwIfEvaluationExpired();

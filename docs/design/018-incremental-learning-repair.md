@@ -6,13 +6,13 @@ Profile learning updates what it already knows instead of discarding it. Rules w
 
 ## Problem
 
-Upgrading to the current metadata format destroyed accumulated guidance. `parseCurrent` requires JSON metadata, so every pre-JSON block fell through to `parseLegacy` and was tagged legacy, and `recordLegacyRetirements` marked every legacy block retired on every `writeProfile` call. One write removed 129 of 137 stored rules across 21 files. Nothing warned, and the learn output reported only the rules it had added.
+Upgrading to the current metadata format could destroy accumulated guidance. `parseCurrent` requires JSON metadata, so every pre-JSON block fell through to `parseLegacy` and was tagged legacy, and `recordLegacyRetirements` marked every legacy block retired on every `writeProfile` call. A write could therefore remove existing rules without warning while the output reported only additions.
 
-Learning could not rebuild them. Both selection paths filtered episodes to `now - learningLookback`, a 30-day window, and the worker pruned its processed ledger to the same window. Episodes older than 30 days were unreachable, not merely unprocessed, because the filter moved with the clock and the ledger forgot. One corpus held 3,969 steering episodes, 2,129 of them inside 30 days, and a single manual run could see 60. Manual `learn --deep` was also stateless, so repeated runs reread the same newest episodes and made no progress.
+Learning could not rebuild guidance from older evidence. Both selection paths filtered episodes to `now - learningLookback`, a 30-day window, and the worker pruned its processed ledger to the same window. Episodes older than 30 days were unreachable because the filter moved with the clock and the ledger forgot. A single manual run admitted 60 episodes and was stateless, so repeated runs could reread the same newest episodes without progressing through history.
 
 `learn --session` could not learn from the session it was given. The worker selected the 60 oldest unprocessed episodes first and only then narrowed to the requested session keys. A session that just ended sits at the newest end of the corpus, so the intersection was almost always empty and the run completed having learned nothing.
 
-The `high-entropy-string` redaction rule never measured entropy. It matched any run of 40 or more characters from a class that includes `/` and `_`, so a repository-relative path like `packages/pika/src/collections/chunkByWeight.ts` became one token and was replaced. Evidence reached the model and the evaluation judges with file locations removed, and the two evaluation arms received unequal evidence.
+The `high-entropy-string` redaction rule never measured entropy. It matched any run of 40 or more characters from a class that includes `/` and `_`, so ordinary long repository-relative paths could be replaced as secrets. That removed useful locations from learning and code-review evidence.
 
 ## Prerequisites
 
@@ -32,7 +32,7 @@ A requested session is selected from its own episodes directly. The ledger still
 
 `--max-calls <n>` scales the call ceiling, the time allowance, and the episode ceiling together, preserving the existing per-call ratio at the default of 20. The default run is unchanged at 60 episodes and 10 batches.
 
-The `high-entropy-string` rule reuses `slicedAboveEntropy` with the existing 4.5 bits per character threshold, which the adjacent `shannon-entropy` rule already applies. Repository paths measure 4.00 to 4.16 bits per character and survive. Access keys, base64 secrets, and random tokens measure 4.73 to 5.39 and are still removed.
+The `high-entropy-string` rule reuses `slicedAboveEntropy` with the existing 4.5 bits per character threshold, which the adjacent `shannon-entropy` rule already applies. Tests distinguish low-entropy repository paths from high-entropy token-shaped strings. An entropy threshold does not guarantee that every sensitive string will be recognized.
 
 ## Files
 
@@ -82,7 +82,7 @@ Unit tests cover legacy migration, the activation bar for a migrated rule, migra
 
 Each regression test was mutation-proven by reverting the single condition it guards, printing the reverted line, observing the focused test fail, restoring, and observing it pass.
 
-Migration was verified end to end against a copy of a real profile directory: 137 stored rules, all converted from legacy to current format, and a compiled profile identical before and after at 30 rules and 16,377 bytes.
+Migration validation and regression fixtures check that legacy-to-current conversion preserves stored guidance and compiled output.
 
 ## Open questions
 

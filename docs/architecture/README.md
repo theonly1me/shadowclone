@@ -1,10 +1,10 @@
 # Architecture
 
-Shadowclone turns the user's engineering taste into a portable profile and skill library for the main coding agent and every delegated clone. Consented local transcripts feed learning, so sessions produced by clones can improve the profile they all inherit.
+Shadowclone maintains an editable engineering-preference profile and a portable personal skill library for existing coding agents. Consented local transcripts supply reusable user guidance. Ordinary sessions and supported delegated runs receive the same scoped profile; selected useful sessions can feed later learning.
 
-It reads only named, opt-in local sources. Eligible excerpts pass through `resolveRedacted` before they reach the user's own authenticated agent CLI. It has no service, API key, or telemetry. The profile is editable Markdown, and `shadowclone forget --all` removes stored state and recorded integrations.
+It reads named, opt-in sources. Eligible captured excerpts pass through `resolveRedacted` before they reach the user's authenticated agent CLI. Evaluation separately exposes an authorized repository snapshot and unredacted generated code to that provider. Shadowclone has no service, API key, or telemetry. The profile is editable Markdown, and `shadowclone forget --all` removes stored state and recorded integrations while preserving unrelated content and refusing conflicting edits.
 
-Claude Code's `/doctor` and similar first-party tools rightsize one vendor's instruction files from text. They cannot learn from the user's past corrections across vendors. The suggested rule to "match the surrounding code's comment density" would lose this repository's zero-comments preference.
+The profile is additional model context, not a trained model or a guarantee of adherence. The [early evaluation report](../../evals.md) compares repository-only, personal-context, and profile-equipped setups and records the limitations of that evidence.
 
 ## Documents
 
@@ -18,9 +18,9 @@ Claude Code's `/doctor` and similar first-party tools rightsize one vendor's ins
 | `06-roadmap.md` | Build order and what is deliberately not built yet |
 | `07-enterprise.md` | Organization boundaries, and what to hand a security reviewer |
 | `08-landscape.md` | What already exists, the gap, and what to borrow from prior work |
-| `09-evaluation.md` | Fresh current-HEAD evaluation against a matched baseline with quantified lift |
+| `09-evaluation.md` | Three-arm current-HEAD comparison, source-backed judging, recovery, and reporting |
 
-Per-change design docs live in `docs/design/`, one file per change, written against `docs/design/template.md` and listed chronologically in `docs/design/README.md`.
+Per-change design records live in `docs/design/`. They explain decisions at the time of each change; later records can supersede them. This architecture directory describes current behavior.
 
 ## The loop
 
@@ -66,6 +66,10 @@ flowchart LR
     Compiler --> Eval
     PortableSkills --> Eval
     AgentContext[consented personal instructions and memory] --> Eval
+    Eval --> Evidence[private code evidence]
+    Evidence --> Judge[source-backed code-only judging]
+    Judge --> Votes[checkpointed votes and pending work]
+    Votes --> Results[completion and adherence reported separately]
     Compiler --> Install[repository install]
     Install --> Installations[installation manifest]
     Installations --> Uninstall[uninstall and wipe]
@@ -91,7 +95,7 @@ flowchart LR
 | install | `src/cli/install.ts` | Writes repository artifacts and records them for removal |
 | native delivery | `src/integrations/` | Preserves a stable native pointer, injects live scoped context, merges hooks, and tracks ownership |
 | dispatch | `src/dispatch/` | Runs a task in a worktree and leaves a receipt |
-| eval | `src/eval/transfer/` | Compares repository-native agents with the frozen portable environment on fresh code tasks |
+| eval | `src/eval/transfer/` | Compares Bare, Skills, and Clone on fresh tasks with saved criterion votes and separate correctness grading |
 | engine | `src/engine/` | The one way a model gets called, by any stage |
 
 `src/cli/` coordinates the stages. `src/engine/` is the shared process boundary for distillation, dispatch, and evaluation. Captured text comes into existence only through `resolveRedacted` before it reaches `distill` or repository guidance import, which keeps every materialization path auditable.
@@ -102,21 +106,13 @@ The first version of this project read `~/.zsh_history`. Agent transcripts becam
 
 Shell history records what a person typed. It shows `git status`, `bun test`, and a lot of `cd`. It does not show why they chose an approach, what they rejected, how they verify work, or what they refuse to let an agent do.
 
-Most people are not heavy terminal users, so for most people the file is close to empty.
-
-Agent transcripts record the opposite: a turn by turn recording of a person steering an agent, which is the job the clone has to do.
-
-On the machine this was designed against, `~/.claude/projects/` holds 372 transcripts, 562 MB, 175,218 records and 43,022 tool calls across 30 active days. `~/.claude/history.jsonl` holds 742 prompts in the user's own words. `~/.codex/sessions/` holds the same for Codex.
-
-Every Claude Code and Codex user is producing that corpus and nothing reads it.
+Agent transcripts can include the explanation behind a correction or an approved approach. Shadowclone assesses that steering for durable guidance; it does not treat every interaction as a preference.
 
 ## Why the user's own subscription
 
 Shadowclone calls no model API of its own. It shells out to `claude`, `codex`, or `cursor-agent`, which are already installed and already authenticated.
 
-This is a product decision before it is a technical one. Asking a new user to paste an API key is the single largest drop off in a local AI tool, and it puts the maintainer on the hook for other people's inference bills. Driving the installed CLI removes both. If you can run `claude`, you can run shadowclone.
-
-It also gives the privacy statement: shadowclone sends nothing anywhere your own agent is not already sending it, under your own account. `03-engine.md` covers the abstraction and the fallbacks, including a planned local path through Ollama for people who want zero egress.
+Using an installed authenticated CLI avoids a separate Shadowclone account or API-key setup. Calls still consume provider quota and expose the approved input to that provider. Existing authentication does not itself grant permission to analyze another repository or transcript. `03-engine.md` covers the implemented runners and the API or local-endpoint paths that remain unimplemented.
 
 ## What is settled and what is not
 

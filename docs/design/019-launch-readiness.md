@@ -6,9 +6,9 @@ Shadowclone learns a developer's engineering taste from named local sources, del
 
 ## Problem
 
-Claude subagents previously relied on an optional static repository agent file. A spawned subagent could miss newer profile changes, and a second session-start path could create another learning request. Transfer evaluation rebuilt the same repository tree for each arm, then ran both arms and three judge votes in sequence. One measured task on a 24,393-file repository took 402 seconds: 97 seconds for task preparation, 74 for snapshots, 81 for coding, and 146 for judging. Distillation took 77 seconds per 20-episode batch with Codex `gpt-5.6-luna` at medium effort. The old setup then asked many source and installation questions and told users to run `learn` afterward.
+Claude subagents previously relied on an optional static repository agent file. A spawned subagent could miss newer profile changes, and a second session-start path could create another learning request. Transfer evaluation rebuilt the same repository tree for each arm and ran independent work sequentially. Distillation also serialized independent batches. The old setup asked many source and installation questions and told users to run `learn` afterward.
 
-Generic instruction cleanup does not preserve personal taste. Claude Code's `/doctor` works from one vendor's files, with no record of corrections across sessions. Anthropic's suggested rule to "match the surrounding code's comment density" would lose an explicit zero-comments preference. Multiple clones need the same user-specific guidance, and their transcripts should feed subsequent learning.
+Generic instruction cleanup can change the meaning of an explicit preference. Multiple agents need consistent scoped guidance, while later user corrections need a deliberate learning path that preserves source consent.
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ Existing source flags default off, and `detectOnboardingPresence` reduces each c
 
 Claude Code installs a `SubagentStart` hook alongside `SessionStart` and `SessionEnd`. The start handler returns the event name from its payload, falling back to `SessionStart`. A subagent receives only the compiled profile. It cannot create a session-learning request. Codex, Cursor, and Antigravity hook sets remain unchanged.
 
-Transfer evaluation builds one validated snapshot template for each repository and commit, then clones it for isolated arms. Each clone includes `.git` and is cleaned independently. Copy-on-write is attempted first on macOS or Linux, with a normal copy as fallback. The evaluator disposes templates at the end of a run. Baseline and clone arms execute concurrently, settle before one receipt write, and keep failures resumable. Three judge votes also execute concurrently; the middle vote still swaps candidate order and majority grading stays the same.
+Transfer evaluation builds one validated snapshot template for each repository and commit, then clones it for isolated arms. Each clone includes `.git` and is cleaned independently. Copy-on-write is attempted first on macOS or Linux, with a normal copy as fallback. The evaluator disposes templates at the end of a run. Independent arms execute concurrently. [Record 020](020-preference-judging.md) supersedes the original paired judging with three-arm, candidate-independent batches and per-batch recovery.
 
 Distillation runs up to eight independent reconciliation batches at once. It collects their outputs in input order and applies reconciliation sequentially. Rule consolidation remains one call per origin after reconciliation. The shared learning execution enforces the same total call count and deadline.
 
@@ -63,7 +63,7 @@ A cached eval template uses disk space until its evaluation ends. Copy-on-write 
 
 ## Testing
 
-Focused tests cover Claude hook payloads, subagent learning-request isolation, install and uninstall ownership, snapshot isolation and symlink rejection, both eval arms and resumable failure, judge majority, concurrent batch order and rejection, three default prompts, absent sources staying off, advanced setup, and first-pass completion. Each new regression test must fail under a targeted mutation and pass after restoration. Run `bun run check` for typecheck, lint, and tests. Build and transfer evaluation follow only after implementation review; this record claims no eval outcome or plugin installation verification.
+Focused tests cover Claude hook payloads, subagent learning-request isolation, install and uninstall ownership, snapshot isolation and symlink rejection, independent eval arms and resumable failure, judge majority, concurrent batch order and rejection, three default prompts, absent sources staying off, advanced setup, and first-pass completion. Each new regression test must fail under a targeted mutation and pass after restoration. Run `bun run check` for typecheck, lint, and tests. Subsequent exploratory evaluation results and their limits are recorded in [evals.md](../../evals.md); they do not establish full provider or plugin-installation qualification.
 
 ## Open questions
 

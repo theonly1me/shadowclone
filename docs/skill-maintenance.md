@@ -73,4 +73,4 @@ Validation checks required YAML fields, duplicate top-level metadata, directory/
 
 `shadowclone forget --all` restores original maintained user skills, removes recorded companions, and removes local maintenance state. Edited maintained files stop cleanup so ownership is not discarded. Original plugin packages and user transcripts remain untouched.
 
-Transfer eval restores original user skill text and routing and excludes generated companions from both arms. This prevents maintained Shadowclone additions from contaminating the baseline. Live provider discovery and the usefulness of proposed changes still require authenticated evaluation.
+Transfer evaluation restores original user skill text and routing and excludes generated companions from each repository snapshot. The skills and clone arms receive the same frozen personal context; only clone receives the compiled profile. This measures profile contribution separately from existing guidance. Live provider discovery and the usefulness of proposed skill changes need their own validation.

@@ -86,10 +86,10 @@ test("retains only the vendor prefix of a recognized token", () => {
 
 test("retains repository relative paths that only look high entropy", () => {
   const paths = [
-    "packages/pika/src/collections/chunkByWeight.ts",
-    "packages/pika/src/collections/chunkByWeight.test.ts",
-    "apps/apex-backend/src/controllers/runDirector.ts",
-    "packages/domains/src/scheduling/backoffDelays.ts",
+    "packages/collections/src/operations/groupBySize.ts",
+    "packages/collections/src/operations/groupBySize.test.ts",
+    "apps/service/src/controllers/taskCoordinator.ts",
+    "packages/utilities/src/scheduling/retryDelays.ts",
     "src/eval/transfer/candidateValidation.test.ts",
   ];
 

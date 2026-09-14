@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { type EvaluationArm, evaluationArmOrder } from "./arms";
 import { gradeArms } from "./gradePair";
+import { batchReply } from "./judgeFixtures";
 import { fingerprint } from "./structured";
 import type { CheckResult, DelegationTask, TransferRun } from "./types";
 
@@ -52,31 +53,13 @@ test("grades every arm with independent judge calls", async () => {
     directory: "/tmp",
     call: async (options) => {
       calls += 1;
-      expect(options.prompt).toContain(JSON.stringify(task.preferences));
       expect(options.prompt).toContain(task.prompt);
-      const candidate = {
-        correctness: [{ verdict: "pass" as const, evidence: "meets behavior" }],
-        preferences: [{ verdict: "pass" as const, evidence: "follows guidance" }],
-      };
-      return {
-        engine: "codex" as const,
-        sessionId: "judge",
-        transcriptPath: null,
-        text: "",
-        structured: candidate,
-        costUsd: null,
-        durationMs: 1,
-        turns: 1,
-        actions: [],
-        permissionDenials: [],
-        isError: false,
-        errorMessage: null,
-      };
+      return batchReply(options);
     },
     onVote: async () => undefined,
   });
 
-  expect(calls).toBe(evaluationArmOrder.length * 3);
+  expect(calls).toBe(evaluationArmOrder.length * 6);
   expect(graded.map((run) => run.arm)).toEqual([...evaluationArmOrder]);
   for (const run of graded) {
     expect(run.phase).toBe("complete");

@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { command } from "./command";
 import { prepareFreshTasks } from "./freshTasks";
+import { compileCodeRubric } from "./codeRubric";
 import type { ModelCall } from "./types";
 
 async function repositoryFixture() {
@@ -78,7 +79,7 @@ test("generates additive coding work from frozen personal context", async () => 
         prompt:
           "Create a new parser utility module and focused tests in the utilities package.",
         completion: ["The parser handles empty and populated input"],
-        preferenceSources: ["skills/0/clean-code/SKILL.md"],
+        preferenceSources: ["profile.md"],
       }],
     });
   };
@@ -91,22 +92,24 @@ test("generates additive coding work from frozen personal context", async () => 
       profile: "Use complete names.",
       context: [{
         relativePath: "skills/0/clean-code/SKILL.md",
-        content: ["# Clean code", ...requirements].join("\n"),
+        content: [
+          "---", "name: clean-code",
+          "description: Load this skill first on every task.",
+          "---", "# Clean code", ...requirements,
+        ].join("\n"),
       }],
       call,
     });
     expect(contextInstalled).toBeTrue();
     expect(prompt).toContain("Require only new implementation and test files");
-    expect(prompt).toContain("Select every applicable whole preference source");
+    expect(prompt).toContain("rubric is compiled independently");
     expect(prompt).not.toContain("Select three to five");
-    expect(tasks[0]?.preferences).toEqual(requirements.map((requirement, index) => ({
-      requirement,
-      source: {
-        relativePath: "skills/0/clean-code/SKILL.md",
-        heading: "Clean code",
-        line: index + 2,
-      },
-    })));
+    expect(tasks[0]?.preferences).toEqual(compileCodeRubric([{
+      relativePath: "skills/0/clean-code/SKILL.md",
+      content: ["---", "name: clean-code", "description: Load this skill first on every task.", "---", "# Clean code", ...requirements].join("\n"),
+    }]));
+    expect(tasks[0]?.preferences.map((check) => check.rubric?.id)).toContain("options-object");
+    expect(tasks[0]?.preferences.map((check) => check.rubric?.id)).toContain("zero-comments");
   } finally {
     await rm(repository.directory, { recursive: true, force: true });
   }

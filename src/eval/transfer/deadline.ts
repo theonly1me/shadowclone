@@ -1,11 +1,20 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-const deadlineSignals = new AsyncLocalStorage<AbortSignal>();
+const deadlineSignals = new AsyncLocalStorage<{
+  readonly signal: AbortSignal;
+  readonly finalizers: Set<() => Promise<void>>;
+}>();
 
 export const initialEvaluationDeadlineMs = 7 * 60 * 1000;
 
 export function evaluationSignal(): AbortSignal | undefined {
-  return deadlineSignals.getStore();
+  return deadlineSignals.getStore()?.signal;
+}
+
+export function onEvaluationDeadline(finalize: () => Promise<void>): () => void {
+  const context = deadlineSignals.getStore();
+  context?.finalizers.add(finalize);
+  return () => { context?.finalizers.delete(finalize); };
 }
 
 export function evaluationDeadlineError(): Error {
@@ -28,6 +37,7 @@ export async function withEvaluationDeadline<Result>(options: {
   }
 
   const controller = new AbortController();
+  const finalizers = new Set<() => Promise<void>>();
   const durationMs = options.durationMs ?? initialEvaluationDeadlineMs;
   const cleanupAllowanceMs = Math.min(5_000, Math.floor(durationMs / 4));
   const abortTimeout = setTimeout(
@@ -37,7 +47,11 @@ export async function withEvaluationDeadline<Result>(options: {
   let hardTimeout: ReturnType<typeof setTimeout> | undefined;
   const hardLimit = new Promise<never>((_, reject) => {
     hardTimeout = setTimeout(
-      () => reject(evaluationDeadlineError()),
+      () => {
+        Promise.all([...finalizers].map((finalize) => finalize()))
+          .then(() => reject(evaluationDeadlineError()))
+          .catch(reject);
+      },
       durationMs,
     );
   });
@@ -47,7 +61,7 @@ export async function withEvaluationDeadline<Result>(options: {
   };
   try {
     const operation = deadlineSignals.run(
-      controller.signal,
+      { signal: controller.signal, finalizers },
       () => options.operation({ disable }),
     );
     const result = await Promise.race([operation, hardLimit]);

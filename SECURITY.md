@@ -1,6 +1,6 @@
 # Security
 
-shadowclone reads the AI coding sessions on your disk, so a bug here leaks source code, hostnames, or credentials that belong to you or your employer. A report about that is the most valuable thing this project can receive.
+Shadowclone processes consented coding sessions and applies derived guidance. Report failures in consent, redaction, scope, or execution controls privately.
 
 ## Reporting
 
@@ -10,8 +10,8 @@ Do not open a public issue for anything in the list below.
 
 ## What counts
 
-- A secret, a file's contents, or a tool result reaching a model, a log line, an error message, or a committed fixture.
-- A capture source that gets read without the config flag naming it, including reading a path only to learn whether it exists.
+- Raw captured secrets or excluded tool results reaching learning, logs, errors, or committed fixtures; or any data reaching a provider outside an authorized execution boundary.
+- Source contents read without consent, or pre-consent discovery exceeding the bounded onboarding presence check documented in `docs/architecture/01-capture.md`.
 - A rule learned in one organization's repository compiling into a session on another organization's repository.
 - Anything that sends, posts, commits, pushes, deletes, or spends without approval for that specific action.
 - User configuration widening a limit that root owned managed policy set.
@@ -24,9 +24,4 @@ A string that gets past redaction is a redaction gap, and it belongs in a public
 
 Before 1.0, only the newest release gets fixes.
 
-Release archives are built by `.github/workflows/release.yml` from a tagged commit and carry a build provenance attestation, so a download can be checked against the workflow and commit that produced it:
-
-```bash
-gh attestation verify shadowclone-darwin-arm64.tar.gz --repo theonly1me/shadowclone
-shasum -a 256 -c SHA256SUMS.txt
-```
+The current release workflow publishes `@shadowclone/cli` to npm with provenance after CI and maintainer approval. Check the package's provenance against this repository and `.github/workflows/release.yml`. See [Contributing](CONTRIBUTING.md#releasing) for the release process.

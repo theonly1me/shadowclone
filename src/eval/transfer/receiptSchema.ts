@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { judgingSchema } from "./judgingSchema";
 import {
   checkVerdictSchema,
   dependencyModeSchema,
@@ -44,6 +45,14 @@ const taskSchema = z.strictObject({
   preferences: z.array(
     z.strictObject({
       requirement: z.string().min(1),
+      rubric: z.strictObject({
+        version: z.union([z.literal(1), z.literal(2)]),
+        id: z.string().min(1),
+        fingerprint: z.string().min(1),
+        interpretation: z.string().min(1).optional(),
+        scope: z.literal("changed-code-and-tests"),
+        override: z.string(),
+      }).optional(),
       source: z.strictObject({
         relativePath: z.string().min(1),
         heading: z.string(),
@@ -72,6 +81,8 @@ const runSchema = z.strictObject({
   phase: z.enum(["evidence", "complete"]),
   sessionId: z.string().nullable(),
   failure: z.string().nullable(),
+  failureStage: z.enum(["execution", "judging"]).nullable().optional(),
+  judging: judgingSchema.optional(),
   durationMs: z.number().nonnegative(),
   costUsd: z.number().nullable(),
   dependencyState: dependencyStateSchema.nullable(),
@@ -105,7 +116,7 @@ const progressSchema = z.strictObject({
 });
 
 const preparedSchema = z.strictObject({
-  schemaVersion: z.literal(11),
+  schemaVersion: z.literal(12),
   evalId: z.uuid(),
   suiteId: z.uuid(),
   repository: z.string().min(1),
@@ -125,9 +136,9 @@ const preparedSchema = z.strictObject({
 });
 
 export const receiptSchema = z.strictObject({
-  schemaVersion: z.literal(11),
+  schemaVersion: z.literal(12),
   evalId: z.uuid(),
-  status: z.enum(["running", "pass", "fail", "error"]),
+  status: z.enum(["running", "complete", "pass", "fail", "error"]),
   preparedFingerprint: z.string().min(1),
   runs: z.array(runSchema),
   progress: progressSchema.nullable(),

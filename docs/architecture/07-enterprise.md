@@ -8,7 +8,7 @@ A profile learned from every repo you touch mixes employers, clients, and person
 
 "It runs on your own subscription" does not answer that. The subscription is not the boundary anyone cares about. The organization is.
 
-Three mechanisms address it, and they are independent, so defeating one does not defeat the others.
+Source scoping, input eligibility, and managed policy provide separate controls. Their implementation and limits need to be reviewed together.
 
 ## 1. Origin scoping
 
@@ -23,12 +23,12 @@ Every rule records the git remote origins it was learned from. The implementatio
     github.com--acme/           only ever compiled into acme repos
       engineering.md
       projects/platform.md
-    github.com--atchyut/
+    github.com--example-personal/
       engineering.md
   .rejected
 ```
 
-Promotion to `global/` happens two ways. A rule observed in **two or more distinct organizations** promotes automatically, because a habit that survives across employers is the person's, not the employer's. Anything else requires the user to promote it by hand, one rule at a time.
+Reconciliation allows global scope only from assessed explicit global guidance. Repeated observations under two owners do not automatically promote a rule. Users can also record global preferences directly. Repository-specific learning remains in the exact project scope when that identity is available.
 
 Demotion is always available and always wins. A rule in `global/` that the user moves back into an org directory stays there.
 
@@ -87,18 +87,18 @@ The accurate claims, each of which can be checked against the source.
 
 There is no shadowclone server, no shadowclone account, and no shadowclone API key. The project has nowhere to receive data.
 
-Model requests go to the agent CLI the user has already installed and authenticated, on their own account and their organization's existing plan. Shadowclone introduces no new vendor, no new contract, and no new trust boundary.
+Model requests use the selected authenticated agent CLI. That account and provider must be approved for the material being processed. Existing authentication is not permission to analyze every local transcript or repository, and Shadowclone adds a new workflow that a security reviewer should assess.
 
-Everything stored is local plain text under `~/.shadowclone/`, readable in an editor and removable with `shadowclone forget --all`.
+Derived state stays local. The profile is Markdown; the disposable index is SQLite, and other ledgers and receipts use structured files. `shadowclone forget --all` removes stored state and recorded integrations while preserving unrelated content and refusing conflicting edits.
 
-Third-party data in tool results is never read, so it is never sent anywhere by this tool.
+Tool-result payloads are excluded from transcript learning. This is not a blanket guarantee about repository evaluation or dispatch: those workflows expose an explicitly chosen repository snapshot or worktree to the provider, and evaluation sends generated code to judges without redaction.
 
-One organization's derived rules are never injected into another organization's session.
+Owner-scoped and project-scoped rules are not compiled into a different matching scope. Explicit global guidance is shared by design. Remote ownership is a coarse technical identity, not a verified legal boundary.
 
 An administrator can disable it entirely with a root-owned file.
 
 ## What is not claimed
 
-Shadowclone does not make a machine more private than it already is, and it is designed not to make it less private. The transcripts it reads exist whether or not it is installed, written by tools the organization already approved. Uninstalling shadowclone does not remove them.
+Shadowclone does not guarantee anonymity or eliminate the risks of model processing. Original transcripts remain under their providers' control after uninstall. Administrators must evaluate source consent, global guidance, provider access, and local retention for their deployment.
 
-It cannot make an organization compliant with anything. Compliance is a property of a deployment and a contract. What this design offers is a system that is cheap to audit and easy to constrain, which is what a reviewer actually needs in order to say yes.
+The project does not claim regulatory compliance. That depends on the deployment and its agreements. This document describes controls and limitations for a reviewer to verify.

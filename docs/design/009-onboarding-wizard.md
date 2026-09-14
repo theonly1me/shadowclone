@@ -1,5 +1,7 @@
 # Onboarding wizard
 
+This describes the detailed wizard, now available through advanced setup. [Design 019](019-launch-readiness.md) replaced default onboarding with three grouped consent questions and a bounded first learning pass.
+
 ## Summary
 
 Make `shadowclone init` establish a declared behavioral profile before it asks for capture consent, and add `shadowclone wizard` for deliberate reruns. Onboarding uses package-owned seed preferences and Agent Skills, asks only about capture sources with local data, and never reads an existing rules file or transcript before consent.

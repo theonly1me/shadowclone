@@ -1,41 +1,34 @@
 import { z } from "zod";
-import { checkVerdictSchema, preferenceVerdictSchema } from "./structured";
 
-const correctnessCheck = z.strictObject({
-  verdict: checkVerdictSchema,
-  evidence: z.string().min(1),
+export const batchSchema = z.strictObject({
+  checks: z.array(z.strictObject({
+    id: z.string().min(1),
+    verdict: z.enum(["pass", "fail"]),
+    evidence: z.string().min(1).max(800),
+  })).min(1).max(8),
 });
 
-export const candidateSchema = z.strictObject({
-  correctness: z.array(correctnessCheck),
-  preferences: z.array(correctnessCheck.extend({
-    verdict: preferenceVerdictSchema,
-  })),
-});
-
-export type CandidateVote = z.infer<typeof candidateSchema>;
-
-function checksSchema(verdicts: readonly string[]) {
+export function batchOutputSchema(identifiers: readonly string[]) {
   return {
-    type: "array",
-    items: {
-      type: "object",
-      additionalProperties: false,
-      required: ["verdict", "evidence"],
-      properties: {
-        verdict: { type: "string", enum: verdicts },
-        evidence: { type: "string", minLength: 1 },
+    type: "object",
+    additionalProperties: false,
+    required: ["checks"],
+    properties: {
+      checks: {
+        type: "array",
+        minItems: identifiers.length,
+        maxItems: identifiers.length,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["id", "verdict", "evidence"],
+          properties: {
+            id: { type: "string", enum: identifiers },
+            verdict: { type: "string", enum: ["pass", "fail"] },
+            evidence: { type: "string", minLength: 1, maxLength: 800 },
+          },
+        },
       },
     },
   } as const;
 }
-
-export const candidateOutputSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["correctness", "preferences"],
-  properties: {
-    correctness: checksSchema(["pass", "fail"]),
-    preferences: checksSchema(["pass", "fail", "not-applicable"]),
-  },
-} as const;

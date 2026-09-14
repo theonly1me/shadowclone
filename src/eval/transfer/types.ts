@@ -5,6 +5,7 @@ import type {
 } from "../../engine";
 import type { ProjectPaths } from "../../paths";
 import type { EvaluationArm } from "./arms";
+import type { JudgingState } from "./judgeTypes";
 
 export const dependencyModes = ["current"] as const;
 export type DependencyMode = (typeof dependencyModes)[number];
@@ -36,6 +37,14 @@ export type TransferOptions = {
 
 export type PreferenceCheck = {
   readonly requirement: string;
+  readonly rubric?: {
+    readonly version: 1 | 2;
+    readonly id: string;
+    readonly fingerprint: string;
+    readonly interpretation?: string;
+    readonly scope: "changed-code-and-tests";
+    readonly override: string;
+  };
   readonly source: {
     readonly relativePath: string;
     readonly heading: string;
@@ -110,7 +119,7 @@ export type EvaluationSuite = {
 };
 
 export type PreparedEval = Omit<EvaluationSuite, "schemaVersion"> & {
-  readonly schemaVersion: 11;
+  readonly schemaVersion: 12;
   readonly evalId: string;
   readonly engine: EngineId;
   readonly model: string;
@@ -130,6 +139,8 @@ export type TransferRun = {
   readonly phase: "evidence" | "complete";
   readonly sessionId: string | null;
   readonly failure: string | null;
+  readonly failureStage?: "execution" | "judging" | null;
+  readonly judging?: JudgingState;
   readonly durationMs: number;
   readonly costUsd: number | null;
   readonly dependencyState: DependencyState | null;
@@ -141,9 +152,9 @@ export type TransferRun = {
 };
 
 export type TransferReceipt = {
-  readonly schemaVersion: 11;
+  readonly schemaVersion: 12;
   readonly evalId: string;
-  readonly status: "running" | "pass" | "fail" | "error";
+  readonly status: "running" | "complete" | "pass" | "fail" | "error";
   readonly preparedFingerprint: string;
   readonly runs: readonly TransferRun[];
   readonly progress: EvaluationProgress | null;
