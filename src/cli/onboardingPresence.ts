@@ -1,4 +1,4 @@
-import { opendir } from "node:fs/promises";
+import { lstat, opendir } from "node:fs/promises";
 import path from "node:path";
 import type { ProjectPaths } from "../paths";
 
@@ -47,6 +47,25 @@ async function anyFileHasContent(
   return (await Promise.all(filePaths.map(fileHasContent))).some(Boolean);
 }
 
+async function repositoryFileExists(filePath: string): Promise<boolean> {
+  const metadata = await lstat(filePath).catch(() => null);
+  return metadata !== null && !metadata.isSymbolicLink();
+}
+
+async function repositorySkillRootHasEntry(options: {
+  readonly workingDirectory: string;
+  readonly rootName: string;
+}): Promise<boolean> {
+  const parentPath = path.join(options.workingDirectory, options.rootName);
+  const parentMetadata = await lstat(parentPath).catch(() => null);
+  if (!parentMetadata?.isDirectory()) {
+    return false;
+  }
+  const rootPath = path.join(parentPath, "skills");
+  const rootMetadata = await lstat(rootPath).catch(() => null);
+  return rootMetadata?.isDirectory() === true && await directoryHasEntry(rootPath);
+}
+
 async function hasRepositoryGuidance(
   workingDirectory: string,
 ): Promise<boolean> {
@@ -54,7 +73,7 @@ async function hasRepositoryGuidance(
   const rootFileExists = (
     await Promise.all(
       filenames.map((filename) =>
-        Bun.file(path.join(workingDirectory, filename)).exists(),
+        repositoryFileExists(path.join(workingDirectory, filename)),
       ),
     )
   ).some(Boolean);
@@ -63,8 +82,8 @@ async function hasRepositoryGuidance(
   }
   return (
     await Promise.all([
-      directoryHasEntry(path.join(workingDirectory, ".claude", "skills")),
-      directoryHasEntry(path.join(workingDirectory, ".agents", "skills")),
+      repositorySkillRootHasEntry({ workingDirectory, rootName: ".claude" }),
+      repositorySkillRootHasEntry({ workingDirectory, rootName: ".agents" }),
     ])
   ).some(Boolean);
 }
