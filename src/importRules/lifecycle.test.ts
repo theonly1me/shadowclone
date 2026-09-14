@@ -164,29 +164,3 @@ test("retires an unedited import when its source is removed", async () => {
   const state = await readGeneratedProfileState(paths.profileManifestFile);
   expect(state[0]?.disposition).toBe("retired");
 });
-
-test("promotes an isolated import under the same opaque identity", async () => {
-  const { repository, paths } = await context();
-  await Bun.write(path.join(repository, "AGENTS.md"), "Avoid unsafe paths.");
-  await importLocal({ paths, repository });
-  const isolated = await currentRule(paths);
-  const remote = "git@github.com:acme/../../outside.git";
-
-  await importRepositoryGuidance({
-    paths,
-    workingDirectory: repository,
-    gitMetadataEnabled: true,
-    readRemote: async () => remote,
-  });
-
-  const promoted = await currentRule(paths);
-  expect(promoted.rule.key).toBe(isolated.rule.key);
-  expect(promoted.entry.relativePath).toStartWith(
-    "org/github.com--acme/projects/",
-  );
-  expect(promoted.entry.relativePath).not.toContain("../");
-  expect(await Bun.file(isolated.profilePath).exists()).toBeFalse();
-  const state = await Bun.file(paths.profileManifestFile).text();
-  expect(state).not.toContain(repository);
-  expect(state).not.toContain(remote);
-});

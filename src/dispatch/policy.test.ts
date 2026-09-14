@@ -18,7 +18,7 @@ test("normalizes a remote without storing credentials", () => {
     profileFileName: "platform--39e87693b281388d",
     origin: {
       id: "github.com/acme",
-      directoryName: "github.com--acme",
+      directoryName: "github.com--acme--936913df4a5c268b",
       promotable: true,
     },
   });
@@ -53,7 +53,8 @@ test("repo policy and per-run approval are both required", () => {
 
   expect(withoutApproval.allowedTools).not.toContain("Bash(git push:*)");
   expect(approved.allowedTools).not.toContain("Bash(git push:*)");
-  expect(approved.allowedTools).toContain("Bash(gh pr create --draft:*)");
+  expect(approved.allowedTools).not.toContain("Bash(gh pr create --draft:*)");
+  expect(approved.disallowedTools).toContain("Bash(gh pr create --draft:*)");
   expect(approved.grantedActions).toEqual(["push", "pr-draft"]);
   expect(approved.maxBudgetUsd).toBe(3);
   expect(approved.permissionMode).toBe("dontAsk");

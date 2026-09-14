@@ -124,7 +124,7 @@ test("keeps captured text behind resolveRedacted", async () => {
   const prompt = events.find((event) => event.kind === "user-prompt");
   expect(prompt?.textRef).not.toBeNull();
   const text = prompt?.textRef
-    ? await resolveRedacted({ ref: prompt.textRef })
+    ? await resolveRedacted({ ref: prompt.textRef, roots: [path.dirname(prompt.textRef.sourcePath)] })
     : "";
   expect(text).not.toContain(plantedSecret);
   expect(text).toContain("[redacted:llm-api-key]");

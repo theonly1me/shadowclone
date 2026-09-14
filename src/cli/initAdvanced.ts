@@ -10,6 +10,7 @@ import { importRepositoryGuidance } from "../importRules";
 import { type ProjectPaths, projectPaths } from "../paths";
 import type { GitRemoteReader } from "../signal";
 import type { SeedLibrary } from "../skills";
+import { repairOwnedTree } from "../storage/repair";
 import {
   detectOnboardingPresence,
   type OnboardingCaptureSourceId,
@@ -137,6 +138,7 @@ export async function initializeAdvanced(options: InitializeAdvancedOptions = {}
   }
 
   await writeConfig({ config, configPath });
+  await repairOwnedTree(paths.shadowcloneDirectory);
   if (importEnabled) {
     const imported = await importRepositoryGuidance({
       paths,

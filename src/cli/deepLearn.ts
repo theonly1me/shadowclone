@@ -1,3 +1,4 @@
+import { captureRoots } from "../redact";
 import type { ManagedPolicy } from "../config";
 import {
   distillSignals,
@@ -125,6 +126,7 @@ export async function runDeepLearning(options: {
   const normalized = normalizeExplicitCandidates(storedProfile);
   const result = await distillSignals({
     signals: options.signals,
+    sourceRoots: captureRoots(options.paths),
     runner,
     engine,
     limits,

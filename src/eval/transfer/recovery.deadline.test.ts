@@ -25,7 +25,7 @@ test("hard deadline persists timeout and checkpoints even when the judge ignores
         },
       }),
     })).rejects.toThrow("wall-clock limit");
-    const receiptPath = path.join(directory, "receipt.json");
+    const receiptPath = path.join(directory, "state.json");
     const frozen = await Bun.file(receiptPath).text();
     const saved = readReceipt(frozen);
     expect(saved.status).toBe("error");

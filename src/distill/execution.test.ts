@@ -12,7 +12,7 @@ const evidenceText = "The user asked for the smaller change.";
 function origin(): OriginScope {
   return {
     id: "github.com/acme",
-    directoryName: "github.com--acme",
+    directoryName: "github.com--acme--936913df4a5c268b",
     promotable: true,
   };
 }

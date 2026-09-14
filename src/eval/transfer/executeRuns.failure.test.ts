@@ -103,12 +103,12 @@ test("a failed arm leaves every completed run in a resumable receipt", async () 
       },
     })).rejects.toThrow("Resume with --eval-id");
     expect(calls).toHaveLength(3);
-    const saved = readReceipt(await Bun.file(path.join(directory, "receipt.json")).text());
+    const saved = readReceipt(await Bun.file(path.join(directory, "state.json")).text());
     expect(saved.status).toBe("error");
     expect(saved.progress?.stage).toBe("error");
     const persisted = receiptSchema.parse(parseJson(await Bun.file(path.join(
       directory,
-      "receipt.json",
+      "state.json",
     )).text()));
     expect(persisted.status).toBe("error");
     expect(saved.runs).toHaveLength(3);

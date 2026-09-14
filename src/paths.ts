@@ -7,7 +7,8 @@ export function canonicalPath(target: string): string {
   try {
     return realpathSync(absolute);
   } catch {
-    return absolute;
+    const parent = path.dirname(absolute);
+    return parent === absolute ? absolute : path.join(canonicalPath(parent), path.basename(absolute));
   }
 }
 

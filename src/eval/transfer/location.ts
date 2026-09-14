@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { readBoundedFile } from "../../io/files";
 import type { ProjectPaths } from "../../paths";
 import { readReceipt } from "./resume";
 import type { TransferReceipt } from "./types";
@@ -37,11 +38,15 @@ export async function resolveEvaluationLocation(options: {
   }
 
   const directory = path.join(evalDirectory, evalId);
-  const saved = options.requestedId
-    ? readReceipt(
-        await Bun.file(path.join(directory, "receipt.json")).text(),
-      )
-    : null;
+  const savedText = options.requestedId ? await readBoundedFile({
+    filePath: path.join(directory, "state.json"),
+    roots: [options.paths.shadowcloneDirectory],
+    maximumBytes: 32 * 1024 * 1024,
+  }) : null;
+  if (options.requestedId && savedText === null) {
+    throw new Error("Evaluation has no safe supported private state");
+  }
+  const saved = savedText === null ? null : readReceipt(savedText);
 
   return { evalId, directory, saved };
 }

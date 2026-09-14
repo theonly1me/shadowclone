@@ -1,4 +1,7 @@
+import path from "node:path";
+import { readBoundedFile } from "../io/files";
 import { z } from "zod";
+import { ownedWrite } from "../storage";
 
 export type InstalledArtifact = "agent" | "delegation-skill";
 
@@ -6,6 +9,7 @@ export type Installation = {
   readonly directory: string;
   readonly artifacts: readonly InstalledArtifact[];
   readonly excludes: readonly string[];
+  readonly fingerprints?: Partial<Record<InstalledArtifact, string>>;
 };
 
 export type InstallationState = {
@@ -20,6 +24,7 @@ const installationStateSchema = z.strictObject({
       directory: z.string().min(1),
       artifacts: z.array(z.enum(["agent", "delegation-skill"])),
       excludes: z.array(z.string().min(1)),
+      fingerprints: z.object({ agent: z.string().optional(), "delegation-skill": z.string().optional() }).optional(),
     }),
   ),
 });
@@ -37,7 +42,11 @@ export async function readInstallations(
     return emptyInstallationState;
   }
   try {
-    const parsed = installationStateSchema.safeParse(JSON.parse(await file.text()));
+    const text = await readBoundedFile({ filePath, roots: [path.dirname(filePath)], maximumBytes: 1024 * 1024 });
+    if (text === null) {
+      throw new Error("Installation state could not be read safely");
+    }
+    const parsed = installationStateSchema.safeParse(JSON.parse(text));
     return parsed.success ? parsed.data : emptyInstallationState;
   } catch {
     return emptyInstallationState;
@@ -48,10 +57,10 @@ export async function writeInstallations(options: {
   readonly filePath: string;
   readonly state: InstallationState;
 }): Promise<void> {
-  await Bun.write(
-    options.filePath,
-    `${JSON.stringify(options.state, null, 2)}\n`,
-  );
+  await ownedWrite({
+    path: options.filePath,
+    content: `${JSON.stringify(options.state, null, 2)}\n`,
+  });
 }
 
 export function findInstallation(options: {
@@ -82,6 +91,7 @@ export function mergeInstallation(options: {
   });
   const merged: Installation = {
     directory: options.installation.directory,
+    fingerprints: { ...previous?.fingerprints, ...options.installation.fingerprints },
     artifacts: unionSorted(
       previous?.artifacts ?? [],
       options.installation.artifacts,

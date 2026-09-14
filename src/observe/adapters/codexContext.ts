@@ -1,3 +1,4 @@
+import { maximumTranscriptRecordBytes } from "../../io/limits";
 import path from "node:path";
 import {
   isRecord,
@@ -53,6 +54,10 @@ async function readFirstLine(sourcePath: string): Promise<unknown> {
     }
     const lineEnd = next.value.indexOf(10);
     const chunk = lineEnd < 0 ? next.value : next.value.slice(0, lineEnd);
+    if (byteLength + chunk.byteLength > maximumTranscriptRecordBytes) {
+      await reader.cancel();
+      return null;
+    }
     chunks.push(chunk);
     byteLength += chunk.byteLength;
     if (lineEnd >= 0) {

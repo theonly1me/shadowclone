@@ -1,10 +1,7 @@
 import path from "node:path";
 import { canonicalPath } from "../paths";
 import { evaluationCommand } from "./evaluationIsolation";
-import {
-  isIsolatedExecution,
-  validateEngineExecution,
-} from "./execution";
+import { validateEngineExecution } from "./execution";
 import type {
   EngineRunOptions,
   PermissionMode,
@@ -118,8 +115,7 @@ export function buildCodexArguments(options: {
     arguments_.push("--sandbox", "read-only");
   }
 
-  if (isIsolatedExecution(options.run)) {
-    arguments_.push(
+  arguments_.push(
       "--ephemeral",
       "--ignore-user-config",
       "--ignore-rules",
@@ -147,8 +143,7 @@ export function buildCodexArguments(options: {
       "features.multi_agent_v2=false",
       "-c",
       'web_search="disabled"',
-    );
-  }
+  );
 
   if (
     options.run.execution.purpose === "learning" ||

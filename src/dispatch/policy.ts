@@ -11,6 +11,8 @@ const baseDraftTools = [
   "Bash(git diff:*)",
 ];
 
+const githubDomains = ["github.com", "api.github.com"] as const;
+
 function actionToolFor(action: ActionCapability): string | null {
   if (action === "pr-draft") {
     return "Bash(gh pr create --draft:*)";
@@ -56,22 +58,18 @@ export function resolveDispatchPolicy(
     "Bash(bun run typecheck:*)",
   ];
   const draftTools = [...baseDraftTools, ...verificationTools];
-  const allowedTools = [
-    ...draftTools,
-    ...grantedActions.flatMap((action) => {
-      const tool = actionToolFor(action);
-      return tool ? [tool] : [];
-    }),
-  ];
+  const allowedTools = draftTools;
   const disallowedTools = [
     ...actionCapabilities
-      .filter((action) => !grantedActions.includes(action))
       .flatMap((action) => {
         const tool = actionToolFor(action);
         return tool ? [tool] : [];
       }),
     ...permanentlyBlockedTools,
   ];
+  const needsNetwork = grantedActions.some(
+    (action) => actionToolFor(action) !== null,
+  );
   return {
     allowedTools,
     disallowedTools,
@@ -79,5 +77,25 @@ export function resolveDispatchPolicy(
     maxBudgetUsd: configured.maxBudgetUsd,
     grantedActions,
     blockedActions,
+    allowedDomains: needsNetwork ? [...githubDomains] : [],
   };
+}
+
+export function validateRemoteGrants(options: {
+  readonly grantedActions: readonly ActionCapability[];
+  readonly pullRequestNumber?: number;
+}): void {
+  if (
+    options.grantedActions.includes("pr-reply") &&
+    (!Number.isSafeInteger(options.pullRequestNumber) ||
+      (options.pullRequestNumber ?? 0) < 1)
+  ) {
+    throw new Error("PR replies require an explicit --pr number");
+  }
+  if (
+    options.grantedActions.includes("pr-draft") &&
+    !options.grantedActions.includes("push")
+  ) {
+    throw new Error("Draft PR creation also requires push approval");
+  }
 }

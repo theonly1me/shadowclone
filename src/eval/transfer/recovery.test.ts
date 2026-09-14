@@ -23,7 +23,7 @@ test("persists completed votes and resumes only missing judging without coding",
         return batchReply(request);
       },
     })).rejects.toThrow("Resume with --eval-id");
-    const saved = readReceipt(await Bun.file(path.join(directory, "receipt.json")).text());
+    const saved = readReceipt(await Bun.file(path.join(directory, "state.json")).text());
     const bare = saved.runs.find((run) => run.arm === "bare");
     expect(saved.status).toBe("error");
     expect(bare?.failureStage).toBe("judging");

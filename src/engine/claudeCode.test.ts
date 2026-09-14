@@ -46,7 +46,9 @@ test("redacts stderr from a failing engine process", async () => {
       const run = await runClaudeCode({
         prompt: "hello",
         cwd,
-        execution: { purpose: "dispatch" },
+        execution: { purpose: "learning" },
+        allowedTools: [],
+        permissionMode: "dontAsk",
       });
 
       expect(run.isError).toBeTrue();
@@ -75,7 +77,9 @@ test("redacts a rejected command message on a zero exit code", async () => {
       const run = await runClaudeCode({
         prompt: "hello",
         cwd,
-        execution: { purpose: "dispatch" },
+        execution: { purpose: "learning" },
+        allowedTools: [],
+        permissionMode: "dontAsk",
       });
 
       expect(run.isError).toBeTrue();

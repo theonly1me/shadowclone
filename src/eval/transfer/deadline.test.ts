@@ -14,6 +14,7 @@ import type { PreparedEval } from "./types";
 test("the overall deadline aborts an in-flight model call", async () => {
   let aborted = false;
   const call = modelCaller({
+    budget: { reserve: async () => undefined, settle: async () => undefined },
     engine: "codex",
     model: "gpt-5.6-luna",
     timeoutSeconds: 60,
@@ -123,7 +124,7 @@ test("an expired one-task attempt records timeout status before coding", async (
     })).rejects.toThrow("wall-clock limit");
     const saved = receiptSchema.parse(parseJson(await Bun.file(path.join(
       directory,
-      "receipt.json",
+      "state.json",
     )).text()));
     expect(saved.status).toBe("error");
     expect(saved.progress?.stage).toBe("timeout");

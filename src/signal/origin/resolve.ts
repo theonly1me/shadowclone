@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { IndexedEvent } from "../../index";
 import type {
   OriginScope,
@@ -11,10 +12,8 @@ import {
 } from "./remote";
 import type { GitRemoteReader } from "./remote";
 
-function eventOriginKey(event: IndexedEvent): string {
-  return event.cwd.length > 0
-    ? event.cwd
-    : `${event.source}:${event.sessionId}`;
+export function eventOriginKey(event: IndexedEvent): string {
+  return JSON.stringify([event.source, event.sessionId, event.cwd ? path.resolve(event.cwd) : ""]);
 }
 
 export async function resolveCwdOrigin(options: {
@@ -57,10 +56,20 @@ export async function resolveRepository(options: {
   return { id: origin.id, name: null, profileFileName: null, origin };
 }
 
+export type OriginBindingStore = {
+  readonly getOriginObservationStart?: () => number;
+  readonly getOriginBinding: (originKey: string) => RepositoryIdentity | null;
+  readonly bindOrigin: (options: {
+    readonly originKey: string;
+    readonly repository: RepositoryIdentity;
+  }) => void;
+};
+
 export async function resolveEventRepositories(options: {
   readonly events: readonly IndexedEvent[];
   readonly enabled: boolean;
   readonly readRemote?: GitRemoteReader;
+  readonly bindings?: OriginBindingStore;
 }): Promise<ReadonlyMap<string, RepositoryIdentity>> {
   const repositories = new Map<string, RepositoryIdentity>();
   const readRemote = options.readRemote ?? readGitRemote;
@@ -71,15 +80,24 @@ export async function resolveEventRepositories(options: {
       continue;
     }
 
-    repositories.set(
-      key,
-      await resolveRepository({
-        cwd: event.cwd,
-        fallbackKey: key,
-        enabled: options.enabled,
-        readRemote,
-      }),
-    );
+    const bound = options.enabled ? options.bindings?.getOriginBinding(key) ?? null : null;
+    if (bound !== null) {
+      repositories.set(key, bound);
+      continue;
+    }
+
+    const observedSince = options.bindings?.getOriginObservationStart?.() ?? 0;
+    const hasObservedHistory = event.timestamp >= observedSince;
+    const resolved = await resolveRepository({
+      cwd: event.cwd,
+      fallbackKey: key,
+      enabled: options.enabled && hasObservedHistory,
+      readRemote,
+    });
+    repositories.set(key, resolved);
+    if (options.enabled && resolved.origin.promotable) {
+      options.bindings?.bindOrigin({ originKey: key, repository: resolved });
+    }
   }
 
   return repositories;

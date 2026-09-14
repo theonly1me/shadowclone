@@ -1,4 +1,4 @@
-import { lstat } from "node:fs/promises";
+import { readBoundedFile } from "../../io/files";
 import path from "node:path";
 import type { EngineRun } from "../../engine";
 import { command } from "./command";
@@ -59,7 +59,10 @@ export async function observeRun(options: {
 
   for (const relativePath of paths) {
     const [topLevelDirectory] = relativePath.split("/");
-    if (topLevelDirectory && ignoredTopLevelDirectories.has(topLevelDirectory)) {
+    if (
+      topLevelDirectory &&
+      ignoredTopLevelDirectories.has(topLevelDirectory)
+    ) {
       continue;
     }
 
@@ -68,23 +71,18 @@ export async function observeRun(options: {
       continue;
     }
 
-    const file = Bun.file(absolutePath);
-    if (!(await file.exists())) {
-      continue;
-    }
-
-    const stats = await lstat(absolutePath);
-    if (!stats.isFile()) {
-      continue;
-    }
-
-    if (file.size > remainingBytes) {
+    const content = await readBoundedFile({
+      filePath: absolutePath,
+      roots: [options.directory],
+      maximumBytes: remainingBytes,
+    });
+    if (content === null) {
       isTruncated = true;
       continue;
     }
 
-    remainingBytes -= file.size;
-    files.push({ path: relativePath, content: await file.text() });
+    remainingBytes -= Buffer.byteLength(content);
+    files.push({ path: relativePath, content });
   }
 
   return {

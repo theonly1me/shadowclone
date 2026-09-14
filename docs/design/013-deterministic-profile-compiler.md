@@ -78,7 +78,6 @@ The compiler result replaces heading counting in dispatch receipts. `profileRule
 | `src/mcp/server.ts` | Return the shared compiler's Markdown |
 | `src/cli/liveHooks.ts` | Inject the shared compiler's Markdown |
 | `src/cli/profile.ts` | Refresh the offline profile through the shared compiler |
-| `src/eval/run.ts` | Write replay profile input through the shared compiler |
 | `src/eval/transfer/profile.ts` | Compile in-memory distilled rules through the production representation |
 | `src/profile/agent.ts` | Leave Git exclusion ownership to the install lifecycle |
 | `src/cli/delegationSkill.ts` | Render the optional complete delegation workflow |
@@ -98,7 +97,7 @@ The compiler result replaces heading counting in dispatch receipts. `profileRule
 
 ## Data handling
 
-Directory compilation reads the same user-owned profile files already read by install, hooks, MCP, dispatch, and eval. Raw text remains local and supplies metadata only. Every title, body, and condition placed in a model-facing profile comes from a whole-file `FileTextRef` resolved through `resolveRedacted`, where `redactSecrets` remains the single egress gate. Rules input is limited to model-returned evaluation guidance already produced from redacted evidence.
+Directory compilation reads the same user-owned profile files already read by install, hooks, MCP, dispatch, and eval. Raw text remains local and supplies metadata only. The completed boundary in [015](015-remediation-completion.md) obtains raw metadata and redacted prompt content from one bounded file snapshot through `materializeSnapshot`. Rules input is limited to model-returned evaluation guidance already produced from redacted evidence.
 
 The installation manifest stores canonical local repository directories, fixed relative artifact identifiers, and fixed Git exclude patterns under `~/.shadowclone/`. It stores no transcript, profile text, remote URL, repository identity, prompt, model output, or telemetry. Install and uninstall output reports counts and fixed artifact names without printing recorded repository paths.
 
@@ -126,7 +125,7 @@ Natural-language conditions consume part of the 16 KiB budget because an agent n
 
 An install created before schema version 1 has no manifest record, so `forget --all` cannot discover it. Running `shadowclone install` once records it, while `shadowclone uninstall` can remove the known artifacts from the current repository directly.
 
-Repository directories in the installation manifest reveal local project locations to a person who can already read the user's home directory. They never leave the machine and are required for a one-command cross-repository wipe.
+Repository directories in the installation manifest reveal local project locations to a person who can already read the user's home directory. Shadowclone stores these paths locally to locate recorded installations during removal; the project does not implement manifest upload.
 
 ## Validation
 
@@ -146,7 +145,7 @@ The lifecycle walk was run end to end on a scratch home and a scratch repository
 
 Compiler tests first fail against the current split implementation by asserting source labels, visible conditions, lifecycle omission reasons, declared-over-mined axis selection, deterministic bytes, UTF-8 byte accounting, whole-block budget omission, redaction of a planted profile secret, and one result shape for directory and in-memory inputs. The redaction test is proven by temporarily replacing its `resolveRedacted` result with raw file text, printing that changed line, observing the planted secret assertion fail, restoring the gate, and observing it pass.
 
-Caller tests cover install, live hooks, MCP, dispatch, offline refresh, replay eval, and transfer eval through `compileProfile`. Transfer evaluation asserts the source-labelled production representation so restoring manual title and body concatenation fails.
+Caller tests cover install, live hooks, MCP, dispatch, offline refresh and transfer eval through `compileProfile`. Transfer evaluation asserts the source-labelled production representation so restoring manual title and body concatenation fails.
 
 Install tests prove the delegation skill is absent by default, present only with `--auto-delegate`, contains a structured brief instead of verbatim forwarding, records only written artifacts, and preserves exact pre-existing Git excludes. Uninstall tests prove current-repository cleanup, idempotency, unrelated `.claude` files remain, and only installer-owned exclude lines are removed. Forget tests create two recorded repositories and prove both installations disappear before the Shadowclone home directory while transcript sources remain untouched.
 

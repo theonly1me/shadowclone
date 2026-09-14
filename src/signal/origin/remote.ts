@@ -1,7 +1,5 @@
-import type {
-  OriginScope,
-  RepositoryIdentity,
-} from "../types";
+import { runHostCommand } from "../../io/hostCommand";
+import type { OriginScope, RepositoryIdentity } from "../types";
 
 export type GitRemoteReader = (cwd: string) => Promise<string | null>;
 
@@ -17,35 +15,89 @@ export function isolatedOrigin(key: string): OriginScope {
   };
 }
 
-function remoteParts(remote: string): {
+type RemoteParts = {
   readonly host: string;
   readonly owner: string;
   readonly repository: string;
-} | null {
-  const trimmed = remote.trim();
-  const secureShellMatch = trimmed.match(
-    /^(?:[^@]+@)?([^/:]+):([^/]+)\/(.+)$/,
-  );
-  if (secureShellMatch) {
-    const [, host, owner, repository] = secureShellMatch;
-    return host && owner && repository
-      ? { host, owner, repository: repository.replace(/\.git$/, "") }
-      : null;
-  }
+};
 
+function splitRemotePath(remotePath: string): {
+  readonly owner: string;
+  readonly repository: string;
+} | null {
+  let decoded: string[];
   try {
-    const parsed = new URL(trimmed);
-    const [owner, repository] = parsed.pathname.split("/").filter(Boolean);
-    return owner && repository
-      ? {
-          host: parsed.hostname,
-          owner: decodeURIComponent(owner),
-          repository: decodeURIComponent(repository).replace(/\.git$/, ""),
-        }
-      : null;
+    decoded = remotePath
+      .split("/")
+      .filter(Boolean)
+      .map((segment) => decodeURIComponent(segment));
   } catch {
     return null;
   }
+  const segments = decoded;
+  const repository = segments.at(-1);
+  if (repository === undefined || segments.length < 2) {
+    return null;
+  }
+  if (
+    segments.some(
+      (segment) =>
+        segment === "." ||
+        segment === ".." ||
+        [...segment].some((character) => character.charCodeAt(0) <= 32) ||
+        segment.includes("/") ||
+        segment.includes("\\"),
+    )
+  ) {
+    return null;
+  }
+  return {
+    owner: segments.slice(0, -1).join("/"),
+    repository: repository.replace(/\.git$/, ""),
+  };
+}
+
+function urlRemoteParts(remote: string): RemoteParts | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(remote);
+  } catch {
+    return null;
+  }
+  if (parsed.hostname.length === 0) {
+    return null;
+  }
+  const parts = splitRemotePath(parsed.pathname);
+  return parts === null
+    ? null
+    : {
+        host:
+          parsed.port.length > 0
+            ? `${parsed.hostname}:${parsed.port}`
+            : parsed.hostname,
+        owner: parts.owner,
+        repository: parts.repository,
+      };
+}
+
+function secureShellRemoteParts(remote: string): RemoteParts | null {
+  const match = remote.match(/^(?:[^@/]+@)?([^/:]+):([^/].*)$/);
+  if (!match) {
+    return null;
+  }
+  const [, host, remotePath] = match;
+  if (!host || !remotePath) {
+    return null;
+  }
+  const parts = splitRemotePath(remotePath);
+  return parts === null
+    ? null
+    : { host, owner: parts.owner, repository: parts.repository };
+}
+
+function remoteParts(remote: string): RemoteParts | null {
+  const trimmed = remote.trim();
+  return urlRemoteParts(trimmed) ?? secureShellRemoteParts(trimmed);
 }
 
 export function normalizeRemoteOrigin(remote: string): OriginScope | null {
@@ -55,9 +107,11 @@ export function normalizeRemoteOrigin(remote: string): OriginScope | null {
   }
 
   const host = parts.host.toLowerCase();
-  const owner = parts.owner.toLowerCase();
+  const owner = ["github.com", "gitlab.com"].includes(host)
+    ? parts.owner.toLowerCase()
+    : parts.owner;
   const id = `${host}/${owner}`;
-  const directoryName = id.replace(/[^a-z0-9._-]+/g, "--");
+  const directoryName = originDirectoryName(id);
   return { id, directoryName, promotable: true };
 }
 
@@ -69,12 +123,15 @@ export function normalizeRemoteRepository(
   if (parts === null || origin === null) {
     return null;
   }
-  const name = parts.repository.toLowerCase();
+  const name = ["github.com", "gitlab.com"].includes(parts.host.toLowerCase())
+    ? parts.repository.toLowerCase()
+    : parts.repository;
   const id = `${origin.id}/${name}`;
-  const safeName = name
-    .replace(/[^a-z0-9._-]+/g, "--")
-    .replace(/^[._-]+|[._-]+$/g, "")
-    .slice(0, 64) || "repository";
+  const safeName =
+    name
+      .replace(/[^a-z0-9._-]+/g, "--")
+      .replace(/^[._-]+|[._-]+$/g, "")
+      .slice(0, 64) || "repository";
   const digest = new Bun.CryptoHasher("sha256")
     .update(id)
     .digest("hex")
@@ -88,15 +145,32 @@ export function normalizeRemoteRepository(
 }
 
 export async function readGitRemote(cwd: string): Promise<string | null> {
-  const process = Bun.spawn({
-    cmd: ["git", "-C", cwd, "config", "--local", "--get", "remote.origin.url"],
-    stdout: "pipe",
-    stderr: "ignore",
+  const { exitCode, stdout } = await runHostCommand({
+    arguments: [
+      "git",
+      "-C",
+      cwd,
+      "config",
+      "--local",
+      "--get",
+      "remote.origin.url",
+    ],
+    cwd,
   });
-  const [exitCode, stdout] = await Promise.all([
-    process.exited,
-    new Response(process.stdout).text(),
-  ]);
   const value = stdout.trim();
   return exitCode === 0 && value.length > 0 ? value : null;
+}
+
+export function originDirectoryName(id: string): string {
+  if (id.startsWith("isolated:")) {
+    return id.replace(":", "--");
+  }
+  const digest = new Bun.CryptoHasher("sha256")
+    .update(id)
+    .digest("hex")
+    .slice(0, 16);
+  return `${id
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "--")
+    .slice(0, 80)}--${digest}`;
 }

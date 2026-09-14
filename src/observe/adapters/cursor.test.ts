@@ -105,10 +105,10 @@ test("resolves selected Cursor blob text through the redaction gate", async () =
     (event) => event.kind === "assistant-text",
   );
   const promptText = prompt?.textRef
-    ? await resolveRedacted({ ref: prompt.textRef })
+    ? await resolveRedacted({ ref: prompt.textRef, roots: [path.dirname(prompt.textRef.sourcePath)] })
     : "";
   const assistantText = assistant?.textRef
-    ? await resolveRedacted({ ref: assistant.textRef })
+    ? await resolveRedacted({ ref: assistant.textRef, roots: [path.dirname(assistant.textRef.sourcePath)] })
     : "";
   expect(promptText).toContain("[redacted:llm-api-key]");
   expect(promptText).not.toContain(plantedSecret);

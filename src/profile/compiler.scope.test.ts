@@ -3,13 +3,14 @@ import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { OriginScope } from "../signal";
+import { originDirectoryName } from "../signal/origin/remote";
 import { compileProfile, renderProfileRule } from "./index";
 import type { ProfileRule } from "./index";
 
 function origin(owner: string): OriginScope {
   return {
     id: `github.com/${owner}`,
-    directoryName: `github.com--${owner}`,
+    directoryName: originDirectoryName(`github.com/${owner}`),
     promotable: true,
   };
 }
@@ -24,7 +25,7 @@ function rule(options: {
     body: `Rule for ${options.owner}.`,
     section: "workflow",
     scope: "org",
-    originDirectory: `github.com--${options.owner}`,
+    originDirectory: originDirectoryName(`github.com/${options.owner}`),
     repositoryName: null,
     source: "mined",
     status: "active",
@@ -50,10 +51,10 @@ test("compiles global and matching organization rules only", async () => {
     repositoryName: null,
   };
   await mkdir(path.join(profileDirectory, "global"), { recursive: true });
-  await mkdir(path.join(profileDirectory, "org", "github.com--acme"), {
+  await mkdir(path.join(profileDirectory, "org", "github.com--acme--936913df4a5c268b"), {
     recursive: true,
   });
-  await mkdir(path.join(profileDirectory, "org", "github.com--other"), {
+  await mkdir(path.join(profileDirectory, "org", "github.com--other--2cf88805dc6fdfe1"), {
     recursive: true,
   });
   await Bun.write(
@@ -61,11 +62,11 @@ test("compiles global and matching organization rules only", async () => {
     renderProfileRule(globalRule),
   );
   await Bun.write(
-    path.join(profileDirectory, "org", "github.com--acme", "workflow.md"),
+    path.join(profileDirectory, "org", "github.com--acme--936913df4a5c268b", "workflow.md"),
     renderProfileRule(rule({ owner: "acme", title: "Use Bun" })),
   );
   await Bun.write(
-    path.join(profileDirectory, "org", "github.com--other", "workflow.md"),
+    path.join(profileDirectory, "org", "github.com--other--2cf88805dc6fdfe1", "workflow.md"),
     renderProfileRule(rule({ owner: "other", title: "Use Cargo" })),
   );
 
@@ -91,14 +92,14 @@ test("admits only the exact project file for the active repository", async () =>
   const projects = path.join(
     profileDirectory,
     "org",
-    "github.com--acme",
+    "github.com--acme--936913df4a5c268b",
     "projects",
   );
   await mkdir(projects, { recursive: true });
   const projectRule = (name: string): ProfileRule => ({
     ...rule({ owner: "acme", title: `Guidance for ${name}` }),
     scope: "project",
-    originDirectory: "github.com--acme",
+    originDirectory: "github.com--acme--936913df4a5c268b",
     repositoryName: name,
   });
   await Bun.write(

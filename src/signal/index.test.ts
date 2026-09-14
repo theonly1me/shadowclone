@@ -87,7 +87,7 @@ test("normalizes a remote to its organization without credentials", () => {
     ),
   ).toEqual({
     id: "github.com/acme",
-    directoryName: "github.com--acme",
+    directoryName: "github.com--acme--936913df4a5c268b",
     promotable: true,
   });
 });

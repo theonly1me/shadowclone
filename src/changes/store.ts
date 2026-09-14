@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { z } from "zod";
 import { readLocalText, replaceLocalText } from "../localFiles";
 import type { ProjectPaths } from "../paths";
+import { ownedDirectory, ownedFile } from "../storage";
 import { revisionSchema, type LocalRevision } from "./types";
 
 export function revisionPath(options: { readonly paths: ProjectPaths; readonly id: string }): string {
@@ -19,6 +20,8 @@ export async function readRevision(options: { readonly paths: ProjectPaths; read
 
 export async function storeRevision(options: { readonly paths: ProjectPaths; readonly revision: LocalRevision }): Promise<void> {
   const filePath = revisionPath({ paths: options.paths, id: options.revision.id });
+  await ownedDirectory(path.dirname(filePath));
+  await ownedFile(filePath);
   await replaceLocalText({ filePath, previous: await readLocalText(filePath), next: `${JSON.stringify(options.revision, null, 2)}\n` });
 }
 

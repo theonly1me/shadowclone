@@ -20,17 +20,18 @@ export type ResolvedDispatchPolicy = {
   readonly maxBudgetUsd: number;
   readonly grantedActions: readonly ActionCapability[];
   readonly blockedActions: readonly BlockedAction[];
+  readonly allowedDomains: readonly string[];
 };
 
 export type RunReceipt = {
   readonly runId: string;
-  readonly task: string;
+  readonly taskSlug: string;
+  readonly taskHash: string;
   readonly repo: string;
   readonly branch: string;
   readonly engine: EngineId;
   readonly model: string | null;
   readonly sessionId: string;
-  readonly transcriptPath: string | null;
   readonly startedAt: string;
   readonly durationMs: number;
   readonly costUsd: number | null;

@@ -18,7 +18,7 @@ const completeRule: ProfileRule = {
   body: "Run the narrow check before presenting the change.",
   section: "workflow",
   scope: "org",
-  originDirectory: "github.com--acme",
+  originDirectory: "github.com--acme--936913df4a5c268b",
   repositoryName: null,
   source: "declared",
   status: "active",
@@ -77,7 +77,7 @@ test("requires location fields that agree with profile scope", () => {
     profileRuleSchema.safeParse({
       ...completeRule,
       scope: "global",
-      originDirectory: "github.com--acme",
+      originDirectory: "github.com--acme--936913df4a5c268b",
       repositoryName: null,
     }).success,
   ).toBeFalse();
@@ -171,7 +171,7 @@ test("compiles contradicted declared guidance while withholding inactive rules",
   );
   const origin: OriginScope = {
     id: "github.com/acme",
-    directoryName: "github.com--acme",
+    directoryName: "github.com--acme--936913df4a5c268b",
     promotable: true,
   };
 

@@ -1,6 +1,5 @@
-import { mkdir } from "node:fs/promises";
-import path from "node:path";
 import { projectPaths } from "../paths";
+import { ownedWrite } from "../storage";
 import toml from "smol-toml";
 import {
   applyManagedPolicy,
@@ -93,8 +92,7 @@ export async function writeConfig(options: {
 }): Promise<void> {
   const configPath = options.configPath ?? projectPaths.configFile;
 
-  await mkdir(path.dirname(configPath), { recursive: true });
-  await Bun.write(configPath, renderConfig(options.config));
+  await ownedWrite({ path: configPath, content: renderConfig(options.config) });
 }
 
 export function setSourceEnabled(options: {

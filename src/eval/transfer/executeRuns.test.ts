@@ -154,7 +154,7 @@ test("shows every stage and gives personal context only to the skills and clone 
     expect(firstCodingCallTimedOut).toBeFalse();
     const savedReceipt = readReceipt(await Bun.file(path.join(
       outputDirectory,
-      "receipt.json",
+      "state.json",
     )).text());
     expect(savedReceipt.runs).toHaveLength(3);
     expect(receipt.runs.every((run) => run.phase === "complete")).toBeTrue();

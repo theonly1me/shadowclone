@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { runHostCommand } from "../io/hostCommand";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -15,6 +16,7 @@ test("installs the scoped profile as a Claude subagent", async () => {
   const targetDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-repo-"),
   );
+  await runHostCommand({ arguments: ["git", "init", "--quiet"], cwd: targetDirectory });
   const paths = createProjectPaths({
     homeDirectory,
     platform: "darwin",

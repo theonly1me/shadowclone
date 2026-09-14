@@ -83,14 +83,14 @@ test("mounts the resolved path over a symbolic link on Linux", async () => {
   }
 });
 
-test("leaves the command untouched without evaluation or blocked paths", () => {
+test("wraps dispatch even when no additional paths are blocked", () => {
   expect(
     evaluationCommand({
       arguments: ["claude", "-p"],
       run: { prompt: "", cwd: "/tmp", execution: { purpose: "dispatch" } },
       platform: "darwin",
     }),
-  ).toEqual(["claude", "-p"]);
+  ).toContain("sandbox-exec");
 
   expect(
     evaluationCommand({
@@ -98,7 +98,7 @@ test("leaves the command untouched without evaluation or blocked paths", () => {
       run: { prompt: "", cwd: "/tmp", execution: { purpose: "evaluation" } },
       platform: "darwin",
     }),
-  ).toEqual(["claude", "-p"]);
+  ).toContain("sandbox-exec");
 });
 
 test("refuses to run an isolated evaluation on an unsupported platform", () => {

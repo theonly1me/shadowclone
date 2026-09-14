@@ -65,7 +65,7 @@ test("reads one Codex event view and keeps tool results text-free", async () => 
   const prompts =
     batch?.events.filter((event) => event.kind === "user-prompt") ?? [];
   const text = prompts[0]?.textRef
-    ? await resolveRedacted({ ref: prompts[0].textRef })
+    ? await resolveRedacted({ ref: prompts[0].textRef, roots: [path.dirname(prompts[0].textRef.sourcePath)] })
     : "";
   expect(prompts).toHaveLength(1);
   expect(text).not.toContain(plantedSecret);

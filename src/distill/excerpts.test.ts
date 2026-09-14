@@ -16,7 +16,7 @@ test("user steering crosses the pointer redaction gate and excludes generated le
     byteOffset += textRef.byteLength + 1;
     return { kind: "user-steering", category: "user-episode", label: "user episode", sessionId: `session-${position}`, timestamp: position, origin: { id: "local", directoryName: "local", promotable: false }, repositoryName: null, textRefs: [textRef] };
   });
-  const materialized = await materializeEvidence(signals);
+  const materialized = await materializeEvidence({ signals, sourceRoots: [home] });
   expect(materialized.signals).toHaveLength(1);
   expect([...materialized.excerpts.values()].join("\n")).not.toContain(secret);
   expect([...materialized.excerpts.values()].join("\n")).toContain("Always keep API tokens private");
