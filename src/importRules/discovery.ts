@@ -1,4 +1,3 @@
-import { existsSync } from "node:fs";
 import type { Dirent } from "node:fs";
 import { lstat, readdir } from "node:fs/promises";
 import path from "node:path";
@@ -24,28 +23,21 @@ async function supportedFile(options: {
   readonly relativePath: string;
   readonly kind: RepositoryGuidanceSource["kind"];
 }): Promise<RepositoryGuidanceSource | null> {
-  if (!existsSync(options.filePath)) {
+  const metadata = await lstat(options.filePath).catch(() => null);
+  if (metadata === null || metadata.isSymbolicLink()) {
     return null;
   }
-  try {
-    const metadata = await lstat(options.filePath);
-    if (!metadata.isFile()) {
-      throw new Error("Repository guidance contains an unsupported entry");
-    }
-    return metadata.size === 0
-      ? null
-      : {
-          relativePath: options.relativePath,
-          filePath: options.filePath,
-          byteLength: metadata.size,
-          kind: options.kind,
-        };
-  } catch (error) {
-    if (error instanceof Error && error.message.startsWith("Repository guidance")) {
-      throw error;
-    }
-    throw new Error("Repository guidance could not be inspected");
+  if (!metadata.isFile()) {
+    throw new Error("Repository guidance contains an unsupported entry");
   }
+  return metadata.size === 0
+    ? null
+    : {
+        relativePath: options.relativePath,
+        filePath: options.filePath,
+        byteLength: metadata.size,
+        kind: options.kind,
+      };
 }
 
 async function rootGuidance(
@@ -68,29 +60,29 @@ async function skillGuidance(options: {
   readonly root: readonly [string, string];
 }): Promise<readonly RepositoryGuidanceSource[]> {
   const rootPath = path.join(options.workingDirectory, ...options.root);
-  if (!existsSync(rootPath)) {
+  const parentMetadata = await lstat(
+    path.join(options.workingDirectory, options.root[0]),
+  ).catch(() => null);
+  if (parentMetadata === null || parentMetadata.isSymbolicLink()) {
     return [];
+  }
+  const metadata = await lstat(rootPath).catch(() => null);
+  if (metadata === null || metadata.isSymbolicLink()) {
+    return [];
+  }
+  if (!metadata.isDirectory()) {
+    throw new Error("Repository skill root is not a directory");
   }
   let entries: readonly Dirent[];
   try {
-    const metadata = await lstat(rootPath);
-    if (!metadata.isDirectory()) {
-      throw new Error("Repository skill root is not a directory");
-    }
     entries = await readdir(rootPath, { withFileTypes: true });
-  } catch (error) {
-    if (error instanceof Error && error.message.startsWith("Repository skill")) {
-      throw error;
-    }
+  } catch {
     throw new Error("Repository skill root could not be inspected");
   }
   const sources: RepositoryGuidanceSource[] = [];
   for (const entry of entries) {
     if (entry.name === "shadowclone" || entry.name === "shadowclone-context") {
       continue;
-    }
-    if (entry.isSymbolicLink()) {
-      throw new Error("Repository guidance contains a symbolic link");
     }
     if (!entry.isDirectory()) {
       continue;

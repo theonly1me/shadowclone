@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdtemp } from "node:fs/promises";
+import { mkdir, mkdtemp, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { readConfig } from "../config";
@@ -114,6 +114,9 @@ test("default setup imports guidance and writes a profile with an injected clock
   const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-default-"));
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
   await Bun.write(path.join(homeDirectory, "CLAUDE.md"), "# Plan the smallest change\n");
+  const linkedSkill = path.join(homeDirectory, ".claude", "skills", "linked");
+  await mkdir(path.dirname(linkedSkill), { recursive: true });
+  await symlink(await mkdtemp(path.join(os.tmpdir(), "shadowclone-external-skill-")), linkedSkill);
   await initialize({
     paths,
     workingDirectory: homeDirectory,

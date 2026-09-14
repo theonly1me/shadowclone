@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdir, mkdtemp } from "node:fs/promises";
+import { mkdir, mkdtemp, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
@@ -102,3 +102,55 @@ test("ignores similar rules filenames and empty source directories", async () =>
   expect(presence.hasRepositoryGuidance).toBeFalse();
   expect(presence.presentCaptureSources.size).toBe(0);
 });
+
+for (const filename of ["AGENTS.md", "CLAUDE.md", ".cursorrules"]) {
+  test(`ignores a linked ${filename} root file`, async () => {
+    const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-presence-"));
+    const outsideRepository = await mkdtemp(path.join(os.tmpdir(), "shadowclone-external-"));
+    const target = path.join(outsideRepository, filename);
+    await Bun.write(target, "external guidance");
+    await symlink(target, path.join(homeDirectory, filename));
+
+    const presence = await detectOnboardingPresence({
+      paths: createProjectPaths({ homeDirectory, platform: "darwin" }),
+      workingDirectory: homeDirectory,
+    });
+
+    expect(presence.hasRepositoryGuidance).toBeFalse();
+  });
+}
+
+for (const rootName of [".agents", ".claude"]) {
+  test(`ignores a linked ${rootName} parent root`, async () => {
+    const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-presence-"));
+    const outsideRepository = await mkdtemp(path.join(os.tmpdir(), "shadowclone-external-"));
+    const externalSkill = path.join(outsideRepository, "skills", "external", "SKILL.md");
+    await mkdir(path.dirname(externalSkill), { recursive: true });
+    await Bun.write(externalSkill, "external guidance");
+    await symlink(outsideRepository, path.join(homeDirectory, rootName));
+
+    const presence = await detectOnboardingPresence({
+      paths: createProjectPaths({ homeDirectory, platform: "darwin" }),
+      workingDirectory: homeDirectory,
+    });
+
+    expect(presence.hasRepositoryGuidance).toBeFalse();
+  });
+
+  test(`ignores a linked ${rootName}/skills root`, async () => {
+    const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-presence-"));
+    const outsideRepository = await mkdtemp(path.join(os.tmpdir(), "shadowclone-external-"));
+    const externalSkill = path.join(outsideRepository, "external", "SKILL.md");
+    await mkdir(path.dirname(externalSkill), { recursive: true });
+    await Bun.write(externalSkill, "external guidance");
+    await mkdir(path.join(homeDirectory, rootName));
+    await symlink(outsideRepository, path.join(homeDirectory, rootName, "skills"));
+
+    const presence = await detectOnboardingPresence({
+      paths: createProjectPaths({ homeDirectory, platform: "darwin" }),
+      workingDirectory: homeDirectory,
+    });
+
+    expect(presence.hasRepositoryGuidance).toBeFalse();
+  });
+}
