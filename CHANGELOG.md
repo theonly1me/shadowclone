@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.7](https://github.com/theonly1me/shadowclone/compare/v0.0.6...v0.0.7) (2026-09-14)
+
+
+### Fixes
+
+* skip linked repository guidance during setup ([#67](https://github.com/theonly1me/shadowclone/issues/67)) ([29915bc](https://github.com/theonly1me/shadowclone/commit/29915bc0407d9aa5aec48496794fefd11dace89e))
+
 ## [0.0.6](https://github.com/theonly1me/shadowclone/compare/v0.0.5...v0.0.6) (2026-09-14)
 
 
