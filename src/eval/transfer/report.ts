@@ -1,4 +1,4 @@
-import { redactSecrets } from "../../redact";
+import { publicReport } from "./publicReport";
 import { evaluationArmOrder } from "./arms";
 import { summarize } from "./reportSummary";
 import type { TransferReceipt } from "./types";
@@ -54,7 +54,7 @@ export function printReport(options: {
   readonly json: boolean;
 }): void {
   if (options.json) {
-    console.log(redactSecrets({ text: JSON.stringify(options.receipt) }));
+    console.log(JSON.stringify({ ...publicReport(options.receipt), summary: summarize(options.receipt) }));
     return;
   }
   for (const line of reportLines(options.receipt)) console.log(line);

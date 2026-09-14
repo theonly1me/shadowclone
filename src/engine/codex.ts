@@ -2,6 +2,8 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { redactSecrets } from "../redact";
+import { runProcess } from "../io/process";
+import { runnerEnvironment } from "./environment";
 import { isolatedCodexHome, userCodexHome } from "./codexHome";
 import {
   buildCodexArguments,
@@ -21,7 +23,8 @@ export function codexProcessEnvironment(options: {
   readonly userHome?: string;
   readonly codexHome?: string;
 }): NodeJS.ProcessEnv {
-  const environment = options.environment ?? process.env;
+  const source = options.environment ?? process.env;
+  const environment = runnerEnvironment({ engine: "codex", source });
   if (!options.temporaryDirectory) {
     return environment;
   }
@@ -29,8 +32,11 @@ export function codexProcessEnvironment(options: {
   return {
     ...environment,
     HOME: options.temporaryDirectory,
+    TMPDIR: options.temporaryDirectory,
+    TMP: options.temporaryDirectory,
+    TEMP: options.temporaryDirectory,
     CODEX_HOME: options.codexHome ??
-      userCodexHome({ environment, userHome: options.userHome }),
+      userCodexHome({ environment: source, userHome: options.userHome }),
   };
 }
 
@@ -53,37 +59,24 @@ async function runCodexProcess(options: {
         ),
       )
     : undefined;
-  const codexHome = temporaryDirectory
-    ? await isolatedCodexHome({ temporaryDirectory })
-    : undefined;
-
   try {
-    const process = Bun.spawn({
-      cmd: [
-        ...codexProcessArguments({
-          arguments: buildCodexArguments({
-            ...options,
-            temporaryDirectory,
-          }),
-          run: options.run,
+    const codexHome = temporaryDirectory
+      ? await isolatedCodexHome({ temporaryDirectory })
+      : undefined;
+    const { exitCode, stdout: stream, stderr } = await runProcess({
+      arguments: codexProcessArguments({
+        arguments: buildCodexArguments({
+          ...options,
+          temporaryDirectory,
         }),
-      ],
+        run: options.run,
+        temporaryDirectory,
+      }),
       cwd: options.run.cwd,
-      stdin: "pipe",
-      stdout: "pipe",
-      stderr: "pipe",
+      input: prompt,
       signal: options.run.signal,
-      env: codexProcessEnvironment({ temporaryDirectory, ...(codexHome ? { codexHome } : {}) }),
+      environment: codexProcessEnvironment({ temporaryDirectory, ...(codexHome ? { codexHome } : {}) }),
     });
-
-    process.stdin.write(prompt);
-    process.stdin.end();
-
-    const [exitCode, stream, stderr] = await Promise.all([
-      process.exited,
-      new Response(process.stdout).text(),
-      new Response(process.stderr).text(),
-    ]);
 
     const run = parseCodexStream({
       stream,

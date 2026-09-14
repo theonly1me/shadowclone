@@ -73,13 +73,16 @@ test("learning removes Codex instructions, integrations, state, and shell", () =
 test("isolated Codex execution hides unrelated home-directory skills", () => {
   expect(
     codexProcessEnvironment({
-      environment: { PATH: "/bin" },
+      environment: { PATH: "/bin", DATABASE_URL: "private-database", GITHUB_TOKEN: "private-token" },
       temporaryDirectory: "/private/tmp/shadowclone-codex",
       userHome: "/Users/example",
     }),
   ).toEqual({
     PATH: "/bin",
     HOME: "/private/tmp/shadowclone-codex",
+    TMPDIR: "/private/tmp/shadowclone-codex",
+    TMP: "/private/tmp/shadowclone-codex",
+    TEMP: "/private/tmp/shadowclone-codex",
     CODEX_HOME: "/Users/example/.codex",
   });
 });

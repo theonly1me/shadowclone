@@ -172,6 +172,7 @@ export function codexProcessArguments(options: {
   readonly arguments: readonly string[];
   readonly run: EngineRunOptions;
   readonly platform?: NodeJS.Platform;
+  readonly temporaryDirectory?: string;
 }): readonly string[] {
   if (isCodexEvaluationExecution(options.run)) {
     return options.arguments;
@@ -181,5 +182,6 @@ export function codexProcessArguments(options: {
     arguments: options.arguments,
     run: options.run,
     platform: options.platform,
+    temporaryDirectory: options.temporaryDirectory,
   });
 }

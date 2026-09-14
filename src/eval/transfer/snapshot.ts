@@ -4,6 +4,7 @@ import path from "node:path";
 import { command } from "./command";
 import { isolateNativeGuidance } from "./nativeIsolation";
 import { validateSnapshotLinks } from "./snapshotLinks";
+import { extractSnapshotArchive } from "./snapshotArchive";
 
 export { validateSnapshotLinks } from "./snapshotLinks";
 
@@ -40,30 +41,12 @@ async function buildSnapshotTemplate(options: {
   readonly repository: string;
   readonly commit: string;
 }): Promise<SnapshotResult> {
-  const directory = await mkdtemp(
+  const container = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-transfer-"),
   );
-
+  const directory = path.join(container, "workspace");
   try {
-    const archivePath = path.join(directory, "source.tar");
-
-    await command({
-      arguments: [
-        "git",
-        "archive",
-        "--format=tar",
-        `--output=${archivePath}`,
-        options.commit,
-      ],
-      cwd: options.repository,
-    });
-
-    await command({
-      arguments: ["tar", "-xf", archivePath, "-C", directory],
-      cwd: directory,
-    });
-
-    await rm(archivePath);
+    await extractSnapshotArchive({ ...options, container, directory });
 
     await validateSnapshotLinks(directory);
 
@@ -113,11 +96,11 @@ async function buildSnapshotTemplate(options: {
       directory,
       initialCommit,
       cleanup: async () => {
-        await rm(directory, { recursive: true, force: true });
+        await rm(container, { recursive: true, force: true });
       },
     };
   } catch (error) {
-    await rm(directory, { recursive: true, force: true });
+    await rm(container, { recursive: true, force: true });
     throw error;
   }
 }

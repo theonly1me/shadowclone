@@ -30,7 +30,7 @@ export async function discoverSkills(roots: readonly SkillRoot[]): Promise<{ rea
         if (size > 48_000) throw new Error("Skill exceeds the supported size");
         const raw = await readLocalText(filePath);
         if (raw === null) continue;
-        const redacted = await resolveRedacted({ ref: { type: "file", sourcePath: filePath, byteOffset: 0, byteLength: size } });
+        const redacted = await resolveRedacted({ roots: [root.directory], ref: { type: "file", sourcePath: filePath, byteOffset: 0, byteLength: size } });
         const document = parseSkillDocument(redacted);
         if (document.metadata.name !== path.basename(path.dirname(filePath))) throw new Error("Skill name does not match its directory");
         await validateSkillReferences({ filePath, text: document.body });

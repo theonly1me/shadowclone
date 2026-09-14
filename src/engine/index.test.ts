@@ -48,10 +48,10 @@ test("builds bounded Claude arguments without a prompt or bypass mode", () => {
   expect(arguments_).toContain("--allowedTools");
   expect(arguments_).toContain("Edit");
   expect(arguments_).toContain("--setting-sources");
-  expect(arguments_).toContain("user,project");
+  expect(arguments_[arguments_.indexOf("--setting-sources") + 1]).toBe("");
   expect(arguments_).toContain("dontAsk");
   expect(arguments_[arguments_.indexOf("--effort") + 1]).toBe("xhigh");
-  expect(arguments_).not.toContain("");
+  expect(arguments_).toContain("--safe-mode");
   expect(arguments_).not.toContain("private prompt");
   expect(arguments_).not.toContain("bypassPermissions");
   expect(arguments_).not.toContain("--dangerously-skip-permissions");

@@ -3,6 +3,7 @@ import path from "node:path";
 import { acquireLocalLock } from "../localFiles/lock";
 import { readLocalText } from "../localFiles";
 import type { ProjectPaths } from "../paths";
+import { ownedDirectory, ownedFile } from "../storage";
 import {
   generatedProfileEntry,
   prepareProfileWrite,
@@ -29,6 +30,7 @@ type WriteOptions = {
 };
 
 export async function writeProfile(options: WriteOptions): Promise<ProfileWriteResult> {
+  await ownedDirectory(options.paths.profileDirectory);
   const lock = await acquireLocalLock(path.join(options.paths.shadowcloneDirectory, "profile-write.db"));
   if (!lock) throw new Error("Another profile update is running; retry shortly");
   try { return await writeProfileRevision(options); }
@@ -176,6 +178,10 @@ async function writeProfileRevision(options: WriteOptions): Promise<ProfileWrite
   }
   updates.push({ filePath: options.paths.profileManifestFile, next: renderGeneratedProfileState([...nextState.values()]), previous: previousManifest });
   updates.push({ filePath: options.paths.rejectedProfileFile, next: renderProfileRejections([...prepared.rejections.values()]), previous: previousRejections });
+  for (const update of updates.filter((update) => update.next !== null)) {
+    await ownedDirectory(path.dirname(update.filePath));
+    await ownedFile(update.filePath);
+  }
   await commitLocalChanges({ paths: options.paths, root: options.paths.profileDirectory, kind: "profile", updates });
   return {
     files: writtenFiles,

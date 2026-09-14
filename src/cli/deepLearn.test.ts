@@ -18,7 +18,7 @@ const origin: OriginScope = {
 async function fixture() {
   const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-deep-"));
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const sourcePath = path.join(homeDirectory, "evidence.txt");
+  const sourcePath = path.join(paths.claudeProjectsDirectory, "evidence.txt");
   const text = "The user asked for a smaller change.";
   await Bun.write(sourcePath, text);
   const textRef = {

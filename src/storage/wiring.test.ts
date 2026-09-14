@@ -114,6 +114,7 @@ test("doctor tightens an installation an older version left loose", async () => 
   await doctor({
     managedConfigPath: null,
     databasePath: paths.indexDatabase,
+    shadowcloneDirectory: paths.shadowcloneDirectory,
     probe: async () => false,
   });
 

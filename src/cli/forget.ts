@@ -20,6 +20,7 @@ export async function forgetAll(
     await removeArtifacts({
       directory: installation.directory,
       artifacts: installation.artifacts,
+      installation,
     });
     await removeGitExcludes({
       cwd: installation.directory,

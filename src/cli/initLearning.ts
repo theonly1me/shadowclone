@@ -65,6 +65,7 @@ export async function runSetupLearning(options: {
       gitMetadataEnabled: options.config.sources["git-metadata"],
       readRemote: options.readRemote,
       blockedOrigins: options.policy.blockedOrigins,
+      bindings: index,
     });
     const eligibleSignals = allowlistedSignals({
       signals: derived.learning,

@@ -83,6 +83,7 @@ test("aggregates more than one wave of batches in source order", async () => {
 
   const result = await distillSignals({
     signals,
+    sourceRoots: [directory],
     runner,
     engine: "claude-code",
     workingDirectory: directory,

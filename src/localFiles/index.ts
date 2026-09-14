@@ -1,5 +1,5 @@
 import { lstatSync } from "node:fs";
-import { mkdir, rename, rm } from "node:fs/promises";
+import { mkdir, open, rename, rm } from "node:fs/promises";
 import path from "node:path";
 
 export function fingerprint(text: string): string {
@@ -44,7 +44,9 @@ export async function replaceLocalText(options: {
   const temporary = `${options.filePath}.${crypto.randomUUID()}.tmp`;
   try {
     const mode = lstatSync(options.filePath, { throwIfNoEntry: false })?.mode;
-    await Bun.write(temporary, options.next, { mode: mode === undefined ? 0o600 : mode & 0o777 });
+    const handle = await open(temporary, "wx", mode === undefined ? 0o600 : mode & 0o777);
+    try { await handle.writeFile(options.next); }
+    finally { await handle.close(); }
     if (await readLocalText(options.filePath) !== options.previous) {
       throw new Error("Destination changed during the update; retry after reviewing it");
     }

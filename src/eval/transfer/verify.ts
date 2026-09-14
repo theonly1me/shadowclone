@@ -9,15 +9,7 @@ import { denySubpathRules, maskArguments } from "../../engine";
 import { canonicalPath } from "../../paths";
 import { redactSecrets } from "../../redact";
 import { sensitivePaths } from "./sensitivePaths";
-import type { CheckVote } from "./types";
-
-type VerificationVerdict = "pass" | "fail" | "uncertain";
-type VerificationResult = {
-  readonly requirement: string;
-  readonly verdict: VerificationVerdict;
-  readonly evidence: string;
-  readonly votes: readonly CheckVote<"pass" | "fail">[];
-};
+import type { VerificationResult } from "./verificationTypes";
 
 const packageManifestSchema = z.object({
   scripts: z.record(z.string(), z.string()).optional(),

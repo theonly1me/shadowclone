@@ -4,6 +4,7 @@ import path from "node:path";
 import { invocationCeiling } from "./budget";
 import { modelCaller } from "./call";
 import { evaluationBudget } from "./accounting";
+import { lockEvaluation } from "./lock";
 import { throwIfEvaluationExpired, withEvaluationDeadline } from "./deadline";
 import { executeTransferRuns } from "./executeRuns";
 import { prepareEvaluation } from "./prepare";
@@ -55,7 +56,9 @@ export async function runTransferEval(
       const controlDirectory = await mkdtemp(
         path.join(os.tmpdir(), "shadowclone-eval-control-"),
       );
+      let releaseLock: (() => Promise<void>) | undefined;
       try {
+        releaseLock = await lockEvaluation(setup.directory);
         const callBudget = await evaluationBudget({
           directory: setup.directory,
           resume: setup.saved !== null,
@@ -96,10 +99,14 @@ export async function runTransferEval(
           startedAt,
         });
       } finally {
-        await Promise.all([
-          rm(controlDirectory, { recursive: true, force: true }),
-          disposeSnapshotTemplates(),
-        ]);
+        try {
+          await Promise.all([
+            rm(controlDirectory, { recursive: true, force: true }),
+            disposeSnapshotTemplates(),
+          ]);
+        } finally {
+          await releaseLock?.();
+        }
       }
     },
   });

@@ -11,8 +11,8 @@ async function checkedDirectory(directory: string): Promise<string> {
   if (stats === null) {
     const parent = await checkedDirectory(path.dirname(absolute));
     const target = path.join(parent, path.basename(absolute));
-    await mkdir(target, { mode: ownedDirectoryMode });
-    return target;
+    await mkdir(target, { mode: ownedDirectoryMode, recursive: true });
+    return checkedDirectory(target);
   }
   if (stats.isSymbolicLink()) {
     if (absolute === "/tmp" || absolute === "/var") {

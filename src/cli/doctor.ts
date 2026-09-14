@@ -10,6 +10,7 @@ import {
 import { openEventIndex } from "../index";
 import { integrationHealth } from "../integrations";
 import { projectPaths } from "../paths";
+import { repairOwnedTree } from "../storage";
 import { readLearningState } from "../learning";
 import { readEffectiveConfig } from "../config";
 import { listSkillProposals, readMaintenanceState } from "../skillMaintenance";
@@ -64,7 +65,9 @@ export async function doctor(options: {
   readonly probe?: CommandProbe;
   readonly managedConfigPath?: string | null;
   readonly databasePath?: string;
+  readonly shadowcloneDirectory?: string;
 } = {}): Promise<void> {
+  await repairOwnedTree(options.shadowcloneDirectory ?? projectPaths.shadowcloneDirectory);
   const managedConfigPath =
     options.managedConfigPath === undefined
       ? projectPaths.managedConfigFile

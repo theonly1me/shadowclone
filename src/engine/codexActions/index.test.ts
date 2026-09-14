@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { canonicalPath } from "../../paths";
 import {
   buildCodexArguments,
   codexProcessArguments,
@@ -80,7 +81,7 @@ test("evaluation forwards the exact model and only enables writes for execution"
   const permissionValue = executionArguments.find((argument) =>
     argument.startsWith("permissions.shadowclone-evaluation="),
   );
-  expect(permissionValue).toContain('"/tmp/task"="write"');
+  expect(permissionValue).toContain(`${JSON.stringify(canonicalPath(runConfig.cwd))}="write"`);
   expect(permissionValue).not.toContain('":tmpdir"');
   expect(permissionValue).not.toContain('":slash_tmp"');
   expect(executionArguments.join(" ")).toContain('":root"="deny"');

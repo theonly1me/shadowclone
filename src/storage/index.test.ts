@@ -34,6 +34,20 @@ test("owned write replaces existing content without loosening the mode", async (
   expect(await modeOf(filePath)).toBe(0o600);
 });
 
+test("concurrent checkpoint writes create shared private directories", async () => {
+  const root = await scratch();
+  const files = ["first", "second", "third"].map((name) =>
+    path.join(root, "distill", "checkpoints", `${name}.json`),
+  );
+  await Promise.all(files.map((filePath) =>
+    ownedWrite({ path: filePath, content: "{}" }),
+  ));
+  for (const filePath of files) {
+    expect(await Bun.file(filePath).text()).toBe("{}");
+    expect(await modeOf(filePath)).toBe(0o600);
+  }
+});
+
 test("owned write leaves no partial file behind", async () => {
   const root = await scratch();
 

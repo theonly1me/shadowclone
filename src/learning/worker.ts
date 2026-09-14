@@ -42,7 +42,7 @@ export async function runLearningMaintenance(options: LearningOptions & { readon
       const index = await openEventIndex(paths.indexDatabase);
       try {
         await ingestSources({ index, config: effective.config, paths });
-        const derived = await deriveSignals({ events: index.listEvents(), corpus: index.getCorpusSummary(), gitMetadataEnabled: effective.config.sources["git-metadata"], blockedOrigins: effective.policy.blockedOrigins, readRemote: options.readRemote });
+        const derived = await deriveSignals({ events: index.listEvents(), corpus: index.getCorpusSummary(), gitMetadataEnabled: effective.config.sources["git-metadata"], blockedOrigins: effective.policy.blockedOrigins, readRemote: options.readRemote, bindings: index });
         const requestedSessions = new Set(options.sessionKeys ?? []);
         const signals = requestedSessions.size === 0
           ? selectLearningEpisodes({ signals: derived.learning, state, now })
