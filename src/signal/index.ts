@@ -3,6 +3,7 @@ import type {
   IndexedEvent,
 } from "../index";
 import { mineCorrections } from "./corrections";
+import { mineSteeringEpisodes } from "./episodes";
 import { isOriginBlocked } from "./blockedOrigin";
 import {
   getEventRepository,
@@ -35,6 +36,7 @@ export type MirrorReport = {
 
 export type DerivedSignals = {
   readonly corrections: readonly CorrectionSignal[];
+  readonly learning: readonly CorrectionSignal[];
   readonly events: readonly IndexedEvent[];
   readonly origins: ReadonlyMap<string, OriginScope>;
   readonly report: MirrorReport;
@@ -118,6 +120,7 @@ export async function deriveSignals(options: {
 
   return {
     corrections,
+    learning: mineSteeringEpisodes({ events, repositories }),
     events,
     origins,
     report: {

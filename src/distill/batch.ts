@@ -9,11 +9,14 @@ export type DistillBatch = {
   readonly signals: readonly CorrectionSignal[];
 };
 
+export const distillSignalBatchSize = 20;
+export const distillConcurrency = 8;
+
 export function groupDistillBatches(options: {
   readonly signals: readonly CorrectionSignal[];
   readonly batchSize?: number;
 }): readonly DistillBatch[] {
-  const batchSize = options.batchSize ?? 20;
+  const batchSize = options.batchSize ?? distillSignalBatchSize;
   if (!Number.isInteger(batchSize) || batchSize < 1) {
     throw new Error("Distillation batch size must be a positive integer");
   }

@@ -1,49 +1,28 @@
-import path from "node:path";
-import { distillSignals } from "../../distill";
-import type { EngineId } from "../../engine";
-import type { IndexedEvent } from "../../index";
 import { compileProfile } from "../../profile";
-import { deriveSignals } from "../../signal";
-import type { Evidence, ModelCall } from "./types";
+import type { RepositoryIdentity } from "../../signal";
 
-export async function learnEvaluationProfile(options: {
-  readonly events: readonly IndexedEvent[];
-  readonly training: readonly Evidence[];
-  readonly cutoff: number;
-  readonly call: ModelCall;
-  readonly engine: EngineId;
-  readonly directory: string;
-}): Promise<string> {
-  const sessions = new Set(options.training.map((entry) => entry.sessionId));
+export type FrozenEvaluationProfile = {
+  readonly markdown: string;
+  readonly ruleCount: number;
+};
 
-  const events = options.events.filter(
-    (event) =>
-      event.timestamp < options.cutoff &&
-      sessions.has(`${event.source}:${event.sessionId}`),
-  );
-
-  const derived = await deriveSignals({
-    events,
-    gitMetadataEnabled: false,
-    corpus: { sessions: sessions.size, bytes: 0, activeDays: 0 },
-  });
-
-  const distilled = await distillSignals({
-    events,
-    signals: derived.corrections,
-    runner: (run) =>
-      options.call({
-        cwd: options.directory,
-        prompt: run.prompt,
-        outputSchema: run.outputSchema,
-      }),
-    engine: options.engine,
-    workingDirectory: options.directory,
-    checkpointDirectory: path.join(options.directory, crypto.randomUUID()),
-  });
-
+export async function loadEvaluationProfile(options: {
+  readonly profileDirectory: string;
+  readonly repository: RepositoryIdentity;
+}): Promise<FrozenEvaluationProfile> {
   const compilation = await compileProfile({
-    input: { kind: "rules", rules: distilled.rules },
+    input: {
+      kind: "directory",
+      profileDirectory: options.profileDirectory,
+      origin: options.repository.origin,
+      targetRepo: options.repository.profileFileName,
+    },
   });
-  return compilation.markdown;
+  if (compilation.appliedRuleCount === 0) {
+    throw new Error("Evaluation requires an active Shadowclone profile");
+  }
+  return {
+    markdown: compilation.markdown,
+    ruleCount: compilation.appliedRuleCount,
+  };
 }

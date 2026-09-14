@@ -1,6 +1,10 @@
 import { expect, test } from "bun:test";
 import type { EngineRunner } from "../engine";
-import { profileEvidenceId, type ProfileRule } from "../profile";
+import {
+  explicitProfileEvidence,
+  profileEvidenceId,
+  type ProfileRule,
+} from "../profile";
 import { consolidateNewRules } from "./consolidate";
 
 function rule(sessionIndex: number): ProfileRule {
@@ -63,5 +67,45 @@ test("retains the first key and unions exact constituent evidence", async () => 
   expect(consolidated[0]?.key).toBe("rule-1");
   expect(consolidated[0]?.evidence.for).toHaveLength(3);
   expect(consolidated[0]?.sessions).toBe(3);
+  expect(consolidated[0]?.status).toBe("active");
+});
+
+test("keeps explicit guidance active when consolidating fewer than three sessions", async () => {
+  const runner: EngineRunner = () => Promise.resolve({
+    engine: "claude-code",
+    sessionId: "merge-session",
+    transcriptPath: null,
+    text: "",
+    structured: {
+      rules: [{
+        title: "Prefer small changes",
+        body: "Choose the smallest change that satisfies the request.",
+        section: "workflow",
+        sources: [0, 1],
+      }],
+    },
+    costUsd: 0.01,
+    durationMs: 10,
+    turns: 1,
+    isError: false,
+    permissionDenials: [],
+    actions: [],
+    errorMessage: null,
+  });
+  const first = rule(1);
+  const explicit = {
+    ...first,
+    evidence: {
+      ...first.evidence,
+      for: first.evidence.for.map(explicitProfileEvidence),
+    },
+  };
+  const consolidated = await consolidateNewRules({
+    rules: [explicit, rule(2)],
+    runner,
+    workingDirectory: "/tmp",
+  });
+  expect(consolidated).toHaveLength(1);
+  expect(consolidated[0]?.sessions).toBe(2);
   expect(consolidated[0]?.status).toBe("active");
 });

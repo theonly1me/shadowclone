@@ -3,6 +3,7 @@ import { mkdtemp, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { lockEvaluation } from "./lock";
+import { evidenceReceipt } from "./recoveryFixtures";
 import { initialReceipt, saveReceipt } from "./storage";
 
 test("public reports omit private content while resume state retains it privately", async () => {
@@ -11,7 +12,7 @@ test("public reports omit private content while resume state retains it privatel
   );
   try {
     const receipt = initialReceipt({
-      schemaVersion: 3,
+      ...evidenceReceipt(directory).prepared,
       evalId: "private-eval-name",
       repository: "/private/project",
       engine: "claude-code",
@@ -20,16 +21,13 @@ test("public reports omit private content while resume state retains it privatel
       timeoutSeconds: 30,
       maxBudgetUsd: 2,
       context: [{ relativePath: "CLAUDE.md", content: "private-context" }],
-      exclusions: [],
       tasks: [
         {
           id: "private-task",
-          sourceSession: "private-session",
           startingCommit: "a".repeat(40),
           prompt: "private-prompt",
           completion: ["private-requirement"],
           preferences: [],
-          training: [],
           profile: "private-profile",
           profileFingerprint: "b".repeat(64),
         },
@@ -41,9 +39,16 @@ test("public reports omit private content while resume state retains it privatel
         ...receipt,
         runs: [
           {
+            ...evidenceReceipt(directory).runs[0],
             taskId: "private-task",
             repeat: 0,
             arm: "clone",
+            phase: "complete",
+            failureStage: "judging",
+            observed: "private-code",
+            verification: [],
+            safety: [],
+            dependencyState: "not-required",
             sessionId: "private-session",
             failure: "private-error",
             durationMs: 1,
@@ -53,6 +58,7 @@ test("public reports omit private content while resume state retains it privatel
                 requirement: "private-requirement",
                 verdict: "fail",
                 evidence: "private-evidence",
+                votes: [],
               },
             ],
             preferences: [],

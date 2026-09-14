@@ -1,5 +1,7 @@
 # Learning Report Boundary
 
+The plain-learning boundary below remains in use. [Design 017](017-self-improving-agent-environment.md) adds separately consented learning for explicitly selected useful sessions.
+
 ## Summary
 
 `shadowclone learn` indexes enabled sources and reports measured behavior without generating profile instructions. Only explicit deep distillation may create mined rules, the session-end hook rebuilds a compiled view from existing rules, and transfer evaluation uses distilled rules without a structural fallback.

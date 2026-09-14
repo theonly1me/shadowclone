@@ -1,52 +1,26 @@
 import { expect, test } from "bun:test";
-import type { IndexedEvent } from "../../index";
-import { learnEvaluationProfile } from "./profile";
+import { mkdtemp } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { loadEvaluationProfile } from "./profile";
 
-function event(options: {
-  readonly id: number;
-  readonly kind: IndexedEvent["kind"];
-  readonly toolName?: string;
-}): IndexedEvent {
-  return {
-    id: options.id,
-    sourcePath: "/fixture.jsonl",
-    source: "claude-code",
-    sessionId: "session",
-    eventId: `event-${options.id}`,
-    parentEventId: null,
-    timestamp: options.id,
-    cwd: "/repo",
-    gitBranch: null,
-    kind: options.kind,
-    tool: options.toolName
-      ? { toolUseId: `tool-${options.id}`, name: options.toolName }
-      : null,
-    isError: false,
-    textRef: null,
-  };
-}
+const repository = {
+  id: "example.com/team/repository",
+  name: "repository",
+  profileFileName: "repository--1234567890abcdef",
+  origin: {
+    id: "example.com/team",
+    directoryName: "example.com--team",
+    promotable: true,
+  },
+};
 
-test("evaluation keeps an empty semantic profile without a structural fallback", async () => {
-  const profile = await learnEvaluationProfile({
-    events: [
-      event({ id: 1, kind: "tool-call", toolName: "Edit" }),
-      event({ id: 2, kind: "interruption" }),
-    ],
-    training: [
-      {
-        id: "training",
-        sessionId: "claude-code:session",
-        timestamp: 2,
-        text: "Stop editing",
-      },
-    ],
-    cutoff: 3,
-    call: () => {
-      throw new Error("An empty eligible set must not call the engine");
-    },
-    engine: "claude-code",
-    directory: "/tmp",
-  });
+test("evaluation requires an active current profile", async () => {
+  const profileDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-empty-profile-"),
+  );
 
-  expect(profile).toBe("# Shadowclone profile\n");
+  expect(
+    loadEvaluationProfile({ profileDirectory, repository }),
+  ).rejects.toThrow("active Shadowclone profile");
 });

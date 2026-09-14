@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import packageManifest from "../../package.json";
 import { handleMcpRequest } from "./server";
+import { preferenceTools } from "./preferences";
 
 test("responds to initialize with protocol version and serverInfo", () => {
   const response = handleMcpRequest({
@@ -19,7 +20,7 @@ test("responds to initialize with protocol version and serverInfo", () => {
   });
 });
 
-test("advertises one profile recall tool", () => {
+test("advertises profile recall and explicit preference operations", () => {
   const response = handleMcpRequest({
     request: { id: 1, method: "tools/list", params: {} },
     profile: "",
@@ -30,6 +31,7 @@ test("advertises one profile recall tool", () => {
     id: 1,
     result: {
       tools: [
+        ...preferenceTools,
         {
           name: "shadowclone_profile",
           description:

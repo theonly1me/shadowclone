@@ -1,7 +1,6 @@
 import { readBoundedFile } from "../../io/files";
 import path from "node:path";
 import type { EngineRun } from "../../engine";
-import { redactSecrets } from "../../redact";
 import { command } from "./command";
 
 const ignoredTopLevelDirectories = new Set([
@@ -11,12 +10,19 @@ const ignoredTopLevelDirectories = new Set([
 ]);
 
 const maximumFileBytes = 100000;
+const maximumDiffCharacters = 100000;
+
+export type ObservedRun = {
+  readonly evidence: string;
+  readonly repositoryChanged: boolean;
+  readonly truncated: boolean;
+};
 
 export async function observeRun(options: {
   readonly directory: string;
   readonly run: EngineRun;
   readonly initialCommit: string;
-}): Promise<string> {
+}): Promise<ObservedRun> {
   const changed = await command({
     cwd: options.directory,
     arguments: ["git", "diff", "--name-only", options.initialCommit],
@@ -26,13 +32,29 @@ export async function observeRun(options: {
     cwd: options.directory,
     arguments: ["git", "ls-files", "--others", "--exclude-standard"],
   });
+  const fullDiff = await command({
+    cwd: options.directory,
+    arguments: [
+      "git",
+      "diff",
+      "--no-ext-diff",
+      "--unified=3",
+      options.initialCommit,
+      "--",
+    ],
+  });
+  const diff = fullDiff.slice(0, maximumDiffCharacters);
 
   const files: { path: string; content: string }[] = [];
   let remainingBytes = maximumFileBytes;
-  let isTruncated = false;
+  let isTruncated = diff.length < fullDiff.length;
 
   const paths = new Set(
-    [...changed.split("\n"), ...untracked.split("\n")].filter(Boolean),
+    [...changed.split("\n"), ...untracked.split("\n")].filter((entry) => {
+      const [topLevelDirectory] = entry.split("/");
+      return Boolean(entry) &&
+        (!topLevelDirectory || !ignoredTopLevelDirectories.has(topLevelDirectory));
+    }),
   );
 
   for (const relativePath of paths) {
@@ -63,14 +85,16 @@ export async function observeRun(options: {
     files.push({ path: relativePath, content });
   }
 
-  return redactSecrets({
-    text: JSON.stringify({
+  return {
+    evidence: JSON.stringify({
       files,
-      changedPaths: changed.split("\n"),
+      diff,
+      changedPaths: [...paths],
+      repositoryChanged: paths.size > 0,
       truncated: isTruncated,
       actions: options.run.actions,
-      agentResponse: options.run.text,
-      note: "Agent response is a claim, not independent proof. Files are final content, not a reference solution. Missing success metadata does not establish execution success.",
     }),
-  });
+    repositoryChanged: paths.size > 0,
+    truncated: isTruncated,
+  };
 }

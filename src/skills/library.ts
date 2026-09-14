@@ -43,6 +43,10 @@ async function resolveSeedDirectories(): Promise<SeedDirectories> {
   throw new Error("The packaged seed guidance directories are missing");
 }
 
+export async function seedSkillsDirectory(): Promise<string> {
+  return (await resolveSeedDirectories()).skills;
+}
+
 async function loadPreferences(
   directory: string,
 ): Promise<readonly SeedPreference[]> {

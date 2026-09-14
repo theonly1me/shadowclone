@@ -43,6 +43,7 @@ export async function runHostCommand(options: {
   readonly arguments: readonly string[];
   readonly cwd: string;
   readonly timeoutSeconds?: number;
+  readonly signal?: AbortSignal;
 }) {
   const [executable, ...arguments_] = options.arguments;
   if (!executable) {
@@ -66,6 +67,7 @@ export async function runHostCommand(options: {
       cwd: options.cwd,
       environment,
       timeoutMilliseconds: 10_000,
+      signal: options.signal,
     });
     if (configuration.stdout.trim().length > 0) {
       throw new Error(
@@ -94,5 +96,6 @@ export async function runHostCommand(options: {
     cwd: options.cwd,
     environment,
     timeoutMilliseconds: (options.timeoutSeconds ?? 60) * 1000,
+    signal: options.signal,
   });
 }

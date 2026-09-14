@@ -33,5 +33,6 @@ export async function observeShellFile(options: {
     cursor: result.cursor,
     rescanned: result.rescanned,
     bytesRead: result.bytesRead,
+    invalidRecords: result.invalidRecords,
   };
 }

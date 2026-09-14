@@ -113,6 +113,7 @@ test("one learning allowance stops before a second extraction batch", async () =
         maximumCostUsd: 2,
       },
       workingDirectory: directory,
+      sourceRoots: [directory],
       checkpointDirectory: path.join(directory, "checkpoints"),
     }),
   ).rejects.toThrow("Learning call limit reached");

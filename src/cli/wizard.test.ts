@@ -115,10 +115,21 @@ test("writes stable declared rules on identical reruns", async () => {
   const testingFirst = rules.find(
     (rule) => rule.key === seedGuidanceProfileKey("testing-first"),
   );
-  expect(rules).toHaveLength(5);
+  expect(rules).toHaveLength(4);
   expect(rules.every((rule) => rule.source === "declared")).toBeTrue();
   expect(rules.every((rule) => rule.key.startsWith("seed:"))).toBeTrue();
-  expect(testingFirst?.title).toBe("Test First Through a Public Seam");
-  expect(testingFirst?.body).toContain("### Process");
+  expect(testingFirst).toBeUndefined();
+  for (const root of [
+    path.join(homeDirectory, ".agents/skills"),
+    path.join(homeDirectory, ".claude/skills"),
+    path.join(homeDirectory, ".codex/skills"),
+    path.join(homeDirectory, ".cursor/skills"),
+    path.join(homeDirectory, ".gemini/config/skills"),
+  ]) {
+    const skill = await Bun.file(
+      path.join(root, "testing-first/SKILL.md"),
+    ).text();
+    expect(skill).toContain("# Test First Through a Public Seam");
+  }
   expect(engineeringText).not.toContain("\n## Process");
 });

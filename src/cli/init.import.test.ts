@@ -16,6 +16,7 @@ test("offers to import detected repository guidance", async () => {
   const questions: string[] = [];
 
   await initialize({
+    advanced: true,
     paths,
     configPath: paths.configFile,
     workingDirectory: homeDirectory,
@@ -42,6 +43,7 @@ test("imports accepted guidance after configuration and skips seed selection", a
   await Bun.write(path.join(homeDirectory, "CLAUDE.md"), "# Plan first");
 
   await initialize({
+    advanced: true,
     paths,
     configPath: paths.configFile,
     workingDirectory: homeDirectory,
@@ -72,6 +74,7 @@ test("offers seed guidance when managed policy blocks import", async () => {
   const output: string[] = [];
 
   await initialize({
+    advanced: true,
     paths,
     configPath: paths.configFile,
     workingDirectory: homeDirectory,

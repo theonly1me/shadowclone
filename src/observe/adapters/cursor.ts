@@ -29,6 +29,7 @@ export async function observeCursorFile(options: {
       cursor: options.cursor,
       rescanned: false,
       bytesRead: 0,
+      invalidRecords: 0,
     };
   }
   const store = await readCursorStore({
@@ -62,6 +63,7 @@ export async function observeCursorFile(options: {
     cursor: store.cursor,
     rescanned: options.cursor !== null,
     bytesRead: store.bytesRead,
+    invalidRecords: 0,
   };
 }
 

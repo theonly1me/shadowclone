@@ -112,9 +112,9 @@ test("doctor tightens an installation an older version left loose", async () => 
   await chmod(path.join(paths.shadowcloneDirectory, "config.toml"), 0o644);
 
   await doctor({
-    shadowcloneDirectory: paths.shadowcloneDirectory,
     managedConfigPath: null,
     databasePath: paths.indexDatabase,
+    shadowcloneDirectory: paths.shadowcloneDirectory,
     probe: async () => false,
   });
 

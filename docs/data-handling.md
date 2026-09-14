@@ -20,7 +20,7 @@ Transcript parsing records event categories, timestamps, working directories, to
 | `~/.shadowclone/distill/` | Distillation checkpoints containing derived model results and fingerprints |
 | `~/.shadowclone/runs/` | Private dispatch receipts, compiled guidance, and approved remote-action drafts |
 | `~/.shadowclone/worktrees/` | Local task checkouts, including work that may be uncommitted |
-| `~/.shadowclone/eval/` | Private frozen tasks, redacted evidence, profiles and context in `state.json`; cumulative usage in `budget.json`; reduced `report.json` |
+| `~/.shadowclone/eval/` | Private frozen tasks, code evidence, profiles and context in `state.json`; cumulative usage in `budget.json`; reduced `report.json` |
 | Repository `.claude/` | Installed agent and optional delegation skill, which can contain compiled guidance |
 
 Generated state uses owner-only file permissions and private directories on supported systems. It is not encrypted by Shadowclone. Checkout file modes remain intact beneath a private worktree parent. Accounts or processes with equivalent user privileges, administrator access, or access to backups may still read the data.

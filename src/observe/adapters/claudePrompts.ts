@@ -58,5 +58,6 @@ export async function observeClaudePromptsFile(options: {
     cursor: result.cursor,
     rescanned: result.rescanned,
     bytesRead: result.bytesRead,
+    invalidRecords: result.invalidRecords,
   };
 }

@@ -1,0 +1,84 @@
+import { expect, test } from "bun:test";
+import { type EvaluationArm, evaluationArmOrder } from "./arms";
+import { gradeArms } from "./gradePair";
+import { batchReply } from "./judgeFixtures";
+import { fingerprint } from "./structured";
+import type { CheckResult, DelegationTask, TransferRun } from "./types";
+
+const passed: CheckResult = {
+  requirement: "Reviewable code",
+  verdict: "pass",
+  evidence: "Observed",
+  votes: [],
+};
+const profile = "Use complete names.";
+const task: DelegationTask = {
+  id: "task",
+  startingCommit: "commit",
+  prompt: "Add a new parser utility and tests.",
+  completion: ["The parser works"],
+  preferences: [{ requirement: "Use complete names", source: {
+    relativePath: "profile.md", heading: "", line: 1,
+  } }],
+  profile,
+  profileFingerprint: fingerprint(profile),
+};
+
+function evidence(arm: EvaluationArm): TransferRun {
+  return {
+    taskId: task.id,
+    repeat: 0,
+    arm,
+    phase: "evidence",
+    sessionId: `${arm}-session`,
+    failure: null,
+    durationMs: 10,
+    costUsd: null,
+    dependencyState: "not-required",
+    observed: `{"candidate":"${arm}"}`,
+    verification: [passed],
+    safety: [passed],
+    correctness: [],
+    preferences: [],
+  };
+}
+
+test("grades every arm with independent judge calls", async () => {
+  const runs = evaluationArmOrder.map(evidence);
+  let calls = 0;
+
+  const graded = await gradeArms({
+    runs,
+    task,
+    directory: "/tmp",
+    call: async (options) => {
+      calls += 1;
+      expect(options.prompt).toContain(task.prompt);
+      return batchReply(options);
+    },
+    onVote: async () => undefined,
+  });
+
+  expect(calls).toBe(evaluationArmOrder.length * 6);
+  expect(graded.map((run) => run.arm)).toEqual([...evaluationArmOrder]);
+  for (const run of graded) {
+    expect(run.phase).toBe("complete");
+    expect(run.preferences[0]?.verdict).toBe("pass");
+  }
+});
+
+test("missing evidence for any arm stops grading", async () => {
+  const runs = evaluationArmOrder.map(evidence).map((run) =>
+    run.arm === "clone" ? { ...run, observed: null } : run
+  );
+
+  await expect(gradeArms({
+    runs,
+    task,
+    directory: "/tmp",
+    call: async () => {
+      throw new Error("judge must not run");
+    },
+    onVote: async () => undefined,
+  })).rejects.toThrow("Evaluation evidence is missing");
+});

@@ -16,7 +16,7 @@ Thanks for looking. This is an early project, so the surface area is small and t
 
 ## Setup
 
-Needs [Bun](https://bun.sh). No Node, no npm. For anything that calls a model, at least one of `claude`, `codex`, or `cursor-agent` installed and logged in. No API key, and nothing new may depend on one.
+Development uses [Bun](https://bun.sh). For anything that calls a model, at least one of `claude`, `codex`, or `cursor-agent` must be installed and logged in. No separate API key is required.
 
 ```bash
 bun install
@@ -37,7 +37,7 @@ bun run check        # bun run typecheck && bun run lint && bun test
 
 ## Conventions
 
-The conventions live in `.claude/skills/clean-code/SKILL.md` rather than in this file, because agents read that path and humans can read it too. It is short. Read it once before your first PR.
+The conventions live in `.claude/skills/clean-code/SKILL.md`. Read it before your first PR.
 
 The ones people trip on:
 
@@ -45,7 +45,7 @@ The ones people trip on:
 - **Zero comments.** Not few. Zero. If code needs explaining, rename something, extract a named function, put the state in the type, or write a test that encodes the rule. The reasoning goes in the PR description, where it gets read.
 - **Full words in names.** `statement` not `stmt`, `index` not `i`. Never shadow an import with a local name.
 - **Two or more arguments take an options object.** `getRecentShellHistory({ lineCount, historyPaths })`.
-- **Files stay under 200 lines,** tests included. Plan a folder module up front rather than splitting a big file later.
+- **Files stay under 200 lines,** tests included. Plan a folder module before writing a larger change.
 - **No em-dashes** in code, comments, docs, or PR text.
 
 This applies to the existing code as much as new code, with one exception: do not open a PR whose purpose is deleting comments or renaming things you did not otherwise touch.
@@ -68,9 +68,9 @@ Using an assistant to help write the PR is fine. Shipping its first draft unedit
 Good. One sentence each, present tense, saying what the code does now:
 
 ```markdown
-- Route captured history through `redactSecrets` before it leaves the collector, so a shell history containing an API key no longer reaches the model.
-- Rename the loop variable in `getRecentShellHistory` that shadowed the `node:path` import.
-- Add `src/collector.test.ts`, covering the redaction wiring and the empty-history case.
+- Resolve captured text through `resolveRedacted` before building learning input.
+- Preserve the ingest cursor when the source has not changed.
+- Add adapter tests covering redaction wiring and an empty source.
 ```
 
 Bad, and this is the exact thing the caps exist to stop:
@@ -97,11 +97,11 @@ Anything touching capture, storage, or network egress. That is `src/observe/`, `
 `.claude/skills/data-handling/SKILL.md` has the rules. The six that come up most:
 
 1. **A new capture source needs an opt-in flag and a README entry in the same PR.** Reading a wider slice of a file you already read counts as a new source.
-2. **Everything reaching the network passes `redactSecrets`.** The gate sits inside `resolveRedacted`, the only exported function that turns a `TextRef` into a string. Do not add a second one downstream, and do not route around it.
+2. **Learning capture passes `redactSecrets` through `resolveRedacted`.** Do not bypass the gate or duplicate it downstream. Authorized coding and evaluation send code to the selected provider under the separate boundary documented in `docs/architecture/05-privacy.md`.
 3. **A test proves the wiring, not just the function.** `src/redact/index.test.ts` proving a pattern works says nothing about whether an adapter keeps text behind the resolver. Every adapter under `src/observe/adapters/` ships a wiring test with a fixture transcript holding a planted secret.
-4. **No raw capture in a log line, an error message, or a committed test fixture.**
+4. **No raw capture in a log line, an error message, or a committed test fixture.** Public fixtures must be synthetic, and evaluation write-ups must be reviewed summaries, not raw receipts.
 5. **Tool results, file contents, and thinking blocks are never distilled.** Excluded by category, not redacted. `docs/architecture/07-enterprise.md` has the list and the reason.
-6. **A rule never leaves the organization it was learned from.** Origin scoping is not optional and not a setting.
+6. **Repository and owner guidance stays scoped.** Global guidance requires explicit, globally scoped evidence or a user-directed change.
 
 If you are unsure whether your change touches egress, it touches egress. Say so in the PR and let the reviewer decide.
 
@@ -110,4 +110,3 @@ If you are unsure whether your change touches egress, it touches egress. Say so 
 If you find a string that gets past `src/redact/`, that is the most valuable bug report this project can get. Open an issue describing the **shape** of the string, not the string itself. "A GitLab personal access token starting `glpat-` is not matched" is enough to write the pattern and the test.
 
 `SECURITY.md` covers the reports that go through private reporting instead.
-

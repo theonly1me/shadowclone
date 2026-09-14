@@ -3,6 +3,7 @@ import {
   type EngineId,
   type EngineRunner,
   type LearningExecutionLimits,
+  type LearningExecution,
 } from "../engine";
 import type { IndexedEvent } from "../index";
 import type { ProfileRule, ProfileSnapshot } from "../profile";
@@ -12,9 +13,11 @@ import {
   finalizeReconciliationChanges,
   mergeProfileRuleUpdates,
 } from "./aggregate";
-import { groupDistillBatches } from "./batch";
+import { distillConcurrency, groupDistillBatches } from "./batch";
+import { mapWithConcurrency } from "./concurrency";
 import { consolidateNewRules } from "./consolidate";
 import { allowlistedSignals } from "./eligible";
+import { materializeEvidence } from "./excerpts";
 import {
   applyReconciliation,
   buildReconciliationPrompt,
@@ -23,7 +26,7 @@ import {
   type ReconciliationChange,
 } from "./reconcile";
 
-export { groupDistillBatches, type DistillBatch } from "./batch";
+export { distillConcurrency, distillSignalBatchSize, groupDistillBatches, type DistillBatch } from "./batch";
 export { checkpointId, reconciliationLearnerVersion } from "./checkpoint";
 export { allowlistedSignals, isEligibleForDistillation } from "./eligible";
 export {
@@ -67,35 +70,47 @@ export async function distillSignals(options: {
   readonly events: readonly IndexedEvent[];
   readonly profile?: ProfileSnapshot;
   readonly seedLibrary?: SeedLibrary;
+  readonly execution?: LearningExecution;
 }): Promise<DistillationResult> {
-  const execution = createLearningExecution({
+  const execution = options.execution ?? createLearningExecution({
     engine: options.engine,
     runner: options.runner,
     limits: options.limits,
   });
-  const signals = allowlistedSignals({
+  const eligible = allowlistedSignals({
     signals: options.signals,
     events: options.events,
   }).filter((signal) => signal.textRefs.length > 0);
+  const { signals, excerpts } = await materializeEvidence({
+    signals: eligible,
+    sourceRoots: options.sourceRoots,
+  });
   const appliedRules: ProfileRule[] = [];
   const changes: ReconciliationChange[] = [];
   let rejectedMatches = 0;
 
-  for (const batch of groupDistillBatches({ signals })) {
-    const context = createReconciliationContext({
-      batch,
-      profile: options.profile ?? emptyProfile,
-      library: options.seedLibrary ?? emptyLibrary,
-    });
-    const prompt = await buildReconciliationPrompt({ context, sourceRoots: options.sourceRoots });
-    const output = await runReconciliation({
-      prompt,
-      runner: execution.runner,
-      workingDirectory: options.workingDirectory,
-      ...(options.checkpointDirectory
-        ? { checkpointDirectory: options.checkpointDirectory }
-        : {}),
-    });
+  const batchResults = await mapWithConcurrency({
+    items: groupDistillBatches({ signals }),
+    limit: distillConcurrency,
+    run: async (batch) => {
+      const context = createReconciliationContext({
+        batch,
+        profile: options.profile ?? emptyProfile,
+        library: options.seedLibrary ?? emptyLibrary,
+      });
+      const prompt = await buildReconciliationPrompt({ context, excerpts });
+      const output = await runReconciliation({
+        prompt,
+        runner: execution.runner,
+        workingDirectory: options.workingDirectory,
+        ...(options.checkpointDirectory
+          ? { checkpointDirectory: options.checkpointDirectory }
+          : {}),
+      });
+      return { output, context };
+    },
+  });
+  for (const { output, context } of batchResults) {
     const applied = applyReconciliation({ output, context });
     appliedRules.push(...applied.rules);
     changes.push(...applied.changes);

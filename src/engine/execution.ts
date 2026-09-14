@@ -1,5 +1,9 @@
 import type { EngineRunOptions } from "./types";
 
+export function isIsolatedExecution(options: EngineRunOptions): boolean {
+  return options.execution.purpose !== "dispatch";
+}
+
 export function validateEngineExecution(options: EngineRunOptions): void {
   if (options.execution.purpose !== "learning") {
     return;

@@ -11,6 +11,16 @@
         ]
       }
     ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/dist/shadowclone.js\" hook session-start"
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [

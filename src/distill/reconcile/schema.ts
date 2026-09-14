@@ -3,6 +3,8 @@ import type { ReconciliationOutput } from "./types";
 
 const sectionValues = ["engineering", "workflow", "boundaries"] as const;
 const verdictValues = ["reinforces", "contradicts", "narrows"] as const;
+const intentValues = ["preference", "correction", "approval", "additional-context", "cancellation", "unknown"] as const;
+const scopeValues = ["global", "repository"] as const;
 
 const existingRuleSchema = z.strictObject({
   ruleToken: z.string().max(64),
@@ -24,6 +26,7 @@ const newRuleSchema = z.strictObject({
 });
 
 const reconciliationSchema = z.strictObject({
+  assessments: z.array(z.strictObject({ evidenceToken: z.string().max(64), intent: z.enum(intentValues), durable: z.boolean(), explicit: z.boolean().optional().default(false), scope: z.enum(scopeValues) })).max(20).optional(),
   existingRules: z.array(existingRuleSchema).max(24),
   newRules: z.array(newRuleSchema).max(8),
 });
@@ -40,8 +43,15 @@ function normalize(value: string, maximumLength: number): string {
 export const reconciliationOutputSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["existingRules", "newRules"],
+  required: ["existingRules", "newRules", "assessments"],
   properties: {
+    assessments: {
+      type: "array", maxItems: 20,
+      items: {
+        type: "object", additionalProperties: false, required: ["evidenceToken", "intent", "durable", "explicit", "scope"],
+        properties: { evidenceToken: { type: "string", maxLength: 64 }, intent: { type: "string", enum: intentValues }, durable: { type: "boolean" }, explicit: { type: "boolean" }, scope: { type: "string", enum: scopeValues } },
+      },
+    },
     existingRules: {
       type: "array",
       maxItems: 24,
@@ -94,6 +104,7 @@ export function parseReconciliationOutput(value: unknown): ReconciliationOutput 
     throw new Error("The engine returned an invalid reconciliation result");
   }
   return {
+    assessments: parsed.data.assessments,
     existingRules: parsed.data.existingRules.map((entry) => ({
       ...entry,
       observed: normalize(entry.observed, 600),

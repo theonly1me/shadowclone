@@ -1,12 +1,26 @@
-import { lstat, mkdir, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { command } from "./command";
+import { isolateNativeGuidance } from "./nativeIsolation";
+import { validateSnapshotLinks } from "./snapshotLinks";
+import { extractSnapshotArchive } from "./snapshotArchive";
+
+export { validateSnapshotLinks } from "./snapshotLinks";
 
 export interface SnapshotResult {
   readonly directory: string;
   readonly initialCommit: string;
   readonly cleanup: () => Promise<void>;
+}
+
+const templates = new Map<string, Promise<SnapshotResult>>();
+
+function templateKey(options: {
+  readonly repository: string;
+  readonly commit: string;
+}): string {
+  return `${options.repository}\u0000${options.commit}`;
 }
 
 const restrictedSettingsPaths = [
@@ -16,81 +30,25 @@ const restrictedSettingsPaths = [
   ".codex",
   ".claude/agents/shadowclone.md",
   ".claude/skills/shadowclone",
+  ".claude/skills/shadowclone-context",
+  ".agents/skills/shadowclone-context",
+  ".cursor/hooks.json",
+  ".cursor/rules/shadowclone.mdc",
+  ".cursor/skills/shadowclone-context",
 ] as const;
 
-export async function createSnapshot(options: {
+async function buildSnapshotTemplate(options: {
   readonly repository: string;
   readonly commit: string;
 }): Promise<SnapshotResult> {
   const container = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-transfer-"),
   );
-
   const directory = path.join(container, "workspace");
   try {
-    if (!/^[a-f0-9]{40,64}$/i.test(options.commit)) {
-      throw new Error("Snapshot requires a full commit object id");
-    }
-    const tree = await command({
-      arguments: ["git", "ls-tree", "-rz", "--full-tree", options.commit],
-      cwd: options.repository,
-    });
-    for (const entry of tree.split("\0").filter(Boolean)) {
-      const separator = entry.indexOf("\t");
-      const mode = entry.slice(0, 6);
-      const filename = entry.slice(separator + 1);
-      if (
-        separator < 0 ||
-        !["100644", "100755"].includes(mode) ||
-        path.isAbsolute(filename) ||
-        filename
-          .split("/")
-          .some(
-            (part) =>
-              part === ".." ||
-              part === "." ||
-              part.toLowerCase() === ".git" ||
-              part.length === 0,
-          )
-      ) {
-        throw new Error(
-          "Snapshot contains an unsafe path, symbolic link, or submodule",
-        );
-      }
-    }
-    await mkdir(directory, { mode: 0o700 });
-    const archivePath = path.join(container, "source.tar");
+    await extractSnapshotArchive({ ...options, container, directory });
 
-    await command({
-      arguments: [
-        "git",
-        "archive",
-        "--format=tar",
-        `--output=${archivePath}`,
-        options.commit,
-      ],
-      cwd: options.repository,
-    });
-
-    await command({
-      arguments: ["tar", "-xf", archivePath, "-C", directory],
-      cwd: directory,
-    });
-
-    await rm(archivePath);
-
-    const globScanner = new Bun.Glob("**/*").scan({
-      cwd: directory,
-      dot: true,
-      onlyFiles: false,
-    });
-
-    for await (const matchPath of globScanner) {
-      const entryStats = await lstat(path.join(directory, matchPath));
-      if (entryStats.isSymbolicLink()) {
-        throw new Error("Task snapshot contains a symbolic link");
-      }
-    }
+    await validateSnapshotLinks(directory);
 
     for (const relativePath of restrictedSettingsPaths) {
       await rm(path.join(directory, relativePath), {
@@ -99,6 +57,7 @@ export async function createSnapshot(options: {
       });
     }
 
+    await isolateNativeGuidance(directory);
     await command({
       arguments: ["git", "init", "--quiet"],
       cwd: directory,
@@ -144,4 +103,63 @@ export async function createSnapshot(options: {
     await rm(container, { recursive: true, force: true });
     throw error;
   }
+}
+
+export async function createSnapshot(options: {
+  readonly repository: string;
+  readonly commit: string;
+}): Promise<SnapshotResult> {
+  const key = templateKey(options);
+  let templatePromise = templates.get(key);
+  if (!templatePromise) {
+    templatePromise = buildSnapshotTemplate(options);
+    templates.set(key, templatePromise);
+  }
+
+  let template: SnapshotResult;
+  try {
+    template = await templatePromise;
+  } catch (error) {
+    if (templates.get(key) === templatePromise) {
+      templates.delete(key);
+    }
+    throw error;
+  }
+
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-transfer-"),
+  );
+  try {
+    const source = `${template.directory}${path.sep}.`;
+    const preferredArguments = process.platform === "darwin"
+      ? ["cp", "-Rc", source, directory]
+      : ["cp", "-R", "--reflink=auto", source, directory];
+    try {
+      await command({ arguments: preferredArguments, cwd: directory });
+    } catch {
+      await command({
+        arguments: ["cp", "-R", source, directory],
+        cwd: directory,
+      });
+    }
+    return {
+      directory,
+      initialCommit: template.initialCommit,
+      cleanup: async () => {
+        await rm(directory, { recursive: true, force: true });
+      },
+    };
+  } catch (error) {
+    await rm(directory, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+export async function disposeSnapshotTemplates(): Promise<void> {
+  const pendingTemplates = [...templates.values()];
+  templates.clear();
+  const results = await Promise.allSettled(pendingTemplates);
+  await Promise.all(results.flatMap((result) =>
+    result.status === "fulfilled" ? [result.value.cleanup()] : []
+  ));
 }

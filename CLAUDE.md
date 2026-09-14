@@ -1,15 +1,15 @@
 # shadowclone
 
-Becomes the user. Learns how they work from the AI coding sessions they already run, then runs as them: a subagent spawned in parallel inside their own Claude Code session, and a headless clone in a worktree when they are away. A shadow clone, in the Naruto sense.
+Turns engineering preferences learned from consented AI coding sessions into an editable profile, and synchronizes personal skills for the user's main Claude Code, Codex, Cursor, or Antigravity agent. Optional Claude subagents and headless worktree dispatch apply the same profile to delegated work.
 
-It is not a daemon. The agent CLIs already write their own transcripts to disk, so observation needs no background process. See `docs/architecture/06-roadmap.md` for why a daemon is deferred.
+There is no always-on daemon. Agent CLIs write their own transcripts; explicit commands and consented, bounded learning workers process them. See `docs/architecture/06-roadmap.md` for the implementation sequence.
 
 ## Read this first
 
 Two skills in `.claude/skills/` are not optional.
 
 - **`clean-code`** loads before you write or edit any code, test, doc, or comment. Every task.
-- **`data-handling`** loads before you touch capture, storage, or anything that makes a network call. This project reads the user's AI agent transcripts, which hold their employer's source code, hostnames, and production data, and it acts on the user's behalf. A mistake here is a leak, not a bug.
+- **`data-handling`** loads before you touch capture, storage, or anything that makes a network call. Captured sessions and derived guidance can contain sensitive data.
 
 `scoped-fix` loads when you are changing existing code, which is most of the time.
 
@@ -19,25 +19,32 @@ Two skills in `.claude/skills/` are not optional.
 | --- | --- |
 | `src/config/` | stores explicit source consent, with every source off by default |
 | `src/observe/` | reads enabled Claude Code, Codex, Cursor, Antigravity, Claude prompt, and shell sources incrementally |
-| `src/redact/` | validates bounded source references and materializes redacted text |
+| `src/redact/` | resolves captured-text pointers through the learning redaction gate |
 | `src/index/` | stores cursors and event skeletons in a rebuildable SQLite cache |
 | `src/signal/` | derives structural and correction signals without a model |
-| `src/profile/` | writes scoped markdown and compiles it into a live subagent |
+| `src/profile/` | writes scoped markdown consumed by every agent-facing projection |
 | `src/profile/compiler/` | the only profile projection, deterministic and capped at 16 KiB |
+| `src/integrations/` | installs stable native pointers, injects current scoped guidance, and tracks useful sessions |
 | `src/engine/` | drives authenticated Claude Code, Codex, and Cursor CLIs |
 | `src/distill/` | sends only redacted, allowlisted correction moments to the engine |
+| `src/learning/` | runs separately consented bounded catch-up over durable user steering |
+| `src/changes/` | keeps local before/after revisions and refuses conflicting undo |
+| `src/skillMaintenance/` | synchronizes portable skill copies, assesses consented skills, and separates managed additions from reviewed changes |
 | `src/dispatch/` | runs the clone in a worktree and records a receipt |
-| `.claude-plugin/` | injects the profile, ingests one transcript, and recompiles existing guidance at session end |
+| `src/eval/transfer/` | compares bare, skills, and clone arms using a frozen rubric and checkpointed judge votes |
+| `.claude-plugin/` | supports Claude plugin profile injection and bounded transcript ingestion |
 | `src/cli/` | provides `init`, `learn`, `doctor`, `install`, `uninstall`, `run`, and `forget --all` |
 
-Say this honestly when asked what works: opt-in capture, indexing, the mirror, deep distillation, live profile injection, the Claude subagent, headless worktree dispatch, four provider adapters, and three provider engines are implemented. Real plugin installation, provider corpus checks, and authenticated engine runs are manual checks. Antigravity, API, and local endpoint engines are not built yet.
+Opt-in capture, indexing, the mirror, deep distillation, useful-session learning, native profile delivery, portable personal skills, optional Claude subagents, headless dispatch, and fresh transfer evaluation are implemented. Four exploratory tasks are summarized in `evals.md`; they do not validate every provider or native delivery path. Plugin installation and provider compatibility require their own live checks. Antigravity has observation and native delivery but no execution engine. API and local endpoint engines are not built.
 
 ## What is being built
 
 ```
 observe  ->  index  ->  signal  ->  report
                            |
-                           +->  distill  ->  profile  ->  dispatch
+                           +->  distill  ->  profile  ->  native agents / dispatch / eval
+                                                  |
+                                                  +-> portable skills
 ```
 
 | Stage | Module | Phase |
@@ -50,18 +57,18 @@ observe  ->  index  ->  signal  ->  report
 | distill | `src/distill/` | 3 |
 | dispatch | `src/dispatch/` | 4 |
 
-`docs/design/001-agent-transcript-pivot.md` is the original transcript pivot spec. `docs/architecture/06-roadmap.md` is the order. Phases 0 through 6 are implemented. Build from the design docs.
+`docs/design/001-agent-transcript-pivot.md` records the original transcript pivot. Current behavior is documented in `docs/architecture/`; `docs/architecture/06-roadmap.md` separates implemented milestones from remaining validation.
 
-`docs/design/003-provider-expansion.md` defines provider growth. Phase 6 adds the static capability registry and Antigravity observation. Phase 7 adds one verified CLI provider per stacked PR.
+`docs/design/003-provider-expansion.md` defines provider qualification. The static capability registry and Antigravity observation are implemented; additional providers remain a backlog.
 
 ## The rules that outrank convenience
 
 - **One profile projection.** `compileProfile` in `src/profile/compiler/` is the only thing that turns stored profile into agent-facing guidance, for installs, hooks, MCP, dispatch, and both evaluation paths. It opens a closed path set, is deterministic for identical inputs, and caps output at 16 KiB by dropping whole blocks. Never add a second projection, and never render rule text by hand at a call site.
-- **One egress gate.** `redactSecrets` is the only thing between captured text and the network. It lives inside `resolveRedacted`, the only exported function that turns a `TextRef` into a string, so bypassing it takes a new file reader rather than a forgotten call. Never add a second gate downstream as a safety net, and never route around it.
-- **Every capture source is opt-in for its contents.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. It needs a flag defaulting to off and a README entry in the same change. Before consent, onboarding may reduce a configured source root to one ephemeral boolean stating that it exists and is non-empty. It never collects entry names, opens an entry, or retains or logs a path, name, count, timestamp, or provider identifier.
+- **One learning capture gate.** `resolveRedacted` applies `redactSecrets` when converting an eligible `TextRef` into learning text. Do not bypass it or add a redundant downstream gate. Authorized coding runs and transfer judging can send repository code to the selected provider; that separate boundary is documented in `docs/architecture/05-privacy.md`.
+- **Every capture source is opt-in for its contents.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. Each source keeps its own flag, defaulting to off, and a README entry in the same change. Setup can group the consent question only after it names every detected source path. Before consent, onboarding may reduce a configured source root to one ephemeral boolean stating that it exists and is non-empty. It never collects entry names, opens an entry, or retains or logs a path, name, count, timestamp, or provider identifier.
 - **Never distil tool results.** The content of any `tool_result`, file contents from Read, Edit, or Write, thinking blocks, and every data-access result never enter the distillation path. Excluded by category, not redacted. `docs/architecture/07-enterprise.md` says why.
-- **Rules stay inside the remote owner they were learned from.** A rule carries the git remote it came from and compiles only into sessions under that `host/owner`, or into `global/` once seen under two owners. Never pool across owners.
-- **Never log raw capture.** Log counts, sizes, hashes, and source names. A transcript path names the user's employer in its slug, so log the source name and the offset instead. An error message that interpolates captured text ends up in a crash reporter.
+- **Rules stay inside the remote owner they were learned from.** A rule carries the git remote it came from and compiles only into sessions under that `host/owner`. It reaches `global/` only when reconciliation marks its evidence explicit and global. Never pool across owners.
+- **Never log raw capture.** Log counts, sizes, hashes, and source names. Paths and error messages must not expose captured private context.
 - **Acting needs per-action approval.** Observing, deriving, and drafting run unattended. Anything that sends, posts, commits, pushes, deletes, or spends asks first, every time, gated per repo. `bypassPermissions` and `--dangerously-skip-permissions` are never passed at any tier.
 
 `.claude/skills/data-handling/SKILL.md` has the full version and the checks to run before presenting a diff.
@@ -79,14 +86,15 @@ bun run cli init
 bun run cli learn
 bun run cli doctor
 bun run cli learn --deep
-bun run cli install --auto-delegate
+bun run cli install --agent all --global
 bun run cli uninstall
 bun run cli run "fix the flaky test"
+bun run cli eval --task "make one bounded change" --repeat 1
 ```
 
 `bun run check` is the gate. Run it before presenting, and expect CI to run the same three commands on Linux and macOS.
 
-`bun run lint` fails on `any`, a non-null `!`, an `as` cast other than `as const`, a voided or floating promise, a comment in a `.ts` file, a file over 200 lines, and an em-dash. It reports the rule and the line, so fix the code rather than the rule. A release is a `v<version>` tag matching `package.json`, and `.github/workflows/release.yml` builds and publishes it.
+`bun run lint` fails on `any`, a non-null `!`, an `as` cast other than `as const`, a voided or floating promise, a comment in a `.ts` file, a file over 200 lines, and an em-dash. Fix the reported code, not the rule. Release Please creates the versioned release from `main`; `.github/workflows/release.yml` checks it and publishes the npm package after environment approval. See `CONTRIBUTING.md`.
 
 Nothing depends on an API key. The engine added in Phase 3 drives the user's own authenticated agent CLI.
 
@@ -130,7 +138,7 @@ Spawning a real agent CLI is a manual verification step, never a unit test. The 
 
 - `docs/architecture/` holds the shape of the system and the reasoning behind each decision. `07-enterprise.md` is for whoever approves this at a company, `08-landscape.md` is what already exists elsewhere.
 - `docs/design/001-agent-transcript-pivot.md` moved capture from shell history to agent session transcripts, replaced the API key with the user's own agent CLI subscription, and compiled the profile into a subagent. Phases 0 through 5 implement it.
-- `docs/design/003-provider-expansion.md` adds reviewed provider metadata and one qualified provider at a time. Phase 6 is implemented and Phase 7 is next.
+- `docs/design/003-provider-expansion.md` records provider qualification requirements. Additional provider work follows the current roadmap.
 - `docs/design/` holds design docs, one file per change, written against `docs/design/template.md` and listed chronologically in `docs/design/README.md`. Write the design record before implementation, then finalize its decisions and validation before presenting the PR.
 - Every PR assesses documentation impact and updates only the documents affected by its behavior or decisions. Update the Mermaid diagram in `docs/architecture/README.md` when a stage, dependency, trust boundary, or execution path changes.
 - `CONTRIBUTING.md` is for humans.

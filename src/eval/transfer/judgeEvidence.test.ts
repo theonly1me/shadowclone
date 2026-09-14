@@ -9,11 +9,13 @@ const verification: readonly CheckResult[] = [
     requirement: "Independent check: bun run test",
     verdict: "fail",
     evidence: `Exit code 1\n${leakedHostFile}\n`,
+    votes: [],
   },
   {
     requirement: "Independent check: bun run typecheck",
     verdict: "pass",
     evidence: "Exit code 0\n",
+    votes: [],
   },
 ];
 

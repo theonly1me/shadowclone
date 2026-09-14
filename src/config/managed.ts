@@ -90,8 +90,10 @@ export function applyManagedPolicy(options: {
         options.config.sources["git-metadata"] &&
         sourceAllowed("git-metadata"),
       shell: options.config.sources.shell && sourceAllowed("shell"),
+      "skill-library": options.config.sources["skill-library"] && sourceAllowed("skill-library"),
     },
     distillation: {
+      automatic: options.config.distillation.automatic === true && options.config.distillation.deep && options.policy.enabled && options.policy.distillation === "allowed",
       deep:
         options.config.distillation.deep &&
         options.policy.enabled &&

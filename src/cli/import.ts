@@ -10,6 +10,7 @@ import {
   type RepositoryGuidanceImportResult,
 } from "../importRules";
 import { type ProjectPaths, projectPaths } from "../paths";
+import { refreshIntegrations } from "../integrations";
 import type { GitRemoteReader } from "../signal";
 import { promptConfirmation, type ConfirmPrompt } from "./confirm";
 
@@ -59,6 +60,7 @@ export async function importRepositoryGuidanceCommand(options: {
     readRemote: options.readRemote,
   });
   const writeLine = options.writeLine ?? ((line) => console.log(line));
+  await refreshIntegrations({ paths, configPath, managedConfigPath: options.managedConfigPath, readRemote: options.readRemote });
   writeLine(
     `Imported ${result.imported} repository guidance files; ${result.preserved} preserved; ${result.rejected} rejected; ${result.retired} retired.`,
   );

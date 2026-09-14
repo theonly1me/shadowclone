@@ -12,6 +12,7 @@ export const sourceIds = [
   "declared-rules",
   "git-metadata",
   "shell",
+  "skill-library",
 ] as const;
 
 export type SourceId = (typeof sourceIds)[number];
@@ -25,6 +26,7 @@ export type ShadowcloneConfig = {
   readonly sources: SourceSettings;
   readonly distillation: {
     readonly deep: boolean;
+    readonly automatic?: boolean;
   };
   readonly repo: RepoSettings;
 };
@@ -41,9 +43,11 @@ export const defaultConfig: ShadowcloneConfig = {
     "declared-rules": false,
     "git-metadata": false,
     shell: false,
+    "skill-library": false,
   },
   distillation: {
     deep: false,
+    automatic: false,
   },
   repo: {},
 };
@@ -59,6 +63,7 @@ const sourcesSchema = z
     "declared-rules": z.boolean().optional().default(false),
     "git-metadata": z.boolean().optional().default(false),
     shell: z.boolean(),
+    "skill-library": z.boolean().optional().default(false),
   });
 
 const requiredCoreSourceIds = [
@@ -97,20 +102,21 @@ function parseSources(value: unknown): SourceSettings {
 
 const distillationSchema = z.strictObject({
   deep: z.boolean(),
+  automatic: z.boolean().optional().default(false),
 });
 
 function parseDistillation(value: unknown): ShadowcloneConfig["distillation"] {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error("Config distillation must contain only the deep setting");
+    throw new Error("Config distillation must contain deep and optional automatic settings");
   }
 
   const result = distillationSchema.safeParse(value);
   if (!result.success) {
     if (hasUnknownKey(result.error.issues) || !("deep" in value)) {
-      throw new Error("Config distillation must contain only the deep setting");
+      throw new Error("Config distillation must contain deep and optional automatic settings");
     }
 
-    throw new Error("Config distillation.deep must be a boolean");
+    throw new Error("Config distillation.deep and distillation.automatic must be booleans");
   }
 
   return result.data;

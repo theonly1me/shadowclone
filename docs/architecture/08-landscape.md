@@ -1,45 +1,35 @@
-# Landscape
+# Related approaches
 
-What already exists, checked in September 2026, and the gap shadowclone occupies.
+Shadowclone sits alongside instruction files, personal skills, agent memory, and tools that inspect coding sessions. This page describes the design choices that matter to the project. It is not an exhaustive market survey or a claim that other tools cannot provide similar features.
 
-## What exists
+## Different jobs
 
-**Native auto memory.** Claude Code ships native auto memory, free and enabled by default. It writes project-scoped notes to `~/.claude/projects/<project>/memory/` across four categories: `user` for role and preferences, `feedback` for corrections and confirmed patterns, `project` for architecture guidelines, and `reference` for external pointers. It updates on session close and supports subagents. It begins accumulating on install and learns forward.
+| Approach | What it provides | What to check |
+| --- | --- | --- |
+| Repository instructions | Explicit conventions checked into a project | Whether the instructions are current and which agents load them |
+| Personal skills | Reusable workflows and references selected for a task | Ownership, routing, freshness, and conflicting copies |
+| Agent memory | Context retained between sessions | Scope, editability, retention, and how new evidence changes old guidance |
+| Transcript analysis | A view of earlier interactions | Consent, eligible content, redaction, and whether observations justify a rule |
+| Preference checks | Evidence that output followed stated guidance | Rubric fidelity, task exceptions, judge error, and missing results |
 
-**Transcript viewers.** `claude-code-log`, `simonw/claude-code-transcripts`, `claude-notes`, LM Assist, and `claude-dev.tools` all read `~/.claude/projects/*.jsonl`. Every one of them renders or publishes. None derives anything from what it reads. They prove the corpus is readable and that people want to look at it, and they stop there.
+These approaches can complement one another. Well-maintained instructions may already express what a user needs. Adding learned guidance can help, have no effect, or introduce conflicting context.
 
-**Memory layers.** `mem0`, `claude-mem`, Letta, Zep, Lians, and Kage give an agent persistent memory across sessions. `mem0` runs an LLM extraction pass on write into a vector store and ships a Claude Code plugin. Lians is a local-first bitemporal fact store with erasure proofs, aimed at audited institutions. Kage stores codebase decisions as plain files in the repo and verifies each against the code before serving it. All of them store what was said or decided. None mines what the user did.
+## Shadowclone's choices
 
-**Self-improving agents.** Hermes Agent by Nous Research, 241.7k stars at time of writing, is the reference point. It writes skills from its own completed tasks, keeps episodic memory in SQLite FTS5, and maintains `USER.md` as a model of the user. It learns only from its own sessions, requires its own keys or a Nous Portal subscription, and has no concept of an organization boundary. It is a harness, and a good one. It is not a reader of other harnesses.
+Shadowclone reads existing sessions only from enabled sources. It assesses reusable user steering and keeps the resulting guidance in editable Markdown. It can start from existing history; a user does not need to wait for a new corpus to accumulate after installation.
 
-**Correction compilers.** TRACE, published as arXiv 2606.13174 with `tellonce` as the deployable skill, is the closest prior work. It mines user corrections from live sessions via hooks, rewrites each as an atomic rule with an executable check, and enforces the check before an agent may finish a task. Runs on Claude Code, Codex, and Copilot CLI, stores rules in SQLite per project, MIT licensed, 7 stars. Reported results: held-out preference violations fall from 100 percent to 37.6 percent in distribution and to 2 percent out of distribution, and in daily use the author's rule library reached about 280 rules in two months after which new rule creation fell 97 percent. It observes only from install forward and produces rules for the agent, not a copy of the user.
+One compiler selects global, matching remote-owner, and exact-repository guidance for supported native integrations and delegated runs. Remote-owner scoping is a technical boundary, not proof of a legal organization or employer boundary.
 
-**Digital twins.** WeClone fine-tunes a model on chat logs to reproduce a person's conversational style. `clonellm` and similar wrap a persona around a model. These target voice, not engineering judgment, and none reads an agent transcript.
+Personal skills remain separate from profile rules. Shadowclone synchronizes consented copies, preserves user edits, and leaves technical or routing changes for review. The profile does not replace the original skill's procedure.
 
-**Research.** A study of 20,574 coding agent sessions across 1,639 repositories operationalizes misalignment as a breakdown made visible through developer pushback and finds that 91.49 percent of visible resolutions required explicit user correction. That is the density of the signal shadowclone mines, measured independently.
+Model calls use an installed authenticated CLI. That avoids a separate Shadowclone account or hosted service, but still consumes provider quota and requires permission to send the selected input to that provider. Local storage is not the same as offline inference.
 
-## The product gap
+## What has been measured
 
-Shadowclone combines five capabilities that the reviewed tools separate.
+The [early four-task evaluation](../../evals.md) compares repository-only guidance, existing personal skills/context, and that context plus the Shadowclone profile. It measures source-backed coding preferences and reports correctness separately. The sample and judging limitations prevent broad claims about productivity or superiority over other products.
 
-**Historical cold start.** Native auto memory starts empty on day one, and `tellonce` learns from sessions after installation. The measured development corpus already holds 994 interruptions and 445 denials in `~/.claude/projects/`, and Shadowclone can start from that existing history on the first run.
+Native hook delivery, skill synchronization, and learning quality need their own validation. A successful profile-injection check proves delivery, not that the model obeyed it. A coding-preference score does not prove that the profile learned every preference correctly.
 
-**Cross-vendor learning.** Lians and `tellonce` inject into several tools but learn per tool. Shadowclone builds one local profile from enabled Claude Code, Codex, Cursor, and Antigravity sources.
+## Open questions
 
-**Remote-owner scoping.** Native memory scopes by project directory path on disk. Shadowclone scopes rules to normalized `host/owner` identities and compiles one matching owner at a time. This is a coarse remote boundary, not proof of an employer or legal organization boundary.
-
-**Dispatchable subagents.** Native auto memory maintains user and feedback notes for the current agent. Shadowclone compiles steering moments into a Claude subagent definition and can run a headless clone with provider-enforced tool permissions and a receipt. Host-enforced verification remains planned work.
-
-**The user's existing subscriptions.** Hermes needs Nous Portal or keys. `mem0` runs a paid extraction model. Native auto memory is tied to one vendor. Shadowclone shells out to authenticated CLIs already on the machine and holds no API keys.
-
-## What to borrow
-
-TRACE shows that boundaries enforced as checks beat boundaries injected as instructions, by their numbers roughly 2 percent violations against 37 percent. Shadowclone cannot apply that result to bare tool-family denials. Until observation stores a privacy-safe action fingerprint that a live hook can reproduce, `boundaries.md` stays advisory in the system prompt rather than blocking every invocation of a tool.
-
-The 20,574 session study's taxonomy, seven forms of misalignment covering how agents read projects, interpret intent, follow rules, bound actions, implement, and report progress, is a better category scheme for the mirror's output than anything invented here. The extractors should label into it.
-
-## Positioning
-
-Shadowclone learns how a developer works from agent transcripts already on disk, combines enabled sources across vendors, scopes learned rules by remote owner, and compiles the result into agents that run through subscriptions the developer already pays for.
-
-The honest caveat is that the correction-mining category has 7 stars and one paper in it. That is an open field and an unproven market at the same time, and the 241.7k stars on Hermes are the evidence that the appetite for an agent that grows with its user is real.
+The useful comparisons are against current, well-maintained user guidance across more tasks and model configurations. It also matters whether keeping the profile accurate costs less effort than maintaining instructions directly. The project does not yet have evidence that settles those questions.

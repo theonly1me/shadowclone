@@ -1,37 +1,27 @@
-# Motivation and Design Philosophy
+# Why I built Shadowclone
 
-## The Problem: Repetitive Agent Onboarding
+I kept repeating the same preferences to coding agents. How much to change at once. How I wanted code organized. When I wanted a plan before edits. The agent could often do the task, but I still had to explain how I wanted it done.
 
-Developers who work with coding agent CLIs (Claude Code, Codex, Cursor) often find themselves repeatedly establishing context in new sessions:
-- Which test runners and verification flags are standard for the repository.
-- Which tools or command patterns are disallowed or discouraged.
-- Architectural conventions and file boundaries that should be preserved.
-- Workflow expectations around planning, editing, and commit etiquette.
+Instruction files and skills helped. I do not think they are a bad approach. The problem was keeping them current and carrying them between tools. Some instructions reflected an older preference. Others had never been written down because they came up as corrections during ordinary work.
 
-While individual tool ecosystems offer per-project instructions or generic memory files, developers frequently move between multiple repositories, branches, and toolchains. Without structured memory extraction, maintaining these rules requires writing extensive manual prompts or continually correcting the agent in-session.
+That is the problem I am trying to solve with Shadowclone. It reads the sessions a user explicitly enables, looks for reusable guidance, and keeps an editable profile that can be supplied to their existing coding agent. It can also keep personal skills synchronized. It does not train a new model or turn every past action into an instruction.
 
-## The Architectural Premise: The Disk Already Knows
+## What I want it to get right
 
-Supported agent CLIs can leave traces on disk:
-- CLI session transcripts (JSONL logs, history databases).
-- User corrections following failed tool calls or rejected proposals.
-- Interruptions and denied command executions.
-- Verification loops run in bash or terminal windows.
+I want to repeat myself less without losing control over what the agent learns. A temporary exception should stay temporary. An interruption should not automatically become a preference. A rule learned in one repository should not quietly appear in an unrelated one.
 
-Shadowclone uses enabled local transcript history as evidence of past interactions. It parses enabled logs deterministically and reports behavioral signals locally. When the user explicitly enables deep learning, it distills redacted correction moments into human-readable profile rules through the agent CLI they already use.
+The profile needs to be readable and correctable. I want to see what was learned, change wording I disagree with, and remove guidance that no longer fits. If the profile becomes another large instruction file that I cannot understand or maintain, the project has missed its purpose.
 
-## Open Source and Privacy First
+Normal sessions are the starting point. Delegated work can use the same profile, but I do not want useful guidance to depend on adopting a new agent or running everything through a custom subagent.
 
-Shadowclone provides inspectable local controls:
+## What the early results tell me
 
-- **No project telemetry**: The code does not implement hosted Shadowclone collection, analytics, or crash reporting; model operations send selected inputs through the user's authenticated agent provider.
-- **Pattern redaction**: Materialization removes recognized secret patterns and home-path prefixes, with documented false positives and missed formats.
-- **Editable profiles**: Profile Markdown can be reviewed, corrected, disabled, or deleted by its owner.
-- **Transfer evaluation**: Qualifying historical tasks run against baseline and cloned configurations, with independent repository checks and provisional semantic judgments of correctness and preference adherence.
-- **Managed policy**: Supported root-owned configuration restricts this installation's sources, engines, and action tiers; it does not control other programs or establish organizational compliance.
+In a small four-task comparison, the profile-equipped setup followed more of the measured preferences than the repository-only baseline. It also scored above the existing skills setup on two tasks and tied on two. That is encouraging, but the sample is small and the judges still made mistakes. The [evaluation write-up](../evals.md) includes the tasks, scores, and those limitations.
 
-See [Data handling](data-handling.md) for storage, provider transmission, retention, and execution limits.
+I do not have evidence for a productivity multiplier or a claim that a profile always beats well-maintained instructions. The useful question is narrower: does it help the agent follow the guidance the user actually wants on the next task? A tie or a loss is worth reporting too.
 
-## Not Another Agent Framework
+## What I am not willing to trade away
 
-Shadowclone is not a new agent runtime, chat client, or prompt framework. It combines capture, learning, compilation, and scoped execution: ingesting existing transcripts, extracting engineering preferences, and producing standard configuration files that existing developer agents already understand.
+These sessions can contain sensitive material. Learning has to be opt-in, the derived profile has to stay under the user's control, and model use has to be explicit. Local storage does not mean that analysis stays offline: eligible redacted excerpts go through the selected authenticated agent CLI. Evaluation also exposes the chosen repository snapshot and generated code to that provider.
+
+The current system is still early. Redaction is not a guarantee of anonymity, guidance can be wrong, and extra instructions can make an agent worse. I want the project to make those failures visible and easy to correct. That seems more useful than promising a perfect copy of how someone works.

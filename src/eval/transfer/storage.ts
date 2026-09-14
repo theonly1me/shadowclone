@@ -1,6 +1,6 @@
-import { publicReport } from "./publicReport";
 import path from "node:path";
 import { ownedWrite } from "../../storage";
+import { publicReport } from "./publicReport";
 import { fingerprint } from "./structured";
 import type { PreparedEval, TransferReceipt } from "./types";
 
@@ -20,18 +20,31 @@ export async function saveReceipt(options: {
 
 export function initialReceipt(prepared: PreparedEval): TransferReceipt {
   return {
-    schemaVersion: 3,
+    schemaVersion: 12,
     evalId: prepared.evalId,
     prepared,
     preparedFingerprint: fingerprint(prepared),
     runs: [],
-    status:
-      prepared.tasks.length === 0 ? "insufficient-evidence" : "incomplete",
+    progress: {
+      stage: "ready",
+      taskIndex: null,
+      taskCount: prepared.tasks.length,
+      repeatIndex: null,
+      repeatCount: prepared.repeat,
+      arm: null,
+      voteIndex: null,
+      voteCount: null,
+      updatedAt: new Date().toISOString(),
+    },
+    status: "running",
     limitations: [
-      "Automatic semantic judgments are provisional and do not measure actual user correction time.",
-      "Existing Markdown instructions, skills and memory are frozen and supplied to both arms. Native discovery and mutable memory are disabled; executable skill dependencies and custom hooks are not reproduced.",
-      "Only requests with explicit starting-commit evidence qualify. Coverage may be low.",
-      "Task outcomes are graded from observed files and actions; missing verification evidence remains uncertain.",
+      "Semantic judgments are automated and should be reproduced before publishing product claims.",
+      "Repository guidance is available to all three arms. Skills and clone receive the frozen personal environment; only clone also receives the Shadowclone profile.",
+      "Tasks start from the committed HEAD. Uncommitted source changes are deliberately excluded.",
+      "Execution runs without network access, dependency installation, commits, pushes, or writes to the source repository.",
+      "Three independent blinded votes per arm grade correctness and source-backed coding preferences separately. Every arm uses the same frozen preference denominator.",
+      "The evaluator reviews bounded code changes directly and does not run the repository-wide test, typecheck, lint, or build graph.",
+      "The configured model prepares, executes, and judges the suite. Reuse the suite ID to compare another engine on identical tasks.",
     ],
   };
 }

@@ -83,3 +83,51 @@ test("retains only the vendor prefix of a recognized token", () => {
     expect(item.value.startsWith(item.retained)).toBeTrue();
   }
 });
+
+test("retains repository relative paths that only look high entropy", () => {
+  const paths = [
+    "packages/collections/src/operations/groupBySize.ts",
+    "packages/collections/src/operations/groupBySize.test.ts",
+    "apps/service/src/controllers/taskCoordinator.ts",
+    "packages/utilities/src/scheduling/retryDelays.ts",
+    "src/eval/transfer/candidateValidation.test.ts",
+  ];
+
+  for (const value of paths) {
+    expect(redact(value)).toBe(value);
+  }
+});
+
+test("still removes a high entropy secret of the same length as a path", () => {
+  expect(redact("Bkx2VBx7BisAV5M+7v+b=vo5DdbCz6F+UqtwxqOP3S3U9zQr")).toBe(
+    "[redacted:high-entropy-string]",
+  );
+});
+
+test("retains ordinary code that names keys, tokens, and secrets", () => {
+  const code = [
+    "delete: (key: Key) => boolean;",
+    "const key = { id: 1 };",
+    "token: string",
+    "secret: SecretType",
+    "function readAuth(authState: AuthState) { return authState; }",
+    "const evictedKey = this.evictOldestIfNeeded();",
+    "const firstKey = namespaceEntries.keys().next().value;",
+    'cache.set({ namespace: "one", key: "a", value: 1 });',
+  ];
+
+  for (const line of code) {
+    expect(redact(line)).toBe(line);
+  }
+});
+
+test("still removes a secret shaped assignment beside that code", () => {
+  for (const assignment of [
+    'const apiKey = "sk-live-abc123def456ghi789jkl";',
+    "PASSWORD=correcthorsebatterystaple",
+    "API_KEY=abc123def456",
+    'AUTH_TOKEN: "ghp_abc123def456"',
+  ]) {
+    expect(redact(assignment)).toContain("[redacted:secret-assignment]");
+  }
+});

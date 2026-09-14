@@ -56,9 +56,11 @@ test("renders named source settings as TOML", () => {
       "declared-rules = false",
       "git-metadata = false",
       "shell = false",
+      "skill-library = false",
       "",
       "[distillation]",
       "deep = false",
+      "automatic = false",
       "",
     ].join("\n"),
   );

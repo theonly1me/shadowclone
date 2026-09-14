@@ -1,13 +1,25 @@
 import { readEffectiveConfig } from "../config";
-import { allowlistedSignals, groupDistillBatches } from "../distill";
-import type { EngineId, EngineRunner } from "../engine";
+import { allowlistedSignals } from "../distill";
+import type {
+  EngineId,
+  EngineRunner,
+  ReasoningEffort,
+} from "../engine";
 import { ingestSources, openEventIndex } from "../index";
+import {
+  episodeId,
+  readLearningState,
+  writeLearningState,
+} from "../learning";
 import { projectPaths, type ProjectPaths } from "../paths";
 import { renderMirror } from "../profile";
 import { checkMarkerStaleness, deriveSignals, type GitRemoteReader } from "../signal";
 import type { ConfirmPrompt } from "./confirm";
+import { updateSkillLibrary } from "../skillMaintenance";
 import { runDeepLearning } from "./deepLearn";
 import { initialize } from "./init";
+import { selectManualLearningWindow } from "./learningWindow";
+import { offerNativeUpgrade } from "./nativeUpgrade";
 
 export async function learn(options: {
   readonly configPath?: string;
@@ -19,6 +31,9 @@ export async function learn(options: {
   readonly apply?: boolean;
   readonly runner?: EngineRunner;
   readonly engine?: EngineId;
+  readonly model?: string;
+  readonly reasoningEffort?: ReasoningEffort;
+  readonly maximumCalls?: number;
   readonly confirm?: ConfirmPrompt;
   readonly writeLine?: (line: string) => void;
   readonly managedConfigPath?: string | null;
@@ -40,13 +55,16 @@ export async function learn(options: {
     await initialize({ configPath: options.configPath });
   }
   const { config, policy } = await readEffectiveConfig({
-    configPath: options.configPath,
+    configPath,
     managedConfigPath: options.managedConfigPath === undefined
       ? paths.managedConfigFile
       : options.managedConfigPath,
   });
   if (!policy.enabled) {
     throw new Error("Shadowclone is disabled by managed policy");
+  }
+  if (process.stdin.isTTY && process.env.SHADOWCLONE_INTERNAL_RUN !== "1") {
+    await offerNativeUpgrade({ paths });
   }
   const databasePath = options.databasePath ??
     (options.dryRun ? ":memory:" : paths.indexDatabase);
@@ -66,12 +84,21 @@ export async function learn(options: {
       console.warn(`Warning: ${warning}`);
     }
     const eligibleSignals = allowlistedSignals({
-      signals: derived.corrections,
+      signals: derived.learning,
       events: derived.events,
     }).filter((signal) => signal.textRefs.length > 0);
-    const batches = groupDistillBatches({ signals: eligibleSignals });
+    const learningState = await readLearningState(paths);
+    const learningWindow = selectManualLearningWindow({
+      signals: eligibleSignals,
+      state: learningState,
+      now: Date.now(),
+      ...(options.maximumCalls === undefined
+        ? {}
+        : { maximumCalls: options.maximumCalls }),
+    });
+    const { batches, signals: learningSignals } = learningWindow;
     const deepLearningPreview = {
-      eligibleCorrectionMoments: eligibleSignals.length,
+      eligibleSteeringEpisodes: learningSignals.length,
       extractionBatches: batches.length,
     };
     let networkCallsMade = false;
@@ -83,22 +110,51 @@ export async function learn(options: {
       }
       const batchLabel = batches.length === 1 ? "batch" : "batches";
       writeLine(`Deep learning found ${batches.length} reconciliation ${batchLabel}.`);
-      if (batches.length > 0) {
-        const result = await runDeepLearning({
-          signals: eligibleSignals,
-          events: derived.events,
+      const result = await runDeepLearning({
+        signals: learningSignals,
+        events: derived.events,
+        paths,
+        policy,
+        dryRun: options.dryRun ?? false,
+        apply: options.apply ?? false,
+        ...(options.runner ? { runner: options.runner } : {}),
+        ...(options.engine ? { engine: options.engine } : {}),
+        ...(options.model ? { model: options.model } : {}),
+        ...(options.reasoningEffort
+          ? { reasoningEffort: options.reasoningEffort }
+          : {}),
+        ...(options.maximumCalls === undefined
+          ? {}
+          : { maximumCalls: options.maximumCalls }),
+        ...(options.confirm ? { confirm: options.confirm } : {}),
+        writeLine,
+      });
+      networkCallsMade = result.networkCallsMade;
+      deepChangesProposed = result.changesProposed;
+      profileUpdated = result.profileUpdated;
+      if (!options.dryRun && learningSignals.length > 0) {
+        await writeLearningState({
           paths,
-          policy,
-          dryRun: options.dryRun ?? false,
-          apply: options.apply ?? false,
-          ...(options.runner ? { runner: options.runner } : {}),
-          ...(options.engine ? { engine: options.engine } : {}),
-          ...(options.confirm ? { confirm: options.confirm } : {}),
-          writeLine,
+          state: {
+            ...learningState,
+            processed: [
+              ...learningState.processed,
+              ...learningSignals.map((signal) => ({
+                id: episodeId(signal),
+                timestamp: signal.timestamp,
+              })),
+            ],
+          },
         });
-        networkCallsMade = result.networkCallsMade;
-        deepChangesProposed = result.changesProposed;
-        profileUpdated = result.profileUpdated;
+      }
+      if (!options.dryRun && config.sources["skill-library"]) {
+        const skills = await updateSkillLibrary({
+          paths,
+          execution: result.execution,
+          managedConfigPath: options.managedConfigPath,
+          readRemote: options.readRemote,
+        });
+        writeLine(`Skill maintenance: ${skills.synced} synced, ${skills.applied} updated, ${skills.pending} pending, ${skills.conflicts} conflicts.`);
       }
     }
     writeLine(renderMirror({
@@ -108,11 +164,25 @@ export async function learn(options: {
       ...(options.deep ? { deepChangesProposed } : {}),
       profileUpdated,
     }));
-    if (summary.omittedRecords > 0) {
-      writeLine(`Skipped ${summary.omittedRecords} oversized transcript records.`);
+    const processedIds = new Set(
+      learningState.processed.map((entry) => entry.id),
+    );
+    const remaining = eligibleSignals.filter((signal) =>
+      !processedIds.has(episodeId(signal))
+    ).length - learningSignals.length;
+    if (remaining > 0) {
+      writeLine(
+        `\n  Deep learning covered ${learningSignals.length} episode(s); ${remaining} remain. Run shadowclone learn --deep again to continue.`,
+      );
     }
     if (summary.rescannedFiles > 0) {
       writeLine(`\n  Rescanned ${summary.rescannedFiles} rewritten files.`);
+    }
+    if (summary.invalidRecords > 0) {
+      const label = summary.invalidRecords === 1 ? "record" : "records";
+      writeLine(
+        `\n  Skipped ${summary.invalidRecords} invalid transcript ${label}.`,
+      );
     }
   } finally {
     index.close();

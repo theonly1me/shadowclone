@@ -117,6 +117,7 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
       transcriptPath: null,
       text: "",
       structured: {
+        assessments: [{ evidenceToken: "evidence-1", intent: "preference", durable: true, scope: "repository" }],
         existingRules: [],
         newRules: [
           {

@@ -6,7 +6,7 @@ import {
   type ReconciliationOutput,
 } from "./reconcile";
 
-export const reconciliationLearnerVersion = "reconciliation-v1";
+export const reconciliationLearnerVersion = "steering-reconciliation-v2";
 
 export function checkpointId(options: {
   readonly prompt: string;

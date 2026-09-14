@@ -15,6 +15,7 @@ async function initializeWithAllSources(options: {
 }): Promise<void> {
   await initialize({
     ...options,
+    advanced: true,
     ask: (question) =>
       question === "Import existing repository guidance?" ||
       question === "Set up a seed profile instead?"
@@ -39,6 +40,7 @@ test("completes the wizard before filtered source consent", async () => {
   const answers = ["1", "1", "1", "1", "1", "none"];
 
   await initialize({
+    advanced: true,
     paths,
     configPath: paths.configFile,
     workingDirectory: homeDirectory,

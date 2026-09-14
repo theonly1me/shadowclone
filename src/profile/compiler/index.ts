@@ -10,6 +10,8 @@ import type {
   ProfileCompileInput,
 } from "./types";
 
+export { profileScopePaths } from "./read";
+
 export { defaultProfileByteBudget } from "./render";
 export type {
   ProfileCompilation,
@@ -52,6 +54,7 @@ function compilerBlocks(
         profileDirectory: input.profileDirectory,
         origin: input.origin,
         targetRepo: input.targetRepo,
+        scope: input.scope,
       });
 }
 

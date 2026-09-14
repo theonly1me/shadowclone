@@ -1,3 +1,4 @@
+import { redactSecrets } from "../../redact";
 import type { EngineRunner } from "../../engine";
 import { readCheckpoint, writeCheckpoint } from "../checkpoint";
 import {
@@ -44,7 +45,9 @@ export async function runReconciliation(options: {
     outputSchema: reconciliationOutputSchema,
   });
   if (run.isError) {
-    throw new Error("The agent engine failed during reconciliation");
+    throw new Error(
+      `The agent engine failed during reconciliation: ${redactSecrets({ text: run.errorMessage ?? "no engine detail" })}`,
+    );
   }
   const output = parseReconciliationOutput(structuredValue(run));
   if (options.checkpointDirectory) {

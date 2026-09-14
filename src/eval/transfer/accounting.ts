@@ -53,13 +53,18 @@ export async function evaluationBudget(options: {
       state = { ...state, pending: false, unknownCost: true };
     }
   }
-  const persist = () =>
-    ownedWrite({ path: filePath, content: JSON.stringify(state) });
+  let pendingCalls = 0;
+  let persistence = Promise.resolve();
+  const persist = () => {
+    const content = JSON.stringify(state);
+    persistence = persistence.then(() => ownedWrite({ path: filePath, content }));
+    return persistence;
+  };
   await persist();
 
   return {
     reserve: async () => {
-      if (state.pending) {
+      if (state.pending && state.limitUsd !== null) {
         throw new Error("Evaluation model calls must be serialized");
       }
       if (state.calls >= state.maximumCalls) {
@@ -74,15 +79,17 @@ export async function evaluationBudget(options: {
         throw new Error("Evaluation total budget exhausted or cost unknown");
       }
       state = { ...state, pending: true, calls: state.calls + 1 };
+      pendingCalls += 1;
       await persist();
       return remaining;
     },
     settle: async (costUsd) => {
       const known =
         costUsd !== null && Number.isFinite(costUsd) && costUsd >= 0;
+      pendingCalls -= 1;
       state = {
         ...state,
-        pending: false,
+        pending: pendingCalls > 0,
         unknownCost: state.unknownCost || !known,
         spentUsd: state.spentUsd + (known ? costUsd : 0),
       };

@@ -7,6 +7,7 @@ export function evaluationCommand(options: {
   readonly arguments: readonly string[];
   readonly run: EngineRunOptions;
   readonly platform?: NodeJS.Platform;
+  readonly temporaryDirectory?: string;
 }): readonly string[] {
   if (options.run.execution.purpose === "dispatch") {
     return dispatchCommand({
@@ -22,9 +23,12 @@ export function evaluationCommand(options: {
   const platform = options.platform ?? process.platform;
   const blockedPaths = requestedPaths.map(canonicalPath);
   const directory = canonicalPath(options.run.cwd);
+  const temporary = options.temporaryDirectory ? canonicalPath(options.temporaryDirectory) : null;
 
   if (platform === "darwin") {
-    const sandboxProfile = `(version 1)(allow default)(deny file-write*)(allow file-write* (subpath ${JSON.stringify(directory)})(literal "/dev/null"))${denySubpathRules(
+    const writablePaths = [directory, ...(temporary ? [temporary] : [])]
+      .map((entry) => `(subpath ${JSON.stringify(entry)})`).join("");
+    const sandboxProfile = `(version 1)(allow default)(deny file-write*)(allow file-write* ${writablePaths}(literal "/dev/null"))${denySubpathRules(
       {
         paths: blockedPaths,
         operations: ["file-read*", "file-write*"],
@@ -49,6 +53,7 @@ export function evaluationCommand(options: {
       "--bind",
       directory,
       directory,
+      ...(temporary ? ["--bind", temporary, temporary] : []),
       "--proc",
       "/proc",
       "--dev",

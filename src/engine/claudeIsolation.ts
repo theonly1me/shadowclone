@@ -11,7 +11,10 @@ export function claudeIsolationArguments(
 ): readonly string[] {
   const noTools =
     run.execution.purpose === "learning" || run.allowedTools?.length === 0;
-  const tools = noTools ? "" : "Read,Edit,Write,Glob,Grep,Bash";
+  const tools = noTools
+    ? ""
+    : (run.allowedTools ?? ["Read", "Edit", "Write", "Glob", "Grep", "Bash"])
+        .join(",");
   const settingsJson = JSON.stringify({
     disableAllHooks: true,
     autoMemoryEnabled: false,
@@ -40,13 +43,14 @@ export function claudeIsolationArguments(
       },
     },
     permissions: {
-      allow: noTools ? [] : ["Read", "Edit", "Write", "Glob", "Grep"],
+      allow: noTools
+        ? []
+        : (run.allowedTools ?? ["Read", "Edit", "Write", "Glob", "Grep"]),
       deny: ["WebFetch", "WebSearch", "Agent", "mcp__*"],
     },
   });
 
   return [
-    ...(run.execution.purpose === "learning" ? ["--restricted"] : []),
     "--safe-mode",
     "--no-session-persistence",
     "--strict-mcp-config",

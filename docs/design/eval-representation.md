@@ -1,5 +1,7 @@
 # Privacy-Safe Action Representation for Replay Evaluation
 
+This is the historical replay diagnostic. Current preference results use [fresh transfer evaluation](../architecture/09-evaluation.md), which reviews generated code under a frozen rubric.
+
 ## Problem
 
 Evaluating whether a cloned agent accurately reproduces developer behavior requires comparing action sequences between historical sessions and simulated replay runs. Comparing full tool inputs or message payloads would risk re-exposing sensitive text, proprietary source code, or secrets.

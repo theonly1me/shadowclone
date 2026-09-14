@@ -28,17 +28,19 @@ function countLabel(options: {
 }
 
 function resultLine(options: {
-  readonly eligibleCorrectionMoments: number;
+  readonly eligibleSteeringEpisodes: number;
   readonly deepChangesProposed: number | undefined;
   readonly profileUpdated: boolean;
 }): string {
   if (options.deepChangesProposed === undefined) {
-    return options.eligibleCorrectionMoments === 0
-      ? "  Profile unchanged. No correction moments are eligible for deep learning."
+    return options.eligibleSteeringEpisodes === 0
+      ? "  Profile unchanged. No user steering episodes are eligible for deep learning."
       : "  Profile unchanged. Run shadowclone learn --deep to reconcile the eligible moments.";
   }
   if (options.deepChangesProposed === 0) {
-    return "  Deep learning produced no profile rules. Profile unchanged.";
+    return options.profileUpdated
+      ? "  Deep learning produced no new profile rules. Existing profile metadata was updated."
+      : "  Deep learning produced no profile rules. Profile unchanged.";
   }
   const ruleLabel = countLabel({
     count: options.deepChangesProposed,
@@ -60,7 +62,7 @@ function resultLine(options: {
 export function renderMirror(options: {
   readonly report: MirrorReport;
   readonly deepLearningPreview: {
-    readonly eligibleCorrectionMoments: number;
+    readonly eligibleSteeringEpisodes: number;
     readonly extractionBatches: number;
   };
   readonly networkCallsMade?: boolean;
@@ -70,11 +72,6 @@ export function renderMirror(options: {
   const report = options.report;
   const megabytes = (report.corpus.bytes / 1_048_576).toFixed(1);
   const corrections = report.correctionCounts;
-  const correctionMomentCount =
-    corrections.interruptions +
-    corrections.permissionDenials +
-    corrections.answeredQuestions +
-    corrections.resolvedPlans;
   const interruptions =
     report.interruptions.length > 0
       ? report.interruptions
@@ -127,7 +124,7 @@ export function renderMirror(options: {
   return [
     corpusLine,
     "",
-    "  Correction moments found",
+    "  Interaction markers found",
     countedLine({ label: "interruptions", count: corrections.interruptions }),
     countedLine({
       label: "permission denials",
@@ -139,10 +136,10 @@ export function renderMirror(options: {
     }),
     countedLine({ label: "resolved plans", count: corrections.resolvedPlans }),
     "",
-    "  You stop the agent most often",
+    "  Observed interruption contexts",
     ...interruptions,
     "",
-    `  You have refused tools ${refusalCountLabel}`,
+    `  Observed permission denials ${refusalCountLabel}`,
     ...denials,
     "",
     "  When the agent asked, you answered",
@@ -161,10 +158,9 @@ export function renderMirror(options: {
     ...tools,
     "",
     "  Deep learning would send",
-    ratioLine({
-      label: "eligible correction moments",
-      count: options.deepLearningPreview.eligibleCorrectionMoments,
-      total: correctionMomentCount,
+    countedLine({
+      label: "eligible user steering episodes",
+      count: options.deepLearningPreview.eligibleSteeringEpisodes,
     }),
     countedLine({
       label: batchLabel,
@@ -172,8 +168,8 @@ export function renderMirror(options: {
     }),
     "",
     resultLine({
-      eligibleCorrectionMoments:
-        options.deepLearningPreview.eligibleCorrectionMoments,
+      eligibleSteeringEpisodes:
+        options.deepLearningPreview.eligibleSteeringEpisodes,
       deepChangesProposed: options.deepChangesProposed,
       profileUpdated: options.profileUpdated ?? false,
     }),

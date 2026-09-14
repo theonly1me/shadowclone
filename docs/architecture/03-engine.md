@@ -4,7 +4,7 @@ One interface, three execution purposes, and provider-specific implementations. 
 
 ## No key ships
 
-Shadowclone has no hosted collection service and does not require a project account. Provider CLIs use their existing authentication and may receive explicitly allowlisted provider credentials. It runs the agent CLI already installed and already logged in on the machine.
+Shadowclone does not have an API key, does not ask for one, and has no server to hold one. It runs the agent CLI already installed and already logged in on the machine.
 
 | Engine | Auth it inherits | Status | Cost to the user |
 | --- | --- | --- | --- |
@@ -75,11 +75,11 @@ export type EngineRun = {
 };
 ```
 
-An engine that cannot honour an option fails loudly before it spawns rather than dropping it. The required execution purpose prevents evaluation, learning, and dispatch from sharing an accidental default.
+An engine that cannot honour an option fails before it spawns. The required execution purpose prevents evaluation, learning, and dispatch from sharing an accidental default.
 
 ## Learning contract
 
-`createLearningExecution` wraps the selected engine once for a complete `learn --deep` invocation. Reconciliation batches and consolidation calls use the same runner. Completed checkpoints consume no call allowance.
+`createLearningExecution` wraps the selected engine once for a complete `learn --deep` invocation or first setup learning pass. Concurrent reconciliation batches and later consolidation calls share its whole-run allowance. Completed checkpoints consume no call allowance.
 
 The default permits 20 attempted calls over five minutes. Claude also receives a cumulative $2 limit because its provider capability reports native dollar-budget enforcement. Each call receives the remaining amount, and its reported cost is deducted before the next call. Codex and Cursor never receive an unsupported dollar option, so their boundary is the call count and deadline.
 
@@ -87,11 +87,36 @@ Learning cannot load a system prompt file, enable a provider tool, or select a p
 
 ## Claude Code
 
-The runner sends the prompt on stdin, disables native hooks and session persistence, clears settings sources and MCP configuration, and uses explicit tool permissions. Learning disables tools. Dispatch adds an outer OS boundary and disables automatic approval of sandboxed shell commands so the resolved tool policy still applies.
+```
+claude -p "<task>" \
+  --output-format stream-json \
+  --append-system-prompt-file ~/.shadowclone/profile/.compiled.md \
+  --session-id <uuid> \
+  --permission-mode dontAsk \
+  --setting-sources user,project \
+  --allowedTools "Read" "Edit" "Bash(bun test)" \
+  --max-budget-usd 2.00 \
+  --model sonnet \
+  --add-dir <worktree>
+```
 
-The shared process runner limits stdout and stderr and terminates the process group on overflow, timeout, or cancellation. Structured output is accepted only after a complete result. Provider authentication and billing remain provider responsibilities.
+Two flags carry more weight than the rest.
 
-The implementation uses [Claude Code's sandbox settings](https://code.claude.com/docs/en/sandboxing) and [permission controls](https://code.claude.com/docs/en/permissions). Native permission rules and filesystem sandbox rules cover different paths and must be tested together. Missing isolation fails closed.
+`--session-id` supplies a caller-selected UUID for the Claude run. The adapter uses that identifier to locate the provider-owned transcript under `~/.claude/projects/<slug>/`.
+
+Generating the id up front means the clone knows where its own transcript will land, so a clone run is observable by the same pipeline that observes the user.
+
+`--agents <json>` accepts the same subagent definition that `src/profile/agent.ts` writes to `.claude/agents/`, so a headless run can carry a clone subagent without touching the repo. `02-profile.md` covers the compilation.
+
+`--append-system-prompt-file` adds compiled preferences without replacing Claude Code's system prompt. Whether that additional guidance helps is measured separately through evaluation.
+
+`--setting-sources` restricts loaded setting files to user and project tiers, preventing a target repository's `.claude/settings.local.json` from silently widening permissions beyond the resolved dispatch policy ceiling.
+
+Learning uses a separate Claude command. `--safe-mode`, empty `--setting-sources`, `--tools ""`, strict empty MCP configuration, an MCP deny rule, `--no-session-persistence`, and inline settings remove ambient instructions, tools, hooks, network tools, and native memory. `allowedTools: []` is not treated as the tool boundary because Claude documents that option as an auto-approval control. Obsolete `--restricted` is omitted because current Claude Code rejects it and safe mode now provides the customization boundary.
+
+The terminal `result` message carries `session_id`, `total_cost_usd`, `duration_ms`, `duration_api_ms`, `num_turns`, `is_error`, `modelUsage`, and `permission_denials`. Everything `EngineRun` needs is in one message, so the stream parser only has to buffer text blocks and wait for `result`.
+
+Permission modes available are `acceptEdits`, `bypassPermissions`, `default`, `dontAsk`, `manual`, `plan`, and `auto`. `dontAsk` inside a throwaway worktree is the unattended default, converting any unallowed tool call into a hard denial. `bypassPermissions` is never used by shadowclone, at any tier, for any repo.
 
 ## Codex
 
@@ -101,7 +126,7 @@ codex exec - --json --sandbox read-only -C <worktree> -m <model>
 
 `-c key=value` sets any config value per invocation, including `model_reasoning_effort`. `--output-schema <FILE>` gives structured output for distillation, matching `--json-schema` on the Claude side. `-o` writes the last message to a file, which is a simpler read than the event stream when only the final answer is wanted.
 
-The prompt stays on stdin rather than the process list. Learning adds `--ephemeral`, `--ignore-user-config`, and `--ignore-rules`, disables instruction, memory, hook, app, plugin, browser, web, image, computer-use, multi-agent, and shell features, clears MCP configuration, and selects the read-only sandbox. Codex has no dollar-budget or granular tool-list flags, so the learning coordinator omits the former and the runner rejects direct requests for either.
+The prompt stays on stdin and does not enter the process list. Learning adds `--ephemeral`, `--ignore-user-config`, and `--ignore-rules`, disables instruction, memory, hook, app, plugin, browser, web, image, computer-use, multi-agent, and shell features, clears MCP configuration, and selects the read-only sandbox. Codex has no dollar-budget or granular tool-list flags, so the learning coordinator omits the former and the runner rejects direct requests for either.
 
 ## Cursor
 
@@ -114,6 +139,8 @@ Cursor also receives its prompt on stdin. A no-tools run gets an empty temporary
 
 ## Compiled profile
 
-`src/profile/compiler/` reads one bounded snapshot per selected profile file. It projects global, matching owner, and exact repository guidance into at most 16 KiB, dropping whole blocks when needed. User and declared guidance outrank mined candidates. A pending mined proposal does not silently replace an active user instruction.
+The engine receives guidance from `compileProfile` in `src/profile/compiler/`. It selects active global, matching-owner, and exact-project rules, prioritizes user-authoritative guidance, and caps output at 16 KiB by omitting whole blocks. Provenance metadata, candidate rules, and stale rules do not enter the prompt.
 
-The raw metadata and redacted visible text come from the same bytes. Compilation does not claim that pattern redaction detects every kind of sensitive content.
+Compilation turns the profile into a prompt through a named step with its own file.
+
+The compiler reads `global/` and exactly one matching `host/owner` directory, strips provenance, and places handwritten rules first. An active declared or user rule remains selected when contradicting evidence creates a pending proposal. The proposal is for the user to decide and does not silently override their instruction.

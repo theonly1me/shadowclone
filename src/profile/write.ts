@@ -1,10 +1,16 @@
-import { rm } from "node:fs/promises";
+import { commitLocalChanges, type FileUpdate } from "../changes";
+import path from "node:path";
+import { acquireLocalLock } from "../localFiles/lock";
+import { readLocalText } from "../localFiles";
 import type { ProjectPaths } from "../paths";
-import { ownedDirectory, ownedWrite } from "../storage";
+import { ownedDirectory, ownedFile } from "../storage";
 import {
   generatedProfileEntry,
   prepareProfileWrite,
 } from "./lifecycle";
+import { migratedLegacyRule } from "./migrate";
+import { metadataReplacement } from "./metadataReplacement";
+import { assertProfileRetention } from "./retention";
 import { profileRulePath, renderProfileRule } from "./render";
 import type { GeneratedProfileStateEntry } from "./state";
 import {
@@ -12,35 +18,29 @@ import {
   renderProfileRejections,
 } from "./stateRender";
 import type {
-  ExistingProfileRule,
   ProfileRule,
   ProfileRuleReference,
   ProfileWriteResult,
 } from "./types";
 
-function metadataReplacement(options: {
-  readonly block: ExistingProfileRule;
-  readonly incoming: ProfileRule | undefined;
-  readonly relativePath: string;
-}): ProfileRule | null {
-  const incoming = options.incoming;
-  if (
-    incoming?.source !== "user" ||
-    incoming.title !== options.block.title ||
-    incoming.body !== options.block.body ||
-    profileRulePath(incoming) !== options.relativePath
-  ) {
-    return null;
-  }
-  return incoming;
-}
-
-export async function writeProfile(options: {
+type WriteOptions = {
   readonly paths: ProjectPaths;
   readonly rules: readonly ProfileRule[];
   readonly retired?: readonly ProfileRuleReference[];
-}): Promise<ProfileWriteResult> {
+};
+
+export async function writeProfile(options: WriteOptions): Promise<ProfileWriteResult> {
   await ownedDirectory(options.paths.profileDirectory);
+  const lock = await acquireLocalLock(path.join(options.paths.shadowcloneDirectory, "profile-write.db"));
+  if (!lock) throw new Error("Another profile update is running; retry shortly");
+  try { return await writeProfileRevision(options); }
+  finally { lock.release(); }
+}
+
+async function writeProfileRevision(options: WriteOptions): Promise<ProfileWriteResult> {
+  const updates: FileUpdate[] = [];
+  const previousManifest = await readLocalText(options.paths.profileManifestFile);
+  const previousRejections = await readLocalText(options.paths.rejectedProfileFile);
   const prepared = await prepareProfileWrite({
     paths: options.paths,
     rules: options.rules,
@@ -90,7 +90,7 @@ export async function writeProfile(options: {
         }
         continue;
       }
-      if (block.legacy || prepared.retired.has(block.key)) {
+      if (prepared.retired.has(block.key)) {
         continue;
       }
       const replacement = prepared.incoming.get(block.key);
@@ -111,12 +111,18 @@ export async function writeProfile(options: {
         }
         continue;
       }
-      nextBlocks.push(block.content);
+      const migrated = migratedLegacyRule({
+        block,
+        relativePath: file.relativePath,
+      });
+      const carried = migrated ?? block;
+      nextBlocks.push(migrated ? renderProfileRule(migrated) : block.content);
+      consumed.add(block.key);
       nextState.set(
         block.key,
         generatedProfileEntry({
           relativePath: file.relativePath,
-          rule: block,
+          rule: carried,
         }),
       );
     }
@@ -143,16 +149,19 @@ export async function writeProfile(options: {
       }
     }
     if (nextBlocks.length > 0) {
-      await ownedWrite({
-        path: file.filePath,
-        content: `${nextBlocks.join("\n\n")}\n`,
-      });
+      updates.push({ filePath: file.filePath, next: `${nextBlocks.join("\n\n")}\n`, previous: file.content });
       writtenFiles += 1;
       ruleCount += nextBlocks.length;
     } else if (file.blocks.length > 0) {
-      await rm(file.filePath, { force: true });
+      updates.push({ filePath: file.filePath, next: null, previous: file.content });
     }
   }
+
+  assertProfileRetention({
+    files: prepared.files,
+    written: new Set([...consumed, ...prepared.pinned]),
+    retired: new Set(prepared.retired.keys()),
+  });
 
   for (const entry of prepared.previousEntries) {
     if (
@@ -167,14 +176,13 @@ export async function writeProfile(options: {
   for (const entry of prepared.retired.values()) {
     nextState.set(entry.key, entry);
   }
-  await ownedWrite({
-    path: options.paths.profileManifestFile,
-    content: renderGeneratedProfileState([...nextState.values()]),
-  });
-  await ownedWrite({
-    path: options.paths.rejectedProfileFile,
-    content: renderProfileRejections([...prepared.rejections.values()]),
-  });
+  updates.push({ filePath: options.paths.profileManifestFile, next: renderGeneratedProfileState([...nextState.values()]), previous: previousManifest });
+  updates.push({ filePath: options.paths.rejectedProfileFile, next: renderProfileRejections([...prepared.rejections.values()]), previous: previousRejections });
+  for (const update of updates.filter((update) => update.next !== null)) {
+    await ownedDirectory(path.dirname(update.filePath));
+    await ownedFile(update.filePath);
+  }
+  await commitLocalChanges({ paths: options.paths, root: options.paths.profileDirectory, kind: "profile", updates });
   return {
     files: writtenFiles,
     rules: ruleCount,

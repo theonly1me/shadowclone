@@ -7,9 +7,7 @@ description: The rules for anything that captures, stores, sends, or acts on the
 
 Load `clean-code` first. This skill adds the rules that only matter because of what this project is.
 
-Shadowclone runs on the user's own machine and watches them work. That is the product, and it is also the entire risk. Agent transcripts hold source code, API keys, customer data, private hostnames, and file paths that say where someone works and what they work on. A bug in a normal app degrades an experience. A bug here hands a third party the user's secrets, or destroys the behavioral history they cannot recreate.
-
-**The user is not the adversary and neither are you. The adversary is a mistake nobody noticed.** Every rule below exists so a mistake is loud instead of silent.
+Shadowclone processes consented agent sessions and applies derived guidance. Both can contain sensitive data. Changes must preserve source consent, scoped storage, and explicit execution boundaries.
 
 ## Consent: every source is opt-in and named
 
@@ -21,9 +19,9 @@ The set of things shadowclone reads is a list the user can see and edit. It is n
 - Before consent, onboarding may determine whether a configured source root exists and is non-empty. The result is one ephemeral boolean. Do not collect entry names, open an entry, inspect metadata beyond what the boolean needs, or retain or log a path, name, count, timestamp, or provider-specific identifier.
 - Git remote discovery is the `git-metadata` source. Transcript consent never enables it. When disabled, working directories stay isolated and no repository path is opened.
 
-## Egress: one gate, and it is `redactSecrets`
+## Learning capture: one gate, and it is `redactSecrets`
 
-Nothing derived from the user's machine leaves it without passing `redactSecrets` in `src/redact/`. Not to the model, not to a log aggregator, not to a crash reporter, not to a metrics endpoint.
+Captured text used for learning must pass `redactSecrets` in `src/redact/` before reaching a model or diagnostic output. Do not send raw capture to telemetry or crash reporting.
 
 - **The gate lives inside `resolveRedacted`**, the only exported function that turns a `TextRef` into a string. Events and signals carry pointers, never captured text. Redaction happens once, when an eligible excerpt is materialized for distillation.
 - Do not add a second redaction call downstream as a safety net. Two gates means neither is the gate, and the next person cannot tell which one is authoritative.
@@ -31,18 +29,20 @@ Nothing derived from the user's machine leaves it without passing `redactSecrets
 - Redaction is deliberately over-eager. A false positive costs a distilled skill some context. A false negative ships a key to a third party. When in doubt, redact.
 - Adding a pattern to `redactionRules` is cheap and always allowed. Removing one needs a reason in the PR description.
 
-Tool results, file contents from Read, Edit, or Write, thinking blocks, and data-access results never receive a `TextRef` that enters distillation. Exclude them by category rather than trusting redaction to recognize someone else's data.
+Tool results, file contents from Read, Edit, or Write, thinking blocks, and data-access results never receive a `TextRef` that enters distillation. Exclude them by category.
+
+Coding execution has a separate boundary: a user-authorized run can expose the selected repository to its agent, and transfer judges receive unredacted generated code. Use only authorized repositories. Keep code evidence local outside the approved model requests; do not treat it as safe for logs or publication. See `docs/architecture/05-privacy.md` and `docs/architecture/09-evaluation.md`.
 
 ### When you add a network call
 
-Ask, in this order: does this need to leave the machine at all, can it leave as a count or a hash instead of content, and has it passed the gate. Most things that feel like they need to be sent do not.
+Ask whether the request is necessary, whether a count or hash is enough, which consent authorizes it, and which documented data boundary applies. Do not widen learning capture to support a coding workflow.
 
 ## Storage: local-first, under the user's control
 
 - The profile lives on disk in a directory the user owns and can open in a text editor. Plain files over an opaque database, because a user who cannot read what was learned about them cannot consent to it.
 - The SQLite index stores pointers, event kinds, and tool metadata, never captured text. It is disposable and rebuildable.
 - Never sync, upload, or back up the profile by default.
-- Anything shadowclone stores is derived and disposable. Losing it costs the user learned behavior, so a destructive write needs a test, but it never costs them their actual work.
+- Treat user edits and generated work as valuable. Destructive writes need tests and must preserve unrelated files.
 
 ## Logging: never the raw capture
 
@@ -55,7 +55,7 @@ Debugging a collector by printing what it collected is how a secret ends up in a
 
 ## Acting as the user: tiered, and the top tier always asks
 
-The clone acting on the user's behalf is the point of the project, so the boundary has to be explicit rather than a matter of judgment at the call site.
+The boundary for acting on the user's behalf must be explicit at each call site.
 
 - **Observe and derive.** Reading capture, distilling it, writing to the vault. Runs unattended.
 - **Draft.** Producing a message, diff, reply, or file and leaving it local for the user. Runs unattended, as long as nothing is sent or committed.

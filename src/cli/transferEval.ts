@@ -1,4 +1,4 @@
-import { Command, CommanderError } from "commander";
+import { Command } from "commander";
 import type { TransferOptions } from "../eval/transfer";
 import {
   defaultTimeoutSeconds,
@@ -6,49 +6,28 @@ import {
   runTransferEval,
 } from "../eval/transfer";
 import { promptConfirmation, type ConfirmPrompt } from "./confirm";
+import {
+  parseDependencyMode,
+  parsePositiveNumber,
+  parseReasoningEffort,
+  rejectRepeat,
+} from "./transferEvalOptions";
 
 const valueFlags = [
   "--repo <path>",
+  "--task <prompt>",
+  "--suite-id <id>",
   "--model <id>",
   "--engine <id>",
+  "--reasoning-effort <level>",
+  "--dependency-mode <mode>",
   "--tasks <number>",
-  "--sessions <number>",
   "--repeat <number>",
   "--timeout-seconds <number>",
+  "--deadline-seconds <number>",
   "--eval-id <id>",
-  "--since <date>",
   "--max-budget-usd <number>",
 ] as const;
-
-function rejectRepeat(
-  flag: string,
-): (value: string, previous: string | undefined) => string {
-  const [name] = flag.split(" ");
-
-  return (value, previous) => {
-    if (previous !== undefined) {
-      throw new Error(`Repeated ${name ?? flag}`);
-    }
-    return value;
-  };
-}
-
-function parsePositiveNumber(options: {
-  readonly value: string | undefined;
-  readonly name: string;
-}): number | undefined {
-  if (options.value === undefined) {
-    return undefined;
-  }
-
-  const numericValue = Number(options.value);
-  if (!Number.isFinite(numericValue) || numericValue <= 0) {
-    throw new Error(`${options.name} must be positive`);
-  }
-
-  return numericValue;
-}
-
 export function parseTransferArguments(
   argumentsList: readonly string[],
 ): TransferOptions {
@@ -63,49 +42,68 @@ export function parseTransferArguments(
   );
 
   program.parse([...argumentsList], { from: "user" });
-
   const options = program.opts<{
     readonly repo?: string;
+    readonly task?: string;
+    readonly suiteId?: string;
     readonly model?: string;
     readonly engine?: string;
+    readonly reasoningEffort?: string;
+    readonly dependencyMode?: string;
     readonly tasks?: string;
-    readonly sessions?: string;
     readonly repeat?: string;
     readonly timeoutSeconds?: string;
+    readonly deadlineSeconds?: string;
     readonly evalId?: string;
-    readonly since?: string;
     readonly maxBudgetUsd?: string;
     readonly yes?: boolean;
     readonly json?: boolean;
   }>();
 
-  if (options.tasks !== undefined && options.sessions !== undefined) {
-    throw new Error("Use --tasks or --sessions, not both");
+  if (options.task !== undefined && options.tasks !== undefined) {
+    throw new Error("Use --task or --tasks, not both");
+  }
+  if (options.suiteId !== undefined && (options.task || options.tasks)) {
+    throw new Error("A frozen --suite-id cannot be combined with task selection");
+  }
+  if (options.evalId !== undefined && options.suiteId !== undefined) {
+    throw new Error("Use --eval-id to resume or --suite-id to start, not both");
+  }
+  if (options.evalId !== undefined && (options.task || options.tasks)) {
+    throw new Error("An evaluation resume cannot select new tasks");
   }
 
   const engine = options.engine;
-  if (engine !== undefined && engine !== "codex" && engine !== "claude-code") {
+  if (
+    engine !== undefined &&
+    engine !== "codex" &&
+    engine !== "claude-code"
+  ) {
     throw new Error("Evaluation supports codex and claude-code");
   }
 
-  const taskCountValue = options.tasks ?? options.sessions;
-  const taskCountName = options.tasks !== undefined ? "--tasks" : "--sessions";
-
   return {
     repo: options.repo,
+    task: options.task,
+    suiteId: options.suiteId,
     model: options.model,
     engine,
+    reasoningEffort: parseReasoningEffort(options.reasoningEffort),
+    dependencyMode: parseDependencyMode(options.dependencyMode),
     tasks: parsePositiveNumber({
-      value: taskCountValue,
-      name: taskCountName,
+      value: options.tasks,
+      name: "--tasks",
     }),
     repeat: parsePositiveNumber({ value: options.repeat, name: "--repeat" }),
     timeoutSeconds: parsePositiveNumber({
       value: options.timeoutSeconds,
       name: "--timeout-seconds",
     }),
+    deadlineSeconds: parsePositiveNumber({
+      value: options.deadlineSeconds,
+      name: "--deadline-seconds",
+    }),
     evalId: options.evalId,
-    since: options.since,
     maxBudgetUsd: parsePositiveNumber({
       value: options.maxBudgetUsd,
       name: "--max-budget-usd",
@@ -119,22 +117,34 @@ export async function transferEvalCommand(
   argumentsList: readonly string[],
   options: { readonly ask?: ConfirmPrompt } = {},
 ): Promise<void> {
-  let parsed: TransferOptions;
-  try {
-    parsed = parseTransferArguments(argumentsList);
-  } catch (error) {
-    if (error instanceof CommanderError && error.code === "commander.helpDisplayed") {
-      return;
-    }
-    throw error;
-  }
+  const parsed = parseTransferArguments(argumentsList);
   const ask = options.ask ?? promptConfirmation;
+  if (argumentsList.includes("--dependency-mode")) {
+    console.warn(
+      "--dependency-mode current is deprecated because current HEAD is now the only evaluation starting state.",
+    );
+  }
 
   if (!parsed.yes && !parsed.json && process.stdin.isTTY) {
-    const invocations = invocationCeiling(parsed);
+    const invocations = invocationCeiling({
+      tasks: parsed.task ? 1 : parsed.tasks,
+      repeat: parsed.repeat,
+    });
     const timeoutSeconds = parsed.timeoutSeconds ?? defaultTimeoutSeconds;
+    const engineDescription = [
+      parsed.engine,
+      parsed.model,
+      parsed.reasoningEffort
+        ? `${parsed.reasoningEffort} effort`
+        : undefined,
+    ]
+      .filter((value) => value !== undefined)
+      .join(" ");
+    const description = engineDescription
+      ? `${engineDescription} as `
+      : "";
     const approved = await ask(
-      `Running eval as up to ${invocations} agent invocations, each up to ${timeoutSeconds}s. Claude uses a $${parsed.maxBudgetUsd ?? 2} total budget; Codex uses call/time limits and rejects dollar caps. Provider billing can exceed an in-flight limit. Proceed?`,
+      `Running ${description}up to ${invocations} agent invocations, each up to ${timeoutSeconds}s. Proceed?`,
     );
     if (!approved) {
       console.log("Evaluation cancelled.");

@@ -31,6 +31,8 @@ export {
 export {
   createLearningExecution,
   defaultLearningExecutionLimits,
+  learningExecutionLimitsForCalls,
+  setupLearningLimits,
   type LearningExecution,
   type LearningExecutionLimits,
 } from "./learning";
@@ -47,4 +49,6 @@ export type {
   EngineRunOptions,
   PermissionDenial,
   PermissionMode,
+  ReasoningEffort,
 } from "./types";
+export { reasoningEfforts } from "./types";

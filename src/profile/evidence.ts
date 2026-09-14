@@ -1,3 +1,31 @@
+const explicitPrefix = "explicit:";
+
+export function explicitProfileEvidence(evidenceId: string): string {
+  return evidenceId.startsWith(explicitPrefix)
+    ? evidenceId
+    : `${explicitPrefix}${evidenceId}`;
+}
+
+export function isExplicitProfileEvidence(evidenceId: string): boolean {
+  return evidenceId.startsWith(explicitPrefix);
+}
+
+export const independentSessionThreshold = 3;
+
+export function activatesFromSessions(sessions: number): boolean {
+  return sessions >= independentSessionThreshold;
+}
+
+export function effectiveProfileStatus(options: {
+  readonly status: ProfileStatus;
+  readonly evidence: ProfileEvidence;
+}): ProfileStatus {
+  return options.status === "candidate" &&
+      options.evidence.for.some(isExplicitProfileEvidence)
+    ? "active"
+    : options.status;
+}
+
 export function profileEvidenceId(options: {
   readonly originId: string;
   readonly sessionId: string;
@@ -23,12 +51,15 @@ export type ProfileEvidenceMoment = {
 export function parseProfileEvidenceId(
   evidenceId: string,
 ): ProfileEvidenceMoment | null {
-  if (!evidenceId.startsWith("signal:")) {
+  const normalized = evidenceId.startsWith(explicitPrefix)
+    ? evidenceId.slice(explicitPrefix.length)
+    : evidenceId;
+  if (!normalized.startsWith("signal:")) {
     return null;
   }
   let value: unknown;
   try {
-    value = JSON.parse(evidenceId.slice("signal:".length));
+    value = JSON.parse(normalized.slice("signal:".length));
   } catch {
     return null;
   }
@@ -88,4 +119,8 @@ export function profileEvidenceStatistics(options: {
       : options.rule.lastSeen,
   };
 }
-import type { ProfileEvidence, ProfileRule } from "./types";
+import type {
+  ProfileEvidence,
+  ProfileRule,
+  ProfileStatus,
+} from "./types";

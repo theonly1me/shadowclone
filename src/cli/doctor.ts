@@ -1,12 +1,27 @@
-import path from "node:path";
-import { migrateOriginProfiles } from "../profile/migrateOrigins";
-import { detectEngine, type CommandProbe, type EngineId } from "../engine";
-import { readManagedPolicy, type DistillationPolicy } from "../config";
+import {
+  detectEngine,
+  type CommandProbe,
+  type EngineId,
+} from "../engine";
+import {
+  readManagedPolicy,
+  type DistillationPolicy,
+} from "../config";
 import { openEventIndex } from "../index";
+import { integrationHealth } from "../integrations";
 import { projectPaths } from "../paths";
-import { getProviderSupport, providerDefinitions } from "../provider";
-import { computeSourceHealth, type SourceMarkerHealth } from "../signal";
 import { repairOwnedTree } from "../storage";
+import { readLearningState } from "../learning";
+import { readEffectiveConfig } from "../config";
+import { listSkillProposals, readMaintenanceState } from "../skillMaintenance";
+import {
+  getProviderSupport,
+  providerDefinitions,
+} from "../provider";
+import {
+  computeSourceHealth,
+  type SourceMarkerHealth,
+} from "../signal";
 
 export function renderProviderSupport(): readonly string[] {
   return providerDefinitions.map((definition) => {
@@ -46,33 +61,13 @@ export function renderMarkerHealth(options: {
   });
 }
 
-export async function doctor(
-  options: {
-    readonly probe?: CommandProbe;
-    readonly managedConfigPath?: string | null;
-    readonly databasePath?: string;
-    readonly shadowcloneDirectory?: string;
-  } = {},
-): Promise<void> {
-  const repaired = await repairOwnedTree(
-    options.shadowcloneDirectory ?? projectPaths.shadowcloneDirectory,
-  );
-  if (repaired.directories > 0 || repaired.files > 0) {
-    console.log(
-      `Tightened permissions on ${repaired.directories} directories and ${repaired.files} files.`,
-    );
-  }
-  const migration = await migrateOriginProfiles(
-    path.join(
-      options.shadowcloneDirectory ?? projectPaths.shadowcloneDirectory,
-      "profile",
-    ),
-  );
-  if (migration.migrated > 0 || migration.isolated > 0) {
-    console.log(
-      `Migrated ${migration.migrated} legacy origin scopes; ${migration.isolated} ambiguous scopes remain isolated for manual review.`,
-    );
-  }
+export async function doctor(options: {
+  readonly probe?: CommandProbe;
+  readonly managedConfigPath?: string | null;
+  readonly databasePath?: string;
+  readonly shadowcloneDirectory?: string;
+} = {}): Promise<void> {
+  await repairOwnedTree(options.shadowcloneDirectory ?? projectPaths.shadowcloneDirectory);
   const managedConfigPath =
     options.managedConfigPath === undefined
       ? projectPaths.managedConfigFile
@@ -113,6 +108,13 @@ export async function doctor(
   for (const line of renderProviderSupport()) {
     console.log(line);
   }
+  for (const line of await integrationHealth({ managedConfigPath })) console.log(line);
+  const { config } = await readEffectiveConfig({ managedConfigPath });
+  const learning = await readLearningState(projectPaths);
+  console.log(`Automatic learning: ${config.distillation.automatic ? "enabled" : "disabled"}; last attempt ${learning.status}.`);
+  const skills = await readMaintenanceState(projectPaths);
+  const proposals = await listSkillProposals(projectPaths);
+  console.log(`Skill maintenance: ${config.sources["skill-library"] ? "enabled" : "disabled"}; ${skills.roots.filter((root) => root.enabled).length} root(s), ${proposals.filter((proposal) => proposal.status === "pending").length} pending proposal(s).`);
   const dbFile = Bun.file(options.databasePath ?? projectPaths.indexDatabase);
   if (await dbFile.exists()) {
     const index = await openEventIndex(

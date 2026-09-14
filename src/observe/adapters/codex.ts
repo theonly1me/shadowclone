@@ -150,6 +150,7 @@ export async function observeCodexFile(options: {
       cursor: result.cursor,
       rescanned: result.rescanned,
       bytesRead: result.bytesRead,
+      invalidRecords: result.invalidRecords,
     };
   }
   const context = await getCodexContext({
@@ -173,6 +174,7 @@ export async function observeCodexFile(options: {
     cursor: result.cursor,
     rescanned: result.rescanned,
     bytesRead: result.bytesRead,
+    invalidRecords: result.invalidRecords,
   };
 }
 

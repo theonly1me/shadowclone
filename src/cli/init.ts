@@ -1,160 +1,162 @@
 import {
   defaultConfig,
+  applyManagedPolicy,
   readManagedPolicy,
   setDeepEnabled,
   setSourceEnabled,
   writeConfig,
 } from "../config";
 import type { ManagedPolicy } from "../config";
+import type { EngineId, EngineRunner } from "../engine";
 import { importRepositoryGuidance } from "../importRules";
-import { type ProjectPaths, projectPaths } from "../paths";
-import type { GitRemoteReader } from "../signal";
-import type { SeedLibrary } from "../skills";
-import { repairOwnedTree } from "../storage";
-import {
-  detectOnboardingPresence,
-  type OnboardingCaptureSourceId,
-  type OnboardingPresence,
-} from "./onboardingPresence";
-import { runWizard, type WizardAnswerPrompt } from "./wizard";
+import type { IntegrationAgent } from "../integrations";
+import { projectPaths, type ProjectPaths } from "../paths";
+import { configureSkillMaintenance, updateSkillLibrary } from "../skillMaintenance";
+import { initializeAdvanced, type ConsentPrompt, type InitializeAdvancedOptions } from "./initAdvanced";
+import { detectPersonalSkills, detectedAgentNames, detectedIntegrationAgents, printDetectionSummary } from "./initDetection";
+import { createSetupEngine, runSetupLearning } from "./initLearning";
+import { installNativeCommand } from "./native";
+import { detectOnboardingPresence, type OnboardingPresence } from "./onboardingPresence";
 
-export type ConsentPrompt = (question: string) => boolean | Promise<boolean>;
+export type { ConsentPrompt } from "./initAdvanced";
 
-const captureSources: readonly {
-  readonly id: OnboardingCaptureSourceId;
-  readonly question: string;
-}[] = [
-  { id: "antigravity", question: "Enable Antigravity CLI transcripts?" },
-  { id: "claude-code", question: "Enable Claude Code transcripts?" },
-  { id: "claude-prompts", question: "Enable Claude prompt history?" },
-  { id: "codex", question: "Enable Codex transcripts?" },
-  { id: "cursor", question: "Enable Cursor CLI chat stores?" },
-  { id: "shell", question: "Enable shell history?" },
-];
-
-function promptForConsent(question: string): boolean {
-  const answer = prompt(`${question} [y/N]`);
-  return answer?.trim().toLowerCase() === "y";
+export function answerIsYes(answer: string | null): boolean {
+  if (answer === null) return false;
+  const normalized = answer.trim().toLowerCase();
+  return normalized === "" || normalized === "y" || normalized === "yes";
 }
 
-export async function initialize(options: {
-  readonly configPath?: string;
-  readonly paths?: ProjectPaths;
-  readonly workingDirectory?: string;
-  readonly presence?: OnboardingPresence;
-  readonly library?: SeedLibrary;
-  readonly answer?: WizardAnswerPrompt;
-  readonly ask?: ConsentPrompt;
-  readonly writeLine?: (line: string) => void;
-  readonly managedConfigPath?: string | null;
-  readonly managedPolicy?: ManagedPolicy;
-  readonly readRemote?: GitRemoteReader;
-} = {}): Promise<void> {
-  const paths = options.paths ?? projectPaths;
+function promptForConsent(question: string): boolean {
+  return answerIsYes(prompt(question));
+}
+
+export type InitializeOptions = InitializeAdvancedOptions & {
+  readonly advanced?: boolean;
+  readonly agents?: readonly IntegrationAgent[];
+  readonly install?: typeof installNativeCommand;
+  readonly runner?: EngineRunner;
+  readonly engine?: EngineId;
+  readonly now?: number;
+};
+
+export async function initialize(options: InitializeOptions = {}): Promise<void> {
+  if (options.advanced) {
+    await initializeAdvanced(options);
+    return;
+  }
+  const paths: ProjectPaths = options.paths ?? projectPaths;
+  const workingDirectory = options.workingDirectory ?? process.cwd();
   const configPath = options.configPath ?? paths.configFile;
-  const presence = options.presence ?? await detectOnboardingPresence({
+  const presence: OnboardingPresence = options.presence ?? await detectOnboardingPresence({
     paths,
-    workingDirectory: options.workingDirectory ?? process.cwd(),
+    workingDirectory,
   });
-  const ask = options.ask ?? promptForConsent;
-  const writeLine = options.writeLine ?? ((line) => console.log(line));
-  const policy = options.managedPolicy ?? await readManagedPolicy(
+  const agents = options.agents ?? await detectedIntegrationAgents(paths);
+  const personalSkillsPresent = await detectPersonalSkills(paths);
+  const ask: ConsentPrompt = options.ask ?? promptForConsent;
+  const writeLine = options.writeLine ?? console.log;
+  const policy: ManagedPolicy = options.managedPolicy ?? await readManagedPolicy(
     options.managedConfigPath === undefined
       ? paths.managedConfigFile
       : options.managedConfigPath,
   );
-  const importAllowed =
-    policy.enabled && policy.allowedSources.includes("declared-rules");
-  let importEnabled = false;
 
-  if (presence.hasRepositoryGuidance) {
-    if (importAllowed) {
-      importEnabled = await ask("Import existing repository guidance?");
-    } else {
-      writeLine("Managed policy blocks repository guidance import.");
-    }
-    if (!importEnabled) {
-      writeLine("Existing agent instructions detected and left unread.");
-      if (await ask("Set up a seed profile instead?")) {
-        await runWizard({
-          paths,
-          library: options.library,
-          answer: options.answer,
-          confirm: ask,
-          writeLine,
-        });
-      }
-    }
-  } else {
-    await runWizard({
-      paths,
-      library: options.library,
-      answer: options.answer,
-      confirm: ask,
-      writeLine,
-    });
-  }
+  printDetectionSummary({ paths, presence, agents, personalSkillsPresent, writeLine });
+  const learn = await ask("Learn how you work from these sessions? [Y/n]");
+  const skillPrompt = agents.length > 0
+    ? `Keep your skills in sync across ${detectedAgentNames(agents)}? [Y/n]`
+    : "Keep your skills in sync across your agents? [Y/n]";
+  const skills = await ask(skillPrompt);
+  const background = await ask("Keep improving in the background as you work? [Y/n]");
 
   let config = defaultConfig;
-  let captureEnabled = false;
-  for (const source of captureSources) {
-    if (!presence.presentCaptureSources.has(source.id)) {
-      continue;
+  if (learn) {
+    for (const source of presence.presentCaptureSources) {
+      config = setSourceEnabled({ config, source, enabled: true });
     }
-    const enabled = await ask(source.question);
-    config = setSourceEnabled({ config, source: source.id, enabled });
-    captureEnabled = captureEnabled || enabled;
+    config = setSourceEnabled({ config, source: "git-metadata", enabled: true });
+    config = setSourceEnabled({ config, source: "agent-context", enabled: true });
+    config = setSourceEnabled({
+      config,
+      source: "declared-rules",
+      enabled: presence.hasRepositoryGuidance,
+    });
   }
-  const enableGitMetadata = await ask(
-    "Enable reading git remote origins for organization-scoped profiles?",
-  );
-  const enableAgentContext = await ask(
-    "Enable reading agent instructions, skills and native memory for frozen eval baselines?",
-  );
-  const enableDeep = await ask(
-    "Allow deep learning to send redacted correction evidence and profile guidance through your authenticated agent CLI?",
-  );
-  config = setSourceEnabled({
-    config,
-    source: "declared-rules",
-    enabled: importEnabled,
-  });
-  config = setSourceEnabled({
-    config,
-    source: "git-metadata",
-    enabled: enableGitMetadata,
-  });
-  config = setSourceEnabled({
-    config,
-    source: "agent-context",
-    enabled: enableAgentContext,
-  });
-  config = setDeepEnabled({ config, enabled: enableDeep });
-
+  config = setSourceEnabled({ config, source: "skill-library", enabled: skills });
+  config = setDeepEnabled({ config, enabled: background });
+  config = {
+    ...config,
+    distillation: { ...config.distillation, automatic: background },
+  };
   await writeConfig({ config, configPath });
-  await repairOwnedTree(paths.shadowcloneDirectory);
-  if (importEnabled) {
+
+  let rulesLearned = 0;
+  if (learn && presence.hasRepositoryGuidance && policy.enabled && policy.allowedSources.includes("declared-rules")) {
     const imported = await importRepositoryGuidance({
       paths,
-      workingDirectory: options.workingDirectory ?? process.cwd(),
-      gitMetadataEnabled:
-        config.sources["git-metadata"] &&
-        policy.allowedSources.includes("git-metadata"),
+      workingDirectory,
+      gitMetadataEnabled: policy.allowedSources.includes("git-metadata"),
       blockedOrigins: policy.blockedOrigins,
       readRemote: options.readRemote,
     });
-    writeLine(
-      `Imported ${imported.imported} repository guidance files; ${imported.preserved} preserved; ${imported.rejected} rejected; ${imported.retired} retired.`,
-    );
+    rulesLearned += imported.imported;
   }
-  writeLine(
-    captureEnabled || importEnabled || enableGitMetadata || enableAgentContext || enableDeep
-      ? "Selected sources and capabilities enabled."
-      : "All capture sources remain disabled.",
-  );
-  if (captureEnabled) {
-    writeLine(
-      "Run shadowclone learn to build evidence from the sources you enabled.",
-    );
+
+  let skillsSynced = 0;
+  if (skills && policy.enabled && policy.allowedSources.includes("skill-library")) {
+    await configureSkillMaintenance({
+      scope: "global",
+      paths,
+      cwd: workingDirectory,
+      managedConfigPath: options.managedConfigPath,
+    });
+    const updated = await updateSkillLibrary({
+      paths,
+      syncPersonal: true,
+      managedConfigPath: options.managedConfigPath,
+      readRemote: options.readRemote,
+    });
+    skillsSynced = updated.synced;
+    if (updated.conflicts > 0) {
+      writeLine(`${updated.conflicts} skill conflicts need review.`);
+    }
   }
+  const deepAllowed = background && policy.enabled && policy.distillation === "allowed";
+  const setupEngine = deepAllowed
+    ? await createSetupEngine({ policy, engine: options.engine, runner: options.runner })
+    : null;
+  if (deepAllowed && learn && setupEngine) {
+    try {
+      rulesLearned += await runSetupLearning({
+        paths,
+        config: applyManagedPolicy({ config, policy }),
+        policy,
+        setupEngine,
+        now: options.now ?? Date.now(),
+        readRemote: options.readRemote,
+        writeLine,
+      });
+    } catch (error) {
+      if (!(error instanceof Error)) throw error;
+      if (error.message === "Learning deadline reached") {
+        writeLine("Learning reached its time budget; background learning will continue.");
+      } else if (error.message === "Learning call limit reached" || error.message === "Learning cost limit reached") {
+        writeLine("Learning reached its setup budget; background learning will continue.");
+      } else {
+        throw error;
+      }
+    }
+  } else if (deepAllowed) {
+    writeLine("No authenticated agent CLI is available for the first learning pass.");
+  }
+  if (agents.length > 0) {
+    await (options.install ?? installNativeCommand)({
+      agents,
+      scope: "global",
+      subagent: false,
+      autoDelegate: false,
+    });
+  }
+  writeLine(`${skillsSynced} skills synced; ${rulesLearned} rules learned; ${agents.length} agents installed.`);
+  writeLine("Your next agent session will use the profile.");
 }

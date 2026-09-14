@@ -3,7 +3,7 @@ import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultManagedPolicy } from "../config";
-import type { EngineRunner } from "../engine";
+import type { EngineRunOptions, EngineRunner } from "../engine";
 import type { IndexedEvent } from "../index";
 import { createProjectPaths } from "../paths";
 import type { CorrectionSignal, OriginScope } from "../signal";
@@ -18,7 +18,7 @@ const origin: OriginScope = {
 async function fixture() {
   const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-deep-"));
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const sourcePath = path.join(homeDirectory, "evidence.txt");
+  const sourcePath = path.join(paths.claudeProjectsDirectory, "evidence.txt");
   const text = "The user asked for a smaller change.";
   await Bun.write(sourcePath, text);
   const textRef = {
@@ -55,9 +55,9 @@ async function fixture() {
   return { paths, signal, event };
 }
 
-function runner(onCall: () => void): EngineRunner {
-  return () => {
-    onCall();
+function runner(onCall: (options: EngineRunOptions) => void): EngineRunner {
+  return (options) => {
+    onCall(options);
     return Promise.resolve({
       engine: "claude-code",
       sessionId: "engine-session",
@@ -106,6 +106,27 @@ test("semantic dry run calls the engine and writes no local learning state", asy
   expect(result.profileUpdated).toBeFalse();
   expect(await Bun.file(paths.profileDirectory).exists()).toBeFalse();
   expect(await Bun.file(paths.distillDirectory).exists()).toBeFalse();
+});
+
+test("deep learning forwards the selected model and effort", async () => {
+  const { paths, signal, event } = await fixture();
+  const requests: EngineRunOptions[] = [];
+  await runDeepLearning({
+    signals: [signal],
+    events: [event],
+    paths,
+    policy: defaultManagedPolicy,
+    runner: runner((options) => { requests.push(options); }),
+    engine: "claude-code",
+    model: "claude-sonnet-5",
+    reasoningEffort: "medium",
+    dryRun: true,
+    apply: false,
+    writeLine: () => {},
+  });
+
+  expect(requests[0]?.model).toBe("claude-sonnet-5");
+  expect(requests[0]?.reasoningEffort).toBe("medium");
 });
 
 test("default review can decline while apply skips confirmation", async () => {

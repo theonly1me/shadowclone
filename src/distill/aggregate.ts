@@ -1,5 +1,6 @@
 import {
   profileEvidenceStatistics,
+  isExplicitProfileEvidence,
   type ProfileEvidence,
   type ProfileRule,
 } from "../profile";
@@ -33,7 +34,7 @@ export function mergeProfileRuleUpdates(
       ? "active" as const
       : evidence.against.length > 0
         ? "stale" as const
-        : statistics.sessions >= 3
+        : evidence.for.some(isExplicitProfileEvidence) || statistics.sessions >= 3
           ? "active" as const
           : "candidate" as const;
     merged.set(rule.key, { ...combined, ...statistics, status });

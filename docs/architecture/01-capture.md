@@ -2,7 +2,7 @@
 
 ## Sources
 
-Every source is opt-in, named in the config, and listed in the README. The config lives at `~/.shadowclone/config.toml` and every source defaults to off. `shadowclone init` is the only thing that turns any of them on, and it names each one as it does.
+Every source is opt-in, named in the config, and listed in the README. The config lives at `~/.shadowclone/config.toml` and every source defaults to off. Default `shadowclone init` lists detected paths and asks one grouped question for session sources, Git metadata, and agent context. `init --advanced` asks about each source separately. Skill maintenance has its own consent question.
 
 | Source | Path | Default | Notes |
 | --- | --- | --- | --- |
@@ -15,7 +15,7 @@ Every source is opt-in, named in the config, and listed in the README. The confi
 | `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization and exact repository scope, never repository contents |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | Captured as user prompts, no correction signals |
 
-Capture consent protects content. Before consent, onboarding may determine whether a configured source root exists and is non-empty, then use that one ephemeral boolean to omit absent providers from its questions. Directory checks use `opendir`, read at most one entry, reduce the result immediately to a boolean, and close the directory. File checks reduce existence and non-zero size to the same boolean. The check does not retain or log a path, entry name, count, timestamp, size, or provider-derived identifier.
+Capture consent protects content. Before consent, onboarding may determine whether a configured source root exists and is non-empty, then use that one ephemeral boolean to omit absent providers from grouped consent. Directory checks use `opendir`, read at most one entry, reduce the result immediately to a boolean, and close the directory. File checks reduce existence and non-zero size to the same boolean. The check does not retain or log a path, entry name, count, timestamp, size, or provider-derived identifier.
 
 Repository guidance presence is reduced to one ephemeral boolean as well. The check covers only root `CLAUDE.md`, root `AGENTS.md`, root `.cursorrules`, and whether `.claude/skills/` or `.agents/skills/` is non-empty. It does not read instruction content or retain an entry name. After `declared-rules` consent, import accepts only those three root files and direct `.claude/skills/*/SKILL.md` or `.agents/skills/*/SKILL.md` files. It rejects symlinks, more than 256 supported files, or more than 2,000,000 total bytes before resolving content.
 
@@ -75,7 +75,7 @@ export type AgentEvent = {
 
 ## Incremental reads
 
-The corpus grows about 19 MB a day on a single active machine. Full rescans are not an option after the first run.
+Session history grows as the user works. Incremental reads avoid reprocessing unchanged JSONL files on every run.
 
 Each file gets a cursor row: `sourcePath`, `byteSize`, `modifiedAt`, `byteOffset`. Transcripts are append only JSONL, so a later run seeks to `byteOffset` and reads forward. Three cases have to be handled and each has a defined answer.
 
@@ -89,9 +89,9 @@ A partial trailing line is never parsed. The cursor advances only to the last by
 
 ## Claude Code adapter
 
-The format has four traps and all four have bitten this design already.
+The adapter handles the following format distinctions.
 
-**Assistant records are one per content block.** A single API message is written as several records sharing `message.id` and `requestId`, each carrying one block and an `apiBlockIndex`. Counting records as turns overcounts by roughly three times. Group by `message.id` before deriving anything about turns or pacing.
+**Assistant records are one per content block.** A single API message can be written as several records sharing `message.id` and `requestId`, each carrying one block and an `apiBlockIndex`. Counting records as turns overcounts multi-block messages. Group by `message.id` before deriving turn counts.
 
 **Tool results arrive as user records.** A `user` record whose `message.content` is an array of `{tool_use_id, type: "tool_result", content, is_error}` is a result, not a prompt. A `user` record whose `message.content` is a plain string is a real typed prompt. The type of that field is the discriminator.
 
@@ -119,18 +119,20 @@ Timestamps disagree across sources and are normalized to epoch milliseconds at i
 
 `~/.shadowclone/index.db`, opened with `bun:sqlite`.
 
-It holds cursors, event skeletons, and tool call metadata. It holds no transcript text, because events carry pointers. It is a cache: deleting it costs one reingest and nothing else, and `06-roadmap.md` treats a schema change as a rebuild rather than a migration until the format settles.
+It holds cursors, event skeletons, and tool call metadata. It holds no transcript text, because events carry pointers. It is a cache: deleting it costs one reingest and nothing else. `06-roadmap.md` treats a schema change as a rebuild until the format settles.
 
 Reporting is counts only. `indexed 4,182 events from 37 sessions` is a log line. Anything that would print captured content is not.
 
 ## Triggers
 
-Three, arriving in this order, all reading the same cursors.
+On-demand and native lifecycle paths share the same cursors.
 
-`shadowclone learn` on demand. This is the only trigger the first release needs.
+`shadowclone learn` provides the explicit on-demand path. Consented setup and native lifecycle learning are additional bounded paths.
 
-A Claude Code `SessionEnd` hook, shipped in `.claude-plugin/`. Hooks receive `transcript_path` on stdin, so the hook ingests exactly one known file and never scans a directory. This is what makes shadowclone feel like it has no moving parts.
+A Claude Code `SessionEnd` hook shipped in `.claude-plugin/` receives `transcript_path` on stdin, ingests exactly one known file, and never scans a directory.
 
-Both triggers are built. The hook first checks effective source consent and managed policy, rejects paths outside the Claude projects directory, and then advances the same cursor used by `learn`. It recompiles existing active guidance for the session's repository scope and never manufactures profile rules from the ingested events.
+The plugin hook first checks effective source consent and managed policy, rejects paths outside the Claude projects directory, and then advances the same cursor used by `learn`. It refreshes existing active guidance for the session's repository scope and never manufactures profile rules from the ingested events.
 
-A long running daemon for people who want continuous learning and queued work. It adds no capability, only latency reduction, which is why it is last.
+Native integrations for Claude Code, Codex, Cursor, and Antigravity compile the current scoped profile at session start. With separate deep and automatic learning consent, the start hook also creates an opaque session token. The main agent runs the supplied `learn --session` command only when the session contains reusable engineering guidance or a clear correction. The end hook marks the hashed session complete, and a detached bounded worker starts only when both events exist. Stopping a tool, adding context, asking a question, cancelling work, or ending a session does not independently schedule learning.
+
+A long-running daemon remains deferred because it adds latency reduction and queued work, not a new learning capability.

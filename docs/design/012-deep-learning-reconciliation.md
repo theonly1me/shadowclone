@@ -1,5 +1,7 @@
 # Deep Learning Reconciliation
 
+[Design 017](017-self-improving-agent-environment.md) refines the activation threshold below: explicit reusable guidance can activate after one session; inferred patterns still require three.
+
 ## Summary
 
 `shadowclone learn --deep` reconciles new correction evidence with the profile the user already owns. It presents rule-specific support, contradiction, narrowing, and new-rule proposals before writing, keeps declared and user-owned guidance active during disagreement, activates mined guidance only after three independent sessions, and carries evidence on the rule it supports or contradicts.
