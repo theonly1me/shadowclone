@@ -50,13 +50,18 @@ export async function updateSkillLibrary(options: { readonly paths: ProjectPaths
     }
     const discovered = await discoverSkills(state.roots.filter((root) => profiles.has(root.id)));
     const summary = { ...empty, invalid: discovered.invalid, duplicates: discovered.duplicates, ...initialSync };
+    let assessmentAvailable = true;
     for (const [rootId, profile] of profiles) {
       let pending = discovered.skills.filter((skill) => skill.root.id === rootId && state.assessed[skill.id] !== assessmentFingerprint({ skill, profile }));
-      while (pending.length > 0 && options.execution.callsRemaining() > 0) {
+      while (pending.length > 0 && assessmentAvailable && options.execution.callsRemaining() > 0) {
         const batch = nextSkillBatch(pending);
         if (batch.length === 0) break;
-        const assessments = await assessSkillBatch({ skills: batch, profile, execution: options.execution, cwd: options.paths.shadowcloneDirectory });
-        for (const { skill, assessment } of assessments) {
+        const result = await assessSkillBatch({ skills: batch, profile, execution: options.execution, cwd: options.paths.shadowcloneDirectory });
+        if (result.status === "deferred") {
+          assessmentAvailable = false;
+          break;
+        }
+        for (const { skill, assessment } of result.assessments) {
           summary.assessed += 1;
           if (assessment.decision === "needs-verification") summary.verification += 1;
           const prepared = await prepareSkillProposal({ paths: options.paths, skill, assessment, state, profile });
