@@ -1,21 +1,49 @@
 import { z } from "zod";
-import type { LearningExecution } from "../engine";
+import type { EngineRun, LearningExecution } from "../engine";
 import { internalLearningMarker } from "../distill/excerpts";
 import type { DiscoveredSkill } from "./types";
 import { restoreOriginalSkill } from "./render";
 
+const decisionValues = ["keep", "update", "needs-verification"] as const;
+const findingValues = ["routing", "duplicate", "conflict", "technical-verification"] as const;
 const assessmentSchema = z.strictObject({
-  token: z.string(), decision: z.enum(["keep", "update", "needs-verification"]),
+  token: z.string(), decision: z.enum(decisionValues),
   description: z.string().max(1024), passages: z.array(z.string().min(12).max(4000)).max(8),
-  findings: z.array(z.enum(["routing", "duplicate", "conflict", "technical-verification"])),
+  findings: z.array(z.enum(findingValues)),
 });
 const outputSchema = z.strictObject({ assessments: z.array(assessmentSchema).max(8) });
+const providerOutputSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["assessments"],
+  properties: {
+    assessments: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["token", "decision", "description", "passages", "findings"],
+        properties: {
+          token: { type: "string" },
+          decision: { type: "string", enum: decisionValues },
+          description: { type: "string" },
+          passages: { type: "array", items: { type: "string" } },
+          findings: { type: "array", items: { type: "string", enum: findingValues } },
+        },
+      },
+    },
+  },
+} as const;
 export type SkillAssessment = z.infer<typeof assessmentSchema>;
+type AssessedSkill = { readonly skill: DiscoveredSkill; readonly assessment: SkillAssessment };
+type SkillBatchAssessment =
+  | { readonly status: "completed"; readonly assessments: readonly AssessedSkill[] }
+  | { readonly status: "deferred" };
 
 export async function assessSkillBatch(options: {
   readonly skills: readonly DiscoveredSkill[]; readonly profile: string;
   readonly execution: LearningExecution; readonly cwd: string;
-}): Promise<readonly { readonly skill: DiscoveredSkill; readonly assessment: SkillAssessment }[]> {
+}): Promise<SkillBatchAssessment> {
   const entries = options.skills.map((skill, position) => ({ token: `skill-${position + 1}`, skill: restoreOriginalSkill(skill.redacted) }));
   const prompt = [
     internalLearningMarker,
@@ -29,16 +57,22 @@ export async function assessSkillBatch(options: {
     `Active profile:\n${options.profile}`,
     JSON.stringify(entries),
   ].join("\n\n");
-  const result = await options.execution.runner({ cwd: options.cwd, prompt, execution: { purpose: "learning" }, allowedTools: [], permissionMode: "dontAsk", outputSchema: z.toJSONSchema(outputSchema) });
-  if (result.isError) throw new Error("Skill assessment engine failed");
+  let result: EngineRun;
+  try {
+    result = await options.execution.runner({ cwd: options.cwd, prompt, execution: { purpose: "learning" }, allowedTools: [], permissionMode: "dontAsk", outputSchema: providerOutputSchema });
+  } catch {
+    return { status: "deferred" };
+  }
+  if (result.isError) return { status: "deferred" };
   let output: z.infer<typeof outputSchema>;
   try { output = outputSchema.parse(result.structured ?? JSON.parse(result.text)); }
   catch { throw new Error("Invalid skill assessment response"); }
-  return options.skills.map((skill, position) => {
+  const assessments = options.skills.map((skill, position) => {
     const matches = output.assessments.filter((assessment) => assessment.token === `skill-${position + 1}`);
     const [assessment] = matches;
     if (matches.length !== 1 || !assessment) throw new Error("Skill assessment omitted or duplicated an input");
     if (assessment.passages.some((passage) => !options.profile.includes(passage))) throw new Error("Skill update lacks exact profile support");
     return { skill, assessment };
   });
+  return { status: "completed", assessments };
 }
