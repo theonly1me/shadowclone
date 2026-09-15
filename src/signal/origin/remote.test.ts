@@ -1,5 +1,20 @@
 import { expect, test } from "bun:test";
-import { normalizeRemoteOrigin, normalizeRemoteRepository } from "./remote";
+import os from "node:os";
+import path from "node:path";
+import {
+  normalizeRemoteOrigin,
+  normalizeRemoteRepository,
+  readGitRemote,
+} from "./remote";
+
+test("a missing working directory has no Git remote", async () => {
+  const missingDirectory = path.join(
+    os.tmpdir(),
+    `shadowclone-missing-${crypto.randomUUID()}`,
+  );
+
+  expect(await readGitRemote(missingDirectory)).toBeNull();
+});
 
 test("nested namespaces stay distinct owners", () => {
   const first = normalizeRemoteOrigin("https://gitlab.com/group/alpha/service");

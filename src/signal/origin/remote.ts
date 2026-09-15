@@ -145,20 +145,24 @@ export function normalizeRemoteRepository(
 }
 
 export async function readGitRemote(cwd: string): Promise<string | null> {
-  const { exitCode, stdout } = await runHostCommand({
-    arguments: [
-      "git",
-      "-C",
+  try {
+    const { exitCode, stdout } = await runHostCommand({
+      arguments: [
+        "git",
+        "-C",
+        cwd,
+        "config",
+        "--local",
+        "--get",
+        "remote.origin.url",
+      ],
       cwd,
-      "config",
-      "--local",
-      "--get",
-      "remote.origin.url",
-    ],
-    cwd,
-  });
-  const value = stdout.trim();
-  return exitCode === 0 && value.length > 0 ? value : null;
+    });
+    const value = stdout.trim();
+    return exitCode === 0 && value.length > 0 ? value : null;
+  } catch {
+    return null;
+  }
 }
 
 export function originDirectoryName(id: string): string {
