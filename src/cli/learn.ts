@@ -154,7 +154,7 @@ export async function learn(options: {
           managedConfigPath: options.managedConfigPath,
           readRemote: options.readRemote,
         });
-        writeLine(`Skill maintenance: ${skills.synced} synced, ${skills.applied} updated, ${skills.pending} pending, ${skills.conflicts} conflicts.`);
+        writeLine(`Skill maintenance: ${skills.synced} synced, ${skills.applied} updated, ${skills.pending} pending, ${skills.deferred} deferred, ${skills.conflicts} conflicts.`);
       }
     }
     writeLine(renderMirror({
