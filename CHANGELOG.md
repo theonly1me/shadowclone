@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.8](https://github.com/theonly1me/shadowclone/compare/v0.0.7...v0.0.8) (2026-09-15)
+
+
+### Fixes
+
+* tolerate unavailable Git metadata ([#69](https://github.com/theonly1me/shadowclone/issues/69)) ([f708ed0](https://github.com/theonly1me/shadowclone/commit/f708ed0332d5ae04eec69b4e498f69a2b0298558))
+
 ## [0.0.7](https://github.com/theonly1me/shadowclone/compare/v0.0.6...v0.0.7) (2026-09-14)
 
 
