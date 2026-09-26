@@ -3,6 +3,7 @@ import type { ProfileRule, ProfileSource, ProfileStatus } from "../types";
 
 export type ProfileCompilationAudience = "main" | "subagent";
 export type ProfileCompilationRepositoryContext = "native" | "missing";
+export type ProfileCompilationFormat = "full" | "index";
 export type ProfileCompilationSource = ProfileSource | "reference";
 
 export type ProfileCompileInput =
@@ -23,6 +24,8 @@ export type ProfileCompilationOmissionReason =
   | "stale"
   | "axis-conflict"
   | "native-duplicate"
+  | "known-duplicate"
+  | "on-demand"
   | "budget";
 
 export type ProfileCompilationOmission = {

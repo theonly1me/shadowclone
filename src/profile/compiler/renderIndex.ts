@@ -1,0 +1,78 @@
+import { emptyBreakdown, sourceBreakdown } from "./render";
+import { summarizeRule } from "./summary";
+import type {
+  CompilerBlock,
+  ProfileCompilation,
+  ProfileCompilationOmission,
+} from "./types";
+
+export const defaultIndexByteBudget = 4_096;
+
+const indexPreamble = [
+  "# Engineering preferences",
+  "",
+  "Standing preferences learned from this user. Follow them unless the current request says otherwise. Full text: `shadowclone context`.",
+].join("\n");
+
+const recallHint = "Project reference notes are not listed here. Run `shadowclone recall <query>` when a task needs one.";
+
+export function renderIndexLine(block: CompilerBlock): string | null {
+  if (block.kind === "reference") return null;
+  const { title, sentence } = summarizeRule(block);
+  if (title.length === 0) return null;
+  const text = sentence === null || sentence.toLowerCase() === title.toLowerCase() ? title : `${title}: ${sentence}`;
+  const condition = block.appliesWhen.length > 0 ? ` (when ${block.appliesWhen.join("; ")})` : "";
+  return `- ${text}${condition}`;
+}
+
+export function renderIndexCompilation(options: {
+  readonly blocks: readonly CompilerBlock[];
+  readonly byteBudget: number;
+}): ProfileCompilation & { readonly omittedBlocks: readonly CompilerBlock[] } {
+  const omissions: ProfileCompilationOmission[] = [];
+  const appliedRuleKeys: string[] = [];
+  const omittedBlocks: CompilerBlock[] = [];
+  const lines: string[] = [];
+  const breakdown = emptyBreakdown();
+  const preambleBytes = Buffer.byteLength(`${indexPreamble}\n\n`, "utf8");
+  const hintBytes = Buffer.byteLength(`\n${recallHint}\n`, "utf8");
+  const showRecallHint = options.blocks.some((block) => block.kind === "reference") &&
+    preambleBytes + hintBytes <= options.byteBudget;
+  let usedBytes = preambleBytes + (showRecallHint ? hintBytes : 0);
+
+  for (const block of options.blocks) {
+    const line = renderIndexLine(block);
+    const addedBytes = line === null ? 0 : Buffer.byteLength(`${line}\n`, "utf8");
+    if (line === null || usedBytes + addedBytes > options.byteBudget) {
+      omissions.push({
+        ruleKey: block.ruleKey,
+        ...(block.referenceKey === null ? {} : { referenceKey: block.referenceKey }),
+        reason: line === null ? "on-demand" : "budget",
+      });
+      sourceBreakdown(breakdown, block.source).omittedCount += 1;
+      omittedBlocks.push(block);
+      continue;
+    }
+    usedBytes += addedBytes;
+    lines.push(line);
+    const source = sourceBreakdown(breakdown, block.source);
+    source.appliedCount += 1;
+    source.appliedBytes += addedBytes;
+    if (block.ruleKey !== null) appliedRuleKeys.push(block.ruleKey);
+  }
+
+  const sections = [lines.join("\n"), showRecallHint ? recallHint : ""].filter((section) => section.length > 0);
+  const markdown = sections.length === 0 ? "" : `${indexPreamble}\n\n${sections.join("\n\n")}\n`;
+  return {
+    markdown,
+    appliedRuleKeys,
+    appliedRuleCount: lines.length,
+    appliedReferenceKeys: [],
+    appliedReferenceCount: 0,
+    usedBytes: Buffer.byteLength(markdown, "utf8"),
+    byteBudget: options.byteBudget,
+    breakdown,
+    omissions,
+    omittedBlocks,
+  };
+}

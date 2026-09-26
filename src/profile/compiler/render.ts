@@ -34,14 +34,14 @@ function renderBlock(block: CompilerBlock): string {
   return lines.join("\n");
 }
 
-type MutableBreakdown = {
+export type MutableBreakdown = {
   source: ProfileCompilationSource;
   appliedCount: number;
   omittedCount: number;
   appliedBytes: number;
 };
 
-function emptyBreakdown(): MutableBreakdown[] {
+export function emptyBreakdown(): MutableBreakdown[] {
   return compilationSources.map((source) => ({
     source,
     appliedCount: 0,
@@ -50,7 +50,7 @@ function emptyBreakdown(): MutableBreakdown[] {
   }));
 }
 
-function sourceBreakdown(
+export function sourceBreakdown(
   breakdown: MutableBreakdown[],
   source: ProfileCompilationSource,
 ): MutableBreakdown {

@@ -1,3 +1,4 @@
+import { normalizeGuidanceText, summarizeRule } from "./summary";
 import type {
   CompilerBlock,
   ProfileCompilationOmission,
@@ -10,6 +11,19 @@ function authorityRank(block: CompilerBlock): number {
   if (block.source === "mined") return 2;
   if (block.source === "reference") return 3;
   return 4;
+}
+
+const minimumDuplicateProbeCharacters = 24;
+
+function isKnownNativeDuplicate(options: {
+  readonly block: CompilerBlock;
+  readonly knownNativeText: readonly string[];
+}): boolean {
+  if (options.block.kind !== "rule" || options.knownNativeText.length === 0) return false;
+  const summary = summarizeRule(options.block);
+  const probe = normalizeGuidanceText(summary.sentence ?? summary.title);
+  return probe.length >= minimumDuplicateProbeCharacters &&
+    options.knownNativeText.some((text) => text.includes(probe));
 }
 
 function compareBlocks(left: CompilerBlock, right: CompilerBlock): number {
@@ -27,6 +41,7 @@ export function selectCompilerBlocks(options: {
   readonly blocks: readonly CompilerBlock[];
   readonly axes: ReadonlyMap<string, string>;
   readonly repositoryContext: ProfileCompilationRepositoryContext;
+  readonly knownNativeText?: readonly string[];
 }): {
   readonly selected: readonly CompilerBlock[];
   readonly omissions: readonly ProfileCompilationOmission[];
@@ -35,6 +50,7 @@ export function selectCompilerBlocks(options: {
   const omissions: ProfileCompilationOmission[] = [];
   const omittedBlocks: CompilerBlock[] = [];
   const eligible: CompilerBlock[] = [];
+  const knownNativeText = (options.knownNativeText ?? []).map(normalizeGuidanceText);
 
   for (const block of options.blocks) {
     if (
@@ -42,6 +58,11 @@ export function selectCompilerBlocks(options: {
       options.repositoryContext === "native"
     ) {
       omissions.push({ ruleKey: block.ruleKey, reason: "native-duplicate" });
+      omittedBlocks.push(block);
+      continue;
+    }
+    if (block.status === "active" && isKnownNativeDuplicate({ block, knownNativeText })) {
+      omissions.push({ ruleKey: block.ruleKey, reason: "known-duplicate" });
       omittedBlocks.push(block);
       continue;
     }

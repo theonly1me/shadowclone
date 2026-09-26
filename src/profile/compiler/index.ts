@@ -12,11 +12,13 @@ import {
   defaultProfileByteBudget,
   renderCompilation,
 } from "./render";
+import { defaultIndexByteBudget, renderIndexCompilation } from "./renderIndex";
 import { selectCompilerBlocks } from "./select";
 import type {
   CompilerBlock,
   ProfileCompilation,
   ProfileCompilationAudience,
+  ProfileCompilationFormat,
   ProfileCompilationRepositoryContext,
   ProfileCompileInput,
 } from "./types";
@@ -24,10 +26,12 @@ import type {
 export { profileScopePaths } from "./read";
 
 export { defaultProfileByteBudget } from "./render";
+export { defaultIndexByteBudget } from "./renderIndex";
 export type {
   ProfileCompilation,
   ProfileCompilationAudience,
   ProfileCompilationBreakdown,
+  ProfileCompilationFormat,
   ProfileCompilationOmission,
   ProfileCompilationOmissionReason,
   ProfileCompilationRepositoryContext,
@@ -94,6 +98,8 @@ export async function compileProfile(options: {
   readonly byteBudget?: number;
   readonly audience?: ProfileCompilationAudience;
   readonly repositoryContext?: ProfileCompilationRepositoryContext;
+  readonly format?: ProfileCompilationFormat;
+  readonly knownNativeText?: readonly string[];
 }): Promise<ProfileCompilation> {
   const blocks = await compilerBlocks({
     input: options.input,
@@ -103,11 +109,11 @@ export async function compileProfile(options: {
     blocks,
     axes: await seedAxes(blocks),
     repositoryContext: options.repositoryContext ?? "native",
+    knownNativeText: options.knownNativeText,
   });
-  const rendered = renderCompilation({
-    blocks: selection.selected,
-    byteBudget: options.byteBudget ?? defaultProfileByteBudget,
-  });
+  const rendered = options.format === "index"
+    ? renderIndexCompilation({ blocks: selection.selected, byteBudget: options.byteBudget ?? defaultIndexByteBudget })
+    : renderCompilation({ blocks: selection.selected, byteBudget: options.byteBudget ?? defaultProfileByteBudget });
   if (options.outputPath !== undefined) {
     await ownedWrite({
       path: options.outputPath,

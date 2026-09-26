@@ -1,11 +1,13 @@
 export { renderAgent, writeAgent } from "./agent";
 export {
   compileProfile,
+  defaultIndexByteBudget,
   defaultProfileByteBudget,
   profileScopePaths,
   type ProfileCompilation,
   type ProfileCompilationAudience,
   type ProfileCompilationBreakdown,
+  type ProfileCompilationFormat,
   type ProfileCompilationOmission,
   type ProfileCompilationOmissionReason,
   type ProfileCompilationRepositoryContext,
