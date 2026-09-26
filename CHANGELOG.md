@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.9](https://github.com/theonly1me/shadowclone/compare/v0.0.8...v0.0.9) (2026-09-15)
+
+
+### Fixes
+
+* defer failed skill assessments ([#71](https://github.com/theonly1me/shadowclone/issues/71)) ([078e227](https://github.com/theonly1me/shadowclone/commit/078e22714ec2d80133e296abae73e7435712e081))
+
 ## [0.0.8](https://github.com/theonly1me/shadowclone/compare/v0.0.7...v0.0.8) (2026-09-15)
 
 
