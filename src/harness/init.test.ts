@@ -12,7 +12,7 @@ import { acceptAll, harnessTestSetup, type HarnessTestSetup } from "./testFixtur
 const rules = "## Small files\n\nKeep every file under 200 lines, tests included.\n\n## Bun tests\n\nRun `bun test` before presenting.\n";
 
 function init(setup: HarnessTestSetup, options: { readonly personal?: boolean | null; readonly ask?: () => boolean } = {}) {
-  return harnessInitCommand({ apply: true, personal: options.personal ?? true, skills: [], cwd: setup.root, paths: setup.paths, managedConfigPath: null, ask: options.ask ?? acceptAll, writeLine: () => undefined });
+  return harnessInitCommand({ apply: true, personal: options.personal ?? true, skills: [], enforceClaude: false, cwd: setup.root, paths: setup.paths, managedConfigPath: null, ask: options.ask ?? acceptAll, writeLine: () => undefined });
 }
 
 function read(setup: HarnessTestSetup, relativePath: string): Promise<string> {

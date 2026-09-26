@@ -19,7 +19,7 @@ export async function showRevision(options: { readonly paths: ProjectPaths; read
 }
 
 const lockNames = { profile: "profile-write.db", skill: "skills-worker.db", harness: "harness-write.db" } as const;
-const harnessTarget = /^(?:AGENTS\.md|CLAUDE\.md|\.shadowclone\/harness\.json|\.(?:agents|claude)\/skills\/[a-z0-9]+(?:-[a-z0-9]+)*\/.+)$/;
+const harnessTarget = /^(?:AGENTS\.md|CLAUDE\.md|\.shadowclone\/harness\.json|\.claude\/settings\.local\.json|\.(?:agents|claude)\/skills\/[a-z0-9]+(?:-[a-z0-9]+)*\/.+)$/;
 
 export async function undoRevision(options: { readonly paths: ProjectPaths; readonly id: string; readonly skillRoots?: readonly string[]; readonly harnessRoots?: readonly string[] }): Promise<string | null> {
   const revision = await readRevision(options);

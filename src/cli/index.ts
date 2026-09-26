@@ -21,12 +21,13 @@ import { parseRecallOptions, recallCommand } from "./recall";
 import { handleProfileRepairCommand } from "./profileRepair";
 import { handleMigrateCommand } from "./migrate";
 import { harnessInitCommand, parseHarnessInit } from "./harness";
+import { harnessCheckCommand, parseHarnessCheck } from "./harnessCheck";
 import { listSeedGuidance } from "./skills";
 import { handleSkillMaintenance } from "./skillMaintenance";
 import { runWizard } from "./wizard";
 
 const usage =
-  "Usage: shadowclone <init [--advanced]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate claude-memory [--decisions <file>] [--apply]|harness init [--apply] [--personal|--no-personal] [--skill <name>]|install [--agent claude-code|codex|cursor|antigravity|all] [--global|--repo] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--repo]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|run <task>|eval [--repo <path>] [--task <prompt>|--tasks N|--suite-id <id>] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
+  "Usage: shadowclone <init [--advanced]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate claude-memory [--decisions <file>] [--apply]|harness init [--apply] [--personal|--no-personal] [--skill <name>] [--enforce-claude]|harness check [--changed] [--format human|json|claude-stop]|install [--agent claude-code|codex|cursor|antigravity|all] [--global|--repo] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--repo]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|run <task>|eval [--repo <path>] [--task <prompt>|--tasks N|--suite-id <id>] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -62,6 +63,12 @@ async function main(arguments_: readonly string[]): Promise<void> {
     const parsed = parseHarnessInit(rest.slice(1));
     if (parsed === null) throw new Error("Use harness init [--apply] [--personal|--no-personal] [--skill <name>]...");
     await harnessInitCommand(parsed);
+    return;
+  }
+  if (command === "harness" && rest[0] === "check") {
+    const parsed = parseHarnessCheck(rest.slice(1));
+    if (parsed === null) throw new Error("Use harness check [--changed] [--format human|json|claude-stop]");
+    process.exitCode = await harnessCheckCommand(parsed);
     return;
   }
   if (command === "import" && rest.length === 0) {

@@ -8,11 +8,13 @@ export type HarnessInitOptions = {
   readonly apply: boolean;
   readonly personal: boolean | null;
   readonly skills: readonly string[];
+  readonly enforceClaude: boolean;
 };
 
 export function parseHarnessInit(arguments_: readonly string[]): HarnessInitOptions | null {
   let apply = false;
   let personal: boolean | null = null;
+  let enforceClaude = false;
   const skills: string[] = [];
   for (let position = 0; position < arguments_.length; position += 1) {
     const argument = arguments_[position];
@@ -20,9 +22,10 @@ export function parseHarnessInit(arguments_: readonly string[]): HarnessInitOpti
     else if (argument === "--personal" && personal === null) personal = true;
     else if (argument === "--no-personal" && personal === null) personal = false;
     else if (argument === "--skill" && arguments_[position + 1]) skills.push(arguments_[++position] ?? "");
+    else if (argument === "--enforce-claude") enforceClaude = true;
     else return null;
   }
-  return { apply, personal, skills };
+  return { apply, personal, skills, enforceClaude };
 }
 
 const manifestQuestion = "Harness init reads this repository's package.json scripts and dependency names, lockfile names, pyproject.toml, requirements.txt, Makefile targets, CI workflow files, and top-level entry names. Allow reading them?";
@@ -57,7 +60,7 @@ export async function harnessInitCommand(options: HarnessInitOptions & {
   }
   const root = canonicalPath(options.cwd ?? process.cwd());
   const personal = options.personal ?? (await readHarnessManifest(root))?.personal ?? await ask(personalQuestion);
-  const plan = await planHarness({ root, personal, skillNames: options.skills, paths, managedConfigPath, readRemote: options.readRemote });
+  const plan = await planHarness({ root, personal, skillNames: options.skills, enforceClaude: options.enforceClaude, paths, managedConfigPath, readRemote: options.readRemote });
   const revision = options.apply ? await applyHarness({ paths, plan }) : undefined;
   writeLine(renderHarnessPreview({ plan, revision }).trimEnd());
   return revision ?? null;

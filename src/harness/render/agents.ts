@@ -13,8 +13,10 @@ export function renderAgentsSection(options: {
   readonly commands: readonly HarnessCommand[];
   readonly gate: HarnessGate | null;
   readonly rules: string;
+  readonly checked: boolean;
 }): string {
   const finish = options.gate === null ? "the checks above pass" : `\`${options.gate.command}\` passes`;
+  const check = options.checked ? " If `shadowclone` is installed, also run `shadowclone harness check --changed` and fix what it reports." : "";
   return [
     "## Working in this repository",
     "",
@@ -28,6 +30,6 @@ export function renderAgentsSection(options: {
     "",
     "### Finish line",
     "",
-    `A change is done when ${finish} and you have reported what changed and how you verified it. Do not commit, push, or open a pull request unless asked.`,
+    `A change is done when ${finish} and you have reported what changed and how you verified it.${check} Do not commit, push, or open a pull request unless asked.`,
   ].join("\n");
 }

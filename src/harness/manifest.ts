@@ -29,5 +29,6 @@ export async function readHarnessManifest(root: string): Promise<HarnessManifest
 }
 
 export function renderHarnessManifest(manifest: HarnessManifest): string {
-  return `${JSON.stringify(manifestSchema.parse(manifest), null, 2)}\n`;
+  const text = JSON.stringify(manifestSchema.parse(manifest), null, 2);
+  return `${text.replace(/[^\x20-\x7e\n]/g, (character) => `\\u${character.charCodeAt(0).toString(16).padStart(4, "0")}`)}\n`;
 }

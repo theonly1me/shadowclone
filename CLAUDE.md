@@ -32,7 +32,7 @@ Two skills in `.claude/skills/` are not optional.
 | `src/skillMaintenance/` | synchronizes portable skill copies, assesses consented skills, and separates managed additions from reviewed changes |
 | `src/dispatch/` | runs the clone in a worktree and records a receipt |
 | `src/eval/transfer/` | compares bare, skills, and clone arms using a frozen rubric and checkpointed judge votes |
-| `src/harness/` | detects a repository's gate and commands and writes its managed `AGENTS.md` section, `CLAUDE.md` import, workflow skill, and `harness.json` |
+| `src/harness/` | detects a repository's gate and commands, writes its managed `AGENTS.md` section, `CLAUDE.md` import, workflow skill, and `harness.json`, and checks them and their conventions |
 | `.claude-plugin/` | supports Claude plugin profile injection and bounded transcript ingestion |
 | `src/cli/` | provides `init`, `learn`, `doctor`, `install`, `uninstall`, `run`, and `forget --all` |
 

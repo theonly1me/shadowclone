@@ -12,7 +12,7 @@ import { readPersonalSkill } from "../personalSkills";
 import { renderAgentsSection, type ReadFirstSkill } from "../render/agents";
 import { renderFeatureWorkflowSkill, renderHarnessBuilderSkill } from "../render/skills";
 import type { HarnessCommand, HarnessGate, RepositoryFacts } from "../types";
-import { importsAgentsFile, planManagedFile, type PlannedFile } from "./files";
+import { importsAgentsFile, planClaudeStopHook, planManagedFile, type PlannedFile } from "./files";
 import { carriedSkills, planSkillFiles } from "./skills";
 
 export const harnessRuleByteBudget = 6_144;
@@ -33,6 +33,7 @@ export async function planHarness(options: {
   readonly root: string;
   readonly personal: boolean;
   readonly skillNames: readonly string[];
+  readonly enforceClaude?: boolean;
   readonly paths?: ProjectPaths;
   readonly configPath?: string;
   readonly managedConfigPath?: string | null;
@@ -58,12 +59,13 @@ export async function planHarness(options: {
   const [workflow, builder] = authored;
   const skills = [workflow, ...personal, ...carried.skills, builder].flatMap((skill) => skill === undefined ? [] : [{ name: skill.name, description: skill.description }]);
   const commands = harnessCommands({ facts, gate });
+  const conventions = deriveConventions({ ruleLines: details.compilation.markdown, facts });
   const files = [
-    await planManagedFile({ root, relativePath: "AGENTS.md", initial: "# Agent instructions", body: renderAgentsSection({ skills, commands, gate, rules: details.compilation.markdown }), expected: artifacts["AGENTS.md"], reason: "repository map for every agent" }),
+    await planManagedFile({ root, relativePath: "AGENTS.md", initial: "# Agent instructions", body: renderAgentsSection({ skills, commands, gate, rules: details.compilation.markdown, checked: conventions.length > 0 }), expected: artifacts["AGENTS.md"], reason: "repository map for every agent" }),
     ...await planClaudeImport({ root, expected: artifacts["CLAUDE.md"] }),
     ...await planSkillFiles({ root, authored, personal, artifacts }),
+    ...(options.enforceClaude ? [await planClaudeStopHook(root)] : []),
   ];
-  const conventions = deriveConventions({ ruleLines: details.compilation.markdown, facts });
   const recorded = Object.fromEntries(files.flatMap((file) => file.fingerprint === null ? [] : [[file.relativePath, file.fingerprint]]));
   const manifestText = renderHarnessManifest({
     version: 1, gate, personal: options.personal, conventions: [...conventions], sourceExtensions: [...sourceExtensions(facts)],

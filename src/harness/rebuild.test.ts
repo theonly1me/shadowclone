@@ -27,7 +27,7 @@ test("harness init rebuilds this repository's harness from its manifests and the
   for (const skill of ["clean-code", "scoped-fix"]) {
     await Bun.write(path.join(setup.home, ".agents/skills", skill, "SKILL.md"), await repositoryText(`.claude/skills/${skill}/SKILL.md`));
   }
-  await harnessInitCommand({ apply: true, personal: true, skills: ["clean-code", "scoped-fix"], cwd: setup.root, paths: setup.paths, managedConfigPath: null, ask: acceptAll, writeLine: () => undefined });
+  await harnessInitCommand({ apply: true, personal: true, skills: ["clean-code", "scoped-fix"], enforceClaude: false, cwd: setup.root, paths: setup.paths, managedConfigPath: null, ask: acceptAll, writeLine: () => undefined });
   const read = (relativePath: string) => Bun.file(path.join(setup.root, relativePath)).text();
   const manifest = JSON.parse(await read(".shadowclone/harness.json"));
   expect(manifest.gate.command).toBe("bun run check");

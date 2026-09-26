@@ -77,6 +77,7 @@ flowchart LR
     Harness --> HarnessFiles[AGENTS.md section, CLAUDE.md import, workflow skill, harness.json]
     HarnessFiles --> History
     HarnessFiles --> MainAgents
+    HarnessFiles --> HarnessCheck[harness check and Claude Stop hook]
     Install --> Installations[installation manifest]
     Installations --> Uninstall[uninstall and wipe]
     Engine --> Dispatch
@@ -99,7 +100,7 @@ flowchart LR
 | profile | `src/profile/` | Plain markdown you can read, edit, and diff |
 | compiler | `src/profile/compiler/` | The one bounded, deterministic projection every clone reads |
 | install | `src/cli/install.ts` | Writes repository artifacts and records them for removal |
-| harness | `src/harness/` | Detects the gate and commands from consented manifests, filters rules to the repository, and writes managed harness files through local revisions |
+| harness | `src/harness/` | Detects the gate and commands from consented manifests, filters rules to the repository, writes managed harness files through local revisions, and checks them and their conventions |
 | native delivery | `src/integrations/` | Preserves a stable native pointer, injects live scoped context, merges hooks, and tracks ownership |
 | dispatch | `src/dispatch/` | Runs a task in a worktree and leaves a receipt |
 | eval | `src/eval/transfer/` | Compares Bare, Skills, and Clone on fresh tasks with saved criterion votes and separate correctness grading |

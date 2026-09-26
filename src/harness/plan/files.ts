@@ -2,6 +2,7 @@ import { lstat } from "node:fs/promises";
 import path from "node:path";
 import { harnessMarkers, updateMarkedSection } from "../../integrations";
 import { fingerprint, readLocalText } from "../../localFiles";
+import { claudeSettingsPath, mergeClaudeStopHook } from "../render/claudeSettings";
 
 export type PlannedFileStatus = "create" | "update" | "unchanged" | "preserved" | "skipped";
 
@@ -57,6 +58,18 @@ export async function planOwnedFile(options: {
   if (options.recorded !== undefined && fingerprint(previous) === options.recorded) return { ...created, status: "update" };
   const reason = options.recorded === undefined ? "already exists and is not managed by Shadowclone" : "was edited after Shadowclone wrote it";
   return { ...base, status: "preserved", previous, next: null, fingerprint: options.recorded ?? null, reason };
+}
+
+export async function planClaudeStopHook(root: string): Promise<PlannedFile> {
+  const base = { relativePath: claudeSettingsPath, fingerprint: null, reason: "your Claude Stop hook that runs harness check" };
+  if (await isSymbolicLink(path.join(root, claudeSettingsPath))) return { ...base, status: "skipped", previous: null, next: null, reason: "is a symbolic link, so it was left alone" };
+  const previous = await readLocalText(path.join(root, claudeSettingsPath));
+  try {
+    const next = mergeClaudeStopHook(previous);
+    return { ...base, status: previous === null ? "create" : next === previous ? "unchanged" : "update", previous, next };
+  } catch (error) {
+    return { ...base, status: "preserved", previous, next: null, reason: error instanceof Error ? error.message : "could not be updated" };
+  }
 }
 
 export function importsAgentsFile(text: string | null): boolean {
