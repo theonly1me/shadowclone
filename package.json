@@ -19,7 +19,7 @@
     "prepack": "bun run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.12",
+    "@biomejs/biome": "2.5.14",
     "@types/bun": "latest",
     "typescript": "~5.9"
   },
