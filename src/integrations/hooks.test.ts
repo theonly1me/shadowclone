@@ -14,7 +14,7 @@ test("global pointer stays stable while its hook injects combined guidance", asy
   await Bun.write(path.join(fixture.paths.profileDirectory, "org", repository.origin.directoryName, "engineering.md"), "## Local convention\n\nUse the repository's queue.\n");
   const installed = await installIntegration({ ...fixture, agent: "codex", scope: "global" });
   const text = await Bun.file(path.join(fixture.home, ".codex/AGENTS.md")).text();
-  expect(text).toContain("native session hook");
+  expect(text).toContain("A session hook loads");
   expect(text).not.toContain("Use complete names.");
   expect(text).not.toContain("repository's queue");
   const output = await nativeSessionStart({ ...fixture, id: installed.id, input: JSON.stringify({ cwd: fixture.cwd }) });

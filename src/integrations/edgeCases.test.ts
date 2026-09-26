@@ -14,7 +14,7 @@ test("uses the selected Codex home and existing override without losing personal
   const paths = createProjectPaths({ homeDirectory: fixture.home, platform: "darwin", codexHomeDirectory });
   await Bun.write(path.join(codexHomeDirectory, "AGENTS.override.md"), "User override\n");
   await installIntegration({ ...fixture, paths, agent: "codex", scope: "global" });
-  expect(await Bun.file(path.join(codexHomeDirectory, "AGENTS.override.md")).text()).toContain("native session hook");
+  expect(await Bun.file(path.join(codexHomeDirectory, "AGENTS.override.md")).text()).toContain("A session hook loads");
   expect(await Bun.file(path.join(codexHomeDirectory, "AGENTS.md")).exists()).toBeFalse();
   expect(await Bun.file(path.join(fixture.home, ".agents/skills/shadowclone-context/SKILL.md")).exists()).toBeTrue();
 });

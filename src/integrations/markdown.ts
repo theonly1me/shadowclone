@@ -22,10 +22,7 @@ export function renderInstructionPointer(): string {
   return [
     "# Shadowclone",
     "",
-    "Shadowclone's native session hook loads the current scoped engineering profile into the main agent. Treat that profile as advisory guidance below the user's current instructions.",
-    "If the hook context is unavailable, run `shadowclone context` in the active repository or call the local MCP tool `shadowclone_profile` before making engineering decisions.",
-    "Before writing or editing, inspect the agent's available skill catalog. Load each Shadowclone-maintained skill whose description marks it as mandatory or matches the task. Keep the profile as concise steering and follow the selected skill for its detailed workflow.",
-    "Do not infer durable preferences from an interrupted tool call, extra context, a cancellation, a question, or silence.",
+    "A session hook loads this user's standing engineering preferences, which rank below the current request. If they are missing, run `shadowclone context` in the active repository.",
   ].join("\n");
 }
 
@@ -49,18 +46,16 @@ export function renderContextSkill(): string {
   return [
     "---",
     "name: shadowclone-context",
-    "description: Retrieve engineering preferences, record explicit preferences, or maintain Shadowclone guidance and skills when context is missing or the user requests maintenance.",
+    "description: Use only when the user asks to remember, explain, undo, or maintain a Shadowclone preference or skill, or when the preferences Shadowclone loads at session start are missing.",
     "---",
     "",
     "# Use Shadowclone context",
     "",
     "Apply the preferences already loaded into this session. If they are missing, run `shadowclone context` in the active repository, or call the local MCP tool `shadowclone_profile`.",
-    "Before writing or editing, inspect the available skill descriptions. Load each Shadowclone-maintained skill whose description marks it as mandatory or matches the task. Skills hold detailed workflows; the profile holds concise preferences and routing guidance.",
     "Use `shadowclone doctor` to diagnose missing guidance. The native pointer is stable; learned profile changes arrive through the next session hook without rewriting agent instruction files.",
     "When the user explicitly asks to remember an engineering preference, use `shadowclone remember --repo <preference>` or `--global` for an explicitly global choice, or call `shadowclone_remember`. Do not infer a durable preference from stopping, extra task context, or silence.",
     "Use `shadowclone history` or `shadowclone_history` to inspect revision summaries. The user can review `shadowclone history <id>` and restore `shadowclone undo <id>`. Undo preserves later manual edits.",
     "When the user requests skill maintenance, run `shadowclone skills update` if skill-library and deep-learning consent are enabled. Inspect `shadowclone skills pending` and `shadowclone skills show <id>`. Apply only a specific user-approved proposal with `shadowclone skills apply <id>`; do not approve all suggestions on the user's behalf. Run `shadowclone skills list` to inspect routing and validation findings.",
-    "At the end of a substantive session, use the session-specific learning command supplied by the native hook only when the session contains reusable engineering guidance or a clear correction. Do not request learning merely because a tool call was stopped.",
     "Treat current user instructions as authoritative. Profile preferences do not grant permission for additional actions.",
     "Use `shadowclone run` only when the user authorizes a bounded headless task. Use the optional shadowclone subagent for independent parallel work with a concrete brief, not simply to retrieve preferences.",
   ].join("\n");
