@@ -27,7 +27,6 @@ async function portableFixture() {
   const destinations = [
     path.join(home, ".agents/skills/portable-workflow"),
     path.join(home, ".claude/skills/portable-workflow"),
-    path.join(home, ".cursor/skills/portable-workflow"),
     path.join(home, ".gemini/config/skills/portable-workflow"),
   ];
   await registerPortableSkill({
@@ -54,7 +53,7 @@ test("copies a complete portable skill and promotes one edited replica", async (
   const claudeSkill = path.join(setup.destinations[1] ?? "", "SKILL.md");
   await Bun.write(claudeSkill, `${await Bun.file(claudeSkill).text()}\nClaude edit\n`);
   expect(await syncPortableSkills({ paths: setup.paths })).toEqual({
-    synced: 3,
+    synced: 2,
     conflicts: 0,
   });
   for (const destination of setup.destinations) {
@@ -64,31 +63,30 @@ test("copies a complete portable skill and promotes one edited replica", async (
   }
 });
 
-test("retires a matching legacy Codex replica after synchronization", async () => {
-  const setup = await portableFixture();
-  const codexSkill = path.join(
-    setup.home,
-    ".codex/skills/portable-workflow",
-  );
-  await cp(setup.destinations[0] ?? "", codexSkill, { recursive: true });
-  const [portable] = await readPortableSkills(setup.paths);
-  if (portable === undefined) throw new Error("Portable skill must be registered");
-  await writePortableSkills({
-    paths: setup.paths,
-    skills: [{
-      ...portable,
-      replicaDirectories: [...portable.replicaDirectories, codexSkill],
-    }],
-  });
+for (const legacyDirectory of [".codex/skills", ".cursor/skills"]) {
+  test(`retires a matching legacy ${legacyDirectory} replica after synchronization`, async () => {
+    const setup = await portableFixture();
+    const legacySkill = path.join(setup.home, legacyDirectory, "portable-workflow");
+    await cp(setup.destinations[0] ?? "", legacySkill, { recursive: true });
+    const [portable] = await readPortableSkills(setup.paths);
+    if (portable === undefined) throw new Error("Portable skill must be registered");
+    await writePortableSkills({
+      paths: setup.paths,
+      skills: [{
+        ...portable,
+        replicaDirectories: [...portable.replicaDirectories, legacySkill],
+      }],
+    });
 
-  expect(await syncPortableSkills({ paths: setup.paths })).toEqual({
-    synced: 1,
-    conflicts: 0,
+    expect(await syncPortableSkills({ paths: setup.paths })).toEqual({
+      synced: 1,
+      conflicts: 0,
+    });
+    expect(await Bun.file(legacySkill).exists()).toBeFalse();
+    expect((await readPortableSkills(setup.paths))[0]?.replicaDirectories)
+      .not.toContain(legacySkill);
   });
-  expect(await Bun.file(codexSkill).exists()).toBeFalse();
-  expect((await readPortableSkills(setup.paths))[0]?.replicaDirectories)
-    .not.toContain(codexSkill);
-});
+}
 
 test("retires an unchanged legacy Codex replica after another replica changes", async () => {
   const setup = await portableFixture();
@@ -110,7 +108,7 @@ test("retires an unchanged legacy Codex replica after another replica changes", 
   await Bun.write(claudeSkill, `${await Bun.file(claudeSkill).text()}\nClaude edit\n`);
 
   expect(await syncPortableSkills({ paths: setup.paths })).toEqual({
-    synced: 4,
+    synced: 3,
     conflicts: 0,
   });
   expect(await Bun.file(codexSkill).exists()).toBeFalse();
@@ -155,10 +153,10 @@ test("preserves divergent portable skill edits as a conflict", async () => {
   const setup = await portableFixture();
   const canonicalSkill = path.join(setup.destinations[0] ?? "", "SKILL.md");
   const claudeSkill = path.join(setup.destinations[1] ?? "", "SKILL.md");
-  const cursorSkill = path.join(setup.destinations[2] ?? "", "SKILL.md");
+  const geminiSkill = path.join(setup.destinations[2] ?? "", "SKILL.md");
   const original = await Bun.file(canonicalSkill).text();
   await Bun.write(claudeSkill, `${original}\nClaude edit\n`);
-  await Bun.write(cursorSkill, `${original}\nCursor edit\n`);
+  await Bun.write(geminiSkill, `${original}\nGemini edit\n`);
 
   expect(await syncPortableSkills({ paths: setup.paths })).toEqual({
     synced: 0,
@@ -166,5 +164,5 @@ test("preserves divergent portable skill edits as a conflict", async () => {
   });
   expect(await Bun.file(canonicalSkill).text()).toBe(original);
   expect(await Bun.file(claudeSkill).text()).toContain("Claude edit");
-  expect(await Bun.file(cursorSkill).text()).toContain("Cursor edit");
+  expect(await Bun.file(geminiSkill).text()).toContain("Gemini edit");
 });

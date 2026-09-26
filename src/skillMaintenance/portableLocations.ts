@@ -9,18 +9,16 @@ export function portableSkillDirectories(options: {
   return [
     path.join(home, ".agents/skills", options.name),
     path.join(home, ".claude/skills", options.name),
-    path.join(home, ".cursor/skills", options.name),
     path.join(home, ".gemini/config/skills", options.name),
   ].map(canonicalPath);
 }
 
-export function redundantCodexSkillDirectory(options: {
+export function redundantSkillDirectories(options: {
   readonly paths: ProjectPaths;
   readonly name: string;
-}): string {
-  return canonicalPath(path.join(
-    path.dirname(options.paths.codexSessionsDirectory),
-    "skills",
-    options.name,
-  ));
+}): readonly string[] {
+  return [
+    path.join(path.dirname(options.paths.codexSessionsDirectory), "skills", options.name),
+    path.join(path.dirname(options.paths.shadowcloneDirectory), ".cursor/skills", options.name),
+  ].map(canonicalPath);
 }
