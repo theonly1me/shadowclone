@@ -14,7 +14,7 @@ This document sets the ceiling on what a clone may do, in a session and unattend
 
 ## Optional delegated execution
 
-**As a subagent inside the user's own session.** Claude's `SubagentStart` hook injects the current compiled profile into spawned subagents. It does not create a second learning request. An optional repository `--subagent` installation also writes `.claude/agents/<name>.md` for explicit dispatch through the `Agent` tool. The session's permission mode applies, and its transcript can feed later learning. Main-agent delivery remains the default product path.
+**As a subagent inside the user's own session.** Claude's `SubagentStart` hook injects the current compiled profile into spawned subagents. An optional repository `--subagent` installation also writes `.claude/agents/<name>.md` for explicit dispatch through the `Agent` tool. The session's permission mode applies, and its transcript can feed later learning. Main-agent delivery remains the default product path.
 
 **Headless, in a worktree.** `shadowclone run` for work that happens while the user is away. This is the path the rest of this document governs, because nobody is watching it.
 

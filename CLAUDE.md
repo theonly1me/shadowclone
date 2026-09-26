@@ -23,7 +23,7 @@ Two skills in `.claude/skills/` are not optional.
 | `src/index/` | stores cursors and event skeletons in a rebuildable SQLite cache |
 | `src/signal/` | derives structural and correction signals without a model |
 | `src/profile/` | writes scoped markdown consumed by every agent-facing projection |
-| `src/profile/compiler/` | the only profile projection, deterministic and capped at 16 KiB |
+| `src/profile/compiler/` | the only profile projection, deterministic, capped at 16 KiB, with a 4 KiB session-start index |
 | `src/integrations/` | installs stable native pointers, injects current scoped guidance, and tracks useful sessions |
 | `src/engine/` | drives authenticated Claude Code, Codex, and Cursor CLIs |
 | `src/distill/` | sends only redacted, allowlisted correction moments to the engine |
@@ -63,7 +63,7 @@ observe  ->  index  ->  signal  ->  report
 
 ## The rules that outrank convenience
 
-- **One profile projection.** `compileProfile` in `src/profile/compiler/` is the only thing that turns stored profile into agent-facing guidance, for installs, hooks, MCP, dispatch, and both evaluation paths. It opens a closed path set, is deterministic for identical inputs, and caps output at 16 KiB by dropping whole blocks. Never add a second projection, and never render rule text by hand at a call site.
+- **One profile projection.** `compileProfile` in `src/profile/compiler/` is the only thing that turns stored profile into agent-facing guidance, for installs, hooks, MCP, dispatch, and both evaluation paths. It opens a closed path set, is deterministic for identical inputs, and caps output at 16 KiB by dropping whole blocks, or 4 KiB of whole lines in the session-start index format. Never add a second projection, and never render rule text by hand at a call site.
 - **One learning capture gate.** `resolveRedacted` applies `redactSecrets` when converting an eligible `TextRef` into learning text. Do not bypass it or add a redundant downstream gate. Authorized coding runs and transfer judging can send repository code to the selected provider; that separate boundary is documented in `docs/architecture/05-privacy.md`.
 - **Every capture source is opt-in for its contents.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. Each source keeps its own flag, defaulting to off, and a README entry in the same change. Setup can group the consent question only after it names every detected source path. Before consent, onboarding may reduce a configured source root to one ephemeral boolean stating that it exists and is non-empty. It never collects entry names, opens an entry, or retains or logs a path, name, count, timestamp, or provider identifier.
 - **Never distil tool results.** The content of any `tool_result`, file contents from Read, Edit, or Write, thinking blocks, and every data-access result never enter the distillation path. Excluded by category, not redacted. `docs/architecture/07-enterprise.md` says why.

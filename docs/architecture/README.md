@@ -1,6 +1,6 @@
 # Architecture
 
-Shadowclone maintains an editable engineering-preference profile and a portable personal skill library for existing coding agents. The always-on profile carries concise preferences and skill routing. Skills retain detailed task workflows and are loaded through each agent's native catalog. Consented local transcripts supply reusable user guidance. Ordinary sessions and supported delegated runs receive the same scoped profile; selected useful sessions can feed later learning.
+Shadowclone maintains an editable engineering-preference profile and a portable personal skill library for existing coding agents. The always-on profile is a short preference index, capped at 4 KiB and deduplicated against the repository's own instructions. Skills retain detailed task workflows and are loaded through each agent's native catalog. Consented local transcripts supply reusable user guidance. Ordinary sessions and supported delegated runs receive the same scoped profile; with learning consent, a session that contains durable steering feeds later learning when it ends.
 
 It reads named, opt-in sources. Eligible captured excerpts pass through `resolveRedacted` before they reach the user's authenticated agent CLI. Evaluation separately exposes an authorized repository snapshot and unredacted generated code to that provider. Shadowclone has no service, API key, or telemetry. The profile is editable Markdown, and `shadowclone forget --all` removes stored state and recorded integrations while preserving unrelated content and refusing conflicting edits.
 
@@ -38,11 +38,11 @@ flowchart LR
     Index --> Signal[signal]
     Signal --> Report[learning report]
     Signal --> Episodes[user steering episodes]
-    Episodes --> Distill[durable evidence reconciliation]
+    Episodes --> CueFilter[steering phrase prefilter]
+    CueFilter --> Distill[durable evidence reconciliation]
     Native[provider SessionStart] --> Compiler
     SubagentStart[Claude SubagentStart] --> Compiler
-    Native --> SessionRequest[agent selects useful session]
-    SessionRequest --> Worker[consented bounded learning worker]
+    NativeEnd[provider session end] --> Worker[consented bounded learning worker]
     Worker --> Observe
     Worker --> SkillMaintenance[consented skill maintenance]
     Compiler --> SkillMaintenance
@@ -87,7 +87,7 @@ flowchart LR
 | signal | `src/signal/` | Derives behavior in pure code, no model, no network |
 | report | `src/profile/mirror.ts` | Renders aggregate evidence and a deep-learning preview without writing rules |
 | distill | `src/distill/` | Turns high signal moments into written rules |
-| session learning | `src/learning/` | Stores opaque useful-session requests, serializes bounded catch-up, and tracks processed episode hashes |
+| session learning | `src/learning/` | Schedules bounded catch-up when a consented session ends, serializes workers, and tracks processed episode hashes |
 | revisions | `src/changes/` | Records before/after local files and refuses conflicting undo |
 | skill maintenance | `src/skillMaintenance/` | Synchronizes portable copies, assesses consented roots, preserves original workflows, and records review decisions |
 | profile | `src/profile/` | Plain markdown you can read, edit, and diff |
