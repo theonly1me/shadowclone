@@ -70,6 +70,7 @@ export async function runDeepLearning(options: {
   readonly apply: boolean;
   readonly confirm?: ConfirmPrompt;
   readonly writeLine?: (line: string) => void;
+  readonly requireSteeringCue?: boolean;
 }): Promise<DeepLearningResult> {
   const writeLine = options.writeLine ?? console.log;
   if (options.policy.distillation !== "allowed") {
@@ -136,6 +137,7 @@ export async function runDeepLearning(options: {
     events: options.events,
     profile: normalized.profile,
     seedLibrary,
+    requireSteeringCue: options.requireSteeringCue,
   });
   writeLine(renderReconciliationChanges({
     changes: result.changes,

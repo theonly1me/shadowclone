@@ -1,14 +1,42 @@
 import path from "node:path";
 import { readLocalText, replaceLocalText } from "../localFiles";
+import { canonicalPath } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { resolveRedacted } from "../redact";
 import { acquireLocalLock } from "../localFiles/lock";
 import { maintenanceStateSchema, type MaintenanceState } from "./types";
+
+function withoutRedundantCodexRoot(
+  paths: ProjectPaths,
+  state: MaintenanceState,
+): MaintenanceState {
+  const directory = canonicalPath(path.join(
+    path.dirname(paths.codexSessionsDirectory),
+    "skills",
+  ));
+  const removedIds = new Set(state.roots.flatMap((root) =>
+    root.scope === "global" &&
+      root.owner === "user" &&
+      canonicalPath(root.directory) === directory
+      ? [root.id]
+      : []
+  ));
+  if (removedIds.size === 0) return state;
+  return {
+    ...state,
+    roots: state.roots.filter((root) => !removedIds.has(root.id)),
+    tracked: state.tracked.filter((entry) => !removedIds.has(entry.rootId)),
+  };
+}
 
 export async function readMaintenanceState(paths: ProjectPaths): Promise<MaintenanceState> {
   const text = await readLocalText(path.join(paths.shadowcloneDirectory, "skills.json"));
   if (text === null) return { version: 1, roots: [], tracked: [], assessed: {}, findings: {}, rejected: {} };
-  try { return maintenanceStateSchema.parse(JSON.parse(text)); }
+  try {
+    return withoutRedundantCodexRoot(
+      paths,
+      maintenanceStateSchema.parse(JSON.parse(text)),
+    );
+  }
   catch { throw new Error("Invalid skill maintenance state"); }
 }
 
@@ -30,12 +58,13 @@ export function isPluginCache(directory: string): boolean {
 }
 
 export async function showSkillRoots(paths: ProjectPaths): Promise<string> {
-  const sourcePath = path.join(paths.shadowcloneDirectory, "skills.json");
-  const file = Bun.file(sourcePath);
-  if (!(await file.exists())) return "[]";
-  const text = await resolveRedacted({ ref: { type: "file", sourcePath, byteOffset: 0, byteLength: file.size } });
-  try { return JSON.stringify(maintenanceStateSchema.parse(JSON.parse(text)).roots, null, 2); }
-  catch { throw new Error("Invalid skill maintenance state"); }
+  const state = await readMaintenanceState(paths);
+  return JSON.stringify(state.roots.map((root) => ({
+    id: root.id,
+    scope: root.scope,
+    owner: root.owner,
+    enabled: root.enabled,
+  })), null, 2);
 }
 
 export async function disableSkillRoot(options: { readonly paths: ProjectPaths; readonly id: string }): Promise<void> {

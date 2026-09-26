@@ -76,6 +76,7 @@ test("compiles only the exact project profile for one origin", async () => {
       origin: repository.origin,
       targetRepo: repository.profileFileName,
     },
+    repositoryContext: "missing",
   });
 
   expect(compilation.markdown).toContain("Platform guidance.");

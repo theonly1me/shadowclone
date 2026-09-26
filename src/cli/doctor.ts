@@ -8,7 +8,7 @@ import {
   type DistillationPolicy,
 } from "../config";
 import { openEventIndex } from "../index";
-import { integrationHealth } from "../integrations";
+import { compileContextDetails, integrationHealth, sessionStartProjection } from "../integrations";
 import { projectPaths } from "../paths";
 import { repairOwnedTree } from "../storage";
 import { readLearningState } from "../learning";
@@ -22,6 +22,8 @@ import {
   computeSourceHealth,
   type SourceMarkerHealth,
 } from "../signal";
+import { createProfileRepairPlan } from "../profile";
+import { renderStartupContextSummary } from "./contextExplain";
 
 export function renderProviderSupport(): readonly string[] {
   return providerDefinitions.map((definition) => {
@@ -109,12 +111,17 @@ export async function doctor(options: {
     console.log(line);
   }
   for (const line of await integrationHealth({ managedConfigPath })) console.log(line);
+  console.log(renderStartupContextSummary(await compileContextDetails({ cwd: process.cwd(), managedConfigPath, ...sessionStartProjection })));
   const { config } = await readEffectiveConfig({ managedConfigPath });
   const learning = await readLearningState(projectPaths);
   console.log(`Automatic learning: ${config.distillation.automatic ? "enabled" : "disabled"}; last attempt ${learning.status}.`);
   const skills = await readMaintenanceState(projectPaths);
   const proposals = await listSkillProposals(projectPaths);
   console.log(`Skill maintenance: ${config.sources["skill-library"] ? "enabled" : "disabled"}; ${skills.roots.filter((root) => root.enabled).length} root(s), ${proposals.filter((proposal) => proposal.status === "pending").length} pending proposal(s).`);
+  const profileRepair = await createProfileRepairPlan(projectPaths);
+  console.log(
+    `Profile repair: ${profileRepair.repairs.length} ready, ${profileRepair.blocked.length} blocked, ${profileRepair.isolatedDirectories} isolated.`,
+  );
   const dbFile = Bun.file(options.databasePath ?? projectPaths.indexDatabase);
   if (await dbFile.exists()) {
     const index = await openEventIndex(

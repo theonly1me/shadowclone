@@ -14,7 +14,7 @@ This document sets the ceiling on what a clone may do, in a session and unattend
 
 ## Optional delegated execution
 
-**As a subagent inside the user's own session.** Claude's `SubagentStart` hook injects the current compiled profile into spawned subagents. It does not create a second learning request. An optional repository `--subagent` installation also writes `.claude/agents/<name>.md` for explicit dispatch through the `Agent` tool. The session's permission mode applies, and its transcript can feed later learning. Main-agent delivery remains the default product path.
+**As a subagent inside the user's own session.** Claude's `SubagentStart` hook injects the current compiled profile into spawned subagents. An optional repository `--subagent` installation also writes `.claude/agents/<name>.md` for explicit dispatch through the `Agent` tool. The session's permission mode applies, and its transcript can feed later learning. Main-agent delivery remains the default product path.
 
 **Headless, in a worktree.** `shadowclone run` for work that happens while the user is away. This is the path the rest of this document governs, because nobody is watching it.
 
@@ -45,13 +45,15 @@ Push safety is handled outside the agent process. The agent receives no `Bash(gi
 
 1. Resolve the policy for the target repo. No entry means draft tier.
 2. `git worktree add ~/.shadowclone/worktrees/<runId> -b shadowclone/<slug>`. The user's working tree is never the working directory of a clone.
-3. Compile the profile for this repo into `.compiled.md`.
-4. Generate a run UUID and pass it as `--session-id`, so the clone's transcript is findable.
-5. Run the engine with the policy's tools, `dontAsk` permission mode, and budget.
-6. Commit a successful change with fixed `git add --all` and `git commit` argument vectors.
-7. If push was approved, execute host-side upstream push.
-8. Inspect the worktree and write `~/.shadowclone/runs/<runId>/receipt.json`.
-9. Leave the worktree in place for review.
+3. When `node_modules` is ignored and the lockfile matches, copy the repository's installed dependencies into the worktree so the clone and the gate can run tests without network access.
+4. Compile the profile for this repo into `.compiled.md`.
+5. Generate a run UUID and pass it as `--session-id`, so the clone's transcript is findable.
+6. Run the engine with the policy's tools, `dontAsk` permission mode, and budget.
+7. If the worktree carries a harness, run its gate inside the no-network verification sandbox, which can write only the worktree and a temporary directory, and run `shadowclone check --changed`. On failure, run the engine once more with the redacted failure output, then gate again.
+8. Commit a successful change with fixed `git add --all` and `git commit` argument vectors only when the gate passed or no harness exists. A change that still fails stays uncommitted in the worktree.
+9. If push was approved, execute host-side upstream push.
+10. Inspect the worktree and write `~/.shadowclone/runs/<runId>/receipt.json`.
+11. Leave the worktree in place for review.
 
 ## The receipt
 
@@ -76,9 +78,12 @@ Every run produces one, so the user can review delegated work.
   "actionsTaken": ["commit"],
   "actionsBlockedByPolicy": ["push"],
   "permissionDenials": [],
-  "profileRulesApplied": 34
+  "profileRulesApplied": 34,
+  "gate": { "status": "passed", "command": "bun run check", "attempts": 1 }
 }
 ```
+
+`gate.status` is `passed`, `failed`, `not-configured` when the repository has no harness, or `not-run` when the engine run itself failed. `attempts` counts gate runs, so 2 means one repair attempt was used.
 
 `actionsBlockedByPolicy` is there so the user can see what the clone wanted to do and could not. That list is the best available evidence for whether a repo is ready to be promoted, and it is also a correction signal in its own right.
 

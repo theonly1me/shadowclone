@@ -27,7 +27,7 @@ Unconfiguring a root stops discovery while retaining ownership records for recov
 
 ## Portable starter skills
 
-The onboarding wizard installs each selected starter as a complete directory in `~/.agents/skills`, including references, assets, and other supporting files. This is the canonical personal copy. Shadowclone records equivalent copies for Claude Code, Codex, Cursor, and the Antigravity-compatible Gemini location.
+The onboarding wizard installs each selected starter as a complete directory in `~/.agents/skills`, including references, assets, and other supporting files. This is the canonical personal copy. Shadowclone records equivalent copies for Claude Code and the Antigravity-compatible Gemini location. Codex and Cursor read `~/.agents/skills` directly, so they get no second copy, and an unchanged legacy copy in `~/.codex/skills` or `~/.cursor/skills` is retired during synchronization. Starters are Shadowclone-installed but not auto-maintained: a proposed change to a starter waits for review like any user-owned skill.
 
 Wizard reruns and skill maintenance, including maintenance invoked by deep learning, synchronize the recorded copies. If one copy changed since the previous synchronization, that copy becomes authoritative and its full tree is copied to the other locations. If multiple copies changed to different contents, synchronization reports a conflict and preserves every version. Symbolic links are rejected so a recorded skill cannot expand the synchronization boundary.
 
@@ -57,9 +57,9 @@ shadowclone skills manage <skill-id>
 shadowclone learning enable
 ```
 
-When deep and automatic learning consent are enabled, a native session hook gives the main agent one opaque learning command. The agent uses it only for a substantive session with reusable engineering guidance or a clear correction. Shadowclone schedules bounded catch-up after the requested session ends. A session boundary, stopped tool, added context, cancellation, question, temporary exception, or silence does not schedule learning on its own. Automatic skill changes require the file to match its recorded fingerprint. Later edits are preserved. Routing changes and unresolved conflicts still need review. Installed plugin caches cannot be adopted.
+When deep and automatic learning consent are enabled, each native session end schedules bounded catch-up for that session. Sessions without a durable steering phrase make no learning call. Automatic skill changes apply only to skills you opted in with `skills manage`. They require the file to match its recorded fingerprint. Later edits are preserved. Routing changes and unresolved conflicts still need review. Installed plugin caches cannot be adopted.
 
-An approved third-party proposal creates a `shadowclone-local-<id>` companion in the appropriate local agent skill directory. The package remains unchanged. The companion applies only when its base skill is already selected and does not change the base skill's permissions. Subsequent supported preference additions can update the unedited companion automatically.
+An approved third-party proposal creates a `shadowclone-local-<id>` companion in the appropriate local agent skill directory. The package remains unchanged. The companion applies only when its base skill is already selected and does not change the base skill's permissions. Later preference additions to the companion also wait for review.
 
 ## Validation and limits
 

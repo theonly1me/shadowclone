@@ -32,7 +32,7 @@ function signal(options: {
   };
 }
 
-test("manual learning reserves calls while starting from the oldest batches", () => {
+test("manual learning reserves calls while starting from the newest batches", () => {
   const now = 1_800_000_000_000;
   const window = selectManualLearningWindow({
     signals: Array.from({ length: 12 }, (_, index) => signal({
@@ -45,7 +45,7 @@ test("manual learning reserves calls while starting from the oldest batches", ()
 
   expect(window.batches).toHaveLength(10);
   expect(window.signals.map((entry) => entry.sessionId)).toEqual(
-    Array.from({ length: 10 }, (_, index) => `session-${index}`),
+    Array.from({ length: 10 }, (_, index) => `session-${11 - index}`),
   );
 });
 
@@ -63,6 +63,8 @@ test("manual learning considers at most sixty pending episodes", () => {
 
   expect(window.signals).toHaveLength(60);
   expect(window.batches).toHaveLength(3);
+  expect(window.signals[0]?.timestamp).toBe(now);
+  expect(window.signals.at(-1)?.timestamp).toBe(now - 59);
 });
 
 test("manual learning reaches episodes older than the former thirty day horizon", () => {
@@ -95,7 +97,7 @@ test("manual learning skips episodes already recorded in the ledger", () => {
 
   const window = selectManualLearningWindow({ signals, state, now });
 
-  expect(window.signals.map((entry) => entry.sessionId)).toEqual(["session-2"]);
+  expect(window.signals.map((entry) => entry.sessionId)).toEqual(["session-0"]);
 });
 
 test("a catch-up run scales the episode ceiling with the call ceiling", () => {
@@ -115,6 +117,10 @@ test("a catch-up run scales the episode ceiling with the call ceiling", () => {
   });
 
   expect(standard.signals).toHaveLength(60);
+  expect(standard.signals[0]?.sessionId).toBe("session-899");
+  expect(standard.signals.at(-1)?.sessionId).toBe("session-840");
   expect(catchUp.signals).toHaveLength(800);
+  expect(catchUp.signals[0]?.sessionId).toBe("session-899");
+  expect(catchUp.signals.at(-1)?.sessionId).toBe("session-100");
   expect(catchUp.batches).toHaveLength(40);
 });

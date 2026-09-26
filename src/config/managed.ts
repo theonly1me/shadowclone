@@ -75,6 +75,12 @@ export function applyManagedPolicy(options: {
       antigravity:
         options.config.sources.antigravity &&
         sourceAllowed("antigravity"),
+      "antigravity-workspaces":
+        options.config.sources["antigravity-workspaces"] &&
+        sourceAllowed("antigravity-workspaces"),
+      "claude-memory":
+        options.config.sources["claude-memory"] &&
+        sourceAllowed("claude-memory"),
       "claude-code":
         options.config.sources["claude-code"] &&
         sourceAllowed("claude-code"),
@@ -89,6 +95,7 @@ export function applyManagedPolicy(options: {
       "git-metadata":
         options.config.sources["git-metadata"] &&
         sourceAllowed("git-metadata"),
+      "repository-manifests": options.config.sources["repository-manifests"] && sourceAllowed("repository-manifests"),
       shell: options.config.sources.shell && sourceAllowed("shell"),
       "skill-library": options.config.sources["skill-library"] && sourceAllowed("skill-library"),
     },

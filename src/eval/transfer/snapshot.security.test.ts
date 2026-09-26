@@ -6,7 +6,7 @@ import { runHostCommand } from "../../io/hostCommand";
 import { prepareDependencies } from "./dependencies";
 import { createSnapshot } from "./snapshot";
 
-test("snapshot extraction rejects tracked links before writing and permits archive-like filenames", async () => {
+test("snapshot extraction allows internal links and rejects escaping links", async () => {
   const repository = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-snapshot-security-"),
   );
@@ -18,6 +18,8 @@ test("snapshot extraction rejects tracked links before writing and permits archi
       path.join(repository, "source.tar"),
       "ordinary tracked content",
     );
+    await writeFile(path.join(repository, "target.txt"), "target");
+    await symlink("target.txt", path.join(repository, "internal"));
     await git(["add", "--all"]);
     await git([
       "-c",
@@ -34,6 +36,9 @@ test("snapshot extraction rejects tracked links before writing and permits archi
       expect(
         await Bun.file(path.join(snapshot.directory, "source.tar")).text(),
       ).toBe("ordinary tracked content");
+      expect(
+        await Bun.file(path.join(snapshot.directory, "internal")).text(),
+      ).toBe("target");
     } finally {
       await snapshot.cleanup();
     }

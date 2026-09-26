@@ -38,6 +38,12 @@ export {
   parseTextRef,
   textRefKey,
 } from "./types";
+export {
+  parseAntigravityWorkspaceHistory,
+  readAntigravityWorkspaceHistory,
+  type AntigravityWorkspaceBinding,
+  type AntigravityWorkspaceRead,
+} from "./antigravityWorkspaces";
 
 export async function* observeAll(options: {
   readonly config: ShadowcloneConfig;

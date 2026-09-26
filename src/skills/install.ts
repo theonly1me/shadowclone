@@ -101,7 +101,7 @@ export async function installSeedSkills(options: {
         relativePath,
         fingerprint: fingerprint(content),
         kind: "amend" as const,
-        automatic: true,
+        automatic: false,
       },
     ];
   }

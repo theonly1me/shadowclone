@@ -2,13 +2,14 @@ import { extractPromptText } from "../eval/prompt";
 import { stripManagedGuidance } from "../integrations";
 import { textRefKey } from "../observe";
 import { resolveRedacted } from "../redact";
-import type { CorrectionSignal } from "../signal";
+import { hasDurableSteeringCue, type CorrectionSignal } from "../signal";
 
 export const internalLearningMarker = "SHADOWCLONE_INTERNAL_LEARNING";
 
 export async function materializeEvidence(options: {
   readonly signals: readonly CorrectionSignal[];
   readonly sourceRoots?: readonly string[];
+  readonly requireSteeringCue?: boolean;
 }): Promise<{
   readonly signals: readonly CorrectionSignal[];
   readonly excerpts: ReadonlyMap<string, string>;
@@ -27,6 +28,12 @@ export async function materializeEvidence(options: {
       textRefs.push(ref);
     }
     if (textRefs.length === 0) continue;
+    const lacksCue = options.requireSteeringCue === true && signal.kind === "user-steering" &&
+      !textRefs.some((ref) => hasDurableSteeringCue(excerpts.get(textRefKey(ref)) ?? ""));
+    if (lacksCue) {
+      for (const ref of textRefs) excerpts.delete(textRefKey(ref));
+      continue;
+    }
     for (const ref of signal.contextRefs ?? []) {
       const text = await resolveRedacted({ ref, roots: options.sourceRoots });
       excerpts.set(textRefKey(ref), extractPromptText(text) ?? "");

@@ -9,9 +9,23 @@ test("explicit preferences are active, scoped and reversible without inference",
   const setup = await integrationFixture();
   const key = await rememberPreference({ ...setup, text: "Prefer composition for extension points.", scope: "repository" });
   expect(key).toStartWith("declared-");
-  expect(await compileContext(setup)).toContain("Prefer composition");
+  expect(await compileContext(setup)).toContain(
+    "## Prefer composition for extension points",
+  );
   expect(await compileContext({ ...setup, cwd: `${setup.cwd}-other` })).not.toContain("Prefer composition");
   expect(await listRevisions(setup.paths)).toHaveLength(1);
+});
+
+test("long explicit preferences use a complete clause as their heading", async () => {
+  const setup = await integrationFixture();
+  await rememberPreference({
+    ...setup,
+    text: "Before committing or pushing, stop and ask Atchyut to review the completed diff, with a proposed one-line commit message. Do not commit.",
+    scope: "global",
+  });
+  expect(await compileContext(setup)).toContain(
+    "## Before committing or pushing, stop and ask Atchyut to review the completed diff\n",
+  );
 });
 
 test("MCP requires explicit scope and records redacted preferences", async () => {

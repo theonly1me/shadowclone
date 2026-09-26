@@ -13,6 +13,7 @@ Every source is opt-in, named in the config, and listed in the README. The confi
 | `cursor` | `~/.cursor/chats/**/{store.db,meta.json}` | off | Per session SQLite plus cwd and timestamps |
 | `declared-rules` | repository root instructions and direct agent skill `SKILL.md` files | off | Deterministic redacted profile import |
 | `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization and exact repository scope, never repository contents |
+| `repository-manifests` | `package.json` scripts and dependency names, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, `.github/workflows/*.yml`, and top-level entry names in the repository where `init --repo` runs | off | Local gate and command detection for the harness, never sent to a model |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | Captured as user prompts, no correction signals |
 
 Capture consent protects content. Before consent, onboarding may determine whether a configured source root exists and is non-empty, then use that one ephemeral boolean to omit absent providers from grouped consent. Directory checks use `opendir`, read at most one entry, reduce the result immediately to a boolean, and close the directory. File checks reduce existence and non-zero size to the same boolean. The check does not retain or log a path, entry name, count, timestamp, size, or provider-derived identifier.
@@ -133,6 +134,6 @@ A Claude Code `SessionEnd` hook shipped in `.claude-plugin/` receives `transcrip
 
 The plugin hook first checks effective source consent and managed policy, rejects paths outside the Claude projects directory, and then advances the same cursor used by `learn`. It refreshes existing active guidance for the session's repository scope and never manufactures profile rules from the ingested events.
 
-Native integrations for Claude Code, Codex, Cursor, and Antigravity compile the current scoped profile at session start. With separate deep and automatic learning consent, the start hook also creates an opaque session token. The main agent runs the supplied `learn --session` command only when the session contains reusable engineering guidance or a clear correction. The end hook marks the hashed session complete, and a detached bounded worker starts only when both events exist. Stopping a tool, adding context, asking a question, cancelling work, or ending a session does not independently schedule learning.
+Native integrations for Claude Code, Codex, Cursor, and Antigravity compile the current scoped profile at session start. With separate deep and automatic learning consent, the end hook schedules a detached bounded worker for the hashed session. The worker reads only that session's unprocessed steering episodes and drops each user-steering episode whose redacted excerpts carry no durable steering phrase, so a session without one makes no model call. Reconciliation still rejects questions, cancellations, temporary exceptions, and silence.
 
 A long-running daemon remains deferred because it adds latency reduction and queued work, not a new learning capability.

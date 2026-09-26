@@ -35,7 +35,7 @@ export async function applySkillProposalUnlocked(options: ApplyOptions): Promise
   if (parsed.metadata.name !== path.basename(path.dirname(filePath))) throw new Error("Skill name differs from its destination");
   await validateSkillReferences({ filePath, text: parsed.body });
   const previousTracking = state.tracked.find((entry) => entry.id === proposal.skillId);
-  const tracking = { id: proposal.skillId, rootId: root.id, relativePath: proposal.targetRelativePath, fingerprint: fingerprint(proposal.after), kind: proposal.kind, automatic: companion || previousTracking?.automatic === true };
+  const tracking = { id: proposal.skillId, rootId: root.id, relativePath: proposal.targetRelativePath, fingerprint: fingerprint(proposal.after), kind: proposal.kind, automatic: previousTracking?.automatic === true };
   const nextState = { ...state, tracked: [...state.tracked.filter((entry) => entry.id !== proposal.skillId), tracking] };
   await writeMaintenanceState({ paths: options.paths, state: nextState });
   let revision: string | null;

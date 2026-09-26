@@ -13,8 +13,10 @@ async function initializeWithAllSources(options: {
   readonly ask: ConsentPrompt;
   readonly writeLine?: (line: string) => void;
 }): Promise<void> {
+  const paths = createProjectPaths({ homeDirectory: path.dirname(options.configPath), platform: "darwin" });
   await initialize({
     ...options,
+    paths,
     advanced: true,
     ask: (question) =>
       question === "Import existing repository guidance?" ||
@@ -128,7 +130,20 @@ test("enables agent context only after separate consent", async () => {
 test("enables deep distillation only after separate consent", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-"));
   const configPath = path.join(directory, "config.toml");
-  const answers = [false, false, false, false, false, false, false, false, true];
+  const answers = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+  ];
 
   await initializeWithAllSources({
     configPath,

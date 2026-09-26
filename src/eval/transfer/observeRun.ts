@@ -6,6 +6,7 @@ import { command } from "./command";
 const ignoredTopLevelDirectories = new Set([
   "node_modules",
   ".eval-context",
+  ".eval-runtime",
   ".git",
 ]);
 

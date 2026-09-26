@@ -22,6 +22,12 @@ export type ExecutionStage =
   | "collecting"
   | "safety";
 
+export function repositoryGuidance(engine: PreparedEval["engine"]): string {
+  return engine === "claude-code"
+    ? "Before editing, discover and follow every checked-in Claude instruction that applies to the target files, including root or nested CLAUDE.md files, .claude/rules, and relevant SKILL.md files under .claude/skills. Select relevant repository skills by their descriptions."
+    : "Before editing, discover and follow every checked-in Codex instruction that applies to the target files, including root or nested AGENTS.md files and relevant SKILL.md files under .agents/skills. Select relevant repository skills by their descriptions.";
+}
+
 function failedRun(options: {
   readonly task: DelegationTask;
   readonly repeat: number;
@@ -77,6 +83,7 @@ export async function executeTask(options: {
     const integrityBefore = await readGitIntegrity(snapshot.directory);
     const prompt = [
       context,
+      repositoryGuidance(options.prepared.engine),
       "Implement the task only inside this disposable repository snapshot.",
       "This task is already approved. Make the changes directly without requesting approval, presenting a plan first, or waiting for review.",
       "Do not commit, amend, create or change refs, change Git configuration, install dependencies, use the network, call external services, or write outside this snapshot.",

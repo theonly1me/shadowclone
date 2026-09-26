@@ -98,6 +98,8 @@ export function printDetectionSummary(options: {
   options.writeLine("       Git remote names; ./CLAUDE.md, ./AGENTS.md, ./.cursorrules, ./.claude/skills, ./.agents/skills");
   options.writeLine(`       Agent context: ~/.claude/CLAUDE.md, ${codexPath}/AGENTS.md, ${codexPath}/AGENTS.override.md`);
   options.writeLine(`       Agent memories: ~/.claude/projects/<repo>/memory, ${codexPath}/memories`);
+  options.writeLine("       Optional Claude migration: exact current-repository ~/.claude/projects/<repo>/memory");
+  options.writeLine("       Optional Antigravity attribution: ~/.gemini/antigravity-cli/history.jsonl");
   options.writeLine(`       Skills: ~/.claude/skills, ~/.agents/skills, ${codexPath}/skills, ~/.cursor/skills, ~/.gemini/config/skills`);
   options.writeLine(`       Plugin caches: ~/.claude/plugins/cache, ${codexPath}/plugins/cache, ~/.cursor/plugins/cache`);
   options.writeLine("       Everything stays on this machine except redacted excerpts sent through your agent CLI.");

@@ -3,6 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { command } from "./command";
+import { repositoryGuidance } from "./execute";
 import { executeTransferRuns } from "./executeRuns";
 import { readReceipt } from "./resume";
 import { batchReply } from "./judgeFixtures";
@@ -10,6 +11,13 @@ import { disposeSnapshotTemplates } from "./snapshot";
 import { initialReceipt } from "./storage";
 import { fingerprint } from "./structured";
 import type { EvaluationProgress, PreparedEval } from "./types";
+
+test("safe mode explicitly loads the selected agent's repository guidance", () => {
+  expect(repositoryGuidance("claude-code")).toContain("CLAUDE.md");
+  expect(repositoryGuidance("claude-code")).toContain(".claude/skills");
+  expect(repositoryGuidance("codex")).toContain("AGENTS.md");
+  expect(repositoryGuidance("codex")).toContain(".agents/skills");
+});
 
 async function fixture(): Promise<{
   readonly directory: string;
@@ -96,6 +104,7 @@ test("shows every stage and gives personal context only to the skills and clone 
   };
   const progress: EvaluationProgress[] = [];
   const contextPresence: boolean[] = [];
+  const codingPrompts: string[] = [];
   let releaseFirstCodingCall: (() => void) | undefined;
   let firstCodingCallTimedOut = false;
   try {
@@ -110,6 +119,7 @@ test("shows every stage and gives personal context only to the skills and clone 
       },
       call: async (options) => {
         if (options.access === "write") {
+          codingPrompts.push(options.prompt);
           contextPresence.push(await Bun.file(path.join(
             options.cwd,
             ".eval-context/skills/0/clean-code/SKILL.md",
@@ -151,6 +161,10 @@ test("shows every stage and gives personal context only to the skills and clone 
       },
     });
     expect(contextPresence.toSorted()).toEqual([false, true, true]);
+    expect(codingPrompts).toHaveLength(3);
+    expect(codingPrompts.every((prompt) =>
+      prompt.includes("AGENTS.md") && prompt.includes(".agents/skills")
+    )).toBeTrue();
     expect(firstCodingCallTimedOut).toBeFalse();
     const savedReceipt = readReceipt(await Bun.file(path.join(
       outputDirectory,

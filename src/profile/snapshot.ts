@@ -5,10 +5,8 @@ import { materializeSnapshot } from "../redact";
 import { splitProfileBlocks } from "./blocks";
 import { locatedRule } from "./located";
 import { parseProfileBlocks } from "./parse";
-import {
-  parseProfileRejectionText,
-  type ProfileRejection,
-} from "./state";
+import type { ProfileRejection } from "./state";
+import { readMaterializedProfileRejections } from "./rejectionSnapshot";
 import type { ProfileRule } from "./types";
 import { profileBlockMetadata, profileVisibleParts } from "./visible";
 
@@ -87,22 +85,9 @@ async function readRules(options: {
 }
 
 async function readRejections(paths: ProjectPaths): Promise<readonly ProfileSnapshotRejection[]> {
-  const snapshot = await materializeSnapshot({
+  return readMaterializedProfileRejections({
     filePath: paths.rejectedProfileFile,
-    roots: [paths.profileDirectory],
-    maximumBytes: maximumProfileBytes,
-    parse: parseProfileRejectionText,
-  });
-  if (snapshot === null) {
-    return [];
-  }
-  const raw = snapshot.parsed;
-  const prompt = parseProfileRejectionText(snapshot.redacted);
-  return raw.flatMap((rejection, index) => {
-    const redacted = prompt[index];
-    return redacted
-      ? [{ rejection, promptTitle: redacted.title, promptBody: redacted.body }]
-      : [];
+    profileDirectory: paths.profileDirectory,
   });
 }
 

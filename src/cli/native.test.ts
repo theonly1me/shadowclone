@@ -22,10 +22,10 @@ test("all installs every supported main-agent adapter", () => {
 test("subagents remain an explicit repository Claude option", () => {
   expect(parseNativeOptions(["--subagent"])).toBeNull();
   expect(
-    parseNativeOptions(["--repo", "--agent", "codex", "--subagent"]),
+    parseNativeOptions(["--local", "--agent", "codex", "--subagent"]),
   ).toBeNull();
   expect(
-    parseNativeOptions(["--repo", "--subagent"]),
+    parseNativeOptions(["--local", "--subagent"]),
   ).toMatchObject({
     agents: ["claude-code"],
     scope: "repository",

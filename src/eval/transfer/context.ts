@@ -2,8 +2,10 @@ import { existsSync } from "node:fs";
 import { lstat, mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { EngineId } from "../../engine";
+import { fingerprint } from "../../localFiles";
 import { materializeSnapshot } from "../../redact";
 import { stripManagedGuidance } from "../../integrations";
+import { renderSkillCatalog } from "./skillCatalog";
 
 export type ContextFile = {
   readonly relativePath: string;
@@ -23,23 +25,20 @@ export async function captureContext(options: {
   const roots =
     options.engine === "codex"
       ? [
-          path.join(options.home, ".codex/skills"),
           path.join(options.home, ".agents/skills"),
-          path.join(options.repository, ".codex/skills"),
-          path.join(options.repository, ".agents/skills"),
+          path.join(options.home, ".codex/skills/.system"),
         ]
       : [
           path.join(options.home, ".claude/skills"),
-          path.join(options.home, ".agents/skills"),
-          path.join(options.repository, ".claude/skills"),
-          path.join(options.repository, ".agents/skills"),
         ];
   const files: ContextFile[] = [];
+  const capturedSkillFiles = new Set<string>();
   let totalBytes = 0;
 
   async function addFile(fileOptions: {
     readonly absolute: string;
     readonly relative: string;
+    readonly skillPath?: string;
   }): Promise<void> {
     const file = Bun.file(fileOptions.absolute);
     if (!(await file.exists())) {
@@ -74,6 +73,11 @@ export async function captureContext(options: {
         "Existing agent instructions contain Shadowclone injection; baseline cannot be isolated",
       );
     }
+    if (fileOptions.skillPath !== undefined) {
+      const identity = fingerprint(`${fileOptions.skillPath}\0${content}`);
+      if (capturedSkillFiles.has(identity)) return;
+      capturedSkillFiles.add(identity);
+    }
 
     files.push({ relativePath: fileOptions.relative, content });
   }
@@ -97,6 +101,7 @@ export async function captureContext(options: {
       await addFile({
         absolute: path.join(directory, relative),
         relative: `skills/${rootIndex}/${relative}`,
+        skillPath: relative,
       });
     }
   }
@@ -168,5 +173,6 @@ export async function installContext(options: {
   return [
     "Your personal instructions, skills and memory were frozen for this task.",
     "Read .eval-context/instructions and .eval-context/memory before working; select relevant skills under .eval-context/skills.",
+    renderSkillCatalog(options.files),
   ].join("\n");
 }

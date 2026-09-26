@@ -2,14 +2,12 @@ import { listRevisions, showRevision, undoRevision } from "../changes";
 import { readConfig, readEffectiveConfig, writeConfig } from "../config";
 import { refreshIntegrations } from "../integrations";
 import {
-  claimLearningRequests,
-  markLearningRequest,
   readLearningState,
   runAutomaticLearning,
-  scheduleLearning,
 } from "../learning";
 import { projectPaths } from "../paths";
 import { rememberPreference } from "../preferences";
+import { readHarnessRoots } from "../harness/state";
 import { skillRevisionRoots } from "../skillMaintenance";
 
 export async function handlePreferenceCommand(options: {
@@ -17,32 +15,6 @@ export async function handlePreferenceCommand(options: {
   readonly arguments: readonly string[];
 }): Promise<boolean> {
   const [action, ...rest] = options.arguments;
-  if (options.command === "learn" && action === "--session") {
-    const [token] = rest;
-    if (!token || rest.length !== 1) {
-      throw new Error("Use learn --session <session-token>");
-    }
-    const { config, policy } = await readEffectiveConfig();
-    if (
-      !config.distillation.deep ||
-      !config.distillation.automatic ||
-      policy.distillation !== "allowed"
-    ) {
-      throw new Error(
-        "Session learning requires deep and automatic learning consent",
-      );
-    }
-    const ended = await markLearningRequest({
-      paths: projectPaths,
-      token,
-    });
-    if (ended) {
-      const sessionKeys = await claimLearningRequests({ paths: projectPaths });
-      await scheduleLearning({ sessionKeys });
-    }
-    console.log("Session queued for private learning after it ends.");
-    return true;
-  }
   if (options.command === "remember") {
     const scope = action === "--global" ? "global" : "repository";
     const words = action === "--global" || action === "--repo" ? rest : options.arguments;
@@ -58,7 +30,7 @@ export async function handlePreferenceCommand(options: {
     return true;
   }
   if (options.command === "undo" && action && rest.length === 0) {
-    const revision = await undoRevision({ paths: projectPaths, id: action, skillRoots: await skillRevisionRoots(projectPaths) });
+    const revision = await undoRevision({ paths: projectPaths, id: action, skillRoots: await skillRevisionRoots(projectPaths), harnessRoots: await readHarnessRoots(projectPaths) });
     await refreshIntegrations();
     console.log(revision ? `Restored files in revision ${revision}.` : "Files already match the prior revision.");
     return true;

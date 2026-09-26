@@ -1,12 +1,20 @@
 export { renderAgent, writeAgent } from "./agent";
 export {
   compileProfile,
+  defaultIndexByteBudget,
   defaultProfileByteBudget,
   profileScopePaths,
+  toolPatterns,
+  type KnownTool,
   type ProfileCompilation,
+  type ProfileCompilationAudience,
+  type ProfileCompilationBreakdown,
+  type ProfileCompilationFormat,
   type ProfileCompilationOmission,
   type ProfileCompilationOmissionReason,
+  type ProfileCompilationRepositoryContext,
   type ProfileCompileInput,
+  type RepositoryApplicability,
 } from "./compiler";
 export {
   activatesFromSessions,
@@ -19,6 +27,7 @@ export {
   profileEvidenceStatistics,
 } from "./evidence";
 export { renderMirror } from "./mirror";
+export { readProfileDiagnostics, type ProfileDiagnostics } from "./diagnostics";
 export { parseProfileBlocks, parseProfileRules } from "./parse";
 export {
   readProfileSnapshot,
@@ -50,7 +59,21 @@ export type {
 } from "./types";
 export { writeProfile } from "./write";
 export {
+  applyProfileCuration,
+  applyProfileRepair,
+  createProfileCurationPlan,
+  createProfileRepairPlan,
+  parseProfileCurationDecisions,
+  type BlockedOriginRepair,
+  type OriginRepair,
+  type ProfileCurationDecision,
+  type ProfileCurationDecisions,
+  type ProfileCurationPlan,
+  type ProfileRepairPlan,
+} from "./repair";
+export {
   readGeneratedProfileState,
   parseProfileRejectionText,
   readProfileRejections,
 } from "./state";
+export type { ProfileRejection, ProfileRejectionReason } from "./state";

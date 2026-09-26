@@ -35,3 +35,13 @@ test("forget restores original user skills and removes only recorded companions"
   expect(await removeSkillMaintenance(setup.paths)).toBe(1);
   expect(await Bun.file(setup.filePath).text()).toBe(setup.original);
 });
+
+test("an approved companion still waits for review before its next update", async () => {
+  const setup = await skillFixture({ thirdParty: true });
+  await updateSkillLibrary({ ...setup, execution: skillExecution() });
+  const [proposal] = await listSkillProposals(setup.paths);
+  if (!proposal) throw new Error("Expected a companion proposal");
+  await applySkillProposal({ ...setup, id: proposal.id });
+  await Bun.write(path.join(setup.paths.profileDirectory, "global/engineering.md"), "## Tests\n\nRun focused tests after editing.\n");
+  expect(await updateSkillLibrary({ ...setup, execution: skillExecution({ passage: "Run focused tests after editing." }) })).toMatchObject({ applied: 0, pending: 1 });
+});

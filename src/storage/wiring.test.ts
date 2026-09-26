@@ -52,6 +52,7 @@ test("the run receipt write leaves an owner-only file", async () => {
       actionsBlockedByPolicy: [],
       permissionDenials: [],
       profileRulesApplied: 0,
+      gate: { status: "not-configured", command: null, attempts: 0 },
     },
   });
 

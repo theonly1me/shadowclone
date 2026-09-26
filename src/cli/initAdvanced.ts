@@ -113,6 +113,12 @@ export async function initializeAdvanced(options: InitializeAdvancedOptions = {}
   const enableAgentContext = await ask(
     "Enable reading existing agent instructions, skills and native memory?",
   );
+  const enableClaudeMemory = await ask(
+    "Enable one-time migration from this repository's Claude memory?",
+  );
+  const enableAntigravityWorkspaces = await ask(
+    "Enable Antigravity workspace-history metadata for repository attribution?",
+  );
   const enableDeep = await ask(
     "Allow deep learning to send redacted correction evidence and profile guidance through your authenticated agent CLI?",
   );
@@ -130,6 +136,16 @@ export async function initializeAdvanced(options: InitializeAdvancedOptions = {}
     config,
     source: "agent-context",
     enabled: enableAgentContext,
+  });
+  config = setSourceEnabled({
+    config,
+    source: "claude-memory",
+    enabled: enableClaudeMemory,
+  });
+  config = setSourceEnabled({
+    config,
+    source: "antigravity-workspaces",
+    enabled: enableAntigravityWorkspaces,
   });
   config = setDeepEnabled({ config, enabled: enableDeep });
   if (enableDeep && policy.enabled && policy.distillation === "allowed") {
@@ -154,7 +170,8 @@ export async function initializeAdvanced(options: InitializeAdvancedOptions = {}
     );
   }
   writeLine(
-    captureEnabled || importEnabled || enableGitMetadata || enableAgentContext || enableDeep
+    captureEnabled || importEnabled || enableGitMetadata || enableAgentContext ||
+      enableClaudeMemory || enableAntigravityWorkspaces || enableDeep
       ? "Selected sources and capabilities enabled."
       : "All capture sources remain disabled.",
   );

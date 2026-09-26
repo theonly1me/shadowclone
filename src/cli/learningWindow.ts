@@ -28,8 +28,8 @@ export function selectManualLearningWindow(options: {
   });
   const batches = groupDistillBatches({ signals: pending })
     .toSorted((left, right) =>
-      (left.signals.at(-1)?.timestamp ?? 0) -
-      (right.signals.at(-1)?.timestamp ?? 0)
+      (right.signals[0]?.timestamp ?? 0) -
+      (left.signals[0]?.timestamp ?? 0)
     )
     .slice(0, batchLimit);
   return {

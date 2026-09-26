@@ -11,14 +11,15 @@ test("preserves surrounding Codex instructions across refresh, repeat install an
   const original = "# Team guidance\n\nUse the existing service.";
   await Bun.write(destination, original);
   const first = await installIntegration({ ...fixture, agent: "codex", scope: "repository" });
-  expect(await Bun.file(destination).text()).toContain("native session hook");
+  expect(await Bun.file(destination).text()).toContain("A session hook loads");
   expect(await Bun.file(path.join(fixture.cwd, ".codex/hooks.json")).json()).not.toHaveProperty("hooks.SubagentStart");
   const second = await installIntegration({ ...fixture, agent: "codex", scope: "repository" });
   expect(first.id).toBe(second.id);
   await Bun.write(path.join(fixture.paths.profileDirectory, "global/engineering.md"), "## Naming\n\nPrefer named exports.\n");
   expect(await refreshIntegrations(fixture)).toEqual({ refreshed: 1, preserved: 0 });
   const text = await Bun.file(destination).text();
-  expect(text).toContain("native session hook");
+  expect(text).toContain("A session hook loads");
+  expect(text).toContain("run `shadowclone context`");
   expect(text).not.toContain("Prefer named exports.");
   expect(text).not.toContain("Use complete names.");
   const [installed] = await readIntegrations(fixture.paths);
@@ -33,7 +34,7 @@ test("preserves manual edits to managed content and refuses destructive uninstal
   const installed = await installIntegration({ ...fixture, agent: "claude-code", scope: "repository" });
   const destination = path.join(fixture.cwd, "CLAUDE.local.md");
   const edited = (await Bun.file(destination).text()).replace(
-    "native session hook",
+    "A session hook loads",
     "my own session wrapper",
   );
   await Bun.write(destination, edited);

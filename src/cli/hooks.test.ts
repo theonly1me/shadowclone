@@ -8,6 +8,8 @@ import {
   writeConfig,
 } from "../config";
 import { openEventIndex } from "../index";
+import { installIntegration } from "../integrations";
+import { integrationFixture } from "../integrations/fixtures";
 import { createProjectPaths } from "../paths";
 import { writeProfile } from "../profile";
 import { resolveCwdOrigin } from "../signal";
@@ -136,4 +138,12 @@ test("the plugin registers no tool-family blocking hook", async () => {
 
   expect(hooks).not.toContain("PreToolUse");
   expect(hooks).not.toContain("pre-tool-use");
+});
+
+test("the plugin hook stays silent beside a native Claude integration", async () => {
+  const fixture = await integrationFixture();
+  const options = { input: JSON.stringify({ cwd: fixture.cwd }), paths: fixture.paths, configPath: fixture.configPath, managedConfigPath: null };
+  expect(await getSessionStartContext(options)).not.toBeNull();
+  await installIntegration({ ...fixture, agent: "claude-code", scope: "global" });
+  expect(await getSessionStartContext(options)).toBeNull();
 });

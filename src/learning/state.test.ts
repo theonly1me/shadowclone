@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
+import { fingerprint } from "../localFiles";
 import type { CorrectionSignal } from "../signal";
-import { episodeId, selectLearningEpisodes, selectNewestLearningEpisodes, type LearningState } from "./state";
+import { episodeId, selectLearningEpisodes, selectNewestLearningEpisodes, selectRequestedLearningEpisodes, type LearningState } from "./state";
 
 function signal(timestamp: number): CorrectionSignal {
   return {
@@ -26,15 +27,15 @@ const idleState: LearningState = {
   processed: [],
 };
 
-test("learning selects the sixty oldest pending episodes", () => {
+test("learning selects the sixty newest pending episodes", () => {
   const now = 1_800_000_000_000;
   const signals = Array.from({ length: 65 }, (_, index) => signal(now - index));
 
   const selected = selectLearningEpisodes({ signals, state: idleState, now });
 
   expect(selected).toHaveLength(60);
-  expect(selected[0]?.timestamp).toBe(now - 64);
-  expect(selected.at(-1)?.timestamp).toBe(now - 5);
+  expect(selected[0]?.timestamp).toBe(now);
+  expect(selected.at(-1)?.timestamp).toBe(now - 59);
 });
 
 test("learning keeps reaching episodes beyond the former thirty day horizon", () => {
@@ -67,7 +68,7 @@ test("learning never revisits an episode recorded in the ledger", () => {
   expect(selected.map((entry) => entry.timestamp)).toEqual([now - 1]);
 });
 
-test("setup learning chooses the newest pending episodes in chronological order", () => {
+test("setup learning chooses the newest pending episodes first", () => {
   const now = 1_800_000_000_000;
   const signals = [signal(now - 4), signal(now - 2), signal(now - 3), signal(now - 1)];
   const selected = selectNewestLearningEpisodes({
@@ -79,5 +80,24 @@ test("setup learning chooses the newest pending episodes in chronological order"
     now,
     limit: 2,
   });
-  expect(selected.map((entry) => entry.timestamp)).toEqual([now - 3, now - 1]);
+  expect(selected.map((entry) => entry.timestamp)).toEqual([now - 1, now - 3]);
+});
+
+test("session learning chooses the newest pending episodes first", () => {
+  const now = 1_800_000_000_000;
+  const sessionId = "codex:current";
+  const signals = Array.from({ length: 65 }, (_, index) => ({
+    ...signal(now - index),
+    sessionId,
+  }));
+
+  const selected = selectRequestedLearningEpisodes({
+    signals,
+    sessionKeys: new Set([fingerprint(sessionId)]),
+    state: idleState,
+  });
+
+  expect(selected).toHaveLength(60);
+  expect(selected[0]?.timestamp).toBe(now);
+  expect(selected.at(-1)?.timestamp).toBe(now - 59);
 });

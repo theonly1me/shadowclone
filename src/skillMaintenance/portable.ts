@@ -1,5 +1,4 @@
 import { rm } from "node:fs/promises";
-import path from "node:path";
 import { canonicalPath, type ProjectPaths } from "../paths";
 import {
   portableSkillNameSchema,
@@ -9,21 +8,10 @@ import {
   writePortableSkills,
   type PortableSkill,
 } from "./portableFiles";
-
-function skillDirectories(options: {
-  readonly paths: ProjectPaths;
-  readonly name: string;
-}): readonly string[] {
-  const home = path.dirname(options.paths.shadowcloneDirectory);
-  const codexHome = path.dirname(options.paths.codexSessionsDirectory);
-  return [
-    path.join(home, ".agents/skills", options.name),
-    path.join(home, ".claude/skills", options.name),
-    path.join(codexHome, "skills", options.name),
-    path.join(home, ".cursor/skills", options.name),
-    path.join(home, ".gemini/config/skills", options.name),
-  ].map(canonicalPath);
-}
+import {
+  portableSkillDirectories,
+  redundantSkillDirectories,
+} from "./portableLocations";
 
 export async function registerPortableSkill(options: {
   readonly paths: ProjectPaths;
@@ -37,14 +25,15 @@ export async function registerPortableSkill(options: {
   if (!sourceFingerprint) {
     throw new Error("Portable skill source is missing");
   }
-  const [canonical, ...replicas] = skillDirectories({
+  const [canonical, ...replicas] = portableSkillDirectories({
     paths: options.paths,
     name: options.name,
   });
   if (!canonical) {
     throw new Error("Portable skill destination is unavailable");
   }
-  const destinations = [canonical, ...replicas].filter(
+  const redundant = redundantSkillDirectories(options);
+  const destinations = [canonical, ...replicas, ...redundant].filter(
     (directory) => directory !== sourceDirectory,
   );
   for (const destination of destinations) {
@@ -62,6 +51,11 @@ export async function registerPortableSkill(options: {
       await skillTreeFingerprint(destination) === null
     ) {
       await replaceSkillDirectory({ source: canonical, destination });
+    }
+  }
+  for (const directory of redundant) {
+    if (await skillTreeFingerprint(directory) === sourceFingerprint) {
+      await rm(directory, { recursive: true, force: true });
     }
   }
   const skills = await readPortableSkills(options.paths);
@@ -98,15 +92,16 @@ export async function retireStarterSkill(options: {
     });
     return "preserved";
   }
-  const expected = new Set(skillDirectories({
+  const expected = new Set(portableSkillDirectories({
     paths: options.paths,
     name: options.name,
   }));
+  const allowed = new Set([...expected, ...redundantSkillDirectories(options)]);
   const recorded = [skill.sourceDirectory, ...skill.replicaDirectories];
   const resolvedRecorded = recorded.map(canonicalPath);
   if (
-    expected.size !== new Set(resolvedRecorded).size ||
-    resolvedRecorded.some((directory) => !expected.has(directory))
+    resolvedRecorded.some((directory) => !allowed.has(directory)) ||
+    [...expected].some((directory) => !resolvedRecorded.includes(directory))
   ) {
     throw new Error("Portable skill state contains an unsafe destination");
   }
@@ -128,8 +123,23 @@ export async function syncPortableSkills(options: {
   let synced = 0;
   let conflicts = 0;
   for (const skill of skills) {
-    const directories = [skill.sourceDirectory, ...skill.replicaDirectories];
+    const expected = portableSkillDirectories({ paths: options.paths, name: skill.name });
+    const [canonical, ...replicas] = expected;
+    if (canonical === undefined) throw new Error("Portable skill destination is unavailable");
+    const redundant = redundantSkillDirectories({
+      paths: options.paths,
+      name: skill.name,
+    });
+    const directories = [...new Set([
+      skill.sourceDirectory,
+      ...skill.replicaDirectories,
+      ...expected,
+    ].map(canonicalPath))].filter((directory) => !redundant.includes(directory));
     const states = await Promise.all(directories.map(async (directory) => ({
+      directory,
+      fingerprint: await skillTreeFingerprint(directory),
+    })));
+    const redundantStates = await Promise.all(redundant.map(async (directory) => ({
       directory,
       fingerprint: await skillTreeFingerprint(directory),
     })));
@@ -148,7 +158,16 @@ export async function syncPortableSkills(options: {
       updated.push(skill);
       continue;
     }
-    for (const state of states) {
+    if (redundantStates.some((state) =>
+      state.fingerprint !== null &&
+      state.fingerprint !== skill.baselineFingerprint &&
+      state.fingerprint !== authority.fingerprint
+    )) {
+      conflicts += 1;
+      updated.push(skill);
+      continue;
+    }
+    for (const state of states.filter((entry) => expected.includes(entry.directory))) {
       if (state.fingerprint !== authority.fingerprint) {
         await replaceSkillDirectory({
           source: authority.directory,
@@ -157,7 +176,21 @@ export async function syncPortableSkills(options: {
         synced += 1;
       }
     }
-    updated.push({ ...skill, baselineFingerprint: authority.fingerprint });
+    for (const state of redundantStates) {
+      if (
+        state.fingerprint === authority.fingerprint ||
+        state.fingerprint === skill.baselineFingerprint
+      ) {
+        await rm(state.directory, { recursive: true, force: true });
+        synced += 1;
+      }
+    }
+    updated.push({
+      ...skill,
+      sourceDirectory: canonical,
+      replicaDirectories: replicas,
+      baselineFingerprint: authority.fingerprint,
+    });
   }
   await writePortableSkills({ paths: options.paths, skills: updated });
   return { synced, conflicts };

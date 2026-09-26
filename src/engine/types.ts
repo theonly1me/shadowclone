@@ -34,6 +34,8 @@ export type EngineAction = {
   readonly path: string | null;
   readonly command?: string | null;
   readonly succeeded?: boolean | null;
+  readonly requestSequence?: number;
+  readonly resultSequence?: number | null;
 };
 
 export type EngineExecution =
@@ -69,6 +71,7 @@ export type EngineRunOptions = {
 
 export type EngineRun = {
   readonly engine: EngineId;
+  readonly resolvedModel?: string | null;
   readonly sessionId: string;
   readonly transcriptPath: string | null;
   readonly text: string;

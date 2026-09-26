@@ -122,14 +122,17 @@ test("writes stable declared rules on identical reruns", async () => {
   for (const root of [
     path.join(homeDirectory, ".agents/skills"),
     path.join(homeDirectory, ".claude/skills"),
-    path.join(homeDirectory, ".codex/skills"),
-    path.join(homeDirectory, ".cursor/skills"),
     path.join(homeDirectory, ".gemini/config/skills"),
   ]) {
     const skill = await Bun.file(
       path.join(root, "testing-first/SKILL.md"),
     ).text();
     expect(skill).toContain("# Test First Through a Public Seam");
+  }
+  for (const redundantRoot of [".codex/skills", ".cursor/skills"]) {
+    expect(await Bun.file(
+      path.join(homeDirectory, redundantRoot, "testing-first/SKILL.md"),
+    ).exists()).toBeFalse();
   }
   expect(engineeringText).not.toContain("\n## Process");
 });

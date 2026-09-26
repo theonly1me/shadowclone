@@ -57,7 +57,7 @@ export async function runLearningMaintenance(options: LearningOptions & { readon
           const engine = options.engine ?? detection?.selectedEngine;
           if (!runner || !engine) throw new Error("No authenticated learning engine is available");
           const execution = options.execution ?? createLearningExecution({ engine, runner });
-          if (signals.length > 0) await runDeepLearning({ paths, policy: effective.policy, events: derived.events, signals, engine, runner, execution, dryRun: false, apply: true, writeLine: ignoreLearningOutput });
+          if (signals.length > 0) await runDeepLearning({ paths, policy: effective.policy, events: derived.events, signals, engine, runner, execution, dryRun: false, apply: true, writeLine: ignoreLearningOutput, requireSteeringCue: options.automatic });
           attempt = { ...attempt, processed: [...state.processed, ...signals.map((signal) => ({ id: episodeId(signal), timestamp: signal.timestamp }))] };
           await writeLearningState({ paths, state: attempt });
           if (effective.config.sources["skill-library"]) {

@@ -1,4 +1,5 @@
 import type { EngineRun } from "../engine";
+import type { GateReceipt } from "./gate";
 import type { RunReceipt, BlockedAction } from "./types";
 
 function taskHash(task: string): string {
@@ -19,6 +20,7 @@ export function runReceipt(options: {
   readonly actionsTaken: readonly string[];
   readonly blockedActions: readonly BlockedAction[];
   readonly profileRulesApplied: number;
+  readonly gate: GateReceipt;
 }): RunReceipt {
   return {
     runId: options.runId,
@@ -39,5 +41,6 @@ export function runReceipt(options: {
     actionsBlockedByPolicy: options.blockedActions,
     permissionDenials: options.run.permissionDenials,
     profileRulesApplied: options.profileRulesApplied,
+    gate: options.gate,
   };
 }

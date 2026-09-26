@@ -3,7 +3,7 @@ import { z } from "zod";
 import { executeRemoteActions, remoteDraftSchema } from "./remoteActions";
 import path from "node:path";
 import { readEffectiveConfig, type ActionCapability } from "../config";
-import { detectEngine, type EngineRunner } from "../engine";
+import { detectEngine, type EngineRun, type EngineRunner } from "../engine";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import { compileProfile } from "../profile";
@@ -13,16 +13,13 @@ import {
   type GitRemoteReader,
 } from "../signal";
 import type { CommandRunner } from "./command";
+import { repairPrompt, type GateExecutor } from "./gate";
+import { gateAndCommit, prepareWorktreeDependencies } from "./gatedCommit";
 import { resolveDispatchPolicy, validateRemoteGrants } from "./policy";
 import { writeReceipt } from "./receipt";
 import type { RunReceipt } from "./types";
 import { detectVerificationTools } from "./verify";
-import {
-  commitWorktree,
-  createWorktree,
-  inspectWorktree,
-  pushWorktree,
-} from "./worktree";
+import { createWorktree, inspectWorktree, pushWorktree } from "./worktree";
 
 export async function runHeadlessClone(options: {
   readonly task: string;
@@ -35,6 +32,7 @@ export async function runHeadlessClone(options: {
   readonly readRemote?: GitRemoteReader;
   readonly runner?: EngineRunner;
   readonly commandRunner?: CommandRunner;
+  readonly gateExecutor?: GateExecutor;
   readonly runId?: string;
   readonly startedAt?: string;
 }): Promise<RunReceipt> {
@@ -102,6 +100,7 @@ export async function runHeadlessClone(options: {
     branch,
     runner: options.commandRunner,
   });
+  await prepareWorktreeDependencies({ worktree, runner: options.commandRunner });
   const compiledProfilePath = path.join(
     paths.runDirectory(runId),
     "profile.md",
@@ -116,18 +115,8 @@ export async function runHeadlessClone(options: {
     outputPath: compiledProfilePath,
   });
   const startedAt = options.startedAt ?? new Date().toISOString();
-  const run = await runner({
-    prompt: [
-      options.task,
-      "",
-      "Work only in this worktree. Leave the finished change uncommitted.",
-      "Do not merge or force push under any circumstance.",
-      ...(needsRemoteDraft
-        ? [
-            "Return a JSON title and body for the approved PR action. The host will perform it for the approved repository.",
-          ]
-        : []),
-    ].join("\n"),
+  const invoke = (prompt: string, sessionId: string, schema: boolean): Promise<EngineRun> => runner({
+    prompt,
     cwd: worktree.worktreeDirectory,
     execution: {
       purpose: "dispatch",
@@ -136,18 +125,24 @@ export async function runHeadlessClone(options: {
       repositoryDirectory: worktree.repoDirectory,
     },
     systemPromptFile: compiledProfilePath,
-    sessionId: runId,
+    sessionId,
     allowedTools: dispatchPolicy.allowedTools,
     disallowedTools: dispatchPolicy.disallowedTools,
     permissionMode: dispatchPolicy.permissionMode,
     maxBudgetUsd: dispatchPolicy.maxBudgetUsd,
-    ...(needsRemoteDraft
-      ? { outputSchema: z.toJSONSchema(remoteDraftSchema) }
-      : {}),
+    ...(schema ? { outputSchema: z.toJSONSchema(remoteDraftSchema) } : {}),
   });
-  if (!run.isError) {
-    await commitWorktree({ worktree, runner: options.commandRunner });
-  }
+  const firstRun = await invoke([
+    options.task,
+    "",
+    "Work only in this worktree. Leave the finished change uncommitted.",
+    "Do not merge or force push under any circumstance.",
+    ...(needsRemoteDraft ? ["Return a JSON title and body for the approved PR action. The host will perform it for the approved repository."] : []),
+  ].join("\n"), runId, needsRemoteDraft);
+  const gated = firstRun.isError
+    ? { run: firstRun, gate: { status: "not-run" as const, command: null, attempts: 0 } }
+    : await gateAndCommit({ worktree, run: firstRun, repair: (evidence) => invoke(repairPrompt(evidence), `${runId}-repair`, false), blockedPaths: [paths.shadowcloneDirectory], execute: options.gateExecutor, runner: options.commandRunner });
+  const run = gated.run;
   const inspection = await inspectWorktree({
     worktree,
     runner: options.commandRunner,
@@ -190,6 +185,7 @@ export async function runHeadlessClone(options: {
     actionsTaken,
     blockedActions: dispatchPolicy.blockedActions,
     profileRulesApplied: compilation.appliedRuleCount,
+    gate: gated.gate,
   });
   await writeReceipt({ runDirectory: paths.runDirectory(runId), receipt });
   if (run.isError) {

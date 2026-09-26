@@ -1,9 +1,10 @@
 import { Database } from "bun:sqlite";
 import path from "node:path";
 import type { ShadowcloneConfig } from "../config";
-import { observeAll } from "../observe";
+import { observeAll, readAntigravityWorkspaceHistory } from "../observe";
 import { observeClaudeCodeFile } from "../observe/adapters/claudeCode";
 import type { ProjectPaths } from "../paths";
+import { resolveRepository, type GitRemoteReader } from "../signal";
 import { ownedDirectory, ownedFile } from "../storage";
 import { createSchema } from "./schema";
 import { EventIndex } from "./store";
@@ -33,12 +34,42 @@ export async function ingestSources(options: {
   readonly index: EventIndex;
   readonly config: ShadowcloneConfig;
   readonly paths: ProjectPaths;
+  readonly readRemote?: GitRemoteReader;
 }): Promise<IngestSummary> {
   let files = 0;
   let events = 0;
   let bytesRead = 0;
   let rescannedFiles = 0;
   let invalidRecords = 0;
+
+  if (options.config.sources["antigravity-workspaces"]) {
+    const history = await readAntigravityWorkspaceHistory(
+      options.paths.antigravityWorkspaceHistoryFile,
+    );
+    if (history !== null) {
+      const repositories = new Map<string, Awaited<ReturnType<typeof resolveRepository>>>();
+      for (const binding of history.bindings) {
+        let repository = repositories.get(binding.workspace);
+        if (repository === undefined) {
+          repository = await resolveRepository({
+            cwd: binding.workspace,
+            enabled: options.config.sources["git-metadata"],
+            readRemote: options.readRemote,
+          });
+          repositories.set(binding.workspace, repository);
+        }
+        options.index.bindSessionOrigin({
+          source: "antigravity",
+          sessionId: binding.sessionId,
+          timestamp: binding.timestamp,
+          repository,
+        });
+      }
+      files += 1;
+      bytesRead += history.bytesRead;
+      invalidRecords += history.invalidRecords;
+    }
+  }
 
   for await (const batch of observeAll({
     config: options.config,

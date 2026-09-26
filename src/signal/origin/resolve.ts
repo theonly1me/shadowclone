@@ -13,7 +13,20 @@ import {
 import type { GitRemoteReader } from "./remote";
 
 export function eventOriginKey(event: IndexedEvent): string {
-  return JSON.stringify([event.source, event.sessionId, event.cwd ? path.resolve(event.cwd) : ""]);
+  return JSON.stringify([
+    event.source,
+    event.sessionId,
+    event.cwd ? path.resolve(event.cwd) : "",
+    event.cwd ? null : event.timestamp,
+  ]);
+}
+
+function eventIsolationKey(event: IndexedEvent): string {
+  return JSON.stringify([
+    event.source,
+    event.sessionId,
+    event.cwd ? path.resolve(event.cwd) : "",
+  ]);
 }
 
 export async function resolveCwdOrigin(options: {
@@ -63,6 +76,11 @@ export type OriginBindingStore = {
     readonly originKey: string;
     readonly repository: RepositoryIdentity;
   }) => void;
+  readonly getSessionOriginBinding?: (options: {
+    readonly source: string;
+    readonly sessionId: string;
+    readonly timestamp: number;
+  }) => RepositoryIdentity | null;
 };
 
 export async function resolveEventRepositories(options: {
@@ -80,7 +98,18 @@ export async function resolveEventRepositories(options: {
       continue;
     }
 
-    const bound = options.enabled ? options.bindings?.getOriginBinding(key) ?? null : null;
+    const timeline = options.enabled
+      ? options.bindings?.getSessionOriginBinding?.({
+          source: event.source,
+          sessionId: event.sessionId,
+          timestamp: event.timestamp,
+        }) ?? null
+      : null;
+    const bound = timeline ?? (
+      options.enabled && event.cwd.length > 0
+        ? options.bindings?.getOriginBinding(key) ?? null
+        : null
+    );
     if (bound !== null) {
       repositories.set(key, bound);
       continue;
@@ -90,12 +119,12 @@ export async function resolveEventRepositories(options: {
     const hasObservedHistory = event.timestamp >= observedSince;
     const resolved = await resolveRepository({
       cwd: event.cwd,
-      fallbackKey: key,
+      fallbackKey: eventIsolationKey(event),
       enabled: options.enabled && hasObservedHistory,
       readRemote,
     });
     repositories.set(key, resolved);
-    if (options.enabled && resolved.origin.promotable) {
+    if (options.enabled && event.cwd.length > 0 && resolved.origin.promotable) {
       options.bindings?.bindOrigin({ originKey: key, repository: resolved });
     }
   }
@@ -112,7 +141,7 @@ export function getEventRepository(options: {
   if (known) {
     return known;
   }
-  const origin = isolatedOrigin(key);
+  const origin = isolatedOrigin(eventIsolationKey(options.event));
   return { id: origin.id, name: null, profileFileName: null, origin };
 }
 
@@ -122,6 +151,6 @@ export function getEventOrigin(options: {
 }): OriginScope {
   return (
     options.origins.get(eventOriginKey(options.event)) ??
-    isolatedOrigin(eventOriginKey(options.event))
+    isolatedOrigin(eventIsolationKey(options.event))
   );
 }
