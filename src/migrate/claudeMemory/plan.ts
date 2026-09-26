@@ -114,7 +114,7 @@ export async function createClaudeMemoryMigrationPlan(options: {
       }));
       continue;
     }
-    if (file.kind === "feedback") {
+    if (file.kind === "feedback" || file.kind === "user") {
       const decision = options.decisions?.get(file.filename);
       if (decision === undefined) {
         reviewRequired.push(file.filename);

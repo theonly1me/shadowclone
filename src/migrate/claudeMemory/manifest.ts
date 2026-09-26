@@ -20,7 +20,7 @@ const manifestSchema = z.strictObject({
     filename: z.string().min(1),
     hash: z.string().regex(/^[a-f0-9]{64}$/),
     bytes: z.number().int().nonnegative(),
-    kind: z.enum(["feedback", "reference", "project", "index"]),
+    kind: z.enum(["user", "feedback", "reference", "project", "index"]),
     disposition: z.enum([
       "rule",
       "reference",

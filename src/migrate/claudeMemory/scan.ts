@@ -16,8 +16,11 @@ export function claudeMemoryDirectory(options: {
   return path.join(options.paths.claudeProjectsDirectory, encoded, "memory");
 }
 
-function kind(filename: string): ClaudeMemoryKind | null {
+const memoryTypes: readonly ClaudeMemoryKind[] = ["user", "feedback", "reference", "project"];
+
+function kindFromFilename(filename: string): ClaudeMemoryKind | null {
   if (filename === "MEMORY.md") return "index";
+  if (filename.startsWith("user_") && filename.endsWith(".md")) return "user";
   if (filename.startsWith("feedback_") && filename.endsWith(".md")) return "feedback";
   if (filename.startsWith("reference_") && filename.endsWith(".md")) return "reference";
   if (filename.startsWith("project_") && filename.endsWith(".md")) return "project";
@@ -43,20 +46,26 @@ function field(frontmatter: string, name: string): string {
   return line === undefined ? "" : unquote(line.slice(prefix.length));
 }
 
+function kindFromType(type: string): ClaudeMemoryKind | null {
+  return memoryTypes.find((memoryType) => memoryType === type) ?? null;
+}
+
 function contentParts(text: string): {
   readonly name: string;
   readonly description: string;
   readonly modified: string;
+  readonly type: string;
   readonly body: string;
 } {
   const match = text.match(/^---\n([\s\S]*?)\n---\n(?:\n)?([\s\S]*)$/);
   if (!match?.[1] || match[2] === undefined) {
-    return { name: "", description: "", modified: "", body: text.trim() };
+    return { name: "", description: "", modified: "", type: "", body: text.trim() };
   }
   return {
     name: field(match[1], "name"),
     description: field(match[1], "description"),
     modified: field(match[1], "  modified"),
+    type: field(match[1], "type") || field(match[1], "  type"),
     body: match[2].trim(),
   };
 }
@@ -85,8 +94,6 @@ export async function scanClaudeMemoryDirectory(
   const files: ClaudeMemoryFile[] = [];
   let totalBytes = 0;
   for (const entry of markdown.sort((left, right) => left.name.localeCompare(right.name))) {
-    const fileKind = kind(entry.name);
-    if (fileKind === null) throw new Error("Claude memory contains an unsupported filename");
     const sourcePath = path.join(directory, entry.name);
     const metadata = await lstat(sourcePath);
     if (!metadata.isFile() || metadata.isSymbolicLink()) {
@@ -113,13 +120,16 @@ export async function scanClaudeMemoryDirectory(
       },
       roots: [directory],
     });
+    const { type, ...parts } = contentParts(redacted);
+    const fileKind = kindFromFilename(entry.name) ?? kindFromType(type);
+    if (fileKind === null) throw new Error("Claude memory contains a file without a known memory type");
     files.push({
       filename: entry.name,
       sourcePath,
       kind: fileKind,
       hash,
       bytes: metadata.size,
-      ...contentParts(redacted),
+      ...parts,
     });
   }
   return files;
