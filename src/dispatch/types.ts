@@ -7,6 +7,7 @@ import type {
   PermissionDenial,
   PermissionMode,
 } from "../engine";
+import type { GateReceipt } from "./gate";
 
 export type BlockedAction =
   | ActionCapability
@@ -42,6 +43,7 @@ export type RunReceipt = {
   readonly actionsBlockedByPolicy: readonly BlockedAction[];
   readonly permissionDenials: readonly PermissionDenial[];
   readonly profileRulesApplied: number;
+  readonly gate: GateReceipt;
 };
 
 export type DispatchPolicyInput = {

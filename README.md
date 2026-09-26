@@ -96,7 +96,7 @@ The opt-in `--validation-of <completed-pilot-id> --cumulative-budget-usd 10` rep
 shadowclone eval --repo /path/to/repository --engine codex --model gpt-5.6-sol --reasoning-effort medium --tasks 3 --repeat 2
 ```
 
-`shadowclone run "fix the flaky test"` runs a headless clone in a local worktree and records a receipt. The invocation approves one worktree, branch, and local commit. Remote actions also need a matching repository policy ceiling and `--approve` for that run. No action approval carries to the next run. [Acting policy](docs/architecture/04-acting.md).
+`shadowclone run "fix the flaky test"` runs a headless clone in a local worktree and records a receipt. The invocation approves one worktree, branch, and local commit. When the repository has a harness, its gate and `harness check --changed` run in a no-network sandbox before the commit; a failure gets one repair attempt, and a change that still fails stays uncommitted with `gate: failed` in the receipt. Remote actions also need a matching repository policy ceiling and `--approve` for that run. No action approval carries to the next run. [Acting policy](docs/architecture/04-acting.md).
 
 ## Early evaluation results
 

@@ -67,7 +67,11 @@ export async function runClone(
 ): Promise<void> {
   const options = parseRunArguments(arguments_);
   const receipt = await runHeadlessClone(options);
-  console.log(
-    `Clone run ${receipt.runId} finished. Review ~/.shadowclone/runs/${receipt.runId}/receipt.json.`,
-  );
+  const gate = {
+    passed: `The gate \`${receipt.gate.command}\` passed and the change was committed on ${receipt.branch}.`,
+    failed: `The gate${receipt.gate.command === null ? "" : ` \`${receipt.gate.command}\``} still failed after ${receipt.gate.attempts > 1 ? "one repair attempt" : "the run"}, so the change was left uncommitted in the clone worktree.`,
+    "not-configured": "This repository has no harness gate, so the change was committed ungated. Run `shadowclone harness init` to add one.",
+    "not-run": "The gate did not run because the clone run failed.",
+  }[receipt.gate.status];
+  console.log(`Clone run ${receipt.runId} finished. ${gate} Review ~/.shadowclone/runs/${receipt.runId}/receipt.json.`);
 }

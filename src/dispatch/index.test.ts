@@ -93,6 +93,7 @@ test("runs the engine in a worktree and writes a draft-only receipt", async () =
   expect(receipt.filesChanged).toEqual(["src/main.ts"]);
   expect(receipt.commits).toEqual(["clone-commit"]);
   expect(receipt.actionsTaken).toEqual(["commit"]);
+  expect(receipt.gate).toEqual({ status: "not-configured", command: null, attempts: 0 });
   expect(receipt.actionsBlockedByPolicy).toContain("push");
   expect(
     await Bun.file(
