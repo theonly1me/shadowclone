@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.10](https://github.com/theonly1me/shadowclone/compare/v0.0.9...v0.0.10) (2026-09-26)
+
+
+### Features
+
+* set up repositories for every agent and shrink session-start context ([#74](https://github.com/theonly1me/shadowclone/issues/74)) ([4b7872d](https://github.com/theonly1me/shadowclone/commit/4b7872d3c651edef07dfdef4d1e340c068623747))
+
 ## [0.0.9](https://github.com/theonly1me/shadowclone/compare/v0.0.8...v0.0.9) (2026-09-15)
 
 
