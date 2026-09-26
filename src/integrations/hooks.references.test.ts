@@ -9,7 +9,7 @@ import { integrationFixture } from "./fixtures";
 import { nativeSessionStart } from "./hooks";
 import { installIntegration } from "./install";
 
-test("main hooks receive the reference catalog while Claude subagents do not", async () => {
+test("main hooks point to reference recall without listing references, and subagents get neither", async () => {
   const fixture = await integrationFixture();
   const imported: ProfileRule = {
     key: "imported-repository-guidance",
@@ -77,8 +77,10 @@ test("main hooks receive the reference catalog while Claude subagents do not", a
       hook_event_name: "SubagentStart",
     }),
   });
-  expect(JSON.stringify(main)).toContain("queue-retries");
+  expect(JSON.stringify(main)).toContain("shadowclone recall <query>");
+  expect(JSON.stringify(main)).not.toContain("queue-retries");
   expect(JSON.stringify(main)).not.toContain("Duplicated repository instruction");
+  expect(JSON.stringify(subagent)).not.toContain("shadowclone recall");
   expect(JSON.stringify(subagent)).not.toContain("queue-retries");
   expect(JSON.stringify(subagent)).not.toContain("Duplicated repository instruction");
   expect(JSON.stringify(subagent)).toContain("Use complete names.");

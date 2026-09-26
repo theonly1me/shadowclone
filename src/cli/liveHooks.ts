@@ -1,12 +1,8 @@
-import { readEffectiveConfig } from "../config";
-import { projectPaths } from "../paths";
+import path from "node:path";
+import { compileContext, readIntegrations } from "../integrations";
+import { canonicalPath, projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { compileProfile } from "../profile";
-import {
-  isOriginBlocked,
-  resolveRepository,
-  type GitRemoteReader,
-} from "../signal";
+import type { GitRemoteReader } from "../signal";
 import {
   parseHookInput,
   readHookString,
@@ -27,54 +23,48 @@ export type SessionStartContext = {
   };
 };
 
-async function activeProfile(options: LiveHookOptions): Promise<{
-  readonly profile: string;
-} | null> {
+async function nativeClaudeDeliveryCovers(options: {
+  readonly paths: ProjectPaths;
+  readonly cwd: string;
+}): Promise<boolean> {
+  const integrations = await readIntegrations(options.paths);
+  return integrations.some((integration) =>
+    integration.agent === "claude-code" &&
+    (integration.scope === "global" ||
+      options.cwd === integration.directory ||
+      options.cwd.startsWith(`${integration.directory}${path.sep}`))
+  );
+}
+
+async function activeProfile(options: LiveHookOptions): Promise<string | null> {
   const paths = options.paths ?? projectPaths;
-  const { config, policy } = await readEffectiveConfig({
-    configPath: options.configPath,
-    managedConfigPath:
-      options.managedConfigPath === undefined
-        ? paths.managedConfigFile
-        : options.managedConfigPath,
-  });
-  if (!policy.enabled) {
-    return null;
-  }
   const input = parseHookInput(options.input);
-  const cwd = readHookString(input, "cwd") ?? process.cwd();
-  const repository = await resolveRepository({
-    cwd,
-    enabled: config.sources["git-metadata"],
-    readRemote: options.readRemote,
-  });
-  if (isOriginBlocked({ repository, patterns: policy.blockedOrigins })) {
+  const cwd = canonicalPath(readHookString(input, "cwd") ?? process.cwd());
+  if (await nativeClaudeDeliveryCovers({ paths, cwd })) {
     return null;
   }
-  return {
-    profile: (
-      await compileProfile({
-        input: {
-          kind: "directory",
-          profileDirectory: paths.profileDirectory,
-          origin: repository.origin,
-          targetRepo: repository.profileFileName,
-        },
-      })
-    ).markdown,
-  };
+  const profile = await compileContext({
+    paths,
+    cwd,
+    configPath: options.configPath,
+    managedConfigPath: options.managedConfigPath,
+    readRemote: options.readRemote,
+    format: "index",
+    nativeDuplicates: true,
+  });
+  return profile === null || profile.length === 0 ? null : profile;
 }
 
 export async function getSessionStartContext(
   options: LiveHookOptions,
 ): Promise<SessionStartContext | null> {
-  const active = await activeProfile(options);
-  return active === null
+  const profile = await activeProfile(options);
+  return profile === null
     ? null
     : {
         hookSpecificOutput: {
           hookEventName: "SessionStart",
-          additionalContext: active.profile,
+          additionalContext: profile,
         },
       };
 }

@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { rm } from "node:fs/promises";
 import path from "node:path";
 import { writeConfig, defaultConfig } from "../config";
 import { resolveRepository } from "../signal";
@@ -47,61 +48,37 @@ test("redacts a profile secret before native hook delivery", async () => {
   expect(output).toContain("[redacted:");
 });
 
-test("Claude subagents receive the profile without opening another learning request", async () => {
+test("Claude session hooks deliver the preference index without learning instructions", async () => {
   const fixture = await integrationFixture();
   await writeConfig({
     configPath: fixture.paths.configFile,
-    config: {
-      ...defaultConfig,
-      distillation: { deep: true, automatic: true },
-    },
+    config: { ...defaultConfig, distillation: { deep: true, automatic: true } },
   });
-  const installed = await installIntegration({
-    ...fixture,
-    agent: "claude-code",
-    scope: "repository",
-  });
-  const learningPath = path.join(
-    fixture.paths.shadowcloneDirectory,
-    "session-learning.json",
-  );
-  const subagent = await nativeSessionStart({
-    ...fixture,
-    id: installed.id,
-    input: JSON.stringify({
-      cwd: fixture.cwd,
-      session_id: "claude-session",
-      hook_event_name: "SubagentStart",
-    }),
-  });
-  const subagentText = JSON.stringify(subagent);
-  expect(subagent).toMatchObject({
-    hookSpecificOutput: {
-      hookEventName: "SubagentStart",
-      additionalContext: expect.stringContaining("Use complete names."),
-    },
-  });
-  expect(subagentText).not.toContain("learn --session");
-  expect(await Bun.file(learningPath).exists()).toBeFalse();
+  const installed = await installIntegration({ ...fixture, agent: "claude-code", scope: "repository" });
+  for (const hookEventName of ["SubagentStart", "SessionStart"]) {
+    const output = await nativeSessionStart({
+      ...fixture,
+      id: installed.id,
+      input: JSON.stringify({ cwd: fixture.cwd, session_id: "claude-session", hook_event_name: hookEventName }),
+    });
+    const text = JSON.stringify(output);
+    expect(output).toMatchObject({ hookSpecificOutput: { hookEventName } });
+    expect(text).toContain("- Naming: Use complete names.");
+    expect(text).not.toContain("learn --session");
+  }
+  expect(await Bun.file(path.join(fixture.paths.shadowcloneDirectory, "session-learning.json")).exists()).toBeFalse();
+});
 
-  const session = await nativeSessionStart({
+test("an empty profile produces no native hook output", async () => {
+  const fixture = await integrationFixture();
+  await rm(path.join(fixture.paths.profileDirectory, "global/engineering.md"));
+  const installed = await installIntegration({ ...fixture, agent: "claude-code", scope: "repository" });
+  const output = await nativeSessionStart({
     ...fixture,
     id: installed.id,
-    input: JSON.stringify({
-      cwd: fixture.cwd,
-      session_id: "claude-session",
-      hook_event_name: "SessionStart",
-    }),
+    input: JSON.stringify({ cwd: fixture.cwd, session_id: "claude-session", hook_event_name: "SessionStart" }),
   });
-  const sessionText = JSON.stringify(session);
-  expect(session).toMatchObject({
-    hookSpecificOutput: {
-      hookEventName: "SessionStart",
-      additionalContext: expect.stringContaining("Use complete names."),
-    },
-  });
-  expect(sessionText).toContain("learn --session");
-  expect(await Bun.file(learningPath).exists()).toBeTrue();
+  expect(output).toEqual({});
 });
 
 test("installation leaves capture consent unchanged", async () => {

@@ -8,7 +8,7 @@ import { canonicalPath, projectPaths } from "../paths";
 import { installLiveClone } from "./install";
 import { uninstallLiveClone } from "./uninstall";
 import { removeUneditedLegacySubagent } from "./legacyUpgrade";
-import { claimLearningRequests, scheduleLearning } from "../learning";
+import { scheduleLearning } from "../learning";
 import { explainContext, renderContextExplanation } from "./contextExplain";
 
 export type NativeInstallOptions = {
@@ -110,13 +110,6 @@ export async function handleNativeCommand(options: {
     const [event, id] = options.arguments;
     if (!id) return false;
     if (event === "native-start") {
-      const sessionKeys = await claimLearningRequests({
-        paths: projectPaths,
-        includeUnended: true,
-      });
-      if (sessionKeys.length > 0) {
-        await scheduleLearning({ sessionKeys });
-      }
       const result = await nativeSessionStart({ id, input: await Bun.stdin.text() });
       await Bun.stdout.write(`${JSON.stringify(result)}\n`);
       return true;
@@ -127,14 +120,7 @@ export async function handleNativeCommand(options: {
         input: await Bun.stdin.text(),
       });
       if (sessionKey) {
-        const sessionKeys = await claimLearningRequests({
-          paths: projectPaths,
-          integrationId: id,
-          sessionKey,
-        });
-        if (sessionKeys.length > 0) {
-          await scheduleLearning({ sessionKeys });
-        }
+        await scheduleLearning({ sessionKeys: [sessionKey] });
       }
       return true;
     }

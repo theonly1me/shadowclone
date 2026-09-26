@@ -8,10 +8,4 @@ export {
   writeLearningState,
   type LearningState,
 } from "./state";
-export {
-  claimLearningRequests,
-  createLearningRequest,
-  endLearningRequest,
-  learningSessionKey,
-  markLearningRequest,
-} from "./requests";
+export { learningSessionKey } from "./sessionKey";

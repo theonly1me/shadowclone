@@ -6,10 +6,12 @@ import {
   readProfileDiagnostics,
   type ProfileCompilation,
   type ProfileCompilationAudience,
+  type ProfileCompilationFormat,
   type ProfileDiagnostics,
 } from "../profile";
 import { referenceScopeRoots } from "../references";
 import { isOriginBlocked, resolveRepository } from "../signal";
+import { readNativeGuidance } from "./nativeGuidance";
 import type { IntegrationOptions } from "./types";
 
 export type CompiledContext = {
@@ -19,11 +21,15 @@ export type CompiledContext = {
   readonly diagnostics: ProfileDiagnostics;
 };
 
-export async function compileContextDetails(options: IntegrationOptions & {
+type ContextOptions = IntegrationOptions & {
   readonly cwd: string;
   readonly scope?: "global" | "scoped" | "combined";
   readonly audience?: ProfileCompilationAudience;
-}): Promise<CompiledContext | null> {
+  readonly format?: ProfileCompilationFormat;
+  readonly nativeDuplicates?: boolean;
+};
+
+export async function compileContextDetails(options: ContextOptions): Promise<CompiledContext | null> {
   const paths = options.paths ?? projectPaths;
   const { config, policy } = await readEffectiveConfig({
     configPath: options.configPath ?? paths.configFile,
@@ -48,6 +54,10 @@ export async function compileContextDetails(options: IntegrationOptions & {
       ...location,
     },
     audience: options.audience,
+    format: options.format,
+    knownNativeText: options.nativeDuplicates && config.sources["declared-rules"]
+      ? await readNativeGuidance(options.cwd)
+      : [],
   });
   return {
     compilation,
@@ -57,10 +67,6 @@ export async function compileContextDetails(options: IntegrationOptions & {
   };
 }
 
-export async function compileContext(options: IntegrationOptions & {
-  readonly cwd: string;
-  readonly scope?: "global" | "scoped" | "combined";
-  readonly audience?: ProfileCompilationAudience;
-}): Promise<string | null> {
+export async function compileContext(options: ContextOptions): Promise<string | null> {
   return (await compileContextDetails(options))?.compilation.markdown ?? null;
 }
