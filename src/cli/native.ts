@@ -90,7 +90,7 @@ export async function handleNativeCommand(options: {
     options.arguments[0] === "--explain" &&
     (options.arguments.length === 1 || options.arguments[1] === "--json")
   ) {
-    const details = await compileContextDetails({ cwd: process.cwd(), format: "index", nativeDuplicates: true });
+    const details = await compileContextDetails({ cwd: process.cwd(), format: "index", nativeDuplicates: "including-harness" });
     if (details === null) {
       await Bun.stdout.write("Shadowclone guidance is disabled by policy.\n");
       return true;

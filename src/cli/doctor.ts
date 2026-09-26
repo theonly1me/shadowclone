@@ -111,7 +111,7 @@ export async function doctor(options: {
     console.log(line);
   }
   for (const line of await integrationHealth({ managedConfigPath })) console.log(line);
-  console.log(renderStartupContextSummary(await compileContextDetails({ cwd: process.cwd(), managedConfigPath, format: "index", nativeDuplicates: true })));
+  console.log(renderStartupContextSummary(await compileContextDetails({ cwd: process.cwd(), managedConfigPath, format: "index", nativeDuplicates: "including-harness" })));
   const { config } = await readEffectiveConfig({ managedConfigPath });
   const learning = await readLearningState(projectPaths);
   console.log(`Automatic learning: ${config.distillation.automatic ? "enabled" : "disabled"}; last attempt ${learning.status}.`);

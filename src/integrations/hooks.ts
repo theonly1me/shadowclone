@@ -74,7 +74,7 @@ export async function nativeSessionStart(options: IntegrationOptions & {
     cwd,
     audience: input.hook_event_name === "SubagentStart" ? "subagent" : "main",
     format: "index",
-    nativeDuplicates: true,
+    nativeDuplicates: "including-harness",
   });
   if (profile === null) {
     return {};

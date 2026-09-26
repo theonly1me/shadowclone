@@ -50,7 +50,7 @@ async function activeProfile(options: LiveHookOptions): Promise<string | null> {
     managedConfigPath: options.managedConfigPath,
     readRemote: options.readRemote,
     format: "index",
-    nativeDuplicates: true,
+    nativeDuplicates: "including-harness",
   });
   return profile === null || profile.length === 0 ? null : profile;
 }

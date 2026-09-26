@@ -8,7 +8,7 @@ test("session context omits a rule the repository instructions state only with r
   const fixture = await integrationFixture();
   await Bun.write(path.join(fixture.paths.profileDirectory, "global/workflow.md"), "## Gate\n\nRun the full check script before presenting any change.\n");
   await Bun.write(path.join(fixture.cwd, "CLAUDE.md"), "# Repository\n\nRun the full check script before presenting any change.\n");
-  const compile = () => compileContextDetails({ ...fixture, format: "index", nativeDuplicates: true });
+  const compile = () => compileContextDetails({ ...fixture, format: "index", nativeDuplicates: "including-harness" });
 
   expect((await compile())?.compilation.markdown).toContain("Run the full check script");
   await writeConfig({ configPath: fixture.paths.configFile, config: { ...defaultConfig, sources: { ...defaultConfig.sources, "declared-rules": true } } });

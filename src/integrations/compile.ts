@@ -8,6 +8,7 @@ import {
   type ProfileCompilationAudience,
   type ProfileCompilationFormat,
   type ProfileDiagnostics,
+  type RepositoryApplicability,
 } from "../profile";
 import { referenceScopeRoots } from "../references";
 import { isOriginBlocked, resolveRepository } from "../signal";
@@ -26,7 +27,9 @@ type ContextOptions = IntegrationOptions & {
   readonly scope?: "global" | "scoped" | "combined";
   readonly audience?: ProfileCompilationAudience;
   readonly format?: ProfileCompilationFormat;
-  readonly nativeDuplicates?: boolean;
+  readonly nativeDuplicates?: "including-harness" | "excluding-harness" | false;
+  readonly byteBudget?: number;
+  readonly applicability?: RepositoryApplicability;
 };
 
 export async function compileContextDetails(options: ContextOptions): Promise<CompiledContext | null> {
@@ -55,8 +58,10 @@ export async function compileContextDetails(options: ContextOptions): Promise<Co
     },
     audience: options.audience,
     format: options.format,
+    byteBudget: options.byteBudget,
+    applicability: options.applicability,
     knownNativeText: options.nativeDuplicates && config.sources["declared-rules"]
-      ? await readNativeGuidance(options.cwd)
+      ? await readNativeGuidance({ cwd: options.cwd, includeHarness: options.nativeDuplicates === "including-harness" })
       : [],
   });
   return {
