@@ -1,0 +1,104 @@
+# Repository harness
+
+## Summary
+
+Shadowclone builds and maintains the repository harness that lets coding agents do engineering work the way the owner would supervise it: a short `AGENTS.md` map, the owner's skills with mandatory triggers, one verification gate, mechanical conventions whose failures explain the fix, and a feature workflow with explicit approval boundaries. The harness is generated from the owner's learned profile and the repository's own facts, enforced through `shadowclone harness check` and a Claude Stop hook, and kept current from later corrections through `shadowclone harness sync`. Startup context from native hooks shrinks to a deduplicated 4 KiB index, and headless runs commit only when the gate passes.
+
+## Problem
+
+This repository was built entirely by coding agents because its owner maintained a harness by hand: a navigational `CLAUDE.md`, skills such as `clean-code` and `scoped-fix`, `scripts/conventions.ts` plus Biome rules, one gate (`bun run check`) that CI runs, design records, and a PR template. Corrections were folded back into those files manually. Shadowclone did not reproduce any of that for another repository. It injected a profile instead, and that delivery made agents worse.
+
+Default setup imported the repository's `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, and skill bodies as rules that ranked ahead of learned guidance. The session-start hook re-injected them, with skill triggers removed, under a 16 KiB budget whose tie-break was a random key, so learned rules were dropped. A native probe during record 021 showed that a 16,255-byte SessionStart packet reached Claude with zero complete copies. Every session also carried a `learn --session` instruction, the instruction pointer called the profile advisory, plugin and native hooks could both inject, and portable skill copies appeared several times in agents that read more than one skill root. The removed `migrate claude-memory --archive-source` command deleted notes from native Claude memory, after which the owner observed Claude ignoring skills.
+
+Record 021 measured adherence with native skills and Claude memory present: Shadowclone matched or trailed Claude memory on preferences and exceeded it only on shared-memory knowledge. Learning produces one-line rules and skill maintenance appends passages, so neither represents a workflow. The learning-to-next-task loop was never measured.
+
+## Prerequisites
+
+Record 013 supplies the single profile compiler; without it the harness would need a second projection.
+
+Record 014 supplies managed native sections and hook ownership; without them harness writes could clobber user text.
+
+Record 015 supplies local revisions and undo; without them harness writes would not be reversible.
+
+Record 021 supplies the reference library and the native delivery probe that established the size limit.
+
+## Design
+
+**Startup context.** Native hooks and the Claude plugin deliver one line per active rule through a new `index` format of `compileProfile`, capped at 4,096 bytes including routing lines, with whole lines only. Imported repository guidance is omitted as `native-duplicate`, as record 021 already implemented. Reference catalogs are not sent at startup; `shadowclone recall` and the MCP tool retrieve them on demand. A rule whose normalized text already appears in a consented native file is omitted as a known duplicate; approximate overlap is reported, never injected. Budget omissions of user-owned rules appear in `context --explain` and `doctor`. An empty result returns no hook output. The session-start hook no longer adds learning instructions. The session-end hook schedules bounded learning for that session when automatic learning is enabled, and a pure steering-cue check lets sessions without cues finish with zero model calls. The instruction pointer shrinks to three lines. The plugin hook returns nothing when a native Claude integration covers the working directory. Portable skills replicate to `~/.agents/skills`, `~/.claude/skills`, and the Antigravity location only, and starter or companion skills are no longer amended automatically.
+
+**Harness init.** `shadowclone harness init` previews by default and writes with `--apply`. It reads repository manifests under the new `repository-manifests` source: `package.json` scripts and dependency names, lockfile presence, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Makefile` targets, `.github/workflows/*`, and top-level entry names. It chooses the gate as an existing `check` script, else a composition of typecheck, lint, and test scripts, else the ecosystem default. It writes a managed section in `AGENTS.md` containing read-this-first skills, commands and the gate, rules that outrank convenience, the workflow summary, and the harness check. It adds a managed `@AGENTS.md` import to `CLAUDE.md` so Claude loads the same map, and points non-Claude agents at existing `CLAUDE.md` context. It vendors the authored `feature-workflow` skill and any explicitly selected skills into `.agents/skills/` and `.claude/skills/`. It records the gate, derived conventions, artifact fingerprints, and preset in a committed `.shadowclone/harness.json`. Writes go through local revisions and preserve text outside the markers; an edited managed section stops the write.
+
+**Taste and portability.** Rules reach the harness only through `compileProfile({ format: "index" })` with a 6 KiB budget. Personal global rules are included only when the owner confirms for that repository. The compiler accepts the repository's detected tool set and omits, as `not-applicable`, a rule that names a known tool the repository does not use or a relative path it does not contain. Commands always come from detection, so conventions and paths from another repository never leak. Selected skills pass the same check before vendoring.
+
+**Feature workflow.** The authored `feature-workflow` skill states its trigger, scope, ordered steps (inspect guidance, establish scope and acceptance checks, stop after planning when approval is required, implement only approved work, run the gate, report, stop), approval boundaries, verification, and stop condition. It is labeled as authored by Shadowclone. A managed learned-adjustments section receives workflow and boundary rules from sync.
+
+**Harness check.** `shadowclone harness check` verifies that `AGENTS.md` exists, stays within 150 lines, and has an intact managed section; that `CLAUDE.md` imports it; that referenced paths and scripts exist; that skills parse; that skill names are unique; and that CI runs the gate. It runs the conventions from `harness.json` on all or changed files: file length, forbidden text, lint suppressions, and TypeScript comments through the repository's own `typescript` package. Messages state the fix for an agent. The `claude-stop` format exits 2 with remediation, and `harness init --enforce-claude` installs it as a Stop hook in `.claude/settings.local.json`. Other agents are enforced through CI until their blocking semantics are verified.
+
+**Harness sync.** `shadowclone harness sync` promotes confirmed Claude memory notes of type user or feedback for the current repository into repository-scoped declared rules under the existing `claude-memory` source, then re-renders the harness through the compiler. Engineering rules render in `AGENTS.md`; workflow and boundary rules render in the workflow skill. Explicit corrections update only Shadowclone-owned text; inferred or conflicting changes stay pending. `harness init --preset <directory>` merges an organization preset of rules, skills, and a conventions floor. Hooks omit rule keys already committed in the harness.
+
+**Gated run.** `shadowclone run` executes the gate and `harness check --changed` in the worktree before committing, allows one repair attempt with the failure output, and otherwise leaves the change uncommitted with the gate result in the receipt.
+
+**Comparison.** `shadowclone eval --harness` compares a native baseline (native skills, instructions, and memory) with the same baseline plus the harness on two synthetic repositories, a Bun task-list CLI and a Python configuration CLI, each with a frozen specification and held-out acceptance tests. Each task runs a planning stage that must stop, then an implementation stage with the saved plan. Metrics are deterministic where possible: acceptance tests, gate and check results, approval boundaries, scope violations, and unsupported completion claims. Corrections a reviewer would still give are left for human review.
+
+**WIP inventory.** From record 021 the branch keeps native-duplicate omission, the reference library and recall, `context --explain`, de-duplicated portable locations, the Claude memory copy, profile repair, and the guidance protocol with neutral placeholders in place of private repository details. It removes source archival from native memory and adds Linux-portable test paths and memory type detection.
+
+## Files
+
+| Path | Change |
+| --- | --- |
+| `src/profile/compiler/` | Add the `index` format, applicability omission, and duplicate omission |
+| `src/integrations/`, `src/cli/liveHooks.ts`, `src/cli/native.ts` | Deliver the 4 KiB index, drop learning text, dedupe plugin delivery, schedule learning at session end |
+| `src/signal/steeringCue.ts`, `src/distill/excerpts.ts` | Skip model calls for sessions without steering cues |
+| `src/harness/` | Detect facts, choose the gate, render, plan, apply, check, and sync the harness |
+| `src/cli/harness.ts` | Expose `harness init`, `harness check`, and `harness sync` |
+| `skills/feature-workflow/`, `skills/harness-builder/` | Authored workflow and map-enrichment skills |
+| `src/config/` | Add the `repository-manifests` source, disabled by default |
+| `src/dispatch/run.ts`, `src/dispatch/types.ts` | Gate commits and record the gate result |
+| `src/eval/harness/` | Fixture repositories and the two-stage comparison |
+| `README.md`, `docs/architecture/` | Describe the harness, delivery limits, consent, and evaluation |
+
+## Data handling
+
+`repository-manifests` is a new source, off by default and listed in the README. It reads only the named manifest files and top-level entry names of the repository where the command runs, stores derived commands and fingerprints in the committed `harness.json`, and sends nothing to a model. Profile text reaches `AGENTS.md` only through `compileProfile`, which resolves it through `resolveRedacted`; the preview warns that committed text is visible to anyone with repository access, and personal rules require per-repository confirmation. Harness sync reads Claude memory only under the existing `claude-memory` source for the exact current repository, through `resolveRedacted`, and never changes native memory. `harness check` reads repository files locally and reports paths and rule names without file contents. Gate output from `shadowclone run` stays within the authorized coding run and its receipt. Writing harness files is authorized by the explicit command; committing, pushing, or opening a pull request is not part of it.
+
+## Alternatives
+
+**Keep injecting a larger profile.** A 16 KiB packet did not arrive intact, and duplicated repository guidance displaced learned rules.
+
+**Replace native memory.** Removing Claude memory made Claude ignore skills, and memory has a complete native delivery channel that hooks lack.
+
+**One-shot generation like provider init commands.** A generated file with no learning loop or enforcement goes stale and remains advisory.
+
+**Memory retrieval services.** Retrieval returns facts at runtime; it does not produce an enforced, reviewable repository environment.
+
+**Separate `--alpha` installation mode.** The startup changes fix defects, and the harness is already opt-in per repository.
+
+## Accepted costs
+
+Repository skills are copied to two roots, so an agent that reads both may list a skill twice. The tool vocabulary for applicability is finite, so an unknown tool name passes. Stop-hook enforcement blocks only Claude until other providers' semantics are verified. The comparison uses synthetic repositories, which do not establish productivity on real work. The guidance protocol from record 021 keeps placeholder paths and no longer reproduces its private runs.
+
+## Testing
+
+Tests cover the 4 KiB cap, empty-profile silence, absent learning text, native-duplicate and known-duplicate omission, applicability omission, plugin suppression beside native delivery, steering-cue gating with zero model calls, and portable replica locations. Harness tests cover Bun and Python detection, gate choice, managed sections that preserve surrounding text and refuse edited sections, the `@AGENTS.md` import, personal-rule consent, a planted profile secret absent from the harness, conventions with fix-it messages, the `claude-stop` exit code, sync promotion of user and feedback notes only, preset merging, and the gated run leaving a red change uncommitted. A rebuild test strips this repository's harness from a fixture copy and requires `harness init` to regenerate the gate, the file-length, comment, em-dash, and suppression conventions, the workflow skill, and the import. Every regression test is proven by reverting its guarded line, observing the failure, and restoring it. `bun run check` passes before each commit. Real agent runs remain manual verification.
+
+## Open questions
+
+Whether Cursor de-duplicates skills that appear in both repository roots decides whether one copy can be dropped.
+
+Whether Codex, Cursor, and Antigravity honor a blocking stop hook decides when enforcement extends beyond Claude.
+
+## Decision record
+
+Build the repository harness as the product because it reproduces how this repository was built.
+
+Deliver at most 4 KiB at startup and never duplicate native guidance.
+
+Build on native memory and never modify it.
+
+Derive rules through the single compiler with per-repository consent for personal rules and an applicability filter.
+
+Represent the owner's method as an authored workflow skill that sync keeps current.
+
+Enforce mechanically through `harness check`, a Claude Stop hook, and gated headless commits.
+
+Measure with a native baseline, held-out acceptance tests, and deterministic checks.
