@@ -22,7 +22,7 @@ Every source has its own setting, defaults off, and appears by name before conse
 | Agent context | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.codex/AGENTS.override.md`, supported personal and repository skill roots, and `~/.claude/projects/<repo>/memory/` or `~/.codex/memories/`, only for consented evaluation |
 | Skill library | `~/.claude/skills/`, `~/.agents/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`, `~/.gemini/config/skills/`, configured repository roots, and selected provider plugin caches |
 | Git metadata | repository Git remote names |
-| Repository manifests | in the repository where `shadowclone harness init` runs: `package.json` scripts and dependency names, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, `.github/workflows/*.yml`, and top-level entry names |
+| Repository manifests | in the repository where `shadowclone init --repo` runs: `package.json` scripts and dependency names, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, `.github/workflows/*.yml`, and top-level entry names |
 
 Source detection checks whether a configured root has content. A directory check reads at most one entry to establish that fact and retains no name before consent. Agent transcripts can contain private code, credentials, internal hosts, and customer data. Shadowclone never copies raw transcripts into its store. Its SQLite index holds pointers and event kinds. Eligible excerpts pass through `resolveRedacted`, the single secret-redaction gate, before a model receives them. Tool results, file-read contents, thinking blocks, and data-access results are excluded from learning by category.
 
@@ -56,11 +56,11 @@ profile + personal skills -> native agents and clones -> new transcripts
 repository manifests + profile -> committed repository harness
 ```
 
-`shadowclone harness init` builds a harness in the current repository: a managed section in `AGENTS.md` with read-first skills, the detected gate and commands, and your applicable rules; an `@AGENTS.md` import in `CLAUDE.md`; an authored `feature-workflow` skill with approval boundaries; and `.shadowclone/harness.json` with the gate, derived conventions, and fingerprints. It previews by default and writes with `--apply`. Personal global rules are included only when you confirm for that repository, and a rule that names only tools or paths the repository lacks is left out. `--skill <name>` copies a personal skill into `.agents/skills/` and `.claude/skills/`. Text outside the managed sections stays yours, an edited section is never overwritten, and `shadowclone undo <revision>` restores the previous files. The harness files are meant to be committed, so anyone with repository access sees them.
+`shadowclone init --repo` sets up the current repository with files meant to be committed: a managed section in `AGENTS.md` with read-first skills, the detected gate and commands, and your applicable rules; an `@AGENTS.md` import in `CLAUDE.md`; an authored `feature-workflow` skill with approval boundaries; and `.shadowclone/harness.json` with the gate, derived conventions, and fingerprints. If this machine is not set up yet, it runs the personal setup first. It previews every file and writes only after you confirm. Personal global rules are included only when you confirm for that repository, and a rule that names only tools or paths the repository lacks is left out. `--skill <name>` copies a personal skill into `.agents/skills/` and `.claude/skills/`. Text outside the managed sections stays yours, an edited section is never overwritten, and `shadowclone undo <revision>` restores the previous files. The harness files are meant to be committed, so anyone with repository access sees them.
 
-`shadowclone harness check` verifies the harness and enforces its derived conventions (file length, forbidden characters such as em-dashes, lint or type suppressions, and TypeScript comments) with a fix for each finding. `--changed` limits it to uncommitted files, so older code does not block new work. `harness init --enforce-claude` adds a Claude Code Stop hook to your personal `.claude/settings.local.json` that runs the check and sends the findings back to Claude before it finishes; it blocks once per stop so an unfixable finding never loops. Other agents are held to the same conventions through the `AGENTS.md` finish line and your CI.
+`shadowclone check` verifies these files and enforces its derived conventions (file length, forbidden characters such as em-dashes, lint or type suppressions, and TypeScript comments) with a fix for each finding. `--changed` limits it to uncommitted files, so older code does not block new work. `init --repo` also adds a Claude Code Stop hook to your personal `.claude/settings.local.json` (skip it with `--no-enforce`) that runs the check and sends the findings back to Claude before it finishes; it blocks once per stop so an unfixable finding never loops. Other agents are held to the same conventions through the `AGENTS.md` finish line and your CI.
 
-`shadowclone harness sync` keeps the harness current. It re-renders the managed files from your latest profile with the answers recorded in `harness.json`. With the `claude-memory` source enabled and `--apply`, it also shows each new Claude feedback or user memory note for this repository and asks whether to add it as a repository rule; declined notes are not asked again until they change. Session-start context leaves out rules the committed harness already carries, so an agent does not read them twice.
+`shadowclone sync` refreshes your installed hooks and, in a repository set up this way, re-renders the managed files from your latest profile with the answers recorded in `harness.json`, showing the changes before writing them. With the `claude-memory` source enabled, it also shows each new Claude feedback or user memory note for this repository and asks whether to add it as a repository rule; declined notes are not asked again until they change. Session-start context leaves out rules the committed harness already carries, so an agent does not read them twice.
 
 Plain `shadowclone learn` updates the local index and prints a structural report without model calls or profile writes. `shadowclone learn --deep` starts with the newest unprocessed episodes in bounded batches, proposes changes, and asks before applying them. `--deep --apply` accepts that local write without a prompt. Explicit reusable guidance can become active from one session; inferred behavior needs three independent sessions. The processed ledger lets later runs continue backward through older history. `shadowclone remember --repo "Use complete variable names."` records a direct preference immediately.
 
@@ -96,7 +96,7 @@ The opt-in `--validation-of <completed-pilot-id> --cumulative-budget-usd 10` rep
 shadowclone eval --repo /path/to/repository --engine codex --model gpt-5.6-sol --reasoning-effort medium --tasks 3 --repeat 2
 ```
 
-`shadowclone run "fix the flaky test"` runs a headless clone in a local worktree and records a receipt. The invocation approves one worktree, branch, and local commit. When the repository has a harness, its gate and `harness check --changed` run in a no-network sandbox before the commit; a failure gets one repair attempt, and a change that still fails stays uncommitted with `gate: failed` in the receipt. Remote actions also need a matching repository policy ceiling and `--approve` for that run. No action approval carries to the next run. [Acting policy](docs/architecture/04-acting.md).
+`shadowclone run "fix the flaky test"` runs a headless clone in a local worktree and records a receipt. The invocation approves one worktree, branch, and local commit. When the repository has a harness, its gate and `shadowclone check --changed` run in a no-network sandbox before the commit; a failure gets one repair attempt, and a change that still fails stays uncommitted with `gate: failed` in the receipt. Remote actions also need a matching repository policy ceiling and `--approve` for that run. No action approval carries to the next run. [Acting policy](docs/architecture/04-acting.md).
 
 ## Early evaluation results
 
@@ -118,14 +118,14 @@ These are guideline checks passed, not correctness or productivity scores. The s
 | `shadowclone skills`, `shadowclone skills update` | List starter guidance or maintain consented skills |
 | `shadowclone skills pending`, `show`, `apply`, `reject` | Review skill proposals |
 | `shadowclone learning enable|disable|status` | Control session learning |
-| `shadowclone doctor`, `shadowclone context`, `shadowclone sync` | Inspect or refresh delivery |
+| `shadowclone doctor`, `shadowclone context` | Inspect delivery |
+| `shadowclone sync` | Refresh installed hooks and this repository's files |
 | `shadowclone context --explain`, `shadowclone recall <query>` | Explain session-start context or retrieve scoped references |
 | `shadowclone profile repair [--decisions <file>] [--apply]` | Preview or apply reversible origin repairs and reviewed curation |
 | `shadowclone migrate claude-memory` | Preview or apply a one-time copy of Claude memory into the profile |
-| `shadowclone harness init [--apply] [--personal\|--no-personal] [--skill <name>] [--enforce-claude]` | Preview or write the repository harness |
-| `shadowclone harness check [--changed] [--format human\|json\|claude-stop]` | Check the harness and its conventions |
-| `shadowclone harness sync [--apply]` | Refresh the harness and review new Claude memory notes |
-| `shadowclone install [--agent <agent>|all] [--global|--repo]` | Install native guidance manually |
+| `shadowclone init --repo [--personal\|--no-personal] [--skill <name>] [--no-enforce]` | Set up this repository with committable files |
+| `shadowclone check [--changed] [--format human\|json\|claude-stop]` | Check the repository files and conventions; run by the Claude Stop hook and CI |
+| `shadowclone install [--agent <agent>|all] [--global|--local]` | Install native guidance manually; `--local` limits it to this repository without committed files |
 | `shadowclone uninstall [--global]` | Remove owned integrations |
 | `shadowclone remember`, `history`, `undo` | Manage direct rules and revisions |
 | `shadowclone eval`, `shadowclone run <task>` | Measure transfer or run a local clone |

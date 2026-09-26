@@ -1,34 +1,33 @@
 import { readConfig, readManagedPolicy, setSourceEnabled, writeConfig } from "../config";
-import { applyHarness, planHarness, readHarnessManifest, renderHarnessPreview } from "../harness";
+import { applyHarness, planHarness, readHarnessManifest, renderHarnessOutcome, renderHarnessPreview } from "../harness";
 import { canonicalPath, projectPaths, type ProjectPaths } from "../paths";
 import type { GitRemoteReader } from "../signal";
 import { promptConfirmation, type ConfirmPrompt } from "./confirm";
 
-export type HarnessInitOptions = {
-  readonly apply: boolean;
+export type RepositoryInitOptions = {
   readonly personal: boolean | null;
   readonly skills: readonly string[];
   readonly enforceClaude: boolean;
 };
 
-export function parseHarnessInit(arguments_: readonly string[]): HarnessInitOptions | null {
-  let apply = false;
+export type HarnessInitOptions = RepositoryInitOptions & { readonly apply: boolean | "confirm" };
+
+export function parseRepositoryInit(arguments_: readonly string[]): RepositoryInitOptions | null {
   let personal: boolean | null = null;
-  let enforceClaude = false;
+  let enforceClaude = true;
   const skills: string[] = [];
   for (let position = 0; position < arguments_.length; position += 1) {
     const argument = arguments_[position];
-    if (argument === "--apply") apply = true;
-    else if (argument === "--personal" && personal === null) personal = true;
+    if (argument === "--personal" && personal === null) personal = true;
     else if (argument === "--no-personal" && personal === null) personal = false;
     else if (argument === "--skill" && arguments_[position + 1]) skills.push(arguments_[++position] ?? "");
-    else if (argument === "--enforce-claude") enforceClaude = true;
+    else if (argument === "--no-enforce") enforceClaude = false;
     else return null;
   }
-  return { apply, personal, skills, enforceClaude };
+  return { personal, skills, enforceClaude };
 }
 
-const manifestQuestion = "Harness init reads this repository's package.json scripts and dependency names, lockfile names, pyproject.toml, requirements.txt, Makefile targets, CI workflow files, and top-level entry names. Allow reading them?";
+const manifestQuestion = "Repository setup reads this repository's package.json scripts and dependency names, lockfile names, pyproject.toml, requirements.txt, Makefile targets, CI workflow files, and top-level entry names. Allow reading them?";
 const personalQuestion = "Include your personal global preferences in this repository's AGENTS.md? They will be committed and visible to anyone with repository access.";
 
 export async function harnessInitCommand(options: HarnessInitOptions & {
@@ -38,7 +37,6 @@ export async function harnessInitCommand(options: HarnessInitOptions & {
   readonly readRemote?: GitRemoteReader;
   readonly ask?: ConfirmPrompt;
   readonly writeLine?: (line: string) => void;
-  readonly applyCommand?: string;
 }): Promise<string | null> {
   const paths = options.paths ?? projectPaths;
   const ask = options.ask ?? promptConfirmation;
@@ -62,7 +60,10 @@ export async function harnessInitCommand(options: HarnessInitOptions & {
   const root = canonicalPath(options.cwd ?? process.cwd());
   const personal = options.personal ?? (await readHarnessManifest(root))?.personal ?? await ask(personalQuestion);
   const plan = await planHarness({ root, personal, skillNames: options.skills, enforceClaude: options.enforceClaude, paths, managedConfigPath, readRemote: options.readRemote });
-  const revision = options.apply ? await applyHarness({ paths, plan }) : undefined;
-  writeLine(renderHarnessPreview({ plan, revision, applyCommand: options.applyCommand }).trimEnd());
+  writeLine(renderHarnessPreview({ plan }).trimEnd());
+  const writes = plan.files.some((file) => file.status === "create" || file.status === "update");
+  const approved = options.apply === true || (options.apply === "confirm" && writes && await ask("Write these repository files?"));
+  const revision = approved ? await applyHarness({ paths, plan }) : writes ? undefined : null;
+  writeLine(renderHarnessOutcome(revision));
   return revision ?? null;
 }

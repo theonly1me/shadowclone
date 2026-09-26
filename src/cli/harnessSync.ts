@@ -25,7 +25,7 @@ async function promoteMemoryNotes(options: {
   if (isOriginBlocked({ repository, patterns: policy.blockedOrigins })) throw new Error("Managed policy blocks this repository");
   const candidates = await memoryCandidates({ paths: options.paths, root: options.root, repository });
   if (!options.apply) {
-    if (candidates.length > 0) options.writeLine(`${candidates.length} Claude memory note(s) can become repository rules. Run \`shadowclone harness sync --apply\` to review them one at a time.`);
+    if (candidates.length > 0) options.writeLine(`${candidates.length} Claude memory note(s) can become repository rules. Run \`shadowclone sync\` to review them one at a time.`);
     return;
   }
   for (const file of candidates) {
@@ -36,7 +36,7 @@ async function promoteMemoryNotes(options: {
 }
 
 export async function harnessSyncCommand(options: {
-  readonly apply: boolean;
+  readonly apply: boolean | "confirm";
   readonly cwd?: string;
   readonly paths?: ProjectPaths;
   readonly managedConfigPath?: string | null;
@@ -49,7 +49,7 @@ export async function harnessSyncCommand(options: {
   const ask = options.ask ?? promptConfirmation;
   const writeLine = options.writeLine ?? console.log;
   const root = await repositoryRoot({ cwd: options.cwd ?? process.cwd() });
-  if (await readHarnessManifest(root) === null) throw new Error("This repository has no harness; run `shadowclone harness init` first");
-  await promoteMemoryNotes({ root, apply: options.apply, paths, managedConfigPath, readRemote: options.readRemote, ask, writeLine });
-  return harnessInitCommand({ apply: options.apply, personal: null, skills: [], enforceClaude: false, cwd: root, paths, managedConfigPath, readRemote: options.readRemote, ask, writeLine, applyCommand: "shadowclone harness sync --apply" });
+  if (await readHarnessManifest(root) === null) return null;
+  await promoteMemoryNotes({ root, apply: options.apply !== false, paths, managedConfigPath, readRemote: options.readRemote, ask, writeLine });
+  return harnessInitCommand({ apply: options.apply, personal: null, skills: [], enforceClaude: false, cwd: root, paths, managedConfigPath, readRemote: options.readRemote, ask, writeLine });
 }

@@ -6,7 +6,7 @@ Four small TypeScript tasks were completed across three setups using GPT-5.6 Sol
 
 ## Repository harness pilot (2026-09-26)
 
-A small live check of `shadowclone harness init` on the two synthetic fixture repositories in `src/harness/fixtures/`. Each repository ran twice with Claude Code (`--model sonnet`, `acceptEdits`, a $1.50 cap per run, no permission bypass): once as shipped, and once after `harness init --apply --personal --enforce-claude` with a four-rule profile (no TypeScript comments, files under 200 lines, a failing test for each new behavior, stop without committing). Both arms got the same task specification. Held-out acceptance tests were copied in only after each run.
+A small live check of repository setup (then `shadowclone harness init`, now `shadowclone init --repo`) on the two synthetic fixture repositories in `src/harness/fixtures/`. Each repository ran twice with Claude Code (`--model sonnet`, `acceptEdits`, a $1.50 cap per run, no permission bypass): once as shipped, and once after `harness init --apply --personal --enforce-claude` with a four-rule profile (no TypeScript comments, files under 200 lines, a failing test for each new behavior, stop without committing). Both arms got the same task specification. Held-out acceptance tests were copied in only after each run.
 
 | Repository | Arm | Held-out acceptance | Gate | Tests added | Agent committed | Cost |
 | --- | --- | --- | --- | --- | --- | --- |

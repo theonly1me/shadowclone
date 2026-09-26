@@ -4,6 +4,8 @@
 
 Shadowclone builds and maintains the repository harness that lets coding agents do engineering work the way the owner would supervise it: a short `AGENTS.md` map, the owner's skills with mandatory triggers, one verification gate, mechanical conventions whose failures explain the fix, and a feature workflow with explicit approval boundaries. The harness is generated from the owner's learned profile and the repository's own facts, enforced through `shadowclone harness check` and a Claude Stop hook, and kept current from later corrections through `shadowclone harness sync`. Startup context from native hooks shrinks to a deduplicated 4 KiB index, and headless runs commit only when the gate passes.
 
+The commands shipped under their final names: `shadowclone init --repo` performs harness init (running personal setup first on a new machine, then previewing and asking before any write), `shadowclone check` performs harness check, and `shadowclone sync` performs harness sync after refreshing installed hooks. `install --repo` became `install --local`, so `--repo` always means committed repository files. The rest of this record keeps the working names.
+
 ## Problem
 
 This repository was built entirely by coding agents because its owner maintained a harness by hand: a navigational `CLAUDE.md`, skills such as `clean-code` and `scoped-fix`, `scripts/conventions.ts` plus Biome rules, one gate (`bun run check`) that CI runs, design records, and a PR template. Corrections were folded back into those files manually. Shadowclone did not reproduce any of that for another repository. It injected a profile instead, and that delivery made agents worse.

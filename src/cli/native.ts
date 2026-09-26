@@ -10,6 +10,7 @@ import { uninstallLiveClone } from "./uninstall";
 import { removeUneditedLegacySubagent } from "./legacyUpgrade";
 import { scheduleLearning } from "../learning";
 import { explainContext, renderContextExplanation } from "./contextExplain";
+import { harnessSyncCommand } from "./harnessSync";
 
 export type NativeInstallOptions = {
   readonly agents: readonly IntegrationAgent[];
@@ -29,7 +30,7 @@ export function parseNativeOptions(arguments_: readonly string[]): NativeInstall
     if (!argument || seen.has(argument)) return null;
     seen.add(argument);
     if (argument === "--global") scope = "global";
-    else if (argument === "--repo") scope = "repository";
+    else if (argument === "--local") scope = "repository";
     else if (argument === "--subagent") subagent = true;
     else if (argument === "--auto-delegate") { subagent = true; autoDelegate = true; }
     else if (argument === "--agent") {
@@ -42,7 +43,7 @@ export function parseNativeOptions(arguments_: readonly string[]): NativeInstall
       }
     } else return null;
   }
-  if (seen.has("--global") && seen.has("--repo")) return null;
+  if (seen.has("--global") && seen.has("--local")) return null;
   if (subagent && (scope === "global" || !agents.includes("claude-code"))) return null;
   return { agents, scope, subagent, autoDelegate };
 }
@@ -75,7 +76,7 @@ export async function handleNativeCommand(options: {
 }): Promise<boolean> {
   if (options.command === "install" || options.command === "uninstall") {
     const parsed = parseNativeOptions(options.arguments);
-    if (!parsed) throw new Error("Use --agent claude-code|codex|cursor|antigravity|all and --global or --repo; subagents require repository Claude installation");
+    if (!parsed) throw new Error("Use --agent claude-code|codex|cursor|antigravity|all and --global or --local; subagents require local Claude installation");
     if (options.command === "install") await installNativeCommand(parsed);
     else await uninstallNativeCommand({ ...parsed, allAgents: !options.arguments.includes("--agent") });
     return true;
@@ -104,6 +105,7 @@ export async function handleNativeCommand(options: {
   if (options.command === "sync" && options.arguments.length === 0) {
     const result = await refreshIntegrations();
     console.log(`Refreshed ${result.refreshed} integration(s); preserved ${result.preserved} edited or unavailable integration(s).`);
+    await harnessSyncCommand({ apply: "confirm" });
     return true;
   }
   if (options.command === "hook" && options.arguments.length === 2) {

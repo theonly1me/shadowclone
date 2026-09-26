@@ -13,7 +13,7 @@ Every source is opt-in, named in the config, and listed in the README. The confi
 | `cursor` | `~/.cursor/chats/**/{store.db,meta.json}` | off | Per session SQLite plus cwd and timestamps |
 | `declared-rules` | repository root instructions and direct agent skill `SKILL.md` files | off | Deterministic redacted profile import |
 | `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization and exact repository scope, never repository contents |
-| `repository-manifests` | `package.json` scripts and dependency names, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, `.github/workflows/*.yml`, and top-level entry names in the repository where `harness init` runs | off | Local gate and command detection for the harness, never sent to a model |
+| `repository-manifests` | `package.json` scripts and dependency names, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, `.github/workflows/*.yml`, and top-level entry names in the repository where `init --repo` runs | off | Local gate and command detection for the harness, never sent to a model |
 | `shell` | `~/.zsh_history`, `~/.bash_history` | off | Captured as user prompts, no correction signals |
 
 Capture consent protects content. Before consent, onboarding may determine whether a configured source root exists and is non-empty, then use that one ephemeral boolean to omit absent providers from grouped consent. Directory checks use `opendir`, read at most one entry, reduce the result immediately to a boolean, and close the directory. File checks reduce existence and non-zero size to the same boolean. The check does not retain or log a path, entry name, count, timestamp, size, or provider-derived identifier.

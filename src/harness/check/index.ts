@@ -34,7 +34,7 @@ export async function runHarnessCheck(options: {
 }): Promise<HarnessCheckReport> {
   const manifest = await readHarnessManifest(options.root);
   if (manifest === null) {
-    return { checkedFiles: 0, findings: [{ severity: "error", rule: "harness-missing", path: ".shadowclone/harness.json", line: null, fix: "This repository has no harness. Run `shadowclone harness init --apply` to create one." }] };
+    return { checkedFiles: 0, findings: [{ severity: "error", rule: "harness-missing", path: ".shadowclone/harness.json", line: null, fix: "This repository has no Shadowclone setup. Run `shadowclone init --repo` to create one." }] };
   }
   const findings: HarnessFinding[] = [...await healthFindings({ root: options.root, manifest })];
   const relevant = new Set([...manifest.sourceExtensions, ...checkedProseExtensions]);
@@ -43,7 +43,7 @@ export async function runHarnessCheck(options: {
   const needsComments = manifest.conventions.some((convention) => convention.kind === "no-comments" || convention.kind === "no-suppressions");
   const readComments = needsComments ? await loadRepositoryCommentReader(options.root) : null;
   if (readComments === null && manifest.conventions.some((convention) => convention.kind === "no-comments")) {
-    findings.push({ severity: "warning", rule: "typescript-unavailable", path: "package.json", line: null, fix: "Install dependencies so harness check can use the repository's typescript package to find comments." });
+    findings.push({ severity: "warning", rule: "typescript-unavailable", path: "package.json", line: null, fix: "Install dependencies so shadowclone check can use the repository's typescript package to find comments." });
   }
   let checkedFiles = 0;
   for (const file of files) {

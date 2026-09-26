@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const claudeSettingsPath = ".claude/settings.local.json";
-export const stopHookCommand = "shadowclone harness check --changed --format claude-stop";
+export const stopHookCommand = "shadowclone check --changed --format claude-stop";
 
 const settingsSchema = z.object({ hooks: z.record(z.string(), z.array(z.unknown())).optional() }).passthrough();
 const stopEntry = { hooks: [{ type: "command", command: stopHookCommand, timeout: 60 }] };

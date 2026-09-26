@@ -58,7 +58,7 @@ export function renderHarnessBuilderSkill(): AuthoredSkill {
       "1. Read `AGENTS.md`, `README.md`, and the top-level layout.",
       "2. Write or refresh three short sections: Purpose (what the repository does and for whom), Map (the main directories or modules and what each does), and Rules that outrank convenience (invariants a reviewer would reject a change for breaking, each with its reason).",
       "3. Keep `AGENTS.md` under 150 lines. Link to longer documents instead of copying them.",
-      "4. Leave the marked section alone. Preferences change through `shadowclone remember` and the next `shadowclone harness init`.",
+      "4. Leave the marked section alone. Preferences change through `shadowclone remember` and the next `shadowclone sync`.",
       "5. Show the diff and stop. Do not commit unless asked.",
     ],
   });

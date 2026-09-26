@@ -16,11 +16,11 @@ export function renderAgentsSection(options: {
   readonly checked: boolean;
 }): string {
   const finish = options.gate === null ? "the checks above pass" : `\`${options.gate.command}\` passes`;
-  const check = options.checked ? " If `shadowclone` is installed, also run `shadowclone harness check --changed` and fix what it reports." : "";
+  const check = options.checked ? " If `shadowclone` is installed, also run `shadowclone check --changed` and fix what it reports." : "";
   return [
     "## Working in this repository",
     "",
-    "Maintained by `shadowclone harness init` from this repository's manifests and its owner's confirmed preferences. Everything outside this section is yours to edit.",
+    "Maintained by `shadowclone init --repo` from this repository's manifests and its owner's confirmed preferences. Everything outside this section is yours to edit.",
     "",
     "### Read first",
     "",

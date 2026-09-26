@@ -61,7 +61,7 @@ export async function planOwnedFile(options: {
 }
 
 export async function planClaudeStopHook(root: string): Promise<PlannedFile> {
-  const base = { relativePath: claudeSettingsPath, fingerprint: null, reason: "your Claude Stop hook that runs harness check" };
+  const base = { relativePath: claudeSettingsPath, fingerprint: null, reason: "your Claude Stop hook that runs shadowclone check" };
   if (await isSymbolicLink(path.join(root, claudeSettingsPath))) return { ...base, status: "skipped", previous: null, next: null, reason: "is a symbolic link, so it was left alone" };
   const previous = await readLocalText(path.join(root, claudeSettingsPath));
   try {

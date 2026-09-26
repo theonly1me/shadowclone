@@ -10,7 +10,7 @@ import type { HarnessFinding } from "./types";
 
 const maximumAgentsLines = 150;
 const packageScriptsSchema = z.object({ scripts: z.record(z.string(), z.string()).optional() });
-const refresh = "run `shadowclone harness init --apply`";
+const refresh = "run `shadowclone sync`";
 
 function error(options: { readonly rule: string; readonly path: string; readonly fix: string }): HarnessFinding {
   return { severity: "error", line: null, ...options };

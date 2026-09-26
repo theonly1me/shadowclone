@@ -14,12 +14,12 @@ export function renderCheckReport(options: { readonly report: HarnessCheckReport
   if (options.format === "claude-stop") {
     if (errors.length === 0) return { stdout: "", stderr: "", exitCode: 0 };
     const listed = errors.slice(0, maximumStopFindings).map((finding) => `- ${location(finding)} ${finding.rule}: ${finding.fix}`);
-    const more = errors.length > maximumStopFindings ? [`- and ${errors.length - maximumStopFindings} more; run \`shadowclone harness check --changed\` to see them.`] : [];
-    return { stdout: "", stderr: [`Shadowclone harness check found ${errors.length} problem(s) in this repository's changed files. Fix them before you finish:`, ...listed, ...more].join("\n"), exitCode: 2 };
+    const more = errors.length > maximumStopFindings ? [`- and ${errors.length - maximumStopFindings} more; run \`shadowclone check --changed\` to see them.`] : [];
+    return { stdout: "", stderr: [`Shadowclone check found ${errors.length} problem(s) in this repository's changed files. Fix them before you finish:`, ...listed, ...more].join("\n"), exitCode: 2 };
   }
   const warnings = options.report.findings.length - errors.length;
   const lines = [
-    `harness check: ${errors.length} error(s), ${warnings} warning(s) in ${options.report.checkedFiles} file(s)`,
+    `shadowclone check: ${errors.length} error(s), ${warnings} warning(s) in ${options.report.checkedFiles} file(s)`,
     ...options.report.findings.map((finding) => `${finding.severity} ${location(finding)} ${finding.rule}: ${finding.fix}`),
   ];
   return { stdout: `${lines.join("\n")}\n`, stderr: "", exitCode: errors.length > 0 ? 1 : 0 };

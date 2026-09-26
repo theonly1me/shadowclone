@@ -16,7 +16,13 @@ function omissionSummary(plan: HarnessPlan): string {
   return [...counts].map(([reason, count]) => `${count} ${reason}`).join(", ") || "none";
 }
 
-export function renderHarnessPreview(options: { readonly plan: HarnessPlan; readonly revision?: string | null; readonly applyCommand?: string }): string {
+export function renderHarnessOutcome(revision: string | null | undefined): string {
+  if (revision === undefined) return "Nothing was written.";
+  if (revision === null) return "The repository files are already up to date.";
+  return `Wrote revision ${revision}. Review with \`git diff\`; restore with \`shadowclone undo ${revision}\`. Nothing was committed.`;
+}
+
+export function renderHarnessPreview(options: { readonly plan: HarnessPlan }): string {
   const { plan } = options;
   const gate = plan.gate === null
     ? "Gate: none detected. Add a check script or Makefile target, then run this again."
@@ -33,8 +39,5 @@ export function renderHarnessPreview(options: { readonly plan: HarnessPlan; read
     "These files are meant to be committed. Anyone with access to the repository will see them, including the rules above.",
     ...(agents.split("\n").length > maximumAgentsLines ? [`Warning: AGENTS.md would exceed ${maximumAgentsLines} lines; shorten the text outside the managed section.`] : []),
   ];
-  if (options.revision === undefined) lines.push(`Nothing was written. Run \`${options.applyCommand ?? "shadowclone harness init --apply"}\` to write these files.`);
-  else if (options.revision === null) lines.push("The harness is already up to date.");
-  else lines.push(`Wrote revision ${options.revision}. Review with \`git diff\`; restore with \`shadowclone undo ${options.revision}\`. Nothing was committed.`);
   return `${lines.join("\n")}\n`;
 }

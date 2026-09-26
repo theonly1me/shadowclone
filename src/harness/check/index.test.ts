@@ -53,7 +53,7 @@ test("a missing harness is reported with the init command, and a broken manifest
   const setup = await checkedRepository();
   await rm(path.join(setup.root, ".shadowclone/harness.json"));
   const missing = await runHarnessCheck({ root: setup.root, changed: false });
-  expect(missing.findings[0]?.fix).toContain("shadowclone harness init --apply");
+  expect(missing.findings[0]?.fix).toContain("shadowclone init --repo");
   expect(missing.findings.map((finding) => `${finding.severity} ${finding.rule}`)).toEqual(["error harness-missing"]);
   await Bun.write(path.join(setup.root, ".shadowclone/harness.json"), "");
   await expect(runHarnessCheck({ root: setup.root, changed: false })).rejects.toThrow("restore it from version control");

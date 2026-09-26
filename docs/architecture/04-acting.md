@@ -49,7 +49,7 @@ Push safety is handled outside the agent process. The agent receives no `Bash(gi
 4. Compile the profile for this repo into `.compiled.md`.
 5. Generate a run UUID and pass it as `--session-id`, so the clone's transcript is findable.
 6. Run the engine with the policy's tools, `dontAsk` permission mode, and budget.
-7. If the worktree carries a harness, run its gate inside the no-network verification sandbox, which can write only the worktree and a temporary directory, and run `harness check --changed`. On failure, run the engine once more with the redacted failure output, then gate again.
+7. If the worktree carries a harness, run its gate inside the no-network verification sandbox, which can write only the worktree and a temporary directory, and run `shadowclone check --changed`. On failure, run the engine once more with the redacted failure output, then gate again.
 8. Commit a successful change with fixed `git add --all` and `git commit` argument vectors only when the gate passed or no harness exists. A change that still fails stays uncommitted in the worktree.
 9. If push was approved, execute host-side upstream push.
 10. Inspect the worktree and write `~/.shadowclone/runs/<runId>/receipt.json`.
