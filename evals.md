@@ -4,6 +4,19 @@ This comparison asks whether adding a Shadowclone profile helps a coding agent f
 
 Four small TypeScript tasks were completed across three setups using GPT-5.6 Sol with medium reasoning effort. There was one implementation per task per setup, giving twelve graded implementations. Every preference check has three judge votes.
 
+## Repository harness pilot (2026-09-26)
+
+A small live check of `shadowclone harness init` on the two synthetic fixture repositories in `src/harness/fixtures/`. Each repository ran twice with Claude Code (`--model sonnet`, `acceptEdits`, a $1.50 cap per run, no permission bypass): once as shipped, and once after `harness init --apply --personal --enforce-claude` with a four-rule profile (no TypeScript comments, files under 200 lines, a failing test for each new behavior, stop without committing). Both arms got the same task specification. Held-out acceptance tests were copied in only after each run.
+
+| Repository | Arm | Held-out acceptance | Gate | Tests added | Agent committed | Cost |
+| --- | --- | --- | --- | --- | --- | --- |
+| Bun task list | baseline | 3 of 3 | pass | yes | no | $0.29 |
+| Bun task list | harness | 3 of 3 | pass | yes | no | $0.22 |
+| Python config | baseline | pass | pass | no | no | $0.29 |
+| Python config | harness | pass | pass | yes | no | $0.22 |
+
+Both arms solved both tasks. The one behavioral difference is that the baseline skipped a test for the Python change and the harness arm added one. This is one run per arm on two small synthetic tasks, so it shows the harness does not get in the way and can carry a working practice; it does not establish a general improvement. The earlier results below used a different, synthetic baseline.
+
 ## What each agent received
 
 | Setup | Repository guidance | Personal skills and context | Shadowclone profile |
