@@ -40,7 +40,7 @@ Record 021 supplies the reference library and the native delivery probe that est
 
 **Gated run.** Before the engine runs, `shadowclone run` copies the repository's installed dependencies into the worktree when `node_modules` is ignored and the lockfile matches, because the clone's sandbox cannot read the original repository. After the engine finishes, the worktree's committed `harness.json` supplies the gate. The gate runs through `sh -c` inside the existing verification sandbox, with no network and writes limited to the worktree and a temporary directory, because it executes code the clone just wrote; `harness check --changed` runs beside it. A failure sends the redacted gate and check output to the engine once as a repair prompt, then gates again. The change is committed only when the gate passes or the repository has no harness, and the receipt records the gate status, command, and attempts, with cost and turns summed across both engine runs. An invalid manifest counts as a failed gate.
 
-**Comparison.** `shadowclone eval --harness` compares a native baseline (native skills, instructions, and memory) with the same baseline plus the harness on two synthetic repositories, a Bun task-list CLI and a Python configuration CLI, each with a frozen specification and held-out acceptance tests. Each task runs a planning stage that must stop, then an implementation stage with the saved plan. Metrics are deterministic where possible: acceptance tests, gate and check results, approval boundaries, scope violations, and unsupported completion claims. Corrections a reviewer would still give are left for human review.
+**Comparison.** Two synthetic repositories in `src/harness/fixtures/`, a Bun task-list CLI and a Python configuration CLI, carry a frozen specification and held-out acceptance tests that fail before the feature exists. A scripted pilot ran each with Claude Code twice, once as shipped and once with the harness, scoring held-out acceptance tests, the gate, added tests, and unrequested commits; `evals.md` records the result. A packaged `eval --harness` command and a separate planning stage are deferred.
 
 **WIP inventory.** From record 021 the branch keeps native-duplicate omission, the reference library and recall, `context --explain`, de-duplicated portable locations, the Claude memory copy, profile repair, and the guidance protocol with neutral placeholders in place of private repository details. It removes source archival from native memory and adds Linux-portable test paths and memory type detection.
 
@@ -56,7 +56,7 @@ Record 021 supplies the reference library and the native delivery probe that est
 | `skills/feature-workflow/`, `skills/harness-builder/` | Authored workflow and map-enrichment skills |
 | `src/config/` | Add the `repository-manifests` source, disabled by default |
 | `src/dispatch/run.ts`, `src/dispatch/types.ts` | Gate commits and record the gate result |
-| `src/eval/harness/` | Fixture repositories and the two-stage comparison |
+| `src/harness/fixtures/` | Synthetic fixture repositories with held-out acceptance tests |
 | `README.md`, `docs/architecture/` | Describe the harness, delivery limits, consent, and evaluation |
 
 ## Data handling
@@ -81,7 +81,7 @@ Repository skills are copied to two roots, so an agent that reads both may list 
 
 ## Testing
 
-Tests cover the 4 KiB cap, empty-profile silence, absent learning text, the three-line pointer, the recall line, native-duplicate omission, known-duplicate omission only under repository guidance consent, the doctor summary, applicability omission, plugin suppression beside native delivery, steering-cue gating with zero model calls, review-first starters and companions, and retirement of legacy Codex and Cursor copies. Harness tests cover Bun and Python detection, gate choice, managed sections that preserve surrounding text and refuse edited sections, the `@AGENTS.md` import, personal-rule consent, a planted profile secret absent from the harness, conventions with fix-it messages, the `claude-stop` exit code, sync promotion of user and feedback notes only, preset merging, and the gated run leaving a red change uncommitted. A rebuild test strips this repository's harness from a fixture copy and requires `harness init` to regenerate the gate, the file-length, comment, em-dash, and suppression conventions, the workflow skill, and the import. Every regression test is proven by reverting its guarded line, observing the failure, and restoring it. `bun run check` passes before each commit. Real agent runs remain manual verification.
+Tests cover the 4 KiB cap, empty-profile silence, absent learning text, the three-line pointer, the recall line, native-duplicate omission, known-duplicate omission only under repository guidance consent, the doctor summary, applicability omission, plugin suppression beside native delivery, steering-cue gating with zero model calls, review-first starters and companions, and retirement of legacy Codex and Cursor copies. Harness tests cover Bun and Python detection, gate choice, managed sections that preserve surrounding text and refuse edited sections, the `@AGENTS.md` import, personal-rule consent, a planted profile secret absent from the harness, conventions with fix-it messages, the `claude-stop` exit code, sync promotion of user and feedback notes only, confirmation before `init --repo` writes, and the gated run committing only after the gate passes, with one repair attempt. A rebuild test strips this repository's harness from a fixture copy and requires `harness init` to regenerate the gate, the file-length, comment, em-dash, and suppression conventions, the workflow skill, and the import. Every regression test is proven by reverting its guarded line, observing the failure, and restoring it. `bun run check` passes before each commit. Real agent runs remain manual verification; one pilot is recorded in `evals.md`.
 
 ## Open questions
 
@@ -101,6 +101,6 @@ Derive rules through the single compiler with per-repository consent for persona
 
 Represent the owner's method as an authored workflow skill that sync keeps current.
 
-Enforce mechanically through `harness check`, a Claude Stop hook, and gated headless commits.
+Enforce mechanically through `shadowclone check`, a Claude Stop hook, and gated headless commits.
 
-Measure with a native baseline, held-out acceptance tests, and deterministic checks.
+Measure with held-out acceptance tests and deterministic checks on synthetic repositories, and defer a packaged comparison command and the organization preset.
