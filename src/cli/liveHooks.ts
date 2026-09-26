@@ -39,8 +39,8 @@ async function nativeClaudeDeliveryCovers(options: {
 async function activeProfile(options: LiveHookOptions): Promise<string | null> {
   const paths = options.paths ?? projectPaths;
   const input = parseHookInput(options.input);
-  const cwd = canonicalPath(readHookString(input, "cwd") ?? process.cwd());
-  if (await nativeClaudeDeliveryCovers({ paths, cwd })) {
+  const cwd = readHookString(input, "cwd") ?? process.cwd();
+  if (await nativeClaudeDeliveryCovers({ paths, cwd: canonicalPath(cwd) })) {
     return null;
   }
   const profile = await compileContext({
