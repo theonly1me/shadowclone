@@ -20,7 +20,8 @@ export function renderIndexLine(block: CompilerBlock): string | null {
   if (block.kind === "reference") return null;
   const { title, sentence } = summarizeRule(block);
   if (title.length === 0) return null;
-  const text = sentence === null || sentence.toLowerCase() === title.toLowerCase() ? title : `${title}: ${sentence}`;
+  const comparable = (value: string) => value.toLowerCase().replace(/[.!?:;,\s]+$/, "");
+  const text = sentence === null || comparable(sentence) === comparable(title) ? title : `${title}: ${sentence}`;
   const condition = block.appliesWhen.length > 0 ? ` (when ${block.appliesWhen.join("; ")})` : "";
   return `- ${text}${condition}`;
 }

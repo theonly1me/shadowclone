@@ -38,6 +38,7 @@ export async function harnessInitCommand(options: HarnessInitOptions & {
   readonly readRemote?: GitRemoteReader;
   readonly ask?: ConfirmPrompt;
   readonly writeLine?: (line: string) => void;
+  readonly applyCommand?: string;
 }): Promise<string | null> {
   const paths = options.paths ?? projectPaths;
   const ask = options.ask ?? promptConfirmation;
@@ -62,6 +63,6 @@ export async function harnessInitCommand(options: HarnessInitOptions & {
   const personal = options.personal ?? (await readHarnessManifest(root))?.personal ?? await ask(personalQuestion);
   const plan = await planHarness({ root, personal, skillNames: options.skills, enforceClaude: options.enforceClaude, paths, managedConfigPath, readRemote: options.readRemote });
   const revision = options.apply ? await applyHarness({ paths, plan }) : undefined;
-  writeLine(renderHarnessPreview({ plan, revision }).trimEnd());
+  writeLine(renderHarnessPreview({ plan, revision, applyCommand: options.applyCommand }).trimEnd());
   return revision ?? null;
 }

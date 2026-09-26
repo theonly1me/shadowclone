@@ -85,3 +85,11 @@ test("a short probe is too weak to count as a known duplicate", async () => {
   });
   expect(compilation.markdown).toContain("- Test: Test it.");
 });
+
+test("a title that repeats the first sentence is not written twice", async () => {
+  const compilation = await compileProfile({
+    input: { kind: "rules", rules: [rule({ key: "size", title: "Keep every file under 200 lines", body: "Keep every file under 200 lines." })] },
+    format: "index",
+  });
+  expect(compilation.markdown).toContain("- Keep every file under 200 lines\n");
+});

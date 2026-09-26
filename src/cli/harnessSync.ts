@@ -51,5 +51,5 @@ export async function harnessSyncCommand(options: {
   const root = await repositoryRoot({ cwd: options.cwd ?? process.cwd() });
   if (await readHarnessManifest(root) === null) throw new Error("This repository has no harness; run `shadowclone harness init` first");
   await promoteMemoryNotes({ root, apply: options.apply, paths, managedConfigPath, readRemote: options.readRemote, ask, writeLine });
-  return harnessInitCommand({ apply: options.apply, personal: null, skills: [], enforceClaude: false, cwd: root, paths, managedConfigPath, readRemote: options.readRemote, ask, writeLine });
+  return harnessInitCommand({ apply: options.apply, personal: null, skills: [], enforceClaude: false, cwd: root, paths, managedConfigPath, readRemote: options.readRemote, ask, writeLine, applyCommand: "shadowclone harness sync --apply" });
 }
