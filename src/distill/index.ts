@@ -71,6 +71,7 @@ export async function distillSignals(options: {
   readonly profile?: ProfileSnapshot;
   readonly seedLibrary?: SeedLibrary;
   readonly execution?: LearningExecution;
+  readonly requireSteeringCue?: boolean;
 }): Promise<DistillationResult> {
   const execution = options.execution ?? createLearningExecution({
     engine: options.engine,
@@ -84,6 +85,7 @@ export async function distillSignals(options: {
   const { signals, excerpts } = await materializeEvidence({
     signals: eligible,
     sourceRoots: options.sourceRoots,
+    requireSteeringCue: options.requireSteeringCue,
   });
   const appliedRules: ProfileRule[] = [];
   const changes: ReconciliationChange[] = [];

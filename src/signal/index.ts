@@ -51,6 +51,7 @@ export type {
   StructuralSummary,
 } from "./types";
 export { isOriginBlocked } from "./blockedOrigin";
+export { hasDurableSteeringCue } from "./steeringCue";
 export {
   getEventOrigin,
   getEventRepository,
