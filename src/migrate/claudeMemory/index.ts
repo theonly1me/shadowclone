@@ -1,9 +1,5 @@
 export { parseClaudeMemoryDecisions, type ClaudeMemoryDecisions } from "./decisions";
 export {
-  archiveClaudeMemory,
-  type ClaudeMemoryArchiveResult,
-} from "./archive";
-export {
   parseClaudeMemoryManifest,
   renderClaudeMemoryManifest,
 } from "./manifest";

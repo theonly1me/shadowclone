@@ -70,7 +70,7 @@ Portable skills live in `~/.agents/skills` and sync to supported provider locati
 
 `shadowclone doctor` reports installation, engine, and profile-repair status. `shadowclone context` prints the compiled profile for the current scope. `shadowclone context --explain` reports byte use, source counts, omission reasons, scope files, and legacy or isolated rule counts without printing rule bodies. `shadowclone history` shows local revisions, and `shadowclone undo <revision-id>` restores one when no later edit conflicts.
 
-`shadowclone profile repair` previews legacy-origin repairs. Add `--apply` to merge safe files in a reversible profile revision; edited or conflicting blocks remain untouched. A reviewed `--decisions <file>` can move rules to their correct scope, reject covered or stale rules with a recorded reason, and convert long rules into scoped references. The same preview-first and revision-backed apply flow protects every curation. `shadowclone migrate claude-memory` previews a one-time import. Applying it requires a reviewed JSON disposition for every `feedback_*` file, imports `reference_*` files into the scoped reference library, and stores `project_*` notes as recall-only references that do not enter always-on context. Source archival is a separately confirmed command tied to the applied revision and creates a verified sibling backup first.
+`shadowclone profile repair` previews legacy-origin repairs. Add `--apply` to merge safe files in a reversible profile revision; edited or conflicting blocks remain untouched. A reviewed `--decisions <file>` can move rules to their correct scope, reject covered or stale rules with a recorded reason, and convert long rules into scoped references. The same preview-first and revision-backed apply flow protects every curation. `shadowclone migrate claude-memory` previews a one-time import. Applying it requires a reviewed JSON disposition for every `feedback_*` file, imports `reference_*` files into the scoped reference library, and stores `project_*` notes as recall-only references that do not enter always-on context. Shadowclone never changes or removes native Claude memory.
 
 Transfer evaluation compares three matched setups: repository guidance only, that guidance plus the existing personal skill/context library, and both plus the Shadowclone profile. It freezes a source-backed coding-preference rubric before execution and saves three blinded votes per check. Correctness is graded separately. Missing grades are reported as ungraded, and a completed evaluation does not require Clone to win. [Evaluation design](docs/architecture/09-evaluation.md).
 
@@ -113,7 +113,7 @@ These are guideline checks passed, not correctness or productivity scores. The s
 | `shadowclone doctor`, `shadowclone context`, `shadowclone sync` | Inspect or refresh delivery |
 | `shadowclone context --explain`, `shadowclone recall <query>` | Explain context selection or retrieve scoped references |
 | `shadowclone profile repair [--decisions <file>] [--apply]` | Preview or apply reversible origin repairs and reviewed curation |
-| `shadowclone migrate claude-memory` | Preview, apply, or separately archive a one-time Claude memory migration |
+| `shadowclone migrate claude-memory` | Preview or apply a one-time copy of Claude memory into the profile |
 | `shadowclone install [--agent <agent>|all] [--global|--repo]` | Install native guidance manually |
 | `shadowclone uninstall [--global]` | Remove owned integrations |
 | `shadowclone remember`, `history`, `undo` | Manage direct rules and revisions |

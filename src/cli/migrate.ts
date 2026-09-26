@@ -1,42 +1,25 @@
 import path from "node:path";
 import { readLocalText } from "../localFiles";
 import {
-  archiveClaudeMemory,
   migrateClaudeMemory,
   parseClaudeMemoryDecisions,
   type ClaudeMemoryDecisions,
   type ClaudeMemoryMigrationResult,
 } from "../migrate";
 import { projectPaths } from "../paths";
-import { promptConfirmation, type ConfirmPrompt } from "./confirm";
 
 type MigrationOptions = {
   readonly apply: boolean;
-  readonly archive: boolean;
   readonly decisionsPath: string | null;
-  readonly revisionId: string | null;
 };
 
 function parseOptions(arguments_: readonly string[]): MigrationOptions | null {
   let apply = false;
-  let archive = false;
   let decisionsPath: string | null = null;
-  let revisionId: string | null = null;
   for (let index = 0; index < arguments_.length; index += 1) {
     const argument = arguments_[index];
     if (argument === "--apply" && !apply) {
       apply = true;
-      continue;
-    }
-    if (argument === "--archive-source" && !archive) {
-      archive = true;
-      continue;
-    }
-    if (argument === "--revision" && revisionId === null) {
-      const value = arguments_[index + 1];
-      if (value === undefined) return null;
-      revisionId = value;
-      index += 1;
       continue;
     }
     if (argument === "--decisions" && decisionsPath === null) {
@@ -48,9 +31,7 @@ function parseOptions(arguments_: readonly string[]): MigrationOptions | null {
     }
     return null;
   }
-  if (archive && (apply || decisionsPath !== null || revisionId === null)) return null;
-  if (!archive && revisionId !== null) return null;
-  return { apply, archive, decisionsPath, revisionId };
+  return { apply, decisionsPath };
 }
 
 async function readDecisions(filePath: string | null): Promise<ClaudeMemoryDecisions | undefined> {
@@ -77,37 +58,20 @@ export function renderMigrationResult(result: ClaudeMemoryMigrationResult): stri
   if (result.plan.alreadyApplied) lines.push("This source snapshot was already migrated.");
   else if (result.revisionId !== null) lines.push(`Applied revision ${result.revisionId}.`);
   else lines.push("Preview only. Use --decisions <file> --apply after reviewing feedback.");
+  lines.push("Native Claude memory is never changed or removed.");
   return `${lines.join("\n")}\n`;
 }
 
 export async function handleMigrateCommand(options: {
   readonly command: string | undefined;
   readonly arguments: readonly string[];
-  readonly confirm?: ConfirmPrompt;
 }): Promise<boolean> {
   if (options.command !== "migrate" || options.arguments[0] !== "claude-memory") {
     return false;
   }
   const parsed = parseOptions(options.arguments.slice(1));
   if (parsed === null) {
-    throw new Error("Use shadowclone migrate claude-memory [--decisions <file>] [--apply] or --archive-source --revision <id>");
-  }
-  if (parsed.archive && parsed.revisionId !== null) {
-    const confirm = options.confirm ?? promptConfirmation;
-    if (!(await confirm(
-      "Archive migrated feedback and reference files from active Claude memory after creating a verified sibling backup?",
-    ))) {
-      await Bun.stdout.write("Claude memory source was not changed.\n");
-      return true;
-    }
-    const result = await archiveClaudeMemory({
-      paths: projectPaths,
-      revisionId: parsed.revisionId,
-    });
-    await Bun.stdout.write(
-      `Archived ${result.archived} file(s); ${result.activeProjects} project note(s) remain. Backup: ${result.backupDirectory}\n`,
-    );
-    return true;
+    throw new Error("Use shadowclone migrate claude-memory [--decisions <file>] [--apply]");
   }
   const result = await migrateClaudeMemory({
     paths: projectPaths,
