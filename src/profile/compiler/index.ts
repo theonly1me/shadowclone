@@ -1,12 +1,23 @@
 import { ownedWrite } from "../../storage";
 import { seedGuidanceProfileKey } from "../../skills/key";
 import { loadSeedLibrary } from "../../skills/library";
-import { compilerBlocksFromRules, readCompilerBlocks } from "./read";
-import { defaultProfileByteBudget, renderCompilation } from "./render";
+import { readScopedReferences } from "../../references";
+import {
+  compilerBlocksFromReferences,
+  compilerBlocksFromRules,
+  readCompilerBlocks,
+} from "./read";
+import {
+  addOmittedBreakdown,
+  defaultProfileByteBudget,
+  renderCompilation,
+} from "./render";
 import { selectCompilerBlocks } from "./select";
 import type {
   CompilerBlock,
   ProfileCompilation,
+  ProfileCompilationAudience,
+  ProfileCompilationRepositoryContext,
   ProfileCompileInput,
 } from "./types";
 
@@ -15,8 +26,11 @@ export { profileScopePaths } from "./read";
 export { defaultProfileByteBudget } from "./render";
 export type {
   ProfileCompilation,
+  ProfileCompilationAudience,
+  ProfileCompilationBreakdown,
   ProfileCompilationOmission,
   ProfileCompilationOmissionReason,
+  ProfileCompilationRepositoryContext,
   ProfileCompileInput,
 } from "./types";
 
@@ -45,41 +59,67 @@ async function seedAxes(
   return axes;
 }
 
-function compilerBlocks(
-  input: ProfileCompileInput,
-): Promise<readonly CompilerBlock[]> {
-  return input.kind === "rules"
-    ? Promise.resolve(compilerBlocksFromRules(input.rules))
-    : readCompilerBlocks({
-        profileDirectory: input.profileDirectory,
-        origin: input.origin,
-        targetRepo: input.targetRepo,
-        scope: input.scope,
-      });
+async function compilerBlocks(options: {
+  readonly input: ProfileCompileInput;
+  readonly audience: ProfileCompilationAudience;
+}): Promise<readonly CompilerBlock[]> {
+  const input = options.input;
+  if (input.kind === "rules") return compilerBlocksFromRules(input.rules);
+  const rules = await readCompilerBlocks({
+    profileDirectory: input.profileDirectory,
+    origin: input.origin,
+    targetRepo: input.targetRepo,
+    scope: input.scope,
+  });
+  if (options.audience === "subagent") return rules;
+  const references = await readScopedReferences({
+    profileDirectory: input.profileDirectory,
+    origin: input.origin,
+    targetRepo: input.targetRepo,
+    scope: input.scope,
+  });
+  return [...rules, ...compilerBlocksFromReferences(references)];
+}
+
+function withoutInternalFields(
+  compilation: ProfileCompilation & { readonly omittedBlocks: readonly CompilerBlock[] },
+): ProfileCompilation {
+  const { omittedBlocks: _omittedBlocks, ...result } = compilation;
+  return result;
 }
 
 export async function compileProfile(options: {
   readonly input: ProfileCompileInput;
   readonly outputPath?: string;
   readonly byteBudget?: number;
+  readonly audience?: ProfileCompilationAudience;
+  readonly repositoryContext?: ProfileCompilationRepositoryContext;
 }): Promise<ProfileCompilation> {
-  const blocks = await compilerBlocks(options.input);
+  const blocks = await compilerBlocks({
+    input: options.input,
+    audience: options.audience ?? "main",
+  });
   const selection = selectCompilerBlocks({
     blocks,
     axes: await seedAxes(blocks),
+    repositoryContext: options.repositoryContext ?? "native",
   });
-  const compilation = renderCompilation({
+  const rendered = renderCompilation({
     blocks: selection.selected,
     byteBudget: options.byteBudget ?? defaultProfileByteBudget,
   });
   if (options.outputPath !== undefined) {
     await ownedWrite({
       path: options.outputPath,
-      content: compilation.markdown,
+      content: rendered.markdown,
     });
   }
-  return {
-    ...compilation,
-    omissions: [...selection.omissions, ...compilation.omissions],
-  };
+  return withoutInternalFields({
+    ...rendered,
+    breakdown: addOmittedBreakdown({
+      breakdown: rendered.breakdown,
+      blocks: selection.omittedBlocks,
+    }),
+    omissions: [...selection.omissions, ...rendered.omissions],
+  });
 }

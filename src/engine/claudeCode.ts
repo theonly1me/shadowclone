@@ -1,3 +1,5 @@
+import { mkdir } from "node:fs/promises";
+import path from "node:path";
 import { runProcess } from "../io/process";
 import { evaluationCommand } from "./evaluationIsolation";
 import { redactSecrets } from "../redact";
@@ -107,7 +109,12 @@ export async function runClaudeCode(
   const temporaryDirectory =
     options.execution.purpose === "dispatch"
       ? (options.execution.temporaryDirectory ?? options.cwd)
-      : options.cwd;
+      : options.execution.purpose === "evaluation"
+        ? path.join(options.cwd, ".eval-runtime")
+        : options.cwd;
+  if (options.execution.purpose === "evaluation") {
+    await mkdir(temporaryDirectory, { recursive: true, mode: 0o700 });
+  }
 
   const {
     exitCode,

@@ -75,6 +75,12 @@ export function applyManagedPolicy(options: {
       antigravity:
         options.config.sources.antigravity &&
         sourceAllowed("antigravity"),
+      "antigravity-workspaces":
+        options.config.sources["antigravity-workspaces"] &&
+        sourceAllowed("antigravity-workspaces"),
+      "claude-memory":
+        options.config.sources["claude-memory"] &&
+        sourceAllowed("claude-memory"),
       "claude-code":
         options.config.sources["claude-code"] &&
         sourceAllowed("claude-code"),

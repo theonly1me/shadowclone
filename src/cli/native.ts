@@ -1,5 +1,5 @@
 import {
-  compileContext, installIntegration, integrationAgentSchema, nativeSessionEnd,
+  compileContext, compileContextDetails, installIntegration, integrationAgentSchema, nativeSessionEnd,
   nativeSessionStart,
   readIntegrations, refreshIntegrations, uninstallIntegration,
   type IntegrationAgent, type IntegrationScope,
@@ -9,6 +9,7 @@ import { installLiveClone } from "./install";
 import { uninstallLiveClone } from "./uninstall";
 import { removeUneditedLegacySubagent } from "./legacyUpgrade";
 import { claimLearningRequests, scheduleLearning } from "../learning";
+import { explainContext, renderContextExplanation } from "./contextExplain";
 
 export type NativeInstallOptions = {
   readonly agents: readonly IntegrationAgent[];
@@ -81,6 +82,23 @@ export async function handleNativeCommand(options: {
   }
   if (options.command === "context" && options.arguments.length === 0) {
     console.log(await compileContext({ cwd: process.cwd() }) ?? "Shadowclone guidance is disabled by policy.");
+    return true;
+  }
+  if (
+    options.command === "context" &&
+    (options.arguments.length === 1 || options.arguments.length === 2) &&
+    options.arguments[0] === "--explain" &&
+    (options.arguments.length === 1 || options.arguments[1] === "--json")
+  ) {
+    const details = await compileContextDetails({ cwd: process.cwd() });
+    if (details === null) {
+      await Bun.stdout.write("Shadowclone guidance is disabled by policy.\n");
+      return true;
+    }
+    const explanation = explainContext(details);
+    await Bun.stdout.write(options.arguments[1] === "--json"
+      ? `${JSON.stringify(explanation, null, 2)}\n`
+      : renderContextExplanation(explanation));
     return true;
   }
   if (options.command === "sync" && options.arguments.length === 0) {

@@ -19,6 +19,7 @@ test("preserves surrounding Codex instructions across refresh, repeat install an
   expect(await refreshIntegrations(fixture)).toEqual({ refreshed: 1, preserved: 0 });
   const text = await Bun.file(destination).text();
   expect(text).toContain("native session hook");
+  expect(text).toContain("skill catalog");
   expect(text).not.toContain("Prefer named exports.");
   expect(text).not.toContain("Use complete names.");
   const [installed] = await readIntegrations(fixture.paths);

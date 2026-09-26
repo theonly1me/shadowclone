@@ -14,6 +14,17 @@ function isInside(options: {
   );
 }
 
+export function isSafeSnapshotLink(options: {
+  readonly directory: string;
+  readonly relativePath: string;
+  readonly target: string;
+}): boolean {
+  if (path.isAbsolute(options.target)) return false;
+  const absolutePath = path.join(options.directory, options.relativePath);
+  const lexicalTarget = path.resolve(path.dirname(absolutePath), options.target);
+  return isInside({ directory: options.directory, candidate: lexicalTarget });
+}
+
 export async function validateSnapshotLinks(directory: string): Promise<void> {
   const resolvedDirectory = await realpath(directory);
   const globScanner = new Bun.Glob("**/*").scan({
@@ -31,8 +42,7 @@ export async function validateSnapshotLinks(directory: string): Promise<void> {
     }
 
     const linkTarget = await readlink(absolutePath);
-    const lexicalTarget = path.resolve(path.dirname(absolutePath), linkTarget);
-    if (path.isAbsolute(linkTarget) || !isInside({ directory, candidate: lexicalTarget })) {
+    if (!isSafeSnapshotLink({ directory, relativePath: matchPath, target: linkTarget })) {
       throw new Error("Task snapshot contains an unsafe symbolic link");
     }
 

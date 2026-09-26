@@ -49,6 +49,8 @@ test("renders named source settings as TOML", () => {
       "[sources]",
       "agent-context = false",
       "antigravity = false",
+      "antigravity-workspaces = false",
+      "claude-memory = false",
       "claude-code = false",
       "claude-prompts = false",
       "codex = false",

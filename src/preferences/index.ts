@@ -6,6 +6,24 @@ import { writeProfile, type ProfileRule } from "../profile";
 import { redactSecrets } from "../redact";
 import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "../signal";
 
+function preferenceTitle(body: string): string {
+  const paragraph = body.split(/\n\s*\n/, 1)[0]?.replaceAll(/\s+/g, " ").trim() ?? "";
+  const sentence = paragraph.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? paragraph;
+  const withoutPunctuation = sentence.replace(/[.!?]+$/, "");
+  if (withoutPunctuation.length === 0) return "Explicit engineering preference";
+  if (withoutPunctuation.length <= 96) return withoutPunctuation;
+  const clause = withoutPunctuation.slice(0, 97);
+  const clauseBoundary = Math.max(
+    clause.lastIndexOf(", "),
+    clause.lastIndexOf("; "),
+    clause.lastIndexOf(": "),
+  );
+  if (clauseBoundary > 48) return clause.slice(0, clauseBoundary);
+  const prefix = withoutPunctuation.slice(0, 93);
+  const boundary = prefix.lastIndexOf(" ");
+  return `${prefix.slice(0, boundary > 48 ? boundary : 93).trimEnd()}...`;
+}
+
 export async function rememberPreference(options: {
   readonly text: string;
   readonly scope: "global" | "repository";
@@ -28,7 +46,7 @@ export async function rememberPreference(options: {
       : { scope: "org" as const, originDirectory: repository.origin.directoryName, repositoryName: null };
   const key = `declared-${fingerprint(JSON.stringify({ body, location })).slice(0, 24)}`;
   const rule: ProfileRule = {
-    ...location, key, title: "Explicit engineering preference", body, section: "engineering", source: "declared", status: "active",
+    ...location, key, title: preferenceTitle(body), body, section: "engineering", source: "declared", status: "active",
     proposal: null, appliesWhen: [], evidence: { for: [], against: [] }, observations: 0, sessions: 0,
     lastSeen: new Date().toISOString(), origins: [], importReference: null,
   };

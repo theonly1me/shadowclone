@@ -26,7 +26,7 @@ An unedited legacy block migrates into the current schema on write. It keeps its
 
 `writeProfile` refuses a revision that would remove a stored rule without an explicit retirement. Explicit retirements, user rejections, and rules rewritten into another scope file are all accounted for, so the guard fires only when a rule would vanish for no recorded reason.
 
-Episode selection no longer applies a time horizon, and the worker no longer prunes its ledger by age. Selection returns the oldest unprocessed episodes, so successive runs advance through history in order and never revisit an episode. Manual `learn --deep` reads the same ledger, records what it covered, and reports how many episodes remain.
+Episode selection no longer applies a time horizon, and the worker no longer prunes its ledger by age. Selection returns the newest unprocessed episodes, so the current guidance improves first and successive runs continue backward through history without revisiting an episode. Manual `learn --deep` reads the same ledger, records what it covered, and reports how many episodes remain.
 
 A requested session is selected from its own episodes directly. The ledger still records only what a run actually processed.
 
@@ -44,7 +44,7 @@ The `high-entropy-string` rule reuses `slicedAboveEntropy` with the existing 4.5
 | `src/profile/write.ts` | Write migrated rules, and assert retention before committing a revision |
 | `src/profile/retention.ts` | Report stored rules a revision would drop without an explicit retirement |
 | `src/profile/evidence.ts` | Name the independent-session activation threshold once |
-| `src/learning/state.ts` | Select the oldest unprocessed episodes with no time horizon and an optional ceiling |
+| `src/learning/state.ts` | Select the newest unprocessed episodes with no time horizon and an optional ceiling |
 | `src/learning/worker.ts` | Select requested sessions directly and retain the processed ledger |
 | `src/cli/learningWindow.ts` | Read the ledger and scale the window with the call ceiling |
 | `src/cli/learn.ts` | Record processed episodes and report how many remain |
@@ -98,6 +98,6 @@ Migrated rules are judged by the same activation policy as any other mined rule 
 
 A profile write that would silently drop stored rules fails because the original loss was silent and reported success.
 
-Episode selection is ordered oldest first with a durable ledger because the product claims to read the history a user already has, and a window that moves with the clock cannot.
+Episode selection is ordered newest first so current corrections reach the profile immediately. The durable ledger moves later runs backward through the complete history without a moving time window or repeated work.
 
 Redaction measures entropy before removing a long token because a rule that removes repository paths degrades the evidence that learning and evaluation both depend on.

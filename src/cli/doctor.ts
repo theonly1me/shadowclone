@@ -22,6 +22,7 @@ import {
   computeSourceHealth,
   type SourceMarkerHealth,
 } from "../signal";
+import { createProfileRepairPlan } from "../profile";
 
 export function renderProviderSupport(): readonly string[] {
   return providerDefinitions.map((definition) => {
@@ -115,6 +116,10 @@ export async function doctor(options: {
   const skills = await readMaintenanceState(projectPaths);
   const proposals = await listSkillProposals(projectPaths);
   console.log(`Skill maintenance: ${config.sources["skill-library"] ? "enabled" : "disabled"}; ${skills.roots.filter((root) => root.enabled).length} root(s), ${proposals.filter((proposal) => proposal.status === "pending").length} pending proposal(s).`);
+  const profileRepair = await createProfileRepairPlan(projectPaths);
+  console.log(
+    `Profile repair: ${profileRepair.repairs.length} ready, ${profileRepair.blocked.length} blocked, ${profileRepair.isolatedDirectories} isolated.`,
+  );
   const dbFile = Bun.file(options.databasePath ?? projectPaths.indexDatabase);
   if (await dbFile.exists()) {
     const index = await openEventIndex(

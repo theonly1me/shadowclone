@@ -4,8 +4,11 @@ export {
   defaultProfileByteBudget,
   profileScopePaths,
   type ProfileCompilation,
+  type ProfileCompilationAudience,
+  type ProfileCompilationBreakdown,
   type ProfileCompilationOmission,
   type ProfileCompilationOmissionReason,
+  type ProfileCompilationRepositoryContext,
   type ProfileCompileInput,
 } from "./compiler";
 export {
@@ -19,6 +22,7 @@ export {
   profileEvidenceStatistics,
 } from "./evidence";
 export { renderMirror } from "./mirror";
+export { readProfileDiagnostics, type ProfileDiagnostics } from "./diagnostics";
 export { parseProfileBlocks, parseProfileRules } from "./parse";
 export {
   readProfileSnapshot,
@@ -50,7 +54,21 @@ export type {
 } from "./types";
 export { writeProfile } from "./write";
 export {
+  applyProfileCuration,
+  applyProfileRepair,
+  createProfileCurationPlan,
+  createProfileRepairPlan,
+  parseProfileCurationDecisions,
+  type BlockedOriginRepair,
+  type OriginRepair,
+  type ProfileCurationDecision,
+  type ProfileCurationDecisions,
+  type ProfileCurationPlan,
+  type ProfileRepairPlan,
+} from "./repair";
+export {
   readGeneratedProfileState,
   parseProfileRejectionText,
   readProfileRejections,
 } from "./state";
+export type { ProfileRejection, ProfileRejectionReason } from "./state";

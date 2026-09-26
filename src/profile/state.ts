@@ -1,6 +1,7 @@
 import { isProfileRelativePath } from "./files";
 import { profileImportReferenceSchema } from "./metadata";
 import type { ProfileImportReference, ProfileSource } from "./types";
+import { isRejectionReason, type ProfileRejectionReason } from "./rejection";
 
 export type GeneratedProfileStateEntry = {
   readonly relativePath: string;
@@ -19,7 +20,10 @@ export type ProfileRejection = {
   readonly body: string | null;
   readonly source: ProfileSource | null;
   readonly importReference: ProfileImportReference | null;
+  readonly reason?: ProfileRejectionReason | null;
 };
+
+export type { ProfileRejectionReason } from "./rejection";
 
 function isProfileSource(value: unknown): value is ProfileSource {
   return (
@@ -119,7 +123,8 @@ function parseRejectionLine(line: string): ProfileRejection | null {
     "source" in value &&
     (isProfileSource(value.source) || value.source === null) &&
     (!("importReference" in value) ||
-      profileImportReferenceSchema.nullable().safeParse(value.importReference).success)
+      profileImportReferenceSchema.nullable().safeParse(value.importReference).success) &&
+    (!("reason" in value) || value.reason === null || isRejectionReason(value.reason))
   ) {
     return {
       relativePath: value.relativePath,
@@ -130,11 +135,21 @@ function parseRejectionLine(line: string): ProfileRejection | null {
       importReference: "importReference" in value
         ? profileImportReferenceSchema.nullable().parse(value.importReference)
         : null,
+      reason: "reason" in value && isRejectionReason(value.reason)
+        ? value.reason
+        : null,
     };
   }
   const legacy = legacyIdentity(line);
   return legacy
-    ? { ...legacy, title: null, body: null, source: null, importReference: null }
+    ? {
+        ...legacy,
+        title: null,
+        body: null,
+        source: null,
+        importReference: null,
+        reason: null,
+      }
     : null;
 }
 
@@ -182,15 +197,4 @@ export async function readProfileRejections(
   return parseProfileRejectionText((await stateLines(statePath)).join("\n"));
 }
 
-export function profileRejectionFromState(
-  entry: GeneratedProfileStateEntry,
-): ProfileRejection {
-  return {
-    relativePath: entry.relativePath,
-    key: entry.key,
-    title: entry.title,
-    body: entry.body,
-    source: entry.source,
-    importReference: entry.importReference,
-  };
-}
+export { profileRejectionFromState } from "./rejectionFromState";

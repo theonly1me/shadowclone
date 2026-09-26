@@ -1,6 +1,6 @@
 # Architecture
 
-Shadowclone maintains an editable engineering-preference profile and a portable personal skill library for existing coding agents. Consented local transcripts supply reusable user guidance. Ordinary sessions and supported delegated runs receive the same scoped profile; selected useful sessions can feed later learning.
+Shadowclone maintains an editable engineering-preference profile and a portable personal skill library for existing coding agents. The always-on profile carries concise preferences and skill routing. Skills retain detailed task workflows and are loaded through each agent's native catalog. Consented local transcripts supply reusable user guidance. Ordinary sessions and supported delegated runs receive the same scoped profile; selected useful sessions can feed later learning.
 
 It reads named, opt-in sources. Eligible captured excerpts pass through `resolveRedacted` before they reach the user's authenticated agent CLI. Evaluation separately exposes an authorized repository snapshot and unredacted generated code to that provider. Shadowclone has no service, API key, or telemetry. The profile is editable Markdown, and `shadowclone forget --all` removes stored state and recorded integrations while preserving unrelated content and refusing conflicting edits.
 

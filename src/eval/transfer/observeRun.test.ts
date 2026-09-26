@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { EngineRun } from "../../engine";
@@ -93,6 +93,8 @@ test("records the patch that distinguishes edits from new implementations", asyn
       cwd: directory,
     });
     await Bun.write(path.join(directory, "helper.ts"), "export const helper = 2;\n");
+    await mkdir(path.join(directory, ".eval-runtime"));
+    await Bun.write(path.join(directory, ".eval-runtime/cache"), "cache".repeat(30_000));
 
     const observed = await observeRun({
       directory,
@@ -101,6 +103,7 @@ test("records the patch that distinguishes edits from new implementations", asyn
     });
 
     expect(observed.repositoryChanged).toBeTrue();
+    expect(observed.truncated).toBeFalse();
     expect(observed.evidence).toContain('"diff":"diff --git');
     expect(observed.evidence).toContain(
       "-export const helper = 1;\\n+export const helper = 2;",

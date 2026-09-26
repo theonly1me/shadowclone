@@ -19,7 +19,7 @@ const profileSecret = "sk-proj-profileSecret123456789";
 const evidenceSecret = "sk-proj-evidenceSecret123456789";
 const origin: OriginScope = {
   id: "github.com/private-owner",
-  directoryName: "github.com--private-owner",
+  directoryName: "github.com--private-owner--c48a251dc59a4aa3",
   promotable: true,
 };
 const emptyLibrary: SeedLibrary = {
@@ -60,12 +60,16 @@ test("sends only redacted profile text and opaque local tokens", async () => {
   await Bun.write(profilePath, `${renderProfileRule(declaredRule())}\n`);
   await Bun.write(paths.rejectedProfileFile, `${JSON.stringify({
     schema: 1,
-    relativePath: "global/workflow.md",
+    relativePath: "org/github.com--private-owner--c48a251dc59a4aa3/projects/sample-app--0123456789abcdef.md",
     key: "rejected-private-key",
     title: "Rejected secret",
     body: `Do not restore ${profileSecret}.`,
-    source: "mined",
-    importReference: null,
+    source: "imported",
+    importReference: {
+      repositoryAliases: ["1111111111111111111111111111111111111111111111111111111111111111"],
+      sourceLocator: "2222222222222222222222222222222222222222222222222222222222222222",
+    },
+    reason: "repo-covered",
   })}\n`);
   const evidencePath = path.join(homeDirectory, "evidence.txt");
   await Bun.write(evidencePath, `The user removed ${evidenceSecret}.`);
@@ -76,7 +80,7 @@ test("sends only redacted profile text and opaque local tokens", async () => {
     sessionId: "private-session",
     timestamp: 1_788_537_600_000,
     origin,
-    repositoryName: "private-repository",
+    repositoryName: "sample-app--0123456789abcdef",
     textRefs: [{
       type: "file",
       sourcePath: evidencePath,

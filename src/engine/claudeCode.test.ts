@@ -1,4 +1,4 @@
-import { chmod, mkdtemp, rm } from "node:fs/promises";
+import { chmod, lstat, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { expect, test } from "bun:test";
@@ -87,6 +87,26 @@ test("redacts a rejected command message on a zero exit code", async () => {
         "ghp_1234567890abcdefghijklmnopqrstuvwxyzAB",
       );
       expect(run.errorMessage).toContain("[redacted:github-token]");
+    },
+  });
+});
+
+test("creates an isolated runtime directory before evaluation", async () => {
+  await withStub({
+    stdout: "",
+    stderr: "",
+    exitCode: 0,
+    run: async (cwd) => {
+      await runClaudeCode({
+        prompt: "hello",
+        cwd,
+        execution: { purpose: "evaluation", blockedPaths: [] },
+        allowedTools: [],
+        permissionMode: "dontAsk",
+      });
+
+      expect((await lstat(path.join(cwd, ".eval-runtime"))).isDirectory())
+        .toBeTrue();
     },
   });
 });

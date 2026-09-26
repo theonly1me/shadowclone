@@ -14,7 +14,6 @@ export function modelCaller(options: {
   readonly maxBudgetUsd?: number;
   readonly blockedPaths?: readonly string[];
   readonly controlDirectory?: string;
-  readonly maximumCalls?: number;
 }): ModelCall {
   if (options.engine === "codex" && options.maxBudgetUsd !== undefined) {
     throw new Error(
@@ -22,14 +21,8 @@ export function modelCaller(options: {
     );
   }
 
-  let totalCalls = 0;
-  const callLimit = options.maximumCalls ?? 200;
   const call: ModelCall = async (request) => {
     throwIfEvaluationExpired();
-    if (totalCalls >= callLimit) {
-      throw new Error("Evaluation invocation limit reached");
-    }
-    totalCalls += 1;
     const blockedPaths = [
       ...(options.blockedPaths ?? []),
       ...(request.access === "write" && options.controlDirectory

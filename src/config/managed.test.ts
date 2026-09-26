@@ -12,6 +12,8 @@ test("managed policy can only narrow user source consent", () => {
     sources: {
       "agent-context": true,
       antigravity: true,
+      "antigravity-workspaces": true,
+      "claude-memory": true,
       "claude-code": true,
       "claude-prompts": true,
       codex: false,

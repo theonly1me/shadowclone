@@ -31,7 +31,7 @@ Agent events in the disposable SQLite index carry `TextRef` pointers, event kind
 
 Learning admits user-authored steering episodes and limited assistant context. Tool results, file contents from Read, Edit, or Write, thinking blocks, and data-access results are excluded by category. Redaction still removes recognized credentials, secret assignments, private hosts, paths, and high-entropy tokens from eligible material. Stored rule and rejection identities are replaced with opaque prompt tokens before reconciliation.
 
-The first setup learning pass uses the newest eligible episodes and a 90-second whole-run deadline. It may finish with no write when that budget expires. Manual `learn --deep` processes the oldest unprocessed episodes in bounded batches. A session-end hook alone does not start learning; the main agent must first mark a useful session under separate deep and automatic consent. `SubagentStart` gives a spawned Claude subagent the compiled profile without requesting another learning run.
+The first setup learning pass uses the newest eligible episodes and a 90-second whole-run deadline. It may finish with no write when that budget expires. Manual `learn --deep` processes the newest unprocessed episodes in bounded batches, and later runs continue backward through the durable ledger. A session-end hook alone does not start learning; the main agent must first mark a useful session under separate deep and automatic consent. `SubagentStart` gives a spawned Claude subagent the compiled profile without requesting another learning run.
 
 ## Local ownership and egress
 

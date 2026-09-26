@@ -11,8 +11,8 @@ export function standardSkillRoots(options: { readonly paths: ProjectPaths; read
   const cwd = canonicalPath(options.cwd);
   const base = options.scope === "global" ? homeDirectory : cwd;
   const codexHome = path.dirname(options.paths.codexSessionsDirectory);
-  const roots = [".claude/skills", ".agents/skills", ".codex/skills", ".cursor/skills"].map((relative) => ({
-    directory: canonicalPath(options.scope === "global" && relative === ".codex/skills" ? path.join(codexHome, "skills") : path.join(base, relative)),
+  const roots = [".claude/skills", ".agents/skills", ".cursor/skills"].map((relative) => ({
+    directory: canonicalPath(path.join(base, relative)),
     destination: canonicalPath(path.join(base, relative)), owner: "user" as const,
   }));
   if (options.scope === "global") {

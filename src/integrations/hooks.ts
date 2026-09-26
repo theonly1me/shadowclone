@@ -10,6 +10,7 @@ import { canonicalPath, projectPaths } from "../paths";
 import { compileContext } from "./compile";
 import { readIntegrations, saveIntegration } from "./state";
 import type { Integration, IntegrationOptions } from "./types";
+import { bindNativeSessionOrigin, nativeBindingTimestamp } from "./bindings";
 
 const inputSchema = z.object({
   cwd: z.string().optional(),
@@ -110,9 +111,25 @@ export async function nativeSessionStart(options: IntegrationOptions & {
   if (!activeIntegration({ integration, integrations, cwd })) {
     return {};
   }
-  const profile = await compileContext({ ...options, paths, cwd });
+  const profile = await compileContext({
+    ...options,
+    paths,
+    cwd,
+    audience: input.hook_event_name === "SubagentStart" ? "subagent" : "main",
+  });
   if (profile === null) {
     return {};
+  }
+  const sessionId = nativeSessionId(input);
+  if (sessionId !== null) {
+    await bindNativeSessionOrigin({
+      ...options,
+      paths,
+      integration,
+      sessionId,
+      cwd,
+      timestamp: nativeBindingTimestamp(input.timestamp),
+    });
   }
   const learning = input.hook_event_name === "SubagentStart"
     ? ""

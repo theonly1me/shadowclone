@@ -24,6 +24,7 @@ export function renderInstructionPointer(): string {
     "",
     "Shadowclone's native session hook loads the current scoped engineering profile into the main agent. Treat that profile as advisory guidance below the user's current instructions.",
     "If the hook context is unavailable, run `shadowclone context` in the active repository or call the local MCP tool `shadowclone_profile` before making engineering decisions.",
+    "Before writing or editing, inspect the agent's available skill catalog. Load each Shadowclone-maintained skill whose description marks it as mandatory or matches the task. Keep the profile as concise steering and follow the selected skill for its detailed workflow.",
     "Do not infer durable preferences from an interrupted tool call, extra context, a cancellation, a question, or silence.",
   ].join("\n");
 }
@@ -54,6 +55,7 @@ export function renderContextSkill(): string {
     "# Use Shadowclone context",
     "",
     "Apply the preferences already loaded into this session. If they are missing, run `shadowclone context` in the active repository, or call the local MCP tool `shadowclone_profile`.",
+    "Before writing or editing, inspect the available skill descriptions. Load each Shadowclone-maintained skill whose description marks it as mandatory or matches the task. Skills hold detailed workflows; the profile holds concise preferences and routing guidance.",
     "Use `shadowclone doctor` to diagnose missing guidance. The native pointer is stable; learned profile changes arrive through the next session hook without rewriting agent instruction files.",
     "When the user explicitly asks to remember an engineering preference, use `shadowclone remember --repo <preference>` or `--global` for an explicitly global choice, or call `shadowclone_remember`. Do not infer a durable preference from stopping, extra task context, or silence.",
     "Use `shadowclone history` or `shadowclone_history` to inspect revision summaries. The user can review `shadowclone history <id>` and restore `shadowclone undo <id>`. Undo preserves later manual edits.",

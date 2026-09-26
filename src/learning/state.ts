@@ -26,7 +26,7 @@ export function selectLearningEpisodes(options: {
 }): readonly CorrectionSignal[] {
   const processed = new Set(options.state.processed.map((entry) => entry.id));
   return options.signals.filter((signal) => signal.timestamp <= options.now && !processed.has(episodeId(signal)))
-    .sort((left, right) => left.timestamp - right.timestamp).slice(0, options.limit ?? learningBatchSize);
+    .sort((left, right) => right.timestamp - left.timestamp).slice(0, options.limit ?? learningBatchSize);
 }
 
 export function selectNewestLearningEpisodes(options: {
@@ -35,11 +35,7 @@ export function selectNewestLearningEpisodes(options: {
   readonly now: number;
   readonly limit: number;
 }): readonly CorrectionSignal[] {
-  const processed = new Set(options.state.processed.map((entry) => entry.id));
-  return options.signals
-    .filter((signal) => signal.timestamp <= options.now && !processed.has(episodeId(signal)))
-    .sort((left, right) => left.timestamp - right.timestamp)
-    .slice(-options.limit);
+  return selectLearningEpisodes(options);
 }
 
 export function selectRequestedLearningEpisodes(options: {
@@ -53,8 +49,8 @@ export function selectRequestedLearningEpisodes(options: {
       options.sessionKeys.has(fingerprint(signal.sessionId)) &&
       !processed.has(episodeId(signal))
     )
-    .sort((left, right) => left.timestamp - right.timestamp)
-    .slice(-learningBatchSize);
+    .sort((left, right) => right.timestamp - left.timestamp)
+    .slice(0, learningBatchSize);
 }
 
 export async function readLearningState(paths: ProjectPaths): Promise<LearningState> {

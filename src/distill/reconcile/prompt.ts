@@ -64,6 +64,7 @@ export async function buildReconciliationPrompt(options: {
       entry.token,
       entry.snapshot.promptTitle ?? "Untitled rejected guidance",
       entry.snapshot.promptBody ?? "",
+      `Reason: ${entry.snapshot.rejection.reason ?? "user-rejected"}`,
     ].join("\n"),
   );
   return [

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { readBoundedFile } from "../../io/files";
 import { ownedWrite } from "../../storage";
 
-const budgetSchema = z.strictObject({
+export const budgetSchema = z.strictObject({
   version: z.literal(1),
   limitUsd: z.number().positive().nullable(),
   spentUsd: z.number().nonnegative(),

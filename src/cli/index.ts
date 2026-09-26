@@ -4,6 +4,7 @@ import packageManifest from "../../package.json";
 import { serveMcp } from "../mcp";
 import { doctor } from "./doctor";
 import { transferEvalCommand } from "./transferEval";
+import { guidanceEvalCommand } from "./guidanceEval";
 import { forgetAll } from "./forget";
 import {
   runSessionEndHook,
@@ -16,12 +17,15 @@ import { handlePreferenceCommand } from "./preferences";
 import { learn } from "./learn";
 import { parseLearnOptions } from "./learnOptions";
 import { runClone } from "./run";
+import { parseRecallOptions, recallCommand } from "./recall";
+import { handleProfileRepairCommand } from "./profileRepair";
+import { handleMigrateCommand } from "./migrate";
 import { listSeedGuidance } from "./skills";
 import { handleSkillMaintenance } from "./skillMaintenance";
 import { runWizard } from "./wizard";
 
 const usage =
-  "Usage: shadowclone <init [--advanced]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|learn --session <token>|doctor|install [--agent claude-code|codex|cursor|antigravity|all] [--global|--repo] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--repo]|context|sync|run <task>|eval [--repo <path>] [--task <prompt>|--tasks N|--suite-id <id>] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
+  "Usage: shadowclone <init [--advanced]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|learn --session <token>|doctor|profile repair [--decisions <file>] [--apply]|migrate claude-memory [--decisions <file>] [--apply]|migrate claude-memory --archive-source --revision <id>|install [--agent claude-code|codex|cursor|antigravity|all] [--global|--repo] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--repo]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|run <task>|eval [--repo <path>] [--task <prompt>|--tasks N|--suite-id <id>] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -78,12 +82,25 @@ async function main(arguments_: readonly string[]): Promise<void> {
     await doctor();
     return;
   }
+  if (await handleProfileRepairCommand({ command, arguments: rest })) return;
+  if (await handleMigrateCommand({ command, arguments: rest })) return;
+  if (command === "recall") {
+    const options = parseRecallOptions(rest);
+    if (options !== null) {
+      await recallCommand(options);
+      return;
+    }
+  }
   if (await handleNativeCommand({ command, arguments: rest })) return;
   if (command === "run") {
     await runClone(rest);
     return;
   }
   if (command === "eval") {
+    if (rest.includes("--protocol")) {
+      await guidanceEvalCommand(rest);
+      return;
+    }
     await transferEvalCommand(rest);
     return;
   }

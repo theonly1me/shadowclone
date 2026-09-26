@@ -1,12 +1,14 @@
 import type { Database } from "bun:sqlite";
 
-const schemaVersion = 5;
+const schemaVersion = 6;
 
 function resetOutdatedSchema(database: Database): void {
   const version = database
     .query<{ readonly user_version: number }, []>("PRAGMA user_version")
     .get()?.user_version;
-  if (version === schemaVersion || version === 4 || version === 3) {
+  if (
+    version === schemaVersion || version === 5 || version === 4 || version === 3
+  ) {
     return;
   }
   database.exec(`
@@ -80,12 +82,27 @@ export function createSchema(database: Database): void {
       origin_promotable INTEGER NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS origin_binding_timeline (
+      source TEXT NOT NULL,
+      session_id TEXT NOT NULL,
+      effective_at INTEGER NOT NULL,
+      repository_id TEXT NOT NULL,
+      repository_name TEXT,
+      profile_file_name TEXT,
+      origin_id TEXT NOT NULL,
+      origin_directory TEXT NOT NULL,
+      origin_promotable INTEGER NOT NULL,
+      PRIMARY KEY (source, session_id, effective_at)
+    );
+
     CREATE INDEX IF NOT EXISTS events_source_path
       ON events(source_path);
     CREATE INDEX IF NOT EXISTS events_session
       ON events(source, session_id);
     CREATE INDEX IF NOT EXISTS events_kind
       ON events(kind);
+    CREATE INDEX IF NOT EXISTS origin_binding_timeline_lookup
+      ON origin_binding_timeline(source, session_id, effective_at DESC);
 
     PRAGMA user_version = ${schemaVersion};
   `);

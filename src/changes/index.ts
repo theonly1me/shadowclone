@@ -8,6 +8,7 @@ import { readRevision, revisionPath } from "./store";
 
 export { commitLocalChanges } from "./apply";
 export { listRevisions } from "./store";
+export { readRevision } from "./store";
 export type { FileUpdate, LocalRevision } from "./types";
 
 export async function showRevision(options: { readonly paths: ProjectPaths; readonly id: string }): Promise<string> {
@@ -29,7 +30,7 @@ export async function undoRevision(options: { readonly paths: ProjectPaths; read
   const updates = [];
   for (const change of revision.changes) {
     if (revision.kind === "skill" && !change.relativePath.endsWith("/SKILL.md")) throw new Error("Invalid skill revision target");
-    if (revision.kind === "profile" && !(change.relativePath === ".generated" || change.relativePath === ".rejected" || /^(global|org)\/.+\.md$/.test(change.relativePath.split(path.sep).join("/")))) {
+    if (revision.kind === "profile" && !(change.relativePath === ".generated" || change.relativePath === ".rejected" || /^(global|org|references\/(?:global|org))\/.+\.md$/.test(change.relativePath.split(path.sep).join("/")) || /^migrations\/claude-memory-[a-f0-9]{16}\.json$/.test(change.relativePath.split(path.sep).join("/")))) {
       throw new Error("Invalid profile revision target");
     }
     const filePath = revisionTarget({ root: revision.root, relativePath: change.relativePath });

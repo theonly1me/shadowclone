@@ -7,6 +7,7 @@ import { effectiveProfileStatus } from "../evidence";
 import { parseProfileBlocks } from "../parse";
 import { isSafeProfileSegment } from "../render";
 import type { ExistingProfileBlock, ProfileRule } from "../types";
+import type { ReferenceSearchResult } from "../../references";
 import { profileBlockMetadata, stripProfileMetadata } from "../visible";
 import type { CompilerBlock } from "./types";
 
@@ -50,7 +51,9 @@ function compilerBlock(options: {
   const visible = stripProfileMetadata(options.redactedBlock);
   if (options.block.key === null) {
     return {
+      kind: "rule",
       ruleKey: null,
+      referenceKey: null,
       source: "user",
       status: "active",
       observations: 0,
@@ -59,7 +62,9 @@ function compilerBlock(options: {
     };
   }
   return {
+    kind: "rule",
     ruleKey: options.block.key,
+    referenceKey: null,
     source: options.block.source,
     status: effectiveProfileStatus(options.block),
     observations: options.block.observations,
@@ -119,7 +124,9 @@ export function compilerBlocksFromRules(
   rules: readonly ProfileRule[],
 ): readonly CompilerBlock[] {
   return rules.map((rule) => ({
+    kind: "rule",
     ruleKey: rule.key,
+    referenceKey: null,
     source: rule.source,
     status: rule.status,
     observations: rule.observations,
@@ -128,5 +135,22 @@ export function compilerBlocksFromRules(
         ? `## ${rule.title}`
         : `## ${rule.title}\n\n${rule.body}`,
     appliesWhen: rule.appliesWhen,
+  }));
+}
+
+export function compilerBlocksFromReferences(
+  references: readonly ReferenceSearchResult[],
+): readonly CompilerBlock[] {
+  return references.filter(({ record }) =>
+    record.source !== "claude-project-memory"
+  ).map(({ record }) => ({
+    kind: "reference",
+    ruleKey: null,
+    referenceKey: record.key,
+    source: "reference",
+    status: "active",
+    observations: 0,
+    visible: `Reference \`${record.key}\`: **${record.title}**. ${record.summary}`,
+    appliesWhen: [],
   }));
 }

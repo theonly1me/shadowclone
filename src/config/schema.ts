@@ -5,6 +5,8 @@ import { parseRepoSettings } from "./repo";
 export const sourceIds = [
   "agent-context",
   "antigravity",
+  "antigravity-workspaces",
+  "claude-memory",
   "claude-code",
   "claude-prompts",
   "codex",
@@ -36,6 +38,8 @@ export const defaultConfig: ShadowcloneConfig = {
   sources: {
     "agent-context": false,
     antigravity: false,
+    "antigravity-workspaces": false,
+    "claude-memory": false,
     "claude-code": false,
     "claude-prompts": false,
     codex: false,
@@ -56,6 +60,8 @@ const sourcesSchema = z
   .strictObject({
     "agent-context": z.boolean().optional().default(false),
     antigravity: z.boolean().optional().default(false),
+    "antigravity-workspaces": z.boolean().optional().default(false),
+    "claude-memory": z.boolean().optional().default(false),
     "claude-code": z.boolean(),
     "claude-prompts": z.boolean(),
     codex: z.boolean(),

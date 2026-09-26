@@ -8,7 +8,9 @@ import {
 import type { CorpusSummary, IndexedEvent } from "./types";
 import {
   readOriginBinding,
+  readSessionOriginBinding,
   writeOriginBinding,
+  writeSessionOriginBinding,
   type BoundRepository,
 } from "./originBinding";
 import { saveObservationBatch } from "./write";
@@ -173,6 +175,23 @@ export class EventIndex {
       originKey: options.originKey,
       repository: options.repository,
     });
+  }
+
+  getSessionOriginBinding(options: {
+    readonly source: string;
+    readonly sessionId: string;
+    readonly timestamp: number;
+  }): BoundRepository | null {
+    return readSessionOriginBinding({ database: this.#database, ...options });
+  }
+
+  bindSessionOrigin(options: {
+    readonly source: string;
+    readonly sessionId: string;
+    readonly timestamp: number;
+    readonly repository: BoundRepository;
+  }): void {
+    writeSessionOriginBinding({ database: this.#database, ...options });
   }
 
   close(): void {

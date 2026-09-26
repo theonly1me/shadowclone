@@ -106,7 +106,8 @@ test("skill consent works without enabling transcript capture or model calls", a
   expect(config.distillation.deep).toBeFalse();
   expect(config.distillation.automatic).toBeFalse();
   expect((await readMaintenanceState(paths)).roots.length).toBeGreaterThan(0);
-  expect(await Bun.file(path.join(homeDirectory, ".codex/skills/typed-changes/SKILL.md")).text()).toBe(fixtureSkill());
+  expect(await Bun.file(path.join(homeDirectory, ".agents/skills/typed-changes/SKILL.md")).text()).toBe(fixtureSkill());
+  expect(await Bun.file(path.join(homeDirectory, ".codex/skills/typed-changes/SKILL.md")).exists()).toBeFalse();
   expect(modelCalls).toBe(0);
 });
 

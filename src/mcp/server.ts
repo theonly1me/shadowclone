@@ -1,5 +1,6 @@
 import packageManifest from "../../package.json";
 import { preferenceTools, runPreferenceTool } from "./preferences";
+import { referenceTools, runReferenceTool } from "./references";
 import { compileContext } from "../integrations";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
@@ -50,6 +51,7 @@ export function handleMcpRequest(options: {
       result: {
         tools: [
           ...preferenceTools,
+          ...referenceTools,
           {
             name: "shadowclone_profile",
             description:
@@ -143,7 +145,8 @@ export async function serveMcp(options: {
                   })
                 : "";
             const toolResult = request.method === "tools/call"
-              ? await runPreferenceTool({ params: request.params, cwd, paths, managedConfigPath: options.managedConfigPath, readRemote: options.readRemote })
+              ? await runPreferenceTool({ params: request.params, cwd, paths, managedConfigPath: options.managedConfigPath, readRemote: options.readRemote }) ??
+                await runReferenceTool({ params: request.params, cwd, paths, managedConfigPath: options.managedConfigPath, readRemote: options.readRemote })
               : null;
             const response = handleMcpRequest({ request, profile, toolResult });
             if (response !== null) {
