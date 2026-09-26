@@ -20,6 +20,7 @@ test("managed policy can only narrow user source consent", () => {
       cursor: false,
       "declared-rules": true,
       "git-metadata": true,
+      "repository-manifests": true,
       shell: false,
       "skill-library": true,
     },
@@ -38,6 +39,7 @@ test("managed policy can only narrow user source consent", () => {
   expect(effective.sources["claude-prompts"]).toBeFalse();
   expect(effective.sources["declared-rules"]).toBeFalse();
   expect(effective.sources["git-metadata"]).toBeFalse();
+  expect(effective.sources["repository-manifests"]).toBeFalse();
   expect(effective.distillation.deep).toBeFalse();
 });
 

@@ -22,10 +22,11 @@ Every source has its own setting, defaults off, and appears by name before conse
 | Agent context | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.codex/AGENTS.override.md`, supported personal and repository skill roots, and `~/.claude/projects/<repo>/memory/` or `~/.codex/memories/`, only for consented evaluation |
 | Skill library | `~/.claude/skills/`, `~/.agents/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`, `~/.gemini/config/skills/`, configured repository roots, and selected provider plugin caches |
 | Git metadata | repository Git remote names |
+| Repository manifests | in the repository where `shadowclone harness init` runs: `package.json` scripts and dependency names, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, `.github/workflows/*.yml`, and top-level entry names |
 
 Source detection checks whether a configured root has content. A directory check reads at most one entry to establish that fact and retains no name before consent. Agent transcripts can contain private code, credentials, internal hosts, and customer data. Shadowclone never copies raw transcripts into its store. Its SQLite index holds pointers and event kinds. Eligible excerpts pass through `resolveRedacted`, the single secret-redaction gate, before a model receives them. Tool results, file-read contents, thinking blocks, and data-access results are excluded from learning by category.
 
-Learning sends eligible redacted excerpts through your own authenticated agent CLI. Evaluation also gives that CLI access to a disposable repository snapshot and sends generated code to judges without redaction. Use only repositories you are authorized to send to that provider. A remote action from `shadowclone run` needs separate approval for that run. There is no Shadowclone service, API key, account, or telemetry. The profile is Markdown under `~/.shadowclone/profile/`; you can read, edit, or delete it. `shadowclone forget --all` removes Shadowclone's local state and recorded integrations, preserving unrelated content and stopping on conflicting edits. Your original transcripts remain where your agents wrote them. [Privacy design](docs/architecture/05-privacy.md).
+Learning sends eligible redacted excerpts through your own authenticated agent CLI. Evaluation also gives that CLI access to a disposable repository snapshot and sends generated code to judges without redaction. Use only repositories you are authorized to send to that provider. A remote action from `shadowclone run` needs separate approval for that run. There is no Shadowclone service, API key, account, or telemetry. The profile is Markdown under `~/.shadowclone/profile/`; you can read, edit, or delete it. `shadowclone forget --all` removes Shadowclone's local state and recorded integrations, preserving unrelated content and stopping on conflicting edits. Harness files written into a repository stay there; remove them with `shadowclone undo` or your version control. Your original transcripts remain where your agents wrote them. [Privacy design](docs/architecture/05-privacy.md).
 
 ## Install
 
@@ -52,7 +53,10 @@ Use `shadowclone init --advanced` for individual source choices and the seed gui
 enabled transcripts -> local index -> steering episodes -> redacted reconciliation
                                                         -> editable profile
 profile + personal skills -> native agents and clones -> new transcripts
+repository manifests + profile -> committed repository harness
 ```
+
+`shadowclone harness init` builds a harness in the current repository: a managed section in `AGENTS.md` with read-first skills, the detected gate and commands, and your applicable rules; an `@AGENTS.md` import in `CLAUDE.md`; an authored `feature-workflow` skill with approval boundaries; and `.shadowclone/harness.json` with the gate, derived conventions, and fingerprints. It previews by default and writes with `--apply`. Personal global rules are included only when you confirm for that repository, and a rule that names only tools or paths the repository lacks is left out. `--skill <name>` copies a personal skill into `.agents/skills/` and `.claude/skills/`. Text outside the managed sections stays yours, an edited section is never overwritten, and `shadowclone undo <revision>` restores the previous files. The harness files are meant to be committed, so anyone with repository access sees them.
 
 Plain `shadowclone learn` updates the local index and prints a structural report without model calls or profile writes. `shadowclone learn --deep` starts with the newest unprocessed episodes in bounded batches, proposes changes, and asks before applying them. `--deep --apply` accepts that local write without a prompt. Explicit reusable guidance can become active from one session; inferred behavior needs three independent sessions. The processed ledger lets later runs continue backward through older history. `shadowclone remember --repo "Use complete variable names."` records a direct preference immediately.
 
@@ -114,6 +118,7 @@ These are guideline checks passed, not correctness or productivity scores. The s
 | `shadowclone context --explain`, `shadowclone recall <query>` | Explain session-start context or retrieve scoped references |
 | `shadowclone profile repair [--decisions <file>] [--apply]` | Preview or apply reversible origin repairs and reviewed curation |
 | `shadowclone migrate claude-memory` | Preview or apply a one-time copy of Claude memory into the profile |
+| `shadowclone harness init [--apply] [--personal\|--no-personal] [--skill <name>]` | Preview or write the repository harness |
 | `shadowclone install [--agent <agent>|all] [--global|--repo]` | Install native guidance manually |
 | `shadowclone uninstall [--global]` | Remove owned integrations |
 | `shadowclone remember`, `history`, `undo` | Manage direct rules and revisions |

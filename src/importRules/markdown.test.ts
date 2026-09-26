@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { parseProfileBlocks } from "../profile";
+import { renderFeatureWorkflowSkill } from "../harness/render/skills";
 import type { RepositoryGuidanceSource } from "./discovery";
 import {
   nestMarkdownHeadings,
@@ -63,4 +64,15 @@ test("closes an unfinished fence before profile metadata", () => {
   expect(nestMarkdownHeadings("```md\n## Example")).toBe(
     "```md\n## Example\n```",
   );
+});
+
+test("import never reads back the harness Shadowclone writes", () => {
+  const skill = renderFeatureWorkflowSkill({ gate: null, adjustments: "" });
+  expect(transformRepositoryGuidance({ source: skillSource(), redactedText: skill.text })).toBeNull();
+  const agents = transformRepositoryGuidance({
+    source: { relativePath: "AGENTS.md", filePath: "/unused", byteLength: 1, kind: "instructions" },
+    redactedText: "# Team\n\nUse the shared queue.\n\n<!-- shadowclone-harness:start -->\n## Working in this repository\n\n- Small files: Keep every file under 200 lines.\n<!-- shadowclone-harness:end -->\n",
+  });
+  expect(agents?.body).toContain("Use the shared queue.");
+  expect(agents?.body).not.toContain("Small files");
 });

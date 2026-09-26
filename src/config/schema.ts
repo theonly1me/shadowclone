@@ -13,6 +13,7 @@ export const sourceIds = [
   "cursor",
   "declared-rules",
   "git-metadata",
+  "repository-manifests",
   "shell",
   "skill-library",
 ] as const;
@@ -46,6 +47,7 @@ export const defaultConfig: ShadowcloneConfig = {
     cursor: false,
     "declared-rules": false,
     "git-metadata": false,
+    "repository-manifests": false,
     shell: false,
     "skill-library": false,
   },
@@ -68,6 +70,7 @@ const sourcesSchema = z
     cursor: z.boolean(),
     "declared-rules": z.boolean().optional().default(false),
     "git-metadata": z.boolean().optional().default(false),
+    "repository-manifests": z.boolean().optional().default(false),
     shell: z.boolean(),
     "skill-library": z.boolean().optional().default(false),
   });

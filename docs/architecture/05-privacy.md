@@ -41,6 +41,8 @@ Learning sends eligible redacted excerpts through the user's authenticated `clau
 
 Skill maintenance has its own default-off `skill-library` source. It reads enabled `SKILL.md` files, sends redacted contents for assessment, and checks referenced files locally without reading or executing them. User-owned technical and routing changes remain pending for review; plugin packages remain unchanged.
 
+The repository harness has its own default-off `repository-manifests` source, asked the first time `shadowclone harness init` runs. Manifests are read locally, bounded in size, never followed through symbolic links, and never sent to a model. Rule text reaches the committed `AGENTS.md` only through `compileProfile`, so it passes `resolveRedacted` first, and personal global rules need a per-repository confirmation. A personal skill copied with `--skill` must pass the redaction check unchanged, or the copy is refused. Harness files are written through local revisions under `~/.shadowclone/`; committing them is left to the user.
+
 Logs report counts, sizes, hashes, and source names. Transcript paths can identify a project, so errors and ordinary logs do not print them or raw excerpts. Validated judge explanations and bounded attempt diagnostics are redacted before persistence. Local code-evidence receipts remain sensitive even when printable output has been redacted.
 
 ## One-step wipe

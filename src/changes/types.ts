@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const revisionSchema = z.strictObject({
   id: z.uuid(),
-  kind: z.enum(["profile", "skill"]),
+  kind: z.enum(["profile", "skill", "harness"]),
   root: z.string().min(1),
   createdAt: z.number(),
   status: z.enum(["prepared", "applied"]),

@@ -57,6 +57,7 @@ test("renders named source settings as TOML", () => {
       "cursor = false",
       "declared-rules = false",
       "git-metadata = false",
+      "repository-manifests = false",
       "shell = false",
       "skill-library = false",
       "",

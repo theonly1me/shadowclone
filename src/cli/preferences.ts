@@ -7,6 +7,7 @@ import {
 } from "../learning";
 import { projectPaths } from "../paths";
 import { rememberPreference } from "../preferences";
+import { readHarnessRoots } from "../harness/state";
 import { skillRevisionRoots } from "../skillMaintenance";
 
 export async function handlePreferenceCommand(options: {
@@ -29,7 +30,7 @@ export async function handlePreferenceCommand(options: {
     return true;
   }
   if (options.command === "undo" && action && rest.length === 0) {
-    const revision = await undoRevision({ paths: projectPaths, id: action, skillRoots: await skillRevisionRoots(projectPaths) });
+    const revision = await undoRevision({ paths: projectPaths, id: action, skillRoots: await skillRevisionRoots(projectPaths), harnessRoots: await readHarnessRoots(projectPaths) });
     await refreshIntegrations();
     console.log(revision ? `Restored files in revision ${revision}.` : "Files already match the prior revision.");
     return true;

@@ -1,5 +1,5 @@
 import type { RepositoryGuidanceSource } from "./discovery";
-import { stripManagedGuidance } from "../integrations";
+import { stripHarnessSection, stripManagedGuidance } from "../integrations";
 
 export type ImportedGuidanceContent = {
   readonly title: string;
@@ -102,7 +102,7 @@ export function transformRepositoryGuidance(options: {
   readonly source: RepositoryGuidanceSource;
   readonly redactedText: string;
 }): ImportedGuidanceContent | null {
-  const normalized = stripManagedGuidance(options.redactedText.replaceAll("\r\n", "\n"));
+  const normalized = stripHarnessSection(stripManagedGuidance(options.redactedText.replaceAll("\r\n", "\n")));
   const withoutFrontmatter = options.source.kind === "skill"
     ? withoutLeadingFrontmatter(normalized)
     : normalized;

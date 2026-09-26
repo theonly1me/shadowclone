@@ -68,5 +68,6 @@ test("defaults the sources an older config predates", () => {
   expect(parsed.sources["claude-memory"]).toBeFalse();
   expect(parsed.sources["declared-rules"]).toBeFalse();
   expect(parsed.sources["git-metadata"]).toBeFalse();
+  expect(parsed.sources["repository-manifests"]).toBeFalse();
   expect(parsed.sources.shell).toBeTrue();
 });

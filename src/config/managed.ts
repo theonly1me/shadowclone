@@ -95,6 +95,7 @@ export function applyManagedPolicy(options: {
       "git-metadata":
         options.config.sources["git-metadata"] &&
         sourceAllowed("git-metadata"),
+      "repository-manifests": options.config.sources["repository-manifests"] && sourceAllowed("repository-manifests"),
       shell: options.config.sources.shell && sourceAllowed("shell"),
       "skill-library": options.config.sources["skill-library"] && sourceAllowed("skill-library"),
     },
