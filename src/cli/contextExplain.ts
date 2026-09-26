@@ -41,6 +41,15 @@ export function explainContext(context: CompiledContext): ContextExplanation {
   };
 }
 
+export function renderStartupContextSummary(context: CompiledContext | null): string {
+  if (context === null) return "Session-start context: disabled by policy.";
+  const { compilation } = context;
+  const omitted = new Map<string, number>();
+  for (const omission of compilation.omissions) omitted.set(omission.reason, (omitted.get(omission.reason) ?? 0) + 1);
+  const reasons = [...omitted].map(([reason, count]) => `${count} ${reason}`).join(", ") || "none";
+  return `Session-start context here: ${compilation.appliedRuleCount} rule line(s), ${compilation.usedBytes}/${compilation.byteBudget} bytes; omitted: ${reasons}.`;
+}
+
 export function renderContextExplanation(explanation: ContextExplanation): string {
   const lines = [
     `Budget: ${explanation.budget.usedBytes}/${explanation.budget.limitBytes} bytes`,
