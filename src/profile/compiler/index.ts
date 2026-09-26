@@ -14,6 +14,7 @@ import {
 } from "./render";
 import { defaultIndexByteBudget, renderIndexCompilation } from "./renderIndex";
 import { selectCompilerBlocks } from "./select";
+import type { RepositoryApplicability } from "./applicability";
 import type {
   CompilerBlock,
   ProfileCompilation,
@@ -27,6 +28,7 @@ export { profileScopePaths } from "./read";
 
 export { defaultProfileByteBudget } from "./render";
 export { defaultIndexByteBudget } from "./renderIndex";
+export { toolPatterns, type KnownTool, type RepositoryApplicability } from "./applicability";
 export type {
   ProfileCompilation,
   ProfileCompilationAudience,
@@ -100,6 +102,7 @@ export async function compileProfile(options: {
   readonly repositoryContext?: ProfileCompilationRepositoryContext;
   readonly format?: ProfileCompilationFormat;
   readonly knownNativeText?: readonly string[];
+  readonly applicability?: RepositoryApplicability;
 }): Promise<ProfileCompilation> {
   const blocks = await compilerBlocks({
     input: options.input,
@@ -110,9 +113,10 @@ export async function compileProfile(options: {
     axes: await seedAxes(blocks),
     repositoryContext: options.repositoryContext ?? "native",
     knownNativeText: options.knownNativeText,
+    applicability: options.applicability,
   });
-  const rendered = options.format === "index"
-    ? renderIndexCompilation({ blocks: selection.selected, byteBudget: options.byteBudget ?? defaultIndexByteBudget })
+  const rendered = options.format === "index" || options.format === "harness"
+    ? renderIndexCompilation({ blocks: selection.selected, byteBudget: options.byteBudget ?? defaultIndexByteBudget, standalone: options.format === "index" })
     : renderCompilation({ blocks: selection.selected, byteBudget: options.byteBudget ?? defaultProfileByteBudget });
   if (options.outputPath !== undefined) {
     await ownedWrite({

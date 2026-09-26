@@ -1,7 +1,9 @@
+import { isNotApplicable, type RepositoryApplicability } from "./applicability";
 import { normalizeGuidanceText, summarizeRule } from "./summary";
 import type {
   CompilerBlock,
   ProfileCompilationOmission,
+  ProfileCompilationOmissionReason,
   ProfileCompilationRepositoryContext,
 } from "./types";
 
@@ -26,6 +28,20 @@ function isKnownNativeDuplicate(options: {
     options.knownNativeText.some((text) => text.includes(probe));
 }
 
+function selectionOmission(options: {
+  readonly block: CompilerBlock;
+  readonly repositoryContext: ProfileCompilationRepositoryContext;
+  readonly knownNativeText: readonly string[];
+  readonly applicability?: RepositoryApplicability;
+}): ProfileCompilationOmissionReason | null {
+  const { block } = options;
+  if (block.source === "imported" && options.repositoryContext === "native") return "native-duplicate";
+  if (block.status !== "active") return block.status;
+  if (isKnownNativeDuplicate({ block, knownNativeText: options.knownNativeText })) return "known-duplicate";
+  if (options.applicability && isNotApplicable({ block, applicability: options.applicability })) return "not-applicable";
+  return null;
+}
+
 function compareBlocks(left: CompilerBlock, right: CompilerBlock): number {
   return (
     authorityRank(left) - authorityRank(right) ||
@@ -42,6 +58,7 @@ export function selectCompilerBlocks(options: {
   readonly axes: ReadonlyMap<string, string>;
   readonly repositoryContext: ProfileCompilationRepositoryContext;
   readonly knownNativeText?: readonly string[];
+  readonly applicability?: RepositoryApplicability;
 }): {
   readonly selected: readonly CompilerBlock[];
   readonly omissions: readonly ProfileCompilationOmission[];
@@ -53,27 +70,17 @@ export function selectCompilerBlocks(options: {
   const knownNativeText = (options.knownNativeText ?? []).map(normalizeGuidanceText);
 
   for (const block of options.blocks) {
-    if (
-      block.source === "imported" &&
-      options.repositoryContext === "native"
-    ) {
-      omissions.push({ ruleKey: block.ruleKey, reason: "native-duplicate" });
-      omittedBlocks.push(block);
-      continue;
-    }
-    if (block.status === "active" && isKnownNativeDuplicate({ block, knownNativeText })) {
-      omissions.push({ ruleKey: block.ruleKey, reason: "known-duplicate" });
-      omittedBlocks.push(block);
-      continue;
-    }
-    if (block.status === "active") {
+    const reason = selectionOmission({
+      block,
+      repositoryContext: options.repositoryContext,
+      knownNativeText,
+      applicability: options.applicability,
+    });
+    if (reason === null) {
       eligible.push(block);
       continue;
     }
-    omissions.push({
-      ruleKey: block.ruleKey,
-      reason: block.status,
-    });
+    omissions.push({ ruleKey: block.ruleKey, reason });
     omittedBlocks.push(block);
   }
 

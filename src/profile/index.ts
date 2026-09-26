@@ -4,6 +4,8 @@ export {
   defaultIndexByteBudget,
   defaultProfileByteBudget,
   profileScopePaths,
+  toolPatterns,
+  type KnownTool,
   type ProfileCompilation,
   type ProfileCompilationAudience,
   type ProfileCompilationBreakdown,
@@ -12,6 +14,7 @@ export {
   type ProfileCompilationOmissionReason,
   type ProfileCompilationRepositoryContext,
   type ProfileCompileInput,
+  type RepositoryApplicability,
 } from "./compiler";
 export {
   activatesFromSessions,

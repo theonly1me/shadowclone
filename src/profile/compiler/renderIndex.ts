@@ -28,15 +28,16 @@ export function renderIndexLine(block: CompilerBlock): string | null {
 export function renderIndexCompilation(options: {
   readonly blocks: readonly CompilerBlock[];
   readonly byteBudget: number;
+  readonly standalone: boolean;
 }): ProfileCompilation & { readonly omittedBlocks: readonly CompilerBlock[] } {
   const omissions: ProfileCompilationOmission[] = [];
   const appliedRuleKeys: string[] = [];
   const omittedBlocks: CompilerBlock[] = [];
   const lines: string[] = [];
   const breakdown = emptyBreakdown();
-  const preambleBytes = Buffer.byteLength(`${indexPreamble}\n\n`, "utf8");
+  const preambleBytes = options.standalone ? Buffer.byteLength(`${indexPreamble}\n\n`, "utf8") : 0;
   const hintBytes = Buffer.byteLength(`\n${recallHint}\n`, "utf8");
-  const showRecallHint = options.blocks.some((block) => block.kind === "reference") &&
+  const showRecallHint = options.standalone && options.blocks.some((block) => block.kind === "reference") &&
     preambleBytes + hintBytes <= options.byteBudget;
   let usedBytes = preambleBytes + (showRecallHint ? hintBytes : 0);
 
@@ -62,7 +63,8 @@ export function renderIndexCompilation(options: {
   }
 
   const sections = [lines.join("\n"), showRecallHint ? recallHint : ""].filter((section) => section.length > 0);
-  const markdown = sections.length === 0 ? "" : `${indexPreamble}\n\n${sections.join("\n\n")}\n`;
+  const body = sections.length === 0 ? "" : `${sections.join("\n\n")}\n`;
+  const markdown = options.standalone && body.length > 0 ? `${indexPreamble}\n\n${body}` : body;
   return {
     markdown,
     appliedRuleKeys,
