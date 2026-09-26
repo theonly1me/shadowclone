@@ -51,7 +51,7 @@ export async function planHarness(options: {
     applicability: { tools: facts.tools, entries: new Set(facts.entries) }, nativeDuplicates: "excluding-harness",
   });
   if (details === null) throw new Error("Shadowclone is disabled by managed policy");
-  const authored = [renderFeatureWorkflowSkill({ gate, adjustments: "" }), renderHarnessBuilderSkill()];
+  const authored = [renderFeatureWorkflowSkill({ gate }), renderHarnessBuilderSkill()];
   const authoredNames = new Set(authored.map((skill) => skill.name));
   if (options.skillNames.some((name) => authoredNames.has(name))) throw new Error("A personal skill cannot replace a Shadowclone-authored skill");
   const personal = await Promise.all([...new Set(options.skillNames)].map((name) => readPersonalSkill({ paths, name })));

@@ -67,7 +67,7 @@ test("closes an unfinished fence before profile metadata", () => {
 });
 
 test("import never reads back the harness Shadowclone writes", () => {
-  const skill = renderFeatureWorkflowSkill({ gate: null, adjustments: "" });
+  const skill = renderFeatureWorkflowSkill({ gate: null });
   expect(transformRepositoryGuidance({ source: skillSource(), redactedText: skill.text })).toBeNull();
   const agents = transformRepositoryGuidance({
     source: { relativePath: "AGENTS.md", filePath: "/unused", byteLength: 1, kind: "instructions" },

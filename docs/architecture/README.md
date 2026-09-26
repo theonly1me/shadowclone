@@ -75,6 +75,10 @@ flowchart LR
     Compiler --> Harness
     PortableSkills --> Harness
     Harness --> HarnessFiles[AGENTS.md section, CLAUDE.md import, workflow skill, harness.json]
+    ClaudeMemory[consented Claude feedback and user notes] --> HarnessSync[harness sync with per-note confirmation]
+    HarnessSync --> Profile
+    HarnessSync --> Harness
+    HarnessFiles --> Compiler
     HarnessFiles --> History
     HarnessFiles --> MainAgents
     HarnessFiles --> HarnessCheck[harness check and Claude Stop hook]

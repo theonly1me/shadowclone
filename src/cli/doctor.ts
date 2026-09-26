@@ -8,7 +8,7 @@ import {
   type DistillationPolicy,
 } from "../config";
 import { openEventIndex } from "../index";
-import { compileContextDetails, integrationHealth } from "../integrations";
+import { compileContextDetails, integrationHealth, sessionStartProjection } from "../integrations";
 import { projectPaths } from "../paths";
 import { repairOwnedTree } from "../storage";
 import { readLearningState } from "../learning";
@@ -111,7 +111,7 @@ export async function doctor(options: {
     console.log(line);
   }
   for (const line of await integrationHealth({ managedConfigPath })) console.log(line);
-  console.log(renderStartupContextSummary(await compileContextDetails({ cwd: process.cwd(), managedConfigPath, format: "index", nativeDuplicates: "including-harness" })));
+  console.log(renderStartupContextSummary(await compileContextDetails({ cwd: process.cwd(), managedConfigPath, ...sessionStartProjection })));
   const { config } = await readEffectiveConfig({ managedConfigPath });
   const learning = await readLearningState(projectPaths);
   console.log(`Automatic learning: ${config.distillation.automatic ? "enabled" : "disabled"}; last attempt ${learning.status}.`);

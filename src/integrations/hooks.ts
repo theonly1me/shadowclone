@@ -2,7 +2,7 @@ import path from "node:path";
 import { z } from "zod";
 import { learningSessionKey } from "../learning";
 import { canonicalPath, projectPaths } from "../paths";
-import { compileContext } from "./compile";
+import { compileContext, sessionStartProjection } from "./compile";
 import { readIntegrations, saveIntegration } from "./state";
 import type { Integration, IntegrationOptions } from "./types";
 import { bindNativeSessionOrigin, nativeBindingTimestamp } from "./bindings";
@@ -73,8 +73,7 @@ export async function nativeSessionStart(options: IntegrationOptions & {
     paths,
     cwd,
     audience: input.hook_event_name === "SubagentStart" ? "subagent" : "main",
-    format: "index",
-    nativeDuplicates: "including-harness",
+    ...sessionStartProjection,
   });
   if (profile === null) {
     return {};

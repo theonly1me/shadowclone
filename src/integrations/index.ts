@@ -1,6 +1,7 @@
 export {
   compileContext,
   compileContextDetails,
+  sessionStartProjection,
   type CompiledContext,
 } from "./compile";
 export { installIntegration, uninstallIntegration } from "./install";

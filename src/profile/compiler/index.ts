@@ -103,6 +103,7 @@ export async function compileProfile(options: {
   readonly format?: ProfileCompilationFormat;
   readonly knownNativeText?: readonly string[];
   readonly applicability?: RepositoryApplicability;
+  readonly committedRuleKeys?: ReadonlySet<string>;
 }): Promise<ProfileCompilation> {
   const blocks = await compilerBlocks({
     input: options.input,
@@ -114,6 +115,7 @@ export async function compileProfile(options: {
     repositoryContext: options.repositoryContext ?? "native",
     knownNativeText: options.knownNativeText,
     applicability: options.applicability,
+    committedRuleKeys: options.committedRuleKeys,
   });
   const rendered = options.format === "index" || options.format === "harness"
     ? renderIndexCompilation({ blocks: selection.selected, byteBudget: options.byteBudget ?? defaultIndexByteBudget, standalone: options.format === "index" })

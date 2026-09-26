@@ -1,5 +1,5 @@
 import path from "node:path";
-import { compileContext, readIntegrations } from "../integrations";
+import { compileContext, readIntegrations, sessionStartProjection } from "../integrations";
 import { canonicalPath, projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import type { GitRemoteReader } from "../signal";
@@ -49,8 +49,7 @@ async function activeProfile(options: LiveHookOptions): Promise<string | null> {
     configPath: options.configPath,
     managedConfigPath: options.managedConfigPath,
     readRemote: options.readRemote,
-    format: "index",
-    nativeDuplicates: "including-harness",
+    ...sessionStartProjection,
   });
   return profile === null || profile.length === 0 ? null : profile;
 }

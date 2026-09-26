@@ -12,6 +12,7 @@ import {
 } from "../profile";
 import { referenceScopeRoots } from "../references";
 import { isOriginBlocked, resolveRepository } from "../signal";
+import { committedHarnessRuleKeys } from "./harnessRules";
 import { readNativeGuidance } from "./nativeGuidance";
 import type { IntegrationOptions } from "./types";
 
@@ -30,7 +31,14 @@ type ContextOptions = IntegrationOptions & {
   readonly nativeDuplicates?: "including-harness" | "excluding-harness" | false;
   readonly byteBudget?: number;
   readonly applicability?: RepositoryApplicability;
+  readonly harnessRules?: boolean;
 };
+
+export const sessionStartProjection = {
+  format: "index",
+  nativeDuplicates: "including-harness",
+  harnessRules: true,
+} as const;
 
 export async function compileContextDetails(options: ContextOptions): Promise<CompiledContext | null> {
   const paths = options.paths ?? projectPaths;
@@ -60,6 +68,7 @@ export async function compileContextDetails(options: ContextOptions): Promise<Co
     format: options.format,
     byteBudget: options.byteBudget,
     applicability: options.applicability,
+    committedRuleKeys: options.harnessRules ? await committedHarnessRuleKeys(options.cwd) : undefined,
     knownNativeText: options.nativeDuplicates && config.sources["declared-rules"]
       ? await readNativeGuidance({ cwd: options.cwd, includeHarness: options.nativeDuplicates === "including-harness" })
       : [],

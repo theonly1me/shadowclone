@@ -60,6 +60,8 @@ repository manifests + profile -> committed repository harness
 
 `shadowclone harness check` verifies the harness and enforces its derived conventions (file length, forbidden characters such as em-dashes, lint or type suppressions, and TypeScript comments) with a fix for each finding. `--changed` limits it to uncommitted files, so older code does not block new work. `harness init --enforce-claude` adds a Claude Code Stop hook to your personal `.claude/settings.local.json` that runs the check and sends the findings back to Claude before it finishes; it blocks once per stop so an unfixable finding never loops. Other agents are held to the same conventions through the `AGENTS.md` finish line and your CI.
 
+`shadowclone harness sync` keeps the harness current. It re-renders the managed files from your latest profile with the answers recorded in `harness.json`. With the `claude-memory` source enabled and `--apply`, it also shows each new Claude feedback or user memory note for this repository and asks whether to add it as a repository rule; declined notes are not asked again until they change. Session-start context leaves out rules the committed harness already carries, so an agent does not read them twice.
+
 Plain `shadowclone learn` updates the local index and prints a structural report without model calls or profile writes. `shadowclone learn --deep` starts with the newest unprocessed episodes in bounded batches, proposes changes, and asks before applying them. `--deep --apply` accepts that local write without a prompt. Explicit reusable guidance can become active from one session; inferred behavior needs three independent sessions. The processed ledger lets later runs continue backward through older history. `shadowclone remember --repo "Use complete variable names."` records a direct preference immediately.
 
 The first setup pass starts at the newest unprocessed episodes so the next session can benefit quickly. Reconciliation batches run concurrently, then apply results in their original order. Completed checkpoints let a later run reuse finished model work. All model calls use `claude`, `codex`, or `cursor-agent` under your existing authentication.
@@ -122,6 +124,7 @@ These are guideline checks passed, not correctness or productivity scores. The s
 | `shadowclone migrate claude-memory` | Preview or apply a one-time copy of Claude memory into the profile |
 | `shadowclone harness init [--apply] [--personal\|--no-personal] [--skill <name>] [--enforce-claude]` | Preview or write the repository harness |
 | `shadowclone harness check [--changed] [--format human\|json\|claude-stop]` | Check the harness and its conventions |
+| `shadowclone harness sync [--apply]` | Refresh the harness and review new Claude memory notes |
 | `shadowclone install [--agent <agent>|all] [--global|--repo]` | Install native guidance manually |
 | `shadowclone uninstall [--global]` | Remove owned integrations |
 | `shadowclone remember`, `history`, `undo` | Manage direct rules and revisions |

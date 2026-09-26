@@ -1,7 +1,7 @@
 import {
   compileContext, compileContextDetails, installIntegration, integrationAgentSchema, nativeSessionEnd,
   nativeSessionStart,
-  readIntegrations, refreshIntegrations, uninstallIntegration,
+  readIntegrations, refreshIntegrations, sessionStartProjection, uninstallIntegration,
   type IntegrationAgent, type IntegrationScope,
 } from "../integrations";
 import { canonicalPath, projectPaths } from "../paths";
@@ -90,7 +90,7 @@ export async function handleNativeCommand(options: {
     options.arguments[0] === "--explain" &&
     (options.arguments.length === 1 || options.arguments[1] === "--json")
   ) {
-    const details = await compileContextDetails({ cwd: process.cwd(), format: "index", nativeDuplicates: "including-harness" });
+    const details = await compileContextDetails({ cwd: process.cwd(), ...sessionStartProjection });
     if (details === null) {
       await Bun.stdout.write("Shadowclone guidance is disabled by policy.\n");
       return true;

@@ -33,10 +33,12 @@ function selectionOmission(options: {
   readonly repositoryContext: ProfileCompilationRepositoryContext;
   readonly knownNativeText: readonly string[];
   readonly applicability?: RepositoryApplicability;
+  readonly committedRuleKeys?: ReadonlySet<string>;
 }): ProfileCompilationOmissionReason | null {
   const { block } = options;
   if (block.source === "imported" && options.repositoryContext === "native") return "native-duplicate";
   if (block.status !== "active") return block.status;
+  if (block.ruleKey !== null && options.committedRuleKeys?.has(block.ruleKey)) return "in-harness";
   if (isKnownNativeDuplicate({ block, knownNativeText: options.knownNativeText })) return "known-duplicate";
   if (options.applicability && isNotApplicable({ block, applicability: options.applicability })) return "not-applicable";
   return null;
@@ -59,6 +61,7 @@ export function selectCompilerBlocks(options: {
   readonly repositoryContext: ProfileCompilationRepositoryContext;
   readonly knownNativeText?: readonly string[];
   readonly applicability?: RepositoryApplicability;
+  readonly committedRuleKeys?: ReadonlySet<string>;
 }): {
   readonly selected: readonly CompilerBlock[];
   readonly omissions: readonly ProfileCompilationOmission[];
@@ -75,6 +78,7 @@ export function selectCompilerBlocks(options: {
       repositoryContext: options.repositoryContext,
       knownNativeText,
       applicability: options.applicability,
+      committedRuleKeys: options.committedRuleKeys,
     });
     if (reason === null) {
       eligible.push(block);

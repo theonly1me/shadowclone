@@ -25,6 +25,7 @@ export type ProfileCompilationOmissionReason =
   | "axis-conflict"
   | "native-duplicate"
   | "known-duplicate"
+  | "in-harness"
   | "not-applicable"
   | "on-demand"
   | "budget";

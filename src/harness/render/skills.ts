@@ -13,10 +13,7 @@ function skillFile(options: { readonly name: string; readonly description: strin
   return { name: options.name, description: options.description, text };
 }
 
-export function renderFeatureWorkflowSkill(options: {
-  readonly gate: HarnessGate | null;
-  readonly adjustments: string;
-}): AuthoredSkill {
+export function renderFeatureWorkflowSkill(options: { readonly gate: HarnessGate | null }): AuthoredSkill {
   const gate = options.gate === null ? "the checks listed in `AGENTS.md`" : `\`${options.gate.command}\``;
   return skillFile({
     name: "feature-workflow",
@@ -45,7 +42,6 @@ export function renderFeatureWorkflowSkill(options: {
       "## Verification",
       "",
       `The change is verified when ${gate} passes and each new behavior has a test. Name the checks you ran; never claim one you did not run.`,
-      ...(options.adjustments.length === 0 ? [] : ["", "## Learned adjustments", "", options.adjustments.trimEnd()]),
     ],
   });
 }
