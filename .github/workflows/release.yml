@@ -20,18 +20,39 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      released: ${{ steps.release.outputs.release_created }}
-      tag: ${{ steps.release.outputs.tag_name }}
+      tag: ${{ steps.pending.outputs.tag }}
     steps:
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7
-        id: release
         with:
           config-file: .github/release-please-config.json
           manifest-file: .github/release-please-manifest.json
 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Find an unpublished release at this commit
+        id: pending
+        run: |
+          name="$(node -p 'require("./package.json").name')"
+          version="$(node -p 'require("./package.json").version')"
+          tag="v$version"
+          if ! git fetch --no-tags --depth=1 origin "refs/tags/$tag:refs/tags/$tag"; then
+            echo "$tag does not exist yet"
+            exit 0
+          fi
+          if [ "$(git rev-parse "$tag^{commit}")" != "$GITHUB_SHA" ]; then
+            echo "$tag belongs to another commit"
+            exit 0
+          fi
+          status="$(curl -sS -o /dev/null -w '%{http_code}' "https://registry.npmjs.org/${name/\//%2f}/$version")"
+          case "$status" in
+            200) echo "$name@$version is already on npm" ;;
+            404) echo "tag=$tag" >> "$GITHUB_OUTPUT" ;;
+            *) echo "npm registry answered $status for $name@$version" >&2; exit 1 ;;
+          esac
+
   publish:
     needs: [prepare, gate]
-    if: needs.prepare.outputs.released == 'true'
+    if: needs.prepare.outputs.tag != ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: npm

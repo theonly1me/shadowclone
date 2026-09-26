@@ -2,7 +2,7 @@
 
 Releases are automated. Every merge to `main` updates a release pull request that bumps the version and writes `CHANGELOG.md` from the conventional-commit subjects since the last release. Merging that pull request tags the version and creates the GitHub release.
 
-The same run then publishes `@shadowclone/cli` to npm, behind the `npm` environment, so it waits for a maintainer to approve it from the Actions tab. That approval is the last gate before anything reaches the registry.
+The run for that merge commit then publishes `@shadowclone/cli` to npm, behind the `npm` environment, so it waits for a maintainer to approve it from the Actions tab. That approval is the last gate before anything reaches the registry. A run publishes only when the tag for its `package.json` version points at the exact commit it gated and npm does not have that version yet. Another merge landing during a release therefore cannot claim or skip it, and rerunning a release run whose publish failed retries the publish.
 
 Commit subjects decide the version. A `feat:` subject bumps the minor, `fix:` bumps the patch, and anything with a `!` bumps the major. `chore:`, `ci:`, `test:`, and `refactor:` do not appear in the changelog.
 
