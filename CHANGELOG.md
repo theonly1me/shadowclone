@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.0.11](https://github.com/theonly1me/shadowclone/compare/v0.0.10...v0.0.11) (2026-09-27)
+
+
+### Features
+
+* maintain portable skills and add the agent build wizard ([#79](https://github.com/theonly1me/shadowclone/issues/79)) ([d9cf211](https://github.com/theonly1me/shadowclone/commit/d9cf2112ef095f121998e45016a158cec07ae0d8))
+
+
+### Fixes
+
+* **release:** publish from the run that gated the tagged release commit ([#77](https://github.com/theonly1me/shadowclone/issues/77)) ([5c4e5d5](https://github.com/theonly1me/shadowclone/commit/5c4e5d5c8d8e8fa695a531766a76cf8887f16c7b))
+
+
+### Documentation
+
+* add readme header banner ([#80](https://github.com/theonly1me/shadowclone/issues/80)) ([c0c27bb](https://github.com/theonly1me/shadowclone/commit/c0c27bb1bc834238ad49b466d55c422f3d59b14a))
+
 ## [0.0.10](https://github.com/theonly1me/shadowclone/compare/v0.0.9...v0.0.10) (2026-09-26)
 
 
