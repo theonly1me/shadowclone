@@ -1,4 +1,4 @@
-<p align="center"><img src="src/web/client/assets/shadowclone-mark.svg" alt="Shadowclone logo" width="96" height="96"></p>
+![Shadowclone: your engineering instincts, as portable skills for every coding agent](docs/assets/shadowclone-banner.png)
 
 # Shadowclone
 
