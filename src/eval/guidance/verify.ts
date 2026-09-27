@@ -34,22 +34,6 @@ export async function verifyGuidanceCode(options: {
     }
   }
 
-  if (process.platform !== "darwin") {
-    return {
-      verdict: "not-verified",
-      evidence: "Focused execution requires the macOS evaluation sandbox.",
-    };
-  }
-
-  const bun = Bun.which("bun");
-
-  if (!bun || !Bun.which("sandbox-exec")) {
-    return {
-      verdict: "not-verified",
-      evidence: "The focused test sandbox is unavailable.",
-    };
-  }
-
   const actualDirectory = await realpath(directory).catch(() => null);
 
   if (actualDirectory === null) {
@@ -93,6 +77,22 @@ export async function verifyGuidanceCode(options: {
     return {
       verdict: "fail",
       evidence: "The focused test runtime is linked or not a directory.",
+    };
+  }
+
+  if (process.platform !== "darwin") {
+    return {
+      verdict: "not-verified",
+      evidence: "Focused execution requires the macOS evaluation sandbox.",
+    };
+  }
+
+  const bun = Bun.which("bun");
+
+  if (!bun || !Bun.which("sandbox-exec")) {
+    return {
+      verdict: "not-verified",
+      evidence: "The focused test sandbox is unavailable.",
     };
   }
 

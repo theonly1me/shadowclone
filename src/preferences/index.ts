@@ -84,7 +84,7 @@ export async function rememberPreference(options: {
     .trim()
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/<!--/g, "&lt;!--")
-    .replace(/-->/g, "--&gt;");
+    .replace(/--(!?)>/g, "--$1&gt;");
 
   const location =
     options.scope === "global"

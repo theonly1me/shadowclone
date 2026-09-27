@@ -14,6 +14,8 @@ Use session identities and content hashes to avoid repeatedly processing unchang
 
 Keep user edits and explicit choices authoritative. Record revisions so learned changes can be explained and undone. `remember` records direct user guidance with an explicit scope; it does not justify unrelated global promotion.
 
+Escape both `-->` and `--!>` when storing explicit preferences, alongside comment openings, so comment delimiters remain literal guidance. Cover both forms through preference publication.
+
 ## Verification
 
 Exercise durable instructions, temporary requests, independent-session thresholds, repeated hooks, cancellation, and revoked consent. Check that history and undo preserve unrelated edits and that failed background work cannot replace active guidance with incomplete output.

@@ -31,3 +31,5 @@ Private learning records and evaluation evidence stay outside the public checkou
 ## Verification
 
 Cover updates and creation, baseline routing, memory idempotency, scope, consent, redaction, resource preservation, symlinks, conflicts, interrupted publication, and undo. Keep original and maintained evaluation libraries distinct. Native delivery probes use synthetic sessions; successful migration alone is not evidence of better agent behavior.
+
+Validate focused test paths and existing runtime directories before checking execution support. Unsafe links fail on every platform. A valid snapshot remains unverified on unsupported platforms, without creating a runtime directory or launching a process.

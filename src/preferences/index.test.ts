@@ -37,6 +37,22 @@ test("long explicit preferences use a complete clause as their heading", async (
   );
 });
 
+test("explicit preferences escape both HTML comment closing forms", async () => {
+  const setup = await integrationFixture();
+
+  await rememberPreference({
+    ...setup,
+    text: "Preserve literal examples: <!-- ordinary --> and <!-- alternate --!>.",
+    scope: "global",
+  });
+
+  const context = await compileContext(setup);
+
+  expect(context).toContain("&lt;!-- ordinary --&gt;");
+  expect(context).toContain("&lt;!-- alternate --!&gt;");
+  expect(context).not.toContain("--!>");
+});
+
 test("MCP requires explicit scope and records redacted preferences", async () => {
   const setup = await integrationFixture();
   const secret = `sk-ant-${"A".repeat(90)}`;
