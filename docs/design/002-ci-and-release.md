@@ -23,3 +23,9 @@ Biome covered the required rules with a small toolchain. Formatting was kept sep
 ## Verification
 
 Exercise each custom rule with a failing fixture and a clean fixture. Ensure the walker finds expected files and ignores generated directories. Check workflow syntax, version mismatch failures, package contents, and the built CLI. The workflow files are the source of truth for publishing steps.
+
+## Release test timing repair
+
+The `v0.0.11` release gate exposed two timing-dependent tests, although that version was later published. The deadline test allowed 200 ms for setup and receipt writes, then assumed every judge arm had saved its first vote. On a slower Linux runner, the timeout was recorded correctly but that assumption failed. A maintenance test exceeded its 30-second test limit on macOS while exercising repeated Git and receipt checks.
+
+Seed the deadline test with valid saved votes, wait for a judge call that ignores cancellation, and verify that the hard deadline preserves the receipt and resumes the remaining work. Give the deadline and maintenance tests enough time for runner variation. Run focused tests and the full check gate so future releases are not blocked by these tests.
