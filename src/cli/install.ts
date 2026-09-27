@@ -6,7 +6,9 @@ import {
 import { readEffectiveConfig } from "../config";
 import { canonicalPath, projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { compileProfile, renderAgent } from "../profile";
+import { renderAgent } from "../profile";
+import { compileAgentDelivery } from "../environment/compile";
+import { readEnvironment } from "../environment";
 import {
   isOriginBlocked,
   resolveRepository,
@@ -59,14 +61,8 @@ export async function installLiveClone(
   if (isOriginBlocked({ repository, patterns: policy.blockedOrigins })) {
     throw new Error("Managed policy blocks this repository");
   }
-  const compilation = await compileProfile({
-    input: {
-      kind: "directory",
-      profileDirectory: paths.profileDirectory,
-      origin: repository.origin,
-      targetRepo: repository.profileFileName,
-    },
-    outputPath: paths.compiledProfileFile,
+  const compilation = await compileAgentDelivery({ paths, cwd, repository,
+    ...(await readEnvironment(paths) === null ? { outputPath: paths.compiledProfileFile } : {}),
   });
   const state = await readInstallations(paths.installationsFile);
   const directory = canonicalPath(cwd);

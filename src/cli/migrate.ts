@@ -7,6 +7,7 @@ import {
   type ClaudeMemoryMigrationResult,
 } from "../migrate";
 import { projectPaths } from "../paths";
+import { readEnvironment } from "../environment/store";
 
 type MigrationOptions = {
   readonly apply: boolean;
@@ -70,6 +71,7 @@ export async function handleMigrateCommand(options: {
     return false;
   }
   const parsed = parseOptions(options.arguments.slice(1));
+  if (await readEnvironment(projectPaths)) throw new Error("Use migrate skills --apply --memory for recurring memory extraction into the learning environment.");
   if (parsed === null) {
     throw new Error("Use shadowclone migrate claude-memory [--decisions <file>] [--apply]");
   }

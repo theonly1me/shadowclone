@@ -51,7 +51,12 @@ export function guidanceReport(receipt: GuidanceReceipt) {
         referenceReads: observed.flatMap((run) => run.expectedReferences.map((reference) => ({ ...reference, loaded: run.measurementVersion === 2 ? reference.loaded : null }))),
         safetyFailures: observed.filter((run) => run.safety === "fail").length,
         syntaxErrors: observed.filter((run) => run.verification === "syntax-error").length,
-        correctness: "Tests and typechecks were not executed. This is not a correctness success rate.",
+        focusedTests: receipt.protocol !== "guidance-v1" ? {
+          passed: observed.filter((run) => run.verification === "pass").length,
+          failed: observed.filter((run) => run.verification === "fail").length,
+          unknown: observed.filter((run) => run.verification === "not-verified").length,
+        } : null,
+        correctness: receipt.protocol !== "guidance-v1" ? "Changed test files run in a network-disabled snapshot when available; this is a focused check, not full correctness proof." : "Tests and typechecks were not executed. This is not a correctness success rate.",
       };
     }),
     failure: receipt.failure,

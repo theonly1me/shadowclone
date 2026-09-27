@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readLocalText, replaceLocalText } from "../localFiles";
+import { readLocalFile, replaceLocalText } from "../localFiles";
 import { canonicalPath, type ProjectPaths } from "../paths";
 import { storeRevision } from "./store";
 import type { FileUpdate, LocalRevision } from "./types";
@@ -7,7 +7,7 @@ import type { FileUpdate, LocalRevision } from "./types";
 export function revisionTarget(options: { readonly root: string; readonly relativePath: string }): string {
   const root = canonicalPath(options.root);
   const target = path.resolve(root, options.relativePath);
-  if (!target.startsWith(`${root}${path.sep}`)) throw new Error("Revision target escapes its root");
+  if (target === root || !target.startsWith(root === path.sep ? root : `${root}${path.sep}`)) throw new Error("Revision target escapes its root");
   return target;
 }
 
@@ -16,16 +16,18 @@ export async function applyRevisionFiles(options: { readonly revision: LocalRevi
     filePath: revisionTarget({ root: options.revision.root, relativePath: change.relativePath }),
     previous: options.reverse ? change.after : change.before,
     next: options.reverse ? change.before : change.after,
+    encoding: change.encoding,
+    mode: change.mode,
   }));
   for (const change of changes) {
-    if (await readLocalText(change.filePath) !== change.previous) throw new Error("Revision conflicts with subsequent edits; files were preserved");
+    if (await readLocalFile(change) !== change.previous) throw new Error("Revision conflicts with subsequent edits; files were preserved");
   }
   const completed: typeof changes = [];
   try {
     for (const change of changes) { await (options.replace ?? replaceLocalText)(change); completed.push(change); }
   } catch (error) {
     for (const change of completed.reverse()) {
-      await replaceLocalText({ filePath: change.filePath, previous: change.next, next: change.previous });
+      await replaceLocalText({ ...change, previous: change.next, next: change.previous });
     }
     throw error;
   }
@@ -42,9 +44,9 @@ export async function commitLocalChanges(options: {
   for (const update of options.updates) {
     const relativePath = path.relative(root, update.filePath);
     const filePath = revisionTarget({ root, relativePath });
-    const before = await readLocalText(filePath);
+    const before = await readLocalFile({ filePath, encoding: update.encoding });
     if (update.previous !== undefined && before !== update.previous) throw new Error("Revision conflicts with subsequent edits; files were preserved");
-    if (before !== update.next) changes.push({ relativePath, before, after: update.next });
+    if (before !== update.next) changes.push({ relativePath, before, after: update.next, encoding: update.encoding, mode: update.mode });
   }
   if (changes.length === 0) return null;
   if (new Set(changes.map((change) => change.relativePath)).size !== changes.length) throw new Error("Revision contains duplicate destinations");

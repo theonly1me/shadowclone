@@ -6,7 +6,8 @@ import { readEffectiveConfig, type ActionCapability } from "../config";
 import { detectEngine, type EngineRun, type EngineRunner } from "../engine";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { compileProfile } from "../profile";
+import { compileAgentDelivery } from "../environment/compile";
+import { materializeSkillDelivery } from "../environment/delivery";
 import {
   isOriginBlocked,
   resolveRepository,
@@ -103,17 +104,11 @@ export async function runHeadlessClone(options: {
   await prepareWorktreeDependencies({ worktree, runner: options.commandRunner });
   const compiledProfilePath = path.join(
     paths.runDirectory(runId),
-    "profile.md",
+    "guidance.md",
   );
-  const compilation = await compileProfile({
-    input: {
-      kind: "directory",
-      profileDirectory: paths.profileDirectory,
-      origin: repository.origin,
-      targetRepo: repository.profileFileName,
-    },
-    outputPath: compiledProfilePath,
-  });
+  const compilation = await compileAgentDelivery({ paths, cwd: targetDirectory, repository, outputPath: compiledProfilePath });
+  const skills = await materializeSkillDelivery({ paths, repositoryDirectory: targetDirectory, destination: worktree.worktreeDirectory });
+  if (skills !== null) await Bun.write(compiledProfilePath, skills, { mode: 0o600 });
   const startedAt = options.startedAt ?? new Date().toISOString();
   const invoke = (prompt: string, sessionId: string, schema: boolean): Promise<EngineRun> => runner({
     prompt,

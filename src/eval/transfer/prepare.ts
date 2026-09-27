@@ -2,6 +2,7 @@ import os from "node:os";
 import { command } from "./command";
 import { captureContext } from "./context";
 import { prepareFreshTasks } from "./freshTasks";
+import { prepareTaskFile } from "./taskFile";
 import { preflightRepository } from "./preflight";
 import { loadEvaluationProfile } from "./profile";
 import type { ResolvedTransferSetup } from "./setup";
@@ -69,15 +70,17 @@ async function freshSuite(options: {
   options.onStep(
     `Preparing ${options.setup.count} fresh additive coding task(s)`,
   );
-  const tasks = await prepareFreshTasks({
-    repository: options.setup.repository,
-    startingCommit: options.commit,
-    count: options.setup.count,
-    suppliedTask: options.setup.suppliedTask,
-    profile: options.profile,
-    context,
-    call: options.call,
-  });
+  const tasks = options.setup.taskFile
+    ? await prepareTaskFile({ filePath: options.setup.taskFile, startingCommit: options.commit, count: options.setup.count, profile: options.profile, context })
+    : await prepareFreshTasks({
+        repository: options.setup.repository,
+        startingCommit: options.commit,
+        count: options.setup.count,
+        suppliedTask: options.setup.suppliedTask,
+        profile: options.profile,
+        context,
+        call: options.call,
+      });
   const suite: EvaluationSuite = {
     schemaVersion: 3,
     suiteId: crypto.randomUUID(),
@@ -85,7 +88,7 @@ async function freshSuite(options: {
     baseCommit: options.commit,
     context,
     profileSnapshot: {
-      kind: "current",
+      kind: "startup-index",
       fingerprint: fingerprint(options.profile),
       ruleCount: options.ruleCount,
     },
@@ -103,8 +106,9 @@ export async function prepareEvaluation(options: {
 }): Promise<PreparedEval> {
   const state = await repositoryState(options.setup.repository);
   const profile = await loadEvaluationProfile({
-    profileDirectory: options.setup.paths.profileDirectory,
-    repository: options.setup.repositoryIdentity,
+    delivery: "startup",
+    cwd: options.setup.repository,
+    paths: options.setup.paths,
   });
   options.onStep("Checking the disposable current-HEAD snapshot");
   const preflight = await preflightRepository({
@@ -150,6 +154,7 @@ export async function prepareEvaluation(options: {
     repeat: options.setup.repeat,
     timeoutSeconds: options.setup.timeoutSeconds,
     maxBudgetUsd: options.setup.maxBudgetUsd ?? null,
+    maxCalls: options.setup.maxCalls,
     dirtyFileCount: state.dirtyFileCount,
     preflight: preflight.checks,
   };

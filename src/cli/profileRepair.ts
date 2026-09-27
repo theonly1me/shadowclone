@@ -1,6 +1,7 @@
 import path from "node:path";
 import { readLocalText } from "../localFiles";
 import { projectPaths, type ProjectPaths } from "../paths";
+import { readEnvironment } from "../environment/store";
 import {
   applyProfileCuration,
   applyProfileRepair,
@@ -65,6 +66,7 @@ export async function handleProfileRepairCommand(options: {
     throw new Error("Use shadowclone profile repair [--decisions <file>] [--apply]");
   }
   const paths = options.paths ?? projectPaths;
+  if (await readEnvironment(paths)) throw new Error("The profile is archived after skills migration. Inspect active learning with skills pending or context --explain.");
   if (flags.decisionsPath !== null) {
     const text = await readLocalText(flags.decisionsPath);
     if (text === null) throw new Error("Profile repair decisions file was not found");

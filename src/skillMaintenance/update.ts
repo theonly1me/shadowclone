@@ -14,6 +14,7 @@ import { readMaintenanceState, writeMaintenanceState } from "./state";
 import { syncPortableSkills } from "./portable";
 import { syncPersonalSkills } from "./syncPersonal";
 import type { DiscoveredSkill } from "./types";
+import { updateLearningEnvironment } from "../environment/update";
 
 export type SkillUpdateSummary = { readonly assessed: number; readonly applied: number; readonly pending: number; readonly invalid: number; readonly duplicates: number; readonly deferred: number; readonly verification: number; readonly synced: number; readonly conflicts: number };
 
@@ -29,6 +30,8 @@ function nextSkillBatch(skills: readonly DiscoveredSkill[]): readonly Discovered
 }
 
 export async function updateSkillLibrary(options: { readonly paths: ProjectPaths; readonly execution?: LearningExecution; readonly syncPersonal?: boolean; readonly managedConfigPath?: string | null; readonly readRemote?: GitRemoteReader }): Promise<SkillUpdateSummary> {
+  const environment = await updateLearningEnvironment(options);
+  if (environment !== null) return environment;
   const empty: SkillUpdateSummary = { assessed: 0, applied: 0, pending: 0, invalid: 0, duplicates: 0, deferred: 0, verification: 0, synced: 0, conflicts: 0 };
   const { config, policy } = await readEffectiveConfig({ configPath: options.paths.configFile, managedConfigPath: options.managedConfigPath === undefined ? options.paths.managedConfigFile : options.managedConfigPath });
   if (!config.sources["skill-library"]) return empty;

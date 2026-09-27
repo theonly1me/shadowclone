@@ -3,7 +3,7 @@ import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
-import { parseProfileRules } from "../profile";
+import { readProfileSnapshot } from "../profile";
 import {
   loadSeedLibrary,
   seedGuidanceProfileKey,
@@ -102,16 +102,7 @@ test("writes stable declared rules on identical reruns", async () => {
     });
   }
 
-  const engineeringPath = path.join(
-    paths.profileDirectory,
-    "global/engineering.md",
-  );
-  const workflowPath = path.join(paths.profileDirectory, "global/workflow.md");
-  const engineeringText = await Bun.file(engineeringPath).text();
-  const rules = [
-    ...parseProfileRules(engineeringText),
-    ...parseProfileRules(await Bun.file(workflowPath).text()),
-  ];
+  const rules = (await readProfileSnapshot(paths)).rules.map(({ rule }) => rule);
   const testingFirst = rules.find(
     (rule) => rule.key === seedGuidanceProfileKey("testing-first"),
   );
@@ -134,5 +125,5 @@ test("writes stable declared rules on identical reruns", async () => {
       path.join(homeDirectory, redundantRoot, "testing-first/SKILL.md"),
     ).exists()).toBeFalse();
   }
-  expect(engineeringText).not.toContain("\n## Process");
+  expect(await Bun.file(paths.profileManifestFile).exists()).toBeFalse();
 });

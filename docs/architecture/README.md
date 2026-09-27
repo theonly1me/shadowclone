@@ -1,17 +1,15 @@
 # Architecture
 
-Shadowclone maintains an editable engineering-preference profile and a portable personal skill library for existing coding agents. The always-on profile is a short preference index, capped at 4 KiB and deduplicated against the repository's own instructions. Skills retain detailed task workflows and are loaded through each agent's native catalog. Consented local transcripts supply reusable user guidance. Ordinary sessions and supported delegated runs receive the same scoped profile; with learning consent, a session that contains durable steering feeds later learning when it ends.
+Shadowclone maintains portable skills from consented local sessions and memory. Internal records preserve evidence, scope, revisions, and publication decisions. A mandatory baseline skill carries universal guidance. Native instruction sections carry routing and necessary scoped facts; focused skill bodies load when selected.
 
-It reads named, opt-in sources. Eligible captured excerpts pass through `resolveRedacted` before they reach the user's authenticated agent CLI. Evaluation separately exposes an authorized repository snapshot and unredacted generated code to that provider. Shadowclone has no service, API key, or telemetry. The profile is editable Markdown, and `shadowclone forget --all` removes stored state and recorded integrations while preserving unrelated content and refusing conflicting edits.
-
-The profile is additional model context, not a trained model or a guarantee of adherence. The [early evaluation report](../../evals.md) compares repository-only, personal-context, and profile-equipped setups and records the limitations of that evidence.
+Eligible source content passes through the redaction boundary before model access. Automatic skill edits require separate write authorization. Native memory remains untouched. Original libraries, revisions, and evaluation receipts stay local. Historical evaluations describe the earlier profile delivery and do not establish that the maintained skills improve behavior.
 
 ## Documents
 
 | File | Covers |
 | --- | --- |
 | `01-capture.md` | What gets read, how it is normalized, how it stays incremental |
-| `02-profile.md` | How raw sessions become a behavioral profile you can read and edit |
+| `02-profile.md` | How durable learning becomes skills and native routing |
 | `03-engine.md` | Driving the user's own agent subscriptions instead of an API key |
 | `04-acting.md` | How a clone runs a task, and the ceiling on what it may do |
 | `05-privacy.md` | The egress gate, retention, consent, and the one-step wipe |
@@ -26,66 +24,25 @@ Per-change design records live in `docs/design/`. They explain decisions at the 
 
 ```mermaid
 flowchart LR
-    Preferences[seed preferences] --> Onboarding[onboarding]
-    StarterSkills[starter skills] --> Onboarding
-    Onboarding --> Profile[profile]
-    Onboarding --> PortableSkills[portable personal skill library]
-    PortableSkills --> ProviderSkills[Claude Codex Cursor Antigravity skills]
-    RepositoryGuidance[repository guidance] --> Import[import]
-    Import --> Profile
-    Sources[Enabled local sources] --> Observe[observe]
-    Observe --> Index[index]
-    Index --> Signal[signal]
-    Signal --> Report[learning report]
-    Signal --> Episodes[user steering episodes]
-    Episodes --> CueFilter[steering phrase prefilter]
-    CueFilter --> Distill[durable evidence reconciliation]
-    Native[provider SessionStart] --> Compiler
-    SubagentStart[Claude SubagentStart] --> Compiler
-    NativeEnd[provider session end] --> Worker[consented bounded learning worker]
-    Worker --> Observe
-    Worker --> SkillMaintenance[consented skill maintenance]
-    Compiler --> SkillMaintenance
-    SkillMaintenance --> SkillReview[pending review or managed additions]
-    SkillMaintenance --> PortableSkills
-    SkillReview --> History
-    Engine[engine] --> Distill
-    Distill --> Profile
-    Profile --> History[local revisions and undo]
-    Profile --> Compiler[compiler]
-    Compiler --> MainAgents[Claude Codex Cursor Antigravity main agents]
-    Compiler --> ClaudeSubagents[spawned Claude subagents]
-    MainAgents --> NewTranscripts[new agent transcripts]
-    ClaudeSubagents --> NewTranscripts
-    Dispatch --> NewTranscripts
-    NewTranscripts --> Sources
-    Native --> NativeState[native integration manifest]
-    NativeState --> Uninstall
-    Compiler --> Dispatch[headless dispatch]
-    CurrentHead[current repository HEAD] --> Eval[fresh transfer eval]
-    Compiler --> Eval
-    PortableSkills --> Eval
-    AgentContext[consented personal instructions and memory] --> Eval
-    Eval --> Evidence[private code evidence]
-    Evidence --> Judge[source-backed code-only judging]
-    Judge --> Votes[checkpointed votes and pending work]
-    Votes --> Results[completion and adherence reported separately]
-    Compiler --> Install[repository install]
-    Manifests[consented repository manifests] --> Harness[repository harness]
-    Compiler --> Harness
-    PortableSkills --> Harness
-    Harness --> HarnessFiles[AGENTS.md section, CLAUDE.md import, workflow skill, harness.json]
-    ClaudeMemory[consented Claude feedback and user notes] --> HarnessSync[sync with per-note confirmation]
-    HarnessSync --> Profile
-    HarnessSync --> Harness
-    HarnessFiles --> Compiler
-    HarnessFiles --> History
-    HarnessFiles --> MainAgents
-    HarnessFiles --> HarnessCheck[shadowclone check and Claude Stop hook]
-    Install --> Installations[installation manifest]
-    Installations --> Uninstall[uninstall and wipe]
-    Engine --> Dispatch
-    Engine --> Eval
+    Sources[Consented sessions] --> Index[Pointer index]
+    Index --> Evidence[Redacted durable evidence]
+    Memory[Consented native memory] --> Evidence
+    Evidence --> Records[Internal scoped learning records]
+    Library[Existing skills and native instructions] --> Planner[Reconcile workflows]
+    Records --> Planner
+    Planner --> Pending[Conflicts and uncertain changes]
+    Planner --> Skills[Portable skills and baseline]
+    Skills --> Routing[Small native routing sections]
+    Routing --> Agents[Native agents and subagents]
+    Skills --> Dispatch[Isolated dispatch]
+    Skills --> History[Grouped revisions and undo]
+    Routing --> History
+    Agents --> Sources
+    Original[Frozen original environment] --> Eval[Matched environment evaluation]
+    Skills --> Eval
+    Routing --> Eval
+    Memory --> Eval
+    Eval --> Results[Delivery, correctness, and adherence]
 ```
 
 | Stage | Module | What it does |
@@ -101,8 +58,8 @@ flowchart LR
 | session learning | `src/learning/` | Schedules bounded catch-up when a consented session ends, serializes workers, and tracks processed episode hashes |
 | revisions | `src/changes/` | Records before/after local files and refuses conflicting undo |
 | skill maintenance | `src/skillMaintenance/` | Synchronizes portable copies, assesses consented roots, preserves original workflows, and records review decisions |
-| profile | `src/profile/` | Plain markdown you can read, edit, and diff |
-| compiler | `src/profile/compiler/` | The one bounded, deterministic projection every clone reads |
+| learning environment | `src/environment/` | Readable evidence, scoped skill publication, migration, and original snapshots |
+| legacy compiler | `src/profile/compiler/` | Compatibility for unmigrated installations and historical evaluations |
 | install | `src/cli/install.ts` | Writes repository artifacts and records them for removal |
 | harness | `src/harness/` | Detects the gate and commands from consented manifests, filters rules to the repository, writes managed harness files through local revisions, and checks them and their conventions |
 | native delivery | `src/integrations/` | Preserves a stable native pointer, injects live scoped context, merges hooks, and tracks ownership |
@@ -132,7 +89,7 @@ Five questions were open in the previous version of this document. Four are now 
 
 **Should the distiller be provider agnostic.** Yes, and `src/engine/` is the abstraction. See `03-engine.md`.
 
-**What is the vault's schema, and is it files or a database.** Both, split by purpose. Plain markdown holds what was learned about the user, because a user who cannot read what was learned about them cannot consent to it. SQLite holds source locators and skeletons, and is declared a disposable cache that can be deleted and rebuilt. See `02-profile.md`.
+**What is the vault's schema, and is it files or a database.** Both, split by purpose. Readable JSON holds evidence and publication decisions; Markdown skills and native instructions deliver guidance. SQLite holds source locators and skeletons, and is declared a disposable cache that can be deleted and rebuilt. See `02-profile.md`.
 
 **What updates the environment.** Default setup runs a bounded first pass over recent consented steering. Explicit CLI learning runs on demand. With separate deep and automatic consent, the main agent can mark a substantive session containing reusable guidance or a clear correction, and the native end hook schedules bounded learning for that session. A stop or session end alone does not schedule learning. See `01-capture.md`.
 

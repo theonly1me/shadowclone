@@ -52,10 +52,11 @@ export function handleMcpRequest(options: {
         tools: [
           ...preferenceTools,
           ...referenceTools,
+          { name: "shadowclone_context", description: "Inspect applicable learned skills and native routing for this repository", inputSchema: { type: "object", properties: {} } },
           {
             name: "shadowclone_profile",
             description:
-              "Load the active user's engineering profile for this repository",
+              "Deprecated alias for shadowclone_context",
             inputSchema: { type: "object", properties: {} },
           },
         ],
@@ -67,7 +68,7 @@ export function handleMcpRequest(options: {
     const params = isRecord(options.request.params)
       ? options.request.params
       : {};
-    if (params.name !== "shadowclone_profile") {
+    if (params.name !== "shadowclone_profile" && params.name !== "shadowclone_context") {
       return {
         ...base,
         error: { code: -32602, message: "Unknown tool" },
@@ -97,7 +98,7 @@ async function activeProfile(options: {
   readonly readRemote?: GitRemoteReader;
   readonly managedConfigPath?: string | null;
 }): Promise<string> {
-  return await compileContext(options) ?? "# Shadowclone profile\n";
+  return await compileContext(options) ?? "Shadowclone context is disabled.\n";
 }
 
 async function writeMessage(value: Readonly<Record<string, unknown>>): Promise<void> {
@@ -135,7 +136,7 @@ export async function serveMcp(options: {
             const profile =
               request.method === "tools/call" &&
               isRecord(request.params) &&
-              request.params.name === "shadowclone_profile"
+              (request.params.name === "shadowclone_profile" || request.params.name === "shadowclone_context")
                 ? await activeProfile({
                     cwd,
                     configPath: options.configPath,

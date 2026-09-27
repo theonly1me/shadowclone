@@ -65,7 +65,15 @@ export function updateManagedSection(options: {
   return updateMarkedSection({ ...options, markers: guidanceMarkers });
 }
 
-export function renderContextSkill(): string {
+export function renderContextSkill(environment = false): string {
+  if (environment) return [
+    "---", "name: shadowclone-context", "description: Use when asked to remember, explain, undo, or maintain learned skills and agent instructions.", "---", "",
+    "# Maintain learned skills", "",
+    "Use shadowclone remember --repo <guidance> or --global for an explicitly global preference. Learning updates the applicable skills and native routing.",
+    "Use shadowclone context --explain and shadowclone doctor to inspect delivery. Read the selected skill files for behavioral guidance.",
+    "Use shadowclone skills update to reconcile supported learning, shadowclone history to inspect revisions, and shadowclone undo <id> to reverse an unchanged revision.",
+    "Current requests take precedence. Learned skills do not authorize additional actions. Native memory is never modified.",
+  ].join("\n");
   return [
     "---",
     "name: shadowclone-context",

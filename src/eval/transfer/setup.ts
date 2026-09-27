@@ -20,6 +20,7 @@ import {
   defaultRepeat,
   defaultTaskCount,
   defaultTimeoutSeconds,
+  invocationCeiling,
 } from "./budget";
 import { command } from "./command";
 import { resolveEvaluationLocation } from "./location";
@@ -43,7 +44,9 @@ export interface ResolvedTransferSetup {
   readonly repeat: number;
   readonly timeoutSeconds: number;
   readonly maxBudgetUsd: number | undefined;
+  readonly maxCalls: number;
   readonly suppliedTask: string | undefined;
+  readonly taskFile: string | undefined;
   readonly suiteId: string | undefined;
 }
 
@@ -129,6 +132,10 @@ export async function setupTransferEval(
   if (count > 10) {
     throw new Error("tasks cannot exceed 10");
   }
+  const repeat = positiveInteger({ value: options.repeat, fallback: location.saved?.prepared.repeat ?? defaultRepeat, name: "repeat" });
+  const maximumCalls = invocationCeiling({ tasks: count, repeat });
+  const maxCalls = positiveInteger({ value: options.maxCalls, fallback: location.saved?.prepared.maxCalls ?? maximumCalls, name: "max-calls" });
+  if (maxCalls > maximumCalls) throw new Error("max-calls cannot exceed the evaluation invocation ceiling");
   return {
     paths,
     config,
@@ -145,11 +152,7 @@ export async function setupTransferEval(
     reasoningEffort: options.reasoningEffort ??
       location.saved?.prepared.reasoningEffort ?? undefined,
     count,
-    repeat: positiveInteger({
-      value: options.repeat,
-      fallback: location.saved?.prepared.repeat ?? defaultRepeat,
-      name: "repeat",
-    }),
+    repeat,
     timeoutSeconds: positiveInteger({
       value: options.timeoutSeconds,
       fallback: location.saved?.prepared.timeoutSeconds ?? defaultTimeoutSeconds,
@@ -157,7 +160,9 @@ export async function setupTransferEval(
     }),
     maxBudgetUsd: options.maxBudgetUsd ??
       location.saved?.prepared.maxBudgetUsd ?? undefined,
+    maxCalls,
     suppliedTask: options.task,
+    taskFile: options.taskFile,
     suiteId: options.suiteId,
   };
 }

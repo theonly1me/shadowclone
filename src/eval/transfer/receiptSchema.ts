@@ -32,7 +32,7 @@ const contextSchema = z.strictObject({
 });
 
 const profileSnapshotSchema = z.strictObject({
-  kind: z.literal("current"),
+  kind: z.enum(["current", "startup-index"]),
   fingerprint: z.string().min(1),
   ruleCount: z.number().int().positive(),
 });
@@ -128,6 +128,7 @@ const preparedSchema = z.strictObject({
   repeat: z.number().int().positive(),
   timeoutSeconds: z.number().positive(),
   maxBudgetUsd: z.number().nullable(),
+  maxCalls: z.number().int().positive().optional(),
   dirtyFileCount: z.number().int().nonnegative(),
   context: z.array(contextSchema),
   profileSnapshot: profileSnapshotSchema,

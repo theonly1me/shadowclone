@@ -19,7 +19,7 @@ export async function saveGuidanceReceipt(options: { readonly paths: ProjectPath
 
 export async function readGuidanceReceipt(options: { readonly paths: ProjectPaths; readonly evalId: string }): Promise<GuidanceReceipt> {
   const directory = guidanceDirectory(options);
-  const text = await readBoundedFile({ filePath: path.join(directory, "guidance-state.json"), roots: [directory], maximumBytes: 32 * 1024 * 1024 });
+  const text = await readBoundedFile({ filePath: path.join(directory, "guidance-state.json"), roots: [directory], maximumBytes: 160 * 1024 * 1024 });
   if (text === null) throw new Error("Guidance evaluation receipt is unavailable");
   const receipt = receiptSchema.parse(JSON.parse(text));
   if (receipt.evalId !== options.evalId || fingerprint(receipt.suite) !== receipt.suiteFingerprint) throw new Error("Guidance receipt fingerprint mismatch");
@@ -35,7 +35,7 @@ export async function saveGuidanceSuite(options: { readonly paths: ProjectPaths;
 
 export async function readGuidanceSuite(options: { readonly paths: ProjectPaths; readonly suiteId: string }): Promise<GuidanceSuite> {
   const filePath = path.join(options.paths.shadowcloneDirectory, "eval-suites", `${z.uuid().parse(options.suiteId)}.guidance.json`);
-  const text = await readBoundedFile({ filePath, roots: [options.paths.shadowcloneDirectory], maximumBytes: 16 * 1024 * 1024 });
+  const text = await readBoundedFile({ filePath, roots: [options.paths.shadowcloneDirectory], maximumBytes: 160 * 1024 * 1024 });
   if (text === null) throw new Error("Frozen guidance suite is unavailable");
   const stored = z.strictObject({ suite: suiteSchema, fingerprint: z.string() }).parse(JSON.parse(text));
   if (stored.suite.suiteId !== options.suiteId || fingerprint(stored.suite) !== stored.fingerprint) throw new Error("Frozen guidance suite fingerprint mismatch");

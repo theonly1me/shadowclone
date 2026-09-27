@@ -16,6 +16,7 @@ import {
 const valueFlags = [
   "--repo <path>",
   "--task <prompt>",
+  "--task-file <path>",
   "--suite-id <id>",
   "--model <id>",
   "--engine <id>",
@@ -27,6 +28,7 @@ const valueFlags = [
   "--deadline-seconds <number>",
   "--eval-id <id>",
   "--max-budget-usd <number>",
+  "--max-calls <number>",
 ] as const;
 export function parseTransferArguments(
   argumentsList: readonly string[],
@@ -45,6 +47,7 @@ export function parseTransferArguments(
   const options = program.opts<{
     readonly repo?: string;
     readonly task?: string;
+    readonly taskFile?: string;
     readonly suiteId?: string;
     readonly model?: string;
     readonly engine?: string;
@@ -56,6 +59,7 @@ export function parseTransferArguments(
     readonly deadlineSeconds?: string;
     readonly evalId?: string;
     readonly maxBudgetUsd?: string;
+    readonly maxCalls?: string;
     readonly yes?: boolean;
     readonly json?: boolean;
   }>();
@@ -63,6 +67,9 @@ export function parseTransferArguments(
   if (options.task !== undefined && options.tasks !== undefined) {
     throw new Error("Use --task or --tasks, not both");
   }
+  if (options.taskFile !== undefined && options.task !== undefined) throw new Error("Use --task or --task-file, not both");
+  if (options.taskFile !== undefined && options.suiteId !== undefined) throw new Error("Use --task-file or --suite-id, not both");
+  if (options.taskFile !== undefined && options.evalId !== undefined) throw new Error("An evaluation resume cannot select a new task file");
   if (options.suiteId !== undefined && (options.task || options.tasks)) {
     throw new Error("A frozen --suite-id cannot be combined with task selection");
   }
@@ -85,6 +92,7 @@ export function parseTransferArguments(
   return {
     repo: options.repo,
     task: options.task,
+    taskFile: options.taskFile,
     suiteId: options.suiteId,
     model: options.model,
     engine,
@@ -108,6 +116,7 @@ export function parseTransferArguments(
       value: options.maxBudgetUsd,
       name: "--max-budget-usd",
     }),
+    maxCalls: parsePositiveNumber({ value: options.maxCalls, name: "--max-calls" }),
     json: options.json ?? false,
     yes: options.yes ?? false,
   };
@@ -126,10 +135,11 @@ export async function transferEvalCommand(
   }
 
   if (!parsed.yes && !parsed.json && process.stdin.isTTY) {
-    const invocations = invocationCeiling({
+    const ceiling = invocationCeiling({
       tasks: parsed.task ? 1 : parsed.tasks,
       repeat: parsed.repeat,
     });
+    const invocations = Math.min(parsed.maxCalls ?? ceiling, ceiling);
     const timeoutSeconds = parsed.timeoutSeconds ?? defaultTimeoutSeconds;
     const engineDescription = [
       parsed.engine,

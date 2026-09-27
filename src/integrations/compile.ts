@@ -13,8 +13,10 @@ import {
 import { referenceScopeRoots } from "../references";
 import { isOriginBlocked, resolveRepository } from "../signal";
 import { committedHarnessRuleKeys } from "./harnessRules";
+import { readClaudeRules } from "./claudeRules";
 import { readNativeGuidance } from "./nativeGuidance";
 import type { IntegrationOptions } from "./types";
+import { environmentCompilation } from "../environment/context";
 
 export type CompiledContext = {
   readonly compilation: ProfileCompilation;
@@ -53,11 +55,23 @@ export async function compileContextDetails(options: ContextOptions): Promise<Co
     readRemote: options.readRemote,
   });
   if (repository && isOriginBlocked({ repository, patterns: policy.blockedOrigins })) return null;
+  const environment = await environmentCompilation({ paths, cwd: options.cwd, scope: options.scope, originDirectory: repository?.origin.directoryName ?? null, repositoryName: repository?.profileFileName ?? null });
+  if (environment !== null) return { compilation: environment, scopeFiles: ["environment.json"], referenceRoots: [], diagnostics: { isolatedRules: 0, legacyRules: 0 } };
   const location = {
     origin: repository?.origin ?? null,
     targetRepo: repository?.profileFileName ?? null,
     scope: options.scope,
   };
+  const knownNativeText = options.nativeDuplicates
+    ? [
+        ...(config.sources["declared-rules"]
+          ? await readNativeGuidance({ cwd: options.cwd, includeHarness: options.nativeDuplicates === "including-harness" })
+          : []),
+        ...(config.sources["claude-rules"]
+          ? await readClaudeRules(options.cwd)
+          : []),
+      ]
+    : [];
   const compilation = await compileProfile({
     input: {
       kind: "directory",
@@ -69,9 +83,7 @@ export async function compileContextDetails(options: ContextOptions): Promise<Co
     byteBudget: options.byteBudget,
     applicability: options.applicability,
     committedRuleKeys: options.harnessRules ? await committedHarnessRuleKeys(options.cwd) : undefined,
-    knownNativeText: options.nativeDuplicates && config.sources["declared-rules"]
-      ? await readNativeGuidance({ cwd: options.cwd, includeHarness: options.nativeDuplicates === "including-harness" })
-      : [],
+    knownNativeText,
   });
   return {
     compilation,

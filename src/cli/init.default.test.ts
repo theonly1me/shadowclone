@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { readConfig } from "../config";
 import { createProjectPaths } from "../paths";
-import { readGeneratedProfileState } from "../profile";
+import { readProfileSnapshot } from "../profile";
 import { readMaintenanceState } from "../skillMaintenance";
 import { fixtureSkill } from "../skillMaintenance/fixtures";
 import { answerIsYes, initialize } from "./init";
@@ -111,7 +111,7 @@ test("skill consent works without enabling transcript capture or model calls", a
   expect(modelCalls).toBe(0);
 });
 
-test("default setup imports guidance and writes a profile with an injected clock and runner", async () => {
+test("default setup retains imported guidance as internal learning with an injected clock and runner", async () => {
   const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-default-"));
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
   await Bun.write(path.join(homeDirectory, "CLAUDE.md"), "# Plan the smallest change\n");
@@ -130,5 +130,6 @@ test("default setup imports guidance and writes a profile with an injected clock
     managedConfigPath: null,
     writeLine: () => {},
   });
-  expect(await readGeneratedProfileState(paths.profileManifestFile)).toHaveLength(1);
+  expect((await readProfileSnapshot(paths)).rules).toHaveLength(1);
+  expect(await Bun.file(paths.profileManifestFile).exists()).toBeFalse();
 });

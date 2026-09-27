@@ -20,19 +20,26 @@ export function assertRegularDestination(filePath: string): void {
 }
 
 export async function readLocalText(filePath: string): Promise<string | null> {
+  return readLocalFile({ filePath });
+}
+
+export async function readLocalFile(options: { readonly filePath: string; readonly encoding?: "utf8" | "base64" }): Promise<string | null> {
+  const { filePath } = options;
   assertRegularDestination(filePath);
   const file = Bun.file(filePath);
   if (!(await file.exists())) return null;
   if (file.size > 2_000_000) throw new Error("Local file exceeds the supported size");
-  return file.text();
+  return options.encoding === "base64" ? Buffer.from(await file.arrayBuffer()).toString("base64") : file.text();
 }
 
 export async function replaceLocalText(options: {
   readonly filePath: string;
   readonly previous: string | null;
   readonly next: string | null;
+  readonly encoding?: "utf8" | "base64";
+  readonly mode?: number;
 }): Promise<void> {
-  if (await readLocalText(options.filePath) !== options.previous) {
+  if (await readLocalFile(options) !== options.previous) {
     throw new Error("Destination changed during the update; retry after reviewing it");
   }
   if (options.next === options.previous) return;
@@ -44,10 +51,10 @@ export async function replaceLocalText(options: {
   const temporary = `${options.filePath}.${crypto.randomUUID()}.tmp`;
   try {
     const mode = lstatSync(options.filePath, { throwIfNoEntry: false })?.mode;
-    const handle = await open(temporary, "wx", mode === undefined ? 0o600 : mode & 0o777);
-    try { await handle.writeFile(options.next); }
+    const handle = await open(temporary, "wx", mode === undefined ? options.mode ?? 0o600 : mode & 0o777);
+    try { await handle.writeFile(options.encoding === "base64" ? Buffer.from(options.next, "base64") : options.next); }
     finally { await handle.close(); }
-    if (await readLocalText(options.filePath) !== options.previous) {
+    if (await readLocalFile(options) !== options.previous) {
       throw new Error("Destination changed during the update; retry after reviewing it");
     }
     await rename(temporary, options.filePath);

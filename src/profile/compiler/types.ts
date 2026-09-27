@@ -56,6 +56,7 @@ export type ProfileCompilation = {
 };
 
 type CompilerBlockFields = {
+  readonly scope?: "global" | "org" | "project";
   readonly status: ProfileStatus;
   readonly observations: number;
   readonly visible: string;

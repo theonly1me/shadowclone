@@ -5,7 +5,7 @@ import path from "node:path";
 import { createProjectPaths } from "../paths";
 import { readConfig } from "../config";
 import { defaultManagedPolicy } from "../config";
-import { readGeneratedProfileState } from "../profile";
+import { readProfileSnapshot } from "../profile";
 import { initialize } from "./init";
 
 test("offers to import detected repository guidance", async () => {
@@ -60,7 +60,7 @@ test("imports accepted guidance after configuration and skips seed selection", a
   });
 
   const config = await readConfig({ configPath: paths.configFile });
-  const state = await readGeneratedProfileState(paths.profileManifestFile);
+  const state = (await readProfileSnapshot(paths)).rules.map(({ rule }) => rule);
   expect(config.sources["declared-rules"]).toBeTrue();
   expect(state).toHaveLength(1);
 });

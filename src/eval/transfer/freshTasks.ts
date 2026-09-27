@@ -19,7 +19,7 @@ import type { ContextFile, DelegationTask, ModelCall } from "./types";
 const forbiddenTask =
   /\b(?:commit|amend|push|deploy|production|staging|external service|network access|install (?:a |any )?(?:package|dependency)|database migration)\b/i;
 
-function invalidTaskReason(task: {
+export function invalidTaskReason(task: {
   readonly prompt: string;
   readonly completion: readonly string[];
   readonly preferences: readonly { readonly requirement: string }[];

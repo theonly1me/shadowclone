@@ -127,6 +127,25 @@ test("returns a useful fail for no lift or a correctness regression", () => {
   expect(evaluationStatus(regression)).toBe("running");
 });
 
+test("does not call an incomplete repeated evaluation decision grade", () => {
+  const prepared = receipt();
+  const [originalTask] = prepared.prepared.tasks;
+  if (!originalTask) throw Error("Expected a prepared task");
+  const tasks = ["first", "second", "third"].map((id) => ({ ...originalTask, id }));
+  const runs = tasks.flatMap((task) => [0, 1].flatMap((repeat) =>
+    (["bare", "skills", "clone"] as const).map((arm) => ({
+      ...run({ arm, preference: passed }), taskId: task.id, repeat,
+    }))
+  ));
+  const base = { ...prepared, prepared: { ...prepared.prepared, tasks, repeat: 2 } };
+  const incomplete = { ...base, status: "error" as const, runs: runs.slice(0, -3) };
+  const complete = { ...base, status: "complete" as const, runs };
+
+  expect(summarize(incomplete).sampleSize).toBe(5);
+  expect(reportLines(incomplete)).toContain("Decision grade: no; requires at least 3 tasks x 2 repeats");
+  expect(reportLines(complete)).toContain("Decision grade: yes; requires at least 3 tasks x 2 repeats");
+});
+
 test("not-applicable preferences earn no points and leave the denominator", () => {
   const complete = {
     ...receipt(),

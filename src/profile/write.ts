@@ -1,4 +1,5 @@
 import { commitLocalChanges, type FileUpdate } from "../changes";
+import { storeLearningRules } from "../environment";
 import path from "node:path";
 import { acquireLocalLock } from "../localFiles/lock";
 import { readLocalText } from "../localFiles";
@@ -30,6 +31,8 @@ type WriteOptions = {
 };
 
 export async function writeProfile(options: WriteOptions): Promise<ProfileWriteResult> {
+  const learning = await storeLearningRules(options);
+  if (learning !== null) return learning;
   await ownedDirectory(options.paths.profileDirectory);
   const lock = await acquireLocalLock(path.join(options.paths.shadowcloneDirectory, "profile-write.db"));
   if (!lock) throw new Error("Another profile update is running; retry shortly");

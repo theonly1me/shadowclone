@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import { handleSkillsMigration } from "./migrateSkills";
 
 import packageManifest from "../../package.json";
 import { serveMcp } from "../mcp";
@@ -28,7 +29,7 @@ import { handleSkillMaintenance } from "./skillMaintenance";
 import { runWizard } from "./wizard";
 
 const usage =
-  "Usage: shadowclone <init [--advanced] [--repo [--personal|--no-personal] [--skill <name>] [--no-enforce]]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate claude-memory [--decisions <file>] [--apply]|install [--agent claude-code|codex|cursor|antigravity|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|run <task>|eval [--repo <path>] [--task <prompt>|--tasks N|--suite-id <id>] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--repeat N] [--timeout-seconds N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
+  "Usage: shadowclone <init [--advanced] [--repo [--personal|--no-personal] [--skill <name>] [--no-enforce]]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate skills [--apply] [--automatic] [--memory] [--activate-only] [--repo <path>]|migrate claude-memory [--decisions <file>] [--apply]|install [--agent claude-code|codex|cursor|antigravity|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|run <task>|eval [--repo <path>] [--task <prompt>|--task-file <path>|--tasks N|--suite-id <id>] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--repeat N] [--timeout-seconds N] [--max-calls N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -95,7 +96,7 @@ async function main(arguments_: readonly string[]): Promise<void> {
     return;
   }
   if (await handleProfileRepairCommand({ command, arguments: rest })) return;
-  if (await handleMigrateCommand({ command, arguments: rest })) return;
+  if (await handleSkillsMigration({ command, arguments: rest }) || await handleMigrateCommand({ command, arguments: rest })) return;
   if (command === "recall") {
     const options = parseRecallOptions(rest);
     if (options !== null) {

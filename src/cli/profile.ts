@@ -1,4 +1,5 @@
 import type { ShadowcloneConfig } from "../config";
+import { readEnvironment } from "../environment";
 import type { ProjectPaths } from "../paths";
 import {
   compileProfile,
@@ -16,6 +17,7 @@ export async function refreshOfflineProfile(options: {
   readonly readRemote?: GitRemoteReader;
   readonly blockedOrigins?: readonly string[];
 }): Promise<void> {
+  if (await readEnvironment(options.paths) !== null) return;
   const repository = await resolveRepository({
     cwd: options.cwd,
     enabled: options.config.sources["git-metadata"],

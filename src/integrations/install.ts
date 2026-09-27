@@ -5,6 +5,7 @@ import { compileContext } from "./compile";
 import { applyIntegrationFiles, prepareIntegrationFiles } from "./files";
 import { readIntegrations, saveIntegration } from "./state";
 import type { Integration, IntegrationAgent, IntegrationOptions, IntegrationScope } from "./types";
+import { readEnvironment } from "../environment";
 
 export async function installIntegration(options: IntegrationOptions & {
   readonly agent: IntegrationAgent;
@@ -36,7 +37,7 @@ export async function installIntegration(options: IntegrationOptions & {
   };
   const profile = await compileContext({ ...options, paths, cwd, scope: options.scope === "global" ? "global" : "combined" });
   if (profile === null) throw new Error("Managed policy blocks this integration");
-  const changes = await prepareIntegrationFiles({ integration, profile });
+  const changes = await prepareIntegrationFiles({ integration, profile, environment: (await readEnvironment(paths))?.phase === "active" });
   const updated = { ...integration, files: changes.map((change) => change.record) };
   await saveIntegration({ paths, integration: updated });
   try {

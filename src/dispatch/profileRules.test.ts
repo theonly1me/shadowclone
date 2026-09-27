@@ -92,7 +92,7 @@ test("the receipt counts applied rules, not nested skill headings", async () => 
   });
 
   const profile = await Bun.file(
-    path.join(paths.runDirectory("run-abcdef12"), "profile.md"),
+    path.join(paths.runDirectory("run-abcdef12"), "guidance.md"),
   ).text();
 
   expect(profile).toContain("## How to verify");

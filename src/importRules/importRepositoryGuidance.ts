@@ -1,9 +1,9 @@
+import { guidanceImportState } from "./learningState";
+import { canonicalPath } from "../paths";
 import { lstat } from "node:fs/promises";
 import type { ProjectPaths } from "../paths";
 import {
   createProfileRuleKey,
-  readGeneratedProfileState,
-  readProfileRejections,
   writeProfile,
 } from "../profile";
 import type { ProfileRule, ProfileRuleReference } from "../profile";
@@ -110,17 +110,13 @@ export async function importRepositoryGuidance(options: {
   ) {
     throw new Error("Managed policy blocks this repository");
   }
-  const sources = await discoverRepositoryGuidance(options.workingDirectory);
+  const imported = await guidanceImportState(options.paths);
+  const sources = (await discoverRepositoryGuidance(options.workingDirectory)).filter((source) => !imported.owned.has(canonicalPath(source.filePath)));
   const aliases = repositoryAliases({
     workingDirectory: options.workingDirectory,
     repository,
   });
-  const previous = await readGeneratedProfileState(
-    options.paths.profileManifestFile,
-  );
-  const rejections = await readProfileRejections(
-    options.paths.rejectedProfileFile,
-  );
+  const { previous, rejections } = imported;
   const identities: readonly ImportIdentity[] = [
     ...previous.filter((entry) => entry.disposition === "present"),
     ...rejections,
@@ -175,7 +171,7 @@ export async function importRepositoryGuidance(options: {
   );
   const result = await writeProfile({ paths: options.paths, rules, retired });
   const rejectedKeys = new Set(
-    (await readProfileRejections(options.paths.rejectedProfileFile)).map(
+    (await guidanceImportState(options.paths)).rejections.map(
       (entry) => entry.key,
     ),
   );

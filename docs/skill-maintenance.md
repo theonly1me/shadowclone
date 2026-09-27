@@ -1,76 +1,55 @@
 # Maintain your skill library
 
-Skill maintenance adapts task-specific skills to your engineering preferences. It does not rewrite plugin packages or invent replacements for technical documentation.
+Shadowclone uses durable learning to update an existing workflow or create a missing skill. It preserves evidence internally and publishes native instructions that explain when to read the skills.
 
-## Setup
+## Setup and permissions
 
-Default `shadowclone init` asks whether to keep skills in sync across detected agents, then configures the global library before installing integrations. For individual roots or later changes, use:
+Default setup asks separately about reading sessions, synchronizing and automatically maintaining skills, and background learning. Skill reads use the default-off `skill-library` source. Automatic editing is a separate environment setting; deep and automatic learning remain separate controls.
 
 ```bash
 shadowclone skills configure --global
 shadowclone skills configure --repo
-```
-
-This enables the named `skill-library` source, which defaults off. It does not enable transcripts, deep learning, or automatic learning. Global setup includes `.claude/skills`, `.agents/skills`, `.codex/skills`, `.cursor/skills`, and `.gemini/config/skills` beneath your home directory, plus supported provider `plugins/cache` roots. `CODEX_HOME` controls the Codex locations. Repository setup includes the supported skill directories in the current repository.
-
-Custom roots require an explicit path. A third-party root receives local companion skills under `.agents/skills` in the chosen scope:
-
-```bash
-shadowclone skills configure --repo --root ./team-skills
-shadowclone skills configure --global --root /path/to/plugin/skills --third-party
-shadowclone skills roots
-shadowclone skills unconfigure <root-id>
-shadowclone skills disable
-```
-
-Unconfiguring a root stops discovery while retaining ownership records for recovery. Disabling the source stops all skill reads and assessment. Neither operation deletes your skills.
-
-## Portable starter skills
-
-The onboarding wizard installs each selected starter as a complete directory in `~/.agents/skills`, including references, assets, and other supporting files. This is the canonical personal copy. Shadowclone records equivalent copies for Claude Code and the Antigravity-compatible Gemini location. Codex and Cursor read `~/.agents/skills` directly, so they get no second copy, and an unchanged legacy copy in `~/.codex/skills` or `~/.cursor/skills` is retired during synchronization. Starters are Shadowclone-installed but not auto-maintained: a proposed change to a starter waits for review like any user-owned skill.
-
-Wizard reruns and skill maintenance, including maintenance invoked by deep learning, synchronize the recorded copies. If one copy changed since the previous synchronization, that copy becomes authoritative and its full tree is copied to the other locations. If multiple copies changed to different contents, synchronization reports a conflict and preserves every version. Symbolic links are rejected so a recorded skill cannot expand the synchronization boundary.
-
-When the wizard selection changes, Shadowclone removes a deselected starter only when every recorded copy still matches its original installation. An edited starter is reclassified as adopted user guidance and preserved. A missing provider copy is recreated from the current canonical content. Existing skills are never silently adopted or replaced by onboarding.
-
-## Update and review
-
-```bash
-shadowclone skills list
-shadowclone skills update
+shadowclone migrate skills --repo /path/to/repository
+shadowclone migrate skills --apply --automatic --memory --repo /path/to/repository
 shadowclone skills pending
-shadowclone skills show <proposal-id>
-shadowclone skills apply <proposal-id>
-shadowclone skills reject <proposal-id>
+shadowclone migrate skills --apply --activate-only
 ```
 
-Update requires deep-learning consent. It first synchronizes portable copies, then catches up on up to 60 steering episodes absent from the learning ledger and assesses the configured skill library. `shadowclone learn --deep` performs the same skill assessment when the skill-library source is enabled. Profile learning and skill assessment share the existing 20-call, five-minute allowance and Claude's supported two-dollar ceiling. Unchanged assessments are skipped. A large library may need subsequent runs, and the summary reports deferred skills.
+Preview does not invoke a model or write files. Apply saves the original library, retains all learning, and publishes supported changes in reversible batches. Repeat apply to continue a large migration. Register every repository whose scoped learning should be published. Unregistered scopes remain stored and visible.
 
-Each model batch receives only one root's redacted skill documents and its scoped compiled profile. Global skills receive global preferences only. Repository skills receive only their matching context. Claude prompt history and its corresponding transcript count as the same independent session.
+`--automatic` authorizes supported maintenance of user-owned skills. `--memory` enables recurring read-only extraction from the registered repositories' Claude memory. Neither changes native memory. Omit these flags to retain the current settings.
 
-Existing skills remain user-owned by default. Proposed additions and routing changes remain pending until you approve a specific proposal. Original workflow bodies, supporting resources, and invocation settings remain intact. The model selects exact supporting passages from active preferences; missing support rejects the proposal. Rejected identical additions stay rejected even when unrelated profile guidance changes.
+Global roots include `.agents/skills`, `.claude/skills`, supported provider skill directories and configured plugin caches. Repository roots remain restricted to their registered repository. Custom roots can be configured with `--root`; third-party roots use `--third-party` and cannot be edited as user skills.
 
-You can opt a specific user-owned skill into managed preference additions:
+## Updating and resolving conflicts
 
 ```bash
-shadowclone skills manage <skill-id>
-shadowclone learning enable
+shadowclone skills update
+shadowclone skills automatic on
+shadowclone skills automatic off
+shadowclone skills pending
+shadowclone skills retry <learning-key>
+shadowclone skills exclude <learning-key> <reason>
 ```
 
-When deep and automatic learning consent are enabled, each native session end schedules bounded catch-up for that session. Sessions without a durable steering phrase make no learning call. Automatic skill changes apply only to skills you opted in with `skills manage`. They require the file to match its recorded fingerprint. Later edits are preserved. Routing changes and unresolved conflicts still need review. Installed plugin caches cannot be adopted.
+The planner reviews the consented library, selects a relevant skill, and inspects its complete redacted instructions. Existing skills receive exact section edits; unrelated text, invocation permissions, resources, and intent are preserved. New skills group coherent workflows instead of creating a file for every correction. Global and repository evidence are processed separately.
 
-An approved third-party proposal creates a `shadowclone-local-<id>` companion in the appropriate local agent skill directory. The package remains unchanged. The companion applies only when its base skill is already selected and does not change the base skill's permissions. Later preference additions to the companion also wait for review.
+Conflicts, unsupported technical changes, ambiguous edits, and capacity problems remain pending. Resolve a conflicting file before retrying. Exclusion requires an explicit reason and stays in the evidence record. `skills automatic off` stops automatic skill maintenance without deleting published skills. `skills disable` disables library reads independently. Legacy per-proposal `show`, `apply`, `reject`, and `manage` commands remain for unmigrated installations.
 
-## Validation and limits
+Learning and drafting share the existing allowance of 20 calls, five minutes, and the engine's supported $2 ceiling. Unchanged evidence is skipped. `skills pending` distinguishes completed capture from unfinished publication.
 
-Discovery checks every `SKILL.md` in enabled roots without following symlinks or entering hidden subdirectories. Shadowclone's integration skill and generated companions are excluded from source assessment. Limits are 500 discovered files, 12 path segments, 48 KB per skill, and 8 MB total. Disable a broad root and configure smaller roots when a limit is exceeded.
+## Delivery and resources
 
-Validation checks required YAML fields, duplicate top-level metadata, directory/name agreement, body size, matching code fences, and safe existing relative references. Referenced files are never executed or sent to the model. Duplicate names and model-identified routing, conflict, and technical-verification concerns remain visible in `skills list`. Unknown technical facts are flagged for review, not silently rewritten. Structural validation does not prove an arbitrary command or API is current.
+`shadowclone-baseline` carries universal behavior and is mandatory before every task. Workflow skills carry relevant preferences, procedures, prerequisites, and examples. Native sections route tasks to skills and may include short standalone facts. Baseline and native sections each have a 4 KiB ceiling. Overflow is explicit and retains the source evidence.
 
-## History, privacy, and evaluation
+Global skills live in canonical `~/.agents/skills`, with complete copies for Claude and Antigravity. Codex and Cursor read the canonical directory. Repository skills stay under their repository's `.agents/skills` and `.claude/skills`. Supporting files retain bytes and executable permissions. They are checked locally and are not sent to the learning model or executed during maintenance.
 
-`shadowclone history` includes applied skill revisions. `shadowclone undo <revision-id>` restores the exact prior file when no later edit conflicts. History and proposals can contain private before/after skill text, stay local, and pass through redaction before detailed display. `shadowclone_skills_status` exposes root and pending-review counts through MCP without reading skill contents or making model calls.
+Third-party packages receive local companions. A companion applies only when its base skill is already selected and preserves its permissions. Dispatch and evaluation materialize the relevant library, including the base skills, inside their isolated workspace.
 
-`shadowclone forget --all` restores original maintained user skills, removes recorded companions, and removes local maintenance state. Edited maintained files stop cleanup so ownership is not discarded. Original plugin packages and user transcripts remain untouched.
+`shadowclone sync` refreshes native routing and propagates a single changed maintained copy. Divergent changes preserve every version and require reconciliation. Publication rejects symbolic links and missing or unsafe references. The discovery limits remain 500 files, 12 path segments, 48 KB per skill, and 8 MB total. A resource publication is limited to 512 KB before replication and must fit the revision history budget.
 
-Transfer evaluation restores original user skill text and routing and excludes generated companions from each repository snapshot. The skills and clone arms receive the same frozen personal context; only clone receives the compiled profile. This measures profile contribution separately from existing guidance. Live provider discovery and the usefulness of proposed skill changes need their own validation.
+## Recovery and evaluation
+
+Each publication records skills, resources, native sections, and evidence decisions together. `history` lists revisions and `undo <revision>` restores one if later edits do not conflict. Forget restores tracked originals and refuses conflicting edits; native memory and third-party packages are untouched.
+
+`guidance-skills-v1` compares the frozen original library against the maintained library with native routing. Original skills with memory form their own condition. The maintained condition has no profile overlay. Historical profile evaluations remain unchanged and cannot establish the benefit of the new skill updates.

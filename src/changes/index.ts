@@ -1,10 +1,11 @@
 import path from "node:path";
 import { canonicalPath, type ProjectPaths } from "../paths";
 import { resolveRedacted } from "../redact";
-import { readLocalText } from "../localFiles";
+import { readLocalFile } from "../localFiles";
 import { acquireLocalLock } from "../localFiles/lock";
 import { commitLocalChanges, revisionTarget } from "./apply";
 import { readRevision, revisionPath } from "./store";
+import { authorizedEnvironmentTarget } from "../environment/authorization";
 
 export { commitLocalChanges } from "./apply";
 export { listRevisions } from "./store";
@@ -18,7 +19,7 @@ export async function showRevision(options: { readonly paths: ProjectPaths; read
   return resolveRedacted({ ref: { type: "file", sourcePath, byteOffset: 0, byteLength: file.size } });
 }
 
-const lockNames = { profile: "profile-write.db", skill: "skills-worker.db", harness: "harness-write.db" } as const;
+const lockNames = { profile: "profile-write.db", skill: "skills-worker.db", harness: "harness-write.db", environment: "environment-write.db" } as const;
 const harnessTarget = /^(?:AGENTS\.md|CLAUDE\.md|\.shadowclone\/harness\.json|\.claude\/settings\.local\.json|\.(?:agents|claude)\/skills\/[a-z0-9]+(?:-[a-z0-9]+)*\/.+)$/;
 
 export async function undoRevision(options: { readonly paths: ProjectPaths; readonly id: string; readonly skillRoots?: readonly string[]; readonly harnessRoots?: readonly string[] }): Promise<string | null> {
@@ -29,7 +30,7 @@ export async function undoRevision(options: { readonly paths: ProjectPaths; read
   const allowed = revision.kind === "profile"
     ? [canonicalPath(options.paths.profileDirectory)]
     : ((revision.kind === "skill" ? options.skillRoots : options.harnessRoots) ?? []).map(canonicalPath);
-  if (!allowed.includes(canonicalPath(revision.root))) throw new Error("Revision root is not an authorized destination");
+  if (revision.kind !== "environment" && !allowed.includes(canonicalPath(revision.root))) throw new Error("Revision root is not an authorized destination");
   const updates = [];
   for (const change of revision.changes) {
     if (revision.kind === "skill" && !change.relativePath.endsWith("/SKILL.md")) throw new Error("Invalid skill revision target");
@@ -38,9 +39,10 @@ export async function undoRevision(options: { readonly paths: ProjectPaths; read
       throw new Error("Invalid profile revision target");
     }
     const filePath = revisionTarget({ root: revision.root, relativePath: change.relativePath });
-    const current = await readLocalText(filePath);
+    if (revision.kind === "environment" && !await authorizedEnvironmentTarget({ paths: options.paths, filePath })) throw new Error("Revision target is not an authorized environment destination");
+    const current = await readLocalFile({ filePath, encoding: change.encoding });
     if (current !== change.after && !(revision.status === "prepared" && current === change.before)) throw new Error("Revision conflicts with subsequent edits; files were preserved");
-    updates.push({ filePath, next: change.before, previous: current });
+    updates.push({ filePath, next: change.before, previous: current, encoding: change.encoding, mode: change.mode });
   }
   return await commitLocalChanges({ paths: options.paths, root: revision.root, kind: revision.kind, updates });
   } finally { lock.release(); }

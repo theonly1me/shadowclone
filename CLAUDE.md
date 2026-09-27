@@ -1,6 +1,6 @@
 # shadowclone
 
-Turns engineering preferences learned from consented AI coding sessions into an editable profile, and synchronizes personal skills for the user's main Claude Code, Codex, Cursor, or Antigravity agent. Optional Claude subagents and headless worktree dispatch apply the same profile to delegated work.
+Maintains portable skills from consented coding sessions and memory. A mandatory baseline and focused workflow skills deliver learned behavior through native Claude Code, Codex, Cursor, and Antigravity instructions. Internal evidence records support explanation and undo. Optional subagents and dispatch use the same delivery.
 
 There is no always-on daemon. Agent CLIs write their own transcripts; explicit commands and consented, bounded learning workers process them. See `docs/architecture/06-roadmap.md` for the implementation sequence.
 
@@ -22,8 +22,9 @@ Two skills in `.claude/skills/` are not optional.
 | `src/redact/` | resolves captured-text pointers through the learning redaction gate |
 | `src/index/` | stores cursors and event skeletons in a rebuildable SQLite cache |
 | `src/signal/` | derives structural and correction signals without a model |
-| `src/profile/` | writes scoped markdown consumed by every agent-facing projection |
-| `src/profile/compiler/` | the only profile projection, deterministic, capped at 16 KiB, with a 4 KiB session-start index |
+| `src/environment/` | stores learning, maintains skills, publishes native routing, and freezes original environments |
+| `src/profile/` | legacy storage and the reconciliation compatibility boundary |
+| `src/profile/compiler/` | legacy projection for unmigrated installations and historical evaluations |
 | `src/integrations/` | installs stable native pointers, injects current scoped guidance, and tracks useful sessions |
 | `src/engine/` | drives authenticated Claude Code, Codex, and Cursor CLIs |
 | `src/distill/` | sends only redacted, allowlisted correction moments to the engine |
@@ -36,14 +37,14 @@ Two skills in `.claude/skills/` are not optional.
 | `.claude-plugin/` | supports Claude plugin profile injection and bounded transcript ingestion |
 | `src/cli/` | provides `init`, `learn`, `doctor`, `install`, `uninstall`, `run`, and `forget --all` |
 
-Opt-in capture, indexing, the mirror, deep distillation, useful-session learning, native profile delivery, portable personal skills, optional Claude subagents, headless dispatch, and fresh transfer evaluation are implemented. Four exploratory tasks are summarized in `evals.md`; they do not validate every provider or native delivery path. Plugin installation and provider compatibility require their own live checks. Antigravity has observation and native delivery but no execution engine. API and local endpoint engines are not built.
+Opt-in capture, indexing, the mirror, deep distillation, useful-session learning, native skill delivery, portable personal skills, optional Claude subagents, headless dispatch, and fresh transfer evaluation are implemented. Four exploratory tasks are summarized in `evals.md`; they do not validate every provider or native delivery path. Plugin installation and provider compatibility require their own live checks. Antigravity has observation and native delivery but no execution engine. API and local endpoint engines are not built.
 
 ## What is being built
 
 ```
 observe  ->  index  ->  signal  ->  report
                            |
-                           +->  distill  ->  profile  ->  native agents / dispatch / eval
+                           +->  distill  ->  evidence  ->  skills and routing -> native agents / dispatch / eval
                                                   |
                                                   +-> portable skills
 ```
@@ -65,7 +66,7 @@ observe  ->  index  ->  signal  ->  report
 ## The rules that outrank convenience
 
 - **This repository is public. Never copy private repository details into it.** This includes repository names, folder and package paths, symbols, code, commands, architecture, identifiers, logs, transcripts, and evaluation evidence. Permission to inspect or evaluate a private repository never authorizes copying its details here. Use independently authored synthetic fixtures and examples, not renamed private examples. Keep private artifacts outside this checkout, including ignored files. Secret redaction does not make internal details publishable. Check every diff and generated artifact for this boundary before staging, committing, or sharing. If provenance is uncertain, stop.
-- **One profile projection.** `compileProfile` in `src/profile/compiler/` is the only thing that turns stored profile into agent-facing guidance, for installs, hooks, MCP, dispatch, and both evaluation paths. It opens a closed path set, is deterministic for identical inputs, and caps output at 16 KiB by dropping whole blocks, or 4 KiB of whole lines in the session-start index format. Never add a second projection, and never render rule text by hand at a call site.
+- **One active delivery format.** Migrated environments publish skills and bounded native routing through `src/environment/`. Keep complete evidence internally. Never inject an aggregated profile into active sessions or the skills evaluation protocol. The legacy compiler remains for unmigrated installations and historical receipts.
 - **One learning capture gate.** `resolveRedacted` applies `redactSecrets` when converting an eligible `TextRef` into learning text. Do not bypass it or add a redundant downstream gate. Authorized coding runs and transfer judging can send repository code to the selected provider; that separate boundary is documented in `docs/architecture/05-privacy.md`.
 - **Every capture source is opt-in for its contents.** Reading a new file, a wider slice of an existing file, or contents where you previously read names, is a new source. Each source keeps its own flag, defaulting to off, and a README entry in the same change. Setup can group the consent question only after it names every detected source path. Before consent, onboarding may reduce a configured source root to one ephemeral boolean stating that it exists and is non-empty. It never collects entry names, opens an entry, or retains or logs a path, name, count, timestamp, or provider identifier.
 - **Never distil tool results.** The content of any `tool_result`, file contents from Read, Edit, or Write, thinking blocks, and every data-access result never enter the distillation path. Excluded by category, not redacted. `docs/architecture/07-enterprise.md` says why.

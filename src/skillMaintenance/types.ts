@@ -23,6 +23,7 @@ export const proposalSchema = z.strictObject({
 });
 export type SkillProposal = z.infer<typeof proposalSchema>;
 export type DiscoveredSkill = {
+  readonly valid?: boolean;
   readonly id: string; readonly root: SkillRoot; readonly relativePath: string;
   readonly raw: string; readonly redacted: string; readonly fingerprint: string;
   readonly name: string; readonly description: string; readonly body: string;

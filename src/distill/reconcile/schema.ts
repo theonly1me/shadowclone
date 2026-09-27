@@ -12,13 +12,13 @@ const existingRuleSchema = z.strictObject({
   observed: z.string().max(600),
   evidenceTokens: z.array(z.string().max(64)).max(20),
   proposedTitle: z.string().max(120),
-  proposedBody: z.string().max(600),
+  proposedBody: z.string().max(8192),
   axisChoiceToken: z.string().max(64),
 });
 
 const newRuleSchema = z.strictObject({
   title: z.string().max(120),
-  body: z.string().max(600),
+  body: z.string().max(8192),
   section: z.enum(sectionValues),
   observed: z.string().max(600),
   evidenceTokens: z.array(z.string().max(64)).max(20),
@@ -38,6 +38,10 @@ function normalize(value: string, maximumLength: number): string {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, maximumLength);
+}
+
+function normalizeBody(value: string): string {
+  return value.replaceAll("<!--", "").replaceAll("-->", "").replaceAll("\r\n", "\n").trim();
 }
 
 export const reconciliationOutputSchema = {
@@ -69,7 +73,7 @@ export const reconciliationOutputSchema = {
             items: { type: "string", maxLength: 64 },
           },
           proposedTitle: { type: "string", maxLength: 120 },
-          proposedBody: { type: "string", maxLength: 600 },
+          proposedBody: { type: "string", maxLength: 8192 },
           axisChoiceToken: { type: "string", maxLength: 64 },
         },
       },
@@ -83,7 +87,7 @@ export const reconciliationOutputSchema = {
         required: ["title", "body", "section", "observed", "evidenceTokens", "rejectionToken"],
         properties: {
           title: { type: "string", maxLength: 120 },
-          body: { type: "string", maxLength: 600 },
+          body: { type: "string", maxLength: 8192 },
           section: { type: "string", enum: sectionValues },
           observed: { type: "string", maxLength: 600 },
           evidenceTokens: {
@@ -109,11 +113,11 @@ export function parseReconciliationOutput(value: unknown): ReconciliationOutput 
       ...entry,
       observed: normalize(entry.observed, 600),
       proposedTitle: normalize(entry.proposedTitle, 120),
-      proposedBody: normalize(entry.proposedBody, 600),
+      proposedBody: normalizeBody(entry.proposedBody),
     })),
     newRules: parsed.data.newRules.flatMap((entry) => {
       const title = normalize(entry.title, 120);
-      const body = normalize(entry.body, 600);
+      const body = normalizeBody(entry.body);
       return title && body
         ? [{ ...entry, title, body, observed: normalize(entry.observed, 600) }]
         : [];

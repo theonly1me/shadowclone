@@ -7,16 +7,18 @@ import { managedSection } from "./markdown";
 import { readIntegrations, saveIntegration } from "./state";
 import { integrationFilePath } from "./targets";
 import type { IntegrationOptions } from "./types";
+import { readEnvironment } from "../environment";
 
 export async function refreshIntegrations(options: IntegrationOptions = {}): Promise<{ readonly refreshed: number; readonly preserved: number }> {
   const paths = options.paths ?? projectPaths;
+  const environment = (await readEnvironment(paths))?.phase === "active";
   let refreshed = 0;
   let preserved = 0;
   for (const integration of await readIntegrations(paths)) {
     const profile = await compileContext({ ...options, paths, cwd: integration.directory, scope: integration.scope === "global" ? "global" : "combined" });
     if (profile === null) continue;
     try {
-      const changes = await prepareIntegrationFiles({ integration, profile });
+      const changes = await prepareIntegrationFiles({ integration, profile, environment });
       await applyIntegrationFiles(changes);
       await saveIntegration({ paths, integration: { ...integration, files: changes.map((change) => change.record) } });
       refreshed += 1;
@@ -29,6 +31,7 @@ export async function refreshIntegrations(options: IntegrationOptions = {}): Pro
 
 export async function integrationHealth(options: IntegrationOptions = {}): Promise<readonly string[]> {
   const paths = options.paths ?? projectPaths;
+  const environment = (await readEnvironment(paths))?.phase === "active";
   const lines: string[] = [];
   for (const integration of await readIntegrations(paths)) {
     let status = "installed";
@@ -49,7 +52,7 @@ export async function integrationHealth(options: IntegrationOptions = {}): Promi
       const profile = await compileContext({ ...options, paths, cwd: integration.directory, scope: integration.scope === "global" ? "global" : "combined" });
       if (profile === null) status = "blocked by policy";
       else {
-        const changes = await prepareIntegrationFiles({ integration, profile });
+        const changes = await prepareIntegrationFiles({ integration, profile, environment });
         if (changes.some((change) => change.next !== change.previous)) status = "stale";
       }
     }

@@ -1,6 +1,7 @@
 import type { ProjectPaths } from "../paths";
 import { projectPaths } from "../paths";
 import { refreshIntegrations } from "../integrations";
+import { initializeSkillEnvironment } from "../environment/initialize";
 import type {
   SeedAgentSkill,
   SeedGuidance,
@@ -179,6 +180,7 @@ export async function runWizard(options: {
   const selectedSkills = selected.filter(
     (entry): entry is SeedAgentSkill => entry.kind === "skill",
   );
+  await initializeSkillEnvironment({ paths, automatic: false });
   const installedSkills = await installSeedSkills({
     paths,
     skills: selectedSkills,
@@ -193,8 +195,6 @@ export async function runWizard(options: {
     selectedGuidance: selectedPreferences,
   });
   await refreshIntegrations({ paths, configPath: paths.configFile });
-  writeLine(
-    `Profile updated with ${selectedPreferences.length} preferences; ${installedSkills.installed} skills installed, ${installedSkills.removed} removed, ${installedSkills.preserved} edited skills preserved.`,
-  );
+  writeLine(`Recorded ${selectedPreferences.length} preferences for learning; ${installedSkills.installed} skills installed, ${installedSkills.removed} removed, ${installedSkills.preserved} edited skills preserved.`);
   return { written: true, selectedGuidanceIds };
 }

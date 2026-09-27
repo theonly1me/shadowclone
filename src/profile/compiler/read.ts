@@ -47,11 +47,13 @@ export function profileScopePaths(options: {
 function compilerBlock(options: {
   readonly block: ExistingProfileBlock;
   readonly redactedBlock: string;
+  readonly scope: "global" | "org" | "project";
 }): CompilerBlock {
   const visible = stripProfileMetadata(options.redactedBlock);
   if (options.block.key === null) {
     return {
       kind: "rule",
+      scope: options.scope,
       ruleKey: null,
       referenceKey: null,
       source: "user",
@@ -63,6 +65,7 @@ function compilerBlock(options: {
   }
   return {
     kind: "rule",
+    scope: options.scope,
     ruleKey: options.block.key,
     referenceKey: null,
     source: options.block.source,
@@ -93,9 +96,12 @@ async function readScopeFile(options: {
   }
   return rawBlocks.flatMap((block, index) => {
     const redactedBlock = redactedBlocks[index];
+    const relativePath = path.relative(options.profileDirectory, options.filePath);
+    const scope = relativePath.startsWith(`global${path.sep}`) ? "global" as const
+      : relativePath.includes(`${path.sep}projects${path.sep}`) ? "project" as const : "org" as const;
     return redactedBlock === undefined
       ? []
-      : [compilerBlock({ block, redactedBlock })];
+      : [compilerBlock({ block, redactedBlock, scope })];
   });
 }
 
@@ -125,6 +131,7 @@ export function compilerBlocksFromRules(
 ): readonly CompilerBlock[] {
   return rules.map((rule) => ({
     kind: "rule",
+    scope: rule.scope,
     ruleKey: rule.key,
     referenceKey: null,
     source: rule.source,
@@ -145,6 +152,7 @@ export function compilerBlocksFromReferences(
     record.source !== "claude-project-memory"
   ).map(({ record }) => ({
     kind: "reference",
+    scope: record.scope,
     ruleKey: null,
     referenceKey: record.key,
     source: "reference",

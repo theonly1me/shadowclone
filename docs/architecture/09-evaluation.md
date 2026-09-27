@@ -12,6 +12,7 @@ The command supports three task sources:
 
 - `--task <prompt>` keeps one supplied implementation prompt verbatim and derives separate completion checks.
 - `--tasks <number>` generates that many distinct, bounded implementation tasks after read-only repository inspection. The default is three.
+- `--task-file <path> --tasks <number>` freezes supplied prompts and completion checks from a bounded JSON file. This permits the same reviewed tasks to be compared across engines without paid task generation.
 - `--suite-id <id>` loads previously frozen tasks, context, profile, and HEAD for a matched comparison with another engine.
 
 Generated tasks add a self-contained module or function and focused tests through new files in an existing package or workspace. They require no changes to existing tracked files or project wiring. Preparation rejects read-only work and tasks requiring commits, pushes, deployments, migrations, credentials, external services, network access, dependency installation, or writes outside the repository.
@@ -79,7 +80,7 @@ For each arm, task success is the fraction of completed runs with all correctnes
 - correctness and safety regressions;
 - paired sample size.
 
-Evaluation status is `complete` only when every expected arm finishes. A recorded infrastructure failure produces `error`; unfinished work remains `running`. Profile improvement is reported separately as demonstrated or not demonstrated. Completion never depends on Clone winning, and a favorable preference score never cancels a correctness or safety regression.
+Evaluation status is `complete` only when every expected arm finishes. A recorded infrastructure failure produces `error`; unfinished work remains `running`. The decision-grade label requires a completed receipt with at least three tasks, two repetitions, and six scored pairs. Profile improvement is reported separately as demonstrated or not demonstrated. Completion never depends on Clone winning, and a favorable preference score never cancels a correctness or safety regression.
 
 A one-task, one-repeat run is a smoke test. The CLI's decision-grade label requires at least three tasks with two repetitions; that threshold alone does not establish statistical significance or judge validity. A matched comparison with another model or provider can reuse a compatible frozen suite. The early four-task report used one implementation per arm per task, so it does not meet that repeated-run threshold.
 
@@ -95,6 +96,8 @@ Publish reviewed summaries of methods, scores, and limitations. Do not publish r
 
 `shadowclone eval --protocol guidance-v1` leaves the historical transfer protocol and receipts unchanged. It freezes four reviewed cases with visible completion requirements and at most eight source-backed criteria each. Two cases are code tasks and two are advice tasks. The pilot selects one of each, with one repetition across four conditions. A full run uses all four cases with two repetitions.
 
+`guidance-v2` freezes the current native 4 KiB startup index and the current Claude memory files. It records memory file hashes in the private suite and offers references through an on-demand index. This measures the presently delivered profile, with reference discovery counted only after a successful index or reference read. Code cases execute changed focused tests in a restricted local sandbox with network and home access denied. The verifier rejects test paths that resolve outside the snapshot and linked runtime directories before execution. The report records pass, fail, or not-verified separately from preference scores. Historical `guidance-v1` receipts retain their original grading and sources.
+
 | Condition | Inputs |
 | --- | --- |
 | Bare | Task and repository-native guidance |
@@ -102,13 +105,13 @@ Publish reviewed summaries of methods, scores, and limitations. Do not publish r
 | Memory | Skills plus an explicitly selected, verified Claude memory snapshot |
 | Clone | Skills plus the production Shadowclone bootstrap, profile, and scoped references |
 
-Skill names, descriptions, and frozen paths are visible in every skill-enabled condition; identical skill bodies remain on demand. Memory and references are installed only in their selected conditions. The engine blocks live profiles, native memory, personal skills, and the real repository while allowing the disposable snapshot. Existing snapshot isolation disables ambient hooks and MCP access. The memory source must match the migration manifest's file count and hashes. Live Claude memory is not restored or changed.
+Skill names, descriptions, and frozen paths are visible in every skill-enabled condition; identical skill bodies remain on demand. Memory and references are installed only in their selected conditions. The engine blocks live profiles, native memory, personal skills, and the real repository while allowing the disposable snapshot. Existing snapshot isolation disables ambient hooks and MCP access. In `guidance-v1`, the memory source must match the migration manifest's file count and hashes. In `guidance-v2`, preparation captures hashes from current memory files and freezes their redacted contents directly. Live Claude memory is not restored or changed.
 
-Successful Read results are joined to requests to measure relevant skills loaded before editing and reference retrieval. Failed or unanswered reads do not count. Shell-based reads are not currently credited. Preference checks include deterministic syntax rules and two blinded judgments for other criteria. Disagreements remain unknown. Shared-memory and additional-knowledge checks have separate scores. Code is inspected for syntax but never executed; correctness is explicitly unverified and is not folded into preference scores.
+Successful Read results are joined to requests to measure relevant skills loaded before editing and reference retrieval. Failed or unanswered reads do not count. Shell-based reads are not currently credited. Preference checks include deterministic syntax rules and two blinded judgments for other criteria. Disagreements remain unknown. Shared-memory and additional-knowledge checks have separate scores. `guidance-v1` inspects code for syntax without executing it. `guidance-v2` additionally runs changed focused tests in a restricted snapshot and records failures or unknown verification separately; neither protocol folds correctness into preference scores.
 
 Private suites use `eval-suites/<suiteId>.guidance.json`. Receipts and reduced reports use `eval/<evalId>/guidance-state.json` and `guidance-report.json`; the durable `budget.json` records invocations and spend. Resume preserves completed evidence, votes, original model, conditions, call limit, dollar limit, and deadline. Unknown cost, model mismatch, safety failure, or exhausted limits stop the run. There are no automatic retries for unfavorable outcomes.
 
-The CLI requires an exact Sonnet 5 model ID, medium effort, explicit dollar, invocation, and wall-clock limits, and `--yes`. The resolved model must match the requested ID, optionally with a dated suffix, throughout the run. Preparation uses `--scenario-file`, `--memory-source`, and `--memory-manifest`. `--suite-id` reuses frozen sources; `--eval-id` resumes an interrupted receipt. A pilot cannot exceed $5. Increasing to a full evaluation is a separate user decision, with cumulative round spend accounted for before setting its limit.
+The CLI requires an exact Sonnet 5 model ID, medium effort, explicit dollar, invocation, and wall-clock limits, and `--yes`. The resolved model must match the requested ID, optionally with a dated suffix, throughout the run. Preparation uses `--scenario-file` and `--memory-source`; `guidance-v1` also requires `--memory-manifest`. `--suite-id` reuses frozen sources; `--eval-id` resumes an interrupted receipt. A pilot cannot exceed $5. Increasing to a full evaluation is a separate user decision, with cumulative round spend accounted for before setting its limit.
 
 Memory coverage is audited independently of behavioral scores. Exact rule or reference preservation, reviewed skill coverage, exclusions, and unresolved conflicts are distinct outcomes. A migration disposition alone never establishes parity. The [implementation plan](../design/021-guidance-evaluation.md) defines this round's acceptance and stop conditions.
 
@@ -145,3 +148,9 @@ Measurement version 2 stores normalized relative paths, tool categories, success
 Validation freezes four additional judge-only repository sources from the original commit, named in the private scenario. `captureJudgePacket` uses `materializeSnapshot` as its single redaction boundary before storing or sending this source text. A line-numbered, content-hashed packet is limited to 64 KiB and shared identically with advice judges. It does not enter candidate prompts. The receipt fingerprints the packet and revised judge instructions. Missing corroboration cannot alone establish fabrication; failures require a concrete criterion-relevant conflict. Existing criteria and historical votes are unchanged.
 
 The real-CLI stream contract uses scripted synthetic API responses and file tools under OS-level loopback-only networking, with personal-file reads denied. It verifies successful and failed reads around a successful file write. The ordinary unit suite skips these installed-CLI tests unless `SHADOWCLONE_CLAUDE_CONTRACT=1` is explicit.
+
+## Skills environment protocol
+
+`guidance-skills-v1` freezes the original library saved before migration and the maintained library separately. Its four arms are Bare, original Skills, original Skills + Memory, and maintained Skills + native routing. The maintained arm receives no compiled profile or separate reference store. Both libraries retain supporting files, while native routing points into the isolated snapshot. Native memory is read-only and is frozen with hashes.
+
+The protocol accepts Claude or Codex with explicit model, medium effort, invocation, time, and spending limits. Claude retains its local schema preflight. Codex requires `--engine codex --model gpt-6-luna`. Receipt resume retains the engine, model, suite, and original limits. Skill selection and reading are measured separately from correctness and guideline adherence. Existing `guidance-v1`, `guidance-v2`, and transfer receipts retain their old interpretation. A successful migration or a pilot is not evidence of superiority.

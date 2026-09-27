@@ -16,7 +16,7 @@ import { executeGuidance } from "./execute";
 import { judgeGuidance } from "./judge";
 import { prepareGuidanceSuite, validateScenarios } from "./prepare";
 import { guidanceReport } from "./report";
-import { arms, type GuidanceReceipt } from "./schema";
+import { arms, type GuidanceReceipt, type guidanceProtocols } from "./schema";
 import { guidanceDirectory, readGuidanceReceipt, readGuidanceSuite, saveGuidanceReceipt } from "./store";
 import { verifyClaudeContract, type ClaudeContractProof } from "./claudeContract";
 import { recoverSchemaFailure } from "./recovery";
@@ -26,6 +26,8 @@ import { runMaintenance } from "./maintenance";
 import { runComparison } from "./comparison";
 
 export type GuidanceOptions = {
+  readonly protocol?: (typeof guidanceProtocols)[number];
+  readonly engine?: "claude-code" | "codex";
   readonly repo: string;
   readonly model: string;
   readonly maxBudgetUsd?: number;
@@ -60,22 +62,26 @@ export async function runGuidanceEvaluation(options: GuidanceOptions): Promise<G
   if (options.maxBudgetUsd === undefined) throw new Error("An explicit evaluation budget is required");
   if (options.pilot && options.maxBudgetUsd > 5 && !options.validationRun && !options.maintenanceRun) throw new Error("Pilot budget cannot exceed $5");
   if (options.recoverPreflightFailure && (!options.evalId || !options.failedCliVersion)) throw new Error("Preflight recovery requires an existing receipt and observed CLI version");
-  const setup = await setupTransferEval({ repo: options.repo, engine: "claude-code", model: options.model, reasoningEffort: "medium", paths: options.paths, runner: options.runner });
+  const engine = options.engine ?? "claude-code";
+  if (engine === "codex" && (options.protocol !== "guidance-skills-v1" || options.recoverPreflightFailure)) throw new Error("Codex guidance requires the skills protocol");
+  const setup = await setupTransferEval({ repo: options.repo, engine, model: options.model, reasoningEffort: "medium", paths: options.paths, runner: options.runner });
   const saved = options.evalId ? await readGuidanceReceipt({ paths: setup.paths, evalId: options.evalId }) : null;
+  if (saved && (saved.engine ?? "claude-code") !== engine) throw new Error("Resume must retain the original engine");
   if (saved?.validation && !options.validationRun) throw new Error("Resume linked validation with --validation-of");
   if (saved?.maintenance && !options.maintenanceRun) throw new Error("Resume maintenance with --maintenance-of");
   if (saved?.comparison && !options.comparisonRun) throw new Error("Resume comparison with --comparison-of");
   const suite = saved?.suite ?? (options.suiteId ? await readGuidanceSuite({ paths: setup.paths, suiteId: options.suiteId }) :
-    options.scenarioFile && options.memorySource && options.memoryManifest
-      ? await prepareGuidanceSuite({ setup, scenarioFile: options.scenarioFile, memorySource: options.memorySource, memoryManifest: options.memoryManifest })
+    options.scenarioFile && options.memorySource
+      ? await prepareGuidanceSuite({ setup, protocol: options.protocol ?? "guidance-v1", scenarioFile: options.scenarioFile, memorySource: options.memorySource, memoryManifest: options.memoryManifest })
       : null);
-  if (!suite) throw new Error("Provide a frozen suite or scenario file with an explicit memory source and manifest");
+  if (!suite) throw new Error("Provide a frozen suite or scenario file with an explicit memory source");
+  if (options.protocol && suite.protocol !== options.protocol) throw new Error("Frozen suite protocol does not match the request");
   validateScenarios(suite);
   if (suite.repository !== setup.repository) throw new Error("Frozen suite belongs to a different repository");
   if (saved && (saved.model !== options.model || saved.limitUsd !== options.maxBudgetUsd || saved.maximumCalls !== options.maximumCalls || saved.pilot !== options.pilot)) throw new Error("Resume must retain model, condition selection, and original limits");
   if (saved && fingerprint(await readGuidanceSuite({ paths: setup.paths, suiteId: saved.suite.suiteId })) !== saved.suiteFingerprint) throw new Error("Frozen suite changed since the original evaluation");
   let receipt: GuidanceReceipt = saved ?? {
-    protocol: "guidance-v1", schemaVersion: 1, evalId: setup.evalId, suite, suiteFingerprint: fingerprint(suite), model: options.model, effort: "medium",
+    protocol: suite.protocol, schemaVersion: 1, evalId: setup.evalId, suite, suiteFingerprint: fingerprint(suite), model: options.model, effort: "medium", ...(engine === "codex" ? { engine } : {}),
     pilot: options.pilot, repeat: options.pilot ? 1 : 2, maximumCalls: options.maximumCalls, limitUsd: options.maxBudgetUsd,
     deadlineAt: Date.now() + options.deadlineSeconds * 1000, status: "ready", failure: null, runs: [],
   };
@@ -91,16 +97,18 @@ export async function runGuidanceEvaluation(options: GuidanceOptions): Promise<G
   try {
     if (receipt.status === "complete") return receipt;
     if (!options.recoverPreflightFailure && receipt.deadlineAt <= Date.now()) throw new Error("Original guidance deadline has expired");
-    const proof = await (options.verifyContract ?? verifyClaudeContract)();
-    if (options.recoverPreflightFailure && options.failedCliVersion) {
+    const proof = engine === "claude-code" ? await (options.verifyContract ?? verifyClaudeContract)() : null;
+    if (proof && options.recoverPreflightFailure && options.failedCliVersion) {
       receipt = await recoverSchemaFailure({ paths: setup.paths, receipt, proof, failedCliVersion: options.failedCliVersion });
     }
     if (receipt.deadlineAt <= Date.now()) throw new Error("Original guidance deadline has expired");
-    await ownedWrite({ path: path.join(directory, "claude-contract.json"), content: JSON.stringify(proof, null, 2) });
-    receipt = { ...receipt, cliVersion: proof.cliVersion };
+    if (proof) {
+      await ownedWrite({ path: path.join(directory, "claude-contract.json"), content: JSON.stringify(proof, null, 2) });
+      receipt = { ...receipt, cliVersion: proof.cliVersion };
+    }
     const budget = await evaluationBudget({ directory, resume: saved !== null, limitUsd: options.maxBudgetUsd, maximumCalls: options.maximumCalls });
     persistReceipt = true;
-    const baseCall = modelCaller({ runner: setup.runner, budget, engine: "claude-code", model: options.model, reasoningEffort: "medium", timeoutSeconds: 180,
+    const baseCall = modelCaller({ runner: setup.runner, budget, engine, model: options.model, reasoningEffort: "medium", timeoutSeconds: 180,
       maxBudgetUsd: options.maxBudgetUsd, blockedPaths: [setup.repository, setup.paths.shadowcloneDirectory, setup.paths.claudeProjectsDirectory,
         ...[".claude/skills", ".claude/CLAUDE.md", ".agents/skills", ".codex/skills", ".codex/memories"].map((relative) => path.join(path.dirname(setup.paths.shadowcloneDirectory), relative))], controlDirectory });
     const call: typeof baseCall = async (request) => {
@@ -126,7 +134,7 @@ export async function runGuidanceEvaluation(options: GuidanceOptions): Promise<G
             if (candidate?.complete) continue;
             console.log(`guidance ${scenario.id} repeat ${repeat + 1} ${arm}: ${candidate ? "judging saved evidence" : "executing"}`);
             if (!candidate) {
-              candidate = await executeGuidance({ suite, scenario, arm, repeat, call });
+              candidate = await executeGuidance({ suite, scenario, arm, repeat, call, engine });
               throwIfEvaluationExpired();
               receipt = { ...receipt, runs: [...receipt.runs, candidate] };
               await save();

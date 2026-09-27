@@ -1,8 +1,9 @@
 import { lstat, readdir } from "node:fs/promises";
 import path from "node:path";
 import { readBoundedFile } from "../../io/files";
-import type { ProjectPaths } from "../../paths";
+import { canonicalPath, type ProjectPaths } from "../../paths";
 import { resolveRedacted } from "../../redact";
+import { assertRegularDestination } from "../../localFiles";
 import type { ClaudeMemoryFile, ClaudeMemoryKind } from "./types";
 
 export const maximumClaudeMemoryFiles = 256;
@@ -74,12 +75,15 @@ export async function scanClaudeMemory(options: {
   readonly paths: ProjectPaths;
   readonly repositoryRoot: string;
 }): Promise<readonly ClaudeMemoryFile[]> {
-  return scanClaudeMemoryDirectory(claudeMemoryDirectory(options));
+  const directory = claudeMemoryDirectory(options);
+  assertRegularDestination(path.join(canonicalPath(options.paths.claudeProjectsDirectory), path.relative(options.paths.claudeProjectsDirectory, directory), "MEMORY.md"));
+  return scanClaudeMemoryDirectory(directory);
 }
 
 export async function scanClaudeMemoryDirectory(
   directory: string,
 ): Promise<readonly ClaudeMemoryFile[]> {
+  assertRegularDestination(path.join(canonicalPath(path.dirname(directory)), path.basename(directory), "MEMORY.md"));
   const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
   if (entries.some((entry) => entry.isSymbolicLink())) {
     throw new Error("Claude memory contains a symbolic link");

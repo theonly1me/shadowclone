@@ -1,3 +1,4 @@
+import { initializeSkillEnvironment } from "../environment/initialize";
 import {
   defaultConfig,
   applyManagedPolicy,
@@ -64,8 +65,8 @@ export async function initialize(options: InitializeOptions = {}): Promise<void>
   printDetectionSummary({ paths, presence, agents, personalSkillsPresent, writeLine });
   const learn = await ask("Learn how you work from these sessions? [Y/n]");
   const skillPrompt = agents.length > 0
-    ? `Keep your skills in sync across ${detectedAgentNames(agents)}? [Y/n]`
-    : "Keep your skills in sync across your agents? [Y/n]";
+    ? `Keep your skills in sync and automatically maintain them across ${detectedAgentNames(agents)}? [Y/n]`
+    : "Keep your skills in sync and automatically maintain them across your agents? [Y/n]";
   const skills = await ask(skillPrompt);
   const background = await ask("Keep improving in the background as you work? [Y/n]");
 
@@ -90,6 +91,8 @@ export async function initialize(options: InitializeOptions = {}): Promise<void>
   };
   await writeConfig({ config, configPath });
 
+  if (skills && policy.enabled && policy.allowedSources.includes("skill-library")) await configureSkillMaintenance({ scope: "global", paths, cwd: workingDirectory, managedConfigPath: options.managedConfigPath });
+  if (policy.enabled) await initializeSkillEnvironment({ paths, automatic: skills });
   let rulesLearned = 0;
   if (learn && presence.hasRepositoryGuidance && policy.enabled && policy.allowedSources.includes("declared-rules")) {
     const imported = await importRepositoryGuidance({
@@ -158,5 +161,5 @@ export async function initialize(options: InitializeOptions = {}): Promise<void>
     });
   }
   writeLine(`${skillsSynced} skills synced; ${rulesLearned} rules learned; ${agents.length} agents installed.`);
-  writeLine("Your next agent session will use the profile.");
+  writeLine("Your next agent session will use its native instructions and learned skills.");
 }

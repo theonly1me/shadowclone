@@ -19,6 +19,7 @@ export async function prepareIntegrationFiles(options: {
   readonly integration: Integration;
   readonly profile: string;
   readonly remove?: boolean;
+  readonly environment?: boolean;
 }): Promise<readonly IntegrationFileChange[]> {
   const changes: IntegrationFileChange[] = [];
   for (const target of integrationTargets(options.integration)) {
@@ -40,7 +41,7 @@ export async function prepareIntegrationFiles(options: {
       if (previous !== null && (!recorded || fingerprint(previous) !== recorded.fingerprint)) {
         throw new Error("Integration skill was edited or already exists; preserving it");
       }
-      next = options.remove ? null : `${renderContextSkill()}\n`;
+      next = options.remove ? null : `${renderContextSkill(options.environment)}\n`;
       digest = fingerprint(next ?? "");
     } else {
       const prefix = previous === null && options.integration.agent === "cursor"
@@ -48,7 +49,7 @@ export async function prepareIntegrationFiles(options: {
         : previous;
       const changed = updateManagedSection({
         previous: prefix,
-        body: options.remove ? null : renderInstructionPointer(),
+        body: options.remove ? null : options.environment ? options.profile : renderInstructionPointer(),
         expected: recorded?.fingerprint,
       });
       next = changed.text;

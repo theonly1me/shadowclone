@@ -1,11 +1,13 @@
 import { Command } from "commander";
 import { z } from "zod";
 import { runGuidanceEvaluation, guidanceReport } from "../eval/guidance";
+import { guidanceProtocols } from "../eval/guidance/schema";
 
 const optionsSchema = z.object({
-  protocol: z.literal("guidance-v1"),
+  protocol: z.enum(guidanceProtocols),
+  engine: z.enum(["claude-code", "codex"]).optional(),
   repo: z.string().min(1),
-  model: z.string().regex(/^claude-sonnet-5(?:-[a-z0-9-]+)?$/),
+  model: z.string().regex(/^(?:claude-sonnet-5(?:[.-][a-z0-9-]+)?|gpt-6-luna)$/),
   reasoningEffort: z.literal("medium"),
   maxBudgetUsd: z.coerce.number().positive().max(50).optional(),
   validationOf: z.uuid().optional(),
@@ -29,6 +31,7 @@ const optionsSchema = z.object({
 export function parseGuidanceArguments(argumentsList: readonly string[]) {
   const program = new Command().exitOverride().allowUnknownOption(false)
     .requiredOption("--protocol <name>")
+    .option("--engine <id>")
     .requiredOption("--repo <path>")
     .requiredOption("--model <id>")
     .requiredOption("--reasoning-effort <level>")
@@ -51,6 +54,8 @@ export function parseGuidanceArguments(argumentsList: readonly string[]) {
     .option("-y, --yes");
   program.parse([...argumentsList], { from: "user" });
   const options = optionsSchema.parse(program.opts());
+  if (options.engine === "codex" && (options.protocol !== "guidance-skills-v1" || options.model !== "gpt-6-luna" || options.validationOf || options.maintenanceOf || options.comparisonOf || options.recoverPreflightFailure)) throw new Error("Codex guidance runs require the skills protocol with GPT 6 Luna and a fresh or ordinary frozen run");
+  if (options.engine !== "codex" && options.model === "gpt-6-luna") throw new Error("GPT 6 Luna requires --engine codex");
   if ([Boolean(options.scenarioFile), Boolean(options.suiteId && !options.maintenanceOf), Boolean(options.evalId), Boolean(options.validationOf), Boolean(options.maintenanceOf), Boolean(options.comparisonOf)].filter(Boolean).length !== 1) throw new Error("Choose a scenario file, frozen suite, receipt resume, linked validation, maintenance, or comparison");
   if (!options.scenarioFile && (options.memorySource || options.memoryManifest)) throw new Error("Frozen runs cannot override memory sources");
   if (options.comparisonOf) {
@@ -66,6 +71,8 @@ export function parseGuidanceArguments(argumentsList: readonly string[]) {
   if (options.pilot && options.maxBudgetUsd !== undefined && options.maxBudgetUsd > 5) throw new Error("Pilot budget cannot exceed $5");
   if (options.recoverPreflightFailure && (!options.evalId || !options.failedCliVersion)) throw new Error("Preflight recovery requires --eval-id and the observed --failed-cli-version");
   if (!options.recoverPreflightFailure && options.failedCliVersion) throw new Error("Failed CLI version is only used for explicit preflight recovery");
+  if (options.protocol === "guidance-v1" && options.scenarioFile && !options.memoryManifest) throw new Error("guidance-v1 requires --memory-manifest");
+  if (options.protocol !== "guidance-v1" && options.memoryManifest) throw new Error("Current guidance captures memory without a migration manifest");
   return { ...options, maximumCalls: options.maxCalls };
 }
 

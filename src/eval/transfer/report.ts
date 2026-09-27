@@ -27,7 +27,8 @@ export function reportLines(receipt: TransferReceipt): readonly string[] {
     summary.relativeImprovement === null
       ? (summary.arms.clone.adherence ?? 0) > 0 ? "newly achieved" : "0.0%"
       : percentage(summary.relativeImprovement);
-  const decisionGrade = receipt.prepared.tasks.length >= 3 && receipt.prepared.repeat >= 2;
+  const decisionGrade = receipt.status === "complete" && receipt.prepared.tasks.length >= 3 &&
+    receipt.prepared.repeat >= 2 && summary.sampleSize >= 6;
   return [
     `Evaluation ${receipt.evalId}: ${receipt.status.toUpperCase()}`,
     `Suite: ${receipt.prepared.suiteId}`,

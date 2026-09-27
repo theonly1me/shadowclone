@@ -1,7 +1,6 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { invocationCeiling } from "./budget";
 import { modelCaller } from "./call";
 import { evaluationBudget } from "./accounting";
 import { lockEvaluation } from "./lock";
@@ -63,10 +62,7 @@ export async function runTransferEval(
           directory: setup.directory,
           resume: setup.saved !== null,
           limitUsd: setup.maxBudgetUsd,
-          maximumCalls: invocationCeiling({
-            tasks: setup.count,
-            repeat: setup.repeat,
-          }),
+          maximumCalls: setup.maxCalls,
         });
         const call = modelCaller({
           budget: callBudget,

@@ -33,7 +33,7 @@ export function validateResumeOptions(options: {
   if (prepared.baseCommit !== options.commit) {
     throw new Error("Evaluation resume requires its original repository HEAD");
   }
-  if (options.requested.task || options.requested.suiteId) {
+  if (options.requested.task || options.requested.taskFile || options.requested.suiteId) {
     throw new Error("Evaluation resume cannot select a new task or suite");
   }
   const mismatched = [
@@ -51,6 +51,8 @@ export function validateResumeOptions(options: {
       options.requested.timeoutSeconds !== prepared.timeoutSeconds,
     options.requested.maxBudgetUsd !== undefined &&
       options.requested.maxBudgetUsd !== prepared.maxBudgetUsd,
+    options.requested.maxCalls !== undefined &&
+      options.requested.maxCalls !== prepared.maxCalls,
   ].some(Boolean);
   if (mismatched) {
     throw new Error("Evaluation resume settings do not match the frozen run");

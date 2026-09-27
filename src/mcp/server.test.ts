@@ -35,9 +35,13 @@ test("advertises profile recall and explicit preference operations", () => {
         ...preferenceTools,
         ...referenceTools,
         {
+          name: "shadowclone_context",
+          description: "Inspect applicable learned skills and native routing for this repository",
+          inputSchema: { type: "object", properties: {} },
+        },
+        {
           name: "shadowclone_profile",
-          description:
-            "Load the active user's engineering profile for this repository",
+          description: "Deprecated alias for shadowclone_context",
           inputSchema: { type: "object", properties: {} },
         },
       ],

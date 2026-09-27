@@ -17,6 +17,7 @@ import {
   type OnboardingPresence,
 } from "./onboardingPresence";
 import { runWizard, type WizardAnswerPrompt } from "./wizard";
+import { initializeSkillEnvironment } from "../environment/initialize";
 
 export type ConsentPrompt = (question: string) => boolean | Promise<boolean>;
 
@@ -114,7 +115,7 @@ export async function initializeAdvanced(options: InitializeAdvancedOptions = {}
     "Enable reading existing agent instructions, skills and native memory?",
   );
   const enableClaudeMemory = await ask(
-    "Enable one-time migration from this repository's Claude memory?",
+    "Enable read-only extraction from Claude memory for explicitly registered repositories?",
   );
   const enableAntigravityWorkspaces = await ask(
     "Enable Antigravity workspace-history metadata for repository attribution?",
@@ -154,6 +155,7 @@ export async function initializeAdvanced(options: InitializeAdvancedOptions = {}
   }
 
   await writeConfig({ config, configPath });
+  if (policy.enabled) await initializeSkillEnvironment({ paths, automatic: false });
   await repairOwnedTree(paths.shadowcloneDirectory);
   if (importEnabled) {
     const imported = await importRepositoryGuidance({

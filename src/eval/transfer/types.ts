@@ -18,6 +18,7 @@ export type DependencyState =
 export type TransferOptions = {
   readonly repo?: string;
   readonly task?: string;
+  readonly taskFile?: string;
   readonly suiteId?: string;
   readonly model?: string;
   readonly engine?: EngineId;
@@ -31,6 +32,7 @@ export type TransferOptions = {
   readonly json?: boolean;
   readonly yes?: boolean;
   readonly maxBudgetUsd?: number;
+  readonly maxCalls?: number;
   readonly paths?: ProjectPaths;
   readonly runner?: EngineRunner;
 };
@@ -63,7 +65,7 @@ export type DelegationTask = {
 };
 
 export type EvaluationProfileSnapshot = {
-  readonly kind: "current";
+  readonly kind: "current" | "startup-index";
   readonly fingerprint: string;
   readonly ruleCount: number;
 };
@@ -106,6 +108,8 @@ export type CheckResult<Verdict extends PreferenceVerdict = "pass" | "fail"> = {
 export type ContextFile = {
   readonly relativePath: string;
   readonly content: string;
+  readonly encoding?: "base64";
+  readonly mode?: number;
 };
 
 export type EvaluationSuite = {
@@ -128,6 +132,7 @@ export type PreparedEval = Omit<EvaluationSuite, "schemaVersion"> & {
   readonly repeat: number;
   readonly timeoutSeconds: number;
   readonly maxBudgetUsd: number | null;
+  readonly maxCalls?: number;
   readonly dirtyFileCount: number;
   readonly preflight: readonly CheckResult[];
 };

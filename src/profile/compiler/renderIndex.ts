@@ -26,6 +26,20 @@ export function renderIndexLine(block: CompilerBlock): string | null {
   return `- ${text}${condition}`;
 }
 
+function compactIndexLine(block: CompilerBlock): string | null {
+  if (block.kind === "reference") return null;
+  const { title } = summarizeRule(block);
+  if (!title) return null;
+  const condition = block.appliesWhen.length > 0 ? ` (when ${block.appliesWhen.join("; ")})` : "";
+  return `- ${title}${condition}`;
+}
+
+function detailPriority(block: CompilerBlock): number {
+  if (block.scope === "project") return 0;
+  if (block.scope === "org") return 1;
+  return 2;
+}
+
 export function renderIndexCompilation(options: {
   readonly blocks: readonly CompilerBlock[];
   readonly byteBudget: number;
@@ -35,6 +49,7 @@ export function renderIndexCompilation(options: {
   const appliedRuleKeys: string[] = [];
   const omittedBlocks: CompilerBlock[] = [];
   const lines: string[] = [];
+  const candidates: { readonly block: CompilerBlock; readonly full: string; line: string }[] = [];
   const breakdown = emptyBreakdown();
   const preambleBytes = options.standalone ? Buffer.byteLength(`${indexPreamble}\n\n`, "utf8") : 0;
   const hintBytes = Buffer.byteLength(`\n${recallHint}\n`, "utf8");
@@ -43,9 +58,10 @@ export function renderIndexCompilation(options: {
   let usedBytes = preambleBytes + (showRecallHint ? hintBytes : 0);
 
   for (const block of options.blocks) {
-    const line = renderIndexLine(block);
+    const line = compactIndexLine(block);
+    const full = renderIndexLine(block);
     const addedBytes = line === null ? 0 : Buffer.byteLength(`${line}\n`, "utf8");
-    if (line === null || usedBytes + addedBytes > options.byteBudget) {
+    if (line === null || full === null || usedBytes + addedBytes > options.byteBudget) {
       omissions.push({
         ruleKey: block.ruleKey,
         ...(block.referenceKey === null ? {} : { referenceKey: block.referenceKey }),
@@ -56,11 +72,23 @@ export function renderIndexCompilation(options: {
       continue;
     }
     usedBytes += addedBytes;
-    lines.push(line);
-    const source = sourceBreakdown(breakdown, block.source);
-    source.appliedCount += 1;
-    source.appliedBytes += addedBytes;
+    candidates.push({ block, full, line });
     if (block.ruleKey !== null) appliedRuleKeys.push(block.ruleKey);
+  }
+
+  for (const candidate of [...candidates].sort((left, right) => detailPriority(left.block) - detailPriority(right.block))) {
+    const additionalBytes = Buffer.byteLength(candidate.full, "utf8") - Buffer.byteLength(candidate.line, "utf8");
+    if (usedBytes + additionalBytes <= options.byteBudget) {
+      candidate.line = candidate.full;
+      usedBytes += additionalBytes;
+    }
+  }
+
+  for (const candidate of candidates) {
+    lines.push(candidate.line);
+    const source = sourceBreakdown(breakdown, candidate.block.source);
+    source.appliedCount += 1;
+    source.appliedBytes += Buffer.byteLength(`${candidate.line}\n`, "utf8");
   }
 
   const sections = [lines.join("\n"), showRecallHint ? recallHint : ""].filter((section) => section.length > 0);

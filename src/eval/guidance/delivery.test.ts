@@ -30,6 +30,17 @@ test("installs full reference bodies only for clone and does not inject skill bo
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
+test("current guidance offers references only after an explicit index read", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "guidance-current-delivery-"));
+  try {
+    const suite = { ...guidanceFixture(), protocol: "guidance-v2" as const };
+    const prompt = await installGuidanceContext({ suite, arm: "clone", directory });
+    expect(prompt).toContain(".eval-context/reference-index.md");
+    expect(prompt).not.toContain(".eval-context/references/reference_queue.md");
+    expect(await Bun.file(path.join(directory, ".eval-context/reference-index.md")).text()).toContain("references/reference_queue.md");
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
 test("only successful reads count and loading after an edit is distinguished", () => {
   const [scenario] = guidanceFixture().scenarios;
   if (!scenario) throw new Error("Fixture scenario missing");

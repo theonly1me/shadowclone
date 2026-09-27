@@ -8,15 +8,23 @@ import { skillTarget } from "./state";
 import type { DiscoveredSkill, SkillRoot } from "./types";
 
 export async function discoverSkills(roots: readonly SkillRoot[]): Promise<{ readonly skills: readonly DiscoveredSkill[]; readonly invalid: number; readonly duplicates: number }> {
+  return inspectSkills({ roots, includeCompanions: false });
+}
+
+export async function discoverDeliverySkills(roots: readonly SkillRoot[]): Promise<{ readonly skills: readonly DiscoveredSkill[]; readonly invalid: number; readonly duplicates: number }> {
+  return inspectSkills({ roots, includeCompanions: true });
+}
+
+async function inspectSkills(options: { readonly roots: readonly SkillRoot[]; readonly includeCompanions: boolean }): Promise<{ readonly skills: readonly DiscoveredSkill[]; readonly invalid: number; readonly duplicates: number }> {
   const skills: DiscoveredSkill[] = [];
   const visited = new Set<string>();
   let invalid = 0;
   let totalBytes = 0;
   let discovered = 0;
-  for (const root of roots) {
+  for (const root of options.roots) {
     if (!existsSync(root.directory)) continue;
     for await (const relativePath of new Bun.Glob("**/SKILL.md").scan({ cwd: root.directory, onlyFiles: true, followSymlinks: false, dot: false })) {
-      if (relativePath.split(path.sep).some((segment) => segment === "shadowclone-context" || segment.startsWith("shadowclone-local-"))) continue;
+      if (relativePath.split(path.sep).some((segment) => segment === "shadowclone-context" || !options.includeCompanions && segment.startsWith("shadowclone-local-"))) continue;
       discovered += 1;
       if (discovered > 500 || relativePath.split(path.sep).length > 12) throw new Error("Skill library exceeds discovery limits; configure smaller roots");
       const filePath = skillTarget({ directory: root.directory, relativePath });
@@ -26,16 +34,22 @@ export async function discoverSkills(roots: readonly SkillRoot[]): Promise<{ rea
       const size = Bun.file(filePath).size;
       totalBytes += size;
       if (totalBytes > 8_000_000) throw new Error("Skill library exceeds the total byte limit");
+      let materialized: { readonly raw: string; readonly redacted: string } | null = null;
       try {
-        if (size > 48_000) throw new Error("Skill exceeds the supported size");
+        if (size > 48_000 && !options.includeCompanions) throw new Error("Skill exceeds the supported size");
         const raw = await readLocalText(filePath);
         if (raw === null) continue;
         const redacted = await resolveRedacted({ roots: [root.directory], ref: { type: "file", sourcePath: filePath, byteOffset: 0, byteLength: size } });
+        materialized = { raw, redacted };
+        if (size > 48_000) throw new Error("Skill exceeds the supported size");
         const document = parseSkillDocument(redacted);
         if (document.metadata.name !== path.basename(path.dirname(filePath))) throw new Error("Skill name does not match its directory");
         await validateSkillReferences({ filePath, text: document.body });
         skills.push({ id: fingerprint(identity), root, relativePath, raw, redacted, fingerprint: fingerprint(raw), name: document.metadata.name, description: document.metadata.description, body: document.body });
-      } catch { invalid += 1; }
+      } catch {
+        invalid += 1;
+        if (options.includeCompanions && materialized) skills.push({ id: fingerprint(identity), root, relativePath, ...materialized, fingerprint: fingerprint(materialized.raw), name: path.basename(path.dirname(filePath)), description: "Existing skill needs metadata or reference validation before automatic editing.", body: materialized.redacted, valid: false });
+      }
     }
   }
   const groups = [...Map.groupBy(

@@ -5,6 +5,7 @@ import type { ProjectPaths } from "../paths";
 import { rememberPreference } from "../preferences";
 import type { GitRemoteReader } from "../signal";
 import { readMaintenanceState, listSkillProposals } from "../skillMaintenance";
+import { environmentStatus } from "../environment/status";
 
 export const preferenceTools = [
   {
@@ -50,7 +51,8 @@ export async function runPreferenceTool(options: {
       if (call.data.name === "shadowclone_skills_status") {
         const state = await readMaintenanceState(options.paths);
         const proposals = await listSkillProposals(options.paths);
-        text = JSON.stringify({ roots: state.roots.filter((root) => root.enabled).length, managed: state.tracked.filter((skill) => skill.automatic).length, pending: proposals.filter((proposal) => proposal.status === "pending").length });
+        const environment = await environmentStatus(options.paths);
+        text = JSON.stringify({ roots: state.roots.filter((root) => root.enabled).length, managed: environment?.skills ?? state.tracked.filter((skill) => skill.automatic).length, pending: environment?.pending ?? proposals.filter((proposal) => proposal.status === "pending").length, ...(environment ? { environment } : {}) });
       } else text = JSON.stringify(await listRevisions(options.paths));
     }
     return { content: [{ type: "text", text }], isError: false };

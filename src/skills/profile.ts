@@ -10,7 +10,9 @@ import {
   parseProfileRules,
   readGeneratedProfileState,
   writeProfile,
+  profileRulePath,
 } from "../profile";
+import { readEnvironment } from "../environment/store";
 import { seedGuidanceProfileKey } from "./key";
 import type { SeedGuidance, SeedLibrary } from "./schema";
 
@@ -73,6 +75,20 @@ export async function writeSeedGuidanceSelection(options: {
       entry,
     ]),
   );
+  const environment = await readEnvironment(options.paths);
+  if (environment) {
+    const previous = environment.records.map(({ rule }) => rule);
+    const rules = options.selectedGuidance.map((guidance) => {
+      const selected = profileRuleFromSeedGuidance(guidance);
+      const current = previous.find((rule) => rule.key === selected.key);
+      return current && (current.source === "user" || current.body !== selected.body) ? current : selected;
+    });
+    const retired = previous.filter((rule) => {
+      const guidance = libraryByKey.get(rule.key);
+      return guidance && !selectedKeys.has(rule.key) && rule.source === "declared" && rule.body === profileBodyFromSeedGuidance(guidance);
+    }).map((rule) => ({ key: rule.key, relativePath: profileRulePath(rule) }));
+    return writeProfile({ paths: options.paths, rules, retired });
+  }
   const previous = (await readGeneratedProfileState(
     options.paths.profileManifestFile,
   )).filter(

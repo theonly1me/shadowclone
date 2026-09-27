@@ -1,3 +1,4 @@
+import { readEnvironment } from "../environment";
 import { readEffectiveConfig } from "../config";
 import { readHarnessManifest } from "../harness";
 import { repositoryRoot } from "../harness/check";
@@ -49,7 +50,8 @@ export async function harnessSyncCommand(options: {
   const ask = options.ask ?? promptConfirmation;
   const writeLine = options.writeLine ?? console.log;
   const root = await repositoryRoot({ cwd: options.cwd ?? process.cwd() });
-  if (await readHarnessManifest(root) === null) return null;
-  await promoteMemoryNotes({ root, apply: options.apply !== false, paths, managedConfigPath, readRemote: options.readRemote, ask, writeLine });
+  const manifest = await readHarnessManifest(root);
+  if (await readEnvironment(paths) === null) await promoteMemoryNotes({ root, apply: options.apply !== false, paths, managedConfigPath, readRemote: options.readRemote, ask, writeLine });
+  if (manifest === null) return null;
   return harnessInitCommand({ apply: options.apply, personal: null, skills: [], enforceClaude: false, cwd: root, paths, managedConfigPath, readRemote: options.readRemote, ask, writeLine });
 }

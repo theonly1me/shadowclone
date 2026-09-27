@@ -1,3 +1,5 @@
+import { syncLearningEnvironment } from "../environment/sync";
+import { explainLearningEnvironment } from "../environment/diagnostics";
 import {
   compileContext, compileContextDetails, installIntegration, integrationAgentSchema, nativeSessionEnd,
   nativeSessionStart,
@@ -91,6 +93,8 @@ export async function handleNativeCommand(options: {
     options.arguments[0] === "--explain" &&
     (options.arguments.length === 1 || options.arguments[1] === "--json")
   ) {
+    const environment = await explainLearningEnvironment({ paths: projectPaths, cwd: process.cwd() });
+    if (environment !== null) { await Bun.stdout.write(`${environment}\n`); return true; }
     const details = await compileContextDetails({ cwd: process.cwd(), ...sessionStartProjection });
     if (details === null) {
       await Bun.stdout.write("Shadowclone guidance is disabled by policy.\n");
@@ -103,6 +107,7 @@ export async function handleNativeCommand(options: {
     return true;
   }
   if (options.command === "sync" && options.arguments.length === 0) {
+    if (await syncLearningEnvironment(projectPaths)) { console.log("Synchronized learned skills and native routing."); return true; }
     const result = await refreshIntegrations();
     console.log(`Refreshed ${result.refreshed} integration(s); preserved ${result.preserved} edited or unavailable integration(s).`);
     await harnessSyncCommand({ apply: "confirm" });

@@ -9,6 +9,7 @@ import type { ProfileRejection } from "./state";
 import { readMaterializedProfileRejections } from "./rejectionSnapshot";
 import type { ProfileRule } from "./types";
 import { profileBlockMetadata, profileVisibleParts } from "./visible";
+import { learningSnapshot } from "../environment";
 
 export type ProfileSnapshotRule = {
   readonly rule: ProfileRule;
@@ -92,6 +93,12 @@ async function readRejections(paths: ProjectPaths): Promise<readonly ProfileSnap
 }
 
 export async function readProfileSnapshot(paths: ProjectPaths): Promise<ProfileSnapshot> {
+  const learning = await learningSnapshot(paths);
+  if (learning !== null) return learning;
+  return readLegacyProfileSnapshot(paths);
+}
+
+export async function readLegacyProfileSnapshot(paths: ProjectPaths): Promise<ProfileSnapshot> {
   const relativePaths = await profileFiles(paths.profileDirectory);
   const rules = (await Promise.all(
     relativePaths.map((relativePath) =>
