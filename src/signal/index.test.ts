@@ -1,8 +1,5 @@
 import { expect, test } from "bun:test";
-import type {
-  CorpusSummary,
-  IndexedEvent,
-} from "../index";
+import type { CorpusSummary, IndexedEvent } from "../index";
 import { renderMirror } from "../profile";
 import { deriveSignals, normalizeRemoteOrigin } from "./index";
 
@@ -82,9 +79,7 @@ const events = [
 
 test("normalizes a remote to its organization without credentials", () => {
   expect(
-    normalizeRemoteOrigin(
-      "https://private-token@github.com/Acme/platform.git",
-    ),
+    normalizeRemoteOrigin("https://private-token@github.com/Acme/platform.git"),
   ).toEqual({
     id: "github.com/acme",
     directoryName: "github.com--acme--936913df4a5c268b",
@@ -94,12 +89,14 @@ test("normalizes a remote to its organization without credentials", () => {
 
 test("does not read git metadata without separate consent", async () => {
   let reads = 0;
+
   const derived = await deriveSignals({
     events,
     corpus,
     gitMetadataEnabled: false,
     readRemote: () => {
       reads += 1;
+
       return Promise.resolve("git@github.com:acme/repo.git");
     },
   });
@@ -122,6 +119,7 @@ test("mines correction markers and renders a text-free mirror", async () => {
           : "https://github.com/other/repo.git",
       ),
   });
+
   const output = renderMirror({
     report: derived.report,
     deepLearningPreview: {
@@ -139,7 +137,9 @@ test("mines correction markers and renders a text-free mirror", async () => {
     resolvedPlans: 0,
   });
   expect(
-    derived.corrections.every((signal) => signal.repositoryName?.startsWith("repo--")),
+    derived.corrections.every((signal) =>
+      signal.repositoryName?.startsWith("repo--"),
+    ),
   ).toBeTrue();
   expect(output).toContain("No network calls were made.");
   expect(output).toContain("while using Edit");

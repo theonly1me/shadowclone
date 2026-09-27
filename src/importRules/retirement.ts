@@ -6,6 +6,7 @@ export function isRemovedImport(options: {
   readonly currentLocators: ReadonlySet<string>;
 }): boolean {
   const reference = options.entry.importReference;
+
   if (
     options.entry.disposition !== "present" ||
     options.entry.source === "user" ||
@@ -13,7 +14,10 @@ export function isRemovedImport(options: {
   ) {
     return false;
   }
-  return reference.repositoryAliases.some((alias) =>
-    options.aliases.includes(alias)
-  ) && !options.currentLocators.has(reference.sourceLocator);
+
+  return (
+    reference.repositoryAliases.some((alias) =>
+      options.aliases.includes(alias),
+    ) && !options.currentLocators.has(reference.sourceLocator)
+  );
 }

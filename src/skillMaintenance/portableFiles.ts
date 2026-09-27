@@ -5,25 +5,30 @@ import { z } from "zod";
 import { readLocalText, replaceLocalText } from "../localFiles";
 import { canonicalPath, type ProjectPaths } from "../paths";
 
-export const portableSkillNameSchema = z.string().regex(
-  /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-);
-export const portableSkillSchema = z.strictObject({
-  name: portableSkillNameSchema,
-  sourceDirectory: z.string().min(1),
-  replicaDirectories: z.array(z.string().min(1)),
-  baselineFingerprint: z.string().min(1),
-  installationFingerprint: z.string().min(1).optional(),
-  managedBy: z.enum(["starter", "adopted"]).optional().default("adopted"),
-}).transform((skill) => ({
-  ...skill,
-  installationFingerprint:
-    skill.installationFingerprint ?? skill.baselineFingerprint,
-}));
+export const portableSkillNameSchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+
+export const portableSkillSchema = z
+  .strictObject({
+    name: portableSkillNameSchema,
+    sourceDirectory: z.string().min(1),
+    replicaDirectories: z.array(z.string().min(1)),
+    baselineFingerprint: z.string().min(1),
+    installationFingerprint: z.string().min(1).optional(),
+    managedBy: z.enum(["starter", "adopted"]).optional().default("adopted"),
+  })
+  .transform((skill) => ({
+    ...skill,
+    installationFingerprint:
+      skill.installationFingerprint ?? skill.baselineFingerprint,
+  }));
+
 const portableStateSchema = z.strictObject({
   version: z.literal(1),
   skills: z.array(portableSkillSchema),
 });
+
 export type PortableSkill = z.infer<typeof portableSkillSchema>;
 
 function statePath(paths: ProjectPaths): string {
@@ -34,9 +39,11 @@ export async function readPortableSkills(
   paths: ProjectPaths,
 ): Promise<readonly PortableSkill[]> {
   const text = await readLocalText(statePath(paths));
+
   if (text === null) {
     return [];
   }
+
   try {
     return portableStateSchema.parse(JSON.parse(text)).skills;
   } catch {
@@ -49,6 +56,7 @@ export async function writePortableSkills(options: {
   readonly skills: readonly PortableSkill[];
 }): Promise<void> {
   const filePath = statePath(options.paths);
+
   await replaceLocalText({
     filePath,
     previous: await readLocalText(filePath),
@@ -62,11 +70,15 @@ export async function skillTreeFingerprint(
   if (!existsSync(directory)) {
     return null;
   }
+
   const rootStats = await lstat(directory);
+
   if (!rootStats.isDirectory() || rootStats.isSymbolicLink()) {
     throw new Error("Portable skill root must be a real directory");
   }
+
   const entries: string[] = [];
+
   for await (const entry of new Bun.Glob("**/*").scan({
     cwd: directory,
     dot: true,
@@ -75,18 +87,24 @@ export async function skillTreeFingerprint(
   })) {
     entries.push(entry);
   }
+
   const hasher = new Bun.CryptoHasher("sha256");
+
   for (const relativePath of entries.sort()) {
     const absolutePath = path.join(directory, relativePath);
     const stats = await lstat(absolutePath);
+
     if (stats.isSymbolicLink()) {
       throw new Error("Portable skills cannot contain symbolic links");
     }
+
     hasher.update(`${relativePath}\0${stats.isDirectory() ? "d" : "f"}\0`);
+
     if (stats.isFile()) {
       hasher.update(await Bun.file(absolutePath).arrayBuffer());
     }
   }
+
   return hasher.digest("hex");
 }
 
@@ -97,25 +115,34 @@ export async function replaceSkillDirectory(options: {
   if (canonicalPath(options.source) === canonicalPath(options.destination)) {
     return;
   }
+
   await mkdir(path.dirname(options.destination), { recursive: true });
+
   const nonce = crypto.randomUUID();
   const temporary = `${options.destination}.shadowclone-${nonce}.tmp`;
   const backup = `${options.destination}.shadowclone-${nonce}.backup`;
+
   await cp(options.source, temporary, { recursive: true, errorOnExist: true });
+
   const exists = (await skillTreeFingerprint(options.destination)) !== null;
+
   try {
     if (exists) {
       await rename(options.destination, backup);
     }
+
     await rename(temporary, options.destination);
+
     if (exists) {
       await rm(backup, { recursive: true, force: true });
     }
   } catch (error) {
     await rm(temporary, { recursive: true, force: true });
+
     if (exists && (await skillTreeFingerprint(backup)) !== null) {
       await rename(backup, options.destination);
     }
+
     throw error;
   }
 }

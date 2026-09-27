@@ -2,11 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import {
-  defaultConfig,
-  setSourceEnabled,
-  writeConfig,
-} from "../config";
+import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
 import type { EngineRunner } from "../engine";
 import { createProjectPaths } from "../paths";
 import { learn } from "./learn";
@@ -20,7 +16,9 @@ test("deep learn does not substitute structural rules for an empty result", asyn
     paths.claudeProjectsDirectory,
     "fixture",
   );
+
   await mkdir(transcriptDirectory, { recursive: true });
+
   const records = [
     {
       type: "assistant",
@@ -49,10 +47,12 @@ test("deep learn does not substitute structural rules for an empty result", asyn
       message: { id: "message-2", content: "Use the small scope" },
     },
   ];
+
   await Bun.write(
     path.join(transcriptDirectory, "session.jsonl"),
     `${records.map((record) => JSON.stringify(record)).join("\n")}\n`,
   );
+
   const config = setSourceEnabled({
     config: {
       ...defaultConfig,
@@ -61,10 +61,13 @@ test("deep learn does not substitute structural rules for an empty result", asyn
     source: "claude-code",
     enabled: true,
   });
+
   await writeConfig({ config, configPath: paths.configFile });
+
   let engineRuns = 0;
   const runner: EngineRunner = () => {
     engineRuns += 1;
+
     return Promise.resolve({
       engine: "claude-code",
       sessionId: "deep-session",
@@ -92,8 +95,12 @@ test("deep learn does not substitute structural rules for an empty result", asyn
   });
 
   expect(engineRuns).toBe(1);
+
   const profileEntries = await readdir(paths.profileDirectory, {
     recursive: true,
   }).catch(() => []);
-  expect(profileEntries.filter((entry) => entry.endsWith(".md"))).toHaveLength(0);
+
+  expect(profileEntries.filter((entry) => entry.endsWith(".md"))).toHaveLength(
+    0,
+  );
 });

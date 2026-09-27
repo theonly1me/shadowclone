@@ -7,17 +7,36 @@ export type AuthoredSkill = {
   readonly text: string;
 };
 
-function skillFile(options: { readonly name: string; readonly description: string; readonly body: readonly string[] }): AuthoredSkill {
-  const frontmatter = ["---", `name: ${options.name}`, `description: ${options.description}`, "metadata:", "  authored-by: shadowclone", "---"].join("\n");
+function skillFile(options: {
+  readonly name: string;
+  readonly description: string;
+  readonly body: readonly string[];
+}): AuthoredSkill {
+  const frontmatter = [
+    "---",
+    `name: ${options.name}`,
+    `description: ${options.description}`,
+    "metadata:",
+    "  authored-by: shadowclone",
+    "---",
+  ].join("\n");
   const text = `${frontmatter}${harnessMarkers.start}\n${options.body.join("\n")}\n${harnessMarkers.end}`;
+
   return { name: options.name, description: options.description, text };
 }
 
-export function renderFeatureWorkflowSkill(options: { readonly gate: HarnessGate | null }): AuthoredSkill {
-  const gate = options.gate === null ? "the checks listed in `AGENTS.md`" : `\`${options.gate.command}\``;
+export function renderFeatureWorkflowSkill(options: {
+  readonly gate: HarnessGate | null;
+}): AuthoredSkill {
+  const gate =
+    options.gate === null
+      ? "the checks listed in `AGENTS.md`"
+      : `\`${options.gate.command}\``;
+
   return skillFile({
     name: "feature-workflow",
-    description: "Use before any feature, fix, or refactor in this repository. It scopes the change, stops for approval when asked, implements only approved work, runs the gate, and reports.",
+    description:
+      "Use before any feature, fix, or refactor in this repository. It scopes the change, stops for approval when asked, implements only approved work, runs the gate, and reports.",
     body: [
       "# Feature workflow",
       "",
@@ -49,7 +68,8 @@ export function renderFeatureWorkflowSkill(options: { readonly gate: HarnessGate
 export function renderHarnessBuilderSkill(): AuthoredSkill {
   return skillFile({
     name: "harness-builder",
-    description: "Use when asked to describe this repository for coding agents, such as writing or refreshing the purpose, map, or invariants in AGENTS.md.",
+    description:
+      "Use when asked to describe this repository for coding agents, such as writing or refreshing the purpose, map, or invariants in AGENTS.md.",
     body: [
       "# Harness builder",
       "",

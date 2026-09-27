@@ -13,12 +13,15 @@ export function mergeCheckpointId(rules: readonly DistilledRule[]): string {
     body: rule.body,
     section: rule.section,
   }));
+
   return new Bun.CryptoHasher("sha256")
-    .update(JSON.stringify({
-      identity,
-      outputSchema: distillationMergeOutputSchema,
-      learnerVersion: "reconciliation-merge-v1",
-    }))
+    .update(
+      JSON.stringify({
+        identity,
+        outputSchema: distillationMergeOutputSchema,
+        learnerVersion: "reconciliation-merge-v1",
+      }),
+    )
     .digest("hex")
     .slice(0, 24);
 }
@@ -28,6 +31,7 @@ function validMergedRules(options: {
   readonly sourceCount: number;
 }): readonly DistilledRule[] | null {
   const parsed = parseDistilledRules(options.value);
+
   return parsed.every(
     (rule) =>
       rule.sources !== undefined &&
@@ -62,11 +66,11 @@ export async function mergeDistilledRules(options: {
         value: cached,
         sourceCount: options.rules.length,
       });
+
       if (parsed) {
         return parsed;
       }
-    } catch {
-    }
+    } catch {}
   }
 
   const prompt = [
@@ -106,6 +110,7 @@ export async function mergeDistilledRules(options: {
   }
 
   let structured = run.structured;
+
   if (!structured) {
     try {
       structured = JSON.parse(run.text);
@@ -119,15 +124,18 @@ export async function mergeDistilledRules(options: {
       value: structured,
       sourceCount: options.rules.length,
     });
+
     if (!parsed) {
       return options.rules;
     }
+
     if (checkpointPath) {
       await ownedWrite({
         path: checkpointPath,
         content: `${JSON.stringify({ rules: parsed }, null, 2)}\n`,
       });
     }
+
     return parsed;
   } catch {
     return options.rules;

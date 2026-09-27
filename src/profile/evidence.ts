@@ -21,7 +21,7 @@ export function effectiveProfileStatus(options: {
   readonly evidence: ProfileEvidence;
 }): ProfileStatus {
   return options.status === "candidate" &&
-      options.evidence.for.some(isExplicitProfileEvidence)
+    options.evidence.for.some(isExplicitProfileEvidence)
     ? "active"
     : options.status;
 }
@@ -54,15 +54,19 @@ export function parseProfileEvidenceId(
   const normalized = evidenceId.startsWith(explicitPrefix)
     ? evidenceId.slice(explicitPrefix.length)
     : evidenceId;
+
   if (!normalized.startsWith("signal:")) {
     return null;
   }
+
   let value: unknown;
+
   try {
     value = JSON.parse(normalized.slice("signal:".length));
   } catch {
     return null;
   }
+
   if (
     !Array.isArray(value) ||
     value.length !== 5 ||
@@ -72,6 +76,7 @@ export function parseProfileEvidenceId(
   ) {
     return null;
   }
+
   return {
     originId: value[0],
     sessionId: value[1],
@@ -86,6 +91,7 @@ export function profileEvidenceStatistics(options: {
   const identifiers = [...options.evidence.for, ...options.evidence.against];
   const moments = identifiers.flatMap((identifier) => {
     const parsed = parseProfileEvidenceId(identifier);
+
     return parsed ? [parsed] : [];
   });
   const sessions = new Set(
@@ -95,17 +101,26 @@ export function profileEvidenceStatistics(options: {
     moments.length !== identifiers.length ||
     (identifiers.length === 0 && options.rule.observations > 0);
   const resolvedOrigins = moments.map((moment) => moment.originId);
-  const origins = [...new Set(
-    hasUnresolvedHistory
-      ? [...options.rule.origins, ...resolvedOrigins]
-      : resolvedOrigins,
-  )].sort();
-  const latestTimestamp = Math.max(0, ...moments.map((moment) => moment.timestamp));
+
+  const origins = [
+    ...new Set(
+      hasUnresolvedHistory
+        ? [...options.rule.origins, ...resolvedOrigins]
+        : resolvedOrigins,
+    ),
+  ].sort();
+
+  const latestTimestamp = Math.max(
+    0,
+    ...moments.map((moment) => moment.timestamp),
+  );
   const priorTimestamp = Date.parse(options.rule.lastSeen);
-  const retainedTimestamp = hasUnresolvedHistory && Number.isFinite(priorTimestamp)
-    ? priorTimestamp
-    : 0;
+  const retainedTimestamp =
+    hasUnresolvedHistory && Number.isFinite(priorTimestamp)
+      ? priorTimestamp
+      : 0;
   const lastTimestamp = Math.max(latestTimestamp, retainedTimestamp);
+
   return {
     observations: hasUnresolvedHistory
       ? Math.max(options.rule.observations, identifiers.length)
@@ -114,13 +129,11 @@ export function profileEvidenceStatistics(options: {
       ? Math.max(options.rule.sessions, sessions)
       : sessions,
     origins,
-    lastSeen: lastTimestamp > 0
-      ? new Date(lastTimestamp).toISOString().slice(0, 10)
-      : options.rule.lastSeen,
+    lastSeen:
+      lastTimestamp > 0
+        ? new Date(lastTimestamp).toISOString().slice(0, 10)
+        : options.rule.lastSeen,
   };
 }
-import type {
-  ProfileEvidence,
-  ProfileRule,
-  ProfileStatus,
-} from "./types";
+
+import type { ProfileEvidence, ProfileRule, ProfileStatus } from "./types";

@@ -1,9 +1,7 @@
 import type { ShadowcloneConfig } from "../config";
 import { readEnvironment } from "../environment";
 import type { ProjectPaths } from "../paths";
-import {
-  compileProfile,
-} from "../profile";
+import { compileProfile } from "../profile";
 import {
   isOriginBlocked,
   resolveRepository,
@@ -17,12 +15,16 @@ export async function refreshOfflineProfile(options: {
   readonly readRemote?: GitRemoteReader;
   readonly blockedOrigins?: readonly string[];
 }): Promise<void> {
-  if (await readEnvironment(options.paths) !== null) return;
+  if ((await readEnvironment(options.paths)) !== null) {
+    return;
+  }
+
   const repository = await resolveRepository({
     cwd: options.cwd,
     enabled: options.config.sources["git-metadata"],
     readRemote: options.readRemote,
   });
+
   if (
     isOriginBlocked({
       repository,
@@ -31,6 +33,7 @@ export async function refreshOfflineProfile(options: {
   ) {
     return;
   }
+
   await compileProfile({
     input: {
       kind: "directory",

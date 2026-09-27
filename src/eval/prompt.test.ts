@@ -3,6 +3,7 @@ import { extractPromptText, stripLeadingSlashCommands } from "./prompt";
 
 test("extracts plain text strings unchanged", () => {
   const result = extractPromptText("fix the failing test");
+
   expect(result).toBe("fix the failing test");
 });
 
@@ -15,7 +16,9 @@ test("extracts prompt from Antigravity user input with USER_REQUEST tags and str
     created_at: "2026-09-06T08:43:48Z",
     content: "<USER_REQUEST>\n/plan Fix the bug in auth.ts\n</USER_REQUEST>",
   });
+
   const result = extractPromptText(raw);
+
   expect(result).toBe("Fix the bug in auth.ts");
 });
 
@@ -26,7 +29,9 @@ test("extracts prompt from Antigravity user input without USER_REQUEST tags", ()
     type: "USER_INPUT",
     content: "run the migrations",
   });
+
   const result = extractPromptText(raw);
+
   expect(result).toBe("run the migrations");
 });
 
@@ -38,7 +43,9 @@ test("extracts prompt from Claude Code user message object", () => {
       content: "refactor the distillation loop",
     },
   });
+
   const result = extractPromptText(raw);
+
   expect(result).toBe("refactor the distillation loop");
 });
 
@@ -50,7 +57,9 @@ test("extracts prompt from Claude Code content blocks", () => {
       content: [{ type: "text", text: "explain this function" }],
     },
   });
+
   const result = extractPromptText(raw);
+
   expect(result).toBe("explain this function");
 });
 
@@ -60,6 +69,7 @@ test("extracts prompt from Cursor content array", () => {
     content: [{ type: "text", text: "inspect the sqlite store" }],
   });
   const result = extractPromptText(raw);
+
   expect(result).toBe("inspect the sqlite store");
 });
 
@@ -78,6 +88,7 @@ test("returns null when content array has no text block", () => {
     role: "user",
     content: [{ type: "tool_result", tool_use_id: "t1", content: "ok" }],
   });
+
   expect(extractPromptText(raw)).toBeNull();
 });
 
@@ -104,9 +115,7 @@ test("strips stacked and repeated leading slash commands", () => {
 
 test("preserves unix file paths starting with slashes", () => {
   expect(
-    stripLeadingSlashCommands(
-      "/Users/example/projects/sample is broken",
-    ),
+    stripLeadingSlashCommands("/Users/example/projects/sample is broken"),
   ).toBe("/Users/example/projects/sample is broken");
   expect(
     stripLeadingSlashCommands("/var/folders/13/test.txt has an error"),
@@ -133,6 +142,7 @@ test("preserves single segment paths and routes that are not commands", () => {
     "/login redirects to the wrong page",
     "/api/v1/users returns 500",
   ];
+
   for (const prompt of preserved) {
     expect(stripLeadingSlashCommands(prompt)).toBe(prompt);
   }

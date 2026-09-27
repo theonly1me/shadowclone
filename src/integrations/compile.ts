@@ -42,21 +42,55 @@ export const sessionStartProjection = {
   harnessRules: true,
 } as const;
 
-export async function compileContextDetails(options: ContextOptions): Promise<CompiledContext | null> {
+export async function compileContextDetails(
+  options: ContextOptions,
+): Promise<CompiledContext | null> {
   const paths = options.paths ?? projectPaths;
   const { config, policy } = await readEffectiveConfig({
     configPath: options.configPath ?? paths.configFile,
-    managedConfigPath: options.managedConfigPath === undefined ? paths.managedConfigFile : options.managedConfigPath,
+    managedConfigPath:
+      options.managedConfigPath === undefined
+        ? paths.managedConfigFile
+        : options.managedConfigPath,
   });
-  if (!policy.enabled) return null;
-  const repository = options.scope === "global" ? null : await resolveRepository({
+
+  if (!policy.enabled) {
+    return null;
+  }
+
+  const repository =
+    options.scope === "global"
+      ? null
+      : await resolveRepository({
+          cwd: options.cwd,
+          enabled: config.sources["git-metadata"],
+          readRemote: options.readRemote,
+        });
+
+  if (
+    repository &&
+    isOriginBlocked({ repository, patterns: policy.blockedOrigins })
+  ) {
+    return null;
+  }
+
+  const environment = await environmentCompilation({
+    paths,
     cwd: options.cwd,
-    enabled: config.sources["git-metadata"],
-    readRemote: options.readRemote,
+    scope: options.scope,
+    originDirectory: repository?.origin.directoryName ?? null,
+    repositoryName: repository?.profileFileName ?? null,
   });
-  if (repository && isOriginBlocked({ repository, patterns: policy.blockedOrigins })) return null;
-  const environment = await environmentCompilation({ paths, cwd: options.cwd, scope: options.scope, originDirectory: repository?.origin.directoryName ?? null, repositoryName: repository?.profileFileName ?? null });
-  if (environment !== null) return { compilation: environment, scopeFiles: ["environment.json"], referenceRoots: [], diagnostics: { isolatedRules: 0, legacyRules: 0 } };
+
+  if (environment !== null) {
+    return {
+      compilation: environment,
+      scopeFiles: ["environment.json"],
+      referenceRoots: [],
+      diagnostics: { isolatedRules: 0, legacyRules: 0 },
+    };
+  }
+
   const location = {
     origin: repository?.origin ?? null,
     targetRepo: repository?.profileFileName ?? null,
@@ -65,7 +99,10 @@ export async function compileContextDetails(options: ContextOptions): Promise<Co
   const knownNativeText = options.nativeDuplicates
     ? [
         ...(config.sources["declared-rules"]
-          ? await readNativeGuidance({ cwd: options.cwd, includeHarness: options.nativeDuplicates === "including-harness" })
+          ? await readNativeGuidance({
+              cwd: options.cwd,
+              includeHarness: options.nativeDuplicates === "including-harness",
+            })
           : []),
         ...(config.sources["claude-rules"]
           ? await readClaudeRules(options.cwd)
@@ -82,17 +119,23 @@ export async function compileContextDetails(options: ContextOptions): Promise<Co
     format: options.format,
     byteBudget: options.byteBudget,
     applicability: options.applicability,
-    committedRuleKeys: options.harnessRules ? await committedHarnessRuleKeys(options.cwd) : undefined,
+    committedRuleKeys: options.harnessRules
+      ? await committedHarnessRuleKeys(options.cwd)
+      : undefined,
     knownNativeText,
   });
+
   return {
     compilation,
     scopeFiles: profileScopePaths(location),
-    referenceRoots: options.audience === "subagent" ? [] : referenceScopeRoots(location),
+    referenceRoots:
+      options.audience === "subagent" ? [] : referenceScopeRoots(location),
     diagnostics: await readProfileDiagnostics(paths.profileDirectory),
   };
 }
 
-export async function compileContext(options: ContextOptions): Promise<string | null> {
+export async function compileContext(
+  options: ContextOptions,
+): Promise<string | null> {
   return (await compileContextDetails(options))?.compilation.markdown ?? null;
 }

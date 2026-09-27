@@ -3,7 +3,9 @@ import { maximumTextBytes } from "../io/limits";
 import { parseTextRef } from "../observe";
 import { projectPaths } from "../paths";
 import { captureRoots } from "./roots";
+
 export { captureRoots } from "./roots";
+
 import os from "node:os";
 import { Database } from "bun:sqlite";
 import type { TextRef } from "../observe";
@@ -20,6 +22,7 @@ function replaceHomeDirectory(options: {
   if (options.homeDirectory.length === 0) {
     return options.text;
   }
+
   const escaped = escapeRegExp(options.homeDirectory);
   const filePrefix = ["file:", "", ""].join("/");
   const unslashed = escaped.startsWith("/") ? escaped.slice(1) : escaped;
@@ -31,9 +34,8 @@ function replaceHomeDirectory(options: {
     `(^|[\\s"'\\(=:,])${escaped}(?=[/\\\\\\s"'\\),]|$)`,
     "gm",
   );
-  return options.text
-    .replace(fileUrlPattern, "$1~")
-    .replace(pattern, "$1~");
+
+  return options.text.replace(fileUrlPattern, "$1~").replace(pattern, "$1~");
 }
 
 export function redactSecrets(options: {
@@ -45,6 +47,7 @@ export function redactSecrets(options: {
   let redacted = homeDirectory
     ? replaceHomeDirectory({ text: options.text, homeDirectory })
     : options.text;
+
   for (const rule of redactionRules) {
     redacted = redacted.replace(rule.pattern, rule.replace);
   }
@@ -65,19 +68,25 @@ function selectJson(options: {
   readonly path: readonly (string | number)[];
 }): unknown {
   let selected = options.value;
+
   for (const part of options.path) {
     if (typeof part === "number") {
       if (!Array.isArray(selected)) {
         return null;
       }
+
       selected = selected[part];
+
       continue;
     }
+
     if (!isRecord(selected)) {
       return null;
     }
+
     selected = selected[part];
   }
+
   return selected;
 }
 
@@ -88,7 +97,11 @@ function unwrapText(options: {
   if (options.unwrap === null) {
     return options.text;
   }
-  const match = options.text.match(/<user_query>\s*([\s\S]*?)\s*<\/user_query>/);
+
+  const match = options.text.match(
+    /<user_query>\s*([\s\S]*?)\s*<\/user_query>/,
+  );
+
   return match?.[1] ?? "";
 }
 
@@ -98,19 +111,25 @@ async function resolveSqliteText(
   if (!(await Bun.file(ref.sourcePath).exists())) {
     return "";
   }
+
   let database: Database | null = null;
+
   try {
     database = new Database(ref.sourcePath, { readonly: true, strict: true });
+
     const row = database
       .query<{ readonly data: Uint8Array }, [string, number]>(
         "SELECT data FROM blobs WHERE id = ? AND length(data) <= ?",
       )
       .get(ref.blobId, maximumTextBytes);
+
     if (row === null) {
       return "";
     }
+
     const value: unknown = JSON.parse(new TextDecoder().decode(row.data));
     const selected = selectJson({ value, path: ref.jsonPath });
+
     return typeof selected === "string"
       ? unwrapText({ text: selected, unwrap: ref.unwrap })
       : "";
@@ -126,17 +145,25 @@ export async function resolveRedacted(options: {
   readonly roots?: readonly string[];
 }): Promise<string> {
   const ref = parseTextRef(options.ref);
+
   if (ref === null) {
     return "";
   }
+
   const roots = options.roots ?? captureRoots(projectPaths);
+
   if (ref.type === "sqlite-blob") {
     const sourcePath = await safeFilePath({ filePath: ref.sourcePath, roots });
+
     if (sourcePath === null) {
       return "";
     }
-    return redactSecrets({ text: await resolveSqliteText({ ...ref, sourcePath }) });
+
+    return redactSecrets({
+      text: await resolveSqliteText({ ...ref, sourcePath }),
+    });
   }
+
   const text = await readBoundedFile({
     filePath: ref.sourcePath,
     roots,
@@ -146,6 +173,7 @@ export async function resolveRedacted(options: {
     fileIdentity: ref.fileIdentity,
     contentHash: ref.contentHash,
   });
+
   return redactSecrets({ text: text ?? "" });
 }
 
@@ -156,5 +184,8 @@ export async function materializeSnapshot<Value>(options: {
   readonly parse: (text: string) => Value;
 }): Promise<{ readonly parsed: Value; readonly redacted: string } | null> {
   const text = await readBoundedFile(options);
-  return text === null ? null : { parsed: options.parse(text), redacted: redactSecrets({ text }) };
+
+  return text === null
+    ? null
+    : { parsed: options.parse(text), redacted: redactSecrets({ text }) };
 }

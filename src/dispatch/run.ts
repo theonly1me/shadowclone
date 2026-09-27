@@ -1,42 +1,22 @@
 import { runReceipt } from "./runReceipt";
-import { z } from "zod";
-import { executeRemoteActions, remoteDraftSchema } from "./remoteActions";
-import path from "node:path";
-import { readEffectiveConfig, type ActionCapability } from "../config";
-import { detectEngine, type EngineRun, type EngineRunner } from "../engine";
+import { executeRemoteActions } from "./remoteActions";
+import { createRunInvocation } from "./runInvocation";
+import { readEffectiveConfig } from "../config";
+import { detectEngine } from "../engine";
 import { projectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
-import { compileAgentDelivery } from "../environment/compile";
-import { materializeSkillDelivery } from "../environment/delivery";
-import {
-  isOriginBlocked,
-  resolveRepository,
-  type GitRemoteReader,
-} from "../signal";
-import type { CommandRunner } from "./command";
-import { repairPrompt, type GateExecutor } from "./gate";
-import { gateAndCommit, prepareWorktreeDependencies } from "./gatedCommit";
+import { isOriginBlocked, resolveRepository } from "../signal";
+import { repairPrompt } from "./gate";
+import { gateAndCommit } from "./gatedCommit";
 import { resolveDispatchPolicy, validateRemoteGrants } from "./policy";
 import { writeReceipt } from "./receipt";
-import type { RunReceipt } from "./types";
+import type { RunOptions, RunReceipt } from "./types";
 import { detectVerificationTools } from "./verify";
-import { createWorktree, inspectWorktree, pushWorktree } from "./worktree";
+import { inspectWorktree, pushWorktree } from "./worktree";
+import { prepareRunWorkspace } from "./runWorkspace";
 
-export async function runHeadlessClone(options: {
-  readonly task: string;
-  readonly pullRequestNumber?: number;
-  readonly targetDirectory?: string;
-  readonly approvedActions?: readonly ActionCapability[];
-  readonly configPath?: string;
-  readonly managedConfigPath?: string | null;
-  readonly paths?: ProjectPaths;
-  readonly readRemote?: GitRemoteReader;
-  readonly runner?: EngineRunner;
-  readonly commandRunner?: CommandRunner;
-  readonly gateExecutor?: GateExecutor;
-  readonly runId?: string;
-  readonly startedAt?: string;
-}): Promise<RunReceipt> {
+export async function runHeadlessClone(
+  options: RunOptions,
+): Promise<RunReceipt> {
   const targetDirectory = options.targetDirectory ?? process.cwd();
   const paths = options.paths ?? projectPaths;
   const { config, policy: managedPolicy } = await readEffectiveConfig({
@@ -46,14 +26,17 @@ export async function runHeadlessClone(options: {
         ? paths.managedConfigFile
         : options.managedConfigPath,
   });
+
   if (!managedPolicy.enabled || managedPolicy.maxActionTier === "observe") {
     throw new Error("Managed policy does not allow headless clone runs");
   }
+
   const repository = await resolveRepository({
     cwd: targetDirectory,
     enabled: config.sources["git-metadata"],
     readRemote: options.readRemote,
   });
+
   if (
     isOriginBlocked({
       repository,
@@ -62,6 +45,7 @@ export async function runHeadlessClone(options: {
   ) {
     throw new Error("Managed policy blocks this repository");
   }
+
   const verificationTools = await detectVerificationTools({
     cwd: targetDirectory,
   });
@@ -71,10 +55,12 @@ export async function runHeadlessClone(options: {
     managedActionTier: managedPolicy.maxActionTier,
     verificationTools,
   });
+
   validateRemoteGrants({
     grantedActions: dispatchPolicy.grantedActions,
     pullRequestNumber: options.pullRequestNumber,
   });
+
   const needsRemoteDraft = dispatchPolicy.grantedActions.some(
     (action) => action === "pr-draft" || action === "pr-reply",
   );
@@ -85,65 +71,73 @@ export async function runHeadlessClone(options: {
         allowedEngines: managedPolicy.allowedEngines,
       });
   const runner = options.runner ?? detection?.runner;
+
   if (!runner) {
     throw new Error("No authenticated agent engine is available");
   }
 
-  const runId = options.runId ?? crypto.randomUUID();
-  if (!/^[a-zA-Z0-9_-]{1,100}$/.test(runId)) {
-    throw new Error("Invalid run id");
-  }
-  const slug = "task";
-  const branch = `shadowclone/${slug}-${runId.slice(0, 8)}`;
-  const worktree = await createWorktree({
-    targetDirectory,
-    worktreeDirectory: paths.worktreeDirectory(runId),
-    branch,
-    runner: options.commandRunner,
-  });
-  await prepareWorktreeDependencies({ worktree, runner: options.commandRunner });
-  const compiledProfilePath = path.join(
-    paths.runDirectory(runId),
-    "guidance.md",
-  );
-  const compilation = await compileAgentDelivery({ paths, cwd: targetDirectory, repository, outputPath: compiledProfilePath });
-  const skills = await materializeSkillDelivery({ paths, repositoryDirectory: targetDirectory, destination: worktree.worktreeDirectory });
-  if (skills !== null) await Bun.write(compiledProfilePath, skills, { mode: 0o600 });
+  const { runId, branch, worktree, compiledProfilePath, compilation } =
+    await prepareRunWorkspace({
+      runId: options.runId,
+      targetDirectory,
+      paths,
+      repository,
+      commandRunner: options.commandRunner,
+    });
+
   const startedAt = options.startedAt ?? new Date().toISOString();
-  const invoke = (prompt: string, sessionId: string, schema: boolean): Promise<EngineRun> => runner({
-    prompt,
-    cwd: worktree.worktreeDirectory,
-    execution: {
-      purpose: "dispatch",
-      allowedDomains: [],
-      blockedPaths: [worktree.repoDirectory, paths.shadowcloneDirectory],
-      repositoryDirectory: worktree.repoDirectory,
-    },
-    systemPromptFile: compiledProfilePath,
-    sessionId,
-    allowedTools: dispatchPolicy.allowedTools,
-    disallowedTools: dispatchPolicy.disallowedTools,
-    permissionMode: dispatchPolicy.permissionMode,
-    maxBudgetUsd: dispatchPolicy.maxBudgetUsd,
-    ...(schema ? { outputSchema: z.toJSONSchema(remoteDraftSchema) } : {}),
+  const invoke = createRunInvocation({
+    runner,
+    worktree,
+    paths,
+    compiledProfilePath,
+    dispatchPolicy,
   });
-  const firstRun = await invoke([
-    options.task,
-    "",
-    "Work only in this worktree. Leave the finished change uncommitted.",
-    "Do not merge or force push under any circumstance.",
-    ...(needsRemoteDraft ? ["Return a JSON title and body for the approved PR action. The host will perform it for the approved repository."] : []),
-  ].join("\n"), runId, needsRemoteDraft);
+
+  const firstRun = await invoke({
+    prompt: [
+      options.task,
+      "",
+      "Work only in this worktree. Leave the finished change uncommitted.",
+      "Do not merge or force push under any circumstance.",
+      ...(needsRemoteDraft
+        ? [
+            "Return a JSON title and body for the approved PR action. The host will perform it for the approved repository.",
+          ]
+        : []),
+    ].join("\n"),
+    sessionId: runId,
+    schema: needsRemoteDraft,
+  });
+
   const gated = firstRun.isError
-    ? { run: firstRun, gate: { status: "not-run" as const, command: null, attempts: 0 } }
-    : await gateAndCommit({ worktree, run: firstRun, repair: (evidence) => invoke(repairPrompt(evidence), `${runId}-repair`, false), blockedPaths: [paths.shadowcloneDirectory], execute: options.gateExecutor, runner: options.commandRunner });
+    ? {
+        run: firstRun,
+        gate: { status: "not-run" as const, command: null, attempts: 0 },
+      }
+    : await gateAndCommit({
+        worktree,
+        run: firstRun,
+        repair: (evidence) =>
+          invoke({
+            prompt: repairPrompt(evidence),
+            sessionId: `${runId}-repair`,
+            schema: false,
+          }),
+        blockedPaths: [paths.shadowcloneDirectory],
+        execute: options.gateExecutor,
+        runner: options.commandRunner,
+      });
   const run = gated.run;
+
   const inspection = await inspectWorktree({
     worktree,
     runner: options.commandRunner,
   });
+
   const actionsTaken: string[] =
     inspection.commits.length > 0 ? ["commit"] : [];
+
   if (
     !run.isError &&
     dispatchPolicy.grantedActions.includes("push") &&
@@ -156,6 +150,7 @@ export async function runHeadlessClone(options: {
     });
     actionsTaken.push("push");
   }
+
   if (!run.isError) {
     actionsTaken.push(
       ...(await executeRemoteActions({
@@ -169,6 +164,7 @@ export async function runHeadlessClone(options: {
       })),
     );
   }
+
   const receipt = runReceipt({
     runId,
     task: options.task,
@@ -182,9 +178,12 @@ export async function runHeadlessClone(options: {
     profileRulesApplied: compilation.appliedRuleCount,
     gate: gated.gate,
   });
+
   await writeReceipt({ runDirectory: paths.runDirectory(runId), receipt });
+
   if (run.isError) {
     throw new Error("Clone run did not finish cleanly; review its receipt");
   }
+
   return receipt;
 }

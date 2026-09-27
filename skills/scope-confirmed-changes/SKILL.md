@@ -10,32 +10,22 @@ metadata:
 
 ## Use when
 
-Use this skill when nearby cleanup, defensive cases, or architectural improvements could easily expand a concrete correction. The scope boundary is the observable failure or requested outcome.
+Fixing a defect or review finding, or making a change whose scope should stay narrow.
 
 ## Process
 
-1. State the defect as reachable input followed by incorrect observable behavior, or state the requested outcome in equally concrete terms.
-2. Trace the path that produces it and confirm the current code can reach that path.
-3. Sort candidate edits into required, supporting, and unrelated changes.
-4. Keep required edits that directly change the outcome.
-5. Keep a supporting edit only when the required change cannot remain correct or testable without it.
-6. Leave unrelated cleanup, speculative guards, and style changes outside the diff.
-7. Add or update the narrow test that expresses the confirmed behavior through its public seam.
-8. Read every final hunk and map it back to the stated defect, outcome, or necessary verification.
-9. Commit each later review round separately so reviewers retain a stable history.
+1. State the reachable input and incorrect behavior, or the requested outcome.
+2. Trace the current path and verify the finding against the working branch.
+3. Keep edits that correct the outcome, plus supporting changes required for correctness or verification.
+4. Leave unrelated cleanup and speculative guards outside the diff.
+5. Verify the behavior through a stable public interface and map each final hunk back to the request.
 
 ## Guardrails
 
-- Verify a review finding against the current branch before changing code.
-- Reject cases that cannot occur under the validated input and type boundaries.
-- Avoid widening public contracts to accommodate an internal implementation shortcut.
-- Keep refactors only when they create the seam required to fix or test the behavior.
-- Preserve unrelated user edits and existing style.
-- Use a separate proposal for improvements that do not affect the confirmed outcome.
-- Never rewrite pushed history to make a correction look like the first attempt.
+Preserve unrelated user edits and existing style. Do not widen a public contract to accommodate an internal shortcut. Refactor only when the requested fix or its verification needs it.
 
-When a proposed fix causes a different observable regression, remove that approach and return to the confirmed failure. Do not accumulate compensating changes around a wrong fix.
+If an approach causes another regression, remove that approach and reconsider the cause. Avoid layering compensating changes onto a wrong fix. Keep later review rounds in separate commits when authorized; never rewrite pushed history.
 
 ## Completion
 
-The change is complete when the original behavior is corrected, its focused verification passes, every diff hunk maps to the requested outcome, unrelated observations are left out, and the commit history preserves each pushed correction round.
+The requested outcome works, focused verification passes, and every hunk has a reason within scope.

@@ -133,6 +133,7 @@ test("compiles contradicted declared guidance while withholding inactive rules",
     "org",
     completeRule.originDirectory ?? "isolated",
   );
+
   await mkdir(directory, { recursive: true });
   await Bun.write(
     path.join(directory, "workflow.md"),
@@ -169,6 +170,7 @@ test("compiles contradicted declared guidance while withholding inactive rules",
       }),
     ].join("\n\n"),
   );
+
   const origin: OriginScope = {
     id: "github.com/acme",
     directoryName: "github.com--acme--936913df4a5c268b",

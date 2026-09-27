@@ -27,6 +27,7 @@ export function allowlistedSignals(options: {
         : [],
     ),
   );
+
   const assistantReferences = new Set(
     options.events.flatMap((event) =>
       event.kind === "assistant-text" && event.textRef
@@ -34,14 +35,17 @@ export function allowlistedSignals(options: {
         : [],
     ),
   );
+
   return options.signals.map((signal) => ({
     ...signal,
-    contextRefs: (signal.contextRefs ?? []).filter((ref) => assistantReferences.has(textRefKey(ref))),
+    contextRefs: (signal.contextRefs ?? []).filter((ref) =>
+      assistantReferences.has(textRefKey(ref)),
+    ),
     textRefs: signal.textRefs.filter((ref) => {
       const key = textRefKey(ref);
+
       return (
-        independentlyEligibleReferences.has(key) ||
-        assistantReferences.has(key)
+        independentlyEligibleReferences.has(key) || assistantReferences.has(key)
       );
     }),
   }));

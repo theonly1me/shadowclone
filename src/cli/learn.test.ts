@@ -2,11 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import {
-  defaultConfig,
-  setSourceEnabled,
-  writeConfig,
-} from "../config";
+import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
 import type { EngineRunner } from "../engine";
 import { openEventIndex } from "../index";
 import { createProjectPaths } from "../paths";
@@ -24,7 +20,9 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
     paths.claudeProjectsDirectory,
     "fixture",
   );
+
   await mkdir(transcriptDirectory, { recursive: true });
+
   const records = [
     {
       type: "user",
@@ -83,10 +81,12 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
       message: { id: "message-5", content: "Use the small scope" },
     },
   ];
+
   await Bun.write(
     path.join(transcriptDirectory, "session.jsonl"),
     `${records.map((record) => JSON.stringify(record)).join("\n")}\n`,
   );
+
   const config = setSourceEnabled({
     config: {
       ...defaultConfig,
@@ -95,6 +95,7 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
     source: "claude-code",
     enabled: true,
   });
+
   await writeConfig({ config, configPath: paths.configFile });
 
   await learn({
@@ -105,19 +106,29 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
   });
 
   const index = await openEventIndex(paths.indexDatabase);
+
   expect(index.countEvents()).toBe(5);
+
   index.close();
 
   let engineRuns = 0;
   const runner: EngineRunner = () => {
     engineRuns += 1;
+
     return Promise.resolve({
       engine: "claude-code",
       sessionId: "deep-session",
       transcriptPath: null,
       text: "",
       structured: {
-        assessments: [{ evidenceToken: "evidence-1", intent: "preference", durable: true, scope: "repository" }],
+        assessments: [
+          {
+            evidenceToken: "evidence-1",
+            intent: "preference",
+            durable: true,
+            scope: "repository",
+          },
+        ],
         existingRules: [],
         newRules: [
           {
@@ -139,6 +150,7 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
       errorMessage: null,
     });
   };
+
   await learn({
     configPath: paths.configFile,
     databasePath: paths.indexDatabase,
@@ -149,6 +161,7 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
     apply: true,
     managedConfigPath: null,
   });
+
   expect(engineRuns).toBe(1);
 
   const profileGlob = new Bun.Glob("**/*.md");
@@ -159,14 +172,15 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
       onlyFiles: true,
     }),
   );
+
   if (profileFiles.length === 0) {
     throw new Error("Expected learn to write a profile");
   }
+
   const profile = (
-    await Promise.all(
-      profileFiles.map((filePath) => Bun.file(filePath).text()),
-    )
+    await Promise.all(profileFiles.map((filePath) => Bun.file(filePath).text()))
   ).join("\n");
+
   expect(profile).not.toContain("Stops the agent while using Edit");
   expect(profile).toContain("Choose the smaller scope");
   expect(profile).not.toContain("plan this change");

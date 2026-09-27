@@ -43,6 +43,7 @@ test("compiler priority keeps references ahead of imported guidance", async () =
   const profileDirectory = canonicalPath(
     await mkdtemp(path.join(os.tmpdir(), "shadowclone-priority-")),
   );
+
   const rules = [
     rule({ key: "user", source: "user" }),
     rule({ key: "declared", source: "declared" }),
@@ -54,11 +55,13 @@ test("compiler priority keeps references ahead of imported guidance", async () =
       observations: 10_000,
     }),
   ];
+
   await mkdir(path.join(profileDirectory, "global"), { recursive: true });
   await Bun.write(
     path.join(profileDirectory, "global", "workflow.md"),
     rules.map(renderProfileRule).join("\n\n"),
   );
+
   const reference = {
     schema: 1 as const,
     key: "reference-key",
@@ -73,12 +76,15 @@ test("compiler priority keeps references ahead of imported guidance", async () =
     updatedAt: "2026-09-18",
     body: "Full detail remains on demand.",
   };
+
   const referencePath = path.join(
     profileDirectory,
     referenceRelativePath(reference),
   );
+
   await mkdir(path.dirname(referencePath), { recursive: true });
   await Bun.write(referencePath, renderReference(reference));
+
   const recallOnly = {
     ...reference,
     key: "active-project-note",
@@ -86,23 +92,32 @@ test("compiler priority keeps references ahead of imported guidance", async () =
     source: "claude-project-memory" as const,
     sourceLocator: "project_active.md",
   };
+
   const recallOnlyPath = path.join(
     profileDirectory,
     referenceRelativePath(recallOnly),
   );
+
   await Bun.write(recallOnlyPath, renderReference(recallOnly));
+
   expect(parseReference(await Bun.file(referencePath).text())).not.toBeNull();
-  const referenceFiles = await Array.fromAsync(new Bun.Glob("*.md").scan({
-    cwd: path.dirname(referencePath),
-    absolute: true,
-    onlyFiles: true,
-  }));
+
+  const referenceFiles = await Array.fromAsync(
+    new Bun.Glob("*.md").scan({
+      cwd: path.dirname(referencePath),
+      absolute: true,
+      onlyFiles: true,
+    }),
+  );
+
   expect(referenceFiles.sort()).toEqual([recallOnlyPath, referencePath].sort());
-  expect(await readScopedReferences({
-    profileDirectory,
-    origin: null,
-    targetRepo: null,
-  })).toHaveLength(2);
+  expect(
+    await readScopedReferences({
+      profileDirectory,
+      origin: null,
+      targetRepo: null,
+    }),
+  ).toHaveLength(2);
 
   const main = await compileProfile({
     input: {
@@ -114,13 +129,17 @@ test("compiler priority keeps references ahead of imported guidance", async () =
     repositoryContext: "missing",
     byteBudget: 1_000,
   });
+
   expect(main.markdown).toContain("user");
   expect(main.markdown).toContain("declared");
   expect(main.markdown).toContain("mined");
   expect(main.markdown).toContain("reference-key");
   expect(main.markdown).not.toContain("active-project-note");
   expect(main.markdown).not.toContain("Imported text");
-  expect(main.omissions).toContainEqual({ ruleKey: "imported", reason: "budget" });
+  expect(main.omissions).toContainEqual({
+    ruleKey: "imported",
+    reason: "budget",
+  });
   expect(main.usedBytes).toBe(Buffer.byteLength(main.markdown, "utf8"));
 
   const subagent = await compileProfile({
@@ -134,6 +153,7 @@ test("compiler priority keeps references ahead of imported guidance", async () =
     repositoryContext: "missing",
     byteBudget: 1_000,
   });
+
   expect(subagent.markdown).not.toContain("reference-key");
   expect(subagent.appliedReferenceCount).toBe(0);
 
@@ -145,6 +165,7 @@ test("compiler priority keeps references ahead of imported guidance", async () =
       targetRepo: null,
     },
   });
+
   expect(native.markdown).not.toContain("Imported text");
   expect(native.omissions).toContainEqual({
     ruleKey: "imported",

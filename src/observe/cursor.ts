@@ -13,6 +13,7 @@ export async function readJsonLines(options: {
   readonly cursor: FileCursor | null;
 }): Promise<CursorRead<JsonLine> | null> {
   const result = await getLineBoundaries(options);
+
   if (result === null) {
     return null;
   }
@@ -20,6 +21,7 @@ export async function readJsonLines(options: {
   const decoder = new TextDecoder();
   const values: JsonLine[] = [];
   let invalidRecords = result.invalidRecords;
+
   for (const line of result.values) {
     try {
       values.push({
@@ -30,6 +32,7 @@ export async function readJsonLines(options: {
       invalidRecords += 1;
     }
   }
+
   return { ...result, values, invalidRecords };
 }
 
@@ -38,6 +41,7 @@ export async function readLineRefs(options: {
   readonly cursor: FileCursor | null;
 }): Promise<CursorRead<FileTextRef> | null> {
   const result = await getLineBoundaries(options);
+
   if (result === null) {
     return null;
   }

@@ -1,13 +1,10 @@
 import { z } from "zod";
 import type { EngineId } from "../engine";
 import { readRootOwnedFile } from "./managedFile";
-import {
-  sourceIds,
-  type ShadowcloneConfig,
-  type SourceId,
-} from "./schema";
+import { sourceIds, type ShadowcloneConfig, type SourceId } from "./schema";
 
 export type DistillationPolicy = "allowed" | "local-only" | "disabled";
+
 export type ActionTier = "observe" | "draft" | "act";
 
 export type ManagedPolicy = {
@@ -55,6 +52,7 @@ export function parseManagedPolicy(value: unknown): ManagedPolicy {
   }
 
   const result = managedPolicySchema.safeParse(value);
+
   if (!result.success) {
     throw new Error("Managed policy has invalid or missing fields");
   }
@@ -68,13 +66,15 @@ export function applyManagedPolicy(options: {
 }): ShadowcloneConfig {
   const sourceAllowed = (source: SourceId): boolean =>
     options.policy.enabled && options.policy.allowedSources.includes(source);
+
   return {
     ...options.config,
     sources: {
-      "agent-context": options.config.sources["agent-context"] && sourceAllowed("agent-context"),
+      "agent-context":
+        options.config.sources["agent-context"] &&
+        sourceAllowed("agent-context"),
       antigravity:
-        options.config.sources.antigravity &&
-        sourceAllowed("antigravity"),
+        options.config.sources.antigravity && sourceAllowed("antigravity"),
       "antigravity-workspaces":
         options.config.sources["antigravity-workspaces"] &&
         sourceAllowed("antigravity-workspaces"),
@@ -82,11 +82,9 @@ export function applyManagedPolicy(options: {
         options.config.sources["claude-memory"] &&
         sourceAllowed("claude-memory"),
       "claude-rules":
-        options.config.sources["claude-rules"] &&
-        sourceAllowed("claude-rules"),
+        options.config.sources["claude-rules"] && sourceAllowed("claude-rules"),
       "claude-code":
-        options.config.sources["claude-code"] &&
-        sourceAllowed("claude-code"),
+        options.config.sources["claude-code"] && sourceAllowed("claude-code"),
       "claude-prompts":
         options.config.sources["claude-prompts"] &&
         sourceAllowed("claude-prompts"),
@@ -96,14 +94,21 @@ export function applyManagedPolicy(options: {
         options.config.sources["declared-rules"] &&
         sourceAllowed("declared-rules"),
       "git-metadata":
-        options.config.sources["git-metadata"] &&
-        sourceAllowed("git-metadata"),
-      "repository-manifests": options.config.sources["repository-manifests"] && sourceAllowed("repository-manifests"),
+        options.config.sources["git-metadata"] && sourceAllowed("git-metadata"),
+      "repository-manifests":
+        options.config.sources["repository-manifests"] &&
+        sourceAllowed("repository-manifests"),
       shell: options.config.sources.shell && sourceAllowed("shell"),
-      "skill-library": options.config.sources["skill-library"] && sourceAllowed("skill-library"),
+      "skill-library":
+        options.config.sources["skill-library"] &&
+        sourceAllowed("skill-library"),
     },
     distillation: {
-      automatic: options.config.distillation.automatic === true && options.config.distillation.deep && options.policy.enabled && options.policy.distillation === "allowed",
+      automatic:
+        options.config.distillation.automatic === true &&
+        options.config.distillation.deep &&
+        options.policy.enabled &&
+        options.policy.distillation === "allowed",
       deep:
         options.config.distillation.deep &&
         options.policy.enabled &&
@@ -118,9 +123,12 @@ export async function readManagedPolicy(
   if (managedConfigPath === null) {
     return defaultManagedPolicy;
   }
+
   if (!(await Bun.file(managedConfigPath).exists())) {
     return defaultManagedPolicy;
   }
+
   const value: unknown = JSON.parse(await readRootOwnedFile(managedConfigPath));
+
   return parseManagedPolicy(value);
 }

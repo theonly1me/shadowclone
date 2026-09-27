@@ -1,7 +1,11 @@
 import { resolveRedacted } from "../../redact";
 import { textRefKey } from "../../observe";
 import { internalLearningMarker } from "../excerpts";
-import type { PromptEvidence, PromptRule, ReconciliationContext } from "./types";
+import type {
+  PromptEvidence,
+  PromptRule,
+  ReconciliationContext,
+} from "./types";
 
 function ruleText(rule: PromptRule): string {
   const options = rule.axisOptions.flatMap((option) => [
@@ -9,6 +13,7 @@ function ruleText(rule: PromptRule): string {
     option.body,
     `Applies when: ${option.appliesWhen.join(", ")}`,
   ]);
+
   return [
     `${rule.token} [${rule.snapshot.rule.source}, ${rule.snapshot.rule.status}]`,
     rule.snapshot.promptTitle,
@@ -16,7 +21,9 @@ function ruleText(rule: PromptRule): string {
     `Applies when: ${rule.snapshot.promptAppliesWhen.join(", ") || "always"}`,
     `Evidence: ${rule.snapshot.rule.evidence.for.length} supporting, ${rule.snapshot.rule.evidence.against.length} contradicting`,
     ...(rule.snapshot.promptProposal
-      ? [`Pending ${rule.snapshot.promptProposal.kind}: ${rule.snapshot.promptProposal.text}`]
+      ? [
+          `Pending ${rule.snapshot.promptProposal.kind}: ${rule.snapshot.promptProposal.text}`,
+        ]
       : []),
     ...options,
   ].join("\n");
@@ -28,20 +35,34 @@ async function evidenceText(options: {
   readonly excerpts?: ReadonlyMap<string, string>;
 }): Promise<string> {
   const excerpts: string[] = [];
+
   for (const ref of options.evidence.signal.textRefs) {
-    const text = options.excerpts?.get(textRefKey(ref)) ?? await resolveRedacted({ ref });
+    const text =
+      options.excerpts?.get(textRefKey(ref)) ??
+      (await resolveRedacted({ ref }));
+
     if (text.length > 0) {
       excerpts.push(text.slice(0, options.maxExcerptCharacters));
     }
   }
-  const context = await Promise.all((options.evidence.signal.contextRefs ?? []).map(async (ref) =>
-    options.excerpts?.get(textRefKey(ref)) ?? await resolveRedacted({ ref }),
-  ));
+
+  const context = await Promise.all(
+    (options.evidence.signal.contextRefs ?? []).map(
+      async (ref) =>
+        options.excerpts?.get(textRefKey(ref)) ??
+        (await resolveRedacted({ ref })),
+    ),
+  );
+
   return [
     `${options.evidence.token} [${options.evidence.signal.kind}]`,
     `Pattern: ${options.evidence.signal.label}`,
     `User evidence:\n${excerpts.join("\n\n").slice(-options.maxExcerptCharacters)}`,
-    ...(context.length > 0 ? [`Preceding assistant context (not user evidence):\n${context.join("\n").slice(-2_000)}`] : []),
+    ...(context.length > 0
+      ? [
+          `Preceding assistant context (not user evidence):\n${context.join("\n").slice(-2_000)}`,
+        ]
+      : []),
   ].join("\n");
 }
 
@@ -59,6 +80,7 @@ export async function buildReconciliationPrompt(options: {
       }),
     ),
   );
+
   const rejections = options.context.rejections.map((entry) =>
     [
       entry.token,
@@ -67,6 +89,7 @@ export async function buildReconciliationPrompt(options: {
       `Reason: ${entry.snapshot.rejection.reason ?? "user-rejected"}`,
     ].join("\n"),
   );
+
   return [
     internalLearningMarker,
     "Reconcile correction evidence with the user's existing behavioral guidance.",

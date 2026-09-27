@@ -1,19 +1,13 @@
-import type {
-  EngineId,
-  EngineRunner,
-  ReasoningEffort,
-} from "../../engine";
+import type { EngineId, EngineRunner, ReasoningEffort } from "../../engine";
 import type { ProjectPaths } from "../../paths";
 import type { EvaluationArm } from "./arms";
 import type { JudgingState } from "./judgeTypes";
 
 export const dependencyModes = ["current"] as const;
+
 export type DependencyMode = (typeof dependencyModes)[number];
 
-export type DependencyState =
-  | "not-required"
-  | "not-installed"
-  | "exact";
+export type DependencyState = "not-required" | "not-installed" | "exact";
 
 export type TransferOptions = {
   readonly repo?: string;

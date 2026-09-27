@@ -1,8 +1,5 @@
 import { expect, test } from "bun:test";
-import {
-  renderEngineSelection,
-  renderProviderSupport,
-} from "./doctor";
+import { renderEngineSelection, renderProviderSupport } from "./doctor";
 
 test("reports provider support as three independent levels", () => {
   expect(renderProviderSupport()).toEqual([

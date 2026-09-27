@@ -28,9 +28,8 @@ export async function captureContext(options: {
           path.join(options.home, ".agents/skills"),
           path.join(options.home, ".codex/skills/.system"),
         ]
-      : [
-          path.join(options.home, ".claude/skills"),
-        ];
+      : [path.join(options.home, ".claude/skills")];
+
   const files: ContextFile[] = [];
   const capturedSkillFiles = new Set<string>();
   let totalBytes = 0;
@@ -41,11 +40,13 @@ export async function captureContext(options: {
     readonly skillPath?: string;
   }): Promise<void> {
     const file = Bun.file(fileOptions.absolute);
+
     if (!(await file.exists())) {
       return;
     }
 
     const stat = await lstat(fileOptions.absolute);
+
     if (!stat.isFile()) {
       throw new Error(
         "Agent context contains a symbolic link or unsupported file",
@@ -53,6 +54,7 @@ export async function captureContext(options: {
     }
 
     totalBytes += file.size;
+
     if (totalBytes > 2_000_000) {
       throw new Error("Agent context exceeds the evaluation snapshot limit");
     }
@@ -63,8 +65,13 @@ export async function captureContext(options: {
       maximumBytes: 2_000_000,
       parse: () => null,
     });
-    if (snapshot === null) throw new Error("Agent context could not be read safely");
+
+    if (snapshot === null) {
+      throw new Error("Agent context could not be read safely");
+    }
+
     const content = stripManagedGuidance(snapshot.redacted);
+
     if (
       content.includes("shadowclone hook") ||
       content.includes("# Shadowclone profile")
@@ -73,9 +80,14 @@ export async function captureContext(options: {
         "Existing agent instructions contain Shadowclone injection; baseline cannot be isolated",
       );
     }
+
     if (fileOptions.skillPath !== undefined) {
       const identity = fingerprint(`${fileOptions.skillPath}\0${content}`);
-      if (capturedSkillFiles.has(identity)) return;
+
+      if (capturedSkillFiles.has(identity)) {
+        return;
+      }
+
       capturedSkillFiles.add(identity);
     }
 
@@ -88,16 +100,23 @@ export async function captureContext(options: {
     }
 
     const glob = new Bun.Glob("**/*.md");
+
     for await (const relative of glob.scan({
       cwd: directory,
       onlyFiles: true,
       dot: false,
     })) {
-      if (relative.split(path.sep).some((segment) =>
-        segment === "shadowclone" || segment === "shadowclone-context"
-      )) {
+      if (
+        relative
+          .split(path.sep)
+          .some(
+            (segment) =>
+              segment === "shadowclone" || segment === "shadowclone-context",
+          )
+      ) {
         continue;
       }
+
       await addFile({
         absolute: path.join(directory, relative),
         relative: `skills/${rootIndex}/${relative}`,
@@ -135,6 +154,7 @@ export async function captureContext(options: {
   }
 
   const memoryGlob = new Bun.Glob("**/*.md");
+
   for await (const relative of memoryGlob.scan({
     cwd: memory,
     onlyFiles: true,
@@ -162,6 +182,7 @@ export async function installContext(options: {
 
   for (const file of options.files) {
     const targetPath = path.resolve(root, file.relativePath);
+
     if (!targetPath.startsWith(`${root}${path.sep}`)) {
       throw new Error("Invalid context path");
     }

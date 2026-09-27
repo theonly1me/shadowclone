@@ -2,11 +2,7 @@ import { z } from "zod";
 import type { ProfileSection } from "../profile";
 
 const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-const profileSectionSchema = z.enum([
-  "engineering",
-  "workflow",
-  "boundaries",
-]);
+const profileSectionSchema = z.enum(["engineering", "workflow", "boundaries"]);
 
 export const seedPreferenceMetadataSchema = z.strictObject({
   id: slugSchema,

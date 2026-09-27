@@ -11,9 +11,12 @@ test("filesystem guidance crosses the redaction gate before compilation", async 
     path.join(os.tmpdir(), "shadowclone-compiler-private-"),
   );
   const globalDirectory = path.join(profileDirectory, "global");
+
   await mkdir(globalDirectory, { recursive: true });
+
   const stripeKeyPrefix = "sk_live";
   const secret = `${stripeKeyPrefix}_1234567890abcdefghijklmnop`;
+
   const rule: ProfileRule = {
     key: "private-guidance",
     title: "Handle credentials",
@@ -33,10 +36,12 @@ test("filesystem guidance crosses the redaction gate before compilation", async 
     origins: [],
     importReference: null,
   };
+
   await Bun.write(
     path.join(globalDirectory, "boundaries.md"),
     renderProfileRule(rule),
   );
+
   const origin: OriginScope = {
     id: "isolated:test",
     directoryName: "isolated--test",

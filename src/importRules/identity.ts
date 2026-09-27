@@ -14,9 +14,11 @@ export function repositoryAliases(options: {
   const aliases = [
     opaqueHash(`directory:${canonicalPath(options.workingDirectory)}`),
   ];
+
   if (options.repository.profileFileName !== null) {
     aliases.push(opaqueHash(`repository:${options.repository.id}`));
   }
+
   return aliases.sort();
 }
 
@@ -29,11 +31,13 @@ export function matchingImportReference(options: {
   readonly aliases: readonly string[];
   readonly locator: string;
 }): boolean {
-  return options.stored !== null &&
+  return (
+    options.stored !== null &&
     options.stored.sourceLocator === options.locator &&
     options.stored.repositoryAliases.some((alias) =>
-      options.aliases.includes(alias)
-    );
+      options.aliases.includes(alias),
+    )
+  );
 }
 
 export function mergeImportReference(options: {
@@ -45,6 +49,7 @@ export function mergeImportReference(options: {
     repositoryAliases: options.aliases,
     sourceLocator: options.locator,
   };
+
   return options.stored === null
     ? incoming
     : mergeProfileImportReference({ stored: options.stored, incoming });

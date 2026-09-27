@@ -27,8 +27,15 @@ import type {
 export { profileScopePaths } from "./read";
 
 export { defaultProfileByteBudget } from "./render";
+
 export { defaultIndexByteBudget } from "./renderIndex";
-export { toolPatterns, type KnownTool, type RepositoryApplicability } from "./applicability";
+
+export {
+  toolPatterns,
+  type KnownTool,
+  type RepositoryApplicability,
+} from "./applicability";
+
 export type {
   ProfileCompilation,
   ProfileCompilationAudience,
@@ -45,15 +52,19 @@ const seedKeyPrefix = "seed:";
 async function seedAxes(
   blocks: readonly CompilerBlock[],
 ): Promise<ReadonlyMap<string, string>> {
-  const carriesSeedGuidance = blocks.some(
-    (block) => block.ruleKey?.startsWith(seedKeyPrefix),
+  const carriesSeedGuidance = blocks.some((block) =>
+    block.ruleKey?.startsWith(seedKeyPrefix),
   );
+
   if (!carriesSeedGuidance) {
     return new Map();
   }
+
   const axes = new Map<string, string>();
+
   try {
     const library = await loadSeedLibrary();
+
     for (const axis of library.axes) {
       for (const guidance of axis.guidance) {
         axes.set(seedGuidanceProfileKey(guidance.id), axis.id);
@@ -62,6 +73,7 @@ async function seedAxes(
   } catch {
     return new Map();
   }
+
   return axes;
 }
 
@@ -70,27 +82,39 @@ async function compilerBlocks(options: {
   readonly audience: ProfileCompilationAudience;
 }): Promise<readonly CompilerBlock[]> {
   const input = options.input;
-  if (input.kind === "rules") return compilerBlocksFromRules(input.rules);
+
+  if (input.kind === "rules") {
+    return compilerBlocksFromRules(input.rules);
+  }
+
   const rules = await readCompilerBlocks({
     profileDirectory: input.profileDirectory,
     origin: input.origin,
     targetRepo: input.targetRepo,
     scope: input.scope,
   });
-  if (options.audience === "subagent") return rules;
+
+  if (options.audience === "subagent") {
+    return rules;
+  }
+
   const references = await readScopedReferences({
     profileDirectory: input.profileDirectory,
     origin: input.origin,
     targetRepo: input.targetRepo,
     scope: input.scope,
   });
+
   return [...rules, ...compilerBlocksFromReferences(references)];
 }
 
 function withoutInternalFields(
-  compilation: ProfileCompilation & { readonly omittedBlocks: readonly CompilerBlock[] },
+  compilation: ProfileCompilation & {
+    readonly omittedBlocks: readonly CompilerBlock[];
+  },
 ): ProfileCompilation {
   const { omittedBlocks: _omittedBlocks, ...result } = compilation;
+
   return result;
 }
 
@@ -109,6 +133,7 @@ export async function compileProfile(options: {
     input: options.input,
     audience: options.audience ?? "main",
   });
+
   const selection = selectCompilerBlocks({
     blocks,
     axes: await seedAxes(blocks),
@@ -117,15 +142,26 @@ export async function compileProfile(options: {
     applicability: options.applicability,
     committedRuleKeys: options.committedRuleKeys,
   });
-  const rendered = options.format === "index" || options.format === "harness"
-    ? renderIndexCompilation({ blocks: selection.selected, byteBudget: options.byteBudget ?? defaultIndexByteBudget, standalone: options.format === "index" })
-    : renderCompilation({ blocks: selection.selected, byteBudget: options.byteBudget ?? defaultProfileByteBudget });
+
+  const rendered =
+    options.format === "index" || options.format === "harness"
+      ? renderIndexCompilation({
+          blocks: selection.selected,
+          byteBudget: options.byteBudget ?? defaultIndexByteBudget,
+          standalone: options.format === "index",
+        })
+      : renderCompilation({
+          blocks: selection.selected,
+          byteBudget: options.byteBudget ?? defaultProfileByteBudget,
+        });
+
   if (options.outputPath !== undefined) {
     await ownedWrite({
       path: options.outputPath,
       content: rendered.markdown,
     });
   }
+
   return withoutInternalFields({
     ...rendered,
     breakdown: addOmittedBreakdown({

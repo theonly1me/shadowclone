@@ -16,6 +16,7 @@ function signal(options: {
   readonly sharedOrigin?: boolean;
 }): CorrectionSignal {
   const suffix = options.sharedOrigin ? "shared" : options.index.toString();
+
   return {
     kind: "interruption",
     category: "tool:Edit",
@@ -35,10 +36,12 @@ function signal(options: {
 test("manual learning reserves calls while starting from the newest batches", () => {
   const now = 1_800_000_000_000;
   const window = selectManualLearningWindow({
-    signals: Array.from({ length: 12 }, (_, index) => signal({
-      index,
-      timestamp: now - 12 + index,
-    })),
+    signals: Array.from({ length: 12 }, (_, index) =>
+      signal({
+        index,
+        timestamp: now - 12 + index,
+      }),
+    ),
     state: idleState,
     now,
   });
@@ -52,11 +55,13 @@ test("manual learning reserves calls while starting from the newest batches", ()
 test("manual learning considers at most sixty pending episodes", () => {
   const now = 1_800_000_000_000;
   const window = selectManualLearningWindow({
-    signals: Array.from({ length: 65 }, (_, index) => signal({
-      index,
-      timestamp: now - index,
-      sharedOrigin: true,
-    })),
+    signals: Array.from({ length: 65 }, (_, index) =>
+      signal({
+        index,
+        timestamp: now - index,
+        sharedOrigin: true,
+      }),
+    ),
     state: idleState,
     now,
   });
@@ -81,12 +86,18 @@ test("manual learning reaches episodes older than the former thirty day horizon"
 
 test("manual learning skips episodes already recorded in the ledger", () => {
   const now = 1_800_000_000_000;
-  const signals = Array.from({ length: 3 }, (_, index) => signal({
-    index,
-    timestamp: now - 3 + index,
-    sharedOrigin: true,
-  }));
-  const covered = selectManualLearningWindow({ signals, state: idleState, now });
+  const signals = Array.from({ length: 3 }, (_, index) =>
+    signal({
+      index,
+      timestamp: now - 3 + index,
+      sharedOrigin: true,
+    }),
+  );
+  const covered = selectManualLearningWindow({
+    signals,
+    state: idleState,
+    now,
+  });
   const state: LearningState = {
     ...idleState,
     processed: covered.signals.slice(0, 2).map((entry) => ({
@@ -102,13 +113,19 @@ test("manual learning skips episodes already recorded in the ledger", () => {
 
 test("a catch-up run scales the episode ceiling with the call ceiling", () => {
   const now = 1_800_000_000_000;
-  const signals = Array.from({ length: 900 }, (_, index) => signal({
-    index,
-    timestamp: now - 900 + index,
-    sharedOrigin: true,
-  }));
+  const signals = Array.from({ length: 900 }, (_, index) =>
+    signal({
+      index,
+      timestamp: now - 900 + index,
+      sharedOrigin: true,
+    }),
+  );
 
-  const standard = selectManualLearningWindow({ signals, state: idleState, now });
+  const standard = selectManualLearningWindow({
+    signals,
+    state: idleState,
+    now,
+  });
   const catchUp = selectManualLearningWindow({
     signals,
     state: idleState,

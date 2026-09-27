@@ -46,12 +46,15 @@ export async function runHostCommand(options: {
   readonly signal?: AbortSignal;
 }) {
   const [executable, ...arguments_] = options.arguments;
+
   if (!executable) {
     throw new Error("Command requires an executable");
   }
+
   const remote = executable === "gh" || arguments_.includes("push");
   const environment = hostEnvironment({ remote });
   const safety = [...gitSafetyArguments];
+
   if (executable === "git" && !arguments_.includes("config")) {
     const configuration = await runProcess({
       arguments: [
@@ -69,17 +72,20 @@ export async function runHostCommand(options: {
       timeoutMilliseconds: 10_000,
       signal: options.signal,
     });
+
     if (configuration.stdout.trim().length > 0) {
       throw new Error(
         "Automatic Git commands refuse executable repository configuration",
       );
     }
   }
+
   if (executable === "git" && arguments_.includes("commit")) {
     safety.push(
       ...(await gitIdentityArguments({ cwd: options.cwd, environment })),
     );
   }
+
   if (executable === "git" && arguments_.includes("push")) {
     safety.push(
       "-c",
@@ -88,6 +94,7 @@ export async function runHostCommand(options: {
       "credential.https://github.com.helper=!gh auth git-credential",
     );
   }
+
   return runProcess({
     arguments:
       executable === "git"

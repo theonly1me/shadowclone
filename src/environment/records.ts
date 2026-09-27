@@ -4,46 +4,128 @@ import { fingerprint, readLocalText } from "../localFiles";
 import { acquireLocalLock } from "../localFiles/lock";
 import path from "node:path";
 import type { ProjectPaths } from "../paths";
-import type { ProfileRule, ProfileRuleReference, ProfileWriteResult } from "../profile/types";
+import type {
+  ProfileRule,
+  ProfileRuleReference,
+  ProfileWriteResult,
+} from "../profile/types";
 import type { ProfileSnapshot } from "../profile/snapshot";
 import { profileRulePath } from "../profile/render";
-import { environmentFile, readEnvironment, readRedactedEnvironment, renderEnvironment } from "./store";
+import {
+  environmentFile,
+  readEnvironment,
+  readRedactedEnvironment,
+  renderEnvironment,
+} from "./store";
 import { learningRuleSchema, type LearningRecord } from "./types";
 
 export function recordFingerprint(record: LearningRecord): string {
   return fingerprint(JSON.stringify({ kind: record.kind, rule: record.rule }));
 }
-export async function learningSnapshot(paths: ProjectPaths): Promise<ProfileSnapshot | null> {
+
+export async function learningSnapshot(
+  paths: ProjectPaths,
+): Promise<ProfileSnapshot | null> {
   const state = await readRedactedEnvironment(paths);
-  if (state === null) return null;
-  return { rules: state.records.map(({ rule }) => ({
-    rule, promptTitle: rule.title, promptBody: rule.body,
-    promptAppliesWhen: rule.appliesWhen, promptProposal: rule.proposal,
-  })), rejections: parseProfileRejectionText(state.rejectionText).map((rejection) => ({ rejection, promptTitle: rejection.title, promptBody: rejection.body })) };
+
+  if (state === null) {
+    return null;
+  }
+
+  return {
+    rules: state.records.map(({ rule }) => ({
+      rule,
+      promptTitle: rule.title,
+      promptBody: rule.body,
+      promptAppliesWhen: rule.appliesWhen,
+      promptProposal: rule.proposal,
+    })),
+    rejections: parseProfileRejectionText(state.rejectionText).map(
+      (rejection) => ({
+        rejection,
+        promptTitle: rejection.title,
+        promptBody: rejection.body,
+      }),
+    ),
+  };
 }
+
 export async function storeLearningRules(options: {
-  readonly paths: ProjectPaths; readonly rules: readonly ProfileRule[]; readonly retired?: readonly ProfileRuleReference[];
+  readonly paths: ProjectPaths;
+  readonly rules: readonly ProfileRule[];
+  readonly retired?: readonly ProfileRuleReference[];
 }): Promise<ProfileWriteResult | null> {
-  if (await readEnvironment(options.paths) === null) return null;
-  const lock = await acquireLocalLock(path.join(options.paths.shadowcloneDirectory, "environment-write.db"));
-  if (!lock) throw new Error("Another learning update is running");
+  if ((await readEnvironment(options.paths)) === null) {
+    return null;
+  }
+
+  const lock = await acquireLocalLock(
+    path.join(options.paths.shadowcloneDirectory, "environment-write.db"),
+  );
+
+  if (!lock) {
+    throw new Error("Another learning update is running");
+  }
+
   try {
     const state = await readEnvironment(options.paths);
-    if (state === null) throw new Error("Learning environment disappeared");
-    const records = new Map(state.records.map((record) => [record.rule.key, record]));
+
+    if (state === null) {
+      throw new Error("Learning environment disappeared");
+    }
+
+    const records = new Map(
+      state.records.map((record) => [record.rule.key, record]),
+    );
+
     for (const retired of options.retired ?? []) {
       const record = records.get(retired.key);
-      if (record && profileRulePath(record.rule) === retired.relativePath) records.set(retired.key, { ...record, rule: { ...record.rule, status: "stale" } });
+
+      if (record && profileRulePath(record.rule) === retired.relativePath) {
+        records.set(retired.key, {
+          ...record,
+          rule: { ...record.rule, status: "stale" },
+        });
+      }
     }
+
     for (const rule of options.rules) {
-      if (state.rejected.includes(rule.key)) continue;
+      if (state.rejected.includes(rule.key)) {
+        continue;
+      }
+
       const previous = records.get(rule.key);
-      records.set(rule.key, { kind: previous?.kind ?? "guidance", sourceHash: previous?.sourceHash ?? null, sourceLocator: previous?.sourceLocator ?? null, rule: learningRuleSchema.parse(rule) });
+
+      records.set(rule.key, {
+        kind: previous?.kind ?? "guidance",
+        sourceHash: previous?.sourceHash ?? null,
+        sourceLocator: previous?.sourceLocator ?? null,
+        rule: learningRuleSchema.parse(rule),
+      });
     }
+
     const filePath = environmentFile(options.paths);
-    await commitLocalChanges({ paths: options.paths, root: options.paths.shadowcloneDirectory, kind: "environment", updates: [{
-      filePath, previous: await readLocalText(filePath), next: renderEnvironment({ ...state, records: [...records.values()] }),
-    }] });
-    return { files: 1, rules: options.rules.length, rejected: state.rejected.length, preserved: 0 };
-  } finally { lock.release(); }
+
+    await commitLocalChanges({
+      paths: options.paths,
+      root: options.paths.shadowcloneDirectory,
+      kind: "environment",
+      updates: [
+        {
+          filePath,
+          previous: await readLocalText(filePath),
+          next: renderEnvironment({ ...state, records: [...records.values()] }),
+        },
+      ],
+    });
+
+    return {
+      files: 1,
+      rules: options.rules.length,
+      rejected: state.rejected.length,
+      preserved: 0,
+    };
+  } finally {
+    lock.release();
+  }
 }

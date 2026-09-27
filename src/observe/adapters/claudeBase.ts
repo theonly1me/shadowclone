@@ -1,12 +1,6 @@
 import path from "node:path";
-import {
-  readString,
-  readTimestamp,
-} from "../record";
-import type {
-  AgentEvent,
-  FileTextRef,
-} from "../types";
+import { readString, readTimestamp } from "../record";
+import type { AgentEvent, FileTextRef } from "../types";
 
 export function createClaudeBaseEvent(options: {
   readonly record: Readonly<Record<string, unknown>>;
@@ -14,6 +8,7 @@ export function createClaudeBaseEvent(options: {
   readonly ref: FileTextRef;
 }): Omit<AgentEvent, "kind" | "tool" | "isError" | "textRef"> {
   const fallbackId = `${path.basename(options.ref.sourcePath)}:${readTimestamp(options.record.timestamp)}`;
+
   return {
     source: "claude-code",
     sessionId:

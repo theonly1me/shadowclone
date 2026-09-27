@@ -15,6 +15,7 @@ test("dispatch loads no host settings, hooks, or MCP servers", () => {
   });
 
   const settingSourcesIndex = arguments_.indexOf("--setting-sources");
+
   expect(arguments_[settingSourcesIndex + 1]).toBe("");
   expect(arguments_).toContain("--strict-mcp-config");
   expect(arguments_).toContain('{"mcpServers":{}}');
@@ -22,6 +23,7 @@ test("dispatch loads no host settings, hooks, or MCP servers", () => {
 
   const settingsIndex = arguments_.indexOf("--settings");
   const settings = arguments_[settingsIndex + 1] ?? "";
+
   expect(settings).toContain('"disableAllHooks":true');
   expect(settings).toContain('"failIfUnavailable":true');
   expect(settings).toContain('"allowUnsandboxedCommands":false');
@@ -45,6 +47,9 @@ test("dispatch opens only the domains a granted action needs", () => {
 
   const settingsIndex = arguments_.indexOf("--settings");
   const settings = arguments_[settingsIndex + 1] ?? "";
-  expect(settings).toContain('"allowedDomains":["github.com","api.github.com"]');
+
+  expect(settings).toContain(
+    '"allowedDomains":["github.com","api.github.com"]',
+  );
   expect(settings).toContain('"allowLocalBinding":false');
 });

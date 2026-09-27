@@ -67,12 +67,16 @@ test("one learning allowance stops before a second extraction batch", async () =
     path.join(os.tmpdir(), "shadowclone-learning-limit-"),
   );
   const sourcePath = path.join(directory, "evidence.txt");
+
   await Bun.write(sourcePath, evidenceText);
+
   const budgets: (number | undefined)[] = [];
   let calls = 0;
+
   const runner: EngineRunner = (options) => {
     calls += 1;
     budgets.push(options.maxBudgetUsd);
+
     return Promise.resolve({
       engine: "codex",
       sessionId: `engine-${calls}`,

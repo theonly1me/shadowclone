@@ -17,25 +17,38 @@ export async function appendProfileRules(options: {
 }): Promise<readonly FileUpdate[]> {
   const grouped = Map.groupBy(options.rules, (rule) => rule.relativePath);
   const updates: FileUpdate[] = [];
+
   for (const [relativePath, rules] of grouped) {
     const filePath = path.join(options.paths.profileDirectory, relativePath);
     const previous = await readLocalText(filePath);
     const blocks = previous === null ? [] : parseProfileBlocks(previous);
     const additions: string[] = [];
+
     for (const rule of rules) {
       const existing = blocks.find((block) => block.key === rule.key);
+
       if (existing && existing.content !== rule.content) {
-        throw new Error("Claude memory rule conflicts with an existing profile rule");
+        throw new Error(
+          "Claude memory rule conflicts with an existing profile rule",
+        );
       }
-      if (!existing) additions.push(rule.content);
+
+      if (!existing) {
+        additions.push(rule.content);
+      }
     }
-    const content = [previous?.trim(), ...additions].filter(Boolean).join("\n\n");
+
+    const content = [previous?.trim(), ...additions]
+      .filter(Boolean)
+      .join("\n\n");
+
     updates.push({
       filePath,
       previous,
       next: content.length === 0 ? null : `${content}\n`,
     });
   }
+
   return updates;
 }
 
@@ -43,18 +56,27 @@ export async function mergeRejections(options: {
   readonly paths: ProjectPaths;
   readonly rejections: readonly ProfileRejection[];
 }): Promise<FileUpdate | null> {
-  if (options.rejections.length === 0) return null;
+  if (options.rejections.length === 0) {
+    return null;
+  }
+
   const filePath = options.paths.rejectedProfileFile;
   const previous = await readLocalText(filePath);
   const existing = previous === null ? [] : parseProfileRejectionText(previous);
   const entries = new Map(existing.map((entry) => [entry.key, entry]));
+
   for (const rejection of options.rejections) {
     const current = entries.get(rejection.key);
+
     if (current && JSON.stringify(current) !== JSON.stringify(rejection)) {
-      throw new Error("Claude memory rejection conflicts with existing profile state");
+      throw new Error(
+        "Claude memory rejection conflicts with existing profile state",
+      );
     }
+
     entries.set(rejection.key, rejection);
   }
+
   return {
     filePath,
     previous,

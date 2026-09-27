@@ -25,7 +25,9 @@ function event(cwd: string): IndexedEvent {
 
 function openIndex(): EventIndex {
   const database = new Database(":memory:", { create: true });
+
   createSchema(database);
+
   return new EventIndex(database);
 }
 
@@ -39,6 +41,7 @@ test("a working directory keeps the owner it was first resolved under", async ()
     readRemote: async () => "git@github.com:first-owner/platform.git",
     bindings: index,
   });
+
   const second = await resolveEventRepositories({
     events,
     enabled: true,
@@ -46,10 +49,13 @@ test("a working directory keeps the owner it was first resolved under", async ()
     bindings: index,
   });
 
-  expect(first.get(eventOriginKey(event("/work/platform")))?.origin.id).toBe("github.com/first-owner");
+  expect(first.get(eventOriginKey(event("/work/platform")))?.origin.id).toBe(
+    "github.com/first-owner",
+  );
   expect(second.get(eventOriginKey(event("/work/platform")))?.origin.id).toBe(
     "github.com/first-owner",
   );
+
   index.close();
 });
 
@@ -70,7 +76,10 @@ test("without a binding store the current remote wins every time", async () => {
 test("a binding is recorded the first time a directory resolves", async () => {
   const index = openIndex();
 
-  expect(index.getOriginBinding(eventOriginKey(event("/work/platform")))).toBeNull();
+  expect(
+    index.getOriginBinding(eventOriginKey(event("/work/platform"))),
+  ).toBeNull();
+
   await resolveEventRepositories({
     events: [event("/work/platform")],
     enabled: true,
@@ -78,9 +87,10 @@ test("a binding is recorded the first time a directory resolves", async () => {
     bindings: index,
   });
 
-  expect(index.getOriginBinding(eventOriginKey(event("/work/platform")))?.origin.id).toBe(
-    "github.com/first-owner",
-  );
+  expect(
+    index.getOriginBinding(eventOriginKey(event("/work/platform")))?.origin.id,
+  ).toBe("github.com/first-owner");
+
   index.close();
 });
 
@@ -95,7 +105,13 @@ test("disabled git metadata stays isolated without recording a permanent binding
     bindings: index,
   });
 
-  expect(withoutConsent.get(eventOriginKey(event("/work/platform")))?.origin.promotable).toBeFalse();
-  expect(index.getOriginBinding(eventOriginKey(event("/work/platform")))).toBeNull();
+  expect(
+    withoutConsent.get(eventOriginKey(event("/work/platform")))?.origin
+      .promotable,
+  ).toBeFalse();
+  expect(
+    index.getOriginBinding(eventOriginKey(event("/work/platform"))),
+  ).toBeNull();
+
   index.close();
 });

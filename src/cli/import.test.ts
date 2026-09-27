@@ -2,10 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import {
-  defaultManagedPolicy,
-  readConfig,
-} from "../config";
+import { defaultManagedPolicy, readConfig } from "../config";
 import { createProjectPaths } from "../paths";
 import { readGeneratedProfileState } from "../profile";
 import { importRepositoryGuidanceCommand } from "./import";
@@ -20,6 +17,7 @@ async function testContext(): Promise<{
   const repository = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-import-repo-"),
   );
+
   return {
     repository,
     paths: createProjectPaths({ homeDirectory, platform: "darwin" }),
@@ -28,6 +26,7 @@ async function testContext(): Promise<{
 
 test("declining import leaves configuration and profile state untouched", async () => {
   const { repository, paths } = await testContext();
+
   await mkdir(path.join(repository, "CLAUDE.md"));
 
   const result = await importRepositoryGuidanceCommand({
@@ -54,11 +53,13 @@ test("persists consent and imports only redacted repository guidance", async () 
     "private-review",
     "SKILL.md",
   );
+
   await mkdir(path.dirname(skillPath), { recursive: true });
   await Bun.write(
     skillPath,
     `---\nname: private-review\n---\n# Review ${secret}\n\nAPI_TOKEN=${secret}`,
   );
+
   const output: string[] = [];
 
   const result = await importRepositoryGuidanceCommand({
@@ -72,13 +73,16 @@ test("persists consent and imports only redacted repository guidance", async () 
 
   const config = await readConfig({ configPath: paths.configFile });
   const [entry] = await readGeneratedProfileState(paths.profileManifestFile);
+
   if (!entry) {
     throw new Error("Expected imported profile state");
   }
+
   const profile = await Bun.file(
     path.join(paths.profileDirectory, entry.relativePath),
   ).text();
   const persisted = `${profile}\n${await Bun.file(paths.profileManifestFile).text()}`;
+
   expect(result?.imported).toBe(1);
   expect(config.sources["declared-rules"]).toBeTrue();
   expect(persisted).not.toContain(secret);
@@ -92,7 +96,9 @@ test("persists consent and imports only redacted repository guidance", async () 
 
 test("does not prompt again after repository guidance consent", async () => {
   const { repository, paths } = await testContext();
+
   await Bun.write(path.join(repository, "AGENTS.md"), "Keep changes focused.");
+
   let prompts = 0;
   const options = {
     paths,
@@ -101,6 +107,7 @@ test("does not prompt again after repository guidance consent", async () => {
     managedPolicy: defaultManagedPolicy,
     ask: () => {
       prompts += 1;
+
       return true;
     },
     writeLine: () => {},

@@ -36,7 +36,8 @@ test("advertises profile recall and explicit preference operations", () => {
         ...referenceTools,
         {
           name: "shadowclone_context",
-          description: "Inspect applicable learned skills and native routing for this repository",
+          description:
+            "Inspect applicable learned skills and native routing for this repository",
           inputSchema: { type: "object", properties: {} },
         },
         {
@@ -63,9 +64,7 @@ test("returns the scoped profile through the recall tool", () => {
     jsonrpc: "2.0",
     id: "call-1",
     result: {
-      content: [
-        { type: "text", text: "# Shadowclone profile\n\nUse Bun." },
-      ],
+      content: [{ type: "text", text: "# Shadowclone profile\n\nUse Bun." }],
       isError: false,
     },
   });

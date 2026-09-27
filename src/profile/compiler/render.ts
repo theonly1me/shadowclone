@@ -18,19 +18,28 @@ const sourceLabels = {
 } as const;
 
 const compilationSources: readonly ProfileCompilationSource[] = [
-  "user", "declared", "mined", "reference", "imported",
+  "user",
+  "declared",
+  "mined",
+  "reference",
+  "imported",
 ];
 
 function renderBlock(block: CompilerBlock): string {
-  if (block.kind === "reference") return block.visible;
+  if (block.kind === "reference") {
+    return block.visible;
+  }
+
   const lines = [
     block.visible,
     "",
     `Guidance source: ${sourceLabels[block.source]}`,
   ];
+
   if (block.appliesWhen.length > 0) {
     lines.push(`Applies when: ${block.appliesWhen.join(", ")}`);
   }
+
   return lines.join("\n");
 }
 
@@ -55,7 +64,11 @@ export function sourceBreakdown(
   source: ProfileCompilationSource,
 ): MutableBreakdown {
   const entry = breakdown.find((value) => value.source === source);
-  if (entry === undefined) throw new Error("Unknown compilation source");
+
+  if (entry === undefined) {
+    throw new Error("Unknown compilation source");
+  }
+
   return entry;
 }
 
@@ -75,26 +88,40 @@ export function renderCompilation(options: {
   for (const block of options.blocks) {
     const text = renderBlock(block);
     const addedBytes = Buffer.byteLength(`\n${text}\n`, "utf8");
+
     if (usedBytes + addedBytes > options.byteBudget) {
       omissions.push({
         ruleKey: block.ruleKey,
-        ...(block.referenceKey === null ? {} : { referenceKey: block.referenceKey }),
+        ...(block.referenceKey === null
+          ? {}
+          : { referenceKey: block.referenceKey }),
         reason: "budget",
       });
       sourceBreakdown(breakdown, block.source).omittedCount += 1;
       omittedBlocks.push(block);
+
       continue;
     }
+
     usedBytes += addedBytes;
     rendered.push(text);
+
     const source = sourceBreakdown(breakdown, block.source);
+
     source.appliedCount += 1;
     source.appliedBytes += addedBytes;
+
     if (block.ruleKey !== null) {
       appliedRuleKeys.push(block.ruleKey);
     }
-    if (block.kind === "rule") appliedRuleCount += 1;
-    if (block.referenceKey !== null) appliedReferenceKeys.push(block.referenceKey);
+
+    if (block.kind === "rule") {
+      appliedRuleCount += 1;
+    }
+
+    if (block.referenceKey !== null) {
+      appliedReferenceKeys.push(block.referenceKey);
+    }
   }
 
   return {
@@ -120,8 +147,8 @@ export function addOmittedBreakdown(options: {
 }): readonly ProfileCompilationBreakdown[] {
   return options.breakdown.map((entry) => ({
     ...entry,
-    omittedCount: entry.omittedCount + options.blocks.filter(
-      (block) => block.source === entry.source,
-    ).length,
+    omittedCount:
+      entry.omittedCount +
+      options.blocks.filter((block) => block.source === entry.source).length,
   }));
 }

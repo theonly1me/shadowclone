@@ -11,6 +11,7 @@ test("forget all removes only the shadowclone directory", async () => {
   );
   const shadowcloneDirectory = path.join(homeDirectory, ".shadowclone");
   const transcriptDirectory = path.join(homeDirectory, ".claude");
+
   await mkdir(shadowcloneDirectory);
   await mkdir(transcriptDirectory);
   await Bun.write(path.join(shadowcloneDirectory, "index.db"), "derived");

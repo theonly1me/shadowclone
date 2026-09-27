@@ -18,34 +18,85 @@ async function repositoryText(relativePath: string): Promise<string> {
 
 async function strippedShadowclone(): Promise<FixtureRepository> {
   const files: Record<string, string> = { "bun.lock": "{}\n" };
-  for (const relativePath of ["package.json", "tsconfig.json", "biome.json", ".github/workflows/ci.yml"]) files[relativePath] = await repositoryText(relativePath);
-  return { name: "shadowclone-stripped", files, specification: "", acceptance: {}, acceptanceCommand: "" };
+
+  for (const relativePath of [
+    "package.json",
+    "tsconfig.json",
+    "biome.json",
+    ".github/workflows/ci.yml",
+  ]) {
+    files[relativePath] = await repositoryText(relativePath);
+  }
+
+  return {
+    name: "shadowclone-stripped",
+    files,
+    specification: "",
+    acceptance: {},
+    acceptanceCommand: "",
+  };
 }
 
 test("harness init rebuilds this repository's harness from its manifests and the owner's taste", async () => {
-  const setup = await harnessTestSetup({ fixture: await strippedShadowclone(), globalRules: tasteRules, sources: { "skill-library": true } });
+  const setup = await harnessTestSetup({
+    fixture: await strippedShadowclone(),
+    globalRules: tasteRules,
+    sources: { "skill-library": true },
+  });
+
   for (const skill of ["clean-code", "scoped-fix"]) {
-    await Bun.write(path.join(setup.home, ".agents/skills", skill, "SKILL.md"), await repositoryText(`.claude/skills/${skill}/SKILL.md`));
+    await Bun.write(
+      path.join(setup.home, ".agents/skills", skill, "SKILL.md"),
+      await repositoryText(`.claude/skills/${skill}/SKILL.md`),
+    );
   }
-  await harnessInitCommand({ apply: true, personal: true, skills: ["clean-code", "scoped-fix"], enforceClaude: false, cwd: setup.root, paths: setup.paths, managedConfigPath: null, ask: acceptAll, writeLine: () => undefined });
-  const read = (relativePath: string) => Bun.file(path.join(setup.root, relativePath)).text();
+
+  await harnessInitCommand({
+    apply: true,
+    personal: true,
+    skills: ["clean-code", "scoped-fix"],
+    enforceClaude: false,
+    cwd: setup.root,
+    paths: setup.paths,
+    managedConfigPath: null,
+    ask: acceptAll,
+    writeLine: () => undefined,
+  });
+
+  const read = (relativePath: string) =>
+    Bun.file(path.join(setup.root, relativePath)).text();
   const manifest = JSON.parse(await read(".shadowclone/harness.json"));
+
   expect(manifest.gate.command).toBe("bun run check");
-  expect(manifest.conventions).toEqual(expect.arrayContaining([
-    { kind: "file-length", maximumLines: 200 },
-    { kind: "no-comments", language: "typescript" },
-    { kind: "forbidden-text", name: "em-dash", text: "\u2014" },
-    { kind: "no-suppressions" },
-  ]));
+  expect(manifest.conventions).toEqual(
+    expect.arrayContaining([
+      { kind: "file-length", maximumLines: 200 },
+      { kind: "no-comments", language: "typescript" },
+      { kind: "forbidden-text", name: "em-dash", text: "\u2014" },
+      { kind: "no-suppressions" },
+    ]),
+  );
+
   const agents = await read("AGENTS.md");
+
   for (const skill of ["clean-code", "scoped-fix"]) {
     const original = await repositoryText(`.claude/skills/${skill}/SKILL.md`);
+
     expect(await read(`.claude/skills/${skill}/SKILL.md`)).toBe(original);
     expect(await read(`.agents/skills/${skill}/SKILL.md`)).toBe(original);
-    expect(agents).toContain(`- \`${skill}\`: ${original.match(/^description: (.+)$/m)?.[1]}`);
+    expect(agents).toContain(
+      `- \`${skill}\`: ${original.match(/^description: (.+)$/m)?.[1]}`,
+    );
   }
-  expect(agents).toContain("- `feature-workflow`: Use before any feature, fix, or refactor");
-  expect(agents).toContain("- Gate: `bun run check`. Run it before presenting any change.");
+
+  expect(agents).toContain(
+    "- `feature-workflow`: Use before any feature, fix, or refactor",
+  );
+  expect(agents).toContain(
+    "- Gate: `bun run check`. Run it before presenting any change.",
+  );
   expect(await read("CLAUDE.md")).toContain("\n@AGENTS.md\n");
-  expect(await read(".claude/skills/feature-workflow/SKILL.md")).toContain("6. Run `bun run check` and fix every failure.");
+  expect(await read(".claude/skills/feature-workflow/SKILL.md")).toContain(
+    "6. Run `bun run check` and fix every failure.",
+  );
 });

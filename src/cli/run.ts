@@ -1,17 +1,13 @@
 import { Command } from "commander";
-import {
-  actionCapabilities,
-  type ActionCapability,
-} from "../config";
+import { actionCapabilities, type ActionCapability } from "../config";
 import { runHeadlessClone } from "../dispatch";
 
 function collectApprovals(
   value: string,
   previous: readonly ActionCapability[],
 ): readonly ActionCapability[] {
-  const action = actionCapabilities.find(
-    (candidate) => candidate === value,
-  );
+  const action = actionCapabilities.find((candidate) => candidate === value);
+
   if (!action) {
     throw new Error("Run approval must name a supported action");
   }
@@ -42,6 +38,7 @@ export function parseRunArguments(arguments_: readonly string[]): {
   program.parse([...arguments_], { from: "user" });
 
   const task = program.args.join(" ").trim();
+
   if (task.length === 0) {
     throw new Error("Run requires a task");
   }
@@ -51,10 +48,16 @@ export function parseRunArguments(arguments_: readonly string[]): {
     readonly pr?: string;
   }>();
 
-  const pullRequestNumber = options.pr === undefined ? undefined : Number(options.pr);
-  if (pullRequestNumber !== undefined && (!Number.isSafeInteger(pullRequestNumber) || pullRequestNumber < 1)) {
+  const pullRequestNumber =
+    options.pr === undefined ? undefined : Number(options.pr);
+
+  if (
+    pullRequestNumber !== undefined &&
+    (!Number.isSafeInteger(pullRequestNumber) || pullRequestNumber < 1)
+  ) {
     throw new Error("--pr must be a positive integer");
   }
+
   return {
     task,
     ...(pullRequestNumber === undefined ? {} : { pullRequestNumber }),
@@ -62,16 +65,18 @@ export function parseRunArguments(arguments_: readonly string[]): {
   };
 }
 
-export async function runClone(
-  arguments_: readonly string[],
-): Promise<void> {
+export async function runClone(arguments_: readonly string[]): Promise<void> {
   const options = parseRunArguments(arguments_);
   const receipt = await runHeadlessClone(options);
   const gate = {
     passed: `The gate \`${receipt.gate.command}\` passed and the change was committed on ${receipt.branch}.`,
     failed: `The gate${receipt.gate.command === null ? "" : ` \`${receipt.gate.command}\``} still failed after ${receipt.gate.attempts > 1 ? "one repair attempt" : "the run"}, so the change was left uncommitted in the clone worktree.`,
-    "not-configured": "This repository has no harness gate, so the change was committed ungated. Run `shadowclone init --repo` to add one.",
+    "not-configured":
+      "This repository has no harness gate, so the change was committed ungated. Run `shadowclone init --repo` to add one.",
     "not-run": "The gate did not run because the clone run failed.",
   }[receipt.gate.status];
-  console.log(`Clone run ${receipt.runId} finished. ${gate} Review ~/.shadowclone/runs/${receipt.runId}/receipt.json.`);
+
+  console.log(
+    `Clone run ${receipt.runId} finished. ${gate} Review ~/.shadowclone/runs/${receipt.runId}/receipt.json.`,
+  );
 }

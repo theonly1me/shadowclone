@@ -15,14 +15,17 @@ async function git(options: {
     stdout: "pipe",
     stderr: "pipe",
   });
+
   const [exitCode, output, error] = await Promise.all([
     child.exited,
     new Response(child.stdout).text(),
     new Response(child.stderr).text(),
   ]);
+
   if (exitCode !== 0) {
     throw new Error(error);
   }
+
   return output.trim();
 }
 
@@ -33,7 +36,11 @@ async function repositoryFixture(): Promise<{
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-fresh-task-"),
   );
-  await Bun.write(path.join(directory, "parser.ts"), "export const value = 1;\n");
+
+  await Bun.write(
+    path.join(directory, "parser.ts"),
+    "export const value = 1;\n",
+  );
   await git({ directory, arguments: ["init", "--quiet"] });
   await git({ directory, arguments: ["add", "--all"] });
   await git({
@@ -51,6 +58,7 @@ async function repositoryFixture(): Promise<{
       "fixture",
     ],
   });
+
   return {
     directory,
     commit: await git({ directory, arguments: ["rev-parse", "HEAD"] }),
@@ -78,16 +86,21 @@ test("prepares a supplied fresh task from HEAD without rewriting it", async () =
   const repository = await repositoryFixture();
   const accesses: string[] = [];
   const suppliedTask = "Add a parser helper and tests.";
+
   const call: ModelCall = async (options) => {
     accesses.push(options.access ?? "none");
+
     return response({
-      tasks: [{
-        prompt: "A rewritten prompt",
-        completion: ["The parser helper is covered by tests"],
-        preferenceSources: ["profile.md"],
-      }],
+      tasks: [
+        {
+          prompt: "A rewritten prompt",
+          completion: ["The parser helper is covered by tests"],
+          preferenceSources: ["profile.md"],
+        },
+      ],
     });
   };
+
   try {
     const tasks = await prepareFreshTasks({
       repository: repository.directory,
@@ -98,6 +111,7 @@ test("prepares a supplied fresh task from HEAD without rewriting it", async () =
       context: [],
       call,
     });
+
     expect(tasks[0]?.prompt).toBe(suppliedTask);
     expect(tasks[0]?.startingCommit).toBe(repository.commit);
     expect(accesses).toEqual(["read"]);
@@ -109,26 +123,33 @@ test("prepares a supplied fresh task from HEAD without rewriting it", async () =
 test("rejects externally dependent generated tasks after bounded retries", async () => {
   const repository = await repositoryFixture();
   let calls = 0;
+
   const call: ModelCall = async () => {
     calls += 1;
+
     return response({
-      tasks: [{
-        prompt: "Update the Staging OAuth resources.",
-        completion: ["The Staging service returns the new resources"],
-        preferenceSources: ["profile.md"],
-      }],
+      tasks: [
+        {
+          prompt: "Update the Staging OAuth resources.",
+          completion: ["The Staging service returns the new resources"],
+          preferenceSources: ["profile.md"],
+        },
+      ],
     });
   };
+
   try {
-    await expect(prepareFreshTasks({
-      repository: repository.directory,
-      startingCommit: repository.commit,
-      count: 1,
-      suppliedTask: undefined,
-      profile: "Keep changes scoped.",
-      context: [],
-      call,
-    })).rejects.toThrow("forbidden external or permanent action");
+    await expect(
+      prepareFreshTasks({
+        repository: repository.directory,
+        startingCommit: repository.commit,
+        count: 1,
+        suppliedTask: undefined,
+        profile: "Keep changes scoped.",
+        context: [],
+        call,
+      }),
+    ).rejects.toThrow("forbidden external or permanent action");
     expect(calls).toBe(3);
   } finally {
     await rm(repository.directory, { recursive: true, force: true });
@@ -138,26 +159,33 @@ test("rejects externally dependent generated tasks after bounded retries", async
 test("rejects a supplied task that requires a permanent action", async () => {
   const repository = await repositoryFixture();
   let calls = 0;
+
   const call: ModelCall = async () => {
     calls += 1;
+
     return response({
-      tasks: [{
-        prompt: "A safe rewritten task",
-        completion: ["The release is available"],
-        preferenceSources: ["profile.md"],
-      }],
+      tasks: [
+        {
+          prompt: "A safe rewritten task",
+          completion: ["The release is available"],
+          preferenceSources: ["profile.md"],
+        },
+      ],
     });
   };
+
   try {
-    await expect(prepareFreshTasks({
-      repository: repository.directory,
-      startingCommit: repository.commit,
-      count: 1,
-      suppliedTask: "Deploy the current release to production.",
-      profile: "Keep changes scoped.",
-      context: [],
-      call,
-    })).rejects.toThrow("forbidden external or permanent action");
+    await expect(
+      prepareFreshTasks({
+        repository: repository.directory,
+        startingCommit: repository.commit,
+        count: 1,
+        suppliedTask: "Deploy the current release to production.",
+        profile: "Keep changes scoped.",
+        context: [],
+        call,
+      }),
+    ).rejects.toThrow("forbidden external or permanent action");
     expect(calls).toBe(3);
   } finally {
     await rm(repository.directory, { recursive: true, force: true });

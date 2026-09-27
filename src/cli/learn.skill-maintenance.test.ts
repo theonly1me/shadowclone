@@ -6,12 +6,13 @@ import { learn } from "./learn";
 test("deep learn reports deferred skill assessments", async () => {
   const setup = await skillFixture();
   const lines: string[] = [];
-  const runner: EngineRunner = () => Promise.resolve({
-    ...skillEngineRun(null),
-    costUsd: null,
-    isError: true,
-    errorMessage: "Maximum budget reached",
-  });
+  const runner: EngineRunner = () =>
+    Promise.resolve({
+      ...skillEngineRun(null),
+      costUsd: null,
+      isError: true,
+      errorMessage: "Maximum budget reached",
+    });
 
   await learn({
     paths: setup.paths,

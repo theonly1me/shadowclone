@@ -146,6 +146,7 @@ test("detects authenticated engines in selection order", async () => {
     purpose: "distill",
     probe: ({ command }) => {
       checked.push(command.join(" "));
+
       return Promise.resolve(true);
     },
   });
@@ -167,9 +168,7 @@ test("falls back to Codex when Claude is unavailable", async () => {
   const detection = await detectEngine({
     purpose: "distill",
     probe: ({ command }) =>
-      Promise.resolve(
-        command[0] === "codex" || command[0] === "cursor-agent",
-      ),
+      Promise.resolve(command[0] === "codex" || command[0] === "cursor-agent"),
   });
 
   expect(detection.selectedEngine).toBe("codex");

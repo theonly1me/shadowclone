@@ -27,6 +27,7 @@ test("managed policy can only narrow user source consent", () => {
     },
     distillation: { deep: true },
   };
+
   const policy = {
     ...defaultManagedPolicy,
     allowedSources: ["claude-code"] as const,
@@ -56,7 +57,9 @@ test("a disabled managed policy is a hard stop", () => {
     policy: { ...defaultManagedPolicy, enabled: false },
   });
 
-  expect(Object.values(effective.sources).every((enabled) => !enabled)).toBeTrue();
+  expect(
+    Object.values(effective.sources).every((enabled) => !enabled),
+  ).toBeTrue();
   expect(effective.distillation.deep).toBeFalse();
 });
 
@@ -70,6 +73,6 @@ test("rejects unknown engines in managed policy", () => {
       originScope: "strict",
       blockedOrigins: [],
       maxActionTier: "draft",
-    })
+    }),
   ).toThrow("invalid or missing fields");
 });

@@ -1,23 +1,10 @@
-# Early preference evaluation
+# Evaluation results
 
-This comparison asks whether adding a Shadowclone profile helps a coding agent follow a user's engineering preferences. It measures adherence to stated guidance, not speed, general intelligence, or productivity.
+These small studies measure adherence to stated engineering preferences. They do not establish productivity gains or general superiority. Both used the earlier profile-based system; the current [skills environment protocol](docs/architecture/09-evaluation.md#skills-environment-protocol) evaluates maintained skills separately.
 
-Four small TypeScript tasks were completed across three setups using GPT-5.6 Sol with medium reasoning effort. There was one implementation per task per setup, giving twelve graded implementations. Every preference check has three judge votes.
+## Early profile comparison
 
-## Repository harness pilot (2026-09-26)
-
-A small live check of repository setup (then `shadowclone harness init`, now `shadowclone init --repo`) on the two synthetic fixture repositories in `src/harness/fixtures/`. Each repository ran twice with Claude Code (`--model sonnet`, `acceptEdits`, a $1.50 cap per run, no permission bypass): once as shipped, and once after `harness init --apply --personal --enforce-claude` with a four-rule profile (no TypeScript comments, files under 200 lines, a failing test for each new behavior, stop without committing). Both arms got the same task specification. Held-out acceptance tests were copied in only after each run.
-
-| Repository | Arm | Held-out acceptance | Gate | Tests added | Agent committed | Cost |
-| --- | --- | --- | --- | --- | --- | --- |
-| Bun task list | baseline | 3 of 3 | pass | yes | no | $0.29 |
-| Bun task list | harness | 3 of 3 | pass | yes | no | $0.22 |
-| Python config | baseline | pass | pass | no | no | $0.29 |
-| Python config | harness | pass | pass | yes | no | $0.22 |
-
-Both arms solved both tasks. The one behavioral difference is that the baseline skipped a test for the Python change and the harness arm added one. This is one run per arm on two small synthetic tasks, so it shows the harness does not get in the way and can carry a working practice; it does not establish a general improvement. The earlier results below used a different, synthetic baseline.
-
-## What each agent received
+GPT-5.6 Sol, at medium reasoning effort, completed four TypeScript tasks in three setups. One implementation per task and setup produced twelve graded implementations, with three judge votes per preference check.
 
 | Setup | Repository guidance | Personal skills and context | Shadowclone profile |
 | --- | --- | --- | --- |
@@ -25,17 +12,9 @@ Both arms solved both tasks. The one behavioral difference is that the baseline 
 | Skills | The same | Yes | No |
 | Clone | The same | The same as Skills | Yes |
 
-Bare is a repository-native baseline, not an agent with no instructions. The repository's existing guidance can overlap with the preferences being measured.
+Bare already had useful repository instructions. Skills added existing user-written or user-guided instructions, including frozen personal memory where available. Their freshness was not assessed. Clone added the scoped Markdown profile; it did not change model weights.
 
-The personal skills were existing user-written or user-guided instructions. They were not a benchmark-specific library or an independently optimized baseline. Such instructions can become outdated or inconsistent; this comparison did not assess their freshness. They covered coding conventions and task workflows. The Skills setup also admits frozen personal instructions and memory when available, so Skills versus Bare measures the personal context package, not skills alone.
-
-Clone received that same frozen personal context plus the scoped Markdown profile compiled by Shadowclone. The profile provides additional guidance learned or recorded through Shadowclone; it does not change the model's weights. Skills versus Clone is the comparison that isolates the added profile within this setup.
-
-Native Shadowclone injection was removed from the repository snapshots to keep the setups separate. All three agents received the same task, starting repository state, model settings, and execution constraints. They could choose their public APIs, names, and file organization.
-
-## Tasks
-
-All tasks required a self-contained new module and focused tests, with no changes to existing files or project wiring.
+All setups used the same task, starting state, model settings, and execution constraints. Native Shadowclone injections were removed from snapshots. Each task required a new self-contained module and focused tests, without changing existing files or project wiring.
 
 | Task | Assignment |
 | --- | --- |
@@ -44,59 +23,62 @@ All tasks required a self-contained new module and focused tests, with no change
 | 3. Ordered query parameters | Parse and serialize query strings using URLSearchParams semantics while preserving order, duplicates, and empty keys or values. Replace a key's values at its first occurrence, append when absent, and remove it for an empty replacement list. Preserve inputs and test encoding, ordering, and round trips. |
 | 4. Bounded undo/redo | Implement immutable generic history with a positive safe-integer undo capacity, recording, undo, redo, and availability queries. Trim old history, clear redo on branching, and preserve state and redo for Object.is-equal recordings. Test capacity, identity, no-op behavior, and immutability. |
 
-Task 1 was the pilot. Its saved implementations were regraded after clarifying that PascalCase types and human-readable messages are valid. Tasks 2 through 4 then ran with that clarified rubric. The pilot regrade is not counted as another implementation or repetition.
+The byte-quantity pilot was regraded after clarifying that PascalCase types and readable error messages were valid. The other tasks used that clarified rubric. Regrading did not add another implementation or repetition.
 
-## How preference scoring worked
+### Scoring
 
-A versioned code-only rubric was frozen before execution. Each criterion retained a stable identifier, its source quotation, scope, and any explicit task exception. The same rubric was applied to every setup. Workflow instructions that could not be judged from the generated code were excluded.
+A frozen code-only rubric retained each criterion's source quotation, scope, and task exceptions. Its 17 checks covered type safety, options-object arguments, promises, full names, file length, public module boundaries, suppressions, comments, identifier casing, abbreviation casing, all-caps names, generic names, module-local names, feature organization, colocated tests, composition, and test-local setup.
 
-This rubric contained seventeen checks: type safety, options-object arguments, promise handling, complete names, file length, public module boundaries, lint suppressions, zero comments, identifier casing, abbreviation casing, all-caps names, generic parameter names, module-local names, feature-based organization, colocated tests, composition, and test-local setup.
+These are one user's preferences. Workflow instructions that could not be judged from code were excluded. A task-required signature overrode a conflicting preference only for that public API.
 
-These are the user's preferences, not universal definitions of good code. A task-required API signature overrides a conflicting preference for that API only. PascalCase type names and readable error messages do not violate the identifier-case check.
+Anonymous candidates received three model votes per criterion, with a majority result. These were separate calls, not three different models or human reviewers. Requests contained at most eight criteria per batch, and validated batches were saved for recovery. Each pass earned one point; the fixed denominator allowed a rule to pass when the task never exercised the prohibited construct. Some naming checks overlapped.
 
-Each anonymous implementation was graded separately. Three independent model votes judged each criterion as pass or fail; the majority determined its score. Preference requests contained at most eight criteria per batch. Validated batches were saved immediately so unfinished judging could resume without regenerating code. These are independent votes, not three different judge models or human reviewers.
-
-Each passing criterion contributes one point. A score of 15/17 means fifteen guideline checks passed. The denominator is fixed here: a rule can pass because the code avoids the prohibited construct, even if the task did not actively exercise that rule. Related rules can overlap, such as camelCase identifiers and avoiding all-caps names.
-
-## Recorded preference results
+### Recorded results
 
 | Task | Bare | Skills | Clone |
 | --- | ---: | ---: | ---: |
-| 1. Byte quantities | 11/17 | 14/17 | 15/17 |
-| 2. Integer ranges | 15/17 | 14/17 | 16/17 |
-| 3. Ordered query parameters | 15/17 | 16/17 | 16/17 |
-| 4. Bounded undo/redo | 14/17 | 15/17 | 15/17 |
+| Byte quantities | 11/17 | 14/17 | 15/17 |
+| Integer ranges | 15/17 | 14/17 | 16/17 |
+| Ordered query parameters | 15/17 | 16/17 | 16/17 |
+| Bounded undo/redo | 14/17 | 15/17 | 15/17 |
 | Total | 55/68 (80.9%) | 59/68 (86.8%) | 62/68 (91.2%) |
 
-Clone scored above Bare on all four tasks. It scored above Skills on two tasks and tied on two. The aggregate difference was 10.3 percentage points over Bare and 4.4 over Skills. These differences describe this small comparison, not an expected gain on other work.
+Clone exceeded Skills on two tasks and tied on two. The aggregate differences were 10.3 percentage points over Bare and 4.4 over Skills. Those are observations from this sample, not expected gains on other work.
 
-### Judges' reasons
-
-These summaries explain the recorded verdicts; they are not additional grading.
+The recorded deductions show where guidance helped and where it did not:
 
 | Task | Bare | Skills | Clone |
 | --- | --- | --- | --- |
-| Byte quantities | Lost checks for a prohibited cast, positional arguments, comments, uppercase constants under two naming rules, and names repeating the module context. | Used options objects and avoided prohibited casts and comments. Lost two naming checks for an uppercase constant and one for redundant module context. | Passed the corrected casing rule. Lost checks for redundant module context and mutable test setup. |
-| Integer ranges | Lost checks for positional arguments and redundant module context. | Had the same two failures plus a forbidden documentation comment. | Used options objects and no comments. Lost only the module-local naming check. |
-| Ordered query parameters | Lost checks for positional replacement arguments and redundant module context. | Used an options object. Lost only the module-local naming check. | Used an options object. Lost only the module-local naming check. |
-| Bounded undo/redo | Lost checks for non-null assertions, positional arguments, and redundant module context. | Avoided the first two violations. Lost checks for redundant module context and setup placed after assertions. | Avoided non-null assertions and positional arguments. Lost checks for redundant module context and reassigned test variables. |
+| Byte quantities | Cast, positional arguments, comments, uppercase constants under two rules, redundant module context | Two uppercase-constant checks and redundant module context | Redundant module context and mutable test setup |
+| Integer ranges | Positional arguments and redundant module context | The same, plus a forbidden documentation comment | Redundant module context |
+| Ordered query parameters | Positional arguments and redundant module context | Redundant module context | Redundant module context |
+| Bounded undo/redo | Non-null assertions, positional arguments, redundant module context | Redundant module context and setup after assertions | Redundant module context and reassigned test variables |
 
-Skills scored below Bare on the integer-range task because it added a comment that violated the zero-comments rule. Extra guidance did not guarantee better adherence. All setups lost the module-local naming check somewhere in each task.
+### Correctness and judging limits
 
-## Correctness is separate
+Model-reviewed correctness scores were 5/5 for Tasks 1, 2, and 4, and 4/5 for Task 3 in every setup. Candidate tests were not executed, and the criteria did not cover every requested behavior.
 
-The model-scored correctness checks were identical across setups: 5/5 for Tasks 1, 2, and 4, and 4/5 for Task 3. They are code-review judgments, not proof from executing a complete test suite. The evaluation did not install dependencies or run repository-wide checks, and the selected correctness criteria do not cover every requested behavior.
+Task 3's deduction came from a rubric defect: it demanded separate assertions for empty keys and values, although combined assertions satisfied the task. Judges acknowledged that the behavior was preserved. The deduction does not demonstrate a functional failure.
 
-Task 3's deduction exposes a correctness-rubric defect: it required separate assertions for empty keys and empty values even though the task did not. All three implementations covered both in combined assertions, and the judges acknowledged that the behavior was preserved. That deduction is not evidence of a functional failure.
+The test-setup rule was also inconsistent in Task 4: Skills lost a point for setup after assertions while similar Bare code passed two votes to one. The recorded scores remain unchanged.
 
-## Limits and unresolved judging issues
+Four tasks with one implementation per setup do not meet the harness's repeated-run threshold. Correlated judge errors, overlapping criteria, and an unoptimized personal-context baseline further limit the result. It does not establish runtime correctness, unrestricted execution safety, or time saved.
 
-- Four tasks, one implementation per setup, and one model configuration are too small to establish general superiority. This does not meet the harness's repeated-run threshold of three tasks with two repetitions.
-- The test-setup rule was applied inconsistently in Task 4. Skills lost a point for setup after assertions, while similar Bare code passed by a two-to-one vote. The recorded scores have not been silently corrected.
-- Model judges can make correlated mistakes. Three votes improve inspectability but do not replace human review or executable checks.
-- Bare had useful repository guidance, and some checks were easy for every setup to pass. Skills may be stale; the comparison does not show what a carefully revised skill library would achieve.
-- The results show preference adherence under this rubric. They do not establish correctness, safety in unrestricted execution, time saved, or better performance across users, repositories, providers, and task sizes.
+## Repository harness pilot (2026-09-26)
 
-## Run your own comparison
+Two synthetic repositories in `src/harness/fixtures/` each ran once with existing guidance and once after repository setup. Claude Code used `--model sonnet`, `acceptEdits`, a $1.50 cap per run, and no permission bypass. Both arms received the same task; held-out acceptance tests were added after execution.
 
-Use the evaluation harness with a repository you are authorized to evaluate and your own consented guidance. See [the evaluation architecture](docs/architecture/09-evaluation.md) for setup, isolation, persistence, and recovery, and [the judging design record](docs/design/020-preference-judging.md) for the measurement changes.
+Setup was then named `shadowclone harness init`, now `shadowclone init --repo`. The harness arm used a four-rule profile: no TypeScript comments, files under 200 lines, a failing test for new behavior, and no commit.
+
+| Repository | Arm | Held-out acceptance | Gate | Tests added | Agent committed | Cost |
+| --- | --- | --- | --- | --- | --- | --- |
+| Bun task list | baseline | 3 of 3 | pass | yes | no | $0.29 |
+| Bun task list | harness | 3 of 3 | pass | yes | no | $0.22 |
+| Python config | baseline | pass | pass | no | no | $0.29 |
+| Python config | harness | pass | pass | yes | no | $0.22 |
+
+Both arms solved both tasks. The Python baseline skipped a test while the harness arm added one. One run per arm on two small tasks shows that setup carried a working practice in this sample, without establishing a general improvement.
+
+## Further evaluation
+
+The [guidance and memory record](docs/design/021-guidance-evaluation.md#recorded-comparisons) preserves later profile comparisons and their measurement problems. See [evaluation architecture](docs/architecture/09-evaluation.md) for current protocols, isolation, budgets, and recovery.

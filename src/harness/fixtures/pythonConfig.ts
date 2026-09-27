@@ -90,7 +90,8 @@ if __name__ == "__main__":
 export const pythonConfig: FixtureRepository = {
   name: "python-config-cli",
   files: {
-    "pyproject.toml": "[project]\nname = \"configcli\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\n",
+    "pyproject.toml":
+      '[project]\nname = "configcli"\nversion = "0.1.0"\nrequires-python = ">=3.10"\n',
     "README.md": "# configcli\n\nRead values from a JSON configuration file.\n",
     "configcli/__init__.py": "",
     "configcli/config.py": config,
@@ -98,7 +99,8 @@ export const pythonConfig: FixtureRepository = {
     "tests/__init__.py": "",
     "tests/test_config.py": existingTests,
   },
-  specification: "Add environment overrides: an environment variable named CONFIGCLI_<KEY>, with the key upper-cased, overrides the file value for that key and supplies keys the file lacks. Other environment variables are ignored.",
+  specification:
+    "Add environment overrides: an environment variable named CONFIGCLI_<KEY>, with the key upper-cased, overrides the file value for that key and supplies keys the file lacks. Other environment variables are ignored.",
   acceptance: { "tests/test_env_override.py": acceptance },
   acceptanceCommand: "python3 -m unittest tests.test_env_override",
 };

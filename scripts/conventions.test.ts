@@ -80,6 +80,23 @@ test("flags a suppression, which only exists inside a comment", async () => {
   ]);
 });
 
+test("distinguishes comments from nested template text", async () => {
+  const rootDirectory = await treeWith({
+    "src/templates.ts": [
+      `const token = \`\${crypto.randomUUID()}\${crypto.randomUUID()}\`;`,
+      `const origin = \`http://127.0.0.1:\${port}\`;`,
+      `const nested = \`\${\`https://\${host}\`}/path\`;`,
+      `const value = \`\${/* actual comment */ token}\`;`,
+      `const tail = \`\${token}\`; // another comment`,
+      "",
+    ].join("\n"),
+  });
+
+  const report = await findConventionViolations({ rootDirectory });
+
+  expect(report.violations.map((violation) => violation.line)).toEqual([4, 5]);
+});
+
 test("flags an em dash in prose and in source", async () => {
   const rootDirectory = await treeWith({
     "docs/design/002.md": "A sentence \u2014 with an em dash.\n",

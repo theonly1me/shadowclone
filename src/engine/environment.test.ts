@@ -41,6 +41,7 @@ test("a codex run never receives the anthropic key", () => {
 test("unrelated host credentials never reach a spawned engine", () => {
   for (const engine of ["claude-code", "codex", "cursor-agent"] as const) {
     const environment = runnerEnvironment({ engine, source: hostEnvironment });
+
     expect(environment.AWS_SECRET_ACCESS_KEY).toBeUndefined();
     expect(environment.DATABASE_URL).toBeUndefined();
     expect(environment.NPM_TOKEN).toBeUndefined();
@@ -69,7 +70,10 @@ test("remote actions are allowed only for a dispatch that opened a domain", () =
     allowsRemoteActions({ purpose: "dispatch", allowedDomains: [] }),
   ).toBeFalse();
   expect(
-    allowsRemoteActions({ purpose: "dispatch", allowedDomains: ["github.com"] }),
+    allowsRemoteActions({
+      purpose: "dispatch",
+      allowedDomains: ["github.com"],
+    }),
   ).toBeTrue();
   expect(allowsRemoteActions({ purpose: "learning" })).toBeFalse();
   expect(allowsRemoteActions({ purpose: "evaluation" })).toBeFalse();

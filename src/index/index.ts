@@ -11,22 +11,34 @@ import { EventIndex } from "./store";
 import type { IngestSummary } from "./types";
 
 export { EventIndex } from "./store";
+
 export type {
   CorpusSummary,
   IndexedEvent,
   IngestSummary,
 } from "./types";
 
-export async function openEventIndex(databasePath: string): Promise<EventIndex> {
+export async function openEventIndex(
+  databasePath: string,
+): Promise<EventIndex> {
   if (databasePath !== ":memory:") {
     await ownedDirectory(path.dirname(databasePath));
-    for (const suffix of ["", "-wal", "-shm"]) await ownedFile(`${databasePath}${suffix}`);
+
+    for (const suffix of ["", "-wal", "-shm"]) {
+      await ownedFile(`${databasePath}${suffix}`);
+    }
   }
+
   const database = new Database(databasePath, { create: true });
+
   createSchema(database);
+
   if (databasePath !== ":memory:") {
-    for (const suffix of ["", "-wal", "-shm"]) await ownedFile(`${databasePath}${suffix}`);
+    for (const suffix of ["", "-wal", "-shm"]) {
+      await ownedFile(`${databasePath}${suffix}`);
+    }
   }
+
   return new EventIndex(database);
 }
 
@@ -46,10 +58,16 @@ export async function ingestSources(options: {
     const history = await readAntigravityWorkspaceHistory(
       options.paths.antigravityWorkspaceHistoryFile,
     );
+
     if (history !== null) {
-      const repositories = new Map<string, Awaited<ReturnType<typeof resolveRepository>>>();
+      const repositories = new Map<
+        string,
+        Awaited<ReturnType<typeof resolveRepository>>
+      >();
+
       for (const binding of history.bindings) {
         let repository = repositories.get(binding.workspace);
+
         if (repository === undefined) {
           repository = await resolveRepository({
             cwd: binding.workspace,
@@ -58,6 +76,7 @@ export async function ingestSources(options: {
           });
           repositories.set(binding.workspace, repository);
         }
+
         options.index.bindSessionOrigin({
           source: "antigravity",
           sessionId: binding.sessionId,
@@ -65,6 +84,7 @@ export async function ingestSources(options: {
           repository,
         });
       }
+
       files += 1;
       bytesRead += history.bytesRead;
       invalidRecords += history.invalidRecords;
@@ -102,9 +122,12 @@ export async function ingestClaudeTranscript(options: {
     sourcePath: options.sourcePath,
     cursor: options.index.getCursor(options.sourcePath),
   });
+
   if (batch === null) {
     return 0;
   }
+
   options.index.saveBatch(batch);
+
   return batch.events.length;
 }

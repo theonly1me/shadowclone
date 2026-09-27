@@ -27,11 +27,12 @@ export function selectManualLearningWindow(options: {
       : { limit: options.maximumCalls * distillSignalBatchSize }),
   });
   const batches = groupDistillBatches({ signals: pending })
-    .toSorted((left, right) =>
-      (right.signals[0]?.timestamp ?? 0) -
-      (left.signals[0]?.timestamp ?? 0)
+    .toSorted(
+      (left, right) =>
+        (right.signals[0]?.timestamp ?? 0) - (left.signals[0]?.timestamp ?? 0),
     )
     .slice(0, batchLimit);
+
   return {
     batches,
     signals: batches.flatMap((batch) => batch.signals),

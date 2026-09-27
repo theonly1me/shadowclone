@@ -9,20 +9,26 @@ test("oversized records drain across bounded windows without losing the next rec
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-window-"),
   );
+
   try {
     const sourcePath = path.join(directory, "session.jsonl");
+
     await Bun.write(
       sourcePath,
       `${"x".repeat(maximumTranscriptWindowBytes + 1024)}\n{"next":true}\n`,
     );
+
     const first = await readJsonLines({ sourcePath, cursor: null });
+
     expect(first?.bytesRead).toBe(maximumTranscriptWindowBytes);
     expect(first?.cursor.discarding).toBeTrue();
     expect(first?.cursor.omittedRecords).toBe(1);
+
     const second = await readJsonLines({
       sourcePath,
       cursor: first?.cursor ?? null,
     });
+
     expect(second?.values.map((entry) => entry.value)).toEqual([
       { next: true },
     ]);

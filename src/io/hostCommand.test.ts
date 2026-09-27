@@ -11,8 +11,10 @@ test("automatic Git ignores hooks and refuses executable repository configuratio
   );
   const git = (arguments_: readonly string[]) =>
     runHostCommand({ arguments: ["git", ...arguments_], cwd: directory });
+
   try {
     expect((await git(["init", "--quiet"])).exitCode).toBe(0);
+
     await writeFile(path.join(directory, "file"), "fixture");
     await writeFile(
       path.join(directory, ".git", "hooks", "pre-commit"),
@@ -20,6 +22,7 @@ test("automatic Git ignores hooks and refuses executable repository configuratio
       { mode: 0o755 },
     );
     await git(["add", "--all"]);
+
     expect(
       (
         await git([
@@ -36,10 +39,12 @@ test("automatic Git ignores hooks and refuses executable repository configuratio
     expect(
       await Bun.file(path.join(directory, "escaped")).exists(),
     ).toBeFalse();
+
     await git(["config", "filter.fixture.clean", "touch escaped"]);
     await expect(git(["add", "--all"])).rejects.toThrow(
       "executable repository configuration",
     );
+
     expect(
       await Bun.file(path.join(directory, "escaped")).exists(),
     ).toBeFalse();
@@ -52,13 +57,16 @@ test("host commits preserve configured identity without carrying other global se
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-git-identity-"),
   );
+
   try {
     const home = path.join(directory, "home");
+
     await mkdir(home);
     await writeFile(
       path.join(home, ".gitconfig"),
       "[user]\nname = Fixture\nemail = fixture@example.test\n[core]\nhooksPath = /untrusted/hooks\n",
     );
+
     const arguments_ = await gitIdentityArguments({
       cwd: directory,
       environment: {
@@ -67,6 +75,7 @@ test("host commits preserve configured identity without carrying other global se
         XDG_CONFIG_HOME: home,
       },
     });
+
     expect(arguments_).toEqual([
       "-c",
       "user.name=Fixture",

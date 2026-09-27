@@ -17,12 +17,22 @@ export async function judgeBatch(options: {
   readonly previousAttempts: number;
   readonly onAttempt: (attempt: JudgeAttempt) => Promise<void>;
 }): Promise<JudgeBatchVote> {
-  const requirements = options.work.kind === "correctness"
-    ? options.correctness.map((requirement) => ({ id: fingerprint(requirement).slice(0, 16), requirement }))
-    : options.preferences.map((check) => ({ ...check, id: preferenceIdentifier(check) }));
+  const requirements =
+    options.work.kind === "correctness"
+      ? options.correctness.map((requirement) => ({
+          id: fingerprint(requirement).slice(0, 16),
+          requirement,
+        }))
+      : options.preferences.map((check) => ({
+          ...check,
+          id: preferenceIdentifier(check),
+        }));
+
   let lastFailure = "Judge returned an invalid verdict";
+
   for (let attempt = 1; attempt <= maximumJudgeAttempts; attempt += 1) {
     throwIfEvaluationExpired();
+
     const startedAt = new Date().toISOString();
     const started = Date.now();
     const diagnostic = {
@@ -30,7 +40,14 @@ export async function judgeBatch(options: {
       attempt: options.previousAttempts + attempt,
       startedAt,
     };
-    await options.onAttempt({ ...diagnostic, elapsedMs: 0, state: "started", error: null });
+
+    await options.onAttempt({
+      ...diagnostic,
+      elapsedMs: 0,
+      state: "started",
+      error: null,
+    });
+
     try {
       const response = await options.call({
         cwd: options.cwd,
@@ -53,34 +70,74 @@ export async function judgeBatch(options: {
           JSON.stringify({
             taskPrompt: options.taskPrompt,
             kind: options.work.kind,
-            requirements: requirements.filter((requirement) => options.work.criteria.includes(requirement.id)),
+            requirements: requirements.filter((requirement) =>
+              options.work.criteria.includes(requirement.id),
+            ),
             candidate: options.evidence,
             vote: options.work.vote,
             previousFailure: attempt === 1 ? null : lastFailure,
           }),
         ].join("\n"),
       });
-      if (response.isError) throw new Error(response.errorMessage ?? "Judge engine failed");
+
+      if (response.isError) {
+        throw new Error(response.errorMessage ?? "Judge engine failed");
+      }
+
       const validation = batchSchema.safeParse(structuredValue(response));
-      if (!validation.success) throw new Error("Judge returned an invalid verdict or incomplete checks");
+
+      if (!validation.success) {
+        throw new Error(
+          "Judge returned an invalid verdict or incomplete checks",
+        );
+      }
+
       const parsed = validation.data;
       const returned = new Set(parsed.checks.map((check) => check.id));
-      if (parsed.checks.length !== options.work.criteria.length || returned.size !== parsed.checks.length ||
-        options.work.criteria.some((identifier) => !returned.has(identifier))) {
-        throw new Error("Judge returned incomplete checks or unknown criterion IDs");
+
+      if (
+        parsed.checks.length !== options.work.criteria.length ||
+        returned.size !== parsed.checks.length ||
+        options.work.criteria.some((identifier) => !returned.has(identifier))
+      ) {
+        throw new Error(
+          "Judge returned incomplete checks or unknown criterion IDs",
+        );
       }
+
       const checks = options.work.criteria.map((identifier) => {
-        const check = parsed.checks.find((candidate) => candidate.id === identifier);
-        if (!check) throw new Error("Judge returned incomplete checks");
+        const check = parsed.checks.find(
+          (candidate) => candidate.id === identifier,
+        );
+
+        if (!check) {
+          throw new Error("Judge returned incomplete checks");
+        }
+
         return { ...check, evidence: redactSecrets({ text: check.evidence }) };
       });
-      await options.onAttempt({ ...diagnostic, elapsedMs: Date.now() - started, state: "complete", error: null });
+
+      await options.onAttempt({
+        ...diagnostic,
+        elapsedMs: Date.now() - started,
+        state: "complete",
+        error: null,
+      });
+
       return { ...options.work, checks };
     } catch (error) {
-      lastFailure = redactSecrets({ text: error instanceof Error ? error.message : "Judge call failed" }).slice(0, 800);
-      await options.onAttempt({ ...diagnostic, elapsedMs: Date.now() - started, state: "error", error: lastFailure });
+      lastFailure = redactSecrets({
+        text: error instanceof Error ? error.message : "Judge call failed",
+      }).slice(0, 800);
+      await options.onAttempt({
+        ...diagnostic,
+        elapsedMs: Date.now() - started,
+        state: "error",
+        error: lastFailure,
+      });
       throwIfEvaluationExpired();
     }
   }
+
   throw new Error(lastFailure);
 }

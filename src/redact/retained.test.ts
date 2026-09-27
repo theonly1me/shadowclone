@@ -58,9 +58,7 @@ test("retains only the vendor prefix of a recognized token", () => {
       label: "slack-token",
     },
     {
-      value: ["sk", "live", "51AbcDefGhIjKlMnOpQrStUvWxYz0123456789"].join(
-        "_",
-      ),
+      value: ["sk", "live", "51AbcDefGhIjKlMnOpQrStUvWxYz0123456789"].join("_"),
       retained: "sk_live_",
       label: "stripe-key",
     },

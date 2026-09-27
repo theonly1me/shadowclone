@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 export const checkVerdictSchema = z.enum(["pass", "fail"]);
-export const preferenceVerdictSchema = z.enum(["pass", "fail", "not-applicable"]);
+
+export const preferenceVerdictSchema = z.enum([
+  "pass",
+  "fail",
+  "not-applicable",
+]);
+
 export const reasoningEffortSchema = z.enum([
   "low",
   "medium",
@@ -9,7 +15,9 @@ export const reasoningEffortSchema = z.enum([
   "xhigh",
   "max",
 ]);
+
 export const dependencyModeSchema = z.literal("current");
+
 export const dependencyStateSchema = z.enum([
   "not-required",
   "not-installed",
@@ -101,6 +109,7 @@ export function structuredValue(run: {
   if (run.structured !== null && run.structured !== undefined) {
     return run.structured;
   }
+
   return parseJson(run.text);
 }
 
@@ -112,6 +121,7 @@ function canonicalValue(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(canonicalValue);
   }
+
   if (isRecord(value)) {
     return Object.fromEntries(
       Object.entries(value)
@@ -119,6 +129,7 @@ function canonicalValue(value: unknown): unknown {
         .map(([key, entry]) => [key, canonicalValue(entry)]),
     );
   }
+
   return value;
 }
 

@@ -18,15 +18,23 @@ function titleFromFile(file: ClaudeMemoryFile): string {
     .replace(prefix, "")
     .replaceAll(/[_-]+/g, " ")
     .trim();
-  return name.length === 0 ? file.filename : `${name[0]?.toUpperCase() ?? ""}${name.slice(1)}`;
+
+  return name.length === 0
+    ? file.filename
+    : `${name[0]?.toUpperCase() ?? ""}${name.slice(1)}`;
 }
 
 export function referenceFromMemory(options: {
   readonly file: ClaudeMemoryFile;
   readonly repository: RepositoryIdentity;
   readonly now: number;
-}): { readonly record: ReferenceRecord; readonly relativePath: string; readonly content: string } {
+}): {
+  readonly record: ReferenceRecord;
+  readonly relativePath: string;
+  readonly content: string;
+} {
   const key = options.file.filename.slice(0, -3).toLowerCase();
+
   const record: ReferenceRecord = {
     schema: 1,
     key,
@@ -36,15 +44,17 @@ export function referenceFromMemory(options: {
     scope: "project",
     originDirectory: options.repository.origin.directoryName,
     repositoryName: options.repository.profileFileName ?? "repository",
-    source: options.file.kind === "project"
-      ? "claude-project-memory"
-      : "claude-memory",
+    source:
+      options.file.kind === "project"
+        ? "claude-project-memory"
+        : "claude-memory",
     sourceLocator: options.file.filename,
     updatedAt: /^\d{4}-\d{2}-\d{2}T/.test(options.file.modified)
       ? options.file.modified
       : new Date(options.now).toISOString(),
     body: options.file.body,
   };
+
   return {
     record,
     relativePath: referenceRelativePath(record),
@@ -54,16 +64,29 @@ export function referenceFromMemory(options: {
 
 export function ruleFromMemory(options: {
   readonly file: ClaudeMemoryFile;
-  readonly decision: Extract<ClaudeFeedbackDecision, { readonly disposition: "rule" }>;
+  readonly decision: Extract<
+    ClaudeFeedbackDecision,
+    { readonly disposition: "rule" }
+  >;
   readonly repository: RepositoryIdentity;
-}): { readonly relativePath: string; readonly content: string; readonly key: string } {
-  const location = options.decision.scope === "global"
-    ? { scope: "global" as const, originDirectory: null, repositoryName: null }
-    : {
-        scope: "project" as const,
-        originDirectory: options.repository.origin.directoryName,
-        repositoryName: options.repository.profileFileName ?? "repository",
-      };
+}): {
+  readonly relativePath: string;
+  readonly content: string;
+  readonly key: string;
+} {
+  const location =
+    options.decision.scope === "global"
+      ? {
+          scope: "global" as const,
+          originDirectory: null,
+          repositoryName: null,
+        }
+      : {
+          scope: "project" as const,
+          originDirectory: options.repository.origin.directoryName,
+          repositoryName: options.repository.profileFileName ?? "repository",
+        };
+
   const rule = {
     key: `claude-memory:${options.file.filename.slice(0, -3)}`,
     title: options.decision.title,
@@ -81,6 +104,7 @@ export function ruleFromMemory(options: {
     origins: [],
     importReference: null,
   };
+
   return {
     relativePath: profileRulePath(rule),
     content: renderProfileRule(rule),
@@ -100,7 +124,9 @@ export function manifestEntry(options: {
     bytes: options.file.bytes,
     kind: options.file.kind,
     disposition: options.disposition,
-    ...(options.destination === undefined ? {} : { destination: path.normalize(options.destination) }),
+    ...(options.destination === undefined
+      ? {}
+      : { destination: path.normalize(options.destination) }),
     ...(options.reason === undefined ? {} : { reason: options.reason }),
   };
 }

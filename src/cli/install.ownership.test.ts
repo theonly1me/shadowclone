@@ -11,14 +11,21 @@ import { artifactRelativePaths, removeArtifacts } from "./installArtifacts";
 
 test("uninstall preserves user edits and a manifest cannot authorize an unrelated file", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "shadowclone-ownership-"));
+
   try {
     const repository = path.join(root, "repository");
+
     await mkdir(repository);
-    await runHostCommand({ arguments: ["git", "init", "--quiet"], cwd: repository });
+    await runHostCommand({
+      arguments: ["git", "init", "--quiet"],
+      cwd: repository,
+    });
+
     const paths = createProjectPaths({
       homeDirectory: root,
       platform: "darwin",
     });
+
     await writeConfig({ config: defaultConfig, configPath: paths.configFile });
     await installLiveClone({
       cwd: repository,
@@ -26,9 +33,12 @@ test("uninstall preserves user edits and a manifest cannot authorize an unrelate
       configPath: paths.configFile,
       managedConfigPath: null,
     });
+
     const target = path.join(repository, artifactRelativePaths.agent);
+
     await Bun.write(target, "user-maintained agent");
     await uninstallLiveClone({ cwd: repository, paths });
+
     expect(await Bun.file(target).text()).toBe("user-maintained agent");
     expect(
       await removeArtifacts({ directory: repository, artifacts: ["agent"] }),
@@ -43,18 +53,26 @@ test("install refuses a symlinked agent directory", async () => {
   const root = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-install-link-"),
   );
+
   try {
     const repository = path.join(root, "repository");
     const outside = path.join(root, "outside");
+
     await mkdir(repository);
-    await runHostCommand({ arguments: ["git", "init", "--quiet"], cwd: repository });
+    await runHostCommand({
+      arguments: ["git", "init", "--quiet"],
+      cwd: repository,
+    });
     await mkdir(outside);
     await symlink(outside, path.join(repository, ".claude"));
+
     const paths = createProjectPaths({
       homeDirectory: root,
       platform: "darwin",
     });
+
     await writeConfig({ config: defaultConfig, configPath: paths.configFile });
+
     await expect(
       installLiveClone({
         cwd: repository,

@@ -9,6 +9,7 @@ export function readString(
   key: string,
 ): string | null {
   const value = record[key];
+
   return typeof value === "string" ? value : null;
 }
 
@@ -24,6 +25,7 @@ export function readRecord(
   key: string,
 ): Readonly<Record<string, unknown>> | null {
   const value = record[key];
+
   return isRecord(value) ? value : null;
 }
 
@@ -34,6 +36,7 @@ export function readTimestamp(value: unknown): number {
 
   if (typeof value === "string") {
     const timestamp = Date.parse(value);
+
     return Number.isNaN(timestamp) ? 0 : timestamp;
   }
 

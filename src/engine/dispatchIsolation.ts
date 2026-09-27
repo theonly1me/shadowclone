@@ -10,18 +10,23 @@ export function dispatchCommand(options: {
   readonly platform: NodeJS.Platform;
 }): readonly string[] {
   const execution = options.run.execution;
+
   if (execution.purpose !== "dispatch") {
     return options.arguments;
   }
+
   const directory = canonicalPath(options.run.cwd);
   const temporary = canonicalPath(execution.temporaryDirectory ?? directory);
   const blocked = (execution.blockedPaths ?? []).map(canonicalPath);
+
   const profile = options.run.systemPromptFile
     ? canonicalPath(options.run.systemPromptFile)
     : null;
+
   const gitDirectory = execution.repositoryDirectory
     ? canonicalPath(path.join(execution.repositoryDirectory, ".git"))
     : null;
+
   if (
     gitDirectory &&
     existsSync(gitDirectory) &&
@@ -31,6 +36,7 @@ export function dispatchCommand(options: {
       "Dispatch requires the primary repository checkout as its target",
     );
   }
+
   const protectedFiles = [".git", ".claude", ".codex", ".mcp.json"].map(
     (entry) => path.join(directory, entry),
   );
@@ -40,6 +46,7 @@ export function dispatchCommand(options: {
         path.basename(entry.path),
       ),
   );
+
   if (options.platform === "darwin") {
     const allowed = [directory, temporary];
     const exclusions = [
@@ -70,6 +77,7 @@ export function dispatchCommand(options: {
     const writes = allowed
       .map((entry) => `(subpath ${JSON.stringify(entry)})`)
       .join("");
+
     return [
       "sandbox-exec",
       "-p",
@@ -77,6 +85,7 @@ export function dispatchCommand(options: {
       ...options.arguments,
     ];
   }
+
   if (options.platform === "linux") {
     return [
       "bwrap",
@@ -116,5 +125,6 @@ export function dispatchCommand(options: {
       ...options.arguments,
     ];
   }
+
   throw new Error("Dispatch isolation requires macOS or Linux");
 }

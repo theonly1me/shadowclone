@@ -1,4 +1,9 @@
-import type { EngineId, EngineRun, EngineRunner, ReasoningEffort } from "../../engine";
+import type {
+  EngineId,
+  EngineRun,
+  EngineRunner,
+  ReasoningEffort,
+} from "../../engine";
 import { redactSecrets } from "../../redact";
 import type { EvaluationBudget } from "./accounting";
 import { evaluationSignal, throwIfEvaluationExpired } from "./deadline";
@@ -23,6 +28,7 @@ export function modelCaller(options: {
 
   const call: ModelCall = async (request) => {
     throwIfEvaluationExpired();
+
     const blockedPaths = [
       ...(options.blockedPaths ?? []),
       ...(request.access === "write" && options.controlDirectory
@@ -30,13 +36,16 @@ export function modelCaller(options: {
         : []),
       ...(request.blockedPaths ?? []),
     ];
+
     const access = request.access;
-    const execution = access === "read" || access === "write"
-      ? { purpose: "evaluation" as const, access, blockedPaths }
-      : { purpose: "evaluation" as const, blockedPaths };
+    const execution =
+      access === "read" || access === "write"
+        ? { purpose: "evaluation" as const, access, blockedPaths }
+        : { purpose: "evaluation" as const, blockedPaths };
     const signal = evaluationSignal();
     const remaining = await options.budget.reserve();
     let run: EngineRun;
+
     try {
       throwIfEvaluationExpired();
       run = await options.runner({
@@ -51,7 +60,9 @@ export function modelCaller(options: {
           ? {}
           : request.access === "read" && options.engine === "claude-code"
             ? { allowedTools: ["Read", "Glob", "Grep"] }
-            : request.access === "none" ? { allowedTools: [] } : {}),
+            : request.access === "none"
+              ? { allowedTools: [] }
+              : {}),
         ...(remaining === undefined ? {} : { maxBudgetUsd: remaining }),
         signal: signal
           ? AbortSignal.any([
@@ -63,13 +74,16 @@ export function modelCaller(options: {
     } catch (error) {
       await options.budget.settle(null);
       throwIfEvaluationExpired();
+
       throw error;
     }
+
     await options.budget.settle(run.costUsd);
     throwIfEvaluationExpired();
 
     if (run.isError) {
       const message = run.errorMessage ?? "Evaluation engine failed";
+
       throw new Error(redactSecrets({ text: message }));
     }
 
@@ -79,10 +93,17 @@ export function modelCaller(options: {
   if (options.maxBudgetUsd === undefined) {
     return call;
   }
+
   let pending = Promise.resolve();
+
   return (request) => {
     const result = pending.then(() => call(request));
-    pending = result.then(() => undefined, () => undefined);
+
+    pending = result.then(
+      () => undefined,
+      () => undefined,
+    );
+
     return result;
   };
 }

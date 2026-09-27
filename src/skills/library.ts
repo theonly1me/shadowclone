@@ -18,13 +18,15 @@ type SeedDirectories = {
 };
 
 async function hasGuidance(rootDirectory: string): Promise<boolean> {
-  return await Bun.file(path.join(rootDirectory, "package.json")).exists() &&
-    await Bun.file(
+  return (
+    (await Bun.file(path.join(rootDirectory, "package.json")).exists()) &&
+    (await Bun.file(
       path.join(rootDirectory, "skills", "testing-first", "SKILL.md"),
-    ).exists() &&
-    await Bun.file(
+    ).exists()) &&
+    (await Bun.file(
       path.join(rootDirectory, "preferences", "planning-first.md"),
-    ).exists();
+    ).exists())
+  );
 }
 
 async function resolveSeedDirectories(): Promise<SeedDirectories> {
@@ -32,6 +34,7 @@ async function resolveSeedDirectories(): Promise<SeedDirectories> {
     path.resolve(import.meta.dir, "../.."),
     path.resolve(import.meta.dir, ".."),
   ];
+
   for (const packageRoot of packageRoots) {
     if (await hasGuidance(packageRoot)) {
       return {
@@ -40,6 +43,7 @@ async function resolveSeedDirectories(): Promise<SeedDirectories> {
       };
     }
   }
+
   throw new Error("The packaged seed guidance directories are missing");
 }
 
@@ -53,6 +57,7 @@ async function loadPreferences(
   const filenames = (await readdir(directory))
     .filter((filename) => filename.endsWith(".md"))
     .sort();
+
   return Promise.all(
     filenames.map(async (filename) =>
       parseSeedPreferenceDocument({
@@ -71,6 +76,7 @@ async function loadAgentSkills(
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
+
   return Promise.all(
     directoryNames.map(async (directoryName) =>
       parseSeedAgentSkillDocument({
@@ -93,28 +99,38 @@ function buildSeedLibrary(options: {
   ];
   const ids = new Set<string>();
   const grouped = new Map<string, SeedGuidance[]>();
+
   for (const entry of guidance) {
     if (ids.has(entry.id)) {
       throw new Error(`Duplicate seed guidance id: ${entry.id}`);
     }
+
     ids.add(entry.id);
+
     if (entry.axis !== null) {
       const axisGuidance = grouped.get(entry.axis) ?? [];
+
       axisGuidance.push(entry);
       grouped.set(entry.axis, axisGuidance);
     }
   }
+
   const axes: SeedGuidanceAxis[] = [...grouped.entries()]
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([id, axisGuidance]) => {
       if (axisGuidance.length < 2) {
         throw new Error(`Seed guidance axis needs at least two choices: ${id}`);
       }
+
       if (new Set(axisGuidance.map((entry) => entry.kind)).size !== 1) {
-        throw new Error(`Seed guidance axis mixes preferences and skills: ${id}`);
+        throw new Error(
+          `Seed guidance axis mixes preferences and skills: ${id}`,
+        );
       }
+
       return { id, guidance: axisGuidance };
     });
+
   return {
     guidance,
     preferences: options.preferences,
@@ -124,10 +140,12 @@ function buildSeedLibrary(options: {
   };
 }
 
-export async function loadSeedLibrary(options: {
-  readonly preferencesDirectory?: string;
-  readonly skillsDirectory?: string;
-} = {}): Promise<SeedLibrary> {
+export async function loadSeedLibrary(
+  options: {
+    readonly preferencesDirectory?: string;
+    readonly skillsDirectory?: string;
+  } = {},
+): Promise<SeedLibrary> {
   const defaults =
     options.preferencesDirectory && options.skillsDirectory
       ? null
@@ -135,12 +153,15 @@ export async function loadSeedLibrary(options: {
   const preferencesDirectory =
     options.preferencesDirectory ?? defaults?.preferences;
   const skillsDirectory = options.skillsDirectory ?? defaults?.skills;
+
   if (!preferencesDirectory || !skillsDirectory) {
     throw new Error("Both seed guidance directories are required");
   }
+
   const [preferences, skills] = await Promise.all([
     loadPreferences(preferencesDirectory),
     loadAgentSkills(skillsDirectory),
   ]);
+
   return buildSeedLibrary({ preferences, skills });
 }

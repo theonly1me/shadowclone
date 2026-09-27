@@ -1,5 +1,5 @@
 import path from "node:path";
-import { normalizeRemoteRepository } from "../signal/origin/remote";
+export { pushWorktree } from "./worktreePush";
 import { ownedDirectory } from "../storage";
 import { runCommand, type CommandRunner } from "./command";
 
@@ -21,9 +21,11 @@ async function requiredOutput(options: {
     cwd: options.cwd,
   });
   const output = result.stdout.trim();
+
   if (result.exitCode !== 0 || output.length === 0) {
     throw new Error(options.failure);
   }
+
   return output;
 }
 
@@ -46,7 +48,9 @@ export async function createWorktree(options: {
     cwd: repoDirectory,
     failure: "Target repository has no current commit",
   });
+
   await ownedDirectory(path.dirname(options.worktreeDirectory));
+
   const result = await runner({
     command: [
       "git",
@@ -59,9 +63,11 @@ export async function createWorktree(options: {
     ],
     cwd: repoDirectory,
   });
+
   if (result.exitCode !== 0) {
     throw new Error("Could not create the clone worktree");
   }
+
   return {
     repoDirectory,
     worktreeDirectory: options.worktreeDirectory,
@@ -112,6 +118,7 @@ export async function inspectWorktree(options: {
       : [];
   const committedFiles =
     diff.exitCode === 0 ? diff.stdout.split("\n").filter(Boolean) : [];
+
   return {
     filesChanged: [...new Set([...committedFiles, ...uncommittedFiles])],
     commits: log.exitCode === 0 ? log.stdout.split("\n").filter(Boolean) : [],
@@ -128,12 +135,15 @@ export async function commitWorktree(options: {
     command: ["git", "status", "--porcelain"],
     cwd: options.worktree.worktreeDirectory,
   });
+
   if (status.exitCode !== 0) {
     throw new Error("Could not inspect the clone worktree");
   }
+
   if (status.stdout.trim().length === 0) {
     return false;
   }
+
   const staged = await runner({
     command: ["git", "add", "--all"],
     cwd: options.worktree.worktreeDirectory,
@@ -145,44 +155,10 @@ export async function commitWorktree(options: {
           cwd: options.worktree.worktreeDirectory,
         })
       : null;
+
   if (committed === null || committed.exitCode !== 0) {
     throw new Error("Could not commit the clone result");
   }
-  return true;
-}
 
-export async function pushWorktree(options: {
-  readonly worktree: Worktree;
-  readonly repositoryId: string;
-  readonly runner?: CommandRunner;
-}): Promise<boolean> {
-  const runner = options.runner ?? runCommand;
-  const remote = await runner({
-    command: ["git", "remote", "get-url", "--push", "--all", "origin"],
-    cwd: options.worktree.repoDirectory,
-  });
-  const urls = remote.stdout.trim().split("\n");
-  const [url] = urls;
-  if (
-    remote.exitCode !== 0 ||
-    urls.length !== 1 ||
-    !url ||
-    normalizeRemoteRepository(url)?.id !== options.repositoryId
-  ) {
-    throw new Error("Push destination does not match the approved repository");
-  }
-  const result = await runner({
-    command: [
-      "git",
-      "push",
-      "--set-upstream",
-      "origin",
-      options.worktree.branch,
-    ],
-    cwd: options.worktree.worktreeDirectory,
-  });
-  if (result.exitCode !== 0) {
-    throw new Error("Could not push the clone branch to origin");
-  }
   return true;
 }

@@ -9,11 +9,13 @@ test("dispatch confines writes and hides source and control files", async () => 
   const root = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-dispatch-test-"),
   );
+
   try {
     const repository = path.join(root, "source");
     const state = path.join(root, "state");
     const directory = path.join(state, "worktrees", "task");
     const profile = path.join(state, "runs", "profile.md");
+
     await mkdir(path.join(repository, ".git"), { recursive: true });
     await mkdir(directory, { recursive: true });
     await mkdir(path.dirname(profile), { recursive: true });
@@ -21,6 +23,7 @@ test("dispatch confines writes and hides source and control files", async () => 
     await writeFile(path.join(directory, ".git"), "immutable-metadata");
     await writeFile(path.join(repository, "secret"), "source-sentinel");
     await writeFile(path.join(state, "config"), "control-sentinel");
+
     const execute = (arguments_: readonly string[]) =>
       runProcess({
         arguments: dispatchCommand({
@@ -42,18 +45,25 @@ test("dispatch confines writes and hides source and control files", async () => 
         timeoutMilliseconds: 5000,
       });
     const probe = await execute(["/usr/bin/true"]).catch(() => null);
+
     if (probe === null || probe.exitCode !== 0) {
       if (process.env.CI) {
-        throw new Error(`Required dispatch sandbox is unavailable in CI: ${probe?.stderr.trim() || "process did not start"}`);
+        throw new Error(
+          `Required dispatch sandbox is unavailable in CI: ${probe?.stderr.trim() || "process did not start"}`,
+        );
       }
+
       console.log(
         "Dispatch sandbox unavailable inside the current host sandbox; run the targeted check outside it.",
       );
+
       return;
     }
+
     expect((await execute(["/bin/cat", profile])).stdout).toBe(
       "compiled-guidance",
     );
+
     const result = await execute([
       "/bin/sh",
       "-c",
@@ -63,6 +73,7 @@ test("dispatch confines writes and hides source and control files", async () => 
       path.join(state, "config"),
       path.join(root, "outside"),
     ]);
+
     expect(result.exitCode).not.toBe(0);
     expect(await Bun.file(path.join(directory, "change")).text()).toBe(
       "allowed\n",

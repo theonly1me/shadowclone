@@ -31,11 +31,13 @@ function storedFile(keys: readonly string[]): ProfileFile {
 }
 
 test("reports a stored rule that no branch wrote back", () => {
-  expect(droppedProfileRuleKeys({
-    files: [storedFile(["kept", "vanished"])],
-    written: new Set(["kept"]),
-    retired: new Set(),
-  })).toEqual(["vanished"]);
+  expect(
+    droppedProfileRuleKeys({
+      files: [storedFile(["kept", "vanished"])],
+      written: new Set(["kept"]),
+      retired: new Set(),
+    }),
+  ).toEqual(["vanished"]);
 });
 
 test("accepts a stored rule removed through an explicit retirement", () => {
@@ -44,7 +46,7 @@ test("accepts a stored rule removed through an explicit retirement", () => {
       files: [storedFile(["kept", "retired"])],
       written: new Set(["kept"]),
       retired: new Set(["retired"]),
-    })
+    }),
   ).not.toThrow();
 });
 
@@ -54,6 +56,6 @@ test("refuses a write that would silently remove stored rules", () => {
       files: [storedFile(["one", "two", "three"])],
       written: new Set(["one"]),
       retired: new Set(),
-    })
+    }),
   ).toThrow("would remove 2 stored rule(s)");
 });

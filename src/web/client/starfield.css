@@ -1,0 +1,97 @@
+.starfield {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.star {
+  fill: #e6d6ff;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: star-drift 9s linear infinite;
+}
+
+.star-rays {
+  stroke: #eadbff;
+  stroke-width: 0.55;
+  opacity: 0.75;
+}
+
+.star-phase-0 {
+  animation-duration: 8.3s;
+  animation-delay: -1.2s;
+}
+
+.star-phase-1 {
+  animation-duration: 11.1s;
+  animation-delay: -5.8s;
+}
+
+.star-phase-2 {
+  animation-duration: 9.7s;
+  animation-delay: -8.3s;
+}
+
+.star-phase-3 {
+  animation-duration: 12.4s;
+  animation-delay: -3.4s;
+}
+
+.star-phase-4 {
+  animation-duration: 7.8s;
+  animation-delay: -6.2s;
+}
+
+.star-phase-5 {
+  animation-duration: 10.6s;
+  animation-delay: -2.7s;
+}
+
+.star-phase-6 {
+  animation-duration: 13.2s;
+  animation-delay: -10.4s;
+}
+
+.starfield.paused .star {
+  animation-play-state: paused;
+}
+
+@keyframes star-drift {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translate(-8px, 5px) scale(0.65);
+  }
+
+  20% {
+    opacity: 0.45;
+  }
+
+  36%,
+  59% {
+    opacity: 0.95;
+  }
+
+  45%,
+  72% {
+    opacity: 0.25;
+  }
+
+  85% {
+    opacity: 0;
+    transform: translate(12px, -9px) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star {
+    animation: none;
+    opacity: 0.65;
+    transform: none;
+  }
+}

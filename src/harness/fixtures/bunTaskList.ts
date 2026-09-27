@@ -4,7 +4,11 @@ const packageJson = {
   name: "task-list",
   private: true,
   type: "module",
-  scripts: { check: "bun run typecheck && bun test tests", typecheck: "tsc --noEmit", test: "bun test tests" },
+  scripts: {
+    check: "bun run typecheck && bun test tests",
+    typecheck: "tsc --noEmit",
+    test: "bun test tests",
+  },
   devDependencies: { "@types/bun": "latest", typescript: "^5" },
 };
 
@@ -74,14 +78,15 @@ export const bunTaskList: FixtureRepository = {
   name: "bun-task-list",
   files: {
     "package.json": `${JSON.stringify(packageJson, null, 2)}\n`,
-    "bun.lock": "{\n  \"lockfileVersion\": 1,\n  \"workspaces\": {}\n}\n",
+    "bun.lock": '{\n  "lockfileVersion": 1,\n  "workspaces": {}\n}\n',
     "tsconfig.json": `${JSON.stringify({ compilerOptions: { strict: true, noEmit: true, module: "ESNext", target: "ESNext", moduleResolution: "bundler", types: ["bun"] }, include: ["src", "tests"] }, null, 2)}\n`,
     "README.md": "# Task list\n\nA small command-line task list.\n",
     "src/tasks.ts": tasks,
     "src/cli.ts": cli,
     "tests/tasks.test.ts": existingTests,
   },
-  specification: "Add a status filter: `list --status open` shows only open tasks, `list --status done` shows only done tasks, and any other status value is rejected with an error. `list` without the flag keeps its current output.",
+  specification:
+    "Add a status filter: `list --status open` shows only open tasks, `list --status done` shows only done tasks, and any other status value is rejected with an error. `list` without the flag keeps its current output.",
   acceptance: { "tests/acceptance/status-filter.test.ts": acceptance },
   acceptanceCommand: "bun test tests/acceptance",
 };

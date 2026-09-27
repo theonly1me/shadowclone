@@ -30,10 +30,12 @@ test("main hooks point to reference recall without listing references, and subag
     origins: [],
     importReference: null,
   };
+
   await Bun.write(
     path.join(fixture.paths.profileDirectory, "global", "workflow.md"),
     `${renderProfileRule(imported)}\n`,
   );
+
   const reference = {
     schema: 1 as const,
     key: "queue-retries",
@@ -52,8 +54,10 @@ test("main hooks point to reference recall without listing references, and subag
     fixture.paths.profileDirectory,
     referenceRelativePath(reference),
   );
+
   await mkdir(path.dirname(referencePath), { recursive: true });
   await Bun.write(referencePath, renderReference(reference));
+
   const installed = await installIntegration({
     ...fixture,
     agent: "claude-code",
@@ -77,17 +81,23 @@ test("main hooks point to reference recall without listing references, and subag
       hook_event_name: "SubagentStart",
     }),
   });
+
   expect(JSON.stringify(main)).toContain("shadowclone recall <query>");
   expect(JSON.stringify(main)).not.toContain("queue-retries");
-  expect(JSON.stringify(main)).not.toContain("Duplicated repository instruction");
+  expect(JSON.stringify(main)).not.toContain(
+    "Duplicated repository instruction",
+  );
   expect(JSON.stringify(subagent)).not.toContain("shadowclone recall");
   expect(JSON.stringify(subagent)).not.toContain("queue-retries");
-  expect(JSON.stringify(subagent)).not.toContain("Duplicated repository instruction");
+  expect(JSON.stringify(subagent)).not.toContain(
+    "Duplicated repository instruction",
+  );
   expect(JSON.stringify(subagent)).toContain("Use complete names.");
 });
 
 test("native hooks preserve repository attribution before a worktree disappears", async () => {
   const fixture = await integrationFixture();
+
   await writeConfig({
     configPath: fixture.paths.configFile,
     config: {
@@ -95,11 +105,13 @@ test("native hooks preserve repository attribution before a worktree disappears"
       sources: { ...defaultConfig.sources, "git-metadata": true },
     },
   });
+
   const installed = await installIntegration({
     ...fixture,
     agent: "claude-code",
     scope: "repository",
   });
+
   await nativeSessionStart({
     ...fixture,
     id: installed.id,
@@ -111,11 +123,16 @@ test("native hooks preserve repository attribution before a worktree disappears"
       hook_event_name: "SessionStart",
     }),
   });
+
   const index = await openEventIndex(fixture.paths.indexDatabase);
-  expect(index.getSessionOriginBinding({
-    source: "claude-code",
-    sessionId: "native-session",
-    timestamp: 1_789_689_600_000,
-  })?.id).toBe("github.com/acme/sample-app");
+
+  expect(
+    index.getSessionOriginBinding({
+      source: "claude-code",
+      sessionId: "native-session",
+      timestamp: 1_789_689_600_000,
+    })?.id,
+  ).toBe("github.com/acme/sample-app");
+
   index.close();
 });

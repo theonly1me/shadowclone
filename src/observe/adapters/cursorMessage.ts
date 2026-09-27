@@ -1,7 +1,4 @@
-import {
-  isRecord,
-  readString,
-} from "../record";
+import { isRecord, readString } from "../record";
 import type {
   AgentEvent,
   AgentEventKind,
@@ -36,22 +33,18 @@ function toolFromBlock(
   block: Readonly<Record<string, unknown>>,
 ): ToolCall | null {
   const type = readString(block, "type");
-  if (
-    type !== "tool-call" &&
-    type !== "tool_use" &&
-    type !== "tool_call"
-  ) {
+
+  if (type !== "tool-call" && type !== "tool_use" && type !== "tool_call") {
     return null;
   }
+
   return {
     toolUseId:
       readString(block, "toolCallId") ??
       readString(block, "tool_call_id") ??
       readString(block, "id"),
     name:
-      readString(block, "toolName") ??
-      readString(block, "name") ??
-      "unknown",
+      readString(block, "toolName") ?? readString(block, "name") ?? "unknown",
   };
 }
 
@@ -89,9 +82,11 @@ function textEvent(options: {
   const userPrompt =
     options.role === "user" && options.text.includes("<user_query>");
   const assistantText = options.role === "assistant";
+
   if (!userPrompt && !assistantText) {
     return null;
   }
+
   return event({
     context: options.context,
     blobId: options.blobId,
@@ -114,7 +109,9 @@ export function parseCursorBlob(options: {
   if (!isRecord(options.blob.value)) {
     return [];
   }
+
   const role = readString(options.blob.value, "role");
+
   if (role === "tool") {
     return [
       event({
@@ -127,7 +124,9 @@ export function parseCursorBlob(options: {
       }),
     ];
   }
+
   const content = options.blob.value.content;
+
   if (typeof content === "string") {
     const parsed = textEvent({
       context: options.context,
@@ -137,16 +136,21 @@ export function parseCursorBlob(options: {
       text: content,
       jsonPath: ["content"],
     });
+
     return parsed ? [parsed] : [];
   }
+
   if (!Array.isArray(content)) {
     return [];
   }
+
   return content.flatMap((value, index) => {
     if (!isRecord(value)) {
       return [];
     }
+
     const type = readString(value, "type");
+
     if (role === "assistant" && type === "reasoning") {
       return [
         event({
@@ -159,7 +163,9 @@ export function parseCursorBlob(options: {
         }),
       ];
     }
+
     const tool = toolFromBlock(value);
+
     if (tool !== null) {
       return [
         event({
@@ -172,7 +178,9 @@ export function parseCursorBlob(options: {
         }),
       ];
     }
+
     const text = readString(value, "text");
+
     const parsed = text
       ? textEvent({
           context: options.context,
@@ -183,6 +191,7 @@ export function parseCursorBlob(options: {
           jsonPath: ["content", index, "text"],
         })
       : null;
+
     return parsed ? [parsed] : [];
   });
 }

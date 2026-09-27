@@ -23,6 +23,7 @@ async function consolidateOrigin(options: {
   if (options.rules.length <= 1) {
     return options.rules;
   }
+
   const merged = await mergeDistilledRules({
     rules: options.rules.map((rule) => ({
       title: rule.title,
@@ -33,16 +34,20 @@ async function consolidateOrigin(options: {
     cwd: options.workingDirectory,
     checkpointDirectory: options.checkpointDirectory,
   });
+
   return merged.flatMap((result, resultIndex) => {
     const sourceIndices = result.sources ?? [resultIndex];
-    const constituents = [
-      ...new Set(sourceIndices),
-    ].flatMap((index) => options.rules[index] ? [options.rules[index]] : []);
+    const constituents = [...new Set(sourceIndices)].flatMap((index) =>
+      options.rules[index] ? [options.rules[index]] : [],
+    );
     const [first] = constituents;
+
     if (!first) {
       return [];
     }
+
     const evidence = unionEvidence(constituents);
+
     const combined: ProfileRule = {
       ...first,
       title: result.title,
@@ -50,15 +55,20 @@ async function consolidateOrigin(options: {
       section: result.section,
       evidence,
     };
+
     const statistics = profileEvidenceStatistics({ rule: combined, evidence });
-    return [{
-      ...combined,
-      ...statistics,
-      status:
-        evidence.for.some(isExplicitProfileEvidence) || statistics.sessions >= 3
-          ? "active" as const
-          : "candidate" as const,
-    }];
+
+    return [
+      {
+        ...combined,
+        ...statistics,
+        status:
+          evidence.for.some(isExplicitProfileEvidence) ||
+          statistics.sessions >= 3
+            ? ("active" as const)
+            : ("candidate" as const),
+      },
+    ];
   });
 }
 
@@ -70,8 +80,10 @@ export async function consolidateNewRules(options: {
 }): Promise<readonly ProfileRule[]> {
   const groups = Map.groupBy(options.rules, (rule) => rule.originDirectory);
   const consolidated: ProfileRule[] = [];
+
   for (const rules of groups.values()) {
-    consolidated.push(...await consolidateOrigin({ ...options, rules }));
+    consolidated.push(...(await consolidateOrigin({ ...options, rules })));
   }
+
   return consolidated;
 }

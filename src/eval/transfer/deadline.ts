@@ -11,10 +11,16 @@ export function evaluationSignal(): AbortSignal | undefined {
   return deadlineSignals.getStore()?.signal;
 }
 
-export function onEvaluationDeadline(finalize: () => Promise<void>): () => void {
+export function onEvaluationDeadline(
+  finalize: () => Promise<void>,
+): () => void {
   const context = deadlineSignals.getStore();
+
   context?.finalizers.add(finalize);
-  return () => { context?.finalizers.delete(finalize); };
+
+  return () => {
+    context?.finalizers.delete(finalize);
+  };
 }
 
 export function evaluationDeadlineError(): Error {
@@ -29,7 +35,9 @@ export function throwIfEvaluationExpired(): void {
 
 export async function withEvaluationDeadline<Result>(options: {
   readonly enabled: boolean;
-  readonly operation: (control: { readonly disable: () => void }) => Promise<Result>;
+  readonly operation: (control: {
+    readonly disable: () => void;
+  }) => Promise<Result>;
   readonly durationMs?: number;
 }): Promise<Result> {
   if (!options.enabled) {
@@ -45,29 +53,31 @@ export async function withEvaluationDeadline<Result>(options: {
     durationMs - cleanupAllowanceMs,
   );
   let hardTimeout: ReturnType<typeof setTimeout> | undefined;
+
   const hardLimit = new Promise<never>((_, reject) => {
-    hardTimeout = setTimeout(
-      () => {
-        Promise.all([...finalizers].map((finalize) => finalize()))
-          .then(() => reject(evaluationDeadlineError()))
-          .catch(reject);
-      },
-      durationMs,
-    );
+    hardTimeout = setTimeout(() => {
+      Promise.all([...finalizers].map((finalize) => finalize()))
+        .then(() => reject(evaluationDeadlineError()))
+        .catch(reject);
+    }, durationMs);
   });
+
   const disable = (): void => {
     clearTimeout(abortTimeout);
     clearTimeout(hardTimeout);
   };
+
   try {
     const operation = deadlineSignals.run(
       { signal: controller.signal, finalizers },
       () => options.operation({ disable }),
     );
     const result = await Promise.race([operation, hardLimit]);
+
     if (controller.signal.aborted) {
       throw evaluationDeadlineError();
     }
+
     return result;
   } finally {
     disable();

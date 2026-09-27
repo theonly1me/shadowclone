@@ -14,9 +14,18 @@ export function judgeRequest(prompt: string) {
 
 export function engineRun(structured: unknown) {
   return {
-    engine: "codex" as const, sessionId: "judge-session", transcriptPath: null,
-    text: "", structured, costUsd: null, durationMs: 1, turns: 1,
-    actions: [], permissionDenials: [], isError: false, errorMessage: null,
+    engine: "codex" as const,
+    sessionId: "judge-session",
+    transcriptPath: null,
+    text: "",
+    structured,
+    costUsd: null,
+    durationMs: 1,
+    turns: 1,
+    actions: [],
+    permissionDenials: [],
+    isError: false,
+    errorMessage: null,
   };
 }
 
@@ -26,7 +35,9 @@ export function batchReply(options: {
 }) {
   return engineRun({
     checks: judgeRequest(options.prompt).requirements.map((requirement) => ({
-      id: requirement.id, verdict: options.verdict ?? "pass", evidence: "parser.ts satisfies the criterion",
+      id: requirement.id,
+      verdict: options.verdict ?? "pass",
+      evidence: "parser.ts satisfies the criterion",
     })),
   });
 }

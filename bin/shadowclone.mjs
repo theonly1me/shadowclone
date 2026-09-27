@@ -17,10 +17,13 @@ function bundledBunPath() {
     const manifest = require(manifestPath);
     const relative =
       typeof manifest.bin === "string" ? manifest.bin : manifest.bin?.bun;
+
     if (typeof relative !== "string") {
       return null;
     }
+
     const candidate = path.join(path.dirname(manifestPath), relative);
+
     return existsSync(candidate) ? candidate : null;
   } catch {
     return null;
@@ -45,8 +48,10 @@ if (runtime === null) {
 const result = spawnSync(runtime, [bundle, ...process.argv.slice(2)], {
   stdio: "inherit",
 });
+
 if (result.error) {
   console.error("shadowclone: could not start bun");
   process.exit(1);
 }
+
 process.exit(result.status ?? 1);

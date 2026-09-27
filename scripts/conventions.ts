@@ -4,6 +4,7 @@ const maximumLineCount = 200;
 const emDash = "\u2014";
 const codeSuffix = ".ts";
 const proseSuffixes = [".md", ".ts", ".yml", ".yaml", ".json"] as const;
+
 const skippedDirectories = [
   ".git",
   "node_modules",
@@ -39,6 +40,7 @@ async function listFiles(options: {
     const skipped = skippedDirectories.some((directory) =>
       segments.includes(directory),
     );
+
     if (!skipped) {
       files.push(file);
     }
@@ -51,7 +53,9 @@ function countLines(text: string): number {
   if (text === "") {
     return 0;
   }
+
   const lineCount = text.split("\n").length;
+
   return text.endsWith("\n") ? lineCount - 1 : lineCount;
 }
 
@@ -60,26 +64,32 @@ function lineOfPosition(options: { text: string; position: number }): number {
 }
 
 function commentPositions(text: string): readonly number[] {
-  const scanner = ts.createScanner(
-    ts.ScriptTarget.Latest,
-    false,
-    ts.LanguageVariant.Standard,
+  const source = ts.createSourceFile(
+    "source.ts",
     text,
+    ts.ScriptTarget.Latest,
+    true,
   );
-  const positions: number[] = [];
-  let token = scanner.scan();
+  const positions = new Set<number>();
 
-  while (token !== ts.SyntaxKind.EndOfFileToken) {
-    if (
-      token === ts.SyntaxKind.SingleLineCommentTrivia ||
-      token === ts.SyntaxKind.MultiLineCommentTrivia
-    ) {
-      positions.push(scanner.getTokenStart());
+  function visit(node: ts.Node): void {
+    const ranges = [
+      ...(ts.getLeadingCommentRanges(text, node.pos) ?? []),
+      ...(ts.getTrailingCommentRanges(text, node.end) ?? []),
+    ];
+
+    for (const range of ranges) {
+      positions.add(range.pos);
     }
-    token = scanner.scan();
+
+    for (const child of node.getChildren(source)) {
+      visit(child);
+    }
   }
 
-  return positions;
+  visit(source);
+
+  return [...positions].sort((left, right) => left - right);
 }
 
 function codeViolations(options: {
@@ -87,6 +97,7 @@ function codeViolations(options: {
   text: string;
 }): readonly Violation[] {
   const lineCount = countLines(options.text);
+
   const lengthViolations =
     lineCount > maximumLineCount
       ? [
@@ -140,16 +151,19 @@ export async function findConventionViolations(options: {
   for (const file of files) {
     const isCode = file.endsWith(codeSuffix);
     const isProse = proseSuffixes.some((suffix) => file.endsWith(suffix));
+
     if (!isCode && !isProse) {
       continue;
     }
 
     const text = await Bun.file(`${options.rootDirectory}/${file}`).text();
+
     checkedFileCount += 1;
 
     if (isCode) {
       violations.push(...codeViolations({ file, text }));
     }
+
     if (isProse) {
       violations.push(...proseViolations({ file, text }));
     }

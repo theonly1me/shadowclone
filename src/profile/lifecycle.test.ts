@@ -12,6 +12,7 @@ async function createTestPaths(): Promise<ProjectPaths> {
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-lifecycle-"),
   );
+
   return createProjectPaths({ homeDirectory, platform: "darwin" });
 }
 
@@ -51,12 +52,14 @@ test("revises wording without changing the persisted key", async () => {
     title: "Verify the changed behavior",
     body: "Run the narrow check that proves the requested behavior.",
   };
+
   await writeProfile({ paths, rules: [original] });
 
   await writeProfile({ paths, rules: [revised] });
 
   const filePath = path.join(paths.profileDirectory, profileRulePath(revised));
   const [parsed] = parseProfileRules(await Bun.file(filePath).text());
+
   expect(parsed?.key).toBe(original.key);
   expect(parsed?.title).toBe(revised.title);
   expect(await Bun.file(filePath).text()).not.toContain(original.title);
@@ -69,9 +72,13 @@ test("keeps a rejected identity rejected after its wording changes", async () =>
     title: "Run focused checks",
     body: "Run one focused check.",
   });
+
   await writeProfile({ paths, rules: [original] });
+
   const filePath = path.join(paths.profileDirectory, profileRulePath(original));
+
   await rm(filePath);
+
   const revised = {
     ...original,
     title: "Verify the changed behavior",
@@ -81,6 +88,7 @@ test("keeps a rejected identity rejected after its wording changes", async () =>
   await writeProfile({ paths, rules: [revised] });
 
   const [rejection] = await readProfileRejections(paths.rejectedProfileFile);
+
   expect(await Bun.file(filePath).exists()).toBeFalse();
   expect(rejection).toMatchObject({
     key: original.key,
@@ -97,7 +105,9 @@ test("retires generated guidance without recording a user rejection", async () =
     title: "Retire this",
     body: "This generated guidance is obsolete.",
   });
+
   await writeProfile({ paths, rules: [rule] });
+
   const relativePath = profileRulePath(rule);
 
   await writeProfile({
@@ -107,7 +117,10 @@ test("retires generated guidance without recording a user rejection", async () =
   });
 
   const generated = await readGeneratedProfileState(paths.profileManifestFile);
-  expect(await Bun.file(path.join(paths.profileDirectory, relativePath)).exists()).toBeFalse();
+
+  expect(
+    await Bun.file(path.join(paths.profileDirectory, relativePath)).exists(),
+  ).toBeFalse();
   expect(generated).toContainEqual(
     expect.objectContaining({ key: rule.key, disposition: "retired" }),
   );

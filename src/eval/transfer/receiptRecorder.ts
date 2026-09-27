@@ -16,43 +16,93 @@ export function receiptRecorder(options: {
   let terminal = false;
   const enqueue = (operation: () => Promise<void>) => {
     writes = writes.then(operation);
+
     return writes;
   };
+
   return {
-    get current() { return receipt; },
-    run: (run: TransferRun) => enqueue(async () => {
-      if (terminal) return;
-      receipt = replaceRun({ receipt, run });
-      await saveReceipt({ directory: options.directory, receipt });
-    }),
-    progress: (progress: Pick<EvaluationProgress, "stage" | "taskIndex" | "repeatIndex" | "arm"> & {
-      readonly voteIndex?: number | null;
-    }) => enqueue(async () => {
-      if (terminal) return;
-      receipt = await recordProgress({ ...options, ...progress, receipt });
-    }),
-    complete: (status: TransferReceipt["status"]) => enqueue(async () => {
-      if (terminal) return;
-      terminal = true;
-      receipt = await recordProgress({
-        ...options, receipt: { ...receipt, status }, stage: "complete",
-        taskIndex: null, repeatIndex: null, arm: null,
-      });
-    }),
-    fail: (failure: { readonly stage: "timeout" | "error"; readonly message: string }) => enqueue(async () => {
-      if (terminal) return;
-      terminal = true;
-      receipt = {
-        ...receipt, status: "error",
-        runs: receipt.runs.map((run) => run.phase === "complete" || run.failure !== null || failure.stage !== "timeout" ? run : {
-          ...run, failure: redactSecrets({ text: failure.message }).slice(0, 800),
-          failureStage: run.observed === null ? "execution" as const : "judging" as const,
-        }),
-      };
-      receipt = await recordProgress({
-        ...options, receipt, stage: failure.stage,
-        taskIndex: null, repeatIndex: null, arm: null,
-      });
-    }),
+    get current() {
+      return receipt;
+    },
+    run: (run: TransferRun) =>
+      enqueue(async () => {
+        if (terminal) {
+          return;
+        }
+
+        receipt = replaceRun({ receipt, run });
+        await saveReceipt({ directory: options.directory, receipt });
+      }),
+    progress: (
+      progress: Pick<
+        EvaluationProgress,
+        "stage" | "taskIndex" | "repeatIndex" | "arm"
+      > & {
+        readonly voteIndex?: number | null;
+      },
+    ) =>
+      enqueue(async () => {
+        if (terminal) {
+          return;
+        }
+
+        receipt = await recordProgress({ ...options, ...progress, receipt });
+      }),
+    complete: (status: TransferReceipt["status"]) =>
+      enqueue(async () => {
+        if (terminal) {
+          return;
+        }
+
+        terminal = true;
+        receipt = await recordProgress({
+          ...options,
+          receipt: { ...receipt, status },
+          stage: "complete",
+          taskIndex: null,
+          repeatIndex: null,
+          arm: null,
+        });
+      }),
+    fail: (failure: {
+      readonly stage: "timeout" | "error";
+      readonly message: string;
+    }) =>
+      enqueue(async () => {
+        if (terminal) {
+          return;
+        }
+
+        terminal = true;
+        receipt = {
+          ...receipt,
+          status: "error",
+          runs: receipt.runs.map((run) =>
+            run.phase === "complete" ||
+            run.failure !== null ||
+            failure.stage !== "timeout"
+              ? run
+              : {
+                  ...run,
+                  failure: redactSecrets({ text: failure.message }).slice(
+                    0,
+                    800,
+                  ),
+                  failureStage:
+                    run.observed === null
+                      ? ("execution" as const)
+                      : ("judging" as const),
+                },
+          ),
+        };
+        receipt = await recordProgress({
+          ...options,
+          receipt,
+          stage: failure.stage,
+          taskIndex: null,
+          repeatIndex: null,
+          arm: null,
+        });
+      }),
   };
 }

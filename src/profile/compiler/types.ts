@@ -2,8 +2,11 @@ import type { OriginScope } from "../../signal";
 import type { ProfileRule, ProfileSource, ProfileStatus } from "../types";
 
 export type ProfileCompilationAudience = "main" | "subagent";
+
 export type ProfileCompilationRepositoryContext = "native" | "missing";
+
 export type ProfileCompilationFormat = "full" | "index" | "harness";
+
 export type ProfileCompilationSource = ProfileSource | "reference";
 
 export type ProfileCompileInput =
@@ -64,16 +67,16 @@ type CompilerBlockFields = {
 };
 
 export type CompilerBlock =
-  | CompilerBlockFields & {
+  | (CompilerBlockFields & {
       readonly kind: "rule";
       readonly ruleKey: string | null;
       readonly referenceKey: null;
       readonly source: ProfileSource;
-    }
-  | CompilerBlockFields & {
+    })
+  | (CompilerBlockFields & {
       readonly kind: "reference";
       readonly ruleKey: null;
       readonly referenceKey: string;
       readonly source: "reference";
       readonly status: "active";
-    };
+    });

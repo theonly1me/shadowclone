@@ -45,6 +45,7 @@ async function buildSnapshotTemplate(options: {
     path.join(os.tmpdir(), "shadowclone-transfer-"),
   );
   const directory = path.join(container, "workspace");
+
   try {
     await extractSnapshotArchive({ ...options, container, directory });
 
@@ -101,6 +102,7 @@ async function buildSnapshotTemplate(options: {
     };
   } catch (error) {
     await rm(container, { recursive: true, force: true });
+
     throw error;
   }
 }
@@ -111,29 +113,35 @@ export async function createSnapshot(options: {
 }): Promise<SnapshotResult> {
   const key = templateKey(options);
   let templatePromise = templates.get(key);
+
   if (!templatePromise) {
     templatePromise = buildSnapshotTemplate(options);
     templates.set(key, templatePromise);
   }
 
   let template: SnapshotResult;
+
   try {
     template = await templatePromise;
   } catch (error) {
     if (templates.get(key) === templatePromise) {
       templates.delete(key);
     }
+
     throw error;
   }
 
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-transfer-"),
   );
+
   try {
     const source = `${template.directory}${path.sep}.`;
-    const preferredArguments = process.platform === "darwin"
-      ? ["cp", "-Rc", source, directory]
-      : ["cp", "-R", "--reflink=auto", source, directory];
+    const preferredArguments =
+      process.platform === "darwin"
+        ? ["cp", "-Rc", source, directory]
+        : ["cp", "-R", "--reflink=auto", source, directory];
+
     try {
       await command({ arguments: preferredArguments, cwd: directory });
     } catch {
@@ -142,6 +150,7 @@ export async function createSnapshot(options: {
         cwd: directory,
       });
     }
+
     return {
       directory,
       initialCommit: template.initialCommit,
@@ -151,15 +160,21 @@ export async function createSnapshot(options: {
     };
   } catch (error) {
     await rm(directory, { recursive: true, force: true });
+
     throw error;
   }
 }
 
 export async function disposeSnapshotTemplates(): Promise<void> {
   const pendingTemplates = [...templates.values()];
+
   templates.clear();
+
   const results = await Promise.allSettled(pendingTemplates);
-  await Promise.all(results.flatMap((result) =>
-    result.status === "fulfilled" ? [result.value.cleanup()] : []
-  ));
+
+  await Promise.all(
+    results.flatMap((result) =>
+      result.status === "fulfilled" ? [result.value.cleanup()] : [],
+    ),
+  );
 }

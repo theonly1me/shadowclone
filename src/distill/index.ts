@@ -26,9 +26,17 @@ import {
   type ReconciliationChange,
 } from "./reconcile";
 
-export { distillConcurrency, distillSignalBatchSize, groupDistillBatches, type DistillBatch } from "./batch";
+export {
+  distillConcurrency,
+  distillSignalBatchSize,
+  groupDistillBatches,
+  type DistillBatch,
+} from "./batch";
+
 export { checkpointId, reconciliationLearnerVersion } from "./checkpoint";
+
 export { allowlistedSignals, isEligibleForDistillation } from "./eligible";
+
 export {
   buildReconciliationPrompt,
   parseReconciliationOutput,
@@ -37,6 +45,7 @@ export {
   type ReconciliationChange,
   type ReconciliationOutput,
 } from "./reconcile";
+
 export {
   distillationMergeOutputSchema,
   parseDistilledRules,
@@ -51,6 +60,7 @@ export type DistillationResult = {
 };
 
 const emptyProfile: ProfileSnapshot = { rules: [], rejections: [] };
+
 const emptyLibrary: SeedLibrary = {
   guidance: [],
   preferences: [],
@@ -73,11 +83,14 @@ export async function distillSignals(options: {
   readonly execution?: LearningExecution;
   readonly requireSteeringCue?: boolean;
 }): Promise<DistillationResult> {
-  const execution = options.execution ?? createLearningExecution({
-    engine: options.engine,
-    runner: options.runner,
-    limits: options.limits,
-  });
+  const execution =
+    options.execution ??
+    createLearningExecution({
+      engine: options.engine,
+      runner: options.runner,
+      limits: options.limits,
+    });
+
   const eligible = allowlistedSignals({
     signals: options.signals,
     events: options.events,
@@ -101,6 +114,7 @@ export async function distillSignals(options: {
         library: options.seedLibrary ?? emptyLibrary,
       });
       const prompt = await buildReconciliationPrompt({ context, excerpts });
+
       const output = await runReconciliation({
         prompt,
         runner: execution.runner,
@@ -109,22 +123,28 @@ export async function distillSignals(options: {
           ? { checkpointDirectory: options.checkpointDirectory }
           : {}),
       });
+
       return { output, context };
     },
   });
+
   for (const { output, context } of batchResults) {
     const applied = applyReconciliation({ output, context });
+
     appliedRules.push(...applied.rules);
     changes.push(...applied.changes);
     rejectedMatches += applied.rejectedMatches;
   }
 
   const newKeys = new Set(
-    changes.filter((change) => change.kind === "new").map((change) => change.after.key),
+    changes
+      .filter((change) => change.kind === "new")
+      .map((change) => change.after.key),
   );
   const existingRules = mergeProfileRuleUpdates(
     appliedRules.filter((rule) => !newKeys.has(rule.key)),
   );
+
   const newRules = await consolidateNewRules({
     rules: appliedRules.filter((rule) => newKeys.has(rule.key)),
     runner: execution.runner,
@@ -133,9 +153,14 @@ export async function distillSignals(options: {
       ? { checkpointDirectory: options.checkpointDirectory }
       : {}),
   });
+
   return {
     rules: [...existingRules, ...newRules],
-    changes: finalizeReconciliationChanges({ changes, existingRules, newRules }),
+    changes: finalizeReconciliationChanges({
+      changes,
+      existingRules,
+      newRules,
+    }),
     engineRuns: execution.callsUsed(),
     rejectedMatches,
   };

@@ -16,11 +16,15 @@ const origin: OriginScope = {
 };
 
 async function fixture() {
-  const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-deep-"));
+  const homeDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-deep-"),
+  );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
   const sourcePath = path.join(paths.claudeProjectsDirectory, "evidence.txt");
   const text = "The user asked for a smaller change.";
+
   await Bun.write(sourcePath, text);
+
   const textRef = {
     type: "file" as const,
     sourcePath,
@@ -52,12 +56,14 @@ async function fixture() {
     isError: false,
     textRef,
   };
+
   return { paths, signal, event };
 }
 
 function runner(onCall: (options: EngineRunOptions) => void): EngineRunner {
   return (options) => {
     onCall(options);
+
     return Promise.resolve({
       engine: "claude-code",
       sessionId: "engine-session",
@@ -65,14 +71,16 @@ function runner(onCall: (options: EngineRunOptions) => void): EngineRunner {
       text: "",
       structured: {
         existingRules: [],
-        newRules: [{
-          title: "Keep the change small",
-          body: "Choose the smallest change that satisfies the request.",
-          section: "workflow",
-          observed: "The user chose the smaller scope.",
-          evidenceTokens: ["evidence-1"],
-          rejectionToken: "",
-        }],
+        newRules: [
+          {
+            title: "Keep the change small",
+            body: "Choose the smallest change that satisfies the request.",
+            section: "workflow",
+            observed: "The user chose the smaller scope.",
+            evidenceTokens: ["evidence-1"],
+            rejectionToken: "",
+          },
+        ],
       },
       costUsd: 0.01,
       durationMs: 10,
@@ -94,13 +102,20 @@ test("semantic dry run calls the engine and writes no local learning state", asy
     events: [event],
     paths,
     policy: defaultManagedPolicy,
-    runner: runner(() => { calls += 1; }),
+    runner: runner(() => {
+      calls += 1;
+    }),
     engine: "claude-code",
     dryRun: true,
     apply: false,
-    confirm: () => { confirmations += 1; return true; },
+    confirm: () => {
+      confirmations += 1;
+
+      return true;
+    },
     writeLine: () => {},
   });
+
   expect(calls).toBe(1);
   expect(confirmations).toBe(0);
   expect(result.profileUpdated).toBeFalse();
@@ -111,12 +126,15 @@ test("semantic dry run calls the engine and writes no local learning state", asy
 test("deep learning forwards the selected model and effort", async () => {
   const { paths, signal, event } = await fixture();
   const requests: EngineRunOptions[] = [];
+
   await runDeepLearning({
     signals: [signal],
     events: [event],
     paths,
     policy: defaultManagedPolicy,
-    runner: runner((options) => { requests.push(options); }),
+    runner: runner((options) => {
+      requests.push(options);
+    }),
     engine: "claude-code",
     model: "claude-sonnet-5",
     reasoningEffort: "medium",
@@ -145,18 +163,36 @@ test("default review can decline while apply skips confirmation", async () => {
   const declined = await runDeepLearning({
     ...common,
     apply: false,
-    confirm: () => { confirmations += 1; return false; },
+    confirm: () => {
+      confirmations += 1;
+
+      return false;
+    },
   });
+
   expect(confirmations).toBe(1);
   expect(declined.profileUpdated).toBeFalse();
-  expect(await Bun.file(path.join(paths.profileDirectory, "org")).exists()).toBeFalse();
+  expect(
+    await Bun.file(path.join(paths.profileDirectory, "org")).exists(),
+  ).toBeFalse();
+
   const applied = await runDeepLearning({
     ...common,
     apply: true,
-    confirm: () => { throw new Error("Apply must skip confirmation"); },
+    confirm: () => {
+      throw new Error("Apply must skip confirmation");
+    },
   });
+
   expect(applied.profileUpdated).toBeTrue();
-  expect(await Bun.file(
-    path.join(paths.profileDirectory, "org", origin.directoryName, "workflow.md"),
-  ).exists()).toBeTrue();
+  expect(
+    await Bun.file(
+      path.join(
+        paths.profileDirectory,
+        "org",
+        origin.directoryName,
+        "workflow.md",
+      ),
+    ).exists(),
+  ).toBeTrue();
 });

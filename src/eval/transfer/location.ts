@@ -14,10 +14,7 @@ export async function resolveEvaluationLocation(options: {
   readonly saved: TransferReceipt | null;
 }> {
   const evalId = options.requestedId ?? crypto.randomUUID();
-  const evalDirectory = path.join(
-    options.paths.shadowcloneDirectory,
-    "eval",
-  );
+  const evalDirectory = path.join(options.paths.shadowcloneDirectory, "eval");
 
   if (options.requestedId) {
     const knownEvaluationIds = new Set<string>();
@@ -27,6 +24,7 @@ export async function resolveEvaluationLocation(options: {
         cwd: evalDirectory,
         onlyFiles: false,
       });
+
       for await (const entryName of scanner) {
         knownEvaluationIds.add(entryName);
       }
@@ -38,14 +36,19 @@ export async function resolveEvaluationLocation(options: {
   }
 
   const directory = path.join(evalDirectory, evalId);
-  const savedText = options.requestedId ? await readBoundedFile({
-    filePath: path.join(directory, "state.json"),
-    roots: [options.paths.shadowcloneDirectory],
-    maximumBytes: 32 * 1024 * 1024,
-  }) : null;
+
+  const savedText = options.requestedId
+    ? await readBoundedFile({
+        filePath: path.join(directory, "state.json"),
+        roots: [options.paths.shadowcloneDirectory],
+        maximumBytes: 32 * 1024 * 1024,
+      })
+    : null;
+
   if (options.requestedId && savedText === null) {
     throw new Error("Evaluation has no safe supported private state");
   }
+
   const saved = savedText === null ? null : readReceipt(savedText);
 
   return { evalId, directory, saved };

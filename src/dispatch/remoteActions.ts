@@ -23,23 +23,29 @@ export async function executeRemoteActions(options: {
   const actions = options.granted.filter(
     (action) => action === "pr-draft" || action === "pr-reply",
   );
+
   if (actions.length === 0) {
     return [];
   }
+
   if (
     !/^github\.com\/[a-z0-9_.-]+\/[a-z0-9_.-]+$/i.test(options.repositoryId)
   ) {
     throw new Error("Remote PR actions require a recognized GitHub repository");
   }
+
   const parsedDraft = remoteDraftSchema.parse(options.structured);
   const draft = {
     title: redactSecrets({ text: parsedDraft.title }),
     body: redactSecrets({ text: parsedDraft.body }),
   };
   const bodyPath = path.join(options.runDirectory, "remote-body.md");
+
   await ownedWrite({ path: bodyPath, content: draft.body });
+
   const runner = options.runner ?? runCommand;
   const completed: string[] = [];
+
   for (const action of actions) {
     if (
       action === "pr-reply" &&
@@ -48,6 +54,7 @@ export async function executeRemoteActions(options: {
     ) {
       throw new Error("PR replies require an explicit --pr number");
     }
+
     const command =
       action === "pr-draft"
         ? [
@@ -78,10 +85,13 @@ export async function executeRemoteActions(options: {
       command,
       cwd: options.worktree.repoDirectory,
     });
+
     if (result.exitCode !== 0) {
       throw new Error("Approved repository PR action failed");
     }
+
     completed.push(action);
   }
+
   return completed;
 }

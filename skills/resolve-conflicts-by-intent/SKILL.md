@@ -10,32 +10,23 @@ metadata:
 
 ## Use when
 
-Use this skill only while a merge or rebase is in progress. A conflict is a disagreement between changes, so the correct result comes from understanding both changes rather than choosing the side with newer text.
+A merge or rebase is in progress and Git reports conflicts.
 
 ## Process
 
-1. Inspect the Git operation, conflicting paths, current branch, and commits being combined.
-2. Read each conflicted file with enough surrounding code to understand the affected behavior.
-3. Find the primary source for both sides: commits, pull requests, issues, design records, tests, and nearby callers.
-4. State the intent of each side before editing the hunk.
-5. Decide whether both intents can coexist. When they cannot, choose the intent that matches the merge goal and record the lost behavior for review.
-6. Resolve one hunk at a time in the current architecture. Avoid introducing a third design that neither side requested.
-7. Search the full file for related names and assumptions that Git did not mark as conflicts.
-8. Run focused checks after each coherent file group, then the repository's merge gate.
-9. Stage resolved files and continue the Git operation until no conflicts remain.
-10. Inspect the combined diff against both original intents before reporting completion.
+1. Inspect the operation, conflicting paths, and commits being combined.
+2. Read surrounding code and the commits, design records, tests, or review discussions explaining each side.
+3. Identify both intended behaviors. Preserve compatible requirements; ask about incompatible outcomes when the merge goal does not settle them.
+4. Resolve each hunk in the current architecture. Check related names and assumptions outside Git's conflict markers.
+5. Run focused checks and the repository's merge gate. Separate new failures from failures present on either parent.
+6. Stage resolutions and finish the authorized operation. Review the combined diff against both original intents.
 
 ## Guardrails
 
-- Use whole-file ours or theirs only when one side's entire file is intentionally obsolete.
-- Preserve schema changes, migrations, generated artifacts, and tests as one coherent set.
-- Treat rename and delete conflicts as behavior decisions rather than path cleanup.
-- Keep conflict markers out of the staged tree.
-- Separate failures introduced by the merge from failures already present on either parent.
-- Finish the requested merge or rebase after resolution unless a destructive or irreversible choice needs user input.
+Use whole-file ours or theirs only when that entire side is intentionally obsolete. Keep schema changes, migrations, generated artifacts, and tests coherent. Rename and delete conflicts can change behavior.
 
-When intent remains ambiguous after reading primary sources, present the exact incompatible outcomes and the evidence for each. Ask about that decision instead of guessing from line order.
+Avoid introducing an unrelated third design. Remove all conflict markers and preserve unrelated user edits. Follow the repository's approval requirements for Git operations.
 
 ## Completion
 
-Resolution is complete when Git reports no unmerged paths, each hunk has a stated intent-based result, the combined behavior passes relevant checks, the operation has finished, and the final diff preserves every compatible requirement from both sides.
+No unmerged paths remain, compatible requirements survive, checks cover the combined behavior, and the authorized operation is finished.

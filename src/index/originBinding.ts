@@ -87,6 +87,7 @@ export function readSessionOriginBinding(options: {
       ORDER BY effective_at DESC LIMIT 1`,
     )
     .get(options.source, options.sessionId, options.timestamp);
+
   return row === null ? null : bindingFromRow(row);
 }
 
@@ -97,8 +98,9 @@ export function writeSessionOriginBinding(options: {
   readonly timestamp: number;
   readonly repository: BoundRepository;
 }): void {
-  options.database.query(
-    `INSERT INTO origin_binding_timeline (
+  options.database
+    .query(
+      `INSERT INTO origin_binding_timeline (
       source, session_id, effective_at, repository_id, repository_name,
       profile_file_name, origin_id, origin_directory, origin_promotable
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -109,15 +111,16 @@ export function writeSessionOriginBinding(options: {
       origin_id = excluded.origin_id,
       origin_directory = excluded.origin_directory,
       origin_promotable = excluded.origin_promotable`,
-  ).run(
-    options.source,
-    options.sessionId,
-    options.timestamp,
-    options.repository.id,
-    options.repository.name,
-    options.repository.profileFileName,
-    options.repository.origin.id,
-    options.repository.origin.directoryName,
-    options.repository.origin.promotable ? 1 : 0,
-  );
+    )
+    .run(
+      options.source,
+      options.sessionId,
+      options.timestamp,
+      options.repository.id,
+      options.repository.name,
+      options.repository.profileFileName,
+      options.repository.origin.id,
+      options.repository.origin.directoryName,
+      options.repository.origin.promotable ? 1 : 0,
+    );
 }

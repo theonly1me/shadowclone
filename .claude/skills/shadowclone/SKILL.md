@@ -1,7 +1,10 @@
 ---
 name: shadowclone
-description: How to delegate tasks to the shadowclone subagent
+description: Delegate a bounded task to an installed Shadowclone subagent when the user requests it or has enabled automatic delegation.
 ---
 
-When the user asks you to perform a task using shadowclone, or if you believe the task is complex enough to delegate, use the `Agent` tool with `subagent_type: "shadowclone"` to spawn a clone.
-Pass the user's request verbatim in the tool prompt.
+# Shadowclone delegation
+
+Use the installed `shadowclone` subagent when the user requests it. Automatic delegation also requires the user's opt-in and a suitable bounded task. If the subagent is unavailable, report that limitation.
+
+Use the agent tool's `shadowclone` subagent type. Give it the objective, relevant context, constraints, verification requirements, and expected result. Review its result against the request before presenting completion.

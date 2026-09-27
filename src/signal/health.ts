@@ -22,6 +22,7 @@ export function computeSourceHealth(
 
   for (const event of events) {
     let entry = bySource.get(event.source);
+
     if (!entry) {
       entry = {
         sessions: new Set(),
@@ -30,7 +31,9 @@ export function computeSourceHealth(
       };
       bySource.set(event.source, entry);
     }
+
     entry.sessions.add(event.sessionId);
+
     if (event.kind === "interruption") {
       entry.interruptions += 1;
     } else if (event.kind === "permission-denied") {
@@ -39,15 +42,16 @@ export function computeSourceHealth(
   }
 
   const results: SourceMarkerHealth[] = [];
+
   for (const [source, data] of bySource.entries()) {
     const sessions = data.sessions.size;
-    const isSubjectToMarkers =
-      source === "claude-code" || source === "codex";
+    const isSubjectToMarkers = source === "claude-code" || source === "codex";
     const isStale =
       isSubjectToMarkers &&
       sessions >= 25 &&
       data.interruptions === 0 &&
       data.denials === 0;
+
     results.push({
       source,
       sessions,
@@ -56,6 +60,7 @@ export function computeSourceHealth(
       isStale,
     });
   }
+
   return results.sort((a, b) => a.source.localeCompare(b.source));
 }
 
@@ -64,6 +69,7 @@ export function checkMarkerStaleness(
 ): readonly string[] {
   const health = computeSourceHealth(events);
   const warnings: string[] = [];
+
   for (const item of health) {
     if (item.isStale) {
       warnings.push(
@@ -71,5 +77,6 @@ export function checkMarkerStaleness(
       );
     }
   }
+
   return warnings;
 }

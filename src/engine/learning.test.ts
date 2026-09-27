@@ -1,9 +1,5 @@
 import { expect, test } from "bun:test";
-import type {
-  EngineId,
-  EngineRun,
-  EngineRunner,
-} from "./types";
+import type { EngineId, EngineRun, EngineRunner } from "./types";
 import { createLearningExecution } from "./learning";
 
 function result(options: {
@@ -40,6 +36,7 @@ test("Codex uses call limits without receiving a dollar limit", async () => {
   const runner: EngineRunner = (options) => {
     underlyingCalls += 1;
     budgets.push(options.maxBudgetUsd);
+
     return Promise.resolve(result({ engine: "codex", costUsd: null }));
   };
   const execution = createLearningExecution({
@@ -53,6 +50,7 @@ test("Codex uses call limits without receiving a dollar limit", async () => {
   });
 
   await execution.runner(learningRequest());
+
   await expect(execution.runner(learningRequest())).rejects.toThrow(
     "Learning call limit reached",
   );
@@ -67,7 +65,9 @@ test("Claude receives the remaining cumulative dollar limit", async () => {
   const costs = [0.75, 0.5];
   const runner: EngineRunner = (options) => {
     budgets.push(options.maxBudgetUsd);
+
     const [costUsd = 0] = costs.splice(0, 1);
+
     return Promise.resolve(result({ engine: "claude-code", costUsd }));
   };
   const execution = createLearningExecution({
@@ -87,11 +87,12 @@ test("Claude receives the remaining cumulative dollar limit", async () => {
 });
 
 test("Claude failures are not hidden by missing cost telemetry", async () => {
-  const runner: EngineRunner = () => Promise.resolve({
-    ...result({ engine: "claude-code", costUsd: null }),
-    isError: true,
-    errorMessage: "Unsupported provider option",
-  });
+  const runner: EngineRunner = () =>
+    Promise.resolve({
+      ...result({ engine: "claude-code", costUsd: null }),
+      isError: true,
+      errorMessage: "Unsupported provider option",
+    });
   const execution = createLearningExecution({
     engine: "claude-code",
     runner,
@@ -113,6 +114,7 @@ test("Claude failures are not hidden by missing cost telemetry", async () => {
 test("the shared deadline stops a runner that does not settle", async () => {
   const runner: EngineRunner = async () => {
     await Bun.sleep(100);
+
     return result({ engine: "codex", costUsd: null });
   };
   const execution = createLearningExecution({
@@ -135,6 +137,7 @@ test("an engine without learning isolation fails before its runner", () => {
   let underlyingCalls = 0;
   const runner: EngineRunner = () => {
     underlyingCalls += 1;
+
     return Promise.resolve(result({ engine: "antigravity", costUsd: null }));
   };
 

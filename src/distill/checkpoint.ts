@@ -18,6 +18,7 @@ export function checkpointId(options: {
     outputSchema: options.outputSchema ?? reconciliationOutputSchema,
     learnerVersion: options.learnerVersion ?? reconciliationLearnerVersion,
   });
+
   return new Bun.CryptoHasher("sha256")
     .update(identity)
     .digest("hex")
@@ -39,9 +40,11 @@ export async function readCheckpoint(options: {
   readonly prompt: string;
 }): Promise<ReconciliationOutput | null> {
   const file = Bun.file(checkpointPath(options));
+
   if (!(await file.exists())) {
     return null;
   }
+
   try {
     return parseReconciliationOutput(await file.json());
   } catch {

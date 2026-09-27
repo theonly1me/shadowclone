@@ -1,8 +1,5 @@
 import type { EngineId } from "../engine/types";
-import type {
-  ProviderDefinition,
-  ProviderId,
-} from "./types";
+import type { ProviderDefinition, ProviderId } from "./types";
 
 export const providerDefinitions: readonly ProviderDefinition[] = [
   {
@@ -71,15 +68,15 @@ export const providerDefinitions: readonly ProviderDefinition[] = [
   },
 ];
 
-export function getProvider(
-  providerId: ProviderId,
-): ProviderDefinition {
+export function getProvider(providerId: ProviderId): ProviderDefinition {
   const definition = providerDefinitions.find(
     (candidate) => candidate.id === providerId,
   );
+
   if (!definition) {
     throw new Error(`Provider definition is missing for ${providerId}`);
   }
+
   return definition;
 }
 

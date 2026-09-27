@@ -8,19 +8,16 @@ export const profileImportReferenceSchema = z.object({
   sourceLocator: opaqueHashSchema,
 });
 
-const profileSourceSchema = z.enum([
-  "declared",
-  "imported",
-  "mined",
-  "user",
-]);
+const profileSourceSchema = z.enum(["declared", "imported", "mined", "user"]);
 const profileStatusSchema = z.enum(["active", "candidate", "stale"]);
+
 const profileProposalSchema = z
   .object({
     kind: z.enum(["revise", "narrow", "retire"]),
     text: z.string(),
   })
   .nullable();
+
 const profileEvidenceSchema = z.object({
   for: z.array(z.string()),
   against: z.array(z.string()),
@@ -40,7 +37,10 @@ const profileRuleFieldsSchema = z.object({
   lastSeen: z.string(),
   sessions: z.number().int().nonnegative(),
   origins: z.array(z.string()),
-  importReference: profileImportReferenceSchema.nullable().optional().default(null),
+  importReference: profileImportReferenceSchema
+    .nullable()
+    .optional()
+    .default(null),
 });
 
 const profileRuleLocationSchema = z.discriminatedUnion("scope", [

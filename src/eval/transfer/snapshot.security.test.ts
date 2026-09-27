@@ -12,6 +12,7 @@ test("snapshot extraction allows internal links and rejects escaping links", asy
   );
   const git = (arguments_: readonly string[]) =>
     runHostCommand({ arguments: ["git", ...arguments_], cwd: repository });
+
   try {
     await git(["init", "--quiet"]);
     await writeFile(
@@ -30,8 +31,10 @@ test("snapshot extraction allows internal links and rejects escaping links", asy
       "-qm",
       "fixture",
     ]);
+
     const commit = (await git(["rev-parse", "HEAD"])).stdout.trim();
     const snapshot = await createSnapshot({ repository, commit });
+
     try {
       expect(
         await Bun.file(path.join(snapshot.directory, "source.tar")).text(),
@@ -42,6 +45,7 @@ test("snapshot extraction allows internal links and rejects escaping links", asy
     } finally {
       await snapshot.cleanup();
     }
+
     await symlink("/tmp", path.join(repository, "escape"));
     await git(["add", "--all"]);
     await git([
@@ -53,7 +57,9 @@ test("snapshot extraction allows internal links and rejects escaping links", asy
       "-qm",
       "linked fixture",
     ]);
+
     const unsafeCommit = (await git(["rev-parse", "HEAD"])).stdout.trim();
+
     await expect(
       createSnapshot({ repository, commit: unsafeCommit }),
     ).rejects.toThrow("unsafe path");
@@ -66,22 +72,27 @@ test("dependency link chains must resolve inside the repository", async () => {
   const root = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-dependency-security-"),
   );
+
   try {
     const repository = path.join(root, "repository");
     const directory = path.join(root, "snapshot");
     const outside = path.join(root, "outside");
+
     await mkdir(path.join(repository, "node_modules"), { recursive: true });
     await mkdir(directory);
     await mkdir(outside);
     await writeFile(path.join(directory, "package.json"), "{}");
+
     for (const target of [repository, directory]) {
       await writeFile(path.join(target, "bun.lock"), "identical-lock");
     }
+
     await symlink(outside, path.join(repository, "bridge"));
     await symlink(
       "../bridge",
       path.join(repository, "node_modules", "package"),
     );
+
     await expect(
       prepareDependencies({ repository, directory }),
     ).rejects.toThrow("outside the repository");

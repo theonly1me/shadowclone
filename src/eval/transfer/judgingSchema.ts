@@ -8,20 +8,29 @@ const workSchema = z.strictObject({
 });
 
 export const judgingSchema = z.strictObject({
-  completed: z.array(workSchema.extend({
-    checks: z.array(z.strictObject({
-      id: z.string().min(1),
-      verdict: z.enum(["pass", "fail"]),
-      evidence: z.string(),
-    })).min(1).max(8),
-  })),
+  completed: z.array(
+    workSchema.extend({
+      checks: z
+        .array(
+          z.strictObject({
+            id: z.string().min(1),
+            verdict: z.enum(["pass", "fail"]),
+            evidence: z.string(),
+          }),
+        )
+        .min(1)
+        .max(8),
+    }),
+  ),
   pending: z.array(workSchema),
-  attempts: z.array(z.strictObject({
-    workId: z.string().min(1),
-    attempt: z.number().int().positive(),
-    startedAt: z.iso.datetime(),
-    elapsedMs: z.number().nonnegative(),
-    state: z.enum(["started", "complete", "error"]),
-    error: z.string().nullable(),
-  })),
+  attempts: z.array(
+    z.strictObject({
+      workId: z.string().min(1),
+      attempt: z.number().int().positive(),
+      startedAt: z.iso.datetime(),
+      elapsedMs: z.number().nonnegative(),
+      state: z.enum(["started", "complete", "error"]),
+      error: z.string().nullable(),
+    }),
+  ),
 });

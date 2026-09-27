@@ -8,6 +8,7 @@ const plantedSecret = "sk_live_0123456789abcdefghij";
 
 async function agentHome(): Promise<string> {
   const home = await mkdtemp(path.join(os.tmpdir(), "shadowclone-context-"));
+
   await Bun.write(
     path.join(home, ".claude/CLAUDE.md"),
     `Deploy with the key ${plantedSecret} before release.`,
@@ -16,6 +17,7 @@ async function agentHome(): Promise<string> {
     path.join(home, ".claude/skills/deploy/SKILL.md"),
     `Run the deploy script with ${plantedSecret}.`,
   );
+
   return home;
 }
 
@@ -48,9 +50,11 @@ test("redacts a planted secret out of captured agent instructions and skills", a
     });
 
     expect(files.length).toBeGreaterThan(1);
+
     for (const file of files) {
       expect(file.content).not.toContain(plantedSecret);
     }
+
     expect(files.map((file) => file.relativePath)).toContain(
       "instructions/0.md",
     );

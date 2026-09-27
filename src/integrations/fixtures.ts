@@ -5,11 +5,24 @@ import { defaultConfig, writeConfig } from "../config";
 import { canonicalPath, createProjectPaths } from "../paths";
 
 export async function integrationFixture() {
-  const home = canonicalPath(await mkdtemp(path.join(os.tmpdir(), "shadowclone-integration-")));
+  const home = canonicalPath(
+    await mkdtemp(path.join(os.tmpdir(), "shadowclone-integration-")),
+  );
   const cwd = path.join(home, "repository");
   const paths = createProjectPaths({ homeDirectory: home, platform: "darwin" });
+
   await Bun.write(path.join(cwd, "README.md"), "Repository fixture\n");
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
-  await Bun.write(path.join(paths.profileDirectory, "global/engineering.md"), "## Naming\n\nUse complete names.\n");
-  return { home, cwd, paths, configPath: paths.configFile, managedConfigPath: null };
+  await Bun.write(
+    path.join(paths.profileDirectory, "global/engineering.md"),
+    "## Naming\n\nUse complete names.\n",
+  );
+
+  return {
+    home,
+    cwd,
+    paths,
+    configPath: paths.configFile,
+    managedConfigPath: null,
+  };
 }

@@ -9,6 +9,7 @@ function readString(
   key: string,
 ): string | null {
   const value = record[key];
+
   return typeof value === "string" ? value : null;
 }
 
@@ -17,6 +18,7 @@ function readNumber(
   key: string,
 ): number | null {
   const value = record[key];
+
   return typeof value === "number" ? value : null;
 }
 
@@ -40,24 +42,32 @@ export function parseCursorStream(options: {
     if (line.trim().length === 0) {
       continue;
     }
+
     let event: unknown;
+
     try {
       event = JSON.parse(line);
     } catch {
       continue;
     }
+
     if (!isRecord(event)) {
       continue;
     }
+
     sessionId = readString(event, "session_id") ?? sessionId;
+
     if (readString(event, "type") === "assistant") {
       turns += 1;
     }
+
     if (readString(event, "type") === "result") {
       result = event;
     }
   }
-  const text = result ? readString(result, "result") ?? "" : "";
+
+  const text = result ? (readString(result, "result") ?? "") : "";
+
   return {
     engine: "cursor-agent",
     sessionId,
@@ -65,7 +75,7 @@ export function parseCursorStream(options: {
     text,
     structured: parseStructured(text),
     costUsd: null,
-    durationMs: result ? readNumber(result, "duration_ms") ?? 0 : 0,
+    durationMs: result ? (readNumber(result, "duration_ms") ?? 0) : 0,
     turns,
     isError: result === null || result.is_error === true,
     permissionDenials: [],

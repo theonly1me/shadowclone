@@ -10,32 +10,23 @@ metadata:
 
 ## Use when
 
-Use this skill after implementation is complete and before claiming the work is ready. Verification must support the claims in the handoff, while review checks that the diff says one coherent thing.
+Code or documentation is ready for handoff.
 
 ## Process
 
-1. List the changed behaviors, data paths, public interfaces, and documentation claims.
-2. Discover the repository's own checks from scripts, contributor guidance, and continuous integration configuration.
-3. Run the narrow checks that exercise each changed behavior while failures are cheap to diagnose.
-4. Run the required repository gate once the focused checks pass.
-5. Inspect the final diff with surrounding code, including new files that an ordinary diff may omit.
-6. Trace values entering logs, errors, file writes, and network calls to their source and required redaction boundary.
-7. Compare public documentation and architecture diagrams with the implemented behavior.
-8. Check the working tree for generated files, debug artifacts, secrets, and unrelated edits.
-9. Report the exact commands run, their results, and any behavior that still depends on manual or external verification.
+1. Identify changed behavior, data paths, interfaces, and public claims. Read the repository's required checks.
+2. Run focused verification, then the required gate. Repeat broad checks only when later changes or failures justify it.
+3. Review the full diff with surrounding context, including untracked files. Check for generated output, diagnostics, secrets, and unrelated edits.
+4. For changed data paths, trace logs, errors, writes, and network requests to their source and required redaction boundary.
+5. Compare affected docs and diagrams with the implementation. Exercise changed interfaces and inspect their rendered state.
+6. Report checks and results, separating pre-existing failures and unverified behavior from regressions.
 
 ## Guardrails
 
-- Match each completion claim to evidence from a check or direct inspection.
-- Distinguish a failing pre-existing check from one caused by the change and provide evidence for that distinction.
-- Re-run a broad gate only after a later edit can affect its result.
-- Inspect indentation, scope, and neighboring declarations rather than relying only on compilation.
-- Keep captured user content out of logs and review text unless it has passed the required redaction boundary.
-- Do not present a build artifact as proof of runtime behavior when the changed path was never exercised.
-- Preserve material limitations in the handoff so a reviewer knows what remains uncertain.
+Match claims to checks or direct observations. A successful build does not prove an unexercised runtime path works. Keep captured user content out of reports unless it has crossed the required redaction boundary.
 
-For user interfaces, exercise the changed state and inspect the rendered result at the supported viewport or terminal. For data handling, name every sink and show where raw content becomes safe.
+Preserve unrelated work. An existing dirty worktree is not a reason to delete another contributor's changes or claim that the whole tree is clean.
 
 ## Completion
 
-Verification is complete when every changed behavior has evidence, the required repository gate passes, the final diff and working tree are clean, public claims match the code, sink tracing is accounted for, and remaining manual or external checks are stated plainly.
+The final diff has been reviewed, required checks have run, and the handoff states the evidence and material limitations.

@@ -1,3 +1,4 @@
+import { manifestPath, sameSource } from "./manifestIdentity";
 import path from "node:path";
 import type { FileUpdate } from "../../changes";
 import { readLocalText } from "../../localFiles";
@@ -5,21 +6,14 @@ import type { ProjectPaths } from "../../paths";
 import type { ProfileRejection } from "../../profile";
 import { assertNotCoveredRouting } from "../../profile/skillRouting";
 import type { RepositoryIdentity } from "../../signal";
-import {
-  manifestEntry,
-  referenceFromMemory,
-  ruleFromMemory,
-} from "./convert";
+import { manifestEntry, referenceFromMemory, ruleFromMemory } from "./convert";
 import {
   parseClaudeMemoryManifest,
   renderClaudeMemoryManifest,
 } from "./manifest";
 import { appendProfileRules, mergeRejections } from "./profileUpdates";
 import { claudeMemoryDirectory, scanClaudeMemory } from "./scan";
-import type {
-  ClaudeFeedbackDecision,
-  ClaudeMemoryManifest,
-} from "./types";
+import type { ClaudeFeedbackDecision, ClaudeMemoryManifest } from "./types";
 
 export type ClaudeMemoryMigrationPlan = {
   readonly manifest: ClaudeMemoryManifest;
@@ -28,33 +22,6 @@ export type ClaudeMemoryMigrationPlan = {
   readonly updates: readonly FileUpdate[];
   readonly alreadyApplied: boolean;
 };
-
-function manifestPath(options: {
-  readonly paths: ProjectPaths;
-  readonly repositoryId: string;
-}): string {
-  const digest = new Bun.CryptoHasher("sha256")
-    .update(options.repositoryId)
-    .digest("hex")
-    .slice(0, 16);
-  return path.join(
-    options.paths.profileDirectory,
-    "migrations",
-    `claude-memory-${digest}.json`,
-  );
-}
-
-function sameSource(options: {
-  readonly stored: ClaudeMemoryManifest;
-  readonly repositoryId: string;
-  readonly files: readonly { readonly filename: string; readonly hash: string }[];
-}): boolean {
-  const stored = options.stored.files
-    .map((file) => `${file.filename}:${file.hash}`).sort().join("\n");
-  const current = options.files
-    .map((file) => `${file.filename}:${file.hash}`).sort().join("\n");
-  return options.stored.repositoryId === options.repositoryId && stored === current;
-}
 
 export async function createClaudeMemoryMigrationPlan(options: {
   readonly paths: ProjectPaths;
@@ -71,11 +38,14 @@ export async function createClaudeMemoryMigrationPlan(options: {
     repositoryId: options.repository.id,
   });
   const previousManifest = await readLocalText(target);
+
   if (previousManifest !== null) {
     const stored = parseClaudeMemoryManifest(previousManifest);
+
     if (!sameSource({ stored, repositoryId: options.repository.id, files })) {
       throw new Error("Claude memory changed after migration");
     }
+
     return {
       manifest: stored,
       manifestPath: target,
@@ -84,57 +54,89 @@ export async function createClaudeMemoryMigrationPlan(options: {
       alreadyApplied: true,
     };
   }
+
   const updates: FileUpdate[] = [];
   const rules: ReturnType<typeof ruleFromMemory>[] = [];
   const rejections: ProfileRejection[] = [];
   const reviewRequired: string[] = [];
   const manifestFiles = [];
+
   for (const file of files) {
     if (file.kind === "reference" || file.kind === "project") {
       if (
         file.kind === "reference" &&
         options.excludedReferences?.has(file.filename)
       ) {
-        manifestFiles.push(manifestEntry({ file, disposition: "archive-only" }));
+        manifestFiles.push(
+          manifestEntry({ file, disposition: "archive-only" }),
+        );
+
         continue;
       }
-      const reference = referenceFromMemory({ file, repository: options.repository, now });
-      const filePath = path.join(options.paths.profileDirectory, reference.relativePath);
-      const previous = await readLocalText(filePath);
-      if (previous !== null && previous !== reference.content) {
-        throw new Error("Claude memory reference conflicts with an existing reference");
-      }
-      updates.push({ filePath, previous, next: reference.content });
-      manifestFiles.push(manifestEntry({
+
+      const reference = referenceFromMemory({
         file,
-        disposition: file.kind === "project"
-          ? "recall-reference"
-          : "reference",
-        destination: reference.relativePath,
-      }));
+        repository: options.repository,
+        now,
+      });
+      const filePath = path.join(
+        options.paths.profileDirectory,
+        reference.relativePath,
+      );
+      const previous = await readLocalText(filePath);
+
+      if (previous !== null && previous !== reference.content) {
+        throw new Error(
+          "Claude memory reference conflicts with an existing reference",
+        );
+      }
+
+      updates.push({ filePath, previous, next: reference.content });
+      manifestFiles.push(
+        manifestEntry({
+          file,
+          disposition:
+            file.kind === "project" ? "recall-reference" : "reference",
+          destination: reference.relativePath,
+        }),
+      );
+
       continue;
     }
+
     if (file.kind === "feedback" || file.kind === "user") {
       const decision = options.decisions?.get(file.filename);
+
       if (decision === undefined) {
         reviewRequired.push(file.filename);
-        manifestFiles.push(manifestEntry({ file, disposition: "review-required" }));
+        manifestFiles.push(
+          manifestEntry({ file, disposition: "review-required" }),
+        );
       } else if (decision.disposition === "rule") {
-        const rule = ruleFromMemory({ file, decision, repository: options.repository });
-        rules.push(rule);
-        manifestFiles.push(manifestEntry({
+        const rule = ruleFromMemory({
           file,
-          disposition: "rule",
-          destination: rule.relativePath,
-        }));
+          decision,
+          repository: options.repository,
+        });
+
+        rules.push(rule);
+        manifestFiles.push(
+          manifestEntry({
+            file,
+            disposition: "rule",
+            destination: rule.relativePath,
+          }),
+        );
       } else {
         assertNotCoveredRouting({ body: file.body, reason: decision.reason });
+
         const relativePath = path.join(
           "org",
           options.repository.origin.directoryName,
           "projects",
           `${options.repository.profileFileName ?? "repository"}.md`,
         );
+
         rejections.push({
           relativePath,
           key: `claude-memory:${file.filename.slice(0, -3)}`,
@@ -144,19 +146,32 @@ export async function createClaudeMemoryMigrationPlan(options: {
           importReference: null,
           reason: decision.reason,
         });
-        manifestFiles.push(manifestEntry({
-          file,
-          disposition: "covered",
-          reason: decision.reason,
-        }));
+        manifestFiles.push(
+          manifestEntry({
+            file,
+            disposition: "covered",
+            reason: decision.reason,
+          }),
+        );
       }
+
       continue;
     }
+
     manifestFiles.push(manifestEntry({ file, disposition: "index-rebuilt" }));
   }
-  updates.push(...await appendProfileRules({ paths: options.paths, rules }));
-  const rejectionUpdate = await mergeRejections({ paths: options.paths, rejections });
-  if (rejectionUpdate !== null) updates.push(rejectionUpdate);
+
+  updates.push(...(await appendProfileRules({ paths: options.paths, rules })));
+
+  const rejectionUpdate = await mergeRejections({
+    paths: options.paths,
+    rejections,
+  });
+
+  if (rejectionUpdate !== null) {
+    updates.push(rejectionUpdate);
+  }
+
   const manifest: ClaudeMemoryManifest = {
     schema: 1,
     repositoryId: options.repository.id,
@@ -164,6 +179,18 @@ export async function createClaudeMemoryMigrationPlan(options: {
     createdAt: new Date(now).toISOString(),
     files: manifestFiles,
   };
-  updates.push({ filePath: target, previous: null, next: renderClaudeMemoryManifest(manifest) });
-  return { manifest, manifestPath: target, reviewRequired, updates, alreadyApplied: false };
+
+  updates.push({
+    filePath: target,
+    previous: null,
+    next: renderClaudeMemoryManifest(manifest),
+  });
+
+  return {
+    manifest,
+    manifestPath: target,
+    reviewRequired,
+    updates,
+    alreadyApplied: false,
+  };
 }

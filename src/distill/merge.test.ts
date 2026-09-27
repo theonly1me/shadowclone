@@ -91,8 +91,10 @@ test("reads merge from checkpoint on repeated invocation without calling runner"
     path.join(os.tmpdir(), "shadowclone-merge-checkpoint-"),
   );
   let callCount = 0;
+
   const runner: EngineRunner = () => {
     callCount += 1;
+
     return Promise.resolve({
       engine: "claude-code",
       sessionId: "merge-session",
@@ -124,6 +126,7 @@ test("reads merge from checkpoint on repeated invocation without calling runner"
     cwd: "/tmp",
     checkpointDirectory,
   });
+
   expect(callCount).toBe(1);
   expect(first.length).toBe(1);
 
@@ -133,6 +136,7 @@ test("reads merge from checkpoint on repeated invocation without calling runner"
     cwd: "/tmp",
     checkpointDirectory,
   });
+
   expect(callCount).toBe(1);
   expect(second.length).toBe(1);
 });

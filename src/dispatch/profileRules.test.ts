@@ -25,12 +25,15 @@ const nestedSkillBody = [
 
 const commandRunner: CommandRunner = (options) => {
   const command = options.command.join(" ");
+
   if (command === "git rev-parse --show-toplevel") {
     return Promise.resolve({ exitCode: 0, stdout: `${options.cwd}\n` });
   }
+
   if (command === "git rev-parse HEAD") {
     return Promise.resolve({ exitCode: 0, stdout: "base-commit\n" });
   }
+
   return Promise.resolve({ exitCode: 0, stdout: "" });
 };
 
@@ -56,7 +59,9 @@ test("the receipt counts applied rules, not nested skill headings", async () => 
   );
   const repoDirectory = path.join(homeDirectory, "repo");
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
+
   const origin = await resolveCwdOrigin({ cwd: repoDirectory, enabled: false });
   const rule: ProfileRule = {
     key: "verify-before-presenting",
@@ -77,6 +82,7 @@ test("the receipt counts applied rules, not nested skill headings", async () => 
     origins: [origin.id],
     importReference: null,
   };
+
   await writeProfile({ paths, rules: [rule] });
 
   const receipt = await runHeadlessClone({

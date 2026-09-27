@@ -71,6 +71,7 @@ function indexedPrompt(options: {
   readonly byteLength?: number;
 }): IndexedEvent {
   const byteLength = options.byteLength ?? Buffer.byteLength(plantedSecret);
+
   return {
     id: 1,
     sourcePath: options.sourcePath,
@@ -111,13 +112,17 @@ test("redacts excerpts before the engine and resumes from checkpoints", async ()
     path.join(os.tmpdir(), "shadowclone-distill-"),
   );
   const sourcePath = path.join(directory, "fixture.jsonl");
+
   await Bun.write(sourcePath, plantedSecret);
+
   const signals = [signal({ sourcePath, origin: origin("github.com/acme") })];
   const prompts: string[] = [];
   const runner: EngineRunner = (options) => {
     prompts.push(options.prompt);
+
     return Promise.resolve(successfulRun());
   };
+
   const options = {
     signals,
     runner,
@@ -144,8 +149,11 @@ test("records independent supporting evidence without a confidence score", async
     path.join(os.tmpdir(), "shadowclone-distill-conf-"),
   );
   const sourcePath = path.join(directory, "fixture.jsonl");
+
   await Bun.write(sourcePath, "user edited code");
+
   const orig = origin("github.com/acme");
+
   const makeSignal = (
     sessionId: string,
     timestamp: number,
@@ -159,11 +167,13 @@ test("records independent supporting evidence without a confidence score", async
     repositoryName: null,
     textRefs: [{ type: "file", sourcePath, byteOffset: 0, byteLength: 16 }],
   });
+
   const signals = [
     makeSignal("session-1", 1_788_537_600_000),
     makeSignal("session-2", 1_788_537_700_000),
   ];
   const runner: EngineRunner = () => Promise.resolve(successfulRun());
+
   const options = {
     signals,
     runner,
@@ -178,6 +188,7 @@ test("records independent supporting evidence without a confidence score", async
   };
 
   const result = await distillSignals(options);
+
   expect(result.rules.length).toBe(1);
   expect(result.rules[0]?.sessions).toBe(2);
   expect(result.rules[0]?.source).toBe("mined");

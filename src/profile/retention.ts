@@ -8,11 +8,11 @@ export function droppedProfileRuleKeys(options: {
   return options.files.flatMap((file) =>
     file.blocks.flatMap((block) =>
       block.key !== null &&
-        !options.written.has(block.key) &&
-        !options.retired.has(block.key)
+      !options.written.has(block.key) &&
+      !options.retired.has(block.key)
         ? [block.key]
-        : []
-    )
+        : [],
+    ),
   );
 }
 
@@ -22,9 +22,11 @@ export function assertProfileRetention(options: {
   readonly retired: ReadonlySet<string>;
 }): void {
   const dropped = droppedProfileRuleKeys(options);
+
   if (dropped.length === 0) {
     return;
   }
+
   throw new Error(
     `Profile write would remove ${dropped.length} stored rule(s) without an explicit retirement`,
   );

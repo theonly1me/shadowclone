@@ -9,7 +9,9 @@ test("durable steering phrases are recognized", () => {
     "Actually, use the options object instead.",
     "Don't touch the migrations folder.",
     "From now on, write tests first.",
-  ]) expect(hasDurableSteeringCue(text)).toBeTrue();
+  ]) {
+    expect(hasDurableSteeringCue(text)).toBeTrue();
+  }
 });
 
 test("acknowledgements and task requests carry no durable steering", () => {
@@ -18,5 +20,7 @@ test("acknowledgements and task requests carry no durable steering", () => {
     "Add a status filter to the list command.",
     "What does this function return?",
     "Yes, go ahead.",
-  ]) expect(hasDurableSteeringCue(text)).toBeFalse();
+  ]) {
+    expect(hasDurableSteeringCue(text)).toBeFalse();
+  }
 });

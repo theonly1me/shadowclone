@@ -16,29 +16,64 @@ export async function materializeEvidence(options: {
 }> {
   const excerpts = new Map<string, string>();
   const accepted: CorrectionSignal[] = [];
+
   for (const signal of options.signals) {
     const textRefs = [];
+
     for (const ref of signal.textRefs) {
-      const redacted = await resolveRedacted({ ref, roots: options.sourceRoots });
-      const text = signal.kind === "user-steering" ? extractPromptText(redacted) ?? "" : redacted;
-      if (text.includes(internalLearningMarker) || text.trimStart().startsWith("# Shadowclone profile")) continue;
+      const redacted = await resolveRedacted({
+        ref,
+        roots: options.sourceRoots,
+      });
+      const text =
+        signal.kind === "user-steering"
+          ? (extractPromptText(redacted) ?? "")
+          : redacted;
+
+      if (
+        text.includes(internalLearningMarker) ||
+        text.trimStart().startsWith("# Shadowclone profile")
+      ) {
+        continue;
+      }
+
       const authored = stripManagedGuidance(text);
-      if (!authored.trim()) continue;
+
+      if (!authored.trim()) {
+        continue;
+      }
+
       excerpts.set(textRefKey(ref), authored);
       textRefs.push(ref);
     }
-    if (textRefs.length === 0) continue;
-    const lacksCue = options.requireSteeringCue === true && signal.kind === "user-steering" &&
-      !textRefs.some((ref) => hasDurableSteeringCue(excerpts.get(textRefKey(ref)) ?? ""));
-    if (lacksCue) {
-      for (const ref of textRefs) excerpts.delete(textRefKey(ref));
+
+    if (textRefs.length === 0) {
       continue;
     }
+
+    const lacksCue =
+      options.requireSteeringCue === true &&
+      signal.kind === "user-steering" &&
+      !textRefs.some((ref) =>
+        hasDurableSteeringCue(excerpts.get(textRefKey(ref)) ?? ""),
+      );
+
+    if (lacksCue) {
+      for (const ref of textRefs) {
+        excerpts.delete(textRefKey(ref));
+      }
+
+      continue;
+    }
+
     for (const ref of signal.contextRefs ?? []) {
       const text = await resolveRedacted({ ref, roots: options.sourceRoots });
+
       excerpts.set(textRefKey(ref), extractPromptText(text) ?? "");
     }
+
     accepted.push({ ...signal, textRefs });
   }
+
   return { signals: accepted, excerpts };
 }

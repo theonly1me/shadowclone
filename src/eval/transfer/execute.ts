@@ -2,10 +2,7 @@ import path from "node:path";
 import { redactSecrets } from "../../redact";
 import { evaluationArms, type EvaluationArm } from "./arms";
 import { installContext } from "./context";
-import {
-  compareGitIntegrity,
-  readGitIntegrity,
-} from "./gitIntegrity";
+import { compareGitIntegrity, readGitIntegrity } from "./gitIntegrity";
 import { observeRun } from "./observeRun";
 import { reviewabilityChecks } from "./reviewability";
 import { createSnapshot } from "./snapshot";
@@ -16,11 +13,7 @@ import type {
   TransferRun,
 } from "./types";
 
-export type ExecutionStage =
-  | "snapshot"
-  | "coding"
-  | "collecting"
-  | "safety";
+export type ExecutionStage = "snapshot" | "coding" | "collecting" | "safety";
 
 export function repositoryGuidance(engine: PreparedEval["engine"]): string {
   return engine === "claude-code"
@@ -66,21 +59,28 @@ export async function executeTask(options: {
   const startedAt = Date.now();
   let observed: string | null = null;
   let cleanup: (() => Promise<void>) | undefined;
+
   try {
     await options.onProgress("snapshot");
+
     const snapshot = await createSnapshot({
       repository: options.prepared.repository,
       commit: options.task.startingCommit,
     });
+
     cleanup = snapshot.cleanup;
+
     const delivery = evaluationArms[options.arm];
+
     const context = delivery.context
       ? await installContext({
           files: options.prepared.context,
           directory: snapshot.directory,
         })
       : "";
+
     const integrityBefore = await readGitIntegrity(snapshot.directory);
+
     const prompt = [
       context,
       repositoryGuidance(options.prepared.engine),
@@ -91,27 +91,38 @@ export async function executeTask(options: {
       "Leave the requested code changes uncommitted for evaluation.",
       delivery.profile ? options.task.profile : "",
       options.task.prompt,
-    ].filter(Boolean).join("\n\n");
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
     await options.onProgress("coding");
+
     const run = await options.call({
       cwd: snapshot.directory,
       prompt,
       access: "write",
       blockedPaths: [path.join(snapshot.directory, ".git")],
     });
+
     await options.onProgress("collecting");
+
     const observation = await observeRun({
       directory: snapshot.directory,
       run,
       initialCommit: snapshot.initialCommit,
     });
+
     observed = observation.evidence;
+
     const verification = reviewabilityChecks(observation);
+
     await options.onProgress("safety");
+
     const safety = compareGitIntegrity({
       before: integrityBefore,
       after: await readGitIntegrity(snapshot.directory),
     });
+
     return {
       taskId: options.task.id,
       repeat: options.repeat,

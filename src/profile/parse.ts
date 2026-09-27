@@ -1,7 +1,4 @@
-import {
-  profileMetadataSchema,
-  uniqueProfileEvidence,
-} from "./metadata";
+import { profileMetadataSchema, uniqueProfileEvidence } from "./metadata";
 import { profileFingerprint } from "./render";
 import { splitProfileBlocks } from "./blocks";
 import type {
@@ -18,6 +15,7 @@ function readLegacyValue(options: {
   const value = options.metadata
     .split(/\s+/)
     .find((entry) => entry.startsWith(prefix));
+
   return value?.slice(prefix.length) ?? null;
 }
 
@@ -36,6 +34,7 @@ function visibleParts(visible: string): {
   readonly body: string;
 } {
   const [heading, ...body] = visible.split("\n");
+
   return {
     title: heading?.replace(/^#+\s*/, "").trim() ?? "",
     body: body.join("\n").trim(),
@@ -48,25 +47,32 @@ function parseCurrent(options: {
   readonly visible: string;
 }): ExistingProfileBlock | null {
   let decoded: unknown;
+
   try {
     decoded = JSON.parse(options.metadata);
   } catch {
     return null;
   }
+
   const result = profileMetadataSchema.safeParse(decoded);
+
   if (!result.success) {
     return null;
   }
+
   const evidence = uniqueProfileEvidence(result.data.evidence);
+
   if (
     result.data.supports !== evidence.for.length ||
     result.data.contradicts !== evidence.against.length
   ) {
     return null;
   }
+
   const edited =
     profileFingerprint(options.visible) !== result.data.fingerprint;
   const parts = visibleParts(options.visible);
+
   return {
     key: result.data.key,
     ...parts,
@@ -93,6 +99,7 @@ function legacyNumber(options: {
   readonly name: string;
 }): number {
   const value = Number(readLegacyValue(options));
+
   return Number.isFinite(value) ? value : 0;
 }
 
@@ -106,9 +113,11 @@ function parseLegacy(options: {
     metadata: options.metadata,
     name: "fingerprint",
   });
+
   if (key === null || fingerprint === null) {
     return manualBlock(options.block);
   }
+
   const edited = profileFingerprint(options.visible) !== fingerprint;
   const scopeValue = readLegacyValue({
     metadata: options.metadata,
@@ -119,6 +128,7 @@ function parseLegacy(options: {
     readLegacyValue({ metadata: options.metadata, name: "origins" })
       ?.split(",")
       .filter((value) => value.length > 0) ?? [];
+
   return {
     key,
     ...visibleParts(options.visible),
@@ -149,14 +159,15 @@ function parseLegacy(options: {
 }
 
 function parseBlock(block: string): ExistingProfileBlock {
-  const metadataMatch = block.match(
-    /\n\n<!-- shadowclone: ([^\n]+) -->\s*$/,
-  );
+  const metadataMatch = block.match(/\n\n<!-- shadowclone: ([^\n]+) -->\s*$/);
   const metadata = metadataMatch?.[1];
+
   if (!metadata || metadataMatch.index === undefined) {
     return manualBlock(block);
   }
+
   const visible = block.slice(0, metadataMatch.index).trim();
+
   return (
     parseCurrent({ block, metadata, visible }) ??
     parseLegacy({ block, metadata, visible })
@@ -169,6 +180,8 @@ export function parseProfileBlocks(
   return splitProfileBlocks(text).map(parseBlock);
 }
 
-export function parseProfileRules(text: string): readonly ExistingProfileRule[] {
+export function parseProfileRules(
+  text: string,
+): readonly ExistingProfileRule[] {
   return parseProfileBlocks(text).filter((block) => block.key !== null);
 }

@@ -17,6 +17,7 @@ function appendList(options: {
   if (options.values === undefined || options.values.length === 0) {
     return;
   }
+
   options.arguments_.push(options.flag);
   options.arguments_.push(...options.values);
 }
@@ -26,6 +27,7 @@ export function buildClaudeArguments(options: {
   readonly sessionId: string;
 }): readonly string[] {
   validateEngineExecution(options.run);
+
   const arguments_ = [
     "claude",
     "-p",
@@ -88,6 +90,7 @@ export function redactedFailure(options: {
   readonly exitCode: number;
 }): string {
   const stderrText = options.stderr.trim();
+
   if (stderrText.length > 0) {
     return redactSecrets({ text: stderrText });
   }
@@ -97,6 +100,7 @@ export function redactedFailure(options: {
   }
 
   const resultText = options.run.text.trim();
+
   return resultText.length > 0
     ? redactSecrets({ text: resultText })
     : `Process exited with code ${options.exitCode}`;
@@ -112,6 +116,7 @@ export async function runClaudeCode(
       : options.execution.purpose === "evaluation"
         ? path.join(options.cwd, ".eval-runtime")
         : options.cwd;
+
   if (options.execution.purpose === "evaluation") {
     await mkdir(temporaryDirectory, { recursive: true, mode: 0o700 });
   }

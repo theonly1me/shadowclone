@@ -6,6 +6,7 @@ export function portableSkillDirectories(options: {
   readonly name: string;
 }): readonly string[] {
   const home = path.dirname(options.paths.shadowcloneDirectory);
+
   return [
     path.join(home, ".agents/skills", options.name),
     path.join(home, ".claude/skills", options.name),
@@ -18,7 +19,15 @@ export function redundantSkillDirectories(options: {
   readonly name: string;
 }): readonly string[] {
   return [
-    path.join(path.dirname(options.paths.codexSessionsDirectory), "skills", options.name),
-    path.join(path.dirname(options.paths.shadowcloneDirectory), ".cursor/skills", options.name),
+    path.join(
+      path.dirname(options.paths.codexSessionsDirectory),
+      "skills",
+      options.name,
+    ),
+    path.join(
+      path.dirname(options.paths.shadowcloneDirectory),
+      ".cursor/skills",
+      options.name,
+    ),
   ].map(canonicalPath);
 }

@@ -22,6 +22,7 @@ export type OnboardingPresence = {
 async function directoryHasEntry(directoryPath: string): Promise<boolean> {
   try {
     const directory = await opendir(directoryPath);
+
     try {
       return (await directory.read()) !== null;
     } finally {
@@ -35,7 +36,8 @@ async function directoryHasEntry(directoryPath: string): Promise<boolean> {
 async function fileHasContent(filePath: string): Promise<boolean> {
   try {
     const file = Bun.file(filePath);
-    return await file.exists() && file.size > 0;
+
+    return (await file.exists()) && file.size > 0;
   } catch {
     return false;
   }
@@ -49,6 +51,7 @@ async function anyFileHasContent(
 
 async function repositoryFileExists(filePath: string): Promise<boolean> {
   const metadata = await lstat(filePath).catch(() => null);
+
   return metadata !== null && !metadata.isSymbolicLink();
 }
 
@@ -58,12 +61,17 @@ async function repositorySkillRootHasEntry(options: {
 }): Promise<boolean> {
   const parentPath = path.join(options.workingDirectory, options.rootName);
   const parentMetadata = await lstat(parentPath).catch(() => null);
+
   if (!parentMetadata?.isDirectory()) {
     return false;
   }
+
   const rootPath = path.join(parentPath, "skills");
   const rootMetadata = await lstat(rootPath).catch(() => null);
-  return rootMetadata?.isDirectory() === true && await directoryHasEntry(rootPath);
+
+  return (
+    rootMetadata?.isDirectory() === true && (await directoryHasEntry(rootPath))
+  );
 }
 
 async function hasRepositoryGuidance(
@@ -77,9 +85,11 @@ async function hasRepositoryGuidance(
       ),
     )
   ).some(Boolean);
+
   if (rootFileExists) {
     return true;
   }
+
   return (
     await Promise.all([
       repositorySkillRootHasEntry({ workingDirectory, rootName: ".claude" }),
@@ -101,11 +111,13 @@ export async function detectOnboardingPresence(options: {
     anyFileHasContent(options.paths.shellHistoryFiles),
   ]);
   const presentCaptureSources = new Set<OnboardingCaptureSourceId>();
+
   for (const [sourceIndex, sourceId] of onboardingCaptureSourceIds.entries()) {
     if (results[sourceIndex] === true) {
       presentCaptureSources.add(sourceId);
     }
   }
+
   return {
     hasRepositoryGuidance: await hasRepositoryGuidance(
       options.workingDirectory,

@@ -65,6 +65,7 @@ test("each rule produces its dedicated redaction label", () => {
 
   for (const item of cases) {
     const redacted = redactSecrets({ text: item.value, homeDirectory });
+
     expect(redacted).toContain(`[redacted:${item.expectedLabel}]`);
   }
 });
@@ -82,8 +83,11 @@ test("mustRedact scrubs secrets inside jsonl message envelopes", () => {
     });
 
     expect(redacted).toContain("[redacted:");
+
     const decoded: unknown = JSON.parse(redacted);
+
     expect(isObjectRecord(decoded)).toBe(true);
+
     if (isObjectRecord(decoded)) {
       expect(decoded.type).toBe("user_message");
       expect(typeof decoded.content).toBe("string");
@@ -128,6 +132,7 @@ test("redaction is idempotent across all corpus fixtures", () => {
   for (const value of combined) {
     const once = redactSecrets({ text: value, homeDirectory });
     const twice = redactSecrets({ text: once, homeDirectory });
+
     expect(twice).toBe(once);
   }
 });

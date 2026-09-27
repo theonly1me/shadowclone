@@ -20,6 +20,7 @@ export {
   type SourceId,
   type SourceSettings,
 } from "./schema";
+
 export {
   applyManagedPolicy,
   defaultManagedPolicy,
@@ -30,6 +31,7 @@ export {
   type DistillationPolicy,
   type ManagedPolicy,
 } from "./managed";
+
 export {
   actionCapabilities,
   type ActionCapability,
@@ -48,13 +50,16 @@ export async function readConfig(
   }
 
   const parsed: unknown = toml.parse(await configFile.text());
+
   return parseConfig(parsed);
 }
 
-export async function readEffectiveConfig(options: {
-  readonly configPath?: string;
-  readonly managedConfigPath?: string | null;
-} = {}): Promise<{
+export async function readEffectiveConfig(
+  options: {
+    readonly configPath?: string;
+    readonly managedConfigPath?: string | null;
+  } = {},
+): Promise<{
   readonly config: ShadowcloneConfig;
   readonly policy: ManagedPolicy;
 }> {
@@ -66,6 +71,7 @@ export async function readEffectiveConfig(options: {
   const config = policy.enabled
     ? await readConfig({ configPath: options.configPath })
     : defaultConfig;
+
   return {
     config: applyManagedPolicy({ config, policy }),
     policy,
@@ -115,6 +121,10 @@ export function setDeepEnabled(options: {
 }): ShadowcloneConfig {
   return {
     ...options.config,
-    distillation: { ...options.config.distillation, deep: options.enabled, ...(options.enabled ? {} : { automatic: false }) },
+    distillation: {
+      ...options.config.distillation,
+      deep: options.enabled,
+      ...(options.enabled ? {} : { automatic: false }),
+    },
   };
 }

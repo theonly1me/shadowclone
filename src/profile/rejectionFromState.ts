@@ -1,7 +1,4 @@
-import type {
-  GeneratedProfileStateEntry,
-  ProfileRejection,
-} from "./state";
+import type { GeneratedProfileStateEntry, ProfileRejection } from "./state";
 
 export function profileRejectionFromState(
   entry: GeneratedProfileStateEntry,

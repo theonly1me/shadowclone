@@ -22,7 +22,9 @@ function profileBodyFromSeedGuidance(guidance: SeedGuidance): string {
     : guidance.body;
 }
 
-function profileRuleFromSeedGuidance(guidance: SeedGuidance): ProfileRule {
+export function profileRuleFromSeedGuidance(
+  guidance: SeedGuidance,
+): ProfileRule {
   return {
     key: seedGuidanceProfileKey(guidance.id),
     title: guidance.title,
@@ -49,15 +51,21 @@ async function existingRulesByKey(options: {
   readonly relativePaths: readonly string[];
 }): Promise<ReadonlyMap<string, ExistingProfileRule>> {
   const rules = new Map<string, ExistingProfileRule>();
+
   for (const relativePath of new Set(options.relativePaths)) {
-    const file = Bun.file(path.join(options.paths.profileDirectory, relativePath));
+    const file = Bun.file(
+      path.join(options.paths.profileDirectory, relativePath),
+    );
+
     if (!(await file.exists())) {
       continue;
     }
+
     for (const rule of parseProfileRules(await file.text())) {
       rules.set(rule.key, rule);
     }
   }
+
   return rules;
 }
 
@@ -69,34 +77,54 @@ export async function writeSeedGuidanceSelection(options: {
   const selectedKeys = new Set(
     options.selectedGuidance.map((entry) => seedGuidanceProfileKey(entry.id)),
   );
+
   const libraryByKey = new Map(
     options.library.guidance.map((entry) => [
       seedGuidanceProfileKey(entry.id),
       entry,
     ]),
   );
+
   const environment = await readEnvironment(options.paths);
+
   if (environment) {
     const previous = environment.records.map(({ rule }) => rule);
+
     const rules = options.selectedGuidance.map((guidance) => {
       const selected = profileRuleFromSeedGuidance(guidance);
       const current = previous.find((rule) => rule.key === selected.key);
-      return current && (current.source === "user" || current.body !== selected.body) ? current : selected;
+
+      return current &&
+        (current.source === "user" || current.body !== selected.body)
+        ? current
+        : selected;
     });
-    const retired = previous.filter((rule) => {
-      const guidance = libraryByKey.get(rule.key);
-      return guidance && !selectedKeys.has(rule.key) && rule.source === "declared" && rule.body === profileBodyFromSeedGuidance(guidance);
-    }).map((rule) => ({ key: rule.key, relativePath: profileRulePath(rule) }));
+
+    const retired = previous
+      .filter((rule) => {
+        const guidance = libraryByKey.get(rule.key);
+
+        return (
+          guidance &&
+          !selectedKeys.has(rule.key) &&
+          rule.source === "declared" &&
+          rule.body === profileBodyFromSeedGuidance(guidance)
+        );
+      })
+      .map((rule) => ({ key: rule.key, relativePath: profileRulePath(rule) }));
+
     return writeProfile({ paths: options.paths, rules, retired });
   }
-  const previous = (await readGeneratedProfileState(
-    options.paths.profileManifestFile,
-  )).filter(
+
+  const previous = (
+    await readGeneratedProfileState(options.paths.profileManifestFile)
+  ).filter(
     (entry) =>
       entry.disposition === "present" &&
       entry.source === "declared" &&
       libraryByKey.has(entry.key),
   );
+
   const existing = await existingRulesByKey({
     paths: options.paths,
     relativePaths: previous.map((entry) => entry.relativePath),
@@ -108,18 +136,25 @@ export async function writeSeedGuidanceSelection(options: {
     if (selectedKeys.has(entry.key)) {
       continue;
     }
+
     const guidance = libraryByKey.get(entry.key);
+
     if (!guidance) {
       continue;
     }
+
     const current = existing.get(entry.key);
+
     if (!current) {
       rules.push(profileRuleFromSeedGuidance(guidance));
+
       continue;
     }
+
     if (current.edited || current.source === "user") {
       continue;
     }
+
     retired.push({ relativePath: entry.relativePath, key: entry.key });
   }
 

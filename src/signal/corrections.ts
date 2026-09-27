@@ -1,15 +1,13 @@
 import type { IndexedEvent } from "../index";
 import { getEventRepository } from "./origin";
-import type {
-  CorrectionSignal,
-  RepositoryIdentity,
-} from "./types";
+import type { CorrectionSignal, RepositoryIdentity } from "./types";
 
 function previousAgentAction(
   events: readonly IndexedEvent[],
 ): IndexedEvent | null {
   for (let position = events.length - 1; position >= 0; position -= 1) {
     const event = events[position];
+
     if (
       event &&
       (event.kind === "tool-call" ||
@@ -20,6 +18,7 @@ function previousAgentAction(
       return event;
     }
   }
+
   return null;
 }
 
@@ -33,12 +32,15 @@ function interruptionCategory(event: IndexedEvent | null): {
       label: `while using ${event.tool.name}`,
     };
   }
+
   if (event?.kind === "plan-presented") {
     return { category: "after-plan", label: "after presenting a plan" };
   }
+
   if (event?.kind === "assistant-text") {
     return { category: "assistant-text", label: "during an explanation" };
   }
+
   return { category: "other", label: "before finishing a response" };
 }
 
@@ -50,9 +52,11 @@ function createSignal(options: {
   readonly repository: RepositoryIdentity;
   readonly relatedEvent?: IndexedEvent | null;
 }): CorrectionSignal {
-  const textRefs = [options.relatedEvent?.textRef, options.event.textRef].filter(
-    (ref) => ref !== null && ref !== undefined,
-  );
+  const textRefs = [
+    options.relatedEvent?.textRef,
+    options.event.textRef,
+  ].filter((ref) => ref !== null && ref !== undefined);
+
   return {
     kind: options.kind,
     category: options.category,
@@ -79,9 +83,11 @@ function mineSession(options: {
       event,
       repositories: options.repositories,
     });
+
     if (event.kind === "interruption") {
       const preceding = previousAgentAction(history);
       const category = interruptionCategory(preceding);
+
       signals.push(
         createSignal({
           kind: "interruption",
@@ -92,9 +98,11 @@ function mineSession(options: {
         }),
       );
     }
+
     if (event.kind === "permission-denied") {
       const preceding = previousAgentAction(history);
       const toolName = preceding?.tool?.name ?? "an unspecified tool";
+
       signals.push(
         createSignal({
           kind: "permission-denied",
@@ -106,12 +114,15 @@ function mineSession(options: {
         }),
       );
     }
+
     if (event.kind === "question-asked") {
       pendingQuestion = event;
     }
+
     if (event.kind === "plan-presented") {
       pendingPlan = event;
     }
+
     if (event.kind === "user-prompt" || event.kind === "question-answered") {
       if (pendingQuestion !== null || event.kind === "question-answered") {
         signals.push(
@@ -127,6 +138,7 @@ function mineSession(options: {
         pendingQuestion = null;
       }
     }
+
     if (event.kind === "user-prompt" || event.kind === "plan-resolved") {
       if (pendingPlan !== null || event.kind === "plan-resolved") {
         signals.push(
@@ -142,6 +154,7 @@ function mineSession(options: {
         pendingPlan = null;
       }
     }
+
     history.push(event);
   }
 
@@ -156,6 +169,7 @@ export function mineCorrections(options: {
     options.events,
     (event) => `${event.source}:${event.sessionId}`,
   );
+
   return [...sessions.values()].flatMap((events) =>
     mineSession({ events, repositories: options.repositories }),
   );

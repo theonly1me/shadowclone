@@ -14,6 +14,7 @@ export async function gitIdentityArguments(options: {
       timeoutMilliseconds: 10_000,
       maximumOutputBytes: 4096,
     });
+
     const value = result.stdout.trim();
 
     if (result.exitCode === 0 && value.length > 0) {

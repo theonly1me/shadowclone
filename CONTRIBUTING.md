@@ -1,112 +1,63 @@
-## Releasing
-
-Releases are automated. Every merge to `main` updates a release pull request that bumps the version and writes `CHANGELOG.md` from the conventional-commit subjects since the last release. Merging that pull request tags the version and creates the GitHub release.
-
-The run for that merge commit then publishes `@shadowclone/cli` to npm, behind the `npm` environment, so it waits for a maintainer to approve it from the Actions tab. That approval is the last gate before anything reaches the registry. A run publishes only when the tag for its `package.json` version points at the exact commit it gated and npm does not have that version yet. Another merge landing during a release therefore cannot claim or skip it, and rerunning a release run whose publish failed retries the publish.
-
-Commit subjects decide the version. A `feat:` subject bumps the minor, `fix:` bumps the patch, and anything with a `!` bumps the major. `chore:`, `ci:`, `test:`, and `refactor:` do not appear in the changelog.
-
-One package ships. It carries the bundled CLI and depends on `bun`, which resolves its own platform binary through npm, so a machine with only Node can install and run it.
-
-Publishing authenticates through trusted publishing, which exchanges a GitHub OIDC token for a short-lived npm credential and needs no stored secret. npm cannot configure a trusted publisher for a package that does not exist, so the first publish uses an `NPM_TOKEN` secret. After that, add `theonly1me/shadowclone` and `release.yml` as the trusted publisher and delete the secret. The npm CLI prefers OIDC when it is available and falls back to the token when it is not, so the workflow is the same either way.
-
 # Contributing
 
-Thanks for looking. This is an early project, so the surface area is small and the conventions are strict. Both of those make review fast, which is the whole point.
+## Development setup
 
-## Setup
-
-Development uses [Bun](https://bun.sh). For anything that calls a model, at least one of `claude`, `codex`, or `cursor-agent` must be installed and logged in. No separate API key is required.
+Install [Bun](https://bun.sh), then run:
 
 ```bash
 bun install
 bun run check
 ```
 
-`bun run cli init` writes the opt-in config. `bun run cli learn` ingests enabled sources and reports aggregate behavior without changing the profile or making a network call. `bun run cli learn --deep` is the separate, consented path that writes mined rules through a selected authenticated agent CLI. `bun run cli run "<task>"` explicitly approves one local worktree, branch, and commit for that task.
+Use `bun run cli` to run Shadowclone from the checkout. Commands that call a model need an installed, authenticated `claude`, `codex`, or `cursor-agent` CLI. Ordinary tests use synthetic fixtures and do not need an account.
 
-## The gate
+`bun run cli init` changes your local setup. Use isolated test paths when exercising installation, learning, or removal code.
 
-Run this before you open a PR. It is what CI runs, on Linux and macOS.
+## Making a change
+
+Describe the problem and approach in `docs/` before implementation. For a new product or architecture decision, use the [design template](docs/design/template.md) and add the record to the [index](docs/design/README.md).
+
+Keep changes focused. Add tests for behavior that can regress, and run the affected tests while working. Before submitting, run:
 
 ```bash
-bun run check        # bun run typecheck && bun run lint && bun test
+bun run check
 ```
 
-`bun run lint` is two layers. Biome carries the TypeScript rules, including a plugin that reports any `as` cast other than `as const`. `scripts/conventions.ts` carries the three rules Biome has no rule for: files stay under 200 lines, `.ts` files hold no comments, and nothing anywhere holds an em-dash. Both print the file and line, and neither has a suppression comment you are allowed to reach for.
+This runs typecheck, lint, and tests. CI also runs the tests on Linux and macOS.
 
-## Conventions
+## Code conventions
 
-The conventions live in `.claude/skills/clean-code/SKILL.md`. Read it before your first PR.
+- Use complete names and an options object for functions with two or more arguments.
+- Keep TypeScript files under 200 lines, including tests.
+- Avoid `any`, non-null assertions, type assertions other than `as const`, and unhandled or voided promises.
+- Write code without comments. Express intent in names, types, functions, and tests. Leave unrelated existing comments alone.
+- Fix lint findings without suppressing rules.
+- Use plain prose and ordinary punctuation. Do not use em dashes.
 
-The ones people trip on:
+The repository [clean-code skill](.claude/skills/clean-code/SKILL.md) gives the full conventions. [AGENTS.md](AGENTS.md) is the entry point for coding assistants.
 
-- **No `any`, no non-null `!`, no `as` casts.** Only `as const`. If the type system is fighting you, destructure and narrow instead of asserting.
-- **Zero comments.** Not few. Zero. If code needs explaining, rename something, extract a named function, put the state in the type, or write a test that encodes the rule. The reasoning goes in the PR description, where it gets read.
-- **Full words in names.** `statement` not `stmt`, `index` not `i`. Never shadow an import with a local name.
-- **Two or more arguments take an options object.** `getRecentShellHistory({ lineCount, historyPaths })`.
-- **Files stay under 200 lines,** tests included. Plan a folder module before writing a larger change.
-- **No em-dashes** in code, comments, docs, or PR text.
+## Documentation
 
-This applies to the existing code as much as new code, with one exception: do not open a PR whose purpose is deleting comments or renaming things you did not otherwise touch.
+Write for someone using or changing the project. Explain the action or decision they need to understand. Keep current guides aligned with the implementation and put historical decisions in design records.
 
-## PRs
+Leave session approvals, expired deadlines, progress logs, and incidental test counts out of permanent docs. Link to an existing explanation instead of repeating it. Optional template sections can be omitted.
 
-`.github/pull_request_template.md` is strict on purpose, and the limits are real:
+## Pull requests
 
-- The whole body stays under **250 words**. `wc -w` on your body before you submit.
-- **What changed** is bullets, one sentence each, seven at most. If a bullet needs two sentences it is two bullets.
-- **Why** is three sentences at most.
-- Delete every `<!-- -->` comment and any section you did not fill in. Never write "n/a".
+Use the [PR template](.github/pull_request_template.md). Keep the body under 250 words, with one sentence per change bullet, at most seven bullets, and at most three sentences explaining why. Include verification and any material limitation. Remove unused sections.
 
-The reason for the caps: a PR body written by an AI assistant will happily produce four confident paragraphs where one sentence was needed, and it reads like effort while making review slower. A reviewer opens a PR to find out what changed, and every sentence between them and that answer is a cost. Short bodies get reviewed faster.
+Commit messages use a single lowercase conventional-commit subject. Do not add a co-author trailer or force push reviewed work.
 
-Using an assistant to help write the PR is fine. Shipping its first draft unedited is not.
+## Changes involving user data
 
-### What a bullet looks like
+Read [data handling](docs/data-handling.md) and the [contributor data rules](.claude/skills/data-handling/SKILL.md) before changing capture, storage, model requests, or delegated actions.
 
-Good. One sentence each, present tense, saying what the code does now:
+New sources need an opt-in flag and an entry in the data-handling source list. Tests must exercise the real input path with synthetic sensitive values. Keep private source material, raw transcripts, and evaluation receipts out of the checkout and public reports.
 
-```markdown
-- Resolve captured text through `resolveRedacted` before building learning input.
-- Preserve the ingest cursor when the source has not changed.
-- Add adapter tests covering redaction wiring and an empty source.
-```
+For a redaction gap, describe the format using a synthetic example. Report exposures and other vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
-Bad, and this is the exact thing the caps exist to stop:
+## Releasing
 
-```markdown
-- **Enhanced Security Posture**: This PR introduces a comprehensive redaction layer that
-  significantly improves the security of the data pipeline. By leveraging a robust set of
-  regular expression patterns, we can now confidently ensure that sensitive credentials are
-  properly sanitized before egress. This represents a crucial step forward for the project.
-```
+Release Please maintains a release PR from conventional commits on `main`. Merging it creates the version tag and GitHub release. After CI passes, a maintainer approves the `npm` environment in GitHub Actions to publish `@shadowclone/cli` with provenance.
 
-That bullet is four sentences, has a bold label, uses leverage, robust, comprehensive, and crucial, and after all of it a reviewer still does not know which function changed.
-
-Some specific things to cut, because they show up in almost every generated body: an opening paragraph restating the title, a closing paragraph summarising the bullets, any sentence about what did **not** change, and any narration of how the work went. Join a change to its consequence with "so" only when the reason is not obvious from the name. "Rename `clientFiles` to `openOrDirtyFiles`" needs no second clause.
-
-If you are over 250 words, delete sentences. Do not compress them into denser ones.
-
-Commit messages are one line, lowercase, with a conventional-commit prefix. Check `git log --oneline`. Do not force push a branch someone has already reviewed.
-
-## Changes that get a closer read
-
-Anything touching capture, storage, or network egress. That is `src/observe/`, `src/index/`, `src/redact/`, `src/distill/`, `src/profile/`, `src/engine/`, `src/dispatch/`, and any new file that reads from a home directory, opens a socket, calls `fetch`, or spawns a process.
-
-`.claude/skills/data-handling/SKILL.md` has the rules. The six that come up most:
-
-1. **A new capture source needs an opt-in flag and a README entry in the same PR.** Reading a wider slice of a file you already read counts as a new source.
-2. **Learning capture passes `redactSecrets` through `resolveRedacted`.** Do not bypass the gate or duplicate it downstream. Authorized coding and evaluation send code to the selected provider under the separate boundary documented in `docs/architecture/05-privacy.md`.
-3. **A test proves the wiring, not just the function.** `src/redact/index.test.ts` proving a pattern works says nothing about whether an adapter keeps text behind the resolver. Every adapter under `src/observe/adapters/` ships a wiring test with a fixture transcript holding a planted secret.
-4. **No raw capture in a log line, an error message, or a committed test fixture.** Public fixtures must be synthetic, and evaluation write-ups must be reviewed summaries, not raw receipts.
-5. **Tool results, file contents, and thinking blocks are never distilled.** Excluded by category, not redacted. `docs/architecture/07-enterprise.md` has the list and the reason.
-6. **Repository and owner guidance stays scoped.** Global guidance requires explicit, globally scoped evidence or a user-directed change.
-
-If you are unsure whether your change touches egress, it touches egress. Say so in the PR and let the reviewer decide.
-
-## Reporting a redaction gap
-
-If you find a string that gets past `src/redact/`, that is the most valuable bug report this project can get. Open an issue describing the **shape** of the string, not the string itself. "A GitLab personal access token starting `glpat-` is not matched" is enough to write the pattern and the test.
-
-`SECURITY.md` covers the reports that go through private reporting instead.
+Use `feat:` for a minor version, `fix:` for a patch, and `!` for a breaking change. The [release workflow](.github/workflows/release.yml) defines publishing and retry behavior.

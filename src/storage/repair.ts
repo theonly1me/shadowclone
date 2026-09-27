@@ -29,11 +29,15 @@ async function repairEntry(options: {
       await chmod(options.entryPath, ownedDirectoryMode);
       options.summary.directories += 1;
     }
+
     if (options.entryPath === path.join(options.root, "worktrees")) {
       options.summary.skipped += 1;
+
       return;
     }
+
     const entries = await readdir(options.entryPath);
+
     for (const entry of entries) {
       await repairEntry({
         entryPath: path.join(options.entryPath, entry),
@@ -41,11 +45,13 @@ async function repairEntry(options: {
         summary: options.summary,
       });
     }
+
     return;
   }
 
   if (!stats.isFile()) {
     options.summary.skipped += 1;
+
     return;
   }
 

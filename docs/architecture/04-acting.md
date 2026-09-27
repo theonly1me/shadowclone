@@ -1,100 +1,42 @@
-# Acting
+# Delegated tasks
 
-This document sets the ceiling on what a clone may do, in a session and unattended.
+`shadowclone run "<task>"` runs an agent in a separate local worktree and records the result. The invocation authorizes one worktree, branch, and local commit for that task. Review the result before allowing any remote action.
 
-## Tiers
+An optional Claude subagent runs inside the user’s existing agent session and uses that session’s permissions. It receives the current native guidance. The policy below governs headless worktree runs.
 
-`.claude/skills/data-handling/SKILL.md` defines three tiers and this design keeps them.
+## Policy and approval
 
-**Observe and derive** runs unattended with consent. It reads enabled transcripts, updates the local index, mines aggregate signals, and refreshes compiled local guidance. Default setup can write mined profile rules during its bounded first pass when background learning is enabled. Manual `learn --deep` also proposes rules for approval. Eligible excerpts leave the machine only through the user's authenticated agent CLI after redaction.
-
-**Draft** runs unattended. Producing a diff or a message left in a file. Nothing another person can see.
-
-**Act** changes state outside the run. Committing, pushing, opening a PR, replying to a review, commenting on an issue. This tier requires explicit approval for the action, bounded by a per-repo ceiling.
-
-## Optional delegated execution
-
-**As a subagent inside the user's own session.** Claude's `SubagentStart` hook injects the current compiled profile into spawned subagents. An optional repository `--subagent` installation also writes `.claude/agents/<name>.md` for explicit dispatch through the `Agent` tool. The session's permission mode applies, and its transcript can feed later learning. Main-agent delivery remains the default product path.
-
-**Headless, in a worktree.** `shadowclone run` for work that happens while the user is away. This is the path the rest of this document governs, because nobody is watching it.
-
-## The policy
-
-Full delegation is the goal and an empty allowlist is the default. Invoking `shadowclone run "<task>"` explicitly approves one worktree, branch, and local commit for that task. A fresh install can do that and nothing else, on any repo, with no configuration.
+Repository policy sets the maximum remote actions available. It is not approval to perform them. Each remote action also needs a matching `--approve` on that run; replies additionally identify the PR.
 
 ```toml
-[repo."github.com/example-personal/sample"]
+[repo."github.com/example-team/service"]
 allow = ["push", "pr-draft", "pr-reply"]
 maxBudgetUsd = 2.00
-
-[repo."github.com/example-team/service"]
-allow = []
 ```
 
-Repository policy keys use the full `host/owner/repository` identity and require the `git-metadata` source. When that source is disabled, `resolveRepository` produces an isolated identity, so a named repository entry cannot match.
+Policy uses the full repository identity and requires `git-metadata` consent. Without it, the repository receives an isolated identity and cannot match a named remote policy. Managed policy can narrow the action tier further.
 
-Promotion is a deliberate edit to a config file, one repo at a time. The entry is a ceiling, not standing approval. A remote action also needs a matching `--approve` on the individual run. There is no global switch that grants remote actions everywhere.
+The engine gets inspection, editing, and permitted verification tools. Host helpers perform approved Git and GitHub operations with validated targets. The agent does not receive general commit or push permissions. Permission bypass flags, force pushes, and PR merges are not granted.
 
-`src/dispatch/policy.ts` intersects repo policy, per-run approval, and the managed action tier to produce engine arguments. Unattended execution sets `permissionMode: "dontAsk"`, ensuring `allowedTools` acts as an enforced ceiling. A withheld capability becomes a `--disallowedTools` entry. Absence of a tool beats a rule about a tool. The engine never receives wildcard add, commit, or push tools.
+## Run lifecycle
 
-Draft tools include inspection, edits, and repository verification commands detected dynamically from project manifests (`package.json`, `Cargo.toml`, `go.mod`, `Makefile`, `pyproject.toml`) or configured per repository with `:*` argument suffixes. These are permissions available to the engine. `runHeadlessClone` does not yet require evidence that a verification command ran or succeeded before it commits a successful engine result.
+1. Resolve repository identity, managed limits, and the per-run action grants.
+2. Create a separate branch and worktree. Reuse compatible installed dependencies when permitted without downloading them.
+3. Prepare scoped skills and routing, or legacy guidance for an unmigrated installation.
+4. Run the eligible engine under the resolved tools, permissions, and budget.
+5. If a harness exists, run its gate and `shadowclone check --changed` in a verification sandbox.
+6. On a failed gate, allow one repair attempt using redacted failure output and check again.
+7. Commit a successful result only if the configured gate passes. A repository without a gate can produce an explicitly ungated commit.
+8. Perform separately approved remote actions and leave the worktree and receipt for review.
 
-Push safety is handled outside the agent process. The agent receives no `Bash(git push:*)` permission. The host orchestrator inspects the resulting worktree and performs an explicitly approved `git push --set-upstream origin <branch>` after the run. Commits are likewise created host-side with fixed argument vectors.
+A result that still fails its configured gate remains uncommitted. Verification can write only the worktree and its temporary directory and has no network or provider credentials.
 
-## A run
+## Receipts
 
-1. Resolve the policy for the target repo. No entry means draft tier.
-2. `git worktree add ~/.shadowclone/worktrees/<runId> -b shadowclone/<slug>`. The user's working tree is never the working directory of a clone.
-3. When `node_modules` is ignored and the lockfile matches, copy the repository's installed dependencies into the worktree so the clone and the gate can run tests without network access.
-4. Compile the profile for this repo into `.compiled.md`.
-5. Generate a run UUID and pass it as `--session-id`, so the clone's transcript is findable.
-6. Run the engine with the policy's tools, `dontAsk` permission mode, and budget.
-7. If the worktree carries a harness, run its gate inside the no-network verification sandbox, which can write only the worktree and a temporary directory, and run `shadowclone check --changed`. On failure, run the engine once more with the redacted failure output, then gate again.
-8. Commit a successful change with fixed `git add --all` and `git commit` argument vectors only when the gate passed or no harness exists. A change that still fails stays uncommitted in the worktree.
-9. If push was approved, execute host-side upstream push.
-10. Inspect the worktree and write `~/.shadowclone/runs/<runId>/receipt.json`.
-11. Leave the worktree in place for review.
+A private receipt records the task, repository and branch, engine and session, available usage, changed files, commits, allowed or blocked actions, and permission denials.
 
-## The receipt
+The gate status is `passed`, `failed`, `not-configured`, or `not-run`. Attempts distinguish an initial pass from a repair. Inspect the receipt and worktree even when the agent reports success; an ungated run has not proved the repository’s checks pass.
 
-Every run produces one, so the user can review delegated work.
+Provider transcripts remain available through their normal locations. Later learning still requires source consent and durable user guidance. A merge, deletion, or successful agent result alone does not establish a preference.
 
-```json
-{
-  "runId": "...",
-  "task": "...",
-  "repo": "...",
-  "branch": "shadowclone/fix-flaky-collector-test",
-  "engine": "claude-code",
-  "model": "...",
-  "sessionId": "...",
-  "transcriptPath": "~/.claude/projects/.../<sessionId>.jsonl",
-  "startedAt": "...",
-  "durationMs": 0,
-  "costUsd": 0,
-  "turns": 0,
-  "filesChanged": [],
-  "commits": [],
-  "actionsTaken": ["commit"],
-  "actionsBlockedByPolicy": ["push"],
-  "permissionDenials": [],
-  "profileRulesApplied": 34,
-  "gate": { "status": "passed", "command": "bun run check", "attempts": 1 }
-}
-```
-
-`gate.status` is `passed`, `failed`, `not-configured` when the repository has no harness, or `not-run` when the engine run itself failed. `attempts` counts gate runs, so 2 means one repair attempt was used.
-
-`actionsBlockedByPolicy` is there so the user can see what the clone wanted to do and could not. That list is the best available evidence for whether a repo is ready to be promoted, and it is also a correction signal in its own right.
-
-## Learning from its own runs
-
-The clone's transcript is written to the same place the user's transcripts are written, in the same format, and the run receipt records exactly where. The observe stage reads it with no special case.
-
-Current learning relies on explicit reusable user guidance and assessed corrections in consented sessions. Merge outcomes and rewritten diffs are a possible future source, not an implemented feedback channel. A merge or deletion alone does not establish why the user made that decision.
-
-## What is never allowed
-
-No tier and no allowlist entry grants any of these.
-
-`--dangerously-skip-permissions` and `--permission-mode bypassPermissions` are never passed. Force pushes, writes to a branch a human is using, remote actions without both a policy ceiling and per-run approval, spending above an enforced run budget, and merging pull requests are forbidden. The explicit `run` invocation can still authorize its bounded local worktree and commit when no remote-action policy exists.
+See [data handling](../data-handling.md#execution) for the provider and storage boundaries. A push sends repository Git objects without redacting their contents.

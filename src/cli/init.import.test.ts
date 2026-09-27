@@ -26,6 +26,7 @@ test("offers to import detected repository guidance", async () => {
     },
     ask: (question) => {
       questions.push(question);
+
       return false;
     },
     writeLine: () => {},
@@ -40,6 +41,7 @@ test("imports accepted guidance after configuration and skips seed selection", a
     path.join(os.tmpdir(), "shadowclone-init-import-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+
   await Bun.write(path.join(homeDirectory, "CLAUDE.md"), "# Plan first");
 
   await initialize({
@@ -60,7 +62,10 @@ test("imports accepted guidance after configuration and skips seed selection", a
   });
 
   const config = await readConfig({ configPath: paths.configFile });
-  const state = (await readProfileSnapshot(paths)).rules.map(({ rule }) => rule);
+  const state = (await readProfileSnapshot(paths)).rules.map(
+    ({ rule }) => rule,
+  );
+
   expect(config.sources["declared-rules"]).toBeTrue();
   expect(state).toHaveLength(1);
 });
@@ -90,6 +95,7 @@ test("offers seed guidance when managed policy blocks import", async () => {
     },
     ask: (question) => {
       questions.push(question);
+
       return false;
     },
     writeLine: (line) => output.push(line),
@@ -97,7 +103,5 @@ test("offers seed guidance when managed policy blocks import", async () => {
 
   expect(questions[0]).toBe("Set up a seed profile instead?");
   expect(questions).not.toContain("Import existing repository guidance?");
-  expect(output[0]).toBe(
-    "Managed policy blocks repository guidance import.",
-  );
+  expect(output[0]).toBe("Managed policy blocks repository guidance import.");
 });

@@ -15,6 +15,7 @@ const origin: OriginScope = {
   directoryName: "github.com--acme--936913df4a5c268b",
   promotable: true,
 };
+
 const emptyLibrary: SeedLibrary = {
   guidance: [],
   preferences: [],
@@ -36,12 +37,18 @@ function signal(sessionIndex: number): CorrectionSignal {
   };
 }
 
-function context(sessionCount: number, profile: ProfileSnapshot = { rules: [], rejections: [] }) {
+function context(
+  sessionCount: number,
+  profile: ProfileSnapshot = { rules: [], rejections: [] },
+) {
   const batch: DistillBatch = {
     origin,
     repositoryName: null,
-    signals: Array.from({ length: sessionCount }, (_, index) => signal(index + 1)),
+    signals: Array.from({ length: sessionCount }, (_, index) =>
+      signal(index + 1),
+    ),
   };
+
   return createReconciliationContext({ batch, profile, library: emptyLibrary });
 }
 
@@ -64,6 +71,7 @@ test("activates mined guidance only after three independent sessions", () => {
       newRules: [newRule(["evidence-1", "evidence-2", "evidence-unknown"])],
     },
   });
+
   const active = applyReconciliation({
     context: context(3),
     output: {
@@ -71,6 +79,7 @@ test("activates mined guidance only after three independent sessions", () => {
       newRules: [newRule(["evidence-1", "evidence-2", "evidence-3"])],
     },
   });
+
   expect(candidate.rules[0]?.status).toBe("candidate");
   expect(candidate.rules[0]?.evidence.for).toHaveLength(2);
   expect(active.rules[0]?.status).toBe("active");
@@ -85,6 +94,7 @@ test("unions rule-specific reinforcement with prior evidence", () => {
     kind: "question-answered",
     category: "agent-question",
   });
+
   const existing: ProfileRule = {
     key: "mined-existing",
     title: "Prefer the smaller scope",
@@ -104,31 +114,38 @@ test("unions rule-specific reinforcement with prior evidence", () => {
     lastSeen: "2026-09-05",
     importReference: null,
   };
+
   const profile: ProfileSnapshot = {
-    rules: [{
-      rule: existing,
-      promptTitle: existing.title,
-      promptBody: existing.body,
-      promptAppliesWhen: existing.appliesWhen,
-      promptProposal: existing.proposal,
-    }],
+    rules: [
+      {
+        rule: existing,
+        promptTitle: existing.title,
+        promptBody: existing.body,
+        promptAppliesWhen: existing.appliesWhen,
+        promptProposal: existing.proposal,
+      },
+    ],
     rejections: [],
   };
+
   const applied = applyReconciliation({
     context: context(2, profile),
     output: {
-      existingRules: [{
-        ruleToken: "rule-1",
-        verdict: "reinforces",
-        observed: "Two more sessions chose the smaller scope.",
-        evidenceTokens: ["evidence-1", "evidence-2", "evidence-unknown"],
-        proposedTitle: "",
-        proposedBody: "",
-        axisChoiceToken: "",
-      }],
+      existingRules: [
+        {
+          ruleToken: "rule-1",
+          verdict: "reinforces",
+          observed: "Two more sessions chose the smaller scope.",
+          evidenceTokens: ["evidence-1", "evidence-2", "evidence-unknown"],
+          proposedTitle: "",
+          proposedBody: "",
+          axisChoiceToken: "",
+        },
+      ],
       newRules: [],
     },
   });
+
   expect(applied.rules[0]?.evidence.for).toHaveLength(3);
   expect(applied.rules[0]?.sessions).toBe(3);
   expect(applied.rules[0]?.status).toBe("active");
@@ -137,19 +154,22 @@ test("unions rule-specific reinforcement with prior evidence", () => {
 test("omits a semantic match to rejected guidance", () => {
   const rejectedProfile: ProfileSnapshot = {
     rules: [],
-    rejections: [{
-      rejection: {
-        relativePath: "global/workflow.md",
-        key: "rejected-key",
-        title: "Keep changes small",
-        body: "Always minimize the change.",
-        source: "mined",
-        importReference: null,
+    rejections: [
+      {
+        rejection: {
+          relativePath: "global/workflow.md",
+          key: "rejected-key",
+          title: "Keep changes small",
+          body: "Always minimize the change.",
+          source: "mined",
+          importReference: null,
+        },
+        promptTitle: "Keep changes small",
+        promptBody: "Always minimize the change.",
       },
-      promptTitle: "Keep changes small",
-      promptBody: "Always minimize the change.",
-    }],
+    ],
   };
+
   const applied = applyReconciliation({
     context: context(1, rejectedProfile),
     output: {
@@ -157,6 +177,7 @@ test("omits a semantic match to rejected guidance", () => {
       newRules: [newRule(["evidence-1"], "rejection-1")],
     },
   });
+
   expect(applied.rules).toEqual([]);
   expect(applied.rejectedMatches).toBe(1);
 });

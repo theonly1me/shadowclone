@@ -23,8 +23,7 @@ test("holds every user path under the selected home directory", () => {
     distillDirectory: "/Users/example/.shadowclone/distill",
     worktreesDirectory: "/Users/example/.shadowclone/worktrees",
     runsDirectory: "/Users/example/.shadowclone/runs",
-    antigravityBrainDirectory:
-      "/Users/example/.gemini/antigravity-cli/brain",
+    antigravityBrainDirectory: "/Users/example/.gemini/antigravity-cli/brain",
     antigravityWorkspaceHistoryFile:
       "/Users/example/.gemini/antigravity-cli/history.jsonl",
     claudeProjectsDirectory: "/Users/example/.claude/projects",

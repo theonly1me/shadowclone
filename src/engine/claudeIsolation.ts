@@ -13,8 +13,9 @@ export function claudeIsolationArguments(
     run.execution.purpose === "learning" || run.allowedTools?.length === 0;
   const tools = noTools
     ? ""
-    : (run.allowedTools ?? ["Read", "Edit", "Write", "Glob", "Grep", "Bash"])
-        .join(",");
+    : (
+        run.allowedTools ?? ["Read", "Edit", "Write", "Glob", "Grep", "Bash"]
+      ).join(",");
   const settingsJson = JSON.stringify({
     disableAllHooks: true,
     autoMemoryEnabled: false,

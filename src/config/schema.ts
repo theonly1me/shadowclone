@@ -60,23 +60,22 @@ export const defaultConfig: ShadowcloneConfig = {
   repo: {},
 };
 
-const sourcesSchema = z
-  .strictObject({
-    "agent-context": z.boolean().optional().default(false),
-    antigravity: z.boolean().optional().default(false),
-    "antigravity-workspaces": z.boolean().optional().default(false),
-    "claude-memory": z.boolean().optional().default(false),
-    "claude-rules": z.boolean().optional().default(false),
-    "claude-code": z.boolean(),
-    "claude-prompts": z.boolean(),
-    codex: z.boolean(),
-    cursor: z.boolean(),
-    "declared-rules": z.boolean().optional().default(false),
-    "git-metadata": z.boolean().optional().default(false),
-    "repository-manifests": z.boolean().optional().default(false),
-    shell: z.boolean(),
-    "skill-library": z.boolean().optional().default(false),
-  });
+const sourcesSchema = z.strictObject({
+  "agent-context": z.boolean().optional().default(false),
+  antigravity: z.boolean().optional().default(false),
+  "antigravity-workspaces": z.boolean().optional().default(false),
+  "claude-memory": z.boolean().optional().default(false),
+  "claude-rules": z.boolean().optional().default(false),
+  "claude-code": z.boolean(),
+  "claude-prompts": z.boolean(),
+  codex: z.boolean(),
+  cursor: z.boolean(),
+  "declared-rules": z.boolean().optional().default(false),
+  "git-metadata": z.boolean().optional().default(false),
+  "repository-manifests": z.boolean().optional().default(false),
+  shell: z.boolean(),
+  "skill-library": z.boolean().optional().default(false),
+});
 
 const requiredCoreSourceIds = [
   "claude-code",
@@ -98,8 +97,10 @@ function parseSources(value: unknown): SourceSettings {
   }
 
   const result = sourcesSchema.safeParse(value);
+
   if (!result.success) {
     const missingCore = requiredCoreSourceIds.some((key) => !(key in value));
+
     if (hasUnknownKey(result.error.issues) || missingCore) {
       throw new Error(
         "Config sources must contain every supported source and no unknown sources",
@@ -119,16 +120,23 @@ const distillationSchema = z.strictObject({
 
 function parseDistillation(value: unknown): ShadowcloneConfig["distillation"] {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error("Config distillation must contain deep and optional automatic settings");
+    throw new Error(
+      "Config distillation must contain deep and optional automatic settings",
+    );
   }
 
   const result = distillationSchema.safeParse(value);
+
   if (!result.success) {
     if (hasUnknownKey(result.error.issues) || !("deep" in value)) {
-      throw new Error("Config distillation must contain deep and optional automatic settings");
+      throw new Error(
+        "Config distillation must contain deep and optional automatic settings",
+      );
     }
 
-    throw new Error("Config distillation.deep and distillation.automatic must be booleans");
+    throw new Error(
+      "Config distillation.deep and distillation.automatic must be booleans",
+    );
   }
 
   return result.data;
@@ -147,6 +155,7 @@ export function parseConfig(value: unknown): ShadowcloneConfig {
   }
 
   const result = configSchema.safeParse(value);
+
   if (!result.success) {
     const wrongSchemaVersion =
       "schema-version" in value &&

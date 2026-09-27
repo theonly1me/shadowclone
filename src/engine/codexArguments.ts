@@ -2,43 +2,43 @@ import path from "node:path";
 import { canonicalPath } from "../paths";
 import { evaluationCommand } from "./evaluationIsolation";
 import { validateEngineExecution } from "./execution";
-import type {
-  EngineRunOptions,
-  PermissionMode,
-} from "./types";
+import type { EngineRunOptions, PermissionMode } from "./types";
 
 const evaluationProfileName = "shadowclone-evaluation";
 
 export function validateCodexOptions(options: EngineRunOptions): void {
   validateEngineExecution(options);
+
   if (options.sessionId !== undefined) {
     throw new Error("Codex cannot set a caller-provided session id");
   }
+
   if (options.maxBudgetUsd !== undefined) {
     throw new Error("Codex cannot enforce a per-run dollar budget");
   }
+
   if (options.disallowedTools && options.disallowedTools.length > 0) {
     throw new Error("Codex cannot enforce a granular tool denylist");
   }
+
   if (options.allowedTools && options.allowedTools.length > 0) {
     throw new Error("Codex cannot enforce a granular tool allowlist");
   }
+
   const supportedModes: readonly (PermissionMode | undefined)[] = [
     undefined,
     "dontAsk",
     "plan",
   ];
+
   if (!supportedModes.includes(options.permissionMode)) {
     throw new Error("Codex cannot honor this permission mode");
   }
 }
 
-export function isCodexEvaluationExecution(
-  run: EngineRunOptions,
-): boolean {
+export function isCodexEvaluationExecution(run: EngineRunOptions): boolean {
   return (
-    run.execution.purpose === "evaluation" &&
-    run.execution.access === "write"
+    run.execution.purpose === "evaluation" && run.execution.access === "write"
   );
 }
 
@@ -48,14 +48,13 @@ function evaluationPermissionValue(options: {
 }): string {
   const blockedPaths =
     options.run.execution.purpose === "evaluation"
-      ? options.run.execution.blockedPaths ?? []
+      ? (options.run.execution.blockedPaths ?? [])
       : [];
   const filesystem = [
     `${JSON.stringify(":root")}="deny"`,
     `${JSON.stringify(":minimal")}="read"`,
     ...blockedPaths.map(
-      (blockedPath) =>
-        `${JSON.stringify(canonicalPath(blockedPath))}="deny"`,
+      (blockedPath) => `${JSON.stringify(canonicalPath(blockedPath))}="deny"`,
     ),
     `${JSON.stringify(canonicalPath(options.run.cwd))}="write"`,
     `${JSON.stringify(canonicalPath(options.temporaryDirectory))}="write"`,
@@ -74,6 +73,7 @@ function shellEnvironmentValue(temporaryDirectory: string): string {
   const entries = Object.entries(values).map(
     ([key, value]) => `${key}=${JSON.stringify(value)}`,
   );
+
   return `{inherit="core",ignore_default_excludes=false,set={${entries.join(",")}}}`;
 }
 
@@ -83,9 +83,13 @@ export function buildCodexArguments(options: {
   readonly temporaryDirectory?: string;
 }): readonly string[] {
   validateCodexOptions(options.run);
+
   const evaluationExecution = isCodexEvaluationExecution(options.run);
+
   if (evaluationExecution && !options.temporaryDirectory) {
-    throw new Error("Codex evaluation requires an isolated temporary directory");
+    throw new Error(
+      "Codex evaluation requires an isolated temporary directory",
+    );
   }
 
   const arguments_ = [
@@ -116,33 +120,33 @@ export function buildCodexArguments(options: {
   }
 
   arguments_.push(
-      "--ephemeral",
-      "--ignore-user-config",
-      "--ignore-rules",
-      "-c",
-      "features.memories=false",
-      "-c",
-      "features.hooks=false",
-      "-c",
-      "features.skip_host_skill_discovery=true",
-      "-c",
-      "project_doc_max_bytes=0",
-      "-c",
-      "features.apps=false",
-      "-c",
-      "features.plugins=false",
-      "-c",
-      "features.browser_use=false",
-      "-c",
-      "features.computer_use=false",
-      "-c",
-      "features.image_generation=false",
-      "-c",
-      "features.view_image=false",
-      "-c",
-      "features.multi_agent_v2=false",
-      "-c",
-      'web_search="disabled"',
+    "--ephemeral",
+    "--ignore-user-config",
+    "--ignore-rules",
+    "-c",
+    "features.memories=false",
+    "-c",
+    "features.hooks=false",
+    "-c",
+    "features.skip_host_skill_discovery=true",
+    "-c",
+    "project_doc_max_bytes=0",
+    "-c",
+    "features.apps=false",
+    "-c",
+    "features.plugins=false",
+    "-c",
+    "features.browser_use=false",
+    "-c",
+    "features.computer_use=false",
+    "-c",
+    "features.image_generation=false",
+    "-c",
+    "features.view_image=false",
+    "-c",
+    "features.multi_agent_v2=false",
+    "-c",
+    'web_search="disabled"',
   );
 
   if (
@@ -155,12 +159,14 @@ export function buildCodexArguments(options: {
   if (options.run.model) {
     arguments_.push("--model", options.run.model);
   }
+
   if (options.run.reasoningEffort) {
     arguments_.push(
       "-c",
       `model_reasoning_effort="${options.run.reasoningEffort}"`,
     );
   }
+
   if (options.outputSchemaPath) {
     arguments_.push("--output-schema", options.outputSchemaPath);
   }

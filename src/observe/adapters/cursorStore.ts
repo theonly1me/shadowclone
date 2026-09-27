@@ -1,9 +1,9 @@
+import { openCursorDatabase, type FileStats } from "./cursorDatabase";
 import {
   maximumTextBytes,
   maximumTranscriptWindowBytes,
 } from "../../io/limits";
-import { Database } from "bun:sqlite";
-import { stat } from "node:fs/promises";
+import type { Database } from "bun:sqlite";
 import path from "node:path";
 import { isRecord, readString, readTimestamp } from "../record";
 import type { FileCursor } from "../types";
@@ -31,20 +31,6 @@ type MetaRow = {
   readonly value: string;
 };
 
-type FileStats = {
-  readonly size: number;
-  readonly modifiedAt: number;
-};
-
-async function fileStats(sourcePath: string): Promise<FileStats | null> {
-  try {
-    const result = await stat(sourcePath);
-    return { size: result.size, modifiedAt: result.mtimeMs };
-  } catch {
-    return null;
-  }
-}
-
 function decodeMeta(value: string): unknown {
   const text = /^(?:[0-9a-fA-F]{2})+$/.test(value)
     ? new TextDecoder().decode(
@@ -53,6 +39,7 @@ function decodeMeta(value: string): unknown {
         ),
       )
     : value;
+
   try {
     return JSON.parse(text);
   } catch {
@@ -70,58 +57,15 @@ function decodeBlob(data: Uint8Array): unknown {
 
 async function readSidecar(sourcePath: string): Promise<unknown> {
   const sidecar = Bun.file(path.join(path.dirname(sourcePath), "meta.json"));
+
   if (!(await sidecar.exists()) || sidecar.size > maximumTextBytes) {
     return null;
   }
+
   try {
     return JSON.parse(await sidecar.text());
   } catch {
     return null;
-  }
-}
-
-export async function cursorStoreSignature(
-  sourcePath: string,
-): Promise<FileStats | null> {
-  const database = await fileStats(sourcePath);
-  if (database === null) {
-    return null;
-  }
-  const [writeAheadLog, sidecar] = await Promise.all([
-    fileStats(`${sourcePath}-wal`),
-    fileStats(path.join(path.dirname(sourcePath), "meta.json")),
-  ]);
-  const files = [database, writeAheadLog, sidecar].filter(
-    (entry) => entry !== null,
-  );
-  return {
-    size: files.reduce((total, entry) => total + entry.size, 0),
-    modifiedAt: Math.max(...files.map((entry) => entry.modifiedAt)),
-  };
-}
-
-function openCursorDatabase(sourcePath: string): Database {
-  let primary: Database | null = null;
-  try {
-    primary = new Database(sourcePath, {
-      readonly: true,
-      strict: true,
-    });
-    primary.query("SELECT 1").get();
-    return primary;
-  } catch {
-    primary?.close();
-    let fallback: Database | null = null;
-    try {
-      fallback = new Database(`file:${sourcePath}?mode=ro&immutable=1`, {
-        strict: true,
-      });
-      fallback.query("SELECT 1").get();
-      return fallback;
-    } catch (error) {
-      fallback?.close();
-      throw error;
-    }
   }
 }
 
@@ -130,27 +74,34 @@ export async function readCursorStore(options: {
   readonly signature: FileStats;
 }): Promise<CursorStore | null> {
   let database: Database | null = null;
+
   try {
     database = openCursorDatabase(options.sourcePath);
+
     const totalBytes =
       database
         .query<{ bytes: number }, []>(
           "SELECT coalesce(sum(length(data) + length(id) + 64), 0) AS bytes FROM blobs",
         )
         .get()?.bytes ?? 0;
+
     if (totalBytes > maximumTranscriptWindowBytes) {
       console.warn(
         "cursor: skipped a store exceeding the capture window limit",
       );
+
       return null;
     }
+
     const blobs = database
       .query<BlobRow, []>("SELECT id, data FROM blobs ORDER BY rowid")
       .all()
       .flatMap((row) => {
         const value = decodeBlob(row.data);
+
         return value === null ? [] : [{ id: row.id, value }];
       });
+
     const storedMeta = decodeMeta(
       database
         .query<MetaRow, []>(
@@ -158,9 +109,11 @@ export async function readCursorStore(options: {
         )
         .get()?.value ?? "",
     );
+
     const sidecar = await readSidecar(options.sourcePath);
     const storedRecord = isRecord(storedMeta) ? storedMeta : {};
     const sidecarRecord = isRecord(sidecar) ? sidecar : {};
+
     return {
       blobs,
       sessionId:
@@ -183,8 +136,11 @@ export async function readCursorStore(options: {
     console.warn(
       `cursor: skipped an unreadable store (${options.signature.size} bytes)`,
     );
+
     return null;
   } finally {
     database?.close();
   }
 }
+
+export { cursorStoreSignature } from "./cursorDatabase";

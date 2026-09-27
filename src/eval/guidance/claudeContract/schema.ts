@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export const legacySchemaFailure = 'Error: --json-schema is not a valid JSON Schema: no schema with key or ref "https://json-schema.org/draft/2020-12/schema"';
+export const legacySchemaFailure =
+  'Error: --json-schema is not a valid JSON Schema: no schema with key or ref "https://json-schema.org/draft/2020-12/schema"';
 
 export const contractProofSchema = z.strictObject({
   checkedAt: z.number(),

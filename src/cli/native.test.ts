@@ -24,9 +24,7 @@ test("subagents remain an explicit repository Claude option", () => {
   expect(
     parseNativeOptions(["--local", "--agent", "codex", "--subagent"]),
   ).toBeNull();
-  expect(
-    parseNativeOptions(["--local", "--subagent"]),
-  ).toMatchObject({
+  expect(parseNativeOptions(["--local", "--subagent"])).toMatchObject({
     agents: ["claude-code"],
     scope: "repository",
     subagent: true,

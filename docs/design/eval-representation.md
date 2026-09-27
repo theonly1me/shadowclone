@@ -1,20 +1,18 @@
-# Privacy-Safe Action Representation for Replay Evaluation
+# Historical replay representation
 
-This is the historical replay diagnostic. Current preference results use [fresh transfer evaluation](../architecture/09-evaluation.md), which reviews generated code under a frozen rubric.
+Replay compared recorded behavior with simulated actions. Current evaluation uses [fresh tasks](../architecture/09-evaluation.md); this record explains the older diagnostic.
 
-## Problem
+## Decision
 
-Evaluating whether a cloned agent accurately reproduces developer behavior requires comparing action sequences between historical sessions and simulated replay runs. Comparing full tool inputs or message payloads would risk re-exposing sensitive text, proprietary source code, or secrets.
+Compare coarse action fingerprints instead of full messages or tool inputs:
 
-## Privacy-Safe Fingerprints
+| Dimension | Representation |
+| --- | --- |
+| Tools | Distinct tool names |
+| Verification | Shell commands reduced to their first two tokens, such as `bun test` |
+| Files touched | Repository-relative paths from designated editing-tool parameters |
+| Planning | Whether planning preceded the first modification |
 
-Replay evaluation represents agent behavior using four coarse, privacy-safe dimensions:
+Exclude absolute paths, file contents, diffs, and later command arguments. These reductions limit exposure but do not make the result anonymous: relative paths and command names can still reveal project details.
 
-1. **Tools**: Distinct tool names invoked during the session (such as `Read`, `Edit`, `Bash`).
-2. **Verification steps**: Shell commands invoked via execution tools, normalized to their first two tokens (for example `bun test` or `git diff`). Arguments, flags, and targets beyond the verb and subcommand are omitted.
-3. **Files touched**: Posix repository-relative paths extracted exclusively from designated file path parameters in editing tools (`Edit`, `Write`, `NotebookEdit`). Absolute paths, file contents, and edit diffs are never stored or compared.
-4. **Planning sequence**: A binary indicator of whether planning activity (such as plan mode or task lists) preceded the first code modification.
-
-## Ground-Truth Index Storage
-
-In version 1, local indexed events store only tool names and metadata without file paths. As a result, ground-truth comparison against the index evaluates tools, verification, and planning, treating the file path dimension as unavailable rather than synthesising artificial data.
+The version 1 index did not retain file paths. Replay therefore treated the ground-truth file dimension as unavailable, without inventing values to fill it.

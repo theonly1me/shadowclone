@@ -1,8 +1,5 @@
 import { redactSecrets } from "../../redact";
-import {
-  evaluationSignal,
-  throwIfEvaluationExpired,
-} from "./deadline";
+import { evaluationSignal, throwIfEvaluationExpired } from "./deadline";
 
 export async function command(options: {
   readonly arguments: readonly string[];
@@ -10,8 +7,10 @@ export async function command(options: {
   readonly timeoutSeconds?: number;
 }): Promise<string> {
   throwIfEvaluationExpired();
+
   const timeoutMs = (options.timeoutSeconds ?? 60) * 1000;
   const evaluation = evaluationSignal();
+
   const child = Bun.spawn({
     cmd: [...options.arguments],
     cwd: options.cwd,
@@ -23,6 +22,7 @@ export async function command(options: {
   });
 
   let result: [number, string, string];
+
   try {
     result = await Promise.all([
       child.exited,
@@ -31,13 +31,17 @@ export async function command(options: {
     ]);
   } catch (error) {
     throwIfEvaluationExpired();
+
     throw error;
   }
+
   const [exitCode, stdout, stderr] = result;
+
   throwIfEvaluationExpired();
 
   if (exitCode !== 0) {
     const message = stderr.trim() || "Evaluation command failed";
+
     throw new Error(redactSecrets({ text: message }));
   }
 

@@ -38,25 +38,32 @@ export async function getLineBoundaries(options: {
     if (isMissingFile(error)) {
       return null;
     }
+
     throw error;
   });
+
   if (handle === null) {
     return null;
   }
+
   try {
     const fileStats = await handle.stat();
+
     if (!fileStats.isFile()) {
       return null;
     }
+
     const modifiedAt = fileStats.mtimeMs;
     const identity = `${fileStats.dev}:${fileStats.ino}`;
     const previous = options.cursor;
+
     const rescanned =
       previous !== null &&
       ((previous.identity !== undefined && previous.identity !== identity) ||
         fileStats.size < previous.byteSize ||
         (fileStats.size === previous.byteSize &&
           modifiedAt !== previous.modifiedAt));
+
     const startOffset =
       previous === null || rescanned ? 0 : previous.byteOffset;
     const windowSize = Math.min(
@@ -76,11 +83,13 @@ export async function getLineBoundaries(options: {
       if (bytes[byteIndex] !== 10) {
         continue;
       }
+
       const lineEnd =
         byteIndex > lineStart && bytes[byteIndex - 1] === 13
           ? byteIndex - 1
           : byteIndex;
       const byteLength = lineEnd - lineStart;
+
       if (!discarding && byteLength > maximumTranscriptRecordBytes) {
         omittedRecords += 1;
       } else if (!discarding && byteLength > 0) {
@@ -98,18 +107,23 @@ export async function getLineBoundaries(options: {
           bytes: bytes.subarray(lineStart, lineEnd),
         });
       }
+
       discarding = false;
       lineStart = byteIndex + 1;
       completedByteCount = lineStart;
     }
+
     if (discarding || bytes.length - lineStart > maximumTranscriptRecordBytes) {
       if (!discarding) {
         omittedRecords += 1;
       }
+
       discarding = true;
       completedByteCount = bytes.length;
     }
+
     const after = await handle.stat();
+
     if (
       after.ino !== fileStats.ino ||
       after.size < fileStats.size ||
@@ -117,6 +131,7 @@ export async function getLineBoundaries(options: {
     ) {
       throw new Error("Transcript changed while being read; retry observation");
     }
+
     return {
       values,
       cursor: {
@@ -130,7 +145,8 @@ export async function getLineBoundaries(options: {
       },
       rescanned,
       bytesRead: bytes.length,
-      invalidRecords: omittedRecords - (rescanned ? 0 : (previous?.omittedRecords ?? 0)),
+      invalidRecords:
+        omittedRecords - (rescanned ? 0 : (previous?.omittedRecords ?? 0)),
     };
   } finally {
     await handle.close();

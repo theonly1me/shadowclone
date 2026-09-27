@@ -16,12 +16,20 @@ export function materializeEvidenceIds(options: {
   const allowed = new Map(
     options.context.evidence.map((entry) => [entry.token, entry.evidenceId]),
   );
-  return [...new Set(options.tokens.flatMap((token) => {
-    const evidenceId = allowed.get(token);
-    return evidenceId
-      ? [options.explicitTokens.has(token)
-          ? explicitProfileEvidence(evidenceId)
-          : evidenceId]
-      : [];
-  }))];
+
+  return [
+    ...new Set(
+      options.tokens.flatMap((token) => {
+        const evidenceId = allowed.get(token);
+
+        return evidenceId
+          ? [
+              options.explicitTokens.has(token)
+                ? explicitProfileEvidence(evidenceId)
+                : evidenceId,
+            ]
+          : [];
+      }),
+    ),
+  ];
 }

@@ -1,8 +1,5 @@
 import { claudeTrace } from "./claudeTrace";
-import type {
-  EngineRun,
-  PermissionDenial,
-} from "./types";
+import type { EngineRun, PermissionDenial } from "./types";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -13,6 +10,7 @@ function readString(
   key: string,
 ): string | null {
   const value = record[key];
+
   return typeof value === "string" ? value : null;
 }
 
@@ -21,14 +19,17 @@ function readNumber(
   key: string,
 ): number | null {
   const value = record[key];
+
   return typeof value === "number" ? value : null;
 }
 
 function assistantText(record: Readonly<Record<string, unknown>>): string {
   const message = record.message;
+
   if (!isRecord(message) || !Array.isArray(message.content)) {
     return "";
   }
+
   return message.content
     .flatMap((block) =>
       isRecord(block) &&
@@ -44,12 +45,15 @@ function permissionDenials(value: unknown): readonly PermissionDenial[] {
   if (!Array.isArray(value)) {
     return [];
   }
+
   return value.flatMap((entry) => {
     if (!isRecord(entry)) {
       return [];
     }
+
     const toolName =
       readString(entry, "tool_name") ?? readString(entry, "toolName");
+
     return toolName
       ? [
           {
@@ -69,9 +73,11 @@ function readErrors(
   record: Readonly<Record<string, unknown>>,
 ): readonly string[] {
   const value = record.errors;
+
   if (!Array.isArray(value)) {
     return [];
   }
+
   return value.filter((item): item is string => typeof item === "string");
 }
 
@@ -87,24 +93,28 @@ export function parseClaudeStream(options: {
     if (line.trim().length === 0) {
       continue;
     }
+
     try {
       const parsed: unknown = JSON.parse(line);
+
       if (!isRecord(parsed)) {
         continue;
       }
+
       if (readString(parsed, "type") === "assistant") {
         textParts.push(assistantText(parsed));
       }
+
       if (readString(parsed, "type") === "result") {
         result = parsed;
       }
-    } catch {
-    }
+    } catch {}
   }
 
   const resultText = result ? readString(result, "result") : null;
   const streamedText = textParts.join("");
-  const turns = result ? readNumber(result, "num_turns") ?? 0 : 0;
+  const turns = result ? (readNumber(result, "num_turns") ?? 0) : 0;
+
   const isCommandUnavailable =
     turns === 0 &&
     actions.length === 0 &&
@@ -112,6 +122,7 @@ export function parseClaudeStream(options: {
     resultText.includes(commandUnavailableMarker);
   const isError =
     result?.is_error === true || result === null || isCommandUnavailable;
+
   const errors = result ? readErrors(result) : [];
   const errorDetails =
     errors.length > 0
@@ -126,6 +137,7 @@ export function parseClaudeStream(options: {
       : result === null
         ? "Claude returned no result"
         : null;
+
   return {
     engine: "claude-code",
     resolvedModel,
@@ -133,10 +145,10 @@ export function parseClaudeStream(options: {
       (result ? readString(result, "session_id") : null) ??
       options.fallbackSessionId,
     transcriptPath: null,
-    text: streamedText.length > 0 ? streamedText : resultText ?? "",
+    text: streamedText.length > 0 ? streamedText : (resultText ?? ""),
     structured: result?.structured_output ?? null,
     costUsd: result ? readNumber(result, "total_cost_usd") : null,
-    durationMs: result ? readNumber(result, "duration_ms") ?? 0 : 0,
+    durationMs: result ? (readNumber(result, "duration_ms") ?? 0) : 0,
     turns,
     isError,
     permissionDenials: permissionDenials(result?.permission_denials),

@@ -44,6 +44,7 @@ export function parseTransferArguments(
   );
 
   program.parse([...argumentsList], { from: "user" });
+
   const options = program.opts<{
     readonly repo?: string;
     readonly task?: string;
@@ -67,25 +68,36 @@ export function parseTransferArguments(
   if (options.task !== undefined && options.tasks !== undefined) {
     throw new Error("Use --task or --tasks, not both");
   }
-  if (options.taskFile !== undefined && options.task !== undefined) throw new Error("Use --task or --task-file, not both");
-  if (options.taskFile !== undefined && options.suiteId !== undefined) throw new Error("Use --task-file or --suite-id, not both");
-  if (options.taskFile !== undefined && options.evalId !== undefined) throw new Error("An evaluation resume cannot select a new task file");
-  if (options.suiteId !== undefined && (options.task || options.tasks)) {
-    throw new Error("A frozen --suite-id cannot be combined with task selection");
+
+  if (options.taskFile !== undefined && options.task !== undefined) {
+    throw new Error("Use --task or --task-file, not both");
   }
+
+  if (options.taskFile !== undefined && options.suiteId !== undefined) {
+    throw new Error("Use --task-file or --suite-id, not both");
+  }
+
+  if (options.taskFile !== undefined && options.evalId !== undefined) {
+    throw new Error("An evaluation resume cannot select a new task file");
+  }
+
+  if (options.suiteId !== undefined && (options.task || options.tasks)) {
+    throw new Error(
+      "A frozen --suite-id cannot be combined with task selection",
+    );
+  }
+
   if (options.evalId !== undefined && options.suiteId !== undefined) {
     throw new Error("Use --eval-id to resume or --suite-id to start, not both");
   }
+
   if (options.evalId !== undefined && (options.task || options.tasks)) {
     throw new Error("An evaluation resume cannot select new tasks");
   }
 
   const engine = options.engine;
-  if (
-    engine !== undefined &&
-    engine !== "codex" &&
-    engine !== "claude-code"
-  ) {
+
+  if (engine !== undefined && engine !== "codex" && engine !== "claude-code") {
     throw new Error("Evaluation supports codex and claude-code");
   }
 
@@ -116,7 +128,10 @@ export function parseTransferArguments(
       value: options.maxBudgetUsd,
       name: "--max-budget-usd",
     }),
-    maxCalls: parsePositiveNumber({ value: options.maxCalls, name: "--max-calls" }),
+    maxCalls: parsePositiveNumber({
+      value: options.maxCalls,
+      name: "--max-calls",
+    }),
     json: options.json ?? false,
     yes: options.yes ?? false,
   };
@@ -128,6 +143,7 @@ export async function transferEvalCommand(
 ): Promise<void> {
   const parsed = parseTransferArguments(argumentsList);
   const ask = options.ask ?? promptConfirmation;
+
   if (argumentsList.includes("--dependency-mode")) {
     console.warn(
       "--dependency-mode current is deprecated because current HEAD is now the only evaluation starting state.",
@@ -144,20 +160,18 @@ export async function transferEvalCommand(
     const engineDescription = [
       parsed.engine,
       parsed.model,
-      parsed.reasoningEffort
-        ? `${parsed.reasoningEffort} effort`
-        : undefined,
+      parsed.reasoningEffort ? `${parsed.reasoningEffort} effort` : undefined,
     ]
       .filter((value) => value !== undefined)
       .join(" ");
-    const description = engineDescription
-      ? `${engineDescription} as `
-      : "";
+    const description = engineDescription ? `${engineDescription} as ` : "";
     const approved = await ask(
       `Running ${description}up to ${invocations} agent invocations, each up to ${timeoutSeconds}s. Proceed?`,
     );
+
     if (!approved) {
       console.log("Evaluation cancelled.");
+
       return;
     }
   }

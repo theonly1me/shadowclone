@@ -15,17 +15,21 @@ const judging: EvaluationProgress = {
 };
 
 test("shows elapsed task, repeat, arm, stage, and judge progress", () => {
-  expect(progressLine({
-    progress: { ...judging, stage: "coding", arm: "clone", voteIndex: null },
-    startedAt: 1_000,
-    now: 126_000,
-  })).toBe("[02:05] Task 2/3, repeat 1/2, clone: coding");
+  expect(
+    progressLine({
+      progress: { ...judging, stage: "coding", arm: "clone", voteIndex: null },
+      startedAt: 1_000,
+      now: 126_000,
+    }),
+  ).toBe("[02:05] Task 2/3, repeat 1/2, clone: coding");
   expect(progressDescription(judging)).toBe(
     "Task 2/3, repeat 1/2: blind judge vote 2/3",
   );
-  expect(stepLine({
-    message: "Preparing 3 fresh additive coding tasks",
-    startedAt: 1_000,
-    now: 6_000,
-  })).toBe("[00:05] Preparing 3 fresh additive coding tasks");
+  expect(
+    stepLine({
+      message: "Preparing 3 fresh additive coding tasks",
+      startedAt: 1_000,
+      now: 6_000,
+    }),
+  ).toBe("[00:05] Preparing 3 fresh additive coding tasks");
 });

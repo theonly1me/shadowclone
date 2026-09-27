@@ -4,6 +4,7 @@ import { createSchema } from "./schema";
 
 test("version five indexes gain the binding timeline without losing events", () => {
   const database = new Database(":memory:");
+
   database.exec(`
     CREATE TABLE events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,14 +28,26 @@ test("version five indexes gain the binding timeline without losing events", () 
     PRAGMA user_version = 5;
   `);
   createSchema(database);
-  expect(database.query<{ readonly count: number }, []>(
-    "SELECT COUNT(*) AS count FROM events",
-  ).get()?.count).toBe(1);
-  expect(database.query<{ readonly name: string }, []>(
-    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'origin_binding_timeline'",
-  ).get()?.name).toBe("origin_binding_timeline");
-  expect(database.query<{ readonly user_version: number }, []>(
-    "PRAGMA user_version",
-  ).get()?.user_version).toBe(6);
+
+  expect(
+    database
+      .query<{ readonly count: number }, []>(
+        "SELECT COUNT(*) AS count FROM events",
+      )
+      .get()?.count,
+  ).toBe(1);
+  expect(
+    database
+      .query<{ readonly name: string }, []>(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'origin_binding_timeline'",
+      )
+      .get()?.name,
+  ).toBe("origin_binding_timeline");
+  expect(
+    database
+      .query<{ readonly user_version: number }, []>("PRAGMA user_version")
+      .get()?.user_version,
+  ).toBe(6);
+
   database.close();
 });

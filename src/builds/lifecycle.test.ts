@@ -1,0 +1,85 @@
+import { expect, test } from "bun:test";
+import path from "node:path";
+import { undoRevision } from "../changes";
+import { readEnvironment } from "../environment/store";
+import { environmentCompilation } from "../environment/context";
+import { applyBuild } from "./apply";
+import { previewBuild } from "./plan";
+import { buildFixture, buildInput } from "./fixtures";
+
+test("preview is read-only and applying publishes preferences immediately", async () => {
+  const context = await buildFixture();
+  const plan = await previewBuild({ ...context, input: buildInput() });
+
+  expect(await readEnvironment(context.paths)).toBeNull();
+
+  const revision = await applyBuild({ ...context, plan });
+  const homeDirectory = path.dirname(context.paths.shadowcloneDirectory);
+  const preferencePath = path.join(
+    homeDirectory,
+    ".agents/skills/shadowclone-build-preferences/SKILL.md",
+  );
+  const content = await Bun.file(preferencePath).text();
+
+  expect(content).toContain("plan");
+  expect(revision).not.toBeNull();
+
+  const compilation = await environmentCompilation({
+    ...context,
+    originDirectory: null,
+    repositoryName: null,
+  });
+
+  expect(compilation?.markdown).toContain(preferencePath);
+  expect(compilation?.markdown).toContain("testing-first/SKILL.md");
+  expect(
+    (await previewBuild({ ...context, input: buildInput() })).updates,
+  ).toHaveLength(0);
+});
+
+test("undo restores an applied build and its native integrations", async () => {
+  const context = await buildFixture();
+  const plan = await previewBuild({ ...context, input: buildInput() });
+  const id = await applyBuild({ ...context, plan });
+
+  if (id === null) {
+    throw new Error("Expected an applied revision");
+  }
+
+  await undoRevision({ paths: context.paths, id });
+
+  expect(await readEnvironment(context.paths)).toBeNull();
+  expect(
+    await Bun.file(
+      path.join(
+        path.dirname(context.paths.shadowcloneDirectory),
+        ".claude/skills/testing-first/SKILL.md",
+      ),
+    ).exists(),
+  ).toBeFalse();
+});
+
+test("an intervening skill edit invalidates the preview without partial writes", async () => {
+  const context = await buildFixture();
+  const initial = await previewBuild({ ...context, input: buildInput() });
+
+  await applyBuild({ ...context, plan: initial });
+
+  const next = await previewBuild({
+    ...context,
+    input: buildInput({ choices: { "testing-first": false } }),
+  });
+  const skillPath = path.join(
+    path.dirname(context.paths.shadowcloneDirectory),
+    ".agents/skills/testing-first/SKILL.md",
+  );
+  const edited = `${await Bun.file(skillPath).text()}\nPreserve this edit.\n`;
+
+  await Bun.write(skillPath, edited);
+
+  await expect(applyBuild({ ...context, plan: next })).rejects.toThrow(
+    "conflicts",
+  );
+
+  expect(await Bun.file(skillPath).text()).toBe(edited);
+});

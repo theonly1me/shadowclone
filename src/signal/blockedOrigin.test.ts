@@ -1,9 +1,6 @@
 import { expect, test } from "bun:test";
 import { isOriginBlocked } from "./blockedOrigin";
-import {
-  normalizeRemoteRepository,
-  resolveRepository,
-} from "./origin";
+import { normalizeRemoteRepository, resolveRepository } from "./origin";
 
 const acme = normalizeRemoteRepository("git@github.com:acme/secret-api.git");
 

@@ -8,6 +8,7 @@ test("writes a dispatchable agent with advisory boundaries", async () => {
   const targetDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-agent-"),
   );
+
   const profile = [
     "# Shadowclone profile",
     "",
@@ -15,6 +16,7 @@ test("writes a dispatchable agent with advisory boundaries", async () => {
     "",
     "Ask before repeating a similar Bash action.",
   ].join("\n");
+
   const outputPath = await writeAgent({ targetDirectory, profile });
   const agent = await Bun.file(outputPath).text();
 

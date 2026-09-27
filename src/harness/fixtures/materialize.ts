@@ -17,11 +17,19 @@ export async function materializeFixture(options: {
   readonly includeAcceptance?: boolean;
 }): Promise<string> {
   const parent = options.parent ?? os.tmpdir();
+
   await mkdir(parent, { recursive: true });
-  const root = canonicalPath(await mkdtemp(path.join(parent, `${options.fixture.name}-`)));
-  const files = options.includeAcceptance ? { ...options.fixture.files, ...options.fixture.acceptance } : options.fixture.files;
+
+  const root = canonicalPath(
+    await mkdtemp(path.join(parent, `${options.fixture.name}-`)),
+  );
+  const files = options.includeAcceptance
+    ? { ...options.fixture.files, ...options.fixture.acceptance }
+    : options.fixture.files;
+
   for (const [relativePath, content] of Object.entries(files)) {
     await Bun.write(path.join(root, relativePath), content);
   }
+
   return root;
 }

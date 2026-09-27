@@ -8,14 +8,18 @@ function redact(text: string): string {
 }
 
 test("removes an openai style key and labels it", () => {
-  const redacted = redact("export OPENAI_API_KEY=sk-proj-abc123DEF456ghi789JKL");
+  const redacted = redact(
+    "export OPENAI_API_KEY=sk-proj-abc123DEF456ghi789JKL",
+  );
 
   expect(redacted).not.toContain("sk-proj-abc123DEF456ghi789JKL");
   expect(redacted).toContain("[redacted:llm-api-key]");
 });
 
 test("removes an anthropic style key", () => {
-  const redacted = redact("curl -H 'x-api-key: sk-ant-api03-abc123DEF456ghi789'");
+  const redacted = redact(
+    "curl -H 'x-api-key: sk-ant-api03-abc123DEF456ghi789'",
+  );
 
   expect(redacted).not.toContain("sk-ant-api03-abc123DEF456ghi789");
   expect(redacted).toContain("[redacted:llm-api-key]");
@@ -23,7 +27,10 @@ test("removes an anthropic style key", () => {
 
 test("removes github tokens in every prefix form", () => {
   const redacted = redact(
-    ["ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8", "github_pat_11ABCDEFG0abcdefghij_KLMNOP"].join("\n"),
+    [
+      "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8",
+      "github_pat_11ABCDEFG0abcdefghij_KLMNOP",
+    ].join("\n"),
   );
 
   expect(redacted).not.toContain("ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8");
@@ -38,21 +45,27 @@ test("removes a slack token", () => {
 });
 
 test("removes an aws access key id", () => {
-  const redacted = redact("aws configure set aws_access_key_id AKIAIOSFODNN7EXAMPLE");
+  const redacted = redact(
+    "aws configure set aws_access_key_id AKIAIOSFODNN7EXAMPLE",
+  );
 
   expect(redacted).not.toContain("AKIAIOSFODNN7EXAMPLE");
   expect(redacted).toContain("[redacted:aws-access-key-id]");
 });
 
 test("removes a jwt", () => {
-  const redacted = redact("curl -d token=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NSJ9.dBjftJeZ4CVP");
+  const redacted = redact(
+    "curl -d token=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NSJ9.dBjftJeZ4CVP",
+  );
 
   expect(redacted).not.toContain("eyJhbGciOiJIUzI1NiJ9");
   expect(redacted).toContain("[redacted:jwt]");
 });
 
 test("removes an authorization header value but keeps the header name", () => {
-  const redacted = redact('curl -H "Authorization: Bearer abc123def456" https://api.example.com');
+  const redacted = redact(
+    'curl -H "Authorization: Bearer abc123def456" https://api.example.com',
+  );
 
   expect(redacted).not.toContain("abc123def456");
   expect(redacted).toContain("Authorization: [redacted:authorization]");
@@ -61,7 +74,11 @@ test("removes an authorization header value but keeps the header name", () => {
 
 test("removes a pem block across multiple lines", () => {
   const redacted = redact(
-    ["-----BEGIN RSA PRIVATE KEY-----", "MIIEowIBAAKCAQEAxyz", "-----END RSA PRIVATE KEY-----"].join("\n"),
+    [
+      "-----BEGIN RSA PRIVATE KEY-----",
+      "MIIEowIBAAKCAQEAxyz",
+      "-----END RSA PRIVATE KEY-----",
+    ].join("\n"),
   );
 
   expect(redacted).not.toContain("MIIEowIBAAKCAQEAxyz");
@@ -72,7 +89,9 @@ test("removes a secret assignment that matches no specific provider", () => {
   const redacted = redact("export DATABASE_PASSWORD=hunter2correcthorse");
 
   expect(redacted).not.toContain("hunter2correcthorse");
-  expect(redacted).toBe("export DATABASE_PASSWORD=[redacted:secret-assignment]");
+  expect(redacted).toBe(
+    "export DATABASE_PASSWORD=[redacted:secret-assignment]",
+  );
 });
 
 test("removes compound secret assignments without underscores", () => {
@@ -81,7 +100,9 @@ test("removes compound secret assignments without underscores", () => {
 
   expect(redacted).not.toContain("secretvalue123");
   expect(redacted).not.toContain("anothersecret456");
-  expect(redacted).toBe("APIKEY=[redacted:secret-assignment]\nMYSECRET=[redacted:secret-assignment]");
+  expect(redacted).toBe(
+    "APIKEY=[redacted:secret-assignment]\nMYSECRET=[redacted:secret-assignment]",
+  );
 });
 
 test("rewrites the home directory to a tilde", () => {
@@ -91,7 +112,9 @@ test("rewrites the home directory to a tilde", () => {
 });
 
 test("rewrites the home directory in file URLs to a tilde", () => {
-  const redacted = redact("see file:///Users/example/Developer/shadowclone/file.ts");
+  const redacted = redact(
+    "see file:///Users/example/Developer/shadowclone/file.ts",
+  );
 
   expect(redacted).toBe("see file:///~/Developer/shadowclone/file.ts");
 });
@@ -124,6 +147,7 @@ test("removes transcript-grade sensitive values", () => {
     "/var/log/company/service.log",
     "MZXW6YTBOI======abcDEF1234567890abcdefghijk",
   ].join("\n");
+
   const redacted = redact(text);
 
   expect(redacted).not.toContain("password");

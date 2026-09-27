@@ -19,13 +19,27 @@ const metadataSchema = z.strictObject({
 });
 
 const metadataFields = [
-  "schema", "key", "title", "summary", "tags", "scope",
-  "originDirectory", "repositoryName", "source", "sourceLocator", "updatedAt",
+  "schema",
+  "key",
+  "title",
+  "summary",
+  "tags",
+  "scope",
+  "originDirectory",
+  "repositoryName",
+  "source",
+  "sourceLocator",
+  "updatedAt",
 ] as const;
 
 function safeLocator(value: string): boolean {
-  return !value.startsWith("/") && !value.includes("\\") &&
-    value.split("/").every((part) => part.length > 0 && part !== "." && part !== "..");
+  return (
+    !value.startsWith("/") &&
+    !value.includes("\\") &&
+    value
+      .split("/")
+      .every((part) => part.length > 0 && part !== "." && part !== "..")
+  );
 }
 
 function metadata(record: ReferenceRecord): Readonly<Record<string, unknown>> {
@@ -45,41 +59,79 @@ function metadata(record: ReferenceRecord): Readonly<Record<string, unknown>> {
 }
 
 export function renderReference(record: ReferenceRecord): string {
-  const lines = metadataFields.map((field) =>
-    `${field}: ${JSON.stringify(metadata(record)[field])}`
+  const lines = metadataFields.map(
+    (field) => `${field}: ${JSON.stringify(metadata(record)[field])}`,
   );
+
   return `---\n${lines.join("\n")}\n---\n\n${record.body.trim()}\n`;
 }
 
 export function parseReference(text: string): ReferenceRecord | null {
   const match = text.match(/^---\n([\s\S]*?)\n---\n(?:\n)?([\s\S]*)$/);
-  if (!match?.[1] || match[2] === undefined) return null;
+
+  if (!match?.[1] || match[2] === undefined) {
+    return null;
+  }
+
   const values: Record<string, unknown> = {};
   const lines = match[1].split("\n");
-  if (lines.length !== metadataFields.length) return null;
+
+  if (lines.length !== metadataFields.length) {
+    return null;
+  }
+
   for (const line of lines) {
     const separator = line.indexOf(": ");
-    if (separator < 1) return null;
+
+    if (separator < 1) {
+      return null;
+    }
+
     const field = line.slice(0, separator);
-    if (field in values) return null;
+
+    if (field in values) {
+      return null;
+    }
+
     try {
       values[field] = JSON.parse(line.slice(separator + 2));
     } catch {
       return null;
     }
   }
+
   const parsed = metadataSchema.safeParse(values);
-  if (!parsed.success || !safeLocator(parsed.data.sourceLocator)) return null;
-  const locationValid = parsed.data.scope === "global"
-    ? parsed.data.originDirectory === null && parsed.data.repositoryName === null
-    : parsed.data.scope === "org"
-      ? parsed.data.originDirectory !== null && parsed.data.repositoryName === null
-      : parsed.data.originDirectory !== null && parsed.data.repositoryName !== null;
-  if (!locationValid) return null;
-  const body = match[2].trim();
-  if (parsed.data.scope === "global") {
-    return { ...parsed.data, scope: "global", originDirectory: null, repositoryName: null, body };
+
+  if (!parsed.success || !safeLocator(parsed.data.sourceLocator)) {
+    return null;
   }
+
+  const locationValid =
+    parsed.data.scope === "global"
+      ? parsed.data.originDirectory === null &&
+        parsed.data.repositoryName === null
+      : parsed.data.scope === "org"
+        ? parsed.data.originDirectory !== null &&
+          parsed.data.repositoryName === null
+        : parsed.data.originDirectory !== null &&
+          parsed.data.repositoryName !== null;
+
+  if (!locationValid) {
+    return null;
+  }
+
+  const body = match[2].trim();
+
+  if (parsed.data.scope === "global") {
+    return {
+      ...parsed.data,
+      scope: "global",
+      originDirectory: null,
+      repositoryName: null,
+      body,
+    };
+  }
+
   if (parsed.data.scope === "org" && parsed.data.originDirectory !== null) {
     return {
       ...parsed.data,
@@ -89,7 +141,14 @@ export function parseReference(text: string): ReferenceRecord | null {
       body,
     };
   }
-  if (parsed.data.originDirectory === null || parsed.data.repositoryName === null) return null;
+
+  if (
+    parsed.data.originDirectory === null ||
+    parsed.data.repositoryName === null
+  ) {
+    return null;
+  }
+
   return {
     ...parsed.data,
     scope: "project",

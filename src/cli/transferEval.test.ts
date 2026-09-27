@@ -54,9 +54,9 @@ test("rejects a value flag given twice instead of taking the last one", () => {
   expect(() => parseTransferArguments(["--repo", "a", "--repo", "b"])).toThrow(
     "Repeated --repo",
   );
-  expect(() => parseTransferArguments(["--tasks", "1", "--tasks", "2"])).toThrow(
-    "Repeated --tasks",
-  );
+  expect(() =>
+    parseTransferArguments(["--tasks", "1", "--tasks", "2"]),
+  ).toThrow("Repeated --tasks");
   expect(() =>
     parseTransferArguments([
       "--reasoning-effort",
@@ -80,23 +80,27 @@ test("previews the invocation ceiling and cancels before spending when declined"
 
   try {
     process.stdin.isTTY = true;
-    await transferEvalCommand([
-      "--engine",
-      "codex",
-      "--model",
-      "gpt-5.6-luna",
-      "--reasoning-effort",
-      "xhigh",
-      "--tasks",
-      "3",
-      "--repeat",
-      "2",
-    ], {
-      ask: (question) => {
-        questions.push(question);
-        return false;
+    await transferEvalCommand(
+      [
+        "--engine",
+        "codex",
+        "--model",
+        "gpt-5.6-luna",
+        "--reasoning-effort",
+        "xhigh",
+        "--tasks",
+        "3",
+        "--repeat",
+        "2",
+      ],
+      {
+        ask: (question) => {
+          questions.push(question);
+
+          return false;
+        },
       },
-    });
+    );
   } finally {
     process.stdin.isTTY = originalIsTTY;
   }

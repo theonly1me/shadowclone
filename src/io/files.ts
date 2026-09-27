@@ -7,6 +7,7 @@ export function containsPath(options: {
   readonly target: string;
 }): boolean {
   const relative = path.relative(options.root, options.target);
+
   return (
     relative === "" ||
     (!relative.startsWith(`..${path.sep}`) &&
@@ -22,10 +23,13 @@ export async function safeFilePath(options: {
   if (!path.isAbsolute(options.filePath)) {
     return null;
   }
+
   const canonical = await realpath(options.filePath).catch(() => null);
+
   if (canonical === null) {
     return null;
   }
+
   for (const root of options.roots) {
     if (
       !containsPath({
@@ -35,25 +39,33 @@ export async function safeFilePath(options: {
     ) {
       continue;
     }
+
     const canonicalRoot = await realpath(root).catch(() => null);
+
     if (
       canonicalRoot === null ||
       !containsPath({ root: canonicalRoot, target: canonical })
     ) {
       continue;
     }
+
     let current = path.resolve(options.filePath);
+
     while (true) {
       const stats = await lstat(current);
+
       if (stats.isSymbolicLink()) {
         return null;
       }
+
       if (current === path.resolve(root)) {
         return canonical;
       }
+
       current = path.dirname(current);
     }
   }
+
   return null;
 }
 
@@ -67,23 +79,29 @@ export async function readBoundedFile(options: {
   readonly contentHash?: string;
 }): Promise<string | null> {
   const filePath = await safeFilePath(options);
+
   if (filePath === null) {
     return null;
   }
+
   const handle = await open(
     filePath,
     constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
   );
+
   try {
     const before = await handle.stat();
+
     if (
       options.fileIdentity !== undefined &&
       options.fileIdentity !== `${before.dev}:${before.ino}`
     ) {
       return null;
     }
+
     const offset = options.offset ?? 0;
     const length = options.length ?? before.size;
+
     if (
       !before.isFile() ||
       !Number.isSafeInteger(offset) ||
@@ -96,8 +114,10 @@ export async function readBoundedFile(options: {
     ) {
       return null;
     }
+
     const bytes = Buffer.alloc(length);
     let total = 0;
+
     while (total < length) {
       const result = await handle.read(
         bytes,
@@ -105,11 +125,14 @@ export async function readBoundedFile(options: {
         length - total,
         offset + total,
       );
+
       if (result.bytesRead === 0) {
         return null;
       }
+
       total += result.bytesRead;
     }
+
     if (
       options.contentHash !== undefined &&
       new Bun.CryptoHasher("sha256").update(bytes).digest("hex") !==
@@ -117,7 +140,9 @@ export async function readBoundedFile(options: {
     ) {
       return null;
     }
+
     const after = await handle.stat();
+
     return before.mtimeMs === after.mtimeMs && before.size === after.size
       ? bytes.toString("utf8")
       : null;

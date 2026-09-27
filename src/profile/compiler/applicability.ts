@@ -39,8 +39,12 @@ const backtickedToken = /`([A-Za-z0-9_.-]+\/[A-Za-z0-9_./-]*)`/g;
 function referencedTopLevelEntries(text: string): readonly string[] {
   return [...text.matchAll(backtickedToken)].flatMap((match) => {
     const token = match[1] ?? "";
-    const looksLikePath = token.endsWith("/") || /\.[A-Za-z0-9]{1,5}$/.test(token) || token.split("/").length > 2;
+    const looksLikePath =
+      token.endsWith("/") ||
+      /\.[A-Za-z0-9]{1,5}$/.test(token) ||
+      token.split("/").length > 2;
     const [first = ""] = token.split("/");
+
     return looksLikePath && first !== "." && first !== ".." ? [first] : [];
   });
 }
@@ -50,8 +54,15 @@ export function isNotApplicable(options: {
   readonly applicability: RepositoryApplicability;
 }): boolean {
   const text = options.block.visible;
-  const mentioned = Object.entries(toolPatterns).filter(([, pattern]) => pattern.test(text)).map(([tool]) => tool);
-  const namesOnlyAbsentTools = mentioned.length > 0 && !mentioned.some((tool) => options.applicability.tools.has(tool));
-  const namesAbsentPath = referencedTopLevelEntries(text).some((entry) => !options.applicability.entries.has(entry));
+  const mentioned = Object.entries(toolPatterns)
+    .filter(([, pattern]) => pattern.test(text))
+    .map(([tool]) => tool);
+  const namesOnlyAbsentTools =
+    mentioned.length > 0 &&
+    !mentioned.some((tool) => options.applicability.tools.has(tool));
+  const namesAbsentPath = referencedTopLevelEntries(text).some(
+    (entry) => !options.applicability.entries.has(entry),
+  );
+
   return namesOnlyAbsentTools || namesAbsentPath;
 }

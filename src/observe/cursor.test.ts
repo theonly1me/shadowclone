@@ -5,9 +5,13 @@ import path from "node:path";
 import { readJsonLines } from "./cursor";
 
 async function createTranscript(contents: string): Promise<string> {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-cursor-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-cursor-"),
+  );
   const sourcePath = path.join(directory, "session.jsonl");
+
   await Bun.write(sourcePath, contents);
+
   return sourcePath;
 }
 
@@ -20,6 +24,7 @@ test("advances only through complete JSONL records", async () => {
 
   await Bun.sleep(2);
   await Bun.write(sourcePath, '{"value":1}\n{"value":2}\n');
+
   const second = await readJsonLines({
     sourcePath,
     cursor: first?.cursor ?? null,
@@ -65,6 +70,7 @@ test("rescans when a file is truncated", async () => {
 
   await Bun.sleep(2);
   await Bun.write(sourcePath, '{"value":"new"}\n');
+
   const second = await readJsonLines({
     sourcePath,
     cursor: first?.cursor ?? null,

@@ -3,7 +3,16 @@ import type { ReconciliationOutput } from "./types";
 
 const sectionValues = ["engineering", "workflow", "boundaries"] as const;
 const verdictValues = ["reinforces", "contradicts", "narrows"] as const;
-const intentValues = ["preference", "correction", "approval", "additional-context", "cancellation", "unknown"] as const;
+
+const intentValues = [
+  "preference",
+  "correction",
+  "approval",
+  "additional-context",
+  "cancellation",
+  "unknown",
+] as const;
+
 const scopeValues = ["global", "repository"] as const;
 
 const existingRuleSchema = z.strictObject({
@@ -26,7 +35,18 @@ const newRuleSchema = z.strictObject({
 });
 
 const reconciliationSchema = z.strictObject({
-  assessments: z.array(z.strictObject({ evidenceToken: z.string().max(64), intent: z.enum(intentValues), durable: z.boolean(), explicit: z.boolean().optional().default(false), scope: z.enum(scopeValues) })).max(20).optional(),
+  assessments: z
+    .array(
+      z.strictObject({
+        evidenceToken: z.string().max(64),
+        intent: z.enum(intentValues),
+        durable: z.boolean(),
+        explicit: z.boolean().optional().default(false),
+        scope: z.enum(scopeValues),
+      }),
+    )
+    .max(20)
+    .optional(),
   existingRules: z.array(existingRuleSchema).max(24),
   newRules: z.array(newRuleSchema).max(8),
 });
@@ -41,7 +61,11 @@ function normalize(value: string, maximumLength: number): string {
 }
 
 function normalizeBody(value: string): string {
-  return value.replaceAll("<!--", "").replaceAll("-->", "").replaceAll("\r\n", "\n").trim();
+  return value
+    .replaceAll("<!--", "")
+    .replaceAll("-->", "")
+    .replaceAll("\r\n", "\n")
+    .trim();
 }
 
 export const reconciliationOutputSchema = {
@@ -50,10 +74,19 @@ export const reconciliationOutputSchema = {
   required: ["existingRules", "newRules", "assessments"],
   properties: {
     assessments: {
-      type: "array", maxItems: 20,
+      type: "array",
+      maxItems: 20,
       items: {
-        type: "object", additionalProperties: false, required: ["evidenceToken", "intent", "durable", "explicit", "scope"],
-        properties: { evidenceToken: { type: "string", maxLength: 64 }, intent: { type: "string", enum: intentValues }, durable: { type: "boolean" }, explicit: { type: "boolean" }, scope: { type: "string", enum: scopeValues } },
+        type: "object",
+        additionalProperties: false,
+        required: ["evidenceToken", "intent", "durable", "explicit", "scope"],
+        properties: {
+          evidenceToken: { type: "string", maxLength: 64 },
+          intent: { type: "string", enum: intentValues },
+          durable: { type: "boolean" },
+          explicit: { type: "boolean" },
+          scope: { type: "string", enum: scopeValues },
+        },
       },
     },
     existingRules: {
@@ -62,7 +95,15 @@ export const reconciliationOutputSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["ruleToken", "verdict", "observed", "evidenceTokens", "proposedTitle", "proposedBody", "axisChoiceToken"],
+        required: [
+          "ruleToken",
+          "verdict",
+          "observed",
+          "evidenceTokens",
+          "proposedTitle",
+          "proposedBody",
+          "axisChoiceToken",
+        ],
         properties: {
           ruleToken: { type: "string", maxLength: 64 },
           verdict: { type: "string", enum: verdictValues },
@@ -84,7 +125,14 @@ export const reconciliationOutputSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["title", "body", "section", "observed", "evidenceTokens", "rejectionToken"],
+        required: [
+          "title",
+          "body",
+          "section",
+          "observed",
+          "evidenceTokens",
+          "rejectionToken",
+        ],
         properties: {
           title: { type: "string", maxLength: 120 },
           body: { type: "string", maxLength: 8192 },
@@ -102,11 +150,15 @@ export const reconciliationOutputSchema = {
   },
 } as const;
 
-export function parseReconciliationOutput(value: unknown): ReconciliationOutput {
+export function parseReconciliationOutput(
+  value: unknown,
+): ReconciliationOutput {
   const parsed = reconciliationSchema.safeParse(value);
+
   if (!parsed.success) {
     throw new Error("The engine returned an invalid reconciliation result");
   }
+
   return {
     assessments: parsed.data.assessments,
     existingRules: parsed.data.existingRules.map((entry) => ({
@@ -118,6 +170,7 @@ export function parseReconciliationOutput(value: unknown): ReconciliationOutput 
     newRules: parsed.data.newRules.flatMap((entry) => {
       const title = normalize(entry.title, 120);
       const body = normalizeBody(entry.body);
+
       return title && body
         ? [{ ...entry, title, body, observed: normalize(entry.observed, 600) }]
         : [];

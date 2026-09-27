@@ -1,0 +1,57 @@
+.build-panel {
+  position: sticky;
+  top: 20px;
+  display: grid;
+  gap: 16px;
+  max-height: calc(100dvh - 140px);
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #4d3d65 transparent;
+  padding: 3px;
+  margin: -3px;
+}
+
+.build-panel .identity {
+  display: block;
+  padding: 22px;
+  border: 1px solid #44364f;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #221c30, #14151f 80%);
+}
+
+.build-panel .identity h2 {
+  font-size: 25px;
+}
+
+.build-panel .identity p:last-child {
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.build-panel .traits {
+  justify-content: flex-start;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.build-panel .trait {
+  font-size: 10px;
+  padding: 6px 9px;
+}
+
+.build-panel .detail {
+  position: static;
+}
+
+.build-panel #model-description {
+  margin-top: 16px;
+  margin-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .build-panel {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}

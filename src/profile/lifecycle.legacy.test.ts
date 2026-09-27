@@ -11,6 +11,7 @@ async function createTestPaths(): Promise<ProjectPaths> {
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-legacy-"),
   );
+
   return createProjectPaths({ homeDirectory, platform: "darwin" });
 }
 
@@ -55,9 +56,12 @@ test("migrates unedited legacy guidance instead of deleting it", async () => {
   const paths = await createTestPaths();
   const relativePath = "org/github.com--acme/workflow.md";
   const filePath = path.join(paths.profileDirectory, relativePath);
-  const minedVisible = "## Hold the stated scope\n\nReport adjacent findings instead of folding them in.";
-  const originalEditedVisible = "## Review changes\n\nReview every generated change.";
-  const editedVisible = "## Review changes\n\nReview the focused diff before continuing.";
+  const minedVisible =
+    "## Hold the stated scope\n\nReport adjacent findings instead of folding them in.";
+  const originalEditedVisible =
+    "## Review changes\n\nReview every generated change.";
+  const editedVisible =
+    "## Review changes\n\nReview the focused diff before continuing.";
   const mined = legacyBlock({
     key: "legacy-mined",
     visible: minedVisible,
@@ -68,6 +72,7 @@ test("migrates unedited legacy guidance instead of deleting it", async () => {
     visible: editedVisible,
     fingerprint: profileFingerprint(originalEditedVisible),
   });
+
   await Bun.write(filePath, `${mined}\n\n${edited}\n`);
   await Bun.write(
     paths.profileManifestFile,
@@ -79,6 +84,7 @@ test("migrates unedited legacy guidance instead of deleting it", async () => {
   const rules = parseProfileRules(await Bun.file(filePath).text());
   const migrated = rules.find((rule) => rule.key === "legacy-mined");
   const generated = await readGeneratedProfileState(paths.profileManifestFile);
+
   expect(await Bun.file(filePath).text()).toContain(edited);
   expect(migrated).toMatchObject({
     title: "Hold the stated scope",
@@ -100,6 +106,7 @@ test("migrated legacy guidance keeps the standard session activation bar", async
   const relativePath = "org/github.com--acme/workflow.md";
   const filePath = path.join(paths.profileDirectory, relativePath);
   const visible = "## Hold the stated scope\n\nReport adjacent findings.";
+
   await Bun.write(
     filePath,
     `${legacyBlock({ key: "established", visible, fingerprint: profileFingerprint(visible), sessions: 8 })}\n`,
@@ -109,14 +116,21 @@ test("migrated legacy guidance keeps the standard session activation bar", async
   await writeProfile({ paths, rules: [] });
 
   const [migrated] = parseProfileRules(await Bun.file(filePath).text());
-  expect(migrated).toMatchObject({ key: "established", status: "active", sessions: 8 });
+
+  expect(migrated).toMatchObject({
+    key: "established",
+    status: "active",
+    sessions: 8,
+  });
 });
 
 test("keeps migrated legacy guidance across a later unrelated write", async () => {
   const paths = await createTestPaths();
   const relativePath = "org/github.com--acme/workflow.md";
   const filePath = path.join(paths.profileDirectory, relativePath);
-  const visible = "## Hold the stated scope\n\nReport adjacent findings instead of folding them in.";
+  const visible =
+    "## Hold the stated scope\n\nReport adjacent findings instead of folding them in.";
+
   await Bun.write(
     filePath,
     `${legacyBlock({ key: "legacy-mined", visible, fingerprint: profileFingerprint(visible) })}\n`,
@@ -125,9 +139,16 @@ test("keeps migrated legacy guidance across a later unrelated write", async () =
   await writeProfile({ paths, rules: [] });
   await writeProfile({
     paths,
-    rules: [profileRule({ key: "unrelated", title: "Run focused checks", body: "Run one focused check." })],
+    rules: [
+      profileRule({
+        key: "unrelated",
+        title: "Run focused checks",
+        body: "Run one focused check.",
+      }),
+    ],
   });
 
   const rules = parseProfileRules(await Bun.file(filePath).text());
+
   expect(rules.map((rule) => rule.key)).toContain("legacy-mined");
 });

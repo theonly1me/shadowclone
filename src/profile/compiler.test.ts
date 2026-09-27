@@ -46,7 +46,9 @@ test("compiles redacted scoped guidance with source and condition labels", async
     path.join(os.tmpdir(), "shadowclone-compiler-"),
   );
   const globalDirectory = path.join(profileDirectory, "global");
+
   await mkdir(globalDirectory, { recursive: true });
+
   const rules = [
     profileRule({
       key: "declared",
@@ -67,6 +69,7 @@ test("compiles redacted scoped guidance with source and condition labels", async
       status: "stale",
     }),
   ];
+
   await Bun.write(
     path.join(globalDirectory, "workflow.md"),
     rules.map(renderProfileRule).join("\n\n"),

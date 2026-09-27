@@ -23,20 +23,29 @@ export function profileScopePaths(options: {
   readonly targetRepo: string | null;
   readonly scope?: "global" | "scoped" | "combined";
 }): readonly string[] {
-  const globalPaths = options.scope === "scoped" ? [] : scopeFilenames.map((filename) =>
-    path.join("global", filename),
-  );
-  if (options.scope === "global" || options.origin === null || !isSafeProfileSegment(options.origin.directoryName)) {
+  const globalPaths =
+    options.scope === "scoped"
+      ? []
+      : scopeFilenames.map((filename) => path.join("global", filename));
+
+  if (
+    options.scope === "global" ||
+    options.origin === null ||
+    !isSafeProfileSegment(options.origin.directoryName)
+  ) {
     return globalPaths;
   }
+
   const organization = path.join("org", options.origin.directoryName);
   const organizationPaths = scopeFilenames.map((filename) =>
     path.join(organization, filename),
   );
   const targetRepo = options.targetRepo;
+
   if (targetRepo === null || !isSafeProfileSegment(targetRepo)) {
     return [...globalPaths, ...organizationPaths];
   }
+
   return [
     ...globalPaths,
     ...organizationPaths,
@@ -50,6 +59,7 @@ function compilerBlock(options: {
   readonly scope: "global" | "org" | "project";
 }): CompilerBlock {
   const visible = stripProfileMetadata(options.redactedBlock);
+
   if (options.block.key === null) {
     return {
       kind: "rule",
@@ -63,6 +73,7 @@ function compilerBlock(options: {
       appliesWhen: [],
     };
   }
+
   return {
     kind: "rule",
     scope: options.scope,
@@ -86,19 +97,30 @@ async function readScopeFile(options: {
     maximumBytes: maximumProfileBytes,
     parse: parseProfileBlocks,
   });
+
   if (snapshot === null) {
     return [];
   }
+
   const rawBlocks = snapshot.parsed;
   const redactedBlocks = splitProfileBlocks(snapshot.redacted);
+
   if (rawBlocks.length !== redactedBlocks.length) {
     return [];
   }
+
   return rawBlocks.flatMap((block, index) => {
     const redactedBlock = redactedBlocks[index];
-    const relativePath = path.relative(options.profileDirectory, options.filePath);
-    const scope = relativePath.startsWith(`global${path.sep}`) ? "global" as const
-      : relativePath.includes(`${path.sep}projects${path.sep}`) ? "project" as const : "org" as const;
+    const relativePath = path.relative(
+      options.profileDirectory,
+      options.filePath,
+    );
+    const scope = relativePath.startsWith(`global${path.sep}`)
+      ? ("global" as const)
+      : relativePath.includes(`${path.sep}projects${path.sep}`)
+        ? ("project" as const)
+        : ("org" as const);
+
     return redactedBlock === undefined
       ? []
       : [compilerBlock({ block, redactedBlock, scope })];
@@ -123,6 +145,7 @@ export async function readCompilerBlocks(options: {
       }),
     ),
   );
+
   return files.flat();
 }
 
@@ -148,17 +171,17 @@ export function compilerBlocksFromRules(
 export function compilerBlocksFromReferences(
   references: readonly ReferenceSearchResult[],
 ): readonly CompilerBlock[] {
-  return references.filter(({ record }) =>
-    record.source !== "claude-project-memory"
-  ).map(({ record }) => ({
-    kind: "reference",
-    scope: record.scope,
-    ruleKey: null,
-    referenceKey: record.key,
-    source: "reference",
-    status: "active",
-    observations: 0,
-    visible: `Reference \`${record.key}\`: **${record.title}**. ${record.summary}`,
-    appliesWhen: [],
-  }));
+  return references
+    .filter(({ record }) => record.source !== "claude-project-memory")
+    .map(({ record }) => ({
+      kind: "reference",
+      scope: record.scope,
+      ruleKey: null,
+      referenceKey: record.key,
+      source: "reference",
+      status: "active",
+      observations: 0,
+      visible: `Reference \`${record.key}\`: **${record.title}**. ${record.summary}`,
+      appliesWhen: [],
+    }));
 }

@@ -10,6 +10,7 @@ test("public reports omit private content while resume state retains it privatel
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-report-"),
   );
+
   try {
     const receipt = initialReceipt({
       ...evidenceReceipt(directory).prepared,
@@ -33,6 +34,7 @@ test("public reports omit private content while resume state retains it privatel
         },
       ],
     });
+
     await saveReceipt({
       directory,
       receipt: {
@@ -66,7 +68,9 @@ test("public reports omit private content while resume state retains it privatel
         ],
       },
     });
+
     const report = await Bun.file(path.join(directory, "report.json")).text();
+
     expect(report).not.toContain("private-");
     expect(report).not.toContain("/private/project");
     expect(JSON.parse(report).runs[0].correctness).toEqual(["fail"]);
@@ -85,11 +89,16 @@ test("evaluation ownership is exclusive and release permits a later resume", asy
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-eval-lock-"),
   );
+
   try {
     const release = await lockEvaluation(directory);
+
     await expect(lockEvaluation(directory)).rejects.toThrow("interrupted lock");
+
     await release();
+
     const nextRelease = await lockEvaluation(directory);
+
     await nextRelease();
   } finally {
     await rm(directory, { recursive: true, force: true });

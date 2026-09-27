@@ -24,7 +24,12 @@ const installationStateSchema = z.strictObject({
       directory: z.string().min(1),
       artifacts: z.array(z.enum(["agent", "delegation-skill"])),
       excludes: z.array(z.string().min(1)),
-      fingerprints: z.object({ agent: z.string().optional(), "delegation-skill": z.string().optional() }).optional(),
+      fingerprints: z
+        .object({
+          agent: z.string().optional(),
+          "delegation-skill": z.string().optional(),
+        })
+        .optional(),
     }),
   ),
 });
@@ -38,15 +43,24 @@ export async function readInstallations(
   filePath: string,
 ): Promise<InstallationState> {
   const file = Bun.file(filePath);
+
   if (!(await file.exists())) {
     return emptyInstallationState;
   }
+
   try {
-    const text = await readBoundedFile({ filePath, roots: [path.dirname(filePath)], maximumBytes: 1024 * 1024 });
+    const text = await readBoundedFile({
+      filePath,
+      roots: [path.dirname(filePath)],
+      maximumBytes: 1024 * 1024,
+    });
+
     if (text === null) {
       throw new Error("Installation state could not be read safely");
     }
+
     const parsed = installationStateSchema.safeParse(JSON.parse(text));
+
     return parsed.success ? parsed.data : emptyInstallationState;
   } catch {
     return emptyInstallationState;
@@ -91,7 +105,10 @@ export function mergeInstallation(options: {
   });
   const merged: Installation = {
     directory: options.installation.directory,
-    fingerprints: { ...previous?.fingerprints, ...options.installation.fingerprints },
+    fingerprints: {
+      ...previous?.fingerprints,
+      ...options.installation.fingerprints,
+    },
     artifacts: unionSorted(
       previous?.artifacts ?? [],
       options.installation.artifacts,
@@ -101,6 +118,7 @@ export function mergeInstallation(options: {
       options.installation.excludes,
     ),
   };
+
   return {
     version: 1,
     installations: [

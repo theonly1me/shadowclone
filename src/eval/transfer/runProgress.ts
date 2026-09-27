@@ -1,10 +1,7 @@
 import type { EvaluationArm } from "./arms";
 import { progressLine } from "./progress";
 import { saveReceipt } from "./storage";
-import type {
-  EvaluationProgress,
-  TransferReceipt,
-} from "./types";
+import type { EvaluationProgress, TransferReceipt } from "./types";
 
 export async function recordProgress(options: {
   readonly receipt: TransferReceipt;
@@ -29,11 +26,15 @@ export async function recordProgress(options: {
     voteCount: options.stage === "judging" ? 3 : null,
     updatedAt: new Date().toISOString(),
   };
+
   const receipt = { ...options.receipt, progress };
+
   await saveReceipt({ directory: options.directory, receipt });
   options.onProgress?.(progress);
+
   if (!options.json) {
     console.log(progressLine({ progress, startedAt: options.startedAt }));
   }
+
   return receipt;
 }

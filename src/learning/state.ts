@@ -3,7 +3,11 @@ import { z } from "zod";
 import { fingerprint, readLocalText, replaceLocalText } from "../localFiles";
 import type { ProjectPaths } from "../paths";
 import type { CorrectionSignal } from "../signal";
-import { readLearningLedger, writeLearningLedger, type ProcessedEpisode } from "./ledger";
+import {
+  readLearningLedger,
+  writeLearningLedger,
+  type ProcessedEpisode,
+} from "./ledger";
 
 export const learningInterval = 60 * 60 * 1_000;
 export const learningBatchSize = 60;
@@ -12,10 +16,19 @@ const stateSchema = z.strictObject({
   lastCompletedAt: z.number().nullable(),
   status: z.enum(["idle", "running", "completed", "failed"]),
 });
-export type LearningState = z.infer<typeof stateSchema> & { readonly processed: readonly ProcessedEpisode[] };
+
+export type LearningState = z.infer<typeof stateSchema> & {
+  readonly processed: readonly ProcessedEpisode[];
+};
 
 export function episodeId(signal: CorrectionSignal): string {
-  return fingerprint(JSON.stringify({ session: signal.sessionId, timestamp: signal.timestamp, references: signal.textRefs }));
+  return fingerprint(
+    JSON.stringify({
+      session: signal.sessionId,
+      timestamp: signal.timestamp,
+      references: signal.textRefs,
+    }),
+  );
 }
 
 export function selectLearningEpisodes(options: {
@@ -25,8 +38,14 @@ export function selectLearningEpisodes(options: {
   readonly limit?: number;
 }): readonly CorrectionSignal[] {
   const processed = new Set(options.state.processed.map((entry) => entry.id));
-  return options.signals.filter((signal) => signal.timestamp <= options.now && !processed.has(episodeId(signal)))
-    .sort((left, right) => right.timestamp - left.timestamp).slice(0, options.limit ?? learningBatchSize);
+
+  return options.signals
+    .filter(
+      (signal) =>
+        signal.timestamp <= options.now && !processed.has(episodeId(signal)),
+    )
+    .sort((left, right) => right.timestamp - left.timestamp)
+    .slice(0, options.limit ?? learningBatchSize);
 }
 
 export function selectNewestLearningEpisodes(options: {
@@ -44,25 +63,57 @@ export function selectRequestedLearningEpisodes(options: {
   readonly state: LearningState;
 }): readonly CorrectionSignal[] {
   const processed = new Set(options.state.processed.map((entry) => entry.id));
+
   return options.signals
-    .filter((signal) =>
-      options.sessionKeys.has(fingerprint(signal.sessionId)) &&
-      !processed.has(episodeId(signal))
+    .filter(
+      (signal) =>
+        options.sessionKeys.has(fingerprint(signal.sessionId)) &&
+        !processed.has(episodeId(signal)),
     )
     .sort((left, right) => right.timestamp - left.timestamp)
     .slice(0, learningBatchSize);
 }
 
-export async function readLearningState(paths: ProjectPaths): Promise<LearningState> {
-  const contents = await readLocalText(path.join(paths.shadowcloneDirectory, "learning.json"));
-  if (contents === null) return { lastAttemptAt: null, lastCompletedAt: null, status: "idle", processed: [] };
-  try { return { ...stateSchema.parse(JSON.parse(contents)), processed: await readLearningLedger(paths) }; }
-  catch { throw new Error("Invalid automatic learning state"); }
+export async function readLearningState(
+  paths: ProjectPaths,
+): Promise<LearningState> {
+  const contents = await readLocalText(
+    path.join(paths.shadowcloneDirectory, "learning.json"),
+  );
+
+  if (contents === null) {
+    return {
+      lastAttemptAt: null,
+      lastCompletedAt: null,
+      status: "idle",
+      processed: [],
+    };
+  }
+
+  try {
+    return {
+      ...stateSchema.parse(JSON.parse(contents)),
+      processed: await readLearningLedger(paths),
+    };
+  } catch {
+    throw new Error("Invalid automatic learning state");
+  }
 }
 
-export async function writeLearningState(options: { readonly paths: ProjectPaths; readonly state: LearningState }): Promise<void> {
-  const filePath = path.join(options.paths.shadowcloneDirectory, "learning.json");
+export async function writeLearningState(options: {
+  readonly paths: ProjectPaths;
+  readonly state: LearningState;
+}): Promise<void> {
+  const filePath = path.join(
+    options.paths.shadowcloneDirectory,
+    "learning.json",
+  );
   const { processed, ...summary } = options.state;
+
   await writeLearningLedger({ paths: options.paths, entries: processed });
-  await replaceLocalText({ filePath, previous: await readLocalText(filePath), next: `${JSON.stringify(summary, null, 2)}\n` });
+  await replaceLocalText({
+    filePath,
+    previous: await readLocalText(filePath),
+    next: `${JSON.stringify(summary, null, 2)}\n`,
+  });
 }

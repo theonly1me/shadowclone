@@ -1,22 +1,17 @@
-import type {
-  AgentEvent,
-  FileCursor,
-  ObservationBatch,
-} from "../types";
+import type { AgentEvent, FileCursor, ObservationBatch } from "../types";
 import { parseCursorBlob } from "./cursorMessage";
-import {
-  cursorStoreSignature,
-  readCursorStore,
-} from "./cursorStore";
+import { cursorStoreSignature, readCursorStore } from "./cursorStore";
 
 export async function observeCursorFile(options: {
   readonly sourcePath: string;
   readonly cursor: FileCursor | null;
 }): Promise<ObservationBatch | null> {
   const signature = await cursorStoreSignature(options.sourcePath);
+
   if (signature === null) {
     return null;
   }
+
   if (
     options.cursor !== null &&
     options.cursor.byteSize === signature.size &&
@@ -32,15 +27,19 @@ export async function observeCursorFile(options: {
       invalidRecords: 0,
     };
   }
+
   const store = await readCursorStore({
     sourcePath: options.sourcePath,
     signature,
   });
+
   if (store === null) {
     return null;
   }
+
   const events: AgentEvent[] = [];
   let parentEventId: string | null = null;
+
   for (const blob of store.blobs) {
     for (const parsed of parseCursorBlob({
       blob,
@@ -52,10 +51,12 @@ export async function observeCursorFile(options: {
       },
     })) {
       const event: AgentEvent = { ...parsed, parentEventId };
+
       events.push(event);
       parentEventId = event.eventId;
     }
   }
+
   return {
     source: "cursor",
     sourcePath: options.sourcePath,
@@ -71,6 +72,7 @@ export async function discoverCursorFiles(
   chatsDirectory: string,
 ): Promise<readonly string[]> {
   const files: string[] = [];
+
   for await (const sourcePath of new Bun.Glob("**/store.db").scan({
     cwd: chatsDirectory,
     absolute: true,
@@ -78,5 +80,6 @@ export async function discoverCursorFiles(
   })) {
     files.push(sourcePath);
   }
+
   return files.sort();
 }

@@ -18,15 +18,19 @@ function parsePrompt(options: {
 
   const prompt =
     readString(options.value, "display") ?? readString(options.value, "prompt");
+
   if (prompt === null) {
     return null;
   }
 
   const timestamp = readTimestamp(options.value.timestamp);
+
   return {
     source: "claude-prompts",
     sessionId: readString(options.value, "sessionId") ?? "claude-prompts",
-    eventId: readString(options.value, "id") ?? `prompt:${timestamp}:${options.ref.byteOffset}`,
+    eventId:
+      readString(options.value, "id") ??
+      `prompt:${timestamp}:${options.ref.byteOffset}`,
     parentEventId: null,
     timestamp,
     cwd: readString(options.value, "project") ?? "",
@@ -43,6 +47,7 @@ export async function observeClaudePromptsFile(options: {
   readonly cursor: FileCursor | null;
 }): Promise<ObservationBatch | null> {
   const result = await readJsonLines(options);
+
   if (result === null) {
     return null;
   }

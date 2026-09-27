@@ -1,27 +1,18 @@
-import {
-  detectEngine,
-  type CommandProbe,
-  type EngineId,
-} from "../engine";
-import {
-  readManagedPolicy,
-  type DistillationPolicy,
-} from "../config";
+import { detectEngine, type CommandProbe, type EngineId } from "../engine";
+import { readManagedPolicy, type DistillationPolicy } from "../config";
 import { openEventIndex } from "../index";
-import { compileContextDetails, integrationHealth, sessionStartProjection } from "../integrations";
+import {
+  compileContextDetails,
+  integrationHealth,
+  sessionStartProjection,
+} from "../integrations";
 import { projectPaths } from "../paths";
 import { repairOwnedTree } from "../storage";
 import { readLearningState } from "../learning";
 import { readEffectiveConfig } from "../config";
 import { listSkillProposals, readMaintenanceState } from "../skillMaintenance";
-import {
-  getProviderSupport,
-  providerDefinitions,
-} from "../provider";
-import {
-  computeSourceHealth,
-  type SourceMarkerHealth,
-} from "../signal";
+import { getProviderSupport, providerDefinitions } from "../provider";
+import { computeSourceHealth, type SourceMarkerHealth } from "../signal";
 import { createProfileRepairPlan } from "../profile";
 import { renderStartupContextSummary } from "./contextExplain";
 import { environmentStatus } from "../environment/status";
@@ -29,6 +20,7 @@ import { environmentStatus } from "../environment/status";
 export function renderProviderSupport(): readonly string[] {
   return providerDefinitions.map((definition) => {
     const support = getProviderSupport(definition);
+
     return `${definition.id}: observe=${support.observe ? "yes" : "no"}, distill=${
       support.distill ? "yes" : "no"
     }, dispatch=${support.dispatch ? "yes" : "no"}`;
@@ -42,9 +34,11 @@ export function renderEngineSelection(options: {
   if (options.distillation === "disabled") {
     return "Deep distillation is disabled by managed policy.";
   }
+
   if (options.distillation === "local-only") {
     return "Deep distillation is restricted to local engines, which are not implemented.";
   }
+
   return options.selectedEngine
     ? `Selected engine: ${options.selectedEngine}`
     : "No authenticated distillation engine is available.";
@@ -56,36 +50,47 @@ export function renderMarkerHealth(options: {
   if (options.health.length === 0) {
     return ["No indexed sessions yet."];
   }
+
   return options.health.map((h) => {
     const status = h.isStale
       ? " (POSSIBLY STALE: 0 signals across 25+ sessions)"
       : "";
+
     return `${h.source}: ${h.sessions} sessions, ${h.interruptions} interruptions, ${h.denials} denials${status}`;
   });
 }
 
-export async function doctor(options: {
-  readonly probe?: CommandProbe;
-  readonly managedConfigPath?: string | null;
-  readonly databasePath?: string;
-  readonly shadowcloneDirectory?: string;
-} = {}): Promise<void> {
-  await repairOwnedTree(options.shadowcloneDirectory ?? projectPaths.shadowcloneDirectory);
+export async function doctor(
+  options: {
+    readonly probe?: CommandProbe;
+    readonly managedConfigPath?: string | null;
+    readonly databasePath?: string;
+    readonly shadowcloneDirectory?: string;
+  } = {},
+): Promise<void> {
+  await repairOwnedTree(
+    options.shadowcloneDirectory ?? projectPaths.shadowcloneDirectory,
+  );
+
   const managedConfigPath =
     options.managedConfigPath === undefined
       ? projectPaths.managedConfigFile
       : options.managedConfigPath;
   const policy = await readManagedPolicy(managedConfigPath);
+
   if (
     managedConfigPath !== null &&
     (await Bun.file(managedConfigPath).exists())
   ) {
     console.log(`Managed policy: ${managedConfigPath}`);
   }
+
   if (!policy.enabled) {
     console.log("Managed policy: shadowclone is disabled.");
+
     return;
   }
+
   const allowedEngines =
     policy.distillation === "allowed" ? policy.allowedEngines : [];
   const detection = await detectEngine({
@@ -93,14 +98,17 @@ export async function doctor(options: {
     probe: options.probe,
     allowedEngines,
   });
+
   for (const engine of detection.availability) {
     const status = engine.authenticated
       ? "authenticated"
       : engine.installed
         ? "installed, authentication not found"
         : "not installed";
+
     console.log(`${engine.engine}: ${status}`);
   }
+
   console.log(
     renderEngineSelection({
       distillation: policy.distillation,
@@ -108,32 +116,66 @@ export async function doctor(options: {
     }),
   );
   console.log("Provider support:");
+
   for (const line of renderProviderSupport()) {
     console.log(line);
   }
-  for (const line of await integrationHealth({ managedConfigPath })) console.log(line);
-  console.log(renderStartupContextSummary(await compileContextDetails({ cwd: process.cwd(), managedConfigPath, ...sessionStartProjection })));
+
+  for (const line of await integrationHealth({ managedConfigPath })) {
+    console.log(line);
+  }
+
+  console.log(
+    renderStartupContextSummary(
+      await compileContextDetails({
+        cwd: process.cwd(),
+        managedConfigPath,
+        ...sessionStartProjection,
+      }),
+    ),
+  );
+
   const { config } = await readEffectiveConfig({ managedConfigPath });
   const learning = await readLearningState(projectPaths);
-  console.log(`Automatic learning: ${config.distillation.automatic ? "enabled" : "disabled"}; last attempt ${learning.status}.`);
+
+  console.log(
+    `Automatic learning: ${config.distillation.automatic ? "enabled" : "disabled"}; last attempt ${learning.status}.`,
+  );
+
   const skills = await readMaintenanceState(projectPaths);
   const proposals = await listSkillProposals(projectPaths);
-  console.log(`Skill maintenance: ${config.sources["skill-library"] ? "enabled" : "disabled"}; ${skills.roots.filter((root) => root.enabled).length} root(s), ${proposals.filter((proposal) => proposal.status === "pending").length} pending proposal(s).`);
+
+  console.log(
+    `Skill maintenance: ${config.sources["skill-library"] ? "enabled" : "disabled"}; ${skills.roots.filter((root) => root.enabled).length} root(s), ${proposals.filter((proposal) => proposal.status === "pending").length} pending proposal(s).`,
+  );
+
   const environment = await environmentStatus(projectPaths);
-  if (environment) console.log(`Skill environment: ${environment.phase}; ${environment.skills} skills, ${environment.pending} pending learning(s), ${environment.unresolvedScopes} learning(s) in unregistered scopes.`);
-  else {
+
+  if (environment) {
+    console.log(
+      `Skill environment: ${environment.phase}; ${environment.skills} skills, ${environment.pending} pending learning(s), ${environment.unresolvedScopes} learning(s) in unregistered scopes.`,
+    );
+  } else {
     const profileRepair = await createProfileRepairPlan(projectPaths);
-    console.log(`Profile repair: ${profileRepair.repairs.length} ready, ${profileRepair.blocked.length} blocked, ${profileRepair.isolatedDirectories} isolated.`);
+
+    console.log(
+      `Profile repair: ${profileRepair.repairs.length} ready, ${profileRepair.blocked.length} blocked, ${profileRepair.isolatedDirectories} isolated.`,
+    );
   }
+
   const dbFile = Bun.file(options.databasePath ?? projectPaths.indexDatabase);
+
   if (await dbFile.exists()) {
     const index = await openEventIndex(
       options.databasePath ?? projectPaths.indexDatabase,
     );
+
     try {
       const events = index.listEvents();
       const health = computeSourceHealth(events);
+
       console.log("Marker health:");
+
       for (const line of renderMarkerHealth({ health })) {
         console.log(`  ${line}`);
       }
