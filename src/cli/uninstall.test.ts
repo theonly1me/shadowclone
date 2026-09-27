@@ -30,12 +30,17 @@ async function installed(options: {
     stdout: "ignore",
     stderr: "ignore",
   });
+
   expect(await init.exited).toBe(0);
+
   const excludePath = path.join(targetDirectory, ".git", "info", "exclude");
+
   if (options.existingExclude !== undefined) {
     await Bun.write(excludePath, options.existingExclude);
   }
+
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
   await installLiveClone({
     cwd: targetDirectory,
@@ -44,12 +49,14 @@ async function installed(options: {
     managedConfigPath: null,
     autoDelegate: true,
   });
+
   return { targetDirectory, paths, excludePath };
 }
 
 test("uninstall removes the repository artifacts and its manifest record", async () => {
   const { targetDirectory, paths } = await installed({});
   const unrelated = path.join(targetDirectory, ".claude", "agents", "other.md");
+
   await mkdir(path.dirname(unrelated), { recursive: true });
   await Bun.write(unrelated, "Someone else's agent.");
 
@@ -78,6 +85,7 @@ test("uninstall removes only the exclude lines the installer added", async () =>
   await uninstallLiveClone({ cwd: targetDirectory, paths });
 
   const excludes = await Bun.file(excludePath).text();
+
   expect(excludes).toContain(".claude/agents/other.md");
   expect(excludes).toContain("build/");
   expect(excludes).not.toContain("shadowclone");

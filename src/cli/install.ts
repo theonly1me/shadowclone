@@ -6,7 +6,9 @@ import {
 import { readEffectiveConfig } from "../config";
 import { canonicalPath, projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { compileProfile, renderAgent } from "../profile";
+import { renderAgent } from "../profile";
+import { compileAgentDelivery } from "../environment/compile";
+import { readEnvironment } from "../environment";
 import {
   isOriginBlocked,
   resolveRepository,
@@ -45,32 +47,40 @@ export async function installLiveClone(
         ? paths.managedConfigFile
         : options.managedConfigPath,
   });
+
   if (!policy.enabled) {
     throw new Error("Shadowclone is disabled by managed policy");
   }
-  if (await resolveInstallTarget({ directory: canonicalPath(cwd) }) === null) {
+
+  if (
+    (await resolveInstallTarget({ directory: canonicalPath(cwd) })) === null
+  ) {
     throw new Error("Install requires a repository root");
   }
+
   const repository = await resolveRepository({
     cwd,
     enabled: config.sources["git-metadata"],
     readRemote: options.readRemote,
   });
+
   if (isOriginBlocked({ repository, patterns: policy.blockedOrigins })) {
     throw new Error("Managed policy blocks this repository");
   }
-  const compilation = await compileProfile({
-    input: {
-      kind: "directory",
-      profileDirectory: paths.profileDirectory,
-      origin: repository.origin,
-      targetRepo: repository.profileFileName,
-    },
-    outputPath: paths.compiledProfileFile,
+
+  const compilation = await compileAgentDelivery({
+    paths,
+    cwd,
+    repository,
+    ...((await readEnvironment(paths)) === null
+      ? { outputPath: paths.compiledProfileFile }
+      : {}),
   });
+
   const state = await readInstallations(paths.installationsFile);
   const directory = canonicalPath(cwd);
   const installation = findInstallation({ state, directory });
+
   const artifacts: InstalledArtifact[] = options.autoDelegate
     ? ["agent", "delegation-skill"]
     : ["agent"];
@@ -79,12 +89,16 @@ export async function installLiveClone(
       checkArtifactWrite({ directory, artifact, installation }),
     ),
   );
+
   const fingerprints: Partial<Record<InstalledArtifact, string>> = {};
+
   for (const [index, artifact] of artifacts.entries()) {
     const target = targets[index];
+
     if (!target) {
       throw new Error("Installation target is unavailable");
     }
+
     fingerprints[artifact] = await writeInstalledArtifact({
       target,
       content:
@@ -93,10 +107,12 @@ export async function installLiveClone(
           : renderDelegationSkill(),
     });
   }
+
   const excludes = await addGitExcludes({
     cwd,
     patterns: artifacts.map((artifact) => artifactExcludePatterns[artifact]),
   });
+
   await writeInstallations({
     filePath: paths.installationsFile,
     state: mergeInstallation({
@@ -106,6 +122,7 @@ export async function installLiveClone(
   });
 
   const names = artifacts.map((artifact) => artifactRelativePaths[artifact]);
+
   console.log(
     `Installed ${names.join(" and ")} for this repository, applying ${compilation.appliedRuleCount} profile rules.`,
   );

@@ -31,6 +31,7 @@ function packageDirectories(): {
   readonly skillsDirectory: string;
 } {
   const packageRoot = path.resolve(import.meta.dir, "../..");
+
   return {
     preferencesDirectory: path.join(packageRoot, "preferences"),
     skillsDirectory: path.join(packageRoot, "skills"),
@@ -41,6 +42,7 @@ test("ships complete Agent Skills without the local comment rule", async () => {
   const directories = packageDirectories();
   const skillFiles: string[] = [];
   const glob = new Bun.Glob("*/SKILL.md");
+
   for await (const skillFile of glob.scan({
     cwd: directories.skillsDirectory,
   })) {
@@ -61,9 +63,7 @@ test("loads preferences and Agent Skills into honest groups", async () => {
   expect(library.preferences.map((entry) => entry.id)).toEqual(preferenceIds);
   expect(library.skills.map((entry) => entry.id)).toEqual(skillIds);
   expect(library.guidance).toHaveLength(18);
-  expect(
-    library.axes.map((axis) => [axis.id, axis.guidance.length]),
-  ).toEqual([
+  expect(library.axes.map((axis) => [axis.id, axis.guidance.length])).toEqual([
     ["dependency-posture", 2],
     ["planning-threshold", 2],
     ["question-frequency", 2],

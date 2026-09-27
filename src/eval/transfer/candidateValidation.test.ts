@@ -68,16 +68,22 @@ test("rejects analysis requests without an implementation direction", () => {
 });
 
 test("requires generated tasks to add new code and exercise multiple preferences", () => {
-  expect(additiveTaskExclusionReason({
-    prompt: "Update the existing parser and its tests.",
-    preferences: ["Use complete names", "Avoid casts", "Keep files short"],
-  })).toContain("new code");
-  expect(additiveTaskExclusionReason({
-    prompt: "Create a new parser utility and focused tests.",
-    preferences: ["Use complete names"],
-  })).toContain("three applicable preferences");
-  expect(additiveTaskExclusionReason({
-    prompt: "Create a new parser utility and focused tests.",
-    preferences: ["Use complete names", "Avoid casts", "Keep files short"],
-  })).toBeNull();
+  expect(
+    additiveTaskExclusionReason({
+      prompt: "Update the existing parser and its tests.",
+      preferences: ["Use complete names", "Avoid casts", "Keep files short"],
+    }),
+  ).toContain("new code");
+  expect(
+    additiveTaskExclusionReason({
+      prompt: "Create a new parser utility and focused tests.",
+      preferences: ["Use complete names"],
+    }),
+  ).toContain("three applicable preferences");
+  expect(
+    additiveTaskExclusionReason({
+      prompt: "Create a new parser utility and focused tests.",
+      preferences: ["Use complete names", "Avoid casts", "Keep files short"],
+    }),
+  ).toBeNull();
 });

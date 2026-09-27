@@ -1,15 +1,13 @@
 import path from "node:path";
 import { readLineRefs } from "../cursor";
-import type {
-  FileCursor,
-  ObservationBatch,
-} from "../types";
+import type { FileCursor, ObservationBatch } from "../types";
 
 export async function observeShellFile(options: {
   readonly sourcePath: string;
   readonly cursor: FileCursor | null;
 }): Promise<ObservationBatch | null> {
   const result = await readLineRefs(options);
+
   if (result === null) {
     return null;
   }

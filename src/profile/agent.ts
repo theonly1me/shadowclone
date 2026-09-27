@@ -6,9 +6,13 @@ export function renderAgent(options: {
   readonly name?: string;
 }): string {
   const name = options.name ?? "shadowclone";
+
   if (!/^[a-z0-9-]+$/.test(name)) {
-    throw new Error("Agent name must use lowercase letters, numbers, and hyphens");
+    throw new Error(
+      "Agent name must use lowercase letters, numbers, and hyphens",
+    );
   }
+
   return [
     "---",
     `name: ${name}`,
@@ -34,6 +38,8 @@ export async function writeAgent(options: {
     "agents",
   );
   const outputPath = path.join(agentsDirectory, `${name}.md`);
+
   await ownedWrite({ path: outputPath, content: renderAgent(options) });
+
   return outputPath;
 }

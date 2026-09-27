@@ -1,10 +1,6 @@
 import { z } from "zod";
 
-export const actionCapabilities = [
-  "push",
-  "pr-draft",
-  "pr-reply",
-] as const;
+export const actionCapabilities = ["push", "pr-draft", "pr-reply"] as const;
 
 export type ActionCapability = (typeof actionCapabilities)[number];
 
@@ -38,6 +34,7 @@ export function parseRepoSettings(value: unknown): RepoSettings {
     }
 
     const result = repoPolicySchema.safeParse(entry);
+
     if (!result.success) {
       throw new Error("Every repo policy must contain valid action settings");
     }

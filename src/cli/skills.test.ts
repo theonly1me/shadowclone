@@ -14,6 +14,7 @@ test("lists every preference and Agent Skill exactly once", async () => {
   expect(lines[0]).toBe("Profile preference axes");
   expect(lines).toContain("Skill axes");
   expect(lines).toContain("Optional skills");
+
   for (const entry of library.guidance) {
     expect(
       lines.filter((line) => line.endsWith(`${entry.id}: ${entry.title}`)),

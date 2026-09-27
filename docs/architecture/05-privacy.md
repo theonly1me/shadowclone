@@ -1,54 +1,41 @@
-# Privacy
+# Privacy boundaries
 
-Shadowclone learns engineering taste from consented agent transcripts and existing instructions so the main agent and delegated clones inherit the same preferences. Each clone writes its own agent transcript. Those sessions can feed later learning and improve the shared profile. This useful loop starts with sensitive material, so source consent, local storage, and redaction are part of the product boundary.
+The [data-handling guide](../data-handling.md) owns the source inventory, local file locations, and removal instructions. This page explains the implementation boundaries a contributor must preserve.
 
-Local storage does not imply offline inference or anonymity. The user must be authorized to send selected input to the configured provider. Redaction reduces known risks but cannot identify every sensitive detail.
+## Source access
 
-## Named consent
+Every capture source has a separate setting that defaults off. Managed policy can restrict consent. Pre-consent discovery can answer whether a configured root exists and has content, but cannot open its entries or retain identifying metadata.
 
-Every source has its own flag in `~/.shadowclone/config.toml`, and every flag defaults off. Default `shadowclone init` lists detected source paths before asking one grouped question for transcripts, Git remote names, and agent context. Separate questions cover skill maintenance and background learning. `init --advanced` asks about each source individually. A managed policy can narrow consent but cannot broaden it.
+Repository identity discovery, memory, agent context, skills, and repository manifests have separate settings. Permission to read one source does not expand another source or grant skill-write authorization.
 
-| Source | Path |
-| --- | --- |
-| Claude Code | `~/.claude/projects/` |
-| Claude prompts | `~/.claude/history.jsonl` |
-| Codex | `~/.codex/sessions/` or `$CODEX_HOME/sessions/` when set |
-| Cursor | `~/.cursor/chats/` |
-| Antigravity | `~/.gemini/antigravity-cli/brain/` |
-| Shell | `~/.zsh_history`, `~/.bash_history` |
-| Declared repository rules | root `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, and direct skill files under `.claude/skills/` or `.agents/skills/` |
-| Agent context | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.codex/AGENTS.override.md`, supported personal and repository skill roots, and `~/.claude/projects/<repo>/memory/` or `~/.codex/memories/`, only for evaluation |
-| Skill library | `~/.claude/skills/`, `~/.agents/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`, `~/.gemini/config/skills/`, configured repository roots, and selected provider plugin caches |
-| Git metadata | repository remote names |
+## Learning text
 
-Before consent, setup checks only whether a configured root exists and has content. It reduces that check to a temporary boolean. It reads at most one directory entry and retains no name or path. Absent transcript sources stay disabled even if the grouped answer is yes. The local instruction and skill roots are read only after their corresponding consent.
+The event index stores pointers and event metadata. `resolveRedacted` materializes an eligible reference only after validating its range, root, file type, limits, and captured identity. `materializeSnapshot` uses the same redaction boundary for bounded file snapshots and keeps model text consistent with parsed metadata.
 
-Evaluation has a separate code-evidence boundary. Coding agents can read the selected committed repository snapshot. Changed files, diffs, and recorded actions then go to the judging model without redaction so code semantics remain intact. That evidence can contain sensitive code or identifiers. Use only authorized repositories, keep receipts private, and review any public summary. The personal context directory is excluded from collected files; all arms retain the same repository guidance.
+Tool-result payloads, tool-returned file contents, thinking blocks, and data-access results are excluded from learning by category. The parser may encounter their bytes while reading an enabled transcript. Redaction applies to eligible text and cannot guarantee that every sensitive detail is removed.
 
-## One redaction gate
+Persistent identities stay local behind opaque prompt tokens during reconciliation. Logs use counts, sizes, hashes, and source names. Captured paths and raw provider output must not become diagnostic text.
 
-Agent events in the disposable SQLite index carry `TextRef` pointers, event kinds, timestamps, and tool metadata. They do not carry captured text. `resolveRedacted` in `src/redact/` is the only exported function that turns a captured pointer into text. It calls `redactSecrets` before the excerpt can reach distillation, an authenticated agent CLI, or a model-facing evaluation snapshot. Repository guidance and consented agent context also pass through this gate. Raw transcripts are never copied into a Shadowclone store.
+## Scope and publication
 
-Learning admits user-authored steering episodes and limited assistant context. Tool results, file contents from Read, Edit, or Write, thinking blocks, and data-access results are excluded by category. Redaction still removes recognized credentials, secret assignments, private hosts, paths, and high-entropy tokens from eligible material. Stored rule and rejection identities are replaced with opaque prompt tokens before reconciliation.
+Project guidance requires a registered repository and matching identity. Organization guidance remains within its remote owner; explicit global guidance is shared by design. Unknown or ambiguous origins remain isolated.
 
-The first setup learning pass uses the newest eligible episodes and a 90-second whole-run deadline. It may finish with no write when that budget expires. Manual `learn --deep` processes the newest unprocessed episodes in bounded batches, and later runs continue backward through the durable ledger. A session-end hook alone does not start learning; the main agent must first mark a useful session under separate deep and automatic consent. `SubagentStart` gives a spawned Claude subagent the compiled profile without requesting another learning run.
+Reading a skill does not authorize changing it. Supported user-skill edits require maintenance authorization, use fingerprints, and form reversible revisions with their native instructions and evidence. Divergent edits remain pending. Third-party packages and native memory remain untouched.
 
-## Local ownership and egress
+Resource copies preserve their bytes and permissions. They are checked locally and are not sent to the learning model or executed during maintenance. Symlinks, unsafe references, and exceeded publication limits stop the update.
 
-The profile lives as Markdown under `~/.shadowclone/profile/`. The user can open, edit, reject, or delete its rules. Local history stores before and after profile text so undo can detect conflicts. The index, learning ledger, checkpoints, skill proposals, eval receipts, and installation manifests stay under the user's Shadowclone home and contain no second transcript copy.
+Shared repository files require review because they can publish personal guidance to teammates. Repository setup asks separately before including global personal preferences. Browser previews validate observed files again before applying a change.
 
-Learning sends eligible redacted excerpts through the user's authenticated `claude`, `codex`, or `cursor-agent` CLI. Evaluation also exposes the authorized repository snapshot and generated code described above. Headless dispatch exposes the chosen worktree to its engine and has a separate per-action policy for commits and remote actions. Shadowclone has no service, API key, account, or telemetry endpoint. Reusing authentication does not replace source consent or an organization's rules about model use.
+## Model execution
 
-Skill maintenance has its own default-off `skill-library` source. It reads enabled `SKILL.md` files, sends redacted contents for assessment, and checks referenced files locally without reading or executing them. User-owned technical and routing changes remain pending for review; plugin packages remain unchanged.
+Learning uses a no-tools engine request with shared limits. Authorized coding runs expose a worktree to the selected provider. Evaluation exposes a frozen repository snapshot, and judges receive generated code without redaction to preserve its meaning. These are distinct input contracts.
 
-The repository harness has its own default-off `repository-manifests` source, asked the first time `shadowclone init --repo` runs. Manifests are read locally, bounded in size, never followed through symbolic links, and never sent to a model. Rule text reaches the committed `AGENTS.md` only through `compileProfile`, so it passes `resolveRedacted` first, and personal global rules need a per-repository confirmation. A personal skill copied with `--skill` must pass the redaction check unchanged, or the copy is refused. Harness files are written through local revisions under `~/.shadowclone/`; committing them is left to the user. `shadowclone check` reads repository files locally, reports paths, line numbers, and rule names without file contents, and needs no Shadowclone configuration, so teammates and CI can run it. To find TypeScript comments it loads the `typescript` package installed in the repository being checked, the same code that repository's own build runs. `shadowclone sync` reads Claude memory only under the `claude-memory` source, only for the exact current repository, and only through `resolveRedacted`. It shows each feedback or user note and writes a repository rule only after confirmation. Its decision ledger, `~/.shadowclone/harness-memory.json`, stores note filenames, content hashes, and a hash of the repository identity. Native memory is never changed. A gated `shadowclone run` executes the repository's gate on the clone's change inside the verification sandbox, without network access and with writes limited to the worktree and a temporary directory. A repair attempt sends the redacted gate output to the same agent CLI that already works on that repository.
+Candidate writes and verification have separate operating-system restrictions. Verification receives no provider credentials or network access. Unknown spend or unavailable required isolation stops the affected workflow.
 
-Logs report counts, sizes, hashes, and source names. Transcript paths can identify a project, so errors and ordinary logs do not print them or raw excerpts. Validated judge explanations and bounded attempt diagnostics are redacted before persistence. Local code-evidence receipts remain sensitive even when printable output has been redacted.
+The browser server binds to loopback, serves bundled assets, validates origins, and authenticates requests with an ephemeral token. Opening it does not enable capture. Optional model descriptions preview their input and destination and never become agent instructions.
 
-## One-step wipe
+## Local recovery
 
-```bash
-shadowclone forget --all
-```
+Private state, revisions, snapshots, and receipts may contain sensitive derived content even though whole transcripts are not copied. Owner-only permissions do not protect against every process or administrator with equivalent access, and state is not encrypted.
 
-The command removes the local profile, index, learning state, checkpoints, receipts, and recorded managed integrations. It preserves unrelated agent instructions and stops if edited managed content would be lost. The original Claude Code, Codex, Cursor, Antigravity, and shell histories remain untouched. Older installations without a manifest may need `shadowclone uninstall` from their repository first.
+Cleanup uses installation ownership and fingerprints. It preserves unrelated files and refuses conflicting edits. Deleting local state cannot remove provider requests, original transcripts, remote Git history, or backups. See [retention and removal](../data-handling.md#retention-and-removal).

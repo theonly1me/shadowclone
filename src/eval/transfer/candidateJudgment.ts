@@ -1,11 +1,16 @@
 import { z } from "zod";
 
 export const batchSchema = z.strictObject({
-  checks: z.array(z.strictObject({
-    id: z.string().min(1),
-    verdict: z.enum(["pass", "fail"]),
-    evidence: z.string().min(1).max(800),
-  })).min(1).max(8),
+  checks: z
+    .array(
+      z.strictObject({
+        id: z.string().min(1),
+        verdict: z.enum(["pass", "fail"]),
+        evidence: z.string().min(1).max(800),
+      }),
+    )
+    .min(1)
+    .max(8),
 });
 
 export function batchOutputSchema(identifiers: readonly string[]) {

@@ -9,9 +9,7 @@ import {
 } from "./index";
 
 test("registers every provider exactly once", () => {
-  const registeredIds = providerDefinitions.map(
-    (definition) => definition.id,
-  );
+  const registeredIds = providerDefinitions.map((definition) => definition.id);
 
   expect(new Set(registeredIds).size).toBe(providerIds.length);
   expect(registeredIds).toEqual([...providerIds]);
@@ -50,6 +48,7 @@ test("derives purpose support from enforceable capabilities", () => {
 
 test("does not make dispatch depend on distillation support", () => {
   const antigravity = getProvider("antigravity");
+
   const dispatchOnly = {
     ...antigravity,
     engine: {

@@ -19,13 +19,15 @@ test("deep refresh activates stored candidates backed by explicit guidance", asy
     path.join(os.tmpdir(), "shadowclone-deep-migration-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const evidence = explicitProfileEvidence(profileEvidenceId({
-    originId: "github.com/acme",
-    sessionId: "session-1",
-    timestamp: 1_788_537_600_000,
-    kind: "user-steering",
-    category: "user-episode",
-  }));
+  const evidence = explicitProfileEvidence(
+    profileEvidenceId({
+      originId: "github.com/acme",
+      sessionId: "session-1",
+      timestamp: 1_788_537_600_000,
+      kind: "user-steering",
+      category: "user-episode",
+    }),
+  );
   const rule: ProfileRule = {
     key: "explicit-rule",
     title: "Prefer small changes",
@@ -45,7 +47,9 @@ test("deep refresh activates stored candidates backed by explicit guidance", asy
     lastSeen: "2026-09-05",
     importReference: null,
   };
+
   await writeProfile({ paths, rules: [rule] });
+
   const lines: string[] = [];
   const runner: EngineRunner = () => {
     throw new Error("Profile migration must not call the engine");
@@ -60,7 +64,9 @@ test("deep refresh activates stored candidates backed by explicit guidance", asy
     engine: "claude-code",
     dryRun: false,
     apply: true,
-    writeLine: (line) => { lines.push(line); },
+    writeLine: (line) => {
+      lines.push(line);
+    },
   });
   const profile = await readProfileSnapshot(paths);
 

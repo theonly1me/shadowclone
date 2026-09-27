@@ -8,16 +8,46 @@ test("user steering crosses the pointer redaction gate and excludes generated le
   const { home } = await integrationFixture();
   const secret = `sk-ant-${"A".repeat(90)}`;
   const sourcePath = path.join(home, "messages.jsonl");
-  const rows = [`Always keep API tokens private: ${secret}`, "SHADOWCLONE_INTERNAL_LEARNING generated evidence", "# Shadowclone profile\nGenerated preference"];
+  const rows = [
+    `Always keep API tokens private: ${secret}`,
+    "SHADOWCLONE_INTERNAL_LEARNING generated evidence",
+    "# Shadowclone profile\nGenerated preference",
+  ];
+
   await Bun.write(sourcePath, rows.join("\n"));
+
   let byteOffset = 0;
+
   const signals: CorrectionSignal[] = rows.map((row, position) => {
-    const textRef = { type: "file" as const, sourcePath, byteOffset, byteLength: Buffer.byteLength(row) };
+    const textRef = {
+      type: "file" as const,
+      sourcePath,
+      byteOffset,
+      byteLength: Buffer.byteLength(row),
+    };
+
     byteOffset += textRef.byteLength + 1;
-    return { kind: "user-steering", category: "user-episode", label: "user episode", sessionId: `session-${position}`, timestamp: position, origin: { id: "local", directoryName: "local", promotable: false }, repositoryName: null, textRefs: [textRef] };
+
+    return {
+      kind: "user-steering",
+      category: "user-episode",
+      label: "user episode",
+      sessionId: `session-${position}`,
+      timestamp: position,
+      origin: { id: "local", directoryName: "local", promotable: false },
+      repositoryName: null,
+      textRefs: [textRef],
+    };
   });
-  const materialized = await materializeEvidence({ signals, sourceRoots: [home] });
+
+  const materialized = await materializeEvidence({
+    signals,
+    sourceRoots: [home],
+  });
+
   expect(materialized.signals).toHaveLength(1);
   expect([...materialized.excerpts.values()].join("\n")).not.toContain(secret);
-  expect([...materialized.excerpts.values()].join("\n")).toContain("Always keep API tokens private");
+  expect([...materialized.excerpts.values()].join("\n")).toContain(
+    "Always keep API tokens private",
+  );
 });

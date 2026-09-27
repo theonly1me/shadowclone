@@ -10,37 +10,26 @@ metadata:
 
 ## Use when
 
-Use this skill for a reported defect whose cause is not already demonstrated by a failing test or a direct invariant violation. The goal is a tight feedback loop and a causal explanation before the production fix begins.
+A defect or performance regression has no demonstrated cause yet.
 
 ## Process
 
-1. Restate the symptom as concrete input, actual output, and expected output.
-2. Build the fastest repeatable command that reaches the same path and produces a binary result for that symptom.
-3. Run the command and verify it fails in the way the user described.
-4. Reduce the scenario one input, dependency, or step at a time while preserving the failure.
-5. Trace data and control flow across the remaining boundaries. Record where correct state first becomes incorrect.
-6. Form several falsifiable causes and rank them by evidence. For each cause, state what observation would disprove it.
-7. Probe one cause at a time with a debugger, targeted instrumentation, a query plan, or a controlled input change.
-8. Remove disproved causes. Stop when one cause predicts the observed failure and a controlled change removes it.
-9. Turn the reduced reproduction into a regression test at the public seam when that seam can express the defect.
-10. Apply the smallest fix at the point where the invalid state originates.
-11. Re-run the reduced test and the original reproduction, then remove diagnostic artifacts.
+1. State the input, actual result, and expected result. Find the fastest repeatable command that reaches the failing path.
+2. Reproduce the reported failure, then remove inputs or steps while preserving it.
+3. Trace where correct state first becomes incorrect. List plausible causes and an observation that would disprove each.
+4. Probe one cause at a time with a debugger, targeted instrumentation, timings, or controlled inputs.
+5. Stop when a cause predicts the symptom and a controlled change removes it.
+6. Preserve the reproduction as a regression test through a stable public interface where practical. Fix the cause at its origin.
+7. Run the reduced and original reproductions, then remove temporary diagnostics.
 
-For a flaky defect, measure its reproduction rate and tighten the trigger until the signal is useful. Pin clocks, random seeds, concurrency, and external responses where they influence the outcome.
-
-For a performance regression, establish a baseline measurement before forming a theory. Use profiling, timings, or query plans that separate the suspected cost from unrelated work.
+For flaky behavior, measure the reproduction rate and control clocks, randomness, concurrency, or external responses. For performance work, establish a baseline and measure the suspected cost before changing it.
 
 ## Guardrails
 
-- Keep captured logs, traces, and payloads out of reports until secrets and personal paths are redacted.
-- Instrument only boundaries that distinguish current hypotheses.
-- Change one causal variable per probe.
-- Treat a nearby error as a separate defect unless it explains the reported symptom.
-- Fix the origin of invalid state rather than adding a downstream fallback that hides it.
-- Preserve a reduced reproduction as a test only when it exercises the real failure through a stable seam.
+Redact sensitive traces and paths before reporting them. Change one causal variable per probe. Keep unrelated defects out of the fix and avoid fallbacks that merely hide invalid state.
 
-If the defect cannot be reproduced, report the exact loops attempted and the missing access or artifact required. Do not convert an unverified theory into a production edit.
+If reproduction fails, report what was tried and the missing evidence. Do not turn an unverified theory into a production change.
 
 ## Completion
 
-Diagnosis is complete when one repeatable command demonstrates the original symptom, the causal boundary is identified with evidence, the fix makes both the reduced and original reproductions pass, relevant checks stay green, and temporary instrumentation is gone.
+The cause explains the original symptom, the fix passes both reproductions and affected checks, and temporary instrumentation is gone.

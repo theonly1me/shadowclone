@@ -57,6 +57,7 @@ export function getProviderSupport(
   const distill = supportsDistillation(definition.engine);
   const engineImplemented = definition.engine?.implemented === true;
   const capabilities = definition.engine?.capabilities;
+
   return {
     observe: definition.captureSource !== null,
     distill,
@@ -73,9 +74,13 @@ export function providerSupportsPurpose(options: {
   readonly purpose: EnginePurpose;
 }): boolean {
   if (options.purpose === "eval") {
-    return options.definition.engine?.implemented === true &&
-      new Set(["claude-code", "codex"]).has(options.definition.engine.id);
+    return (
+      options.definition.engine?.implemented === true &&
+      new Set(["claude-code", "codex"]).has(options.definition.engine.id)
+    );
   }
+
   const support = getProviderSupport(options.definition);
+
   return options.purpose === "distill" ? support.distill : support.dispatch;
 }

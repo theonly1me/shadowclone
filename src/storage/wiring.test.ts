@@ -11,7 +11,11 @@ import { doctor } from "../cli/doctor";
 
 async function scratchPaths(): Promise<ReturnType<typeof createProjectPaths>> {
   const home = await mkdtemp(path.join(os.tmpdir(), "shadowclone-wiring-"));
-  return createProjectPaths({ homeDirectory: home, platform: process.platform });
+
+  return createProjectPaths({
+    homeDirectory: home,
+    platform: process.platform,
+  });
 }
 
 async function modeOf(target: string): Promise<number> {
@@ -87,7 +91,9 @@ test("the profile write leaves owner-only rule files and state", async () => {
 
   expect(await modeOf(paths.profileDirectory)).toBe(0o700);
   expect(await modeOf(paths.profileManifestFile)).toBe(0o600);
+
   const ruleFile = path.join(paths.profileDirectory, profileRulePath(rule));
+
   expect(await modeOf(ruleFile)).toBe(0o600);
   expect(await modeOf(path.dirname(ruleFile))).toBe(0o700);
 });
@@ -96,6 +102,7 @@ test("the index database is owner-only", async () => {
   const paths = await scratchPaths();
 
   const index = await openEventIndex(paths.indexDatabase);
+
   index.close();
 
   expect(await modeOf(paths.indexDatabase)).toBe(0o600);
@@ -104,6 +111,7 @@ test("the index database is owner-only", async () => {
 
 test("doctor tightens an installation an older version left loose", async () => {
   const paths = await scratchPaths();
+
   await mkdir(path.join(paths.shadowcloneDirectory, "runs"), {
     recursive: true,
   });

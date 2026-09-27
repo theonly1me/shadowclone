@@ -4,6 +4,7 @@ import { sensitivePaths } from "./sensitivePaths";
 import { verificationArguments } from "./verify";
 
 const home = "/home/person";
+
 const workspace = "/tmp/snapshot";
 
 function profileFor(platform: NodeJS.Platform): string {
@@ -21,6 +22,7 @@ test("the macOS profile denies reads of every credential root", () => {
   for (const entry of sensitivePaths(home)) {
     expect(profile).toContain(`(subpath ${JSON.stringify(entry.path)})`);
   }
+
   expect(profile).toContain("deny file-read*");
   expect(profile).toContain("deny network*");
 });
@@ -56,7 +58,9 @@ test("the Linux masks are applied before the workspace bind", () => {
     homeDirectory: home,
   });
 
-  expect(arguments_.indexOf("--ro-bind")).toBeLessThan(arguments_.lastIndexOf("--bind"));
+  expect(arguments_.indexOf("--ro-bind")).toBeLessThan(
+    arguments_.lastIndexOf("--bind"),
+  );
 });
 
 test("the shadowclone directory is never readable during verification", () => {

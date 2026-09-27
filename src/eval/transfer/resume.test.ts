@@ -5,6 +5,7 @@ import { fingerprint } from "./structured";
 
 function receipt() {
   const profile = "profile";
+
   return initialReceipt({
     schemaVersion: 12,
     evalId: "00000000-0000-4000-8000-000000000001",
@@ -25,23 +26,35 @@ function receipt() {
       fingerprint: fingerprint(profile),
       ruleCount: 1,
     },
-    preflight: [{ requirement: "test", verdict: "pass", evidence: "ok", votes: [] }],
-    tasks: [{
-      id: "task",
-      startingCommit: "commit",
-      prompt: "Implement a parser",
-      completion: ["Parser works"],
-      preferences: [{ requirement: "Use clear names", source: {
-        relativePath: "profile.md", heading: "", line: 1,
-      } }],
-      profile,
-      profileFingerprint: fingerprint(profile),
-    }],
+    preflight: [
+      { requirement: "test", verdict: "pass", evidence: "ok", votes: [] },
+    ],
+    tasks: [
+      {
+        id: "task",
+        startingCommit: "commit",
+        prompt: "Implement a parser",
+        completion: ["Parser works"],
+        preferences: [
+          {
+            requirement: "Use clear names",
+            source: {
+              relativePath: "profile.md",
+              heading: "",
+              line: 1,
+            },
+          },
+        ],
+        profile,
+        profileFingerprint: fingerprint(profile),
+      },
+    ],
   });
 }
 
 test("reads schema 12 receipts as resumable", () => {
   const parsed = readReceipt(JSON.stringify(receipt()));
+
   expect(parsed.status).toBe("running");
   expect(parsed.prepared.reasoningEffort).toBe("medium");
 });
@@ -52,21 +65,30 @@ test("rejects altered frozen settings and older receipts", () => {
     ...original,
     prepared: { ...original.prepared, reasoningEffort: "high" as const },
   };
+
   expect(() => readReceipt(JSON.stringify(modified))).toThrow("modified");
-  expect(() => readReceipt(JSON.stringify({
-    ...original,
-    schemaVersion: 10,
-  }))).toThrow("Unsupported");
+  expect(() =>
+    readReceipt(
+      JSON.stringify({
+        ...original,
+        schemaVersion: 10,
+      }),
+    ),
+  ).toThrow("Unsupported");
 });
 
 test("resumes only against the original repository, HEAD, and settings", () => {
   const saved = receipt();
-  expect(() => validateResumeOptions({
-    receipt: saved,
-    requested: {},
-    repository: "/repository",
-    commit: "commit",
-  })).not.toThrow();
+
+  expect(() =>
+    validateResumeOptions({
+      receipt: saved,
+      requested: {},
+      repository: "/repository",
+      commit: "commit",
+    }),
+  ).not.toThrow();
+
   for (const requested of [
     { model: "different" },
     { repeat: 3 },
@@ -74,17 +96,22 @@ test("resumes only against the original repository, HEAD, and settings", () => {
     { task: "New task" },
     { suiteId: "00000000-0000-4000-8000-000000000003" },
   ]) {
-    expect(() => validateResumeOptions({
-      receipt: saved,
-      requested,
-      repository: "/repository",
-      commit: "commit",
-    })).toThrow();
+    expect(() =>
+      validateResumeOptions({
+        receipt: saved,
+        requested,
+        repository: "/repository",
+        commit: "commit",
+      }),
+    ).toThrow();
   }
-  expect(() => validateResumeOptions({
-    receipt: saved,
-    requested: {},
-    repository: "/repository",
-    commit: "different",
-  })).toThrow("original repository HEAD");
+
+  expect(() =>
+    validateResumeOptions({
+      receipt: saved,
+      requested: {},
+      repository: "/repository",
+      commit: "different",
+    }),
+  ).toThrow("original repository HEAD");
 });

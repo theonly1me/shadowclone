@@ -7,6 +7,7 @@ export function metadataReplacement(options: {
   readonly relativePath: string;
 }): ProfileRule | null {
   const incoming = options.incoming;
+
   if (
     incoming?.source !== "user" ||
     incoming.title !== options.block.title ||
@@ -15,5 +16,6 @@ export function metadataReplacement(options: {
   ) {
     return null;
   }
+
   return incoming;
 }

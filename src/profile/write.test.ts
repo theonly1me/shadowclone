@@ -11,6 +11,7 @@ async function createTestPaths(): Promise<ProjectPaths> {
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-profile-"),
   );
+
   return createProjectPaths({ homeDirectory, platform: "darwin" });
 }
 
@@ -39,16 +40,20 @@ function profileRule(observations: number): ProfileRule {
 test("preserves a hand-edited rule verbatim", async () => {
   const paths = await createTestPaths();
   const first = profileRule(2);
+
   await writeProfile({ paths, rules: [first] });
+
   const filePath = path.join(paths.profileDirectory, profileRulePath(first));
   const original = await Bun.file(filePath).text();
   const edited = original.replace(
     "Run the narrow check before the full suite.",
     "Run only the checks that prove the requested behavior.",
   );
+
   await Bun.write(filePath, edited);
 
   await writeProfile({ paths, rules: [profileRule(9)] });
+
   const regenerated = await Bun.file(filePath).text();
 
   expect(regenerated).toBe(edited);
@@ -58,9 +63,12 @@ test("preserves a hand-edited rule verbatim", async () => {
 test("preserves a rule the user added without generated metadata", async () => {
   const paths = await createTestPaths();
   const rule = profileRule(2);
+
   await writeProfile({ paths, rules: [rule] });
+
   const filePath = path.join(paths.profileDirectory, profileRulePath(rule));
   const manual = "## Keep reviews short\n\nWrite the result first.";
+
   await Bun.write(filePath, `${await Bun.file(filePath).text()}\n${manual}\n`);
 
   await writeProfile({ paths, rules: [profileRule(3)] });
@@ -76,39 +84,52 @@ test("keeps generated rules that were not part of the current write", async () =
     key: "rule-two",
     title: "Review the diff",
   };
+
   await writeProfile({ paths, rules: [first, second] });
 
   await writeProfile({ paths, rules: [first] });
 
   const filePath = path.join(paths.profileDirectory, profileRulePath(first));
+
   expect(await Bun.file(filePath).text()).toContain(second.title);
 });
 
 test("drops in-flight duplicate rules with the same key", async () => {
   const paths = await createTestPaths();
+
   await writeProfile({ paths, rules: [profileRule(1), profileRule(2)] });
+
   const filePath = path.join(
     paths.profileDirectory,
     profileRulePath(profileRule(1)),
   );
-  const matches = (await Bun.file(filePath).text()).match(/Runs focused checks/g);
+  const matches = (await Bun.file(filePath).text()).match(
+    /Runs focused checks/g,
+  );
+
   expect(matches).toHaveLength(1);
 });
 
 test("updates reconciliation metadata without replacing user-edited wording", async () => {
   const paths = await createTestPaths();
   const initial = profileRule(2);
+
   await writeProfile({ paths, rules: [initial] });
+
   const filePath = path.join(paths.profileDirectory, profileRulePath(initial));
   const userBody = "Run the checks that directly prove the requested behavior.";
+
   await Bun.write(
     filePath,
     (await Bun.file(filePath).text()).replace(initial.body, userBody),
   );
+
   const [edited] = parseProfileRules(await Bun.file(filePath).text());
+
   if (!edited) {
     throw new Error("Expected the edited profile rule");
   }
+
   const reconciled: ProfileRule = {
     ...initial,
     title: edited.title,
@@ -121,9 +142,12 @@ test("updates reconciliation metadata without replacing user-edited wording", as
     },
     evidence: { for: initial.evidence.for, against: ["event:two"] },
   };
+
   await writeProfile({ paths, rules: [reconciled] });
+
   const text = await Bun.file(filePath).text();
   const [stored] = parseProfileRules(text);
+
   expect(text).toContain(userBody);
   expect(stored?.source).toBe("user");
   expect(stored?.proposal).toEqual(reconciled.proposal);

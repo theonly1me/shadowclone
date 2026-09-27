@@ -15,19 +15,24 @@ export function evaluationCommand(options: {
       platform: options.platform ?? process.platform,
     });
   }
+
   if (options.run.execution.purpose !== "evaluation") {
     return options.arguments;
   }
+
   const requestedPaths = options.run.execution.blockedPaths ?? [];
 
   const platform = options.platform ?? process.platform;
   const blockedPaths = requestedPaths.map(canonicalPath);
   const directory = canonicalPath(options.run.cwd);
-  const temporary = options.temporaryDirectory ? canonicalPath(options.temporaryDirectory) : null;
+  const temporary = options.temporaryDirectory
+    ? canonicalPath(options.temporaryDirectory)
+    : null;
 
   if (platform === "darwin") {
     const writablePaths = [directory, ...(temporary ? [temporary] : [])]
-      .map((entry) => `(subpath ${JSON.stringify(entry)})`).join("");
+      .map((entry) => `(subpath ${JSON.stringify(entry)})`)
+      .join("");
     const sandboxProfile = `(version 1)(allow default)(deny file-write*)(allow file-write* ${writablePaths}(literal "/dev/null"))${denySubpathRules(
       {
         paths: blockedPaths,

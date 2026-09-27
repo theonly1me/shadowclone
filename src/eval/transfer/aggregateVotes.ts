@@ -9,16 +9,18 @@ export function aggregateVotes<Verdict extends PreferenceVerdict>(options: {
   return options.requirements.map((requirement, requirementIndex) => {
     const checks = options.votes.flatMap((vote) => {
       const check = vote[requirementIndex];
+
       return check
         ? [{ ...check, evidence: redactSecrets({ text: check.evidence }) }]
         : [];
     });
+
     return {
       requirement,
       verdict: options.resolve(checks),
-      evidence: checks.map((check, voteIndex) =>
-        `Vote ${voteIndex + 1}: ${check.evidence}`
-      ).join("\n"),
+      evidence: checks
+        .map((check, voteIndex) => `Vote ${voteIndex + 1}: ${check.evidence}`)
+        .join("\n"),
       votes: checks,
     };
   });
@@ -35,7 +37,8 @@ export function binaryMajority(
 export function preferenceMajority(
   checks: readonly CheckVote<PreferenceVerdict>[],
 ): PreferenceVerdict {
-  return checks.filter((check) => check.verdict === "not-applicable").length >= 2
+  return checks.filter((check) => check.verdict === "not-applicable").length >=
+    2
     ? "not-applicable"
     : binaryMajority(checks);
 }

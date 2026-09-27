@@ -11,6 +11,7 @@ const ignoredTopLevelDirectories = new Set([
 ]);
 
 const maximumFileBytes = 100000;
+
 const maximumDiffCharacters = 100000;
 
 export type ObservedRun = {
@@ -33,6 +34,7 @@ export async function observeRun(options: {
     cwd: options.directory,
     arguments: ["git", "ls-files", "--others", "--exclude-standard"],
   });
+
   const fullDiff = await command({
     cwd: options.directory,
     arguments: [
@@ -44,6 +46,7 @@ export async function observeRun(options: {
       "--",
     ],
   });
+
   const diff = fullDiff.slice(0, maximumDiffCharacters);
 
   const files: { path: string; content: string }[] = [];
@@ -53,13 +56,18 @@ export async function observeRun(options: {
   const paths = new Set(
     [...changed.split("\n"), ...untracked.split("\n")].filter((entry) => {
       const [topLevelDirectory] = entry.split("/");
-      return Boolean(entry) &&
-        (!topLevelDirectory || !ignoredTopLevelDirectories.has(topLevelDirectory));
+
+      return (
+        Boolean(entry) &&
+        (!topLevelDirectory ||
+          !ignoredTopLevelDirectories.has(topLevelDirectory))
+      );
     }),
   );
 
   for (const relativePath of paths) {
     const [topLevelDirectory] = relativePath.split("/");
+
     if (
       topLevelDirectory &&
       ignoredTopLevelDirectories.has(topLevelDirectory)
@@ -68,6 +76,7 @@ export async function observeRun(options: {
     }
 
     const absolutePath = path.resolve(options.directory, relativePath);
+
     if (!absolutePath.startsWith(`${options.directory}${path.sep}`)) {
       continue;
     }
@@ -77,8 +86,10 @@ export async function observeRun(options: {
       roots: [options.directory],
       maximumBytes: remainingBytes,
     });
+
     if (content === null) {
       isTruncated = true;
+
       continue;
     }
 

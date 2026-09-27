@@ -32,6 +32,7 @@ test("the byte budget omits whole rules and never slices UTF-8", async () => {
   const firstBody = "Keep this complete ✅.";
   const secondBody = `Never slice this marker ${"界".repeat(120)}.`;
   const byteBudget = 190;
+
   const compilation = await compileProfile({
     input: {
       kind: "rules",
@@ -71,6 +72,7 @@ test("the default compiled profile stays within 16 KiB", async () => {
   expect(Buffer.byteLength(compilation.markdown, "utf8")).toBeLessThanOrEqual(
     16_384,
   );
-  expect(compilation.omissions.some((entry) => entry.reason === "budget"))
-    .toBeTrue();
+  expect(
+    compilation.omissions.some((entry) => entry.reason === "budget"),
+  ).toBeTrue();
 });

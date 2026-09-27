@@ -17,7 +17,11 @@ export const groundedJudgeInstructions = [
 ] as const;
 
 export function judgePromptFingerprint(): string {
-  return fingerprint({ version: 2, instructions: [...judgeInstructions, ...groundedJudgeInstructions], schema: judgmentOutputSchema });
+  return fingerprint({
+    version: 2,
+    instructions: [...judgeInstructions, ...groundedJudgeInstructions],
+    schema: judgmentOutputSchema,
+  });
 }
 
 export const sourceJudgeInstructions = [
@@ -37,6 +41,14 @@ export const adherenceJudgeInstructions = [
 ] as const;
 
 export function sourceJudgePromptFingerprint(version: 3 | 4 = 3): string {
-  return fingerprint({ version, instructions: [...judgeInstructions, ...groundedJudgeInstructions, ...sourceJudgeInstructions,
-    ...(version === 4 ? adherenceJudgeInstructions : [])], schema: judgmentOutputSchema });
+  return fingerprint({
+    version,
+    instructions: [
+      ...judgeInstructions,
+      ...groundedJudgeInstructions,
+      ...sourceJudgeInstructions,
+      ...(version === 4 ? adherenceJudgeInstructions : []),
+    ],
+    schema: judgmentOutputSchema,
+  });
 }

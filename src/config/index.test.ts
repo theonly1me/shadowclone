@@ -19,15 +19,20 @@ test("defaults every capture source and deep distillation to off", () => {
 });
 
 test("reads a missing config as the disabled default", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-config-"),
+  );
   const configPath = path.join(directory, "missing.toml");
 
   expect(await readConfig({ configPath })).toEqual(defaultConfig);
 });
 
 test("writes and reads the config without changing it", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-config-"),
+  );
   const configPath = path.join(directory, "config.toml");
+
   const config = {
     ...defaultConfig,
     sources: {
@@ -51,6 +56,7 @@ test("renders named source settings as TOML", () => {
       "antigravity = false",
       "antigravity-workspaces = false",
       "claude-memory = false",
+      "claude-rules = false",
       "claude-code = false",
       "claude-prompts = false",
       "codex = false",
@@ -70,46 +76,62 @@ test("renders named source settings as TOML", () => {
 });
 
 test("migrates an existing config with git metadata disabled", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-config-"),
+  );
   const configPath = path.join(directory, "config.toml");
   const legacy = renderConfig(defaultConfig)
     .replace("agent-context = false\n", "")
     .replace("antigravity = false\n", "")
     .replace("declared-rules = false\n", "")
     .replace("git-metadata = false\n", "");
+
   await Bun.write(configPath, legacy);
 
   const migrated = await readConfig({ configPath });
+
   expect(migrated.sources["declared-rules"]).toBeFalse();
+  expect(migrated.sources["claude-rules"]).toBeFalse();
   expect(migrated.sources["git-metadata"]).toBeFalse();
 });
 
 test("migrates an existing config with Antigravity disabled", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-config-"),
+  );
   const configPath = path.join(directory, "config.toml");
   const legacy = renderConfig(defaultConfig)
     .replace("agent-context = false\n", "")
     .replace("antigravity = false\n", "");
+
   await Bun.write(configPath, legacy);
 
   expect((await readConfig({ configPath })).sources.antigravity).toBeFalse();
 });
 
 test("migrates an existing config with agent context omitted", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-config-"),
+  );
   const configPath = path.join(directory, "config.toml");
   const legacy = renderConfig(defaultConfig).replace(
     "agent-context = false\n",
     "",
   );
+
   await Bun.write(configPath, legacy);
 
-  expect((await readConfig({ configPath })).sources["agent-context"]).toBeFalse();
+  expect(
+    (await readConfig({ configPath })).sources["agent-context"],
+  ).toBeFalse();
 });
 
 test("writes and reads a repository action ceiling", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-config-"),
+  );
   const configPath = path.join(directory, "config.toml");
+
   const config = {
     ...defaultConfig,
     repo: {
@@ -126,8 +148,11 @@ test("writes and reads a repository action ceiling", async () => {
 });
 
 test("still reads a repository ceiling written before requireCleanExit was dropped", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-config-"),
+  );
   const configPath = path.join(directory, "config.toml");
+
   const text = `${renderConfig(defaultConfig)}
 [repo."github.com/acme/platform"]
 allow = ["push"]
@@ -143,7 +168,9 @@ requireCleanExit = true
 });
 
 test("rejects unknown source names instead of silently enabling them", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-config-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-config-"),
+  );
   const configPath = path.join(directory, "config.toml");
   const text = renderConfig(defaultConfig).replace(
     "shell = false",
@@ -152,5 +179,7 @@ test("rejects unknown source names instead of silently enabling them", async () 
 
   await Bun.write(configPath, text);
 
-  await expect(readConfig({ configPath })).rejects.toThrow("no unknown sources");
+  await expect(readConfig({ configPath })).rejects.toThrow(
+    "no unknown sources",
+  );
 });

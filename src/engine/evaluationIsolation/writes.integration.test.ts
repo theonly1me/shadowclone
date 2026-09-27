@@ -9,14 +9,17 @@ test("evaluation retains permitted host reads but cannot write outside its works
   const root = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-eval-writes-"),
   );
+
   try {
     const directory = path.join(root, "workspace");
     const control = path.join(root, "control");
     const outside = path.join(root, "host-file");
+
     await mkdir(directory);
     await mkdir(control);
     await writeFile(outside, "host-fixture");
     await writeFile(path.join(control, "state"), "control-fixture");
+
     const execute = (arguments_: readonly string[]) =>
       runProcess({
         arguments: evaluationCommand({
@@ -32,17 +35,21 @@ test("evaluation retains permitted host reads but cannot write outside its works
         timeoutMilliseconds: 5000,
       });
     const probe = await execute(["/usr/bin/true"]).catch(() => null);
+
     if (probe === null || probe.exitCode !== 0) {
       if (process.env.CI) {
         throw new Error(
           `Evaluation sandbox unavailable: ${probe?.stderr.trim() || "process did not start"}`,
         );
       }
+
       console.log(
         "Evaluation sandbox unavailable inside the current host sandbox; run the targeted check outside it.",
       );
+
       return;
     }
+
     const result = await execute([
       "/bin/sh",
       "-c",
@@ -51,6 +58,7 @@ test("evaluation retains permitted host reads but cannot write outside its works
       outside,
       path.join(control, "state"),
     ]);
+
     expect(result.exitCode).not.toBe(0);
     expect(await Bun.file(path.join(directory, "changed")).text()).toBe(
       "allowed\n",

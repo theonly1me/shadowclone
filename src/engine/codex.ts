@@ -25,6 +25,7 @@ export function codexProcessEnvironment(options: {
 }): NodeJS.ProcessEnv {
   const source = options.environment ?? process.env;
   const environment = runnerEnvironment({ engine: "codex", source });
+
   if (!options.temporaryDirectory) {
     return environment;
   }
@@ -35,7 +36,8 @@ export function codexProcessEnvironment(options: {
     TMPDIR: options.temporaryDirectory,
     TMP: options.temporaryDirectory,
     TEMP: options.temporaryDirectory,
-    CODEX_HOME: options.codexHome ??
+    CODEX_HOME:
+      options.codexHome ??
       userCodexHome({ environment: source, userHome: options.userHome }),
   };
 }
@@ -59,11 +61,16 @@ async function runCodexProcess(options: {
         ),
       )
     : undefined;
+
   try {
     const codexHome = temporaryDirectory
       ? await isolatedCodexHome({ temporaryDirectory })
       : undefined;
-    const { exitCode, stdout: stream, stderr } = await runProcess({
+    const {
+      exitCode,
+      stdout: stream,
+      stderr,
+    } = await runProcess({
       arguments: codexProcessArguments({
         arguments: buildCodexArguments({
           ...options,
@@ -75,7 +82,10 @@ async function runCodexProcess(options: {
       cwd: options.run.cwd,
       input: prompt,
       signal: options.run.signal,
-      environment: codexProcessEnvironment({ temporaryDirectory, ...(codexHome ? { codexHome } : {}) }),
+      environment: codexProcessEnvironment({
+        temporaryDirectory,
+        ...(codexHome ? { codexHome } : {}),
+      }),
     });
 
     const run = parseCodexStream({
@@ -105,9 +115,7 @@ async function runCodexProcess(options: {
   }
 }
 
-export async function runCodex(
-  options: EngineRunOptions,
-): Promise<EngineRun> {
+export async function runCodex(options: EngineRunOptions): Promise<EngineRun> {
   validateCodexOptions(options);
 
   if (options.outputSchema === undefined) {
@@ -116,6 +124,7 @@ export async function runCodex(
 
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-codex-"));
   const outputSchemaPath = path.join(directory, "schema.json");
+
   await Bun.write(outputSchemaPath, JSON.stringify(options.outputSchema));
 
   try {

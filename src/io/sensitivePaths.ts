@@ -1,6 +1,7 @@
 import { canonicalPath } from "../paths";
 import os from "node:os";
 import path from "node:path";
+
 type BlockedPath = {
   readonly path: string;
   readonly kind: "directory" | "file";
@@ -39,6 +40,7 @@ const credentialFiles = [
 
 export function sensitivePaths(homeDirectory?: string): readonly BlockedPath[] {
   const home = homeDirectory ?? os.homedir();
+
   return [
     ...credentialDirectories.map((relative) => ({
       path: canonicalPath(path.join(home, relative)),

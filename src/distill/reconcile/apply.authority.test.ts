@@ -49,13 +49,15 @@ function rule(source: ProfileRule["source"]): ProfileRule {
 
 function profile(profileRule: ProfileRule): ProfileSnapshot {
   return {
-    rules: [{
-      rule: profileRule,
-      promptTitle: profileRule.title,
-      promptBody: profileRule.body,
-      promptAppliesWhen: profileRule.appliesWhen,
-      promptProposal: profileRule.proposal,
-    }],
+    rules: [
+      {
+        rule: profileRule,
+        promptTitle: profileRule.title,
+        promptBody: profileRule.body,
+        promptAppliesWhen: profileRule.appliesWhen,
+        promptProposal: profileRule.proposal,
+      },
+    ],
     rejections: [],
   };
 }
@@ -104,21 +106,25 @@ test("keeps declared guidance active and proposes a concrete sibling", () => {
     profile: profile(rule("declared")),
     library: axisLibrary,
   });
+
   const applied = applyReconciliation({
     context,
     output: {
-      existingRules: [{
-        ruleToken: "rule-1",
-        verdict: "narrows",
-        observed: "Small changes proceed without planning.",
-        evidenceTokens: ["evidence-1"],
-        proposedTitle: "",
-        proposedBody: "",
-        axisChoiceToken: "option-1",
-      }],
+      existingRules: [
+        {
+          ruleToken: "rule-1",
+          verdict: "narrows",
+          observed: "Small changes proceed without planning.",
+          evidenceTokens: ["evidence-1"],
+          proposedTitle: "",
+          proposedBody: "",
+          axisChoiceToken: "option-1",
+        },
+      ],
       newRules: [],
     },
   });
+
   expect(applied.rules[0]?.status).toBe("active");
   expect(applied.rules[0]?.proposal).toEqual({
     kind: "narrow",
@@ -135,22 +141,28 @@ test("keeps authoritative guidance active but marks contradicted mined guidance 
       profile: profile(rule(source)),
       library: axisLibrary,
     });
+
     const applied = applyReconciliation({
       context,
       output: {
-        existingRules: [{
-          ruleToken: "rule-1",
-          verdict: "contradicts",
-          observed: "The user acted directly.",
-          evidenceTokens: ["evidence-1"],
-          proposedTitle: "Act directly",
-          proposedBody: "Start small changes without a plan.",
-          axisChoiceToken: "",
-        }],
+        existingRules: [
+          {
+            ruleToken: "rule-1",
+            verdict: "contradicts",
+            observed: "The user acted directly.",
+            evidenceTokens: ["evidence-1"],
+            proposedTitle: "Act directly",
+            proposedBody: "Start small changes without a plan.",
+            axisChoiceToken: "",
+          },
+        ],
         newRules: [],
       },
     });
-    expect(applied.rules[0]?.status).toBe(source === "mined" ? "stale" : "active");
+
+    expect(applied.rules[0]?.status).toBe(
+      source === "mined" ? "stale" : "active",
+    );
     expect(applied.rules[0]?.proposal?.text).toBe(
       "Act directly\n\nStart small changes without a plan.",
     );

@@ -5,6 +5,7 @@ function countedLine(options: {
   readonly count: number | string;
 }): string {
   const width = Math.max(3, 48 - options.label.length);
+
   return `    ${options.label} ${".".repeat(width)} ${options.count}`;
 }
 
@@ -37,22 +38,26 @@ function resultLine(options: {
       ? "  Profile unchanged. No user steering episodes are eligible for deep learning."
       : "  Profile unchanged. Run shadowclone learn --deep to reconcile the eligible moments.";
   }
+
   if (options.deepChangesProposed === 0) {
     return options.profileUpdated
       ? "  Deep learning produced no new profile rules. Existing profile metadata was updated."
       : "  Deep learning produced no profile rules. Profile unchanged.";
   }
+
   const ruleLabel = countLabel({
     count: options.deepChangesProposed,
     singular: "rule",
     plural: "rules",
   });
+
   if (!options.profileUpdated) {
     return [
       `  Deep learning proposed ${options.deepChangesProposed} profile ${ruleLabel}.`,
       "Profile unchanged.",
     ].join(" ");
   }
+
   return [
     `  Deep learning applied ${options.deepChangesProposed} profile ${ruleLabel}.`,
     "Profile updated at ~/.shadowclone/profile/.",
@@ -74,22 +79,20 @@ export function renderMirror(options: {
   const corrections = report.correctionCounts;
   const interruptions =
     report.interruptions.length > 0
-      ? report.interruptions
-          .slice(0, 5)
-          .map((value) => countedLine(value))
+      ? report.interruptions.slice(0, 5).map((value) => countedLine(value))
       : [countedLine({ label: "no interruptions indexed", count: 0 })];
   const denials =
     report.denials.length > 0
-      ? report.denials
-          .slice(0, 5)
-          .map((value) => countedLine(value))
+      ? report.denials.slice(0, 5).map((value) => countedLine(value))
       : [countedLine({ label: "no tool refusals indexed", count: 0 })];
+
   const tools =
     report.structural.toolUses.length > 0
       ? report.structural.toolUses
           .slice(0, 5)
           .map((value) => countedLine(value))
       : [countedLine({ label: "no tool calls indexed", count: 0 })];
+
   const activeDayLabel = countLabel({
     count: report.corpus.activeDays,
     singular: "active day",
@@ -111,7 +114,8 @@ export function renderMirror(options: {
     plural: "sessions",
   });
   const refusalCount = corrections.permissionDenials;
-  const refusalCountLabel = refusalCount === 1 ? "once" : `${refusalCount} times`;
+  const refusalCountLabel =
+    refusalCount === 1 ? "once" : `${refusalCount} times`;
   const networkNotice = options.networkCallsMade
     ? ""
     : " No network calls were made.";

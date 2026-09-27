@@ -35,9 +35,14 @@ test("advertises profile recall and explicit preference operations", () => {
         ...preferenceTools,
         ...referenceTools,
         {
-          name: "shadowclone_profile",
+          name: "shadowclone_context",
           description:
-            "Load the active user's engineering profile for this repository",
+            "Inspect applicable learned skills and native routing for this repository",
+          inputSchema: { type: "object", properties: {} },
+        },
+        {
+          name: "shadowclone_profile",
+          description: "Deprecated alias for shadowclone_context",
           inputSchema: { type: "object", properties: {} },
         },
       ],
@@ -59,9 +64,7 @@ test("returns the scoped profile through the recall tool", () => {
     jsonrpc: "2.0",
     id: "call-1",
     result: {
-      content: [
-        { type: "text", text: "# Shadowclone profile\n\nUse Bun." },
-      ],
+      content: [{ type: "text", text: "# Shadowclone profile\n\nUse Bun." }],
       isError: false,
     },
   });

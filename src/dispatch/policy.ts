@@ -17,9 +17,11 @@ function actionToolFor(action: ActionCapability): string | null {
   if (action === "pr-draft") {
     return "Bash(gh pr create --draft:*)";
   }
+
   if (action === "pr-reply") {
     return "Bash(gh pr comment:*)";
   }
+
   return null;
 }
 
@@ -42,8 +44,7 @@ export function resolveDispatchPolicy(
     allow: [],
     maxBudgetUsd: 2,
   };
-  const repoAllowed =
-    input.managedActionTier === "act" ? configured.allow : [];
+  const repoAllowed = input.managedActionTier === "act" ? configured.allow : [];
   const grantedActions = actionCapabilities.filter(
     (action) =>
       repoAllowed.includes(action) && input.approvedActions.includes(action),
@@ -53,6 +54,7 @@ export function resolveDispatchPolicy(
     "force-push",
     "merge",
   ] as const;
+
   const verificationTools = input.verificationTools ?? [
     "Bash(bun test:*)",
     "Bash(bun run typecheck:*)",
@@ -60,16 +62,18 @@ export function resolveDispatchPolicy(
   const draftTools = [...baseDraftTools, ...verificationTools];
   const allowedTools = draftTools;
   const disallowedTools = [
-    ...actionCapabilities
-      .flatMap((action) => {
-        const tool = actionToolFor(action);
-        return tool ? [tool] : [];
-      }),
+    ...actionCapabilities.flatMap((action) => {
+      const tool = actionToolFor(action);
+
+      return tool ? [tool] : [];
+    }),
     ...permanentlyBlockedTools,
   ];
+
   const needsNetwork = grantedActions.some(
     (action) => actionToolFor(action) !== null,
   );
+
   return {
     allowedTools,
     disallowedTools,
@@ -92,6 +96,7 @@ export function validateRemoteGrants(options: {
   ) {
     throw new Error("PR replies require an explicit --pr number");
   }
+
   if (
     options.grantedActions.includes("pr-draft") &&
     !options.grantedActions.includes("push")

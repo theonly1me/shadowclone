@@ -9,19 +9,10 @@ import {
   observeClaudeCodeFile,
 } from "./adapters/claudeCode";
 import { observeClaudePromptsFile } from "./adapters/claudePrompts";
-import {
-  discoverCodexFiles,
-  observeCodexFile,
-} from "./adapters/codex";
-import {
-  discoverCursorFiles,
-  observeCursorFile,
-} from "./adapters/cursor";
+import { discoverCodexFiles, observeCodexFile } from "./adapters/codex";
+import { discoverCursorFiles, observeCursorFile } from "./adapters/cursor";
 import { observeShellFile } from "./adapters/shell";
-import type {
-  CursorLookup,
-  ObservationBatch,
-} from "./types";
+import type { CursorLookup, ObservationBatch } from "./types";
 
 export type {
   AgentEvent,
@@ -34,10 +25,12 @@ export type {
   TextRef,
   ToolCall,
 } from "./types";
+
 export {
   parseTextRef,
   textRefKey,
 } from "./types";
+
 export {
   parseAntigravityWorkspaceHistory,
   readAntigravityWorkspaceHistory,
@@ -54,11 +47,13 @@ export async function* observeAll(options: {
     const sourcePaths = await discoverAntigravityFiles(
       options.paths.antigravityBrainDirectory,
     );
+
     for (const sourcePath of sourcePaths) {
       const batch = await observeAntigravityFile({
         sourcePath,
         cursor: await options.getCursor(sourcePath),
       });
+
       if (batch !== null) {
         yield batch;
       }
@@ -69,11 +64,13 @@ export async function* observeAll(options: {
     const sourcePaths = await discoverClaudeCodeFiles(
       options.paths.claudeProjectsDirectory,
     );
+
     for (const sourcePath of sourcePaths) {
       const batch = await observeClaudeCodeFile({
         sourcePath,
         cursor: await options.getCursor(sourcePath),
       });
+
       if (batch !== null) {
         yield batch;
       }
@@ -86,6 +83,7 @@ export async function* observeAll(options: {
       sourcePath,
       cursor: await options.getCursor(sourcePath),
     });
+
     if (batch !== null) {
       yield batch;
     }
@@ -95,11 +93,13 @@ export async function* observeAll(options: {
     const sourcePaths = await discoverCodexFiles(
       options.paths.codexSessionsDirectory,
     );
+
     for (const sourcePath of sourcePaths) {
       const batch = await observeCodexFile({
         sourcePath,
         cursor: await options.getCursor(sourcePath),
       });
+
       if (batch !== null) {
         yield batch;
       }
@@ -110,11 +110,13 @@ export async function* observeAll(options: {
     const sourcePaths = await discoverCursorFiles(
       options.paths.cursorChatsDirectory,
     );
+
     for (const sourcePath of sourcePaths) {
       const batch = await observeCursorFile({
         sourcePath,
         cursor: await options.getCursor(sourcePath),
       });
+
       if (batch !== null) {
         yield batch;
       }
@@ -127,6 +129,7 @@ export async function* observeAll(options: {
         sourcePath,
         cursor: await options.getCursor(sourcePath),
       });
+
       if (batch !== null) {
         yield batch;
       }

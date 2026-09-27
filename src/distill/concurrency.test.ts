@@ -5,6 +5,7 @@ test("preserves input order when work completes out of order", async () => {
   let active = 0;
   let peakActive = 0;
   const completionOrder: number[] = [];
+
   const result = await mapWithConcurrency({
     items: [0, 1, 2, 3],
     limit: 2,
@@ -16,6 +17,7 @@ test("preserves input order when work completes out of order", async () => {
       });
       completionOrder.push(item);
       active -= 1;
+
       return item * 2;
     },
   });
@@ -26,16 +28,19 @@ test("preserves input order when work completes out of order", async () => {
 });
 
 test("rejects the entire mapping when an item rejects", async () => {
-  await expect(mapWithConcurrency({
-    items: [1, 2, 3],
-    limit: 2,
-    run: async (item) => {
-      if (item === 2) {
-        throw new Error("failed item");
-      }
-      return item;
-    },
-  })).rejects.toThrow("failed item");
+  await expect(
+    mapWithConcurrency({
+      items: [1, 2, 3],
+      limit: 2,
+      run: async (item) => {
+        if (item === 2) {
+          throw new Error("failed item");
+        }
+
+        return item;
+      },
+    }),
+  ).rejects.toThrow("failed item");
 });
 
 test("finishes when the limit exceeds the item count", async () => {

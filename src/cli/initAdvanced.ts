@@ -16,7 +16,9 @@ import {
   type OnboardingCaptureSourceId,
   type OnboardingPresence,
 } from "./onboardingPresence";
-import { runWizard, type WizardAnswerPrompt } from "./wizard";
+import type { WizardAnswerPrompt } from "./wizard";
+import { offerInitialGuidance } from "./initGuidance";
+import { initializeSkillEnvironment } from "../environment/initialize";
 
 export type ConsentPrompt = (question: string) => boolean | Promise<boolean>;
 
@@ -34,6 +36,7 @@ const captureSources: readonly {
 
 function promptForConsent(question: string): boolean {
   const answer = prompt(`${question} [y/N]`);
+
   return answer?.trim().toLowerCase() === "y";
 }
 
@@ -51,62 +54,52 @@ export type InitializeAdvancedOptions = {
   readonly readRemote?: GitRemoteReader;
 };
 
-export async function initializeAdvanced(options: InitializeAdvancedOptions = {}): Promise<void> {
+export async function initializeAdvanced(
+  options: InitializeAdvancedOptions = {},
+): Promise<void> {
   const paths = options.paths ?? projectPaths;
   const configPath = options.configPath ?? paths.configFile;
-  const presence = options.presence ?? await detectOnboardingPresence({
-    paths,
-    workingDirectory: options.workingDirectory ?? process.cwd(),
-  });
+
+  const presence =
+    options.presence ??
+    (await detectOnboardingPresence({
+      paths,
+      workingDirectory: options.workingDirectory ?? process.cwd(),
+    }));
+
   const ask = options.ask ?? promptForConsent;
   const writeLine = options.writeLine ?? ((line) => console.log(line));
-  const policy = options.managedPolicy ?? await readManagedPolicy(
-    options.managedConfigPath === undefined
-      ? paths.managedConfigFile
-      : options.managedConfigPath,
-  );
-  const importAllowed =
-    policy.enabled && policy.allowedSources.includes("declared-rules");
-  let importEnabled = false;
+  const policy =
+    options.managedPolicy ??
+    (await readManagedPolicy(
+      options.managedConfigPath === undefined
+        ? paths.managedConfigFile
+        : options.managedConfigPath,
+    ));
 
-  if (presence.hasRepositoryGuidance) {
-    if (importAllowed) {
-      importEnabled = await ask("Import existing repository guidance?");
-    } else {
-      writeLine("Managed policy blocks repository guidance import.");
-    }
-    if (!importEnabled) {
-      writeLine("Existing agent instructions detected and left unread.");
-      if (await ask("Set up a seed profile instead?")) {
-        await runWizard({
-          paths,
-          library: options.library,
-          answer: options.answer,
-          confirm: ask,
-          writeLine,
-        });
-      }
-    }
-  } else {
-    await runWizard({
-      paths,
-      library: options.library,
-      answer: options.answer,
-      confirm: ask,
-      writeLine,
-    });
-  }
+  const importEnabled = await offerInitialGuidance({
+    ...options,
+    policy,
+    paths,
+    presence,
+    ask,
+    writeLine,
+  });
 
   let config = defaultConfig;
   let captureEnabled = false;
+
   for (const source of captureSources) {
     if (!presence.presentCaptureSources.has(source.id)) {
       continue;
     }
+
     const enabled = await ask(source.question);
+
     config = setSourceEnabled({ config, source: source.id, enabled });
     captureEnabled = captureEnabled || enabled;
   }
+
   const enableGitMetadata = await ask(
     "Enable reading git remote origins for organization-scoped profiles?",
   );
@@ -114,7 +107,7 @@ export async function initializeAdvanced(options: InitializeAdvancedOptions = {}
     "Enable reading existing agent instructions, skills and native memory?",
   );
   const enableClaudeMemory = await ask(
-    "Enable one-time migration from this repository's Claude memory?",
+    "Enable read-only extraction from Claude memory for explicitly registered repositories?",
   );
   const enableAntigravityWorkspaces = await ask(
     "Enable Antigravity workspace-history metadata for repository attribution?",
@@ -122,6 +115,7 @@ export async function initializeAdvanced(options: InitializeAdvancedOptions = {}
   const enableDeep = await ask(
     "Allow deep learning to send redacted correction evidence and profile guidance through your authenticated agent CLI?",
   );
+
   config = setSourceEnabled({
     config,
     source: "declared-rules",
@@ -148,13 +142,23 @@ export async function initializeAdvanced(options: InitializeAdvancedOptions = {}
     enabled: enableAntigravityWorkspaces,
   });
   config = setDeepEnabled({ config, enabled: enableDeep });
+
   if (enableDeep && policy.enabled && policy.distillation === "allowed") {
-    const automatic = await ask("Allow bounded automatic learning and profile updates at session boundaries? User-authored guidance remains protected.");
+    const automatic = await ask(
+      "Allow bounded automatic learning and profile updates at session boundaries? User-authored guidance remains protected.",
+    );
+
     config = { ...config, distillation: { ...config.distillation, automatic } };
   }
 
   await writeConfig({ config, configPath });
+
+  if (policy.enabled) {
+    await initializeSkillEnvironment({ paths, automatic: false });
+  }
+
   await repairOwnedTree(paths.shadowcloneDirectory);
+
   if (importEnabled) {
     const imported = await importRepositoryGuidance({
       paths,
@@ -165,16 +169,24 @@ export async function initializeAdvanced(options: InitializeAdvancedOptions = {}
       blockedOrigins: policy.blockedOrigins,
       readRemote: options.readRemote,
     });
+
     writeLine(
       `Imported ${imported.imported} repository guidance files; ${imported.preserved} preserved; ${imported.rejected} rejected; ${imported.retired} retired.`,
     );
   }
+
   writeLine(
-    captureEnabled || importEnabled || enableGitMetadata || enableAgentContext ||
-      enableClaudeMemory || enableAntigravityWorkspaces || enableDeep
+    captureEnabled ||
+      importEnabled ||
+      enableGitMetadata ||
+      enableAgentContext ||
+      enableClaudeMemory ||
+      enableAntigravityWorkspaces ||
+      enableDeep
       ? "Selected sources and capabilities enabled."
       : "All capture sources remain disabled.",
   );
+
   if (captureEnabled) {
     writeLine(
       "Run shadowclone learn to build evidence from the sources you enabled.",

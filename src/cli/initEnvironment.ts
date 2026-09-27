@@ -1,0 +1,98 @@
+import type { ManagedPolicy } from "../config";
+import { initializeSkillEnvironment } from "../environment/initialize";
+import { importRepositoryGuidance } from "../importRules";
+import type { ProjectPaths } from "../paths";
+import {
+  configureSkillMaintenance,
+  updateSkillLibrary,
+} from "../skillMaintenance";
+import type { InitializeOptions } from "./init";
+import type { OnboardingPresence } from "./onboardingPresence";
+
+export async function prepareInitialEnvironment(
+  options: InitializeOptions & {
+    readonly paths: ProjectPaths;
+    readonly workingDirectory: string;
+    readonly policy: ManagedPolicy;
+    readonly learn: boolean;
+    readonly skills: boolean;
+    readonly presence: OnboardingPresence;
+    readonly writeLine: (line: string) => void;
+  },
+): Promise<{ readonly rulesLearned: number; readonly skillsSynced: number }> {
+  const {
+    paths,
+    workingDirectory,
+    policy,
+    learn,
+    skills,
+    presence,
+    writeLine,
+  } = options;
+
+  if (
+    skills &&
+    policy.enabled &&
+    policy.allowedSources.includes("skill-library")
+  ) {
+    await configureSkillMaintenance({
+      scope: "global",
+      paths,
+      cwd: workingDirectory,
+      managedConfigPath: options.managedConfigPath,
+    });
+  }
+
+  if (policy.enabled) {
+    await initializeSkillEnvironment({ paths, automatic: skills });
+  }
+
+  let rulesLearned = 0;
+
+  if (
+    learn &&
+    presence.hasRepositoryGuidance &&
+    policy.enabled &&
+    policy.allowedSources.includes("declared-rules")
+  ) {
+    const imported = await importRepositoryGuidance({
+      paths,
+      workingDirectory,
+      gitMetadataEnabled: policy.allowedSources.includes("git-metadata"),
+      blockedOrigins: policy.blockedOrigins,
+      readRemote: options.readRemote,
+    });
+
+    rulesLearned += imported.imported;
+  }
+
+  let skillsSynced = 0;
+
+  if (
+    skills &&
+    policy.enabled &&
+    policy.allowedSources.includes("skill-library")
+  ) {
+    await configureSkillMaintenance({
+      scope: "global",
+      paths,
+      cwd: workingDirectory,
+      managedConfigPath: options.managedConfigPath,
+    });
+
+    const updated = await updateSkillLibrary({
+      paths,
+      syncPersonal: true,
+      managedConfigPath: options.managedConfigPath,
+      readRemote: options.readRemote,
+    });
+
+    skillsSynced = updated.synced;
+
+    if (updated.conflicts > 0) {
+      writeLine(`${updated.conflicts} skill conflicts need review.`);
+    }
+  }
+
+  return { rulesLearned, skillsSynced };
+}

@@ -33,6 +33,7 @@ export function parseTextRef(value: unknown): TextRef | null {
   ) {
     return null;
   }
+
   if (
     value.type === "file" &&
     typeof value.byteOffset === "number" &&
@@ -61,6 +62,7 @@ export function parseTextRef(value: unknown): TextRef | null {
         : {}),
     };
   }
+
   if (
     value.type !== "sqlite-blob" ||
     typeof value.blobId !== "string" ||
@@ -76,6 +78,7 @@ export function parseTextRef(value: unknown): TextRef | null {
   ) {
     return null;
   }
+
   return {
     type: "sqlite-blob",
     sourcePath: value.sourcePath,

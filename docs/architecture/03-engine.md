@@ -1,146 +1,45 @@
-# Engine
+# Agent execution
 
-One interface, three execution purposes, and provider-specific implementations. `src/engine/` is the only place in the project that causes a model to be called. Learning, dispatch, and evaluation use it, which leaves one process boundary to audit.
+`src/engine/` is the model-process boundary shared by learning, delegated tasks, and evaluation. It invokes an installed, authenticated agent CLI. Shadowclone does not require its own model account or API key.
 
-## No key ships
+## Provider selection
 
-Shadowclone does not have an API key, does not ask for one, and has no server to hold one. It runs the agent CLI already installed and already logged in on the machine.
+The registry in `src/provider/` records capabilities independently from installation and authentication. Selection first checks the execution purpose, then chooses an eligible installed engine. `shadowclone doctor` reports availability.
 
-| Engine | Auth it inherits | Status | Cost to the user |
-| --- | --- | --- | --- |
-| `claude-code` | Claude Code OAuth, Pro, Max, or Team | built | subscription quota |
-| `codex` | ChatGPT subscription | built | subscription quota |
-| `cursor-agent` | Cursor subscription | built | subscription quota |
-| `antigravity` | Antigravity CLI cached login | metadata only | provider quota |
-| `anthropic-api` | `ANTHROPIC_API_KEY` if set | planned | their key |
-| `openai-compatible` | base URL, covers Ollama | planned | none when local |
+| Engine | Learning runner | Relevant controls |
+| --- | --- | --- |
+| `claude-code` | Implemented | Structured output, isolated no-tools execution, caller session IDs, dollar budgets, granular tool policy |
+| `codex` | Implemented | Structured output and isolated no-tools execution; no native dollar ceiling in this adapter |
+| `cursor-agent` | Implemented | Prompted structured output and isolated no-tools execution; no native dollar ceiling in this adapter |
+| `antigravity` | Not implemented | Capture and native guidance are separate from engine support |
+| `anthropic-api`, `openai-compatible` | Not implemented | Reserved engine identifiers |
 
-Selection is purpose-aware, then follows Claude Code, Codex, and Cursor order among engines that can enforce that purpose. The registry records Antigravity's known limits without adding a runner. API keys and configured local endpoints remain planned future work. `shadowclone doctor` prints what was found, what is authenticated, and which providers can support each purpose.
+Observation support does not imply permission to run learning or delegated tasks. An unsupported security option must fail before spawning the process. Provider compatibility needs live checks in addition to argument and parser tests.
 
-The Claude Code, Codex, and Cursor engines are built. Antigravity, API, and local endpoint implementations remain planned, so the detector never claims they are available today.
+## Execution purposes
 
-## Capability registry
+`EngineRunOptions` requires an explicit purpose:
 
-The static provider registry reports native structured output, caller-selected session ids, dollar budgets, granular tool policy, and isolated no-tools execution independently. Distillation and dispatch derive separate requirements before selecting an engine, and a provider missing one requirement is not selected for that purpose.
+- **Learning:** no provider tools or ambient instructions; only the prepared model input is available.
+- **Evaluation:** read or write access to an isolated snapshot, with live personal context blocked as required by the protocol.
+- **Dispatch:** an authorized worktree with tools constrained by repository policy and per-run grants.
 
-The registry contains metadata only. It does not inspect transcript paths, probe executables, or grant source consent. Observation, distillation, and dispatch remain three separate support levels.
+The types in `src/engine/types.ts` define the request and result contract. Results include usage, model/session identity where available, structured output, errors, and observed actions. Callers must handle unknown cost and unsupported controls explicitly.
 
-Antigravity is the first provider whose documented engine capabilities are registered before its runner. Its headless mode provides stdin JSON events, `stream-json` output, native `--json-schema`, cached authentication, and request-review permissions. It has no documented per-run deny-all tool policy. `--sandbox` restricts terminal commands but does not override global file, web, or MCP allow rules. Its runner stays unimplemented until isolated distillation can be enforced without editing global settings.
+## Learning limits
 
-## Interface
+One `createLearningExecution` instance owns the entire model allowance for a learning invocation, including reconciliation, consolidation, and skill maintenance. Defaults are 20 attempted calls and five minutes. Claude also receives a cumulative $2 ceiling. Setup uses 12 calls, 90 seconds, and a supported $1 ceiling. These limits apply to model work, not the preceding local scan.
 
-```ts
-export type EngineId =
-  | "claude-code"
-  | "codex"
-  | "cursor-agent"
-  | "antigravity"
-  | "anthropic-api"
-  | "openai-compatible";
+Dollar-limited calls run serially. Each dispatch receives the remaining allowance after the preceding result settles. Unknown spend prevents further calls under that allowance. Engines without dollar enforcement use call and time limits; the adapter does not send unsupported budget flags.
 
-export type EngineExecution =
-  | { readonly purpose: "dispatch" }
-  | {
-      readonly purpose: "evaluation";
-      readonly blockedPaths?: readonly string[];
-    }
-  | { readonly purpose: "learning" };
+Attempts, failures, and timeouts consume calls. A deadline aborts the provider request. Completed checkpoints can be reused without another model call.
 
-export type EngineRunOptions = {
-  readonly prompt: string;
-  readonly cwd: string;
-  readonly execution: EngineExecution;
-  readonly systemPromptFile?: string;
-  readonly sessionId?: string;
-  readonly model?: string;
-  readonly allowedTools?: readonly string[];
-  readonly disallowedTools?: readonly string[];
-  readonly permissionMode?: PermissionMode;
-  readonly maxBudgetUsd?: number;
-  readonly outputSchema?: unknown;
-  readonly signal?: AbortSignal;
-};
+## Isolation and process handling
 
-export type EngineRun = {
-  readonly engine: EngineId;
-  readonly sessionId: string;
-  readonly transcriptPath: string | null;
-  readonly text: string;
-  readonly structured: unknown;
-  readonly costUsd: number | null;
-  readonly durationMs: number;
-  readonly turns: number;
-  readonly isError: boolean;
-  readonly permissionDenials: readonly PermissionDenial[];
-};
-```
+Learning adapters disable tools, hooks, MCP access, ambient instructions, and native memory through provider-specific controls. An empty auto-approval list alone is not a no-tools boundary. Prompt text and settings use controlled input channels, and provider output is bounded.
 
-An engine that cannot honour an option fails before it spawns. The required execution purpose prevents evaluation, learning, and dispatch from sharing an accidental default.
+Dispatch and evaluation use purpose-specific filesystem and process restrictions. Verification is a separate no-network process without provider credentials. Unsupported isolation fails before the affected operation. Authentication refresh may need to happen outside the restricted run.
 
-## Learning contract
+Unit tests use synthetic provider streams and check arguments, output parsing, timeouts, cancellation, and boundaries. Installed-CLI contract tests use isolated local mocks. Authenticated model runs are separate verification with an explicit scope and budget.
 
-`createLearningExecution` wraps the selected engine once for a complete `learn --deep` invocation or first setup learning pass. Concurrent reconciliation batches and later consolidation calls share its whole-run allowance. Completed checkpoints consume no call allowance.
-
-The default permits 20 attempted calls over five minutes. Claude also receives a cumulative $2 limit because its provider capability reports native dollar-budget enforcement. Each call receives the remaining amount, and its reported cost is deducted before the next call. Codex and Cursor never receive an unsupported dollar option, so their boundary is the call count and deadline.
-
-Learning cannot load a system prompt file, enable a provider tool, or select a permission mode other than `dontAsk`. Attempts, errors, and timeouts consume a call. Hitting a limit leaves completed checkpoints in place, so another invocation resumes from the next unfinished batch.
-
-## Claude Code
-
-```
-claude -p "<task>" \
-  --output-format stream-json \
-  --append-system-prompt-file ~/.shadowclone/profile/.compiled.md \
-  --session-id <uuid> \
-  --permission-mode dontAsk \
-  --setting-sources user,project \
-  --allowedTools "Read" "Edit" "Bash(bun test)" \
-  --max-budget-usd 2.00 \
-  --model sonnet \
-  --add-dir <worktree>
-```
-
-Two flags carry more weight than the rest.
-
-`--session-id` supplies a caller-selected UUID for the Claude run. The adapter uses that identifier to locate the provider-owned transcript under `~/.claude/projects/<slug>/`.
-
-Generating the id up front means the clone knows where its own transcript will land, so a clone run is observable by the same pipeline that observes the user.
-
-`--agents <json>` accepts the same subagent definition that `src/profile/agent.ts` writes to `.claude/agents/`, so a headless run can carry a clone subagent without touching the repo. `02-profile.md` covers the compilation.
-
-`--append-system-prompt-file` adds compiled preferences without replacing Claude Code's system prompt. Whether that additional guidance helps is measured separately through evaluation.
-
-`--setting-sources` restricts loaded setting files to user and project tiers, preventing a target repository's `.claude/settings.local.json` from silently widening permissions beyond the resolved dispatch policy ceiling.
-
-Learning uses a separate Claude command. `--safe-mode`, empty `--setting-sources`, `--tools ""`, strict empty MCP configuration, an MCP deny rule, `--no-session-persistence`, and inline settings remove ambient instructions, tools, hooks, network tools, and native memory. `allowedTools: []` is not treated as the tool boundary because Claude documents that option as an auto-approval control. Obsolete `--restricted` is omitted because current Claude Code rejects it and safe mode now provides the customization boundary.
-
-The terminal `result` message carries `session_id`, `total_cost_usd`, `duration_ms`, `duration_api_ms`, `num_turns`, `is_error`, `modelUsage`, and `permission_denials`. Everything `EngineRun` needs is in one message, so the stream parser only has to buffer text blocks and wait for `result`.
-
-Permission modes available are `acceptEdits`, `bypassPermissions`, `default`, `dontAsk`, `manual`, `plan`, and `auto`. `dontAsk` inside a throwaway worktree is the unattended default, converting any unallowed tool call into a hard denial. `bypassPermissions` is never used by shadowclone, at any tier, for any repo.
-
-## Codex
-
-```
-codex exec - --json --sandbox read-only -C <worktree> -m <model>
-```
-
-`-c key=value` sets any config value per invocation, including `model_reasoning_effort`. `--output-schema <FILE>` gives structured output for distillation, matching `--json-schema` on the Claude side. `-o` writes the last message to a file, which is a simpler read than the event stream when only the final answer is wanted.
-
-The prompt stays on stdin and does not enter the process list. Learning adds `--ephemeral`, `--ignore-user-config`, and `--ignore-rules`, disables instruction, memory, hook, app, plugin, browser, web, image, computer-use, multi-agent, and shell features, clears MCP configuration, and selects the read-only sandbox. Codex has no dollar-budget or granular tool-list flags, so the learning coordinator omits the former and the runner rejects direct requests for either.
-
-## Cursor
-
-```
-cursor-agent --print --output-format stream-json \
-  --sandbox enabled --mode ask --workspace <directory>
-```
-
-Cursor also receives its prompt on stdin. A no-tools run gets an empty temporary workspace whose project policy denies shell, read, write, web, and MCP tools. `CURSOR_CONFIG_DIR` points at a second temporary directory with the same deny policy, so user settings, rules, hooks, and MCP configuration do not enter the run. Ask mode and the enabled sandbox add read-only boundaries. Both directories, including native session state written there, are removed after the process exits. Cursor has no caller-selected session id, dollar budget, or arbitrary granular tool-list mapping, so those requests fail before a process starts.
-
-## Compiled profile
-
-The engine receives guidance from `compileProfile` in `src/profile/compiler/`. It selects active global, matching-owner, and exact-project rules, prioritizes user-authoritative guidance, and caps output at 16 KiB by omitting whole blocks. Provenance metadata, candidate rules, and stale rules do not enter the prompt.
-
-Compilation turns the profile into a prompt through a named step with its own file.
-
-The compiler reads `global/` and exactly one matching `host/owner` directory, strips provenance, and places handwritten rules first. An active declared or user rule remains selected when contradicting evidence creates a pending proposal. The proposal is for the user to decide and does not silently override their instruction.
+See [acting](04-acting.md), [evaluation](09-evaluation.md), and [data handling](../data-handling.md#what-reaches-a-model) for their caller contracts.

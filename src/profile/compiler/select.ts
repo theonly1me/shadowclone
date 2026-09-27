@@ -8,10 +8,22 @@ import type {
 } from "./types";
 
 function authorityRank(block: CompilerBlock): number {
-  if (block.source === "user") return 0;
-  if (block.source === "declared") return 1;
-  if (block.source === "mined") return 2;
-  if (block.source === "reference") return 3;
+  if (block.source === "user") {
+    return 0;
+  }
+
+  if (block.source === "declared") {
+    return 1;
+  }
+
+  if (block.source === "mined") {
+    return 2;
+  }
+
+  if (block.source === "reference") {
+    return 3;
+  }
+
   return 4;
 }
 
@@ -21,11 +33,17 @@ function isKnownNativeDuplicate(options: {
   readonly block: CompilerBlock;
   readonly knownNativeText: readonly string[];
 }): boolean {
-  if (options.block.kind !== "rule" || options.knownNativeText.length === 0) return false;
+  if (options.block.kind !== "rule" || options.knownNativeText.length === 0) {
+    return false;
+  }
+
   const summary = summarizeRule(options.block);
   const probe = normalizeGuidanceText(summary.sentence ?? summary.title);
-  return probe.length >= minimumDuplicateProbeCharacters &&
-    options.knownNativeText.some((text) => text.includes(probe));
+
+  return (
+    probe.length >= minimumDuplicateProbeCharacters &&
+    options.knownNativeText.some((text) => text.includes(probe))
+  );
 }
 
 function selectionOmission(options: {
@@ -36,11 +54,32 @@ function selectionOmission(options: {
   readonly committedRuleKeys?: ReadonlySet<string>;
 }): ProfileCompilationOmissionReason | null {
   const { block } = options;
-  if (block.source === "imported" && options.repositoryContext === "native") return "native-duplicate";
-  if (block.status !== "active") return block.status;
-  if (block.ruleKey !== null && options.committedRuleKeys?.has(block.ruleKey)) return "in-harness";
-  if (isKnownNativeDuplicate({ block, knownNativeText: options.knownNativeText })) return "known-duplicate";
-  if (options.applicability && isNotApplicable({ block, applicability: options.applicability })) return "not-applicable";
+
+  if (block.source === "imported" && options.repositoryContext === "native") {
+    return "native-duplicate";
+  }
+
+  if (block.status !== "active") {
+    return block.status;
+  }
+
+  if (block.ruleKey !== null && options.committedRuleKeys?.has(block.ruleKey)) {
+    return "in-harness";
+  }
+
+  if (
+    isKnownNativeDuplicate({ block, knownNativeText: options.knownNativeText })
+  ) {
+    return "known-duplicate";
+  }
+
+  if (
+    options.applicability &&
+    isNotApplicable({ block, applicability: options.applicability })
+  ) {
+    return "not-applicable";
+  }
+
   return null;
 }
 
@@ -70,7 +109,9 @@ export function selectCompilerBlocks(options: {
   const omissions: ProfileCompilationOmission[] = [];
   const omittedBlocks: CompilerBlock[] = [];
   const eligible: CompilerBlock[] = [];
-  const knownNativeText = (options.knownNativeText ?? []).map(normalizeGuidanceText);
+  const knownNativeText = (options.knownNativeText ?? []).map(
+    normalizeGuidanceText,
+  );
 
   for (const block of options.blocks) {
     const reason = selectionOmission({
@@ -80,10 +121,13 @@ export function selectCompilerBlocks(options: {
       applicability: options.applicability,
       committedRuleKeys: options.committedRuleKeys,
     });
+
     if (reason === null) {
       eligible.push(block);
+
       continue;
     }
+
     omissions.push({ ruleKey: block.ruleKey, reason });
     omittedBlocks.push(block);
   }
@@ -94,15 +138,20 @@ export function selectCompilerBlocks(options: {
   for (const block of [...eligible].sort(compareBlocks)) {
     const axis =
       block.ruleKey === null ? undefined : options.axes.get(block.ruleKey);
+
     if (axis === undefined) {
       selected.push(block);
+
       continue;
     }
+
     if (claimedAxes.has(axis)) {
       omissions.push({ ruleKey: block.ruleKey, reason: "axis-conflict" });
       omittedBlocks.push(block);
+
       continue;
     }
+
     claimedAxes.add(axis);
     selected.push(block);
   }

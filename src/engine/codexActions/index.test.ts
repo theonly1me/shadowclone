@@ -1,9 +1,6 @@
 import { expect, test } from "bun:test";
 import { canonicalPath } from "../../paths";
-import {
-  buildCodexArguments,
-  codexProcessArguments,
-} from "../codex";
+import { buildCodexArguments, codexProcessArguments } from "../codex";
 import { parseCodexStream } from "../parseCodex";
 
 function parseStreamEvents(events: readonly unknown[]) {
@@ -40,6 +37,7 @@ test("retains ordered completed actions once and distinguishes failed commands",
     editItem,
     { type: "turn.completed" },
   ]);
+
   expect(run.actions).toEqual([
     { tool: "Bash", path: null, command: "bun test", succeeded: false },
     { tool: "Edit", path: "src/result.ts", succeeded: true },
@@ -49,9 +47,11 @@ test("retains ordered completed actions once and distinguishes failed commands",
 
 test("rejects truncated streams and surfaces failures", () => {
   expect(parseStreamEvents([{ type: "thread.started" }]).isError).toBeTrue();
+
   const run = parseStreamEvents([
     { type: "turn.failed", error: { message: "Quota exhausted" } },
   ]);
+
   expect(run.errorMessage).toBe("Quota exhausted");
   expect(run.isError).toBeTrue();
 });
@@ -72,22 +72,25 @@ test("evaluation forwards the exact model and only enables writes for execution"
     run: runConfig,
     temporaryDirectory: "/private/tmp/shadowclone-codex-test",
   });
+
   expect(executionArguments).toContain("gpt-5.6-sol");
   expect(executionArguments).toContain('model_reasoning_effort="xhigh"');
   expect(executionArguments).not.toContain("--sandbox");
   expect(executionArguments).toContain(
     'default_permissions="shadowclone-evaluation"',
   );
+
   const permissionValue = executionArguments.find((argument) =>
     argument.startsWith("permissions.shadowclone-evaluation="),
   );
-  expect(permissionValue).toContain(`${JSON.stringify(canonicalPath(runConfig.cwd))}="write"`);
+
+  expect(permissionValue).toContain(
+    `${JSON.stringify(canonicalPath(runConfig.cwd))}="write"`,
+  );
   expect(permissionValue).not.toContain('":tmpdir"');
   expect(permissionValue).not.toContain('":slash_tmp"');
   expect(executionArguments.join(" ")).toContain('":root"="deny"');
-  expect(executionArguments.join(" ")).toContain(
-    '"/private/profile"="deny"',
-  );
+  expect(executionArguments.join(" ")).toContain('"/private/profile"="deny"');
   expect(executionArguments.join(" ")).toContain(
     '"/private/tmp/shadowclone-codex-test"="write"',
   );
@@ -99,10 +102,12 @@ test("evaluation forwards the exact model and only enables writes for execution"
     }),
   ).toEqual(executionArguments);
   expect(executionArguments).toContain("--ephemeral");
+
   const readConfig = {
     ...runConfig,
     execution: { ...runConfig.execution, access: "read" as const },
   };
+
   expect(
     buildCodexArguments({ run: { ...readConfig, allowedTools: [] } }),
   ).toContain("read-only");

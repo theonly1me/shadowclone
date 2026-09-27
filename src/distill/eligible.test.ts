@@ -1,10 +1,7 @@
 import { expect, test } from "bun:test";
 import type { IndexedEvent } from "../index";
 import type { CorrectionSignal } from "../signal";
-import {
-  allowlistedSignals,
-  isEligibleForDistillation,
-} from "./index";
+import { allowlistedSignals, isEligibleForDistillation } from "./index";
 
 function indexedEvent(kind: IndexedEvent["kind"]): IndexedEvent {
   return {
@@ -44,9 +41,11 @@ test("rejects tool results and thinking even if a pointer is present", () => {
 test("removes a tool result pointer before a distillation batch", () => {
   const event = indexedEvent("tool-result");
   const ref = event.textRef;
+
   if (ref === null) {
     throw new Error("Expected fixture pointer");
   }
+
   const signal: CorrectionSignal = {
     kind: "interruption",
     category: "fixture",
@@ -62,16 +61,19 @@ test("removes a tool result pointer before a distillation batch", () => {
     textRefs: [ref],
   };
 
-  expect(allowlistedSignals({ signals: [signal], events: [event] })[0]?.textRefs)
-    .toEqual([]);
+  expect(
+    allowlistedSignals({ signals: [signal], events: [event] })[0]?.textRefs,
+  ).toEqual([]);
 });
 
 test("allows assistant text only through a correction signal", () => {
   const event = indexedEvent("assistant-text");
   const ref = event.textRef;
+
   if (ref === null) {
     throw new Error("Expected fixture pointer");
   }
+
   const signal: CorrectionSignal = {
     kind: "interruption",
     category: "assistant-text",
@@ -87,6 +89,7 @@ test("allows assistant text only through a correction signal", () => {
     textRefs: [ref],
   };
 
-  expect(allowlistedSignals({ signals: [signal], events: [event] })[0]?.textRefs)
-    .toEqual([ref]);
+  expect(
+    allowlistedSignals({ signals: [signal], events: [event] })[0]?.textRefs,
+  ).toEqual([ref]);
 });

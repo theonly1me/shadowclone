@@ -11,6 +11,7 @@ test("reduces a rules file and one populated source to booleans", async () => {
   );
   const workingDirectory = path.join(homeDirectory, "project");
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+
   await Promise.all([
     mkdir(workingDirectory, { recursive: true }),
     mkdir(paths.claudeProjectsDirectory, { recursive: true }),
@@ -40,9 +41,11 @@ test("detects non-empty file sources without returning their metadata", async ()
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
   const [shellHistoryFile] = paths.shellHistoryFiles;
+
   if (!shellHistoryFile) {
     throw new Error("Test paths need one shell history file");
   }
+
   await Promise.all([
     Bun.write(paths.claudePromptHistoryFile, "fixture"),
     Bun.write(shellHistoryFile, "fixture"),
@@ -71,6 +74,7 @@ test("reduces a non-empty repository skill root to one boolean", async () => {
     "private-skill",
     "SKILL.md",
   );
+
   await mkdir(path.dirname(skillPath), { recursive: true });
   await Bun.write(skillPath, "fixture");
 
@@ -91,6 +95,7 @@ test("ignores similar rules filenames and empty source directories", async () =>
     path.join(os.tmpdir(), "shadowclone-presence-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+
   await mkdir(paths.cursorChatsDirectory, { recursive: true });
   await Bun.write(path.join(homeDirectory, "CLAUDE.mdx"), "fixture");
 
@@ -105,9 +110,14 @@ test("ignores similar rules filenames and empty source directories", async () =>
 
 for (const filename of ["AGENTS.md", "CLAUDE.md", ".cursorrules"]) {
   test(`ignores a linked ${filename} root file`, async () => {
-    const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-presence-"));
-    const outsideRepository = await mkdtemp(path.join(os.tmpdir(), "shadowclone-external-"));
+    const homeDirectory = await mkdtemp(
+      path.join(os.tmpdir(), "shadowclone-presence-"),
+    );
+    const outsideRepository = await mkdtemp(
+      path.join(os.tmpdir(), "shadowclone-external-"),
+    );
     const target = path.join(outsideRepository, filename);
+
     await Bun.write(target, "external guidance");
     await symlink(target, path.join(homeDirectory, filename));
 
@@ -122,9 +132,19 @@ for (const filename of ["AGENTS.md", "CLAUDE.md", ".cursorrules"]) {
 
 for (const rootName of [".agents", ".claude"]) {
   test(`ignores a linked ${rootName} parent root`, async () => {
-    const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-presence-"));
-    const outsideRepository = await mkdtemp(path.join(os.tmpdir(), "shadowclone-external-"));
-    const externalSkill = path.join(outsideRepository, "skills", "external", "SKILL.md");
+    const homeDirectory = await mkdtemp(
+      path.join(os.tmpdir(), "shadowclone-presence-"),
+    );
+    const outsideRepository = await mkdtemp(
+      path.join(os.tmpdir(), "shadowclone-external-"),
+    );
+    const externalSkill = path.join(
+      outsideRepository,
+      "skills",
+      "external",
+      "SKILL.md",
+    );
+
     await mkdir(path.dirname(externalSkill), { recursive: true });
     await Bun.write(externalSkill, "external guidance");
     await symlink(outsideRepository, path.join(homeDirectory, rootName));
@@ -138,13 +158,21 @@ for (const rootName of [".agents", ".claude"]) {
   });
 
   test(`ignores a linked ${rootName}/skills root`, async () => {
-    const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-presence-"));
-    const outsideRepository = await mkdtemp(path.join(os.tmpdir(), "shadowclone-external-"));
+    const homeDirectory = await mkdtemp(
+      path.join(os.tmpdir(), "shadowclone-presence-"),
+    );
+    const outsideRepository = await mkdtemp(
+      path.join(os.tmpdir(), "shadowclone-external-"),
+    );
     const externalSkill = path.join(outsideRepository, "external", "SKILL.md");
+
     await mkdir(path.dirname(externalSkill), { recursive: true });
     await Bun.write(externalSkill, "external guidance");
     await mkdir(path.join(homeDirectory, rootName));
-    await symlink(outsideRepository, path.join(homeDirectory, rootName, "skills"));
+    await symlink(
+      outsideRepository,
+      path.join(homeDirectory, rootName, "skills"),
+    );
 
     const presence = await detectOnboardingPresence({
       paths: createProjectPaths({ homeDirectory, platform: "darwin" }),

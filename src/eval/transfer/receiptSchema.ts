@@ -12,18 +12,22 @@ const checkSchema = z.strictObject({
   requirement: z.string().min(1),
   verdict: checkVerdictSchema,
   evidence: z.string(),
-  votes: z.array(z.strictObject({
-    verdict: checkVerdictSchema,
-    evidence: z.string(),
-  })),
+  votes: z.array(
+    z.strictObject({
+      verdict: checkVerdictSchema,
+      evidence: z.string(),
+    }),
+  ),
 });
 
 const preferenceResultSchema = checkSchema.extend({
   verdict: preferenceVerdictSchema,
-  votes: z.array(z.strictObject({
-    verdict: preferenceVerdictSchema,
-    evidence: z.string(),
-  })),
+  votes: z.array(
+    z.strictObject({
+      verdict: preferenceVerdictSchema,
+      evidence: z.string(),
+    }),
+  ),
 });
 
 const contextSchema = z.strictObject({
@@ -32,7 +36,7 @@ const contextSchema = z.strictObject({
 });
 
 const profileSnapshotSchema = z.strictObject({
-  kind: z.literal("current"),
+  kind: z.enum(["current", "startup-index"]),
   fingerprint: z.string().min(1),
   ruleCount: z.number().int().positive(),
 });
@@ -42,24 +46,28 @@ const taskSchema = z.strictObject({
   startingCommit: z.string().min(1),
   prompt: z.string().min(1),
   completion: z.array(z.string().min(1)).min(1),
-  preferences: z.array(
-    z.strictObject({
-      requirement: z.string().min(1),
-      rubric: z.strictObject({
-        version: z.union([z.literal(1), z.literal(2)]),
-        id: z.string().min(1),
-        fingerprint: z.string().min(1),
-        interpretation: z.string().min(1).optional(),
-        scope: z.literal("changed-code-and-tests"),
-        override: z.string(),
-      }).optional(),
-      source: z.strictObject({
-        relativePath: z.string().min(1),
-        heading: z.string(),
-        line: z.number().int().positive(),
+  preferences: z
+    .array(
+      z.strictObject({
+        requirement: z.string().min(1),
+        rubric: z
+          .strictObject({
+            version: z.union([z.literal(1), z.literal(2)]),
+            id: z.string().min(1),
+            fingerprint: z.string().min(1),
+            interpretation: z.string().min(1).optional(),
+            scope: z.literal("changed-code-and-tests"),
+            override: z.string(),
+          })
+          .optional(),
+        source: z.strictObject({
+          relativePath: z.string().min(1),
+          heading: z.string(),
+          line: z.number().int().positive(),
+        }),
       }),
-    }),
-  ).min(1),
+    )
+    .min(1),
   profile: z.string().min(1),
   profileFingerprint: z.string().min(1),
 });
@@ -128,6 +136,7 @@ const preparedSchema = z.strictObject({
   repeat: z.number().int().positive(),
   timeoutSeconds: z.number().positive(),
   maxBudgetUsd: z.number().nullable(),
+  maxCalls: z.number().int().positive().optional(),
   dirtyFileCount: z.number().int().nonnegative(),
   context: z.array(contextSchema),
   profileSnapshot: profileSnapshotSchema,

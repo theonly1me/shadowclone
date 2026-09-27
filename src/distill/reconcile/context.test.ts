@@ -10,6 +10,7 @@ const origin: OriginScope = {
   directoryName: "github.com--acme--936913df4a5c268b",
   promotable: true,
 };
+
 const library: SeedLibrary = {
   guidance: [],
   preferences: [],
@@ -58,11 +59,13 @@ test("scopes project guidance to the exact repository", () => {
     repositoryName: "target",
     textRefs: [],
   };
+
   const batch: DistillBatch = {
     origin,
     repositoryName: "target",
     signals: [signal],
   };
+
   const rules: ProfileSnapshotRule[] = [
     snapshot({
       ...fields("global"),
@@ -89,11 +92,13 @@ test("scopes project guidance to the exact repository", () => {
       repositoryName: "sibling",
     }),
   ];
+
   const context = createReconciliationContext({
     batch,
     profile: { rules, rejections: [] },
     library,
   });
+
   expect(context.rules.map((entry) => entry.snapshot.rule.key)).toEqual([
     "global",
     "organization",

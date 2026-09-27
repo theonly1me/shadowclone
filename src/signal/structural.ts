@@ -1,8 +1,5 @@
 import type { IndexedEvent } from "../index";
-import type {
-  CountedCategory,
-  StructuralSummary,
-} from "./types";
+import type { CountedCategory, StructuralSummary } from "./types";
 
 function countCategories(
   values: readonly {
@@ -11,13 +8,16 @@ function countCategories(
   }[],
 ): readonly CountedCategory[] {
   const counts = new Map<string, CountedCategory>();
+
   for (const value of values) {
     const existing = counts.get(value.category);
+
     counts.set(value.category, {
       ...value,
       count: (existing?.count ?? 0) + 1,
     });
   }
+
   return [...counts.values()].sort(
     (left, right) =>
       right.count - left.count || left.label.localeCompare(right.label),
@@ -46,9 +46,7 @@ export function deriveStructural(
   );
   const toolUses = countCategories(
     events.flatMap((event) =>
-      event.tool
-        ? [{ category: event.tool.name, label: event.tool.name }]
-        : [],
+      event.tool ? [{ category: event.tool.name, label: event.tool.name }] : [],
     ),
   );
 

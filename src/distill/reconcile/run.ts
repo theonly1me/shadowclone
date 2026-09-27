@@ -14,6 +14,7 @@ function structuredValue(run: {
   if (run.structured !== null && run.structured !== undefined) {
     return run.structured;
   }
+
   try {
     return JSON.parse(run.text);
   } catch {
@@ -33,9 +34,11 @@ export async function runReconciliation(options: {
         prompt: options.prompt,
       })
     : null;
+
   if (checkpoint) {
     return checkpoint;
   }
+
   const run = await options.runner({
     prompt: options.prompt,
     cwd: options.workingDirectory,
@@ -44,12 +47,15 @@ export async function runReconciliation(options: {
     permissionMode: "dontAsk",
     outputSchema: reconciliationOutputSchema,
   });
+
   if (run.isError) {
     throw new Error(
       `The agent engine failed during reconciliation: ${redactSecrets({ text: run.errorMessage ?? "no engine detail" })}`,
     );
   }
+
   const output = parseReconciliationOutput(structuredValue(run));
+
   if (options.checkpointDirectory) {
     await writeCheckpoint({
       checkpointDirectory: options.checkpointDirectory,
@@ -57,5 +63,6 @@ export async function runReconciliation(options: {
       output,
     });
   }
+
   return output;
 }

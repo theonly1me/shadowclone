@@ -1,7 +1,4 @@
-import {
-  explicitProfileEvidence,
-  type ProfileRule,
-} from "../../profile";
+import { explicitProfileEvidence, type ProfileRule } from "../../profile";
 import type { PromptRule, ReconciliationContext } from "./types";
 
 type RuleLocation =
@@ -27,11 +24,14 @@ function usesGlobalScope(options: {
   readonly globalTokens: ReadonlySet<string>;
 }): boolean {
   const allowed = new Set(options.context.evidence.map((entry) => entry.token));
-  const selected = [...new Set(
-    options.tokens.filter((token) => allowed.has(token)),
-  )];
-  return selected.length > 0 &&
-    selected.every((token) => options.globalTokens.has(token));
+  const selected = [
+    ...new Set(options.tokens.filter((token) => allowed.has(token))),
+  ];
+
+  return (
+    selected.length > 0 &&
+    selected.every((token) => options.globalTokens.has(token))
+  );
 }
 
 export function learnedRuleLocation(options: {
@@ -46,7 +46,9 @@ export function learnedRuleLocation(options: {
       repositoryName: null,
     };
   }
+
   const repositoryName = options.context.batch.repositoryName;
+
   return repositoryName === null
     ? {
         scope: "org",
@@ -73,6 +75,7 @@ export function promoteGlobalRule(options: {
   ) {
     return options.rule;
   }
+
   return {
     ...options.rule,
     scope: "global",
@@ -88,12 +91,13 @@ export function promoteRuleFromAssessedEvidence(options: {
 }): ProfileRule {
   const tokens = options.context.evidence.flatMap((entry) =>
     options.globalTokens.has(entry.token) &&
-      options.rule.evidence.for.includes(
-        explicitProfileEvidence(entry.evidenceId),
-      )
+    options.rule.evidence.for.includes(
+      explicitProfileEvidence(entry.evidenceId),
+    )
       ? [entry.token]
-      : []
+      : [],
   );
+
   return promoteGlobalRule({ ...options, tokens });
 }
 
@@ -105,14 +109,17 @@ export function assessedScopePromotions(options: {
 }): readonly { readonly before: ProfileRule; readonly after: ProfileRule }[] {
   return options.rules.flatMap((promptRule) => {
     const before = promptRule.snapshot.rule;
+
     if (options.excludedKeys.has(before.key)) {
       return [];
     }
+
     const after = promoteRuleFromAssessedEvidence({
       rule: before,
       context: options.context,
       globalTokens: options.globalTokens,
     });
+
     return after === before ? [] : [{ before, after }];
   });
 }

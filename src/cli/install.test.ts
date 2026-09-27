@@ -16,16 +16,24 @@ test("installs the scoped profile as a Claude subagent", async () => {
   const targetDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-repo-"),
   );
-  await runHostCommand({ arguments: ["git", "init", "--quiet"], cwd: targetDirectory });
+
+  await runHostCommand({
+    arguments: ["git", "init", "--quiet"],
+    cwd: targetDirectory,
+  });
+
   const paths = createProjectPaths({
     homeDirectory,
     platform: "darwin",
   });
+
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
+
   const origin = await resolveCwdOrigin({
     cwd: targetDirectory,
     enabled: false,
   });
+
   await writeProfile({
     paths,
     rules: [
@@ -65,6 +73,7 @@ test("installs the scoped profile as a Claude subagent", async () => {
     "shadowclone.md",
   );
   const agent = await Bun.file(agentPath).text();
+
   expect(agent).toContain("Plans before editing");
   expect(agent).not.toContain("<!-- shadowclone:");
 });
@@ -81,12 +90,14 @@ test("adds installed files to git info exclude", async () => {
     stdout: "ignore",
     stderr: "ignore",
   });
+
   expect(await init.exited).toBe(0);
 
   const paths = createProjectPaths({
     homeDirectory,
     platform: "darwin",
   });
+
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
 
   await installLiveClone({
@@ -99,6 +110,7 @@ test("adds installed files to git info exclude", async () => {
 
   const excludePath = path.join(targetDirectory, ".git", "info", "exclude");
   const content = await Bun.file(excludePath).text();
+
   expect(content).toContain(".claude/agents/shadowclone.md");
   expect(content).toContain(".claude/skills/shadowclone/");
 });

@@ -116,6 +116,7 @@ test("a policy an ordinary user could write is refused when actually read", asyn
     path.join(os.tmpdir(), "shadowclone-managed-"),
   );
   const filePath = path.join(directory, "managed.json");
+
   await writeFile(filePath, JSON.stringify({ enabled: false }));
 
   await expect(readRootOwnedFile(filePath)).rejects.toThrow(

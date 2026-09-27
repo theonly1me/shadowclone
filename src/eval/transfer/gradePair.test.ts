@@ -11,15 +11,24 @@ const passed: CheckResult = {
   evidence: "Observed",
   votes: [],
 };
+
 const profile = "Use complete names.";
+
 const task: DelegationTask = {
   id: "task",
   startingCommit: "commit",
   prompt: "Add a new parser utility and tests.",
   completion: ["The parser works"],
-  preferences: [{ requirement: "Use complete names", source: {
-    relativePath: "profile.md", heading: "", line: 1,
-  } }],
+  preferences: [
+    {
+      requirement: "Use complete names",
+      source: {
+        relativePath: "profile.md",
+        heading: "",
+        line: 1,
+      },
+    },
+  ],
   profile,
   profileFingerprint: fingerprint(profile),
 };
@@ -53,7 +62,9 @@ test("grades every arm with independent judge calls", async () => {
     directory: "/tmp",
     call: async (options) => {
       calls += 1;
+
       expect(options.prompt).toContain(task.prompt);
+
       return batchReply(options);
     },
     onVote: async () => undefined,
@@ -61,6 +72,7 @@ test("grades every arm with independent judge calls", async () => {
 
   expect(calls).toBe(evaluationArmOrder.length * 6);
   expect(graded.map((run) => run.arm)).toEqual([...evaluationArmOrder]);
+
   for (const run of graded) {
     expect(run.phase).toBe("complete");
     expect(run.preferences[0]?.verdict).toBe("pass");
@@ -68,17 +80,19 @@ test("grades every arm with independent judge calls", async () => {
 });
 
 test("missing evidence for any arm stops grading", async () => {
-  const runs = evaluationArmOrder.map(evidence).map((run) =>
-    run.arm === "clone" ? { ...run, observed: null } : run
-  );
+  const runs = evaluationArmOrder
+    .map(evidence)
+    .map((run) => (run.arm === "clone" ? { ...run, observed: null } : run));
 
-  await expect(gradeArms({
-    runs,
-    task,
-    directory: "/tmp",
-    call: async () => {
-      throw new Error("judge must not run");
-    },
-    onVote: async () => undefined,
-  })).rejects.toThrow("Evaluation evidence is missing");
+  await expect(
+    gradeArms({
+      runs,
+      task,
+      directory: "/tmp",
+      call: async () => {
+        throw new Error("judge must not run");
+      },
+      onVote: async () => undefined,
+    }),
+  ).rejects.toThrow("Evaluation evidence is missing");
 });

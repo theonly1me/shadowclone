@@ -1,8 +1,18 @@
+import { syncLearningEnvironment } from "../environment/sync";
+import { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
+
+export { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
+import { explainLearningEnvironment } from "../environment/diagnostics";
 import {
-  compileContext, compileContextDetails, installIntegration, integrationAgentSchema, nativeSessionEnd,
+  compileContext,
+  compileContextDetails,
+  installIntegration,
+  nativeSessionEnd,
   nativeSessionStart,
-  readIntegrations, refreshIntegrations, sessionStartProjection, uninstallIntegration,
-  type IntegrationAgent, type IntegrationScope,
+  readIntegrations,
+  refreshIntegrations,
+  sessionStartProjection,
+  uninstallIntegration,
 } from "../integrations";
 import { canonicalPath, projectPaths } from "../paths";
 import { installLiveClone } from "./install";
@@ -12,62 +22,54 @@ import { scheduleLearning } from "../learning";
 import { explainContext, renderContextExplanation } from "./contextExplain";
 import { harnessSyncCommand } from "./harnessSync";
 
-export type NativeInstallOptions = {
-  readonly agents: readonly IntegrationAgent[];
-  readonly scope: IntegrationScope;
-  readonly subagent: boolean;
-  readonly autoDelegate: boolean;
-};
-
-export function parseNativeOptions(arguments_: readonly string[]): NativeInstallOptions | null {
-  let agents: readonly IntegrationAgent[] = ["claude-code"];
-  let scope: IntegrationScope = "global";
-  let subagent = false;
-  let autoDelegate = false;
-  const seen = new Set<string>();
-  for (let position = 0; position < arguments_.length; position += 1) {
-    const argument = arguments_[position];
-    if (!argument || seen.has(argument)) return null;
-    seen.add(argument);
-    if (argument === "--global") scope = "global";
-    else if (argument === "--local") scope = "repository";
-    else if (argument === "--subagent") subagent = true;
-    else if (argument === "--auto-delegate") { subagent = true; autoDelegate = true; }
-    else if (argument === "--agent") {
-      const value = arguments_[++position];
-      if (value === "all") agents = integrationAgentSchema.options;
-      else {
-        const parsed = integrationAgentSchema.safeParse(value);
-        if (!parsed.success) return null;
-        agents = [parsed.data];
-      }
-    } else return null;
-  }
-  if (seen.has("--global") && seen.has("--local")) return null;
-  if (subagent && (scope === "global" || !agents.includes("claude-code"))) return null;
-  return { agents, scope, subagent, autoDelegate };
-}
-
-export async function installNativeCommand(options: NativeInstallOptions): Promise<void> {
+export async function installNativeCommand(
+  options: NativeInstallOptions,
+): Promise<void> {
   for (const agent of options.agents) {
     await installIntegration({ agent, scope: options.scope });
     console.log(`Installed ${agent} main-agent guidance (${options.scope}).`);
   }
-  if (!options.subagent && await removeUneditedLegacySubagent()) {
-    console.log("Removed the unchanged legacy Shadowclone subagent; edited copies are preserved.");
+
+  if (!options.subagent && (await removeUneditedLegacySubagent())) {
+    console.log(
+      "Removed the unchanged legacy Shadowclone subagent; edited copies are preserved.",
+    );
   }
-  if (options.subagent) await installLiveClone({ autoDelegate: options.autoDelegate });
+
+  if (options.subagent) {
+    await installLiveClone({ autoDelegate: options.autoDelegate });
+  }
 }
 
-export async function uninstallNativeCommand(options: NativeInstallOptions & { readonly allAgents?: boolean }): Promise<void> {
+export async function uninstallNativeCommand(
+  options: NativeInstallOptions & { readonly allAgents?: boolean },
+): Promise<void> {
   const integrations = await readIntegrations(projectPaths);
+
   for (const integration of integrations) {
-    if (integration.scope !== options.scope || (!options.allAgents && !options.agents.includes(integration.agent))) continue;
-    if (integration.scope === "repository" && integration.directory !== canonicalPath(process.cwd())) continue;
+    if (
+      integration.scope !== options.scope ||
+      (!options.allAgents && !options.agents.includes(integration.agent))
+    ) {
+      continue;
+    }
+
+    if (
+      integration.scope === "repository" &&
+      integration.directory !== canonicalPath(process.cwd())
+    ) {
+      continue;
+    }
+
     await uninstallIntegration({ integration });
-    console.log(`Removed ${integration.agent} managed guidance (${integration.scope}); surrounding content preserved.`);
+    console.log(
+      `Removed ${integration.agent} managed guidance (${integration.scope}); surrounding content preserved.`,
+    );
   }
-  if (options.scope === "repository") await uninstallLiveClone();
+
+  if (options.scope === "repository") {
+    await uninstallLiveClone();
+  }
 }
 
 export async function handleNativeCommand(options: {
@@ -76,56 +78,121 @@ export async function handleNativeCommand(options: {
 }): Promise<boolean> {
   if (options.command === "install" || options.command === "uninstall") {
     const parsed = parseNativeOptions(options.arguments);
-    if (!parsed) throw new Error("Use --agent claude-code|codex|cursor|antigravity|all and --global or --local; subagents require local Claude installation");
-    if (options.command === "install") await installNativeCommand(parsed);
-    else await uninstallNativeCommand({ ...parsed, allAgents: !options.arguments.includes("--agent") });
+
+    if (!parsed) {
+      throw new Error(
+        "Use --agent claude-code|codex|cursor|antigravity|all and --global or --local; subagents require local Claude installation",
+      );
+    }
+
+    if (options.command === "install") {
+      await installNativeCommand(parsed);
+    } else {
+      await uninstallNativeCommand({
+        ...parsed,
+        allAgents: !options.arguments.includes("--agent"),
+      });
+    }
+
     return true;
   }
+
   if (options.command === "context" && options.arguments.length === 0) {
-    console.log(await compileContext({ cwd: process.cwd() }) ?? "Shadowclone guidance is disabled by policy.");
+    console.log(
+      (await compileContext({ cwd: process.cwd() })) ??
+        "Shadowclone guidance is disabled by policy.",
+    );
+
     return true;
   }
+
   if (
     options.command === "context" &&
     (options.arguments.length === 1 || options.arguments.length === 2) &&
     options.arguments[0] === "--explain" &&
     (options.arguments.length === 1 || options.arguments[1] === "--json")
   ) {
-    const details = await compileContextDetails({ cwd: process.cwd(), ...sessionStartProjection });
+    const environment = await explainLearningEnvironment({
+      paths: projectPaths,
+      cwd: process.cwd(),
+    });
+
+    if (environment !== null) {
+      await Bun.stdout.write(`${environment}\n`);
+
+      return true;
+    }
+
+    const details = await compileContextDetails({
+      cwd: process.cwd(),
+      ...sessionStartProjection,
+    });
+
     if (details === null) {
       await Bun.stdout.write("Shadowclone guidance is disabled by policy.\n");
+
       return true;
     }
+
     const explanation = explainContext(details);
-    await Bun.stdout.write(options.arguments[1] === "--json"
-      ? `${JSON.stringify(explanation, null, 2)}\n`
-      : renderContextExplanation(explanation));
+
+    await Bun.stdout.write(
+      options.arguments[1] === "--json"
+        ? `${JSON.stringify(explanation, null, 2)}\n`
+        : renderContextExplanation(explanation),
+    );
+
     return true;
   }
+
   if (options.command === "sync" && options.arguments.length === 0) {
+    if (await syncLearningEnvironment(projectPaths)) {
+      console.log("Synchronized learned skills and native routing.");
+
+      return true;
+    }
+
     const result = await refreshIntegrations();
-    console.log(`Refreshed ${result.refreshed} integration(s); preserved ${result.preserved} edited or unavailable integration(s).`);
+
+    console.log(
+      `Refreshed ${result.refreshed} integration(s); preserved ${result.preserved} edited or unavailable integration(s).`,
+    );
     await harnessSyncCommand({ apply: "confirm" });
+
     return true;
   }
+
   if (options.command === "hook" && options.arguments.length === 2) {
     const [event, id] = options.arguments;
-    if (!id) return false;
+
+    if (!id) {
+      return false;
+    }
+
     if (event === "native-start") {
-      const result = await nativeSessionStart({ id, input: await Bun.stdin.text() });
+      const result = await nativeSessionStart({
+        id,
+        input: await Bun.stdin.text(),
+      });
+
       await Bun.stdout.write(`${JSON.stringify(result)}\n`);
+
       return true;
     }
+
     if (event === "native-end") {
       const sessionKey = await nativeSessionEnd({
         id,
         input: await Bun.stdin.text(),
       });
+
       if (sessionKey) {
         await scheduleLearning({ sessionKeys: [sessionKey] });
       }
+
       return true;
     }
   }
+
   return false;
 }

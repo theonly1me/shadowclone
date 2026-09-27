@@ -16,15 +16,17 @@ test("parses deep review modes", () => {
     dryRun: false,
     apply: true,
   });
-  expect(parseLearnOptions([
-    "--deep",
-    "--engine",
-    "codex",
-    "--model",
-    "gpt-5.6-luna",
-    "--reasoning-effort",
-    "medium",
-  ])).toEqual({
+  expect(
+    parseLearnOptions([
+      "--deep",
+      "--engine",
+      "codex",
+      "--model",
+      "gpt-5.6-luna",
+      "--reasoning-effort",
+      "medium",
+    ]),
+  ).toEqual({
     deep: true,
     dryRun: false,
     apply: false,
@@ -36,11 +38,13 @@ test("parses deep review modes", () => {
 
 test("rejects invalid apply combinations before learning", () => {
   expect(() => parseLearnOptions(["--apply"])).toThrow("requires --deep");
-  expect(() => parseLearnOptions(["--deep", "--dry-run", "--apply"]))
-    .toThrow("cannot be combined");
+  expect(() => parseLearnOptions(["--deep", "--dry-run", "--apply"])).toThrow(
+    "cannot be combined",
+  );
   expect(parseLearnOptions(["--unknown"])).toBeNull();
-  expect(() => parseLearnOptions(["--engine", "codex"]))
-    .toThrow("require --deep");
+  expect(() => parseLearnOptions(["--engine", "codex"])).toThrow(
+    "require --deep",
+  );
 });
 
 test("a catch-up run raises every learning ceiling together", () => {
@@ -53,9 +57,11 @@ test("a catch-up run raises every learning ceiling together", () => {
     timeoutMilliseconds: defaultLearningExecutionLimits.timeoutMilliseconds * 4,
     maximumCostUsd: defaultLearningExecutionLimits.maximumCostUsd * 4,
   });
-  expect(learningExecutionLimitsForCalls(
-    defaultLearningExecutionLimits.maximumCalls,
-  )).toEqual(defaultLearningExecutionLimits);
+  expect(
+    learningExecutionLimitsForCalls(
+      defaultLearningExecutionLimits.maximumCalls,
+    ),
+  ).toEqual(defaultLearningExecutionLimits);
 });
 
 test("rejects a call ceiling that is not a positive whole number", () => {

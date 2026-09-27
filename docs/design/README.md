@@ -1,31 +1,38 @@
-# Design record
+# Design history
 
-Every product or architecture change starts with a design record written against `template.md`. Write it before implementation, then finalize its decisions and validation before presenting the pull request. Each pull request checks whether public documentation, contributor rules, the capability matrix, or the architecture diagram changed in meaning and updates only the affected documents.
+These records explain decisions and tradeoffs. Later records can replace earlier designs; use the [architecture](../architecture/README.md) and [user guide](../../README.md#get-started) for current behavior.
 
-The table is chronological by the first recorded decision. Append new records at the bottom so a future contributor can follow why the system changed over time. These records describe decisions and validation at the time of a change; implemented does not mean every original detail is still current. Later records supersede earlier ones. The [architecture](../architecture/README.md) and [README](../../README.md) describe current behavior, and [evals.md](../../evals.md) holds the reported evaluation results.
+The main delivery changes were transcript learning, native main-agent context, and then portable skills. Designs 006 through 020 include profile-era decisions that remain relevant to migration and historical evaluations. Designs 022 through 024 describe repository setup and the skills environment.
 
-| Date | Record | Status | Decision |
-| --- | --- | --- | --- |
-| 2026-09-05 | [001, Agent transcript learning](001-agent-transcript-pivot.md) | implemented | Learn from existing agent transcripts and act through the user's authenticated agent CLI |
-| 2026-09-05 | [002, CI and release](002-ci-and-release.md) | implemented | Run the repository gate on Linux and macOS and publish from version tags |
-| 2026-09-05 | [003, Provider expansion](003-provider-expansion.md) | active | Qualify observation, distillation, and dispatch support independently for each provider |
-| 2026-09-06 | [Evaluation representation](eval-representation.md) | implemented | Compare replay behavior through privacy-safe action fingerprints |
-| 2026-09-08 | [004, Confirmed safety fixes](004-confirmed-safety-fixes.md) | implemented | Correct repository identity, redaction, probe, install, and dispatch configuration defects |
-| 2026-09-08 | [005, Capture and capability truth](005-capture-and-capability-truth.md) | implemented | Permit boolean source presence checks and align public claims with implemented behavior |
-| 2026-09-08 | [006, Profile record lifecycle](006-profile-record-lifecycle.md) | implemented | Keep rule identity stable across wording changes and make profile lifecycle state explicit |
-| 2026-09-08 | [007, Bounded learning execution](007-bounded-learning-execution.md) | implemented | Isolate semantic learning and bound its total calls, time, and provider-supported cost |
-| 2026-09-08 | [008, Seed guidance library](008-seed-skill-library.md) | implemented | Separate concise profile preferences from complete task-specific Agent Skills |
-| 2026-09-08 | [009, Onboarding wizard](009-onboarding-wizard.md) | implemented | Select declared behavior before asking only relevant capture consent questions |
-| 2026-09-09 | [010, Import existing repository guidance](010-import-repository-guidance.md) | implemented | Import supported repository instructions as stable, redacted, repository-scoped profile rules |
-| 2026-09-09 | [011, Learning report boundary](011-learning-report-boundary.md) | implemented | Keep structural evidence in a report and write mined rules only through explicit deep distillation |
-| 2026-09-09 | [012, Deep learning reconciliation](012-deep-learning-reconciliation.md) | implemented | Reconcile redacted evidence with existing guidance before applying profile changes |
-| 2026-09-09 | [013, Deterministic profile compiler and reversible installs](013-deterministic-profile-compiler.md) | implemented | Project every clone through one bounded compiler and track repository-local artifacts for removal |
-| 2026-09-11 | [014, Main agent delivery](014-main-agent-delivery.md) | implemented | Deliver scoped preferences through native instructions and hooks while preserving user-owned files |
-| 2026-09-11 | [015, Automatic preference learning](015-automatic-preference-learning.md) | implemented | Learn only from durable user steering, bound automatic catch-up, and preserve reversible profile updates |
-| 2026-09-11 | [016, Skill maintenance](016-skill-maintenance.md) | implemented | Assess consented skill roots, preserve user and package ownership, and share bounded learning execution |
-| 2026-09-12 | [017, Self-improving portable agent environment](017-self-improving-agent-environment.md) | implemented | Deliver live guidance to main agents, learn from selected sessions, synchronize personal skills, and evaluate fresh work |
-| 2026-09-13 | [018, Incremental learning repair](018-incremental-learning-repair.md) | implemented | Migrate legacy rules, refuse silent profile loss, learn from the requested session, and catch up across the whole history |
-| 2026-09-13 | [019, Launch readiness](019-launch-readiness.md) | implementation complete; validation limits remain | Give spawned Claude subagents the live profile, shorten setup and evaluation, and keep learning bounded |
-| 2026-09-14 | [020, Preference judging and recovery](020-preference-judging.md) | implemented; judging limitations documented | Freeze source-backed coding criteria, checkpoint judge votes, recover missing work, and separate completion from improvement |
-| 2026-09-20 | [021, Guidance and memory evaluation](021-guidance-evaluation.md) | implemented; research protocol | Compare bare, skills, native Claude memory, and Shadowclone conditions with native delivery probes and source-grounded judging |
-| 2026-09-26 | [022, Repository harness](022-repository-harness.md) | implemented | Build, enforce, and sync the repository harness from the owner's taste, and deliver at most 4 KiB of deduplicated startup context |
+Start a new decision with the [template](template.md), or extend the relevant record. Include only sections needed to understand and verify the change. Keep implementation-session logs out of these pages.
+
+| Record | Decision |
+| --- | --- |
+| [001: Transcript learning](001-agent-transcript-pivot.md) | Sessions and authenticated CLIs replace shell-only learning |
+| [002: CI and release checks](002-ci-and-release.md) | A shared gate and verified releases; archive publishing later replaced by npm |
+| [003: Provider qualification](003-provider-expansion.md) | Qualify capture, model execution, actions, and native delivery separately |
+| [Replay representation](eval-representation.md) | Historical comparison through coarse action fingerprints |
+| [004: Safety fixes](004-confirmed-safety-fixes.md) | Correct scope, redaction, probes, installation, and clean-exit policy |
+| [005: Consent and capability claims](005-capture-and-capability-truth.md) | Bound pre-consent checks and distinguish implementation from qualification |
+| [006: Profile lifecycle](006-profile-record-lifecycle.md) | Stable identities, user edits, rejections, and activation state |
+| [007: Learning limits](007-bounded-learning-execution.md) | Shared budgets, isolation, and reusable checkpoints |
+| [008: Bundled guidance](008-seed-skill-library.md) | Separate concise preferences from complete workflows |
+| [009: Original onboarding](009-onboarding-wizard.md) | Declared choices, relevant consent, preview, and cancellation |
+| [010: Guidance import](010-import-repository-guidance.md) | Read supported instruction paths with separate consent and exact scope |
+| [011: Reports and learning](011-learning-report-boundary.md) | Keep structural observations separate from semantic guidance |
+| [012: Reconciliation](012-deep-learning-reconciliation.md) | Interpret evidence against existing guidance and user decisions |
+| [013: Legacy compilation](013-deterministic-profile-compiler.md) | One bounded profile representation and reversible installation |
+| [014: Isolation proposal](014-execution-and-storage-boundaries.md) | Execution and storage controls completed in remediation |
+| [014: Main-agent delivery](014-main-agent-delivery.md) | Managed native instructions and hooks beyond optional subagents |
+| [015: Automatic learning](015-automatic-preference-learning.md) | Durable steering, separate consent, bounded background work |
+| [015: Isolation remediation](015-remediation-completion.md) | OS enforcement, consistent snapshots, private storage, and reports |
+| [016: Original skill maintenance](016-skill-maintenance.md) | Amend relevant workflows while preserving ownership |
+| [017: Portable environment](017-self-improving-agent-environment.md) | Live context, useful-session attribution, skill sync, and fresh-task evaluation |
+| [018: Incremental learning](018-incremental-learning-repair.md) | Preserve legacy records and process requested and unprocessed history |
+| [019: Setup and first learning](019-launch-readiness.md) | Simplify setup, bound the first pass, and reach spawned agents |
+| [020: Preference judging](020-preference-judging.md) | Source-backed criteria and recoverable votes |
+| [021: Guidance and memory evaluation](021-guidance-evaluation.md) | Separate skills, memory, and profile effects; preserve methods and results |
+| [022: Repository setup](022-repository-harness.md) | Preview shared instructions and configure executable checks |
+| [023: Skills delivery](023-skills-as-delivery.md) | Maintain workflows directly and migrate with original baselines intact |
+| [024: Agent builds](024-agent-builds.md) | Browser and terminal editing over shared publication, with budget and check fixes |
+| [025: Documentation](025-documentation.md) | Short entry points, task guides, current architecture, and concise design history |

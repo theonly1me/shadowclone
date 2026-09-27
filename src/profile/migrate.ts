@@ -15,17 +15,22 @@ export function migratedLegacyRule(options: {
   if (!isMigratableLegacyBlock(options.block)) {
     return null;
   }
+
   const located = locatedRule({
     existing: options.block,
     relativePath: options.relativePath,
   });
+
   if (located === null) {
     return null;
   }
+
   return {
     ...located,
     source: "mined",
-    status: activatesFromSessions(options.block.sessions) ? "active" : "candidate",
+    status: activatesFromSessions(options.block.sessions)
+      ? "active"
+      : "candidate",
     proposal: null,
     appliesWhen: [],
     evidence: { for: [], against: [] },

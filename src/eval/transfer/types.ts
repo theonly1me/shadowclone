@@ -1,23 +1,18 @@
-import type {
-  EngineId,
-  EngineRunner,
-  ReasoningEffort,
-} from "../../engine";
+import type { EngineId, EngineRunner, ReasoningEffort } from "../../engine";
 import type { ProjectPaths } from "../../paths";
 import type { EvaluationArm } from "./arms";
 import type { JudgingState } from "./judgeTypes";
 
 export const dependencyModes = ["current"] as const;
+
 export type DependencyMode = (typeof dependencyModes)[number];
 
-export type DependencyState =
-  | "not-required"
-  | "not-installed"
-  | "exact";
+export type DependencyState = "not-required" | "not-installed" | "exact";
 
 export type TransferOptions = {
   readonly repo?: string;
   readonly task?: string;
+  readonly taskFile?: string;
   readonly suiteId?: string;
   readonly model?: string;
   readonly engine?: EngineId;
@@ -31,6 +26,7 @@ export type TransferOptions = {
   readonly json?: boolean;
   readonly yes?: boolean;
   readonly maxBudgetUsd?: number;
+  readonly maxCalls?: number;
   readonly paths?: ProjectPaths;
   readonly runner?: EngineRunner;
 };
@@ -63,7 +59,7 @@ export type DelegationTask = {
 };
 
 export type EvaluationProfileSnapshot = {
-  readonly kind: "current";
+  readonly kind: "current" | "startup-index";
   readonly fingerprint: string;
   readonly ruleCount: number;
 };
@@ -106,6 +102,8 @@ export type CheckResult<Verdict extends PreferenceVerdict = "pass" | "fail"> = {
 export type ContextFile = {
   readonly relativePath: string;
   readonly content: string;
+  readonly encoding?: "base64";
+  readonly mode?: number;
 };
 
 export type EvaluationSuite = {
@@ -128,6 +126,7 @@ export type PreparedEval = Omit<EvaluationSuite, "schemaVersion"> & {
   readonly repeat: number;
   readonly timeoutSeconds: number;
   readonly maxBudgetUsd: number | null;
+  readonly maxCalls?: number;
   readonly dirtyFileCount: number;
   readonly preflight: readonly CheckResult[];
 };

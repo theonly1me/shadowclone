@@ -10,33 +10,23 @@ metadata:
 
 ## Use when
 
-Use this skill when complexity is spread across callers, a proposed abstraction mostly forwards arguments, or tests must reach through several layers to observe behavior.
-
-A module is any implementation presented through an interface. Depth means the caller learns a small interface and receives substantial coherent behavior. A seam is the place where one implementation can be replaced without editing its callers.
+Callers coordinate too many steps, an abstraction only forwards arguments, or tests must reach through layers to observe behavior. A deep module provides substantial behavior through a small interface.
 
 ## Process
 
-1. List the callers and the facts each caller currently needs to coordinate the behavior.
-2. Separate policy decisions from mechanical steps and identify the implementation that owns the required state.
-3. Write the smallest interface that lets callers express their intent without coordinating internal order.
-4. Sketch at least two materially different placements for the seam when its location is uncertain.
-5. Compare the alternatives by caller burden, hidden complexity, error behavior, and the tests each interface enables.
-6. Choose the interface that keeps related policy and state local while preserving useful variation.
-7. Move orchestration behind the interface and remove pass-through layers that add no decision or isolation.
-8. Test behavior through the chosen interface with dependencies replaced only at real external seams.
-9. Read every caller again and remove knowledge that now belongs inside the module.
+1. Read the callers and identify the state, ordering, and policy they currently coordinate.
+2. Put related state and decisions under one owner. Define an operation that expresses the caller's intent.
+3. When the boundary is unclear, compare two placements by caller burden, error handling, and testability.
+4. Move internal sequencing behind the interface. Remove forwarding layers that provide no useful variation or isolation.
+5. Test through the public interface, replacing dependencies only at real external boundaries.
+6. Revisit callers and remove knowledge now owned by the module.
 
 ## Guardrails
 
-- Add a seam when behavior or dependencies genuinely vary, or when isolation is required at an external boundary.
-- Keep invariants, ordering, error modes, and configuration inside the interface contract.
-- Prefer one options object over sequences of primitive arguments that callers must correlate.
-- Return results when callers need outcomes; contain side effects behind the owning interface.
-- Avoid wrappers whose public surface repeats the implementation beneath them.
-- Keep repository and domain terms in names so the interface matches the system users recognize.
+Keep invariants and error behavior in the interface contract. Use an options object when callers would otherwise correlate primitive arguments. Return outcomes callers need, and contain side effects within their owner.
 
-An interface is still large when callers must know which methods to call, in what order, and which intermediate state to carry. Move that sequence behind one intent-level operation.
+Add an abstraction for a concrete variation or isolation need. A short interface still imposes complexity if callers must know a hidden sequence of calls.
 
 ## Completion
 
-The design is complete when callers express intent through a smaller interface, related complexity has one owner, each remaining seam has a concrete reason to vary or isolate, and tests can exercise the module without depending on its internal sequence.
+Callers express intent without coordinating internal steps, and tests exercise behavior without depending on that sequence.

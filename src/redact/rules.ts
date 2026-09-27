@@ -42,8 +42,7 @@ export const redactionRules: readonly RedactionRule[] = [
   },
   {
     label: "github-token",
-    pattern:
-      /\b(?:gh[porsu]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/g,
+    pattern: /\b(?:gh[porsu]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/g,
     replace: sliced("github-token", 4),
   },
   {
@@ -82,10 +81,8 @@ export const redactionRules: readonly RedactionRule[] = [
     label: "git-remote",
     pattern:
       /\b(?:ssh:\/\/)?git@([A-Za-z0-9.-]+):[A-Za-z0-9._/-]+(?:\.git)?\b/g,
-    replace: (
-      _substring: string,
-      hostGroup?: string,
-    ): string => `git@${hostGroup ?? ""}:[redacted:git-remote]`,
+    replace: (_substring: string, hostGroup?: string): string =>
+      `git@${hostGroup ?? ""}:[redacted:git-remote]`,
   },
   {
     label: "email-address",

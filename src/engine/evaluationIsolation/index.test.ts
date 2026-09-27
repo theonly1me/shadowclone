@@ -13,8 +13,10 @@ async function linkedDirectory(): Promise<{
   const root = await mkdtemp(path.join(os.tmpdir(), "shadowclone-isolation-"));
   const target = path.join(root, "control");
   const link = path.join(root, "link");
+
   await mkdir(target);
   await symlink(target, link);
+
   return { root, target, link };
 }
 
@@ -33,7 +35,10 @@ test("denies the resolved path so a symbolic link cannot escape the macOS sandbo
     });
 
     const profile = command[2] ?? "";
-    expect(profile).toContain(`(subpath ${JSON.stringify(canonicalPath(target))})`);
+
+    expect(profile).toContain(
+      `(subpath ${JSON.stringify(canonicalPath(target))})`,
+    );
     expect(profile).not.toContain(`(subpath ${JSON.stringify(link)})`);
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -41,7 +46,9 @@ test("denies the resolved path so a symbolic link cannot escape the macOS sandbo
 });
 
 test("covers a temporary directory reached through the platform tmpdir symlink", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-control-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-control-"),
+  );
 
   try {
     const command = evaluationCommand({

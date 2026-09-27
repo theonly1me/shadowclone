@@ -1,8 +1,5 @@
 import type { ProjectPaths } from "../paths";
-import {
-  findProfileRule,
-  readProfileFiles,
-} from "./files";
+import { findProfileRule, readProfileFiles } from "./files";
 import type { ProfileFile } from "./files";
 import { profileRulePath } from "./render";
 import { mergeProfileImportReference } from "./importReference";
@@ -11,10 +8,7 @@ import {
   profileRejectionFromState,
   readProfileRejections,
 } from "./state";
-import type {
-  GeneratedProfileStateEntry,
-  ProfileRejection,
-} from "./state";
+import type { GeneratedProfileStateEntry, ProfileRejection } from "./state";
 import type {
   ExistingProfileRule,
   ProfileRule,
@@ -54,6 +48,7 @@ function retiredEntry(options: {
   readonly previous: ReadonlyMap<string, GeneratedProfileStateEntry>;
 }): GeneratedProfileStateEntry {
   const incoming = options.incoming.get(options.reference.key);
+
   if (incoming) {
     return generatedProfileEntry({
       relativePath: options.reference.relativePath,
@@ -61,7 +56,9 @@ function retiredEntry(options: {
       disposition: "retired",
     });
   }
+
   const existing = findProfileRule(options.files, options.reference.key);
+
   if (existing) {
     return generatedProfileEntry({
       relativePath: existing.relativePath,
@@ -69,7 +66,9 @@ function retiredEntry(options: {
       disposition: "retired",
     });
   }
+
   const previous = options.previous.get(options.reference.key);
+
   return previous
     ? { ...previous, disposition: "retired" }
     : {
@@ -105,8 +104,10 @@ export async function prepareProfileWrite(options: {
       .filter((entry) => entry.disposition === "retired")
       .map((entry) => [entry.key, entry]),
   );
+
   for (const rule of incomingRules) {
     const rejection = rejections.get(rule.key);
+
     if (rejection?.importReference && rule.importReference) {
       rejections.set(rule.key, {
         ...rejection,
@@ -117,6 +118,7 @@ export async function prepareProfileWrite(options: {
       });
     }
   }
+
   const relativePaths = new Set([
     ...incomingRules.map(profileRulePath),
     ...previousEntries.map((entry) => entry.relativePath),
@@ -141,6 +143,7 @@ export async function prepareProfileWrite(options: {
       rejections.set(entry.key, profileRejectionFromState(entry));
     }
   }
+
   for (const reference of options.retiredReferences) {
     retired.set(
       reference.key,
@@ -157,6 +160,7 @@ export async function prepareProfileWrite(options: {
       ),
     ),
   );
+
   return {
     incomingRules,
     incoming,

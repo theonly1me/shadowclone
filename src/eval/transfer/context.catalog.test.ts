@@ -6,11 +6,19 @@ import { installContext } from "./context";
 
 test("delivers skill names, descriptions and locations without copying bodies", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "context-catalog-"));
+
   try {
-    const prompt = await installContext({ directory, files: [{
-      relativePath: "skills/0/clean-code/SKILL.md",
-      content: "---\nname: clean-code\ndescription: Mandatory before editing code.\n---\n\nDetailed private conventions.\n",
-    }] });
+    const prompt = await installContext({
+      directory,
+      files: [
+        {
+          relativePath: "skills/0/clean-code/SKILL.md",
+          content:
+            "---\nname: clean-code\ndescription: Mandatory before editing code.\n---\n\nDetailed private conventions.\n",
+        },
+      ],
+    });
+
     expect(prompt).toContain("clean-code");
     expect(prompt).toContain("Mandatory before editing code.");
     expect(prompt).toContain(".eval-context/skills/0/clean-code/SKILL.md");

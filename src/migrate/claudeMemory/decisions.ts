@@ -32,15 +32,23 @@ export type ClaudeMemoryDecisions = {
   readonly excludeReferences: ReadonlySet<string>;
 };
 
-export function parseClaudeMemoryDecisions(text: string): ClaudeMemoryDecisions {
+export function parseClaudeMemoryDecisions(
+  text: string,
+): ClaudeMemoryDecisions {
   let value: unknown;
+
   try {
     value = JSON.parse(text);
   } catch {
     throw new Error("Claude memory decisions must be valid JSON");
   }
+
   const parsed = decisionsSchema.safeParse(value);
-  if (!parsed.success) throw new Error("Claude memory decisions are invalid");
+
+  if (!parsed.success) {
+    throw new Error("Claude memory decisions are invalid");
+  }
+
   return {
     feedback: new Map(Object.entries(parsed.data.feedback)),
     excludeReferences: new Set(parsed.data.excludeReferences),

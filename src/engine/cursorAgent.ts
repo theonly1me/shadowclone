@@ -6,31 +6,33 @@ import { runnerEnvironment } from "./environment";
 import { validateEngineExecution } from "./execution";
 import { parseCursorStream } from "./parseCursor";
 import { buildEnginePrompt } from "./prompt";
-import type {
-  EngineRun,
-  EngineRunOptions,
-  PermissionMode,
-} from "./types";
+import type { EngineRun, EngineRunOptions, PermissionMode } from "./types";
 
 function validateCursorOptions(options: EngineRunOptions): void {
   validateEngineExecution(options);
+
   if (options.sessionId !== undefined) {
     throw new Error("Cursor cannot set a caller-provided session id");
   }
+
   if (options.maxBudgetUsd !== undefined) {
     throw new Error("Cursor cannot enforce a per-run dollar budget");
   }
+
   if (options.disallowedTools && options.disallowedTools.length > 0) {
     throw new Error("Cursor cannot enforce a granular tool denylist");
   }
+
   if (options.allowedTools && options.allowedTools.length > 0) {
     throw new Error("Cursor cannot enforce a granular tool allowlist");
   }
+
   const supportedModes: readonly (PermissionMode | undefined)[] = [
     undefined,
     "dontAsk",
     "plan",
   ];
+
   if (!supportedModes.includes(options.permissionMode)) {
     throw new Error("Cursor cannot honor this permission mode");
   }
@@ -40,6 +42,7 @@ export function buildCursorArguments(
   options: EngineRunOptions,
 ): readonly string[] {
   validateCursorOptions(options);
+
   const arguments_ = [
     "cursor-agent",
     "--print",
@@ -52,9 +55,11 @@ export function buildCursorArguments(
     "--workspace",
     options.cwd,
   ];
+
   if (options.model) {
     arguments_.push("--model", options.model);
   }
+
   return arguments_;
 }
 
@@ -69,13 +74,18 @@ async function runCursorProcess(options: {
   });
   const fallbackSessionId = crypto.randomUUID();
   const { exitCode, stdout: stream } = await runProcess({
-    arguments: [...buildCursorArguments({ ...options.run, cwd: options.workspace }), "--trust"],
+    arguments: [
+      ...buildCursorArguments({ ...options.run, cwd: options.workspace }),
+      "--trust",
+    ],
     cwd: options.workspace,
-    environment: options.environment ?? runnerEnvironment({ engine: "cursor-agent" }),
+    environment:
+      options.environment ?? runnerEnvironment({ engine: "cursor-agent" }),
     input: prompt,
     signal: options.run.signal,
   });
   const run = parseCursorStream({ stream, fallbackSessionId });
+
   return exitCode === 0 ? run : { ...run, isError: true };
 }
 
@@ -83,17 +93,22 @@ export async function runCursorAgent(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
   validateCursorOptions(options);
+
   const requiresIsolation =
-    options.execution.purpose === "learning" || options.allowedTools?.length === 0;
+    options.execution.purpose === "learning" ||
+    options.allowedTools?.length === 0;
+
   if (!requiresIsolation) {
     return runCursorProcess({ run: options, workspace: options.cwd });
   }
+
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-cursor-"),
   );
   const workspace = path.join(directory, "workspace");
   const isolatedConfigDirectory = path.join(directory, "config");
   const configDirectory = path.join(workspace, ".cursor");
+
   const deniedPermissions = [
     "Shell(*)",
     "Read(*)",
@@ -101,6 +116,7 @@ export async function runCursorAgent(
     "WebFetch(*)",
     "Mcp(*:*)",
   ];
+
   await Promise.all([
     mkdir(configDirectory, { recursive: true }),
     mkdir(isolatedConfigDirectory, { recursive: true }),
@@ -122,6 +138,7 @@ export async function runCursorAgent(
       }),
     ),
   ]);
+
   try {
     return await runCursorProcess({
       run: options,

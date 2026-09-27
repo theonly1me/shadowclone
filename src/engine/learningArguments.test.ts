@@ -10,6 +10,7 @@ function valueAfter(options: {
   readonly flag: string;
 }): string | undefined {
   const flagIndex = options.arguments_.indexOf(options.flag);
+
   return options.arguments_[flagIndex + 1];
 }
 
@@ -18,11 +19,16 @@ test("learning ignores permissive Claude project settings and removes tools", as
     path.join(os.tmpdir(), "shadowclone-claude-learning-"),
   );
   const settingsDirectory = path.join(workingDirectory, ".claude");
+
   await mkdir(settingsDirectory, { recursive: true });
   await Bun.write(
     path.join(settingsDirectory, "settings.json"),
     JSON.stringify({
-      hooks: { SessionStart: [{ hooks: [{ type: "command", command: "echo widened" }] }] },
+      hooks: {
+        SessionStart: [
+          { hooks: [{ type: "command", command: "echo widened" }] },
+        ],
+      },
       permissions: { allow: ["Bash(*)", "WebFetch(*)", "mcp__unsafe__*"] },
     }),
   );
@@ -73,7 +79,11 @@ test("learning removes Codex instructions, integrations, state, and shell", () =
 test("isolated Codex execution hides unrelated home-directory skills", () => {
   expect(
     codexProcessEnvironment({
-      environment: { PATH: "/bin", DATABASE_URL: "private-database", GITHUB_TOKEN: "private-token" },
+      environment: {
+        PATH: "/bin",
+        DATABASE_URL: "private-database",
+        GITHUB_TOKEN: "private-token",
+      },
       temporaryDirectory: "/private/tmp/shadowclone-codex",
       userHome: "/Users/example",
     }),

@@ -3,11 +3,8 @@ import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
-import { parseProfileRules } from "../profile";
-import {
-  loadSeedLibrary,
-  seedGuidanceProfileKey,
-} from "../skills";
+import { readProfileSnapshot } from "../profile";
+import { loadSeedLibrary, seedGuidanceProfileKey } from "../skills";
 import {
   parseAxisChoice,
   parseOptionalSkillChoices,
@@ -19,18 +16,16 @@ const firstChoices = ["1", "1", "1", "1", "1", "none"];
 test("accepts only displayed axis and optional skill choices", async () => {
   const library = await loadSeedLibrary();
   const [axis] = library.axes;
+
   if (!axis) {
     throw new Error("The seed library needs an axis");
   }
 
   for (const response of ["0", "1e0", "comments-none", "Write no"]) {
-    expect(
-      parseAxisChoice({ response, guidance: axis.guidance }),
-    ).toBeNull();
+    expect(parseAxisChoice({ response, guidance: axis.guidance })).toBeNull();
   }
-  expect(
-    parseAxisChoice({ response: "1", guidance: axis.guidance })?.id,
-  ).toBe(
+
+  expect(parseAxisChoice({ response: "1", guidance: axis.guidance })?.id).toBe(
     axis.guidance[0]?.id,
   );
 
@@ -42,6 +37,7 @@ test("accepts only displayed axis and optional skill choices", async () => {
       }),
     ).toBeNull();
   }
+
   expect(
     parseOptionalSkillChoices({
       response: "1, 3",
@@ -49,9 +45,7 @@ test("accepts only displayed axis and optional skill choices", async () => {
     })?.map((skill) => skill.id),
   ).toEqual(
     library.independentSkills
-      .filter(
-        (_, skillIndex) => skillIndex === 0 || skillIndex === 2,
-      )
+      .filter((_, skillIndex) => skillIndex === 0 || skillIndex === 2)
       .map((skill) => skill.id),
   );
 });
@@ -62,6 +56,7 @@ test("prints every selection and writes nothing when confirmation is declined", 
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
   const library = await loadSeedLibrary();
+
   const answers = [...firstChoices];
   const output: string[] = [];
 
@@ -75,12 +70,15 @@ test("prints every selection and writes nothing when confirmation is declined", 
 
   expect(result.written).toBeFalse();
   expect(result.selectedGuidanceIds).toHaveLength(5);
+
   for (const guidanceId of result.selectedGuidanceIds) {
     const entry = library.guidance.find(
       (candidate) => candidate.id === guidanceId,
     );
+
     expect(entry ? output.includes(`  ${entry.title}`) : false).toBeTrue();
   }
+
   expect(await Bun.file(paths.profileDirectory).exists()).toBeFalse();
 });
 
@@ -93,6 +91,7 @@ test("writes stable declared rules on identical reruns", async () => {
 
   for (let runNumber = 0; runNumber < 2; runNumber += 1) {
     const answers = [...firstChoices];
+
     await runWizard({
       paths,
       library,
@@ -102,23 +101,18 @@ test("writes stable declared rules on identical reruns", async () => {
     });
   }
 
-  const engineeringPath = path.join(
-    paths.profileDirectory,
-    "global/engineering.md",
+  const rules = (await readProfileSnapshot(paths)).rules.map(
+    ({ rule }) => rule,
   );
-  const workflowPath = path.join(paths.profileDirectory, "global/workflow.md");
-  const engineeringText = await Bun.file(engineeringPath).text();
-  const rules = [
-    ...parseProfileRules(engineeringText),
-    ...parseProfileRules(await Bun.file(workflowPath).text()),
-  ];
   const testingFirst = rules.find(
     (rule) => rule.key === seedGuidanceProfileKey("testing-first"),
   );
+
   expect(rules).toHaveLength(4);
   expect(rules.every((rule) => rule.source === "declared")).toBeTrue();
   expect(rules.every((rule) => rule.key.startsWith("seed:"))).toBeTrue();
   expect(testingFirst).toBeUndefined();
+
   for (const root of [
     path.join(homeDirectory, ".agents/skills"),
     path.join(homeDirectory, ".claude/skills"),
@@ -127,12 +121,17 @@ test("writes stable declared rules on identical reruns", async () => {
     const skill = await Bun.file(
       path.join(root, "testing-first/SKILL.md"),
     ).text();
+
     expect(skill).toContain("# Test First Through a Public Seam");
   }
+
   for (const redundantRoot of [".codex/skills", ".cursor/skills"]) {
-    expect(await Bun.file(
-      path.join(homeDirectory, redundantRoot, "testing-first/SKILL.md"),
-    ).exists()).toBeFalse();
+    expect(
+      await Bun.file(
+        path.join(homeDirectory, redundantRoot, "testing-first/SKILL.md"),
+      ).exists(),
+    ).toBeFalse();
   }
-  expect(engineeringText).not.toContain("\n## Process");
+
+  expect(await Bun.file(paths.profileManifestFile).exists()).toBeFalse();
 });

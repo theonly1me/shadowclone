@@ -4,7 +4,10 @@ import { detectEngine } from "../engine";
 import { integrationAgentSchema } from "../integrations";
 import type { IntegrationAgent } from "../integrations";
 import type { ProjectPaths } from "../paths";
-import type { OnboardingCaptureSourceId, OnboardingPresence } from "./onboardingPresence";
+import type {
+  OnboardingCaptureSourceId,
+  OnboardingPresence,
+} from "./onboardingPresence";
 
 const agentNames: Record<IntegrationAgent, string> = {
   "claude-code": "Claude Code",
@@ -16,6 +19,7 @@ const agentNames: Record<IntegrationAgent, string> = {
 async function directoryHasEntry(directoryPath: string): Promise<boolean> {
   try {
     const directory = await opendir(directoryPath);
+
     try {
       return (await directory.read()) !== null;
     } finally {
@@ -26,12 +30,16 @@ async function directoryHasEntry(directoryPath: string): Promise<boolean> {
   }
 }
 
-export async function detectedIntegrationAgents(paths: ProjectPaths): Promise<readonly IntegrationAgent[]> {
-  const availability = (await detectEngine({ purpose: "distill" })).availability;
+export async function detectedIntegrationAgents(
+  paths: ProjectPaths,
+): Promise<readonly IntegrationAgent[]> {
+  const availability = (await detectEngine({ purpose: "distill" }))
+    .availability;
   const detected = availability.flatMap((entry) => {
     const agent = integrationAgentSchema.safeParse(
       entry.engine === "cursor-agent" ? "cursor" : entry.engine,
     );
+
     return entry.installed && agent.success ? [agent.data] : [];
   });
   const homeDirectory = path.dirname(paths.shadowcloneDirectory);
@@ -39,11 +47,17 @@ export async function detectedIntegrationAgents(paths: ProjectPaths): Promise<re
     directoryHasEntry(path.join(homeDirectory, ".gemini", "antigravity-cli")),
     directoryHasEntry(path.join(homeDirectory, ".antigravity-ide")),
   ]);
+
   return antigravity.some(Boolean) ? [...detected, "antigravity"] : detected;
 }
 
-export async function detectPersonalSkills(paths: ProjectPaths): Promise<boolean> {
-  const homeDirectory = path.dirname(path.dirname(paths.claudeProjectsDirectory));
+export async function detectPersonalSkills(
+  paths: ProjectPaths,
+): Promise<boolean> {
+  const homeDirectory = path.dirname(
+    path.dirname(paths.claudeProjectsDirectory),
+  );
+
   return directoryHasEntry(path.join(homeDirectory, ".claude", "skills"));
 }
 
@@ -59,9 +73,14 @@ function detectedSourcePaths(options: {
     cursor: [options.paths.cursorChatsDirectory],
     shell: options.paths.shellHistoryFiles,
   };
-  const homeDirectory = path.dirname(path.dirname(options.paths.claudeProjectsDirectory));
+  const homeDirectory = path.dirname(
+    path.dirname(options.paths.claudeProjectsDirectory),
+  );
+
   return [...options.presence.presentCaptureSources].flatMap((source) =>
-    sourcePaths[source].map((sourcePath) => displayPath({ homeDirectory, sourcePath }))
+    sourcePaths[source].map((sourcePath) =>
+      displayPath({ homeDirectory, sourcePath }),
+    ),
   );
 }
 
@@ -82,29 +101,58 @@ export function printDetectionSummary(options: {
   readonly writeLine: (line: string) => void;
 }): void {
   const agentList = options.agents.map((agent) => agentNames[agent]);
-  options.writeLine(`Found  ${agentList.length > 0 ? agentList.join(", ") : "No supported agents"}`);
+
+  options.writeLine(
+    `Found  ${agentList.length > 0 ? agentList.join(", ") : "No supported agents"}`,
+  );
+
   if (options.personalSkillsPresent) {
     options.writeLine("       Personal skills in ~/.claude/skills");
   }
+
   if (options.presence.hasRepositoryGuidance) {
     options.writeLine("       Repository agent guidance");
   }
+
   const paths = detectedSourcePaths(options);
-  const homeDirectory = path.dirname(path.dirname(options.paths.claudeProjectsDirectory));
+  const homeDirectory = path.dirname(
+    path.dirname(options.paths.claudeProjectsDirectory),
+  );
   const codexHome = path.dirname(options.paths.codexSessionsDirectory);
   const codexPath = displayPath({ homeDirectory, sourcePath: codexHome });
+
   options.writeLine("");
-  options.writeLine(`Reads  ${paths.length > 0 ? paths.join(", ") : "No session sources detected"}`);
-  options.writeLine("       Git remote names; ./CLAUDE.md, ./AGENTS.md, ./.cursorrules, ./.claude/skills, ./.agents/skills");
-  options.writeLine(`       Agent context: ~/.claude/CLAUDE.md, ${codexPath}/AGENTS.md, ${codexPath}/AGENTS.override.md`);
-  options.writeLine(`       Agent memories: ~/.claude/projects/<repo>/memory, ${codexPath}/memories`);
-  options.writeLine("       Optional Claude migration: exact current-repository ~/.claude/projects/<repo>/memory");
-  options.writeLine("       Optional Antigravity attribution: ~/.gemini/antigravity-cli/history.jsonl");
-  options.writeLine(`       Skills: ~/.claude/skills, ~/.agents/skills, ${codexPath}/skills, ~/.cursor/skills, ~/.gemini/config/skills`);
-  options.writeLine(`       Plugin caches: ~/.claude/plugins/cache, ${codexPath}/plugins/cache, ~/.cursor/plugins/cache`);
-  options.writeLine("       Everything stays on this machine except redacted excerpts sent through your agent CLI.");
+  options.writeLine(
+    `Reads  ${paths.length > 0 ? paths.join(", ") : "No session sources detected"}`,
+  );
+  options.writeLine(
+    "       Git remote names; ./CLAUDE.md, ./AGENTS.md, ./.cursorrules, ./.claude/skills, ./.agents/skills",
+  );
+  options.writeLine(
+    `       Agent context: ~/.claude/CLAUDE.md, ${codexPath}/AGENTS.md, ${codexPath}/AGENTS.override.md`,
+  );
+  options.writeLine(
+    `       Agent memories: ~/.claude/projects/<repo>/memory, ${codexPath}/memories`,
+  );
+  options.writeLine(
+    "       Optional Claude migration: exact current-repository ~/.claude/projects/<repo>/memory",
+  );
+  options.writeLine(
+    "       Optional Antigravity attribution: ~/.gemini/antigravity-cli/history.jsonl",
+  );
+  options.writeLine(
+    `       Skills: ~/.claude/skills, ~/.agents/skills, ${codexPath}/skills, ~/.cursor/skills, ~/.gemini/config/skills`,
+  );
+  options.writeLine(
+    `       Plugin caches: ~/.claude/plugins/cache, ${codexPath}/plugins/cache, ~/.cursor/plugins/cache`,
+  );
+  options.writeLine(
+    "       Everything stays on this machine except redacted excerpts sent through your agent CLI.",
+  );
 }
 
-export function detectedAgentNames(agents: readonly IntegrationAgent[]): string {
+export function detectedAgentNames(
+  agents: readonly IntegrationAgent[],
+): string {
   return agents.map((agent) => agentNames[agent]).join(", ");
 }

@@ -30,19 +30,29 @@ export async function createSetupEngine(options: {
   readonly engine?: EngineId;
   readonly runner?: EngineRunner;
 }): Promise<SetupEngine | null> {
-  const detected = options.runner ? null : await detectEngine({
-    purpose: "distill",
-    allowedEngines: options.engine
-      ? [options.engine]
-      : options.policy.allowedEngines,
-  });
+  const detected = options.runner
+    ? null
+    : await detectEngine({
+        purpose: "distill",
+        allowedEngines: options.engine
+          ? [options.engine]
+          : options.policy.allowedEngines,
+      });
   const engine = options.engine ?? detected?.selectedEngine;
   const runner = options.runner ?? detected?.runner;
-  if (!engine || !runner) return null;
+
+  if (!engine || !runner) {
+    return null;
+  }
+
   return {
     engine,
     runner,
-    execution: createLearningExecution({ engine, runner, limits: setupLearningLimits }),
+    execution: createLearningExecution({
+      engine,
+      runner,
+      limits: setupLearningLimits,
+    }),
   };
 }
 
@@ -56,9 +66,18 @@ export async function runSetupLearning(options: {
   readonly writeLine: (line: string) => void;
 }): Promise<number> {
   const index = await openEventIndex(options.paths.indexDatabase);
+
   try {
-    await ingestSources({ index, config: options.config, paths: options.paths });
-    const events = index.listEvents().filter((event) => options.config.sources[event.source]);
+    await ingestSources({
+      index,
+      config: options.config,
+      paths: options.paths,
+    });
+
+    const events = index
+      .listEvents()
+      .filter((event) => options.config.sources[event.source]);
+
     const derived = await deriveSignals({
       events,
       corpus: index.getCorpusSummary(),
@@ -67,10 +86,12 @@ export async function runSetupLearning(options: {
       blockedOrigins: options.policy.blockedOrigins,
       bindings: index,
     });
+
     const eligibleSignals = allowlistedSignals({
       signals: derived.learning,
       events: derived.events,
     }).filter((signal) => signal.textRefs.length > 0);
+
     const state = await readLearningState(options.paths);
     const signals = selectNewestLearningEpisodes({
       signals: eligibleSignals,
@@ -78,7 +99,11 @@ export async function runSetupLearning(options: {
       now: options.now,
       limit: distillConcurrency * 20,
     });
-    if (signals.length === 0) return 0;
+
+    if (signals.length === 0) {
+      return 0;
+    }
+
     const result = await runDeepLearning({
       signals,
       events: derived.events,
@@ -92,16 +117,21 @@ export async function runSetupLearning(options: {
       apply: true,
       writeLine: options.writeLine,
     });
+
     await writeLearningState({
       paths: options.paths,
       state: {
         ...state,
         processed: [
           ...state.processed,
-          ...signals.map((signal) => ({ id: episodeId(signal), timestamp: signal.timestamp })),
+          ...signals.map((signal) => ({
+            id: episodeId(signal),
+            timestamp: signal.timestamp,
+          })),
         ],
       },
     });
+
     return result.changesProposed;
   } finally {
     index.close();

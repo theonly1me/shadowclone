@@ -15,16 +15,20 @@ test("never writes into the repository it is run from", async () => {
     stdout: "ignore",
     stderr: "ignore",
   });
+
   expect(await child.exited).toBe(0);
 
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-learn-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
 
   const previousDirectory = process.cwd();
+
   process.chdir(targetDirectory);
+
   try {
     await learn({
       configPath: paths.configFile,
@@ -43,7 +47,13 @@ test("never writes into the repository it is run from", async () => {
   ).toBeFalse();
   expect(
     await Bun.file(
-      path.join(targetDirectory, ".claude", "skills", "shadowclone", "SKILL.md"),
+      path.join(
+        targetDirectory,
+        ".claude",
+        "skills",
+        "shadowclone",
+        "SKILL.md",
+      ),
     ).exists(),
   ).toBeFalse();
 });

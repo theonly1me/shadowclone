@@ -1,9 +1,5 @@
 import type { SourceId } from "../config";
-import type {
-  AgentEventKind,
-  TextRef,
-  ToolCall,
-} from "../observe";
+import type { AgentEventKind, TextRef, ToolCall } from "../observe";
 
 export type IngestSummary = {
   readonly files: number;

@@ -3,10 +3,7 @@ import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultConfig } from "../config";
-import {
-  createProjectPaths,
-  type ProjectPaths,
-} from "../paths";
+import { createProjectPaths, type ProjectPaths } from "../paths";
 import { resolveRedacted } from "../redact";
 import { observeAll } from "./index";
 import type { AgentEvent } from "./types";
@@ -20,14 +17,18 @@ async function createClaudeFixture(): Promise<{
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-observe-"),
   );
+
   const projectsDirectory = path.join(
     homeDirectory,
     ".claude",
     "projects",
     "fixture",
   );
+
   await mkdir(projectsDirectory, { recursive: true });
+
   const sourcePath = path.join(projectsDirectory, "session-1.jsonl");
+
   const records = [
     {
       type: "user",
@@ -94,10 +95,12 @@ async function createClaudeFixture(): Promise<{
       is_error: false,
     },
   ];
+
   await Bun.write(
     sourcePath,
     `${records.map((record) => JSON.stringify(record)).join("\n")}\n`,
   );
+
   return { homeDirectory, sourcePath };
 }
 
@@ -122,17 +125,26 @@ test("keeps captured text behind resolveRedacted", async () => {
   }
 
   const prompt = events.find((event) => event.kind === "user-prompt");
+
   expect(prompt?.textRef).not.toBeNull();
+
   const text = prompt?.textRef
-    ? await resolveRedacted({ ref: prompt.textRef, roots: [path.dirname(prompt.textRef.sourcePath)] })
+    ? await resolveRedacted({
+        ref: prompt.textRef,
+        roots: [path.dirname(prompt.textRef.sourcePath)],
+      })
     : "";
+
   expect(text).not.toContain(plantedSecret);
   expect(text).toContain("[redacted:llm-api-key]");
 
   const toolResult = events.find((event) => event.kind === "tool-result");
+
   expect(toolResult?.textRef).toBeNull();
+
   const question = events.find((event) => event.kind === "question-asked");
   const answer = events.find((event) => event.kind === "question-answered");
+
   expect(question?.textRef).not.toBeNull();
   expect(answer?.textRef).toBeNull();
   expect(events.some((event) => event.kind === "session-end")).toBeTrue();
@@ -143,6 +155,7 @@ test("does not touch paths for disabled sources", async () => {
     homeDirectory: "/path/that/must/not/be/read",
     platform: "linux",
   });
+
   const paths: ProjectPaths = {
     ...basePaths,
     get antigravityBrainDirectory(): string {
@@ -155,6 +168,7 @@ test("does not touch paths for disabled sources", async () => {
       throw new Error("Disabled Cursor path was accessed");
     },
   };
+
   let cursorLookups = 0;
 
   for await (const batch of observeAll({
@@ -162,6 +176,7 @@ test("does not touch paths for disabled sources", async () => {
     paths,
     getCursor: () => {
       cursorLookups += 1;
+
       return null;
     },
   })) {

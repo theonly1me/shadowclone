@@ -10,6 +10,7 @@ async function readGitTopLevel(directory: string): Promise<string | null> {
     cwd: directory,
   });
   const value = stdout.trim();
+
   return exitCode === 0 && value.length > 0 ? value : null;
 }
 
@@ -20,16 +21,22 @@ export async function resolveInstallTarget(options: {
   if (!path.isAbsolute(options.directory)) {
     return null;
   }
+
   const resolved = await realpath(options.directory).catch(() => null);
+
   if (resolved === null) {
     return null;
   }
+
   const readTopLevel = options.readTopLevel ?? readGitTopLevel;
   const topLevel = await readTopLevel(resolved);
+
   if (topLevel === null) {
     return null;
   }
+
   const resolvedTopLevel = await realpath(topLevel).catch(() => null);
+
   return resolvedTopLevel === resolved ? resolved : null;
 }
 
@@ -38,17 +45,22 @@ export async function resolveArtifactPath(options: {
   readonly relativePath: string;
 }): Promise<string | null> {
   const segments = options.relativePath.split(path.sep).filter(Boolean);
+
   if (segments.length === 0) {
     return null;
   }
 
   let current = options.root;
+
   for (const segment of segments) {
     if (segment === "." || segment === "..") {
       return null;
     }
+
     current = path.join(current, segment);
+
     const stats = await lstat(current).catch(() => null);
+
     if (stats?.isSymbolicLink()) {
       return null;
     }

@@ -66,12 +66,14 @@ export function parseDistilledRules(value: unknown): readonly DistilledRule[] {
 
   return value.rules.flatMap((entry) => {
     const parsed = distilledRuleItemSchema.safeParse(entry);
+
     if (!parsed.success) {
       return [];
     }
 
     const title = normalizeText(parsed.data.title, 120);
     const body = normalizeText(parsed.data.body, 600);
+
     if (!title || !body) {
       return [];
     }

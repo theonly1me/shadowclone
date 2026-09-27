@@ -14,8 +14,11 @@ test("forget leaves a directory the manifest names that is not a repository", as
   const homeDirectory = await scratch("forget-tampered-home");
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
   const unrelated = await scratch("unrelated");
+
   await mkdir(path.join(unrelated, ".claude", "agents"), { recursive: true });
+
   const victim = path.join(unrelated, ".claude", "agents", "shadowclone.md");
+
   await writeFile(victim, "someone else's file");
 
   await writeInstallations({
@@ -47,11 +50,15 @@ test("forget never follows a symbolic link out of a recorded repository", async 
     stdout: "ignore",
     stderr: "ignore",
   });
+
   expect(await init.exited).toBe(0);
 
   const outside = await scratch("forget-symlink-outside");
+
   await mkdir(path.join(outside, "agents"), { recursive: true });
+
   const victim = path.join(outside, "agents", "shadowclone.md");
+
   await writeFile(victim, "someone else's file");
   await symlink(outside, path.join(repository, ".claude"));
 

@@ -21,11 +21,13 @@ test("evaluation freezes the compiled current profile", async () => {
   );
   const globalDirectory = path.join(profileDirectory, "global");
   const profilePath = path.join(globalDirectory, "engineering.md");
+
   await mkdir(globalDirectory, { recursive: true });
   await Bun.write(
     profilePath,
     "## Review edits before continuing\n\nPause after an edit and verify its direction.\n",
   );
+
   const profile = await loadEvaluationProfile({
     profileDirectory,
     repository,

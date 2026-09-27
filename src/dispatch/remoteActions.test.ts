@@ -9,10 +9,12 @@ test("PR reply draft cannot select another repository or inject shell arguments"
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-remote-"),
   );
+
   try {
     const recorded: string[][] = [];
     const runner: CommandRunner = async ({ command }) => {
       recorded.push([...command]);
+
       return { exitCode: 0, stdout: "" };
     };
     const body = "Literal $(touch outside) and `command` text";
@@ -30,6 +32,7 @@ test("PR reply draft cannot select another repository or inject shell arguments"
       pullRequestNumber: 123,
       runner,
     });
+
     expect(completed).toEqual(["pr-reply"]);
     expect(recorded[0]).toEqual([
       "gh",

@@ -1,7 +1,11 @@
 export type ProfileSection = "engineering" | "workflow" | "boundaries";
+
 export type ProfileScope = "global" | "org" | "project";
+
 export type ProfileSource = "declared" | "imported" | "mined" | "user";
+
 export type ProfileStatus = "active" | "candidate" | "stale";
+
 export type ProfileProposalKind = "revise" | "narrow" | "retire";
 
 export type ProfileProposal = {

@@ -16,9 +16,11 @@ export async function artifactIsOwned(options: {
   readonly installation?: Installation | null;
 }): Promise<boolean> {
   const expected = options.installation?.fingerprints?.[options.artifact];
+
   if (!expected) {
     return false;
   }
+
   const content = await readBoundedFile({
     filePath: path.join(
       options.directory,
@@ -27,6 +29,7 @@ export async function artifactIsOwned(options: {
     roots: [options.directory],
     maximumBytes: maximumProfileBytes,
   });
+
   return content !== null && artifactFingerprint(content) === expected;
 }
 
@@ -39,14 +42,17 @@ export async function checkArtifactWrite(options: {
     root: options.directory,
     relativePath: artifactRelativePaths[options.artifact],
   });
+
   if (target === null) {
     throw new Error("Installation target contains an unsafe path");
   }
+
   if ((await Bun.file(target).exists()) && !(await artifactIsOwned(options))) {
     throw new Error(
       "Existing agent or skill was not installed by this version or has user edits; preserve it before reinstalling",
     );
   }
+
   return target;
 }
 
@@ -55,5 +61,6 @@ export async function writeInstalledArtifact(options: {
   readonly content: string;
 }): Promise<string> {
   await ownedWrite({ path: options.target, content: options.content });
+
   return artifactFingerprint(options.content);
 }

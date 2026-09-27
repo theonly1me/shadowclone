@@ -2,18 +2,10 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import {
-  defaultConfig,
-  setSourceEnabled,
-  writeConfig,
-} from "../config";
+import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
 import { openEventIndex } from "../index";
 import { createProjectPaths } from "../paths";
-import {
-  profileRulePath,
-  writeProfile,
-  type ProfileRule,
-} from "../profile";
+import { profileRulePath, writeProfile, type ProfileRule } from "../profile";
 import { resolveCwdOrigin } from "../signal";
 import { runSessionEndHook } from "./hooks";
 
@@ -26,7 +18,9 @@ test("session end recompiles existing guidance without creating advice", async (
     paths.claudeProjectsDirectory,
     "fixture",
   );
+
   await mkdir(transcriptDirectory, { recursive: true });
+
   const sourcePath = path.join(transcriptDirectory, "session.jsonl");
   const records = [
     {
@@ -49,16 +43,20 @@ test("session end recompiles existing guidance without creating advice", async (
       message: { id: "message-2", content: "[Request interrupted by user]" },
     },
   ];
+
   await Bun.write(
     sourcePath,
     `${records.map((record) => JSON.stringify(record)).join("\n")}\n`,
   );
+
   const config = setSourceEnabled({
     config: defaultConfig,
     source: "claude-code",
     enabled: true,
   });
+
   await writeConfig({ config, configPath: paths.configFile });
+
   const origin = await resolveCwdOrigin({
     cwd: homeDirectory,
     enabled: false,
@@ -82,7 +80,9 @@ test("session end recompiles existing guidance without creating advice", async (
     origins: [origin.id],
     importReference: null,
   };
+
   await writeProfile({ paths, rules: [rule] });
+
   const rulePath = path.join(paths.profileDirectory, profileRulePath(rule));
   const profileBefore = await Bun.file(rulePath).text();
   const stateBefore = await Bun.file(paths.profileManifestFile).text();
@@ -95,12 +95,15 @@ test("session end recompiles existing guidance without creating advice", async (
   });
 
   const compiled = await Bun.file(paths.compiledProfileFile).text();
+
   expect(compiled).toContain("Keeps changes focused");
   expect(compiled).not.toContain("Stops the agent while using Edit");
   expect(await Bun.file(rulePath).text()).toBe(profileBefore);
   expect(await Bun.file(paths.profileManifestFile).text()).toBe(stateBefore);
 
   const index = await openEventIndex(paths.indexDatabase);
+
   expect(index.countEvents()).toBe(2);
+
   index.close();
 });

@@ -1,14 +1,8 @@
-import type {
-  CorpusSummary,
-  IndexedEvent,
-} from "../index";
+import type { CorpusSummary, IndexedEvent } from "../index";
 import { mineCorrections } from "./corrections";
 import { mineSteeringEpisodes } from "./episodes";
 import { isOriginBlocked } from "./blockedOrigin";
-import {
-  getEventRepository,
-  resolveEventRepositories,
-} from "./origin";
+import { getEventRepository, resolveEventRepositories } from "./origin";
 import type { GitRemoteReader, OriginBindingStore } from "./origin";
 import { countSignals, deriveStructural } from "./structural";
 import type {
@@ -50,8 +44,11 @@ export type {
   RepositoryIdentity,
   StructuralSummary,
 } from "./types";
+
 export { isOriginBlocked } from "./blockedOrigin";
+
 export { hasDurableSteeringCue } from "./steeringCue";
+
 export {
   getEventOrigin,
   getEventRepository,
@@ -63,7 +60,9 @@ export {
   resolveRepository,
   type GitRemoteReader,
 } from "./origin";
+
 export type { OriginBindingStore } from "./origin";
+
 export {
   checkMarkerStaleness,
   computeSourceHealth,
@@ -91,12 +90,15 @@ export async function deriveSignals(options: {
     readRemote: options.readRemote,
     bindings: options.bindings,
   });
-  const events = options.events.filter((event) =>
-    !isOriginBlocked({
-      repository: getEventRepository({ event, repositories }),
-      patterns: options.blockedOrigins ?? [],
-    })
+
+  const events = options.events.filter(
+    (event) =>
+      !isOriginBlocked({
+        repository: getEventRepository({ event, repositories }),
+        patterns: options.blockedOrigins ?? [],
+      }),
   );
+
   const origins = new Map(
     [...repositories].map(([key, repository]) => [key, repository.origin]),
   );

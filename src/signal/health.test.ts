@@ -64,6 +64,7 @@ test("computes per-source sessions, interruptions, and denials", () => {
 
 test("flags stale markers when Claude Code has 25+ sessions with zero signals", () => {
   const events: AgentEvent[] = [];
+
   for (let i = 0; i < 25; i++) {
     events.push(
       mockEvent({
@@ -75,13 +76,15 @@ test("flags stale markers when Claude Code has 25+ sessions with zero signals", 
   }
 
   const warnings = checkMarkerStaleness(events);
+
   expect(warnings.length).toBe(1);
-  expect(warnings[0]).toContain("Source \"claude-code\" has 25 sessions");
+  expect(warnings[0]).toContain('Source "claude-code" has 25 sessions');
   expect(warnings[0]).toContain("Marker patterns may be stale");
 });
 
 test("does not flag staleness when signals are present", () => {
   const events: AgentEvent[] = [];
+
   for (let i = 0; i < 25; i++) {
     events.push(
       mockEvent({
@@ -93,5 +96,6 @@ test("does not flag staleness when signals are present", () => {
   }
 
   const warnings = checkMarkerStaleness(events);
+
   expect(warnings.length).toBe(0);
 });

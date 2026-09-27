@@ -2,17 +2,14 @@ import os from "node:os";
 import { command } from "./command";
 import { captureContext } from "./context";
 import { prepareFreshTasks } from "./freshTasks";
+import { prepareTaskFile } from "./taskFile";
 import { preflightRepository } from "./preflight";
 import { loadEvaluationProfile } from "./profile";
 import type { ResolvedTransferSetup } from "./setup";
 import { fingerprint } from "./structured";
 import { codeRubricVersion } from "./rubricScope";
 import { loadSuite, saveSuite } from "./suite";
-import type {
-  EvaluationSuite,
-  ModelCall,
-  PreparedEval,
-} from "./types";
+import type { EvaluationSuite, ModelCall, PreparedEval } from "./types";
 
 async function repositoryState(repository: string): Promise<{
   readonly commit: string;
@@ -25,6 +22,7 @@ async function repositoryState(repository: string): Promise<{
       cwd: repository,
     }),
   ]);
+
   return {
     commit,
     dirtyFileCount: status ? status.split("\n").length : 0,
@@ -40,13 +38,26 @@ function validateSuite(options: {
   if (options.suite.repository !== options.repository) {
     throw new Error("Evaluation suite belongs to a different repository");
   }
+
   if (options.suite.baseCommit !== options.commit) {
     throw new Error("Evaluation suite requires its original repository HEAD");
   }
-  if (options.suite.tasks.some((task) => task.preferences.some((check) => check.rubric?.version !== codeRubricVersion))) {
-    throw new Error("This suite uses a historical rubric. Prepare a new evaluation; historical results are unchanged.");
+
+  if (
+    options.suite.tasks.some((task) =>
+      task.preferences.some(
+        (check) => check.rubric?.version !== codeRubricVersion,
+      ),
+    )
+  ) {
+    throw new Error(
+      "This suite uses a historical rubric. Prepare a new evaluation; historical results are unchanged.",
+    );
   }
-  if (options.suite.profileSnapshot.fingerprint !== fingerprint(options.profile)) {
+
+  if (
+    options.suite.profileSnapshot.fingerprint !== fingerprint(options.profile)
+  ) {
     throw new Error("Evaluation suite requires its original frozen profile");
   }
 }
@@ -60,24 +71,36 @@ async function freshSuite(options: {
   readonly onStep: (message: string) => void;
 }): Promise<EvaluationSuite> {
   options.onStep("Capturing the consented personal agent environment");
+
   const context = await captureContext({
     enabled: options.setup.config.sources["agent-context"],
     home: os.homedir(),
     repository: options.setup.repository,
     engine: options.setup.engine,
   });
+
   options.onStep(
     `Preparing ${options.setup.count} fresh additive coding task(s)`,
   );
-  const tasks = await prepareFreshTasks({
-    repository: options.setup.repository,
-    startingCommit: options.commit,
-    count: options.setup.count,
-    suppliedTask: options.setup.suppliedTask,
-    profile: options.profile,
-    context,
-    call: options.call,
-  });
+
+  const tasks = options.setup.taskFile
+    ? await prepareTaskFile({
+        filePath: options.setup.taskFile,
+        startingCommit: options.commit,
+        count: options.setup.count,
+        profile: options.profile,
+        context,
+      })
+    : await prepareFreshTasks({
+        repository: options.setup.repository,
+        startingCommit: options.commit,
+        count: options.setup.count,
+        suppliedTask: options.setup.suppliedTask,
+        profile: options.profile,
+        context,
+        call: options.call,
+      });
+
   const suite: EvaluationSuite = {
     schemaVersion: 3,
     suiteId: crypto.randomUUID(),
@@ -85,13 +108,15 @@ async function freshSuite(options: {
     baseCommit: options.commit,
     context,
     profileSnapshot: {
-      kind: "current",
+      kind: "startup-index",
       fingerprint: fingerprint(options.profile),
       ruleCount: options.ruleCount,
     },
     tasks,
   };
+
   await saveSuite({ paths: options.setup.paths, suite });
+
   return suite;
 }
 
@@ -103,15 +128,19 @@ export async function prepareEvaluation(options: {
 }): Promise<PreparedEval> {
   const state = await repositoryState(options.setup.repository);
   const profile = await loadEvaluationProfile({
-    profileDirectory: options.setup.paths.profileDirectory,
-    repository: options.setup.repositoryIdentity,
+    delivery: "startup",
+    cwd: options.setup.repository,
+    paths: options.setup.paths,
   });
+
   options.onStep("Checking the disposable current-HEAD snapshot");
+
   const preflight = await preflightRepository({
     repository: options.setup.repository,
     commit: state.commit,
   });
   let suite: EvaluationSuite;
+
   if (options.setup.suiteId) {
     options.onStep("Loading the frozen coding-task suite");
     suite = await loadSuite({
@@ -134,11 +163,13 @@ export async function prepareEvaluation(options: {
       onStep: options.onStep,
     });
   }
+
   if (state.dirtyFileCount > 0 && !options.setup.saved && !options.json) {
     console.warn(
       `Warning: ignoring ${state.dirtyFileCount} uncommitted source file(s); evaluation starts from HEAD.`,
     );
   }
+
   return {
     ...suite,
     schemaVersion: 12,
@@ -150,6 +181,7 @@ export async function prepareEvaluation(options: {
     repeat: options.setup.repeat,
     timeoutSeconds: options.setup.timeoutSeconds,
     maxBudgetUsd: options.setup.maxBudgetUsd ?? null,
+    maxCalls: options.setup.maxCalls,
     dirtyFileCount: state.dirtyFileCount,
     preflight: preflight.checks,
   };

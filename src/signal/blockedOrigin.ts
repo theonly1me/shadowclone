@@ -5,6 +5,7 @@ function matchesPattern(value: string, pattern: string): boolean {
     .split("*")
     .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
     .join(".*");
+
   return new RegExp(`^${expression}$`).test(value);
 }
 

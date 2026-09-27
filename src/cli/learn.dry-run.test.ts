@@ -12,12 +12,15 @@ test("learn --dry-run does not create profile directory or write database", asyn
     path.join(os.tmpdir(), "shadowclone-dry-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+
   await mkdir(paths.claudeProjectsDirectory, { recursive: true });
+
   const config = setSourceEnabled({
     config: defaultConfig,
     source: "claude-code",
     enabled: true,
   });
+
   await writeConfig({ config, configPath: paths.configFile });
 
   await learn({
@@ -36,8 +39,13 @@ test("learn --deep --dry-run reconciles without writing learning state", async (
     path.join(os.tmpdir(), "shadowclone-deep-dry-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const transcriptDirectory = path.join(paths.claudeProjectsDirectory, "fixture");
+  const transcriptDirectory = path.join(
+    paths.claudeProjectsDirectory,
+    "fixture",
+  );
+
   await mkdir(transcriptDirectory, { recursive: true });
+
   const records = [
     {
       type: "assistant",
@@ -59,20 +67,25 @@ test("learn --deep --dry-run reconciles without writing learning state", async (
       message: { id: "message-2", content: "Choose the smaller change" },
     },
   ];
+
   await Bun.write(
     path.join(transcriptDirectory, "session.jsonl"),
     `${records.map((record) => JSON.stringify(record)).join("\n")}\n`,
   );
+
   const config = setSourceEnabled({
     config: { ...defaultConfig, distillation: { deep: true } },
     source: "claude-code",
     enabled: true,
   });
+
   await writeConfig({ config, configPath: paths.configFile });
+
   let calls = 0;
   let confirmations = 0;
   const runner: EngineRunner = () => {
     calls += 1;
+
     return Promise.resolve({
       engine: "claude-code",
       sessionId: "engine-session",
@@ -80,14 +93,16 @@ test("learn --deep --dry-run reconciles without writing learning state", async (
       text: "",
       structured: {
         existingRules: [],
-        newRules: [{
-          title: "Prefer small changes",
-          body: "Choose the smallest change that satisfies the request.",
-          section: "workflow",
-          observed: "The user selected the smaller change.",
-          evidenceTokens: ["evidence-1"],
-          rejectionToken: "",
-        }],
+        newRules: [
+          {
+            title: "Prefer small changes",
+            body: "Choose the smallest change that satisfies the request.",
+            section: "workflow",
+            observed: "The user selected the smaller change.",
+            evidenceTokens: ["evidence-1"],
+            rejectionToken: "",
+          },
+        ],
       },
       costUsd: 0.01,
       durationMs: 10,
@@ -98,6 +113,7 @@ test("learn --deep --dry-run reconciles without writing learning state", async (
       errorMessage: null,
     });
   };
+
   await learn({
     configPath: paths.configFile,
     paths,
@@ -105,10 +121,15 @@ test("learn --deep --dry-run reconciles without writing learning state", async (
     dryRun: true,
     runner,
     engine: "claude-code",
-    confirm: () => { confirmations += 1; return true; },
+    confirm: () => {
+      confirmations += 1;
+
+      return true;
+    },
     writeLine: () => {},
     managedConfigPath: null,
   });
+
   expect(calls).toBe(1);
   expect(confirmations).toBe(0);
   expect(await Bun.file(paths.indexDatabase).exists()).toBeFalse();

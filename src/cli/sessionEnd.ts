@@ -1,17 +1,11 @@
 import { realpath } from "node:fs/promises";
 import path from "node:path";
 import { readEffectiveConfig } from "../config";
-import {
-  ingestClaudeTranscript,
-  openEventIndex,
-} from "../index";
+import { ingestClaudeTranscript, openEventIndex } from "../index";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import type { GitRemoteReader } from "../signal";
-import {
-  parseHookInput,
-  readHookString,
-} from "./hookInput";
+import { parseHookInput, readHookString } from "./hookInput";
 import { refreshOfflineProfile } from "./profile";
 
 async function isInsideDirectory(options: {
@@ -20,6 +14,7 @@ async function isInsideDirectory(options: {
 }): Promise<boolean> {
   let filePath: string;
   let directory: string;
+
   try {
     [filePath, directory] = await Promise.all([
       realpath(options.filePath),
@@ -28,11 +23,15 @@ async function isInsideDirectory(options: {
   } catch {
     return false;
   }
+
   const relative = path.relative(directory, filePath);
-  return relative.length > 0 &&
+
+  return (
+    relative.length > 0 &&
     !relative.startsWith(`..${path.sep}`) &&
     relative !== ".." &&
-    !path.isAbsolute(relative);
+    !path.isAbsolute(relative)
+  );
 }
 
 export async function runSessionEndHook(options: {
@@ -50,12 +49,15 @@ export async function runSessionEndHook(options: {
         ? paths.managedConfigFile
         : options.managedConfigPath,
   });
+
   if (!policy.enabled || !config.sources["claude-code"]) {
     return;
   }
+
   const input = parseHookInput(options.input);
   const sourcePath = readHookString(input, "transcript_path");
   const cwd = readHookString(input, "cwd") ?? process.cwd();
+
   if (
     sourcePath === null ||
     !(await isInsideDirectory({
@@ -67,6 +69,7 @@ export async function runSessionEndHook(options: {
   }
 
   const index = await openEventIndex(paths.indexDatabase);
+
   try {
     await ingestClaudeTranscript({ index, sourcePath });
     await refreshOfflineProfile({

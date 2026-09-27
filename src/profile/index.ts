@@ -1,4 +1,5 @@
 export { renderAgent, writeAgent } from "./agent";
+
 export {
   compileProfile,
   defaultIndexByteBudget,
@@ -16,6 +17,7 @@ export {
   type ProfileCompileInput,
   type RepositoryApplicability,
 } from "./compiler";
+
 export {
   activatesFromSessions,
   effectiveProfileStatus,
@@ -26,22 +28,29 @@ export {
   profileEvidenceId,
   profileEvidenceStatistics,
 } from "./evidence";
+
 export { renderMirror } from "./mirror";
+
 export { readProfileDiagnostics, type ProfileDiagnostics } from "./diagnostics";
+
 export { parseProfileBlocks, parseProfileRules } from "./parse";
+
 export {
   readProfileSnapshot,
   type ProfileSnapshot,
   type ProfileSnapshotRejection,
   type ProfileSnapshotRule,
 } from "./snapshot";
+
 export {
   createProfileRuleKey,
   profileFingerprint,
   profileRulePath,
   renderProfileRule,
 } from "./render";
+
 export { mergeProfileImportReference } from "./importReference";
+
 export type {
   ExistingProfileRule,
   ExistingProfileBlock,
@@ -57,7 +66,9 @@ export type {
   ProfileStatus,
   ProfileWriteResult,
 } from "./types";
+
 export { writeProfile } from "./write";
+
 export {
   applyProfileCuration,
   applyProfileRepair,
@@ -71,9 +82,11 @@ export {
   type ProfileCurationPlan,
   type ProfileRepairPlan,
 } from "./repair";
+
 export {
   readGeneratedProfileState,
   parseProfileRejectionText,
   readProfileRejections,
 } from "./state";
+
 export type { ProfileRejection, ProfileRejectionReason } from "./state";

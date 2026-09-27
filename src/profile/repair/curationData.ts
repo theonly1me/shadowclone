@@ -22,33 +22,48 @@ export async function readProfileCurationFiles(
       throwErrorOnBrokenSymlink: true,
     }),
   );
+
   const files = new Map<string, ProfileCurationFile>();
+
   for (const relativePath of relativePaths.sort()) {
     const previous = await readLocalText(
       path.join(paths.profileDirectory, relativePath),
     );
+
     files.set(relativePath, {
       previous,
       blocks: previous === null ? [] : parseProfileBlocks(previous),
     });
   }
+
   return files;
 }
 
 export function indexProfileCurationRules(
   files: ReadonlyMap<string, ProfileCurationFile>,
-): Map<string, { readonly relativePath: string; readonly rule: ExistingProfileRule }> {
+): Map<
+  string,
+  { readonly relativePath: string; readonly rule: ExistingProfileRule }
+> {
   const rules = new Map<
     string,
     { readonly relativePath: string; readonly rule: ExistingProfileRule }
   >();
+
   for (const [relativePath, file] of files) {
     for (const block of file.blocks) {
-      if (block.key === null) continue;
-      if (rules.has(block.key)) throw new Error("Profile contains duplicate rule keys");
+      if (block.key === null) {
+        continue;
+      }
+
+      if (rules.has(block.key)) {
+        throw new Error("Profile contains duplicate rule keys");
+      }
+
       rules.set(block.key, { relativePath, rule: block });
     }
   }
+
   return rules;
 }
 
@@ -72,21 +87,34 @@ export function profileRuleFromDecision(
     origins: existing.origins,
     importReference: existing.importReference,
   };
+
   const location = decision.location;
+
   if (location.scope === "global") {
-    return { ...fields, scope: "global", originDirectory: null, repositoryName: null };
+    return {
+      ...fields,
+      scope: "global",
+      originDirectory: null,
+      repositoryName: null,
+    };
   }
+
   if (location.scope === "org") {
     return { ...fields, ...location, repositoryName: null };
   }
+
   return { ...fields, ...location };
 }
 
 export function referenceFromDecision(options: {
-  readonly decision: Extract<ProfileCurationDecision, { readonly action: "reference" }>;
+  readonly decision: Extract<
+    ProfileCurationDecision,
+    { readonly action: "reference" }
+  >;
   readonly body: string;
 }): ReferenceRecord {
   const value = options.decision.reference;
+
   const fields = {
     schema: 1 as const,
     key: value.key,
@@ -98,17 +126,28 @@ export function referenceFromDecision(options: {
     updatedAt: value.updatedAt,
     body: options.body,
   };
+
   if (value.location.scope === "global") {
-    return { ...fields, scope: "global", originDirectory: null, repositoryName: null };
+    return {
+      ...fields,
+      scope: "global",
+      originDirectory: null,
+      repositoryName: null,
+    };
   }
+
   if (value.location.scope === "org") {
     return { ...fields, ...value.location, repositoryName: null };
   }
+
   return { ...fields, ...value.location };
 }
 
 export function rejectionFromDecision(options: {
-  readonly decision: Exclude<ProfileCurationDecision, { readonly action: "move" }>;
+  readonly decision: Exclude<
+    ProfileCurationDecision,
+    { readonly action: "move" }
+  >;
   readonly relativePath: string;
   readonly rule: ExistingProfileRule;
 }): ProfileRejection {

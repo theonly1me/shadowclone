@@ -50,7 +50,9 @@ test("separates an unsupported schema version from a missing one", () => {
   );
 
   const withoutVersion = config({});
+
   delete withoutVersion["schema-version"];
+
   expect(() => parseConfig(withoutVersion)).toThrow(
     "only supported top-level settings",
   );
@@ -62,10 +64,12 @@ test("separates an unsupported schema version from a missing one", () => {
 
 test("defaults the sources an older config predates", () => {
   const parsed = parseConfig(config({}));
+
   expect(parsed.sources["agent-context"]).toBeFalse();
   expect(parsed.sources.antigravity).toBeFalse();
   expect(parsed.sources["antigravity-workspaces"]).toBeFalse();
   expect(parsed.sources["claude-memory"]).toBeFalse();
+  expect(parsed.sources["claude-rules"]).toBeFalse();
   expect(parsed.sources["declared-rules"]).toBeFalse();
   expect(parsed.sources["git-metadata"]).toBeFalse();
   expect(parsed.sources["repository-manifests"]).toBeFalse();

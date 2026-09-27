@@ -1,80 +1,10 @@
 import { expect, test } from "bun:test";
-import type { EvaluationArm } from "./arms";
 import { evaluationStatus, reportLines, summarize } from "./report";
-import { initialReceipt } from "./storage";
-import { fingerprint } from "./structured";
-import type { CheckResult, TransferRun } from "./types";
-
-const passed: CheckResult = {
-  requirement: "Check",
-  verdict: "pass",
-  evidence: "Observed",
-  votes: [],
-};
-const failed: CheckResult = { ...passed, verdict: "fail" };
-
-function run(options: {
-  readonly arm: EvaluationArm;
-  readonly preference: CheckResult;
-  readonly correctness?: CheckResult;
-}): TransferRun {
-  return {
-    taskId: "private-task",
-    repeat: 0,
-    arm: options.arm,
-    phase: "complete",
-    sessionId: "private-session",
-    failure: null,
-    durationMs: 1,
-    costUsd: null,
-    dependencyState: "exact",
-    observed: "private evidence",
-    verification: [passed],
-    safety: [passed],
-    correctness: [options.correctness ?? passed],
-    preferences: [options.preference],
-  };
-}
-
-function receipt() {
-  const profile = "private profile";
-  return initialReceipt({
-    schemaVersion: 12,
-    evalId: "00000000-0000-4000-8000-000000000001",
-    suiteId: "00000000-0000-4000-8000-000000000002",
-    repository: "/private/repository",
-    baseCommit: "private-commit",
-    engine: "codex",
-    model: "gpt-5.6-luna",
-    reasoningEffort: "medium",
-    dependencyMode: "current",
-    repeat: 1,
-    timeoutSeconds: 600,
-    maxBudgetUsd: null,
-    dirtyFileCount: 2,
-    context: [{ relativePath: "context.md", content: "private context" }],
-    profileSnapshot: {
-      kind: "current",
-      fingerprint: fingerprint(profile),
-      ruleCount: 12,
-    },
-    preflight: [passed],
-    tasks: [{
-      id: "private-task",
-      startingCommit: "private-commit",
-      prompt: "private prompt",
-      completion: ["private completion"],
-      preferences: [{ requirement: "private preference", source: {
-        relativePath: "profile.md", heading: "", line: 1,
-      } }],
-      profile,
-      profileFingerprint: fingerprint(profile),
-    }],
-  });
-}
+import { passed, failed, run, receipt } from "./report.fixtures";
 
 test("reports a quantified pass without exposing task content", () => {
   const prepared = receipt();
+
   const complete = {
     ...prepared,
     runs: [
@@ -83,10 +13,12 @@ test("reports a quantified pass without exposing task content", () => {
       run({ arm: "clone", preference: passed }),
     ],
   };
+
   const status = evaluationStatus(complete);
   const finalReceipt = { ...complete, status };
   const summary = summarize(finalReceipt);
   const report = reportLines(finalReceipt).join("\n");
+
   expect(status).toBe("complete");
   expect(summary.profileLift).toBe(1);
   expect(summary.libraryLift).toBe(0);
@@ -97,6 +29,7 @@ test("reports a quantified pass without exposing task content", () => {
     "Decision grade: no; requires at least 3 tasks x 2 repeats",
   );
   expect(report).toContain("three independent blinded votes per arm");
+
   for (const privateText of [
     "/private/repository",
     "private prompt",
@@ -109,6 +42,7 @@ test("reports a quantified pass without exposing task content", () => {
 
 test("returns a useful fail for no lift or a correctness regression", () => {
   const prepared = receipt();
+
   const noLift = {
     ...prepared,
     runs: [
@@ -116,6 +50,7 @@ test("returns a useful fail for no lift or a correctness regression", () => {
       run({ arm: "clone", preference: passed }),
     ],
   };
+
   const regression = {
     ...prepared,
     runs: [
@@ -123,27 +58,80 @@ test("returns a useful fail for no lift or a correctness regression", () => {
       run({ arm: "clone", preference: passed, correctness: failed }),
     ],
   };
+
   expect(evaluationStatus(noLift)).toBe("running");
   expect(evaluationStatus(regression)).toBe("running");
+});
+
+test("does not call an incomplete repeated evaluation decision grade", () => {
+  const prepared = receipt();
+  const [originalTask] = prepared.prepared.tasks;
+
+  if (!originalTask) {
+    throw Error("Expected a prepared task");
+  }
+
+  const tasks = ["first", "second", "third"].map((id) => ({
+    ...originalTask,
+    id,
+  }));
+
+  const runs = tasks.flatMap((task) =>
+    [0, 1].flatMap((repeat) =>
+      (["bare", "skills", "clone"] as const).map((arm) => ({
+        ...run({ arm, preference: passed }),
+        taskId: task.id,
+        repeat,
+      })),
+    ),
+  );
+
+  const base = {
+    ...prepared,
+    prepared: { ...prepared.prepared, tasks, repeat: 2 },
+  };
+  const incomplete = {
+    ...base,
+    status: "error" as const,
+    runs: runs.slice(0, -3),
+  };
+  const complete = { ...base, status: "complete" as const, runs };
+
+  expect(summarize(incomplete).sampleSize).toBe(5);
+  expect(reportLines(incomplete)).toContain(
+    "Decision grade: no; requires at least 3 tasks x 2 repeats",
+  );
+  expect(reportLines(complete)).toContain(
+    "Decision grade: yes; requires at least 3 tasks x 2 repeats",
+  );
 });
 
 test("not-applicable preferences earn no points and leave the denominator", () => {
   const complete = {
     ...receipt(),
-    runs: [{
-      ...run({ arm: "clone", preference: passed }),
-      preferences: [passed, failed, {
-        ...passed,
-        verdict: "not-applicable" as const,
-      }],
-    }],
+    runs: [
+      {
+        ...run({ arm: "clone", preference: passed }),
+        preferences: [
+          passed,
+          failed,
+          {
+            ...passed,
+            verdict: "not-applicable" as const,
+          },
+        ],
+      },
+    ],
   };
+
   expect(summarize(complete).arms.clone.adherence).toBe(0.5);
-  expect(summarize({
-    ...complete,
-    runs: complete.runs.map((candidate) => ({
-      ...candidate,
-      preferences: [{ ...passed, verdict: "not-applicable" as const }],
-    })),
-  }).arms.clone.adherence).toBeNull();
+  expect(
+    summarize({
+      ...complete,
+      runs: complete.runs.map((candidate) => ({
+        ...candidate,
+        preferences: [{ ...passed, verdict: "not-applicable" as const }],
+      })),
+    }).arms.clone.adherence,
+  ).toBeNull();
 });

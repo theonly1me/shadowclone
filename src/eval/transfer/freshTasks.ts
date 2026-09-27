@@ -1,9 +1,5 @@
 import path from "node:path";
 import { redactSecrets } from "../../redact";
-import {
-  additiveTaskExclusionReason,
-  candidateExclusionReason,
-} from "./candidateValidation";
 import { installContext } from "./context";
 import { preferenceSources } from "./preferenceRules";
 import { compileCodeRubric } from "./codeRubric";
@@ -15,35 +11,9 @@ import {
   structuredValue,
 } from "./structured";
 import type { ContextFile, DelegationTask, ModelCall } from "./types";
+import { invalidTaskReason } from "./taskSafety";
 
-const forbiddenTask =
-  /\b(?:commit|amend|push|deploy|production|staging|external service|network access|install (?:a |any )?(?:package|dependency)|database migration)\b/i;
-
-function invalidTaskReason(task: {
-  readonly prompt: string;
-  readonly completion: readonly string[];
-  readonly preferences: readonly { readonly requirement: string }[];
-  readonly additive: boolean;
-}): string | null {
-  if (forbiddenTask.test([task.prompt, ...task.completion].join("\n"))) {
-    return "Task requires a forbidden external or permanent action";
-  }
-  const candidateReason = candidateExclusionReason({
-    prompt: task.prompt,
-    completion: task.completion,
-    preferences: task.preferences,
-  });
-  if (candidateReason) {
-    return candidateReason;
-  }
-  if (task.additive) {
-    const additiveReason = additiveTaskExclusionReason(task);
-    if (additiveReason) {
-      return additiveReason;
-    }
-  }
-  return null;
-}
+export { invalidTaskReason } from "./taskSafety";
 
 async function generate(options: {
   readonly count: number;
@@ -55,6 +25,7 @@ async function generate(options: {
   readonly sources: readonly ContextFile[];
 }) {
   let lastFailure = "No structured task result";
+
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const response = await options.call({
       cwd: options.directory,
@@ -84,30 +55,42 @@ async function generate(options: {
           count: options.count,
           suppliedTask: options.suppliedTask ?? null,
           profile: options.profile,
-          availablePreferenceSources: options.sources.map((source) =>
-            source.relativePath
+          availablePreferenceSources: options.sources.map(
+            (source) => source.relativePath,
           ),
           previousFailure: attempt === 0 ? null : lastFailure,
         }),
       ].join("\n"),
     });
+
     const parsed = generatedTasksSchema.safeParse(structuredValue(response));
+
     if (!parsed.success) {
       lastFailure = "Malformed structured task result";
+
       continue;
     }
+
     if (parsed.data.tasks.length !== options.count) {
       lastFailure = `Expected ${options.count} tasks`;
+
       continue;
     }
+
     if (
       new Set(parsed.data.tasks.map((task) => task.prompt.trim())).size !==
-        options.count
+      options.count
     ) {
       lastFailure = "Generated tasks must be distinct";
+
       continue;
     }
-    let tasks: readonly Pick<DelegationTask, "prompt" | "completion" | "preferences">[];
+
+    let tasks: readonly Pick<
+      DelegationTask,
+      "prompt" | "completion" | "preferences"
+    >[];
+
     try {
       tasks = parsed.data.tasks.map((task) => ({
         ...task,
@@ -115,21 +98,29 @@ async function generate(options: {
       }));
     } catch {
       lastFailure = "Could not compile the frozen code-preference rubric";
+
       continue;
     }
+
     const failure = tasks
-      .map((task) => invalidTaskReason({
-        ...task,
-        prompt: options.suppliedTask ?? task.prompt,
-        additive: options.suppliedTask === undefined,
-      }))
+      .map((task) =>
+        invalidTaskReason({
+          ...task,
+          prompt: options.suppliedTask ?? task.prompt,
+          additive: options.suppliedTask === undefined,
+        }),
+      )
       .find((reason) => reason !== null);
+
     if (failure) {
       lastFailure = failure;
+
       continue;
     }
+
     return tasks;
   }
+
   throw new Error(redactSecrets({ text: lastFailure }));
 }
 
@@ -145,15 +136,18 @@ export async function prepareFreshTasks(options: {
   if (options.suppliedTask && options.suppliedTask.length > 4_000) {
     throw new Error("Supplied evaluation task exceeds 4000 characters");
   }
+
   const snapshot = await createSnapshot({
     repository: options.repository,
     commit: options.startingCommit,
   });
+
   try {
     const contextPrompt = await installContext({
       files: options.context,
       directory: snapshot.directory,
     });
+
     const generated = await generate({
       count: options.count,
       suppliedTask: options.suppliedTask,
@@ -163,8 +157,10 @@ export async function prepareFreshTasks(options: {
       contextPrompt,
       sources: preferenceSources(options),
     });
+
     return generated.map((task) => {
       const prompt = options.suppliedTask ?? task.prompt;
+
       return {
         id: fingerprint({ prompt, completion: task.completion }).slice(0, 16),
         startingCommit: options.startingCommit,

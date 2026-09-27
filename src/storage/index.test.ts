@@ -1,5 +1,12 @@
 import { expect, test } from "bun:test";
-import { chmod, mkdir, mkdtemp, stat, symlink, writeFile } from "node:fs/promises";
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  stat,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { ownedWrite, repairOwnedTree } from "./index";
@@ -39,9 +46,11 @@ test("concurrent checkpoint writes create shared private directories", async () 
   const files = ["first", "second", "third"].map((name) =>
     path.join(root, "distill", "checkpoints", `${name}.json`),
   );
-  await Promise.all(files.map((filePath) =>
-    ownedWrite({ path: filePath, content: "{}" }),
-  ));
+
+  await Promise.all(
+    files.map((filePath) => ownedWrite({ path: filePath, content: "{}" })),
+  );
+
   for (const filePath of files) {
     expect(await Bun.file(filePath).text()).toBe("{}");
     expect(await modeOf(filePath)).toBe(0o600);
@@ -54,11 +63,13 @@ test("owned write leaves no partial file behind", async () => {
   await ownedWrite({ path: path.join(root, "config.toml"), content: "a = 1" });
 
   const entries = [...new Bun.Glob("*").scanSync({ cwd: root, dot: true })];
+
   expect(entries).toEqual(["config.toml"]);
 });
 
 test("repair tightens a tree an older version left world readable", async () => {
   const root = await scratch();
+
   await mkdir(path.join(root, "runs", "abc"), { recursive: true });
   await writeFile(path.join(root, "runs", "abc", "receipt.json"), "{}");
   await writeFile(path.join(root, "config.toml"), "a = 1");
@@ -82,6 +93,7 @@ test("repair tightens a tree an older version left world readable", async () => 
 
 test("repair reports nothing to change on an already tight tree", async () => {
   const root = await scratch();
+
   await ownedWrite({ path: path.join(root, "config.toml"), content: "a = 1" });
   await chmod(root, 0o700);
 
@@ -94,6 +106,7 @@ test("repair skips a symbolic link instead of following it", async () => {
   const root = await scratch();
   const outside = await scratch();
   const target = path.join(outside, "secret");
+
   await writeFile(target, "secret");
   await chmod(target, 0o644);
   await symlink(target, path.join(root, "link"));

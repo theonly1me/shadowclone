@@ -2,21 +2,14 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import {
-  defaultConfig,
-  setSourceEnabled,
-  writeConfig,
-} from "../config";
+import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
 import { openEventIndex } from "../index";
 import { installIntegration } from "../integrations";
 import { integrationFixture } from "../integrations/fixtures";
 import { createProjectPaths } from "../paths";
 import { writeProfile } from "../profile";
 import { resolveCwdOrigin } from "../signal";
-import {
-  getSessionStartContext,
-  runSessionEndHook,
-} from "./hooks";
+import { getSessionStartContext, runSessionEndHook } from "./hooks";
 
 test("the session hook does not inspect input for a disabled source", async () => {
   const homeDirectory = await mkdtemp(
@@ -26,6 +19,7 @@ test("the session hook does not inspect input for a disabled source", async () =
     homeDirectory,
     platform: "darwin",
   });
+
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
 
   await expect(
@@ -50,8 +44,11 @@ test("the session hook ingests only its enabled transcript", async () => {
     paths.claudeProjectsDirectory,
     "fixture",
   );
+
   await mkdir(transcriptDirectory, { recursive: true });
+
   const sourcePath = path.join(transcriptDirectory, "session.jsonl");
+
   await Bun.write(
     sourcePath,
     `${JSON.stringify({
@@ -62,11 +59,13 @@ test("the session hook ingests only its enabled transcript", async () => {
       message: { id: "message", content: "Use the narrow scope" },
     })}\n`,
   );
+
   const config = setSourceEnabled({
     config: defaultConfig,
     source: "claude-code",
     enabled: true,
   });
+
   await writeConfig({ config, configPath: paths.configFile });
 
   await runSessionEndHook({
@@ -77,7 +76,9 @@ test("the session hook ingests only its enabled transcript", async () => {
   });
 
   const index = await openEventIndex(paths.indexDatabase);
+
   expect(index.countEvents()).toBe(1);
+
   index.close();
 });
 
@@ -89,11 +90,14 @@ test("the session context keeps learned boundaries advisory", async () => {
     homeDirectory,
     platform: "darwin",
   });
+
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
+
   const origin = await resolveCwdOrigin({
     cwd: homeDirectory,
     enabled: false,
   });
+
   await writeProfile({
     paths,
     rules: [
@@ -142,8 +146,20 @@ test("the plugin registers no tool-family blocking hook", async () => {
 
 test("the plugin hook stays silent beside a native Claude integration", async () => {
   const fixture = await integrationFixture();
-  const options = { input: JSON.stringify({ cwd: fixture.cwd }), paths: fixture.paths, configPath: fixture.configPath, managedConfigPath: null };
+  const options = {
+    input: JSON.stringify({ cwd: fixture.cwd }),
+    paths: fixture.paths,
+    configPath: fixture.configPath,
+    managedConfigPath: null,
+  };
+
   expect(await getSessionStartContext(options)).not.toBeNull();
-  await installIntegration({ ...fixture, agent: "claude-code", scope: "global" });
+
+  await installIntegration({
+    ...fixture,
+    agent: "claude-code",
+    scope: "global",
+  });
+
   expect(await getSessionStartContext(options)).toBeNull();
 });

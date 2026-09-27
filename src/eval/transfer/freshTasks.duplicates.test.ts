@@ -15,14 +15,17 @@ async function git(options: {
     stdout: "pipe",
     stderr: "pipe",
   });
+
   const [exitCode, output, error] = await Promise.all([
     child.exited,
     new Response(child.stdout).text(),
     new Response(child.stderr).text(),
   ]);
+
   if (exitCode !== 0) {
     throw new Error(error);
   }
+
   return output.trim();
 }
 
@@ -33,7 +36,11 @@ async function repositoryFixture(): Promise<{
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-fresh-task-"),
   );
-  await Bun.write(path.join(directory, "parser.ts"), "export const value = 1;\n");
+
+  await Bun.write(
+    path.join(directory, "parser.ts"),
+    "export const value = 1;\n",
+  );
   await git({ directory, arguments: ["init", "--quiet"] });
   await git({ directory, arguments: ["add", "--all"] });
   await git({
@@ -51,6 +58,7 @@ async function repositoryFixture(): Promise<{
       "fixture",
     ],
   });
+
   return {
     directory,
     commit: await git({ directory, arguments: ["rev-parse", "HEAD"] }),
@@ -77,8 +85,10 @@ function response(structured: unknown) {
 test("rejects duplicate generated tasks after bounded retries", async () => {
   const repository = await repositoryFixture();
   let calls = 0;
+
   const call: ModelCall = async () => {
     calls += 1;
+
     return response({
       tasks: ["first", "second"].map(() => ({
         prompt: "Implement the same parser helper.",
@@ -87,16 +97,19 @@ test("rejects duplicate generated tasks after bounded retries", async () => {
       })),
     });
   };
+
   try {
-    await expect(prepareFreshTasks({
-      repository: repository.directory,
-      startingCommit: repository.commit,
-      count: 2,
-      suppliedTask: undefined,
-      profile: "Use complete names.",
-      context: [],
-      call,
-    })).rejects.toThrow("distinct");
+    await expect(
+      prepareFreshTasks({
+        repository: repository.directory,
+        startingCommit: repository.commit,
+        count: 2,
+        suppliedTask: undefined,
+        profile: "Use complete names.",
+        context: [],
+        call,
+      }),
+    ).rejects.toThrow("distinct");
     expect(calls).toBe(3);
   } finally {
     await rm(repository.directory, { recursive: true, force: true });

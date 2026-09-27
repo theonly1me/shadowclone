@@ -15,6 +15,7 @@ async function withSnapshot(
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-snapshot-links-"),
   );
+
   try {
     await run(directory);
   } finally {
@@ -25,11 +26,11 @@ async function withSnapshot(
 test("allows relative symbolic links that resolve inside the snapshot", async () => {
   await withSnapshot(async (directory) => {
     await mkdir(path.join(directory, "packages/tool"), { recursive: true });
-    await Bun.write(path.join(directory, "packages/tool/index.ts"), "export {};");
-    await symlink(
-      "packages/tool",
-      path.join(directory, "linked-tool"),
+    await Bun.write(
+      path.join(directory, "packages/tool/index.ts"),
+      "export {};",
     );
+    await symlink("packages/tool", path.join(directory, "linked-tool"));
 
     await expect(validateSnapshotLinks(directory)).resolves.toBeUndefined();
   });
@@ -38,6 +39,7 @@ test("allows relative symbolic links that resolve inside the snapshot", async ()
 test("rejects absolute symbolic links", async () => {
   await withSnapshot(async (directory) => {
     const target = path.join(directory, "target.txt");
+
     await Bun.write(target, "target");
     await symlink(target, path.join(directory, "absolute"));
 
@@ -50,9 +52,12 @@ test("rejects absolute symbolic links", async () => {
 test("rejects symbolic links that escape the snapshot", async () => {
   await withSnapshot(async (directory) => {
     const outside = path.join(path.dirname(directory), "outside.txt");
+
     await Bun.write(outside, "outside");
+
     try {
       await symlink("../outside.txt", path.join(directory, "escape"));
+
       await expect(validateSnapshotLinks(directory)).rejects.toThrow(
         "unsafe symbolic link",
       );
@@ -65,6 +70,7 @@ test("rejects symbolic links that escape the snapshot", async () => {
 test("rejects missing symbolic link targets", async () => {
   await withSnapshot(async (directory) => {
     await symlink("missing.txt", path.join(directory, "missing"));
+
     await expect(validateSnapshotLinks(directory)).rejects.toThrow(
       "unsafe symbolic link",
     );
@@ -77,6 +83,7 @@ test("clones one committed template into isolated working git repositories", asy
   );
   let firstSnapshot: Awaited<ReturnType<typeof createSnapshot>> | undefined;
   let secondSnapshot: Awaited<ReturnType<typeof createSnapshot>> | undefined;
+
   try {
     await Bun.write(path.join(repository, "tracked.txt"), "original");
     await command({ arguments: ["git", "init", "--quiet"], cwd: repository });
@@ -97,35 +104,49 @@ test("clones one committed template into isolated working git repositories", asy
       ],
       cwd: repository,
     });
+
     const commit = await command({
       arguments: ["git", "rev-parse", "HEAD"],
       cwd: repository,
     });
+
     [firstSnapshot, secondSnapshot] = await Promise.all([
       createSnapshot({ repository, commit }),
       createSnapshot({ repository, commit }),
     ]);
+
     expect(firstSnapshot.directory).not.toBe(secondSnapshot.directory);
     expect(firstSnapshot.initialCommit).toBe(secondSnapshot.initialCommit);
+
     for (const snapshot of [firstSnapshot, secondSnapshot]) {
-      expect(await Bun.file(path.join(snapshot.directory, "tracked.txt")).text())
-        .toBe("original");
-      expect(await command({
-        arguments: ["git", "rev-parse", "HEAD"],
-        cwd: snapshot.directory,
-      })).toBe(snapshot.initialCommit);
+      expect(
+        await Bun.file(path.join(snapshot.directory, "tracked.txt")).text(),
+      ).toBe("original");
+      expect(
+        await command({
+          arguments: ["git", "rev-parse", "HEAD"],
+          cwd: snapshot.directory,
+        }),
+      ).toBe(snapshot.initialCommit);
     }
-    await Bun.write(path.join(firstSnapshot.directory, "only-first.txt"), "first");
-    expect(await Bun.file(path.join(
-      secondSnapshot.directory,
-      "only-first.txt",
-    )).exists()).toBeFalse();
+
+    await Bun.write(
+      path.join(firstSnapshot.directory, "only-first.txt"),
+      "first",
+    );
+
+    expect(
+      await Bun.file(
+        path.join(secondSnapshot.directory, "only-first.txt"),
+      ).exists(),
+    ).toBeFalse();
+
     await firstSnapshot.cleanup();
     firstSnapshot = undefined;
-    expect(await Bun.file(path.join(
-      secondSnapshot.directory,
-      "tracked.txt",
-    )).text()).toBe("original");
+
+    expect(
+      await Bun.file(path.join(secondSnapshot.directory, "tracked.txt")).text(),
+    ).toBe("original");
   } finally {
     await firstSnapshot?.cleanup();
     await secondSnapshot?.cleanup();

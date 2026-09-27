@@ -23,9 +23,13 @@ async function repository(): Promise<{
     stdout: "ignore",
     stderr: "ignore",
   });
+
   expect(await init.exited).toBe(0);
+
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
+
   return { targetDirectory, paths };
 }
 
@@ -49,15 +53,21 @@ test("the delegation skill is absent unless it is asked for", async () => {
   expect(
     await Bun.file(path.join(targetDirectory, skillRelativePath)).exists(),
   ).toBeFalse();
+
   const excludes = await Bun.file(
     path.join(targetDirectory, ".git", "info", "exclude"),
   ).text();
+
   expect(excludes).toContain(".claude/agents/shadowclone.md");
   expect(excludes).not.toContain(".claude/skills/shadowclone/");
+
   const state = await readInstallations(paths.installationsFile);
+
   expect(state.installations).toHaveLength(1);
   expect(state.installations[0]?.artifacts).toEqual(["agent"]);
-  expect(state.installations[0]?.directory).toBe(canonicalPath(targetDirectory));
+  expect(state.installations[0]?.directory).toBe(
+    canonicalPath(targetDirectory),
+  );
 });
 
 test("the delegation skill briefs the clone instead of forwarding the request", async () => {
@@ -74,12 +84,15 @@ test("the delegation skill briefs the clone instead of forwarding the request", 
   const skill = await Bun.file(
     path.join(targetDirectory, skillRelativePath),
   ).text();
+
   expect(skill).toContain("name: shadowclone");
   expect(skill).toContain("**Objective.**");
   expect(skill).toContain("**Validation.**");
   expect(skill).toContain("Never forward the user's message verbatim.");
   expect(skill).not.toContain("verbatim in the tool prompt");
+
   const state = await readInstallations(paths.installationsFile);
+
   expect(state.installations[0]?.artifacts).toEqual([
     "agent",
     "delegation-skill",
@@ -101,6 +114,7 @@ test("reinstalling without the flag keeps ownership of an earlier skill", async 
   await install(false);
 
   const state = await readInstallations(paths.installationsFile);
+
   expect(state.installations).toHaveLength(1);
   expect(state.installations[0]?.artifacts).toEqual([
     "agent",

@@ -11,8 +11,10 @@ export function renderReconciliationChanges(options: {
   if (options.changes.length === 0 && !options.rejectedMatches) {
     return "No profile changes proposed.";
   }
+
   const blocks = options.changes.map((change) => {
     const proposal = change.after.proposal?.text;
+
     return [
       `${change.kind.toUpperCase()}: ${change.after.title}`,
       `Source: ${sourceLabel(change)}`,
@@ -23,8 +25,12 @@ export function renderReconciliationChanges(options: {
       `Evidence: ${change.after.evidence.for.length} supporting, ${change.after.evidence.against.length} contradicting`,
     ].join("\n");
   });
+
   if (options.rejectedMatches) {
-    blocks.push(`${options.rejectedMatches} proposed rule matched rejected guidance and was omitted.`);
+    blocks.push(
+      `${options.rejectedMatches} proposed rule matched rejected guidance and was omitted.`,
+    );
   }
+
   return blocks.join("\n\n");
 }

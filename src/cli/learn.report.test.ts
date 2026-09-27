@@ -2,17 +2,10 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import {
-  defaultConfig,
-  setSourceEnabled,
-  writeConfig,
-} from "../config";
+import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
 import { openEventIndex } from "../index";
 import { createProjectPaths } from "../paths";
-import {
-  writeProfile,
-  type ProfileRule,
-} from "../profile";
+import { writeProfile, type ProfileRule } from "../profile";
 import { learn } from "./learn";
 
 function declaredRule(): ProfileRule {
@@ -48,11 +41,17 @@ async function profileSnapshot(
     }),
   );
   const entries = await Promise.all(
-    relativePaths.sort().map(async (relativePath) => [
-      relativePath,
-      await Bun.file(path.join(profileDirectory, relativePath)).text(),
-    ] as const),
+    relativePaths
+      .sort()
+      .map(
+        async (relativePath) =>
+          [
+            relativePath,
+            await Bun.file(path.join(profileDirectory, relativePath)).text(),
+          ] as const,
+      ),
   );
+
   return Object.fromEntries(entries);
 }
 
@@ -65,7 +64,9 @@ test("plain learn reports evidence without changing the profile", async () => {
     paths.claudeProjectsDirectory,
     "fixture",
   );
+
   await mkdir(transcriptDirectory, { recursive: true });
+
   const records = [
     {
       type: "assistant",
@@ -87,17 +88,21 @@ test("plain learn reports evidence without changing the profile", async () => {
       message: { id: "message-2", content: "[Request interrupted by user]" },
     },
   ];
+
   await Bun.write(
     path.join(transcriptDirectory, "session.jsonl"),
     `${records.map((record) => JSON.stringify(record)).join("\n")}\n`,
   );
+
   const config = setSourceEnabled({
     config: defaultConfig,
     source: "claude-code",
     enabled: true,
   });
+
   await writeConfig({ config, configPath: paths.configFile });
   await writeProfile({ paths, rules: [declaredRule()] });
+
   const before = await profileSnapshot(paths.profileDirectory);
 
   await learn({
@@ -108,7 +113,10 @@ test("plain learn reports evidence without changing the profile", async () => {
   });
 
   expect(await profileSnapshot(paths.profileDirectory)).toEqual(before);
+
   const index = await openEventIndex(paths.indexDatabase);
+
   expect(index.countEvents()).toBe(2);
+
   index.close();
 });

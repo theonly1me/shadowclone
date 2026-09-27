@@ -13,9 +13,12 @@ async function withStub(options: {
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-engine-"),
   );
+
   await Bun.write(path.join(directory, "stdout.txt"), options.stdout);
   await Bun.write(path.join(directory, "stderr.txt"), options.stderr);
+
   const executable = path.join(directory, "claude");
+
   await Bun.write(
     executable,
     [
@@ -27,8 +30,11 @@ async function withStub(options: {
     ].join("\n"),
   );
   await chmod(executable, 0o755);
+
   const originalPath = process.env.PATH ?? "";
+
   process.env.PATH = `${directory}:${originalPath}`;
+
   try {
     await options.run(directory);
   } finally {
@@ -105,8 +111,9 @@ test("creates an isolated runtime directory before evaluation", async () => {
         permissionMode: "dontAsk",
       });
 
-      expect((await lstat(path.join(cwd, ".eval-runtime"))).isDirectory())
-        .toBeTrue();
+      expect(
+        (await lstat(path.join(cwd, ".eval-runtime"))).isDirectory(),
+      ).toBeTrue();
     },
   });
 });

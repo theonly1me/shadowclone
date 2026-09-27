@@ -24,6 +24,7 @@ test("timeout kills descendants before they can write a later sentinel", async (
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-process-"),
   );
+
   try {
     await expect(
       runProcess({
@@ -38,6 +39,7 @@ test("timeout kills descendants before they can write a later sentinel", async (
       }),
     ).rejects.toThrow("timed out");
     await Bun.sleep(500);
+
     expect(
       await Bun.file(path.join(directory, "sentinel")).exists(),
     ).toBeFalse();

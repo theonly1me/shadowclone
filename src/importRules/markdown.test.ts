@@ -2,10 +2,7 @@ import { expect, test } from "bun:test";
 import { parseProfileBlocks } from "../profile";
 import { renderFeatureWorkflowSkill } from "../harness/render/skills";
 import type { RepositoryGuidanceSource } from "./discovery";
-import {
-  nestMarkdownHeadings,
-  transformRepositoryGuidance,
-} from "./markdown";
+import { nestMarkdownHeadings, transformRepositoryGuidance } from "./markdown";
 
 function skillSource(): RepositoryGuidanceSource {
   return {
@@ -39,7 +36,9 @@ test("keeps one skill file inside one profile rule", () => {
   expect(transformed?.body).toContain("### Review carefully");
   expect(transformed?.body).toContain("#### Correctness");
   expect(transformed?.body).toContain("## This is an example");
+
   const profile = `## ${transformed?.title}\n\n${transformed?.body}`;
+
   expect(parseProfileBlocks(profile)).toHaveLength(1);
 });
 
@@ -68,11 +67,25 @@ test("closes an unfinished fence before profile metadata", () => {
 
 test("import never reads back the harness Shadowclone writes", () => {
   const skill = renderFeatureWorkflowSkill({ gate: null });
-  expect(transformRepositoryGuidance({ source: skillSource(), redactedText: skill.text })).toBeNull();
+
+  expect(
+    transformRepositoryGuidance({
+      source: skillSource(),
+      redactedText: skill.text,
+    }),
+  ).toBeNull();
+
   const agents = transformRepositoryGuidance({
-    source: { relativePath: "AGENTS.md", filePath: "/unused", byteLength: 1, kind: "instructions" },
-    redactedText: "# Team\n\nUse the shared queue.\n\n<!-- shadowclone-harness:start -->\n## Working in this repository\n\n- Small files: Keep every file under 200 lines.\n<!-- shadowclone-harness:end -->\n",
+    source: {
+      relativePath: "AGENTS.md",
+      filePath: "/unused",
+      byteLength: 1,
+      kind: "instructions",
+    },
+    redactedText:
+      "# Team\n\nUse the shared queue.\n\n<!-- shadowclone-harness:start -->\n## Working in this repository\n\n- Small files: Keep every file under 200 lines.\n<!-- shadowclone-harness:end -->\n",
   });
+
   expect(agents?.body).toContain("Use the shared queue.");
   expect(agents?.body).not.toContain("Small files");
 });

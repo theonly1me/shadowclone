@@ -11,6 +11,7 @@ function readString(
   key: string,
 ): string | null {
   const value = record[key];
+
   return typeof value === "string" ? value : null;
 }
 
@@ -32,6 +33,7 @@ export function parseCodexStream(options: {
   let turns = 0;
   let isError = false;
   let errorMessage: string | null = null;
+
   const actions: EngineAction[] = [];
   const completedItems = new Set<string>();
 
@@ -41,6 +43,7 @@ export function parseCodexStream(options: {
     }
 
     let event: unknown;
+
     try {
       event = JSON.parse(line);
     } catch {
@@ -64,7 +67,9 @@ export function parseCodexStream(options: {
 
     if (type === "turn.failed" || type === "error") {
       isError = true;
+
       const error = isRecord(event.error) ? event.error : event;
+
       errorMessage = redactSecrets({
         text: readString(error, "message") ?? "Codex reported an error",
       });
@@ -74,8 +79,10 @@ export function parseCodexStream(options: {
 
     if (type === "item.completed" && item !== null) {
       const id = readString(item, "id");
+
       if (id === null || !completedItems.has(id)) {
         actions.push(...codexActions(item));
+
         if (id !== null) {
           completedItems.add(id);
         }
@@ -83,7 +90,7 @@ export function parseCodexStream(options: {
     }
 
     const itemType = item
-      ? readString(item, "item_type") ?? readString(item, "type")
+      ? (readString(item, "item_type") ?? readString(item, "type"))
       : null;
 
     if (

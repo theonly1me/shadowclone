@@ -10,11 +10,16 @@ export type LegacyOrigin = {
 
 function legacyIdentity(directory: string): string | null {
   const [host, owner, extra] = directory.split("--");
+
   if (
-    extra !== undefined || !owner ||
+    extra !== undefined ||
+    !owner ||
     !["github.com", "gitlab.com"].includes(host ?? "") ||
     !/^[a-z0-9][a-z0-9._-]*$/.test(owner)
-  ) return null;
+  ) {
+    return null;
+  }
+
   return `${host}/${owner}`;
 }
 
@@ -28,9 +33,7 @@ async function directoryNames(root: string): Promise<readonly string[]> {
   }
 }
 
-export async function discoverOriginRepairs(
-  profileDirectory: string,
-): Promise<{
+export async function discoverOriginRepairs(profileDirectory: string): Promise<{
   readonly legacy: readonly LegacyOrigin[];
   readonly isolatedDirectories: number;
 }> {
@@ -40,19 +43,26 @@ export async function discoverOriginRepairs(
   ];
   const names = new Set((await Promise.all(roots.map(directoryNames))).flat());
   const isolatedDirectories = [...names].filter((name) =>
-    name.startsWith("isolated--")
+    name.startsWith("isolated--"),
   ).length;
+
   const legacy = [...names].flatMap((sourceDirectory) => {
     const originId = legacyIdentity(sourceDirectory);
-    return originId === null ? [] : [{
-      sourceDirectory,
-      targetDirectory: originDirectoryName(originId),
-      originId,
-    }];
+
+    return originId === null
+      ? []
+      : [
+          {
+            sourceDirectory,
+            targetDirectory: originDirectoryName(originId),
+            originId,
+          },
+        ];
   });
+
   return {
     legacy: legacy.sort((left, right) =>
-      left.sourceDirectory.localeCompare(right.sourceDirectory)
+      left.sourceDirectory.localeCompare(right.sourceDirectory),
     ),
     isolatedDirectories,
   };

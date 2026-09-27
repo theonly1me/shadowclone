@@ -10,31 +10,25 @@ metadata:
 
 ## Use when
 
-Use this skill when values change together, optional fields encode hidden states, external input enters typed code, or a type assertion is needed to make the compiler accept an operation.
+Values change together, optional fields hide distinct states, external input enters typed code, or an assertion is needed to satisfy the compiler.
 
 ## Process
 
-1. Name the domain states and the transitions the code permits.
-2. Replace groups of independent optional fields with a discriminated union when only certain combinations are valid.
-3. Preserve relationships between keys and values with generics, mapped types, or a typed setter rather than erasing both to broad primitives.
-4. Accept external data as `unknown` and validate it once at the boundary.
-5. Narrow values through predicates, control flow, schema results, or destructuring before use.
-6. Make absence explicit when it is a valid state and impossible when the caller must supply a value.
-7. Return a result type that forces callers to handle meaningful failure modes.
-8. Run the type checker and tests that exercise runtime validation at the boundary.
+1. Name valid states and transitions. Use discriminated unions when only certain field combinations are valid.
+2. Preserve key-value relationships with generics, mapped types, or a typed setter.
+3. Accept external input as `unknown` and validate it at the boundary.
+4. Narrow through control flow, predicates, schemas, or destructuring. Make valid absence explicit.
+5. Return types that require callers to handle meaningful failures.
+6. Run type checks and tests for runtime validation.
 
 ## Guardrails
 
-- Keep one source of truth for each state discriminator.
-- Prefer exhaustive switches where every union member requires behavior.
-- Preserve literal relationships instead of widening values to `string` or `number` too early.
-- Use runtime validation for files, network responses, environment values, and parsed JSON or YAML.
-- Treat `any`, non-null assertions, and broad type assertions as evidence that a boundary or relationship is missing.
-- Use a narrow assertion only when the runtime invariant is established outside TypeScript and cannot be expressed through validation or control flow.
-- Avoid generic abstractions that make a local relationship harder to read than explicit types would.
+Keep one source of truth for each discriminator and handle every union member where behavior must be exhaustive. Preserve literals instead of widening them prematurely.
 
-When a library returns an imprecise type, contain the adaptation in one boundary function. Return a precise project type so unsafety does not spread through callers.
+Treat `any`, non-null assertions, and broad casts as signs of a missing relationship or boundary. A narrow assertion is appropriate only when an externally established runtime invariant cannot be expressed through validation or control flow. Follow stricter repository rules where they apply.
+
+Contain imprecise library types in one adapter returning a precise project type. Avoid generic abstractions that obscure a simple relationship.
 
 ## Completion
 
-The work is complete when valid states are directly constructible, invalid combinations are rejected by validation or the compiler, key-value relationships survive through the call path, the type checker passes, and no new unsafe escape is left unexplained at a boundary.
+Valid states are constructible, invalid combinations are rejected, relationships survive the call path, and type and boundary checks pass.

@@ -16,24 +16,28 @@ const manifestSchema = z.strictObject({
   repositoryId: z.string().min(1),
   sourceDirectory: z.string().min(1),
   createdAt: z.iso.datetime(),
-  files: z.array(z.strictObject({
-    filename: z.string().min(1),
-    hash: z.string().regex(/^[a-f0-9]{64}$/),
-    bytes: z.number().int().nonnegative(),
-    kind: z.enum(["user", "feedback", "reference", "project", "index"]),
-    disposition: z.enum([
-      "rule",
-      "reference",
-      "recall-reference",
-      "review-required",
-      "covered",
-      "project-preserved",
-      "index-rebuilt",
-      "archive-only",
-    ]),
-    reason: reasonSchema.optional(),
-    destination: z.string().min(1).optional(),
-  })).max(256),
+  files: z
+    .array(
+      z.strictObject({
+        filename: z.string().min(1),
+        hash: z.string().regex(/^[a-f0-9]{64}$/),
+        bytes: z.number().int().nonnegative(),
+        kind: z.enum(["user", "feedback", "reference", "project", "index"]),
+        disposition: z.enum([
+          "rule",
+          "reference",
+          "recall-reference",
+          "review-required",
+          "covered",
+          "project-preserved",
+          "index-rebuilt",
+          "archive-only",
+        ]),
+        reason: reasonSchema.optional(),
+        destination: z.string().min(1).optional(),
+      }),
+    )
+    .max(256),
 });
 
 export function parseClaudeMemoryManifest(text: string): ClaudeMemoryManifest {
@@ -44,6 +48,8 @@ export function parseClaudeMemoryManifest(text: string): ClaudeMemoryManifest {
   }
 }
 
-export function renderClaudeMemoryManifest(manifest: ClaudeMemoryManifest): string {
+export function renderClaudeMemoryManifest(
+  manifest: ClaudeMemoryManifest,
+): string {
   return `${JSON.stringify(manifest, null, 2)}\n`;
 }

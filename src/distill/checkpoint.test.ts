@@ -7,19 +7,26 @@ test("binds reconciliation checkpoints to prompt, schema, and learner version", 
     outputSchema: { type: "object" },
     learnerVersion: "learner-one",
   });
-  expect(checkpointId({
-    prompt: "prompt-two",
-    outputSchema: { type: "object" },
-    learnerVersion: "learner-one",
-  })).not.toBe(baseline);
-  expect(checkpointId({
-    prompt: "prompt-one",
-    outputSchema: { type: "array" },
-    learnerVersion: "learner-one",
-  })).not.toBe(baseline);
-  expect(checkpointId({
-    prompt: "prompt-one",
-    outputSchema: { type: "object" },
-    learnerVersion: "learner-two",
-  })).not.toBe(baseline);
+
+  expect(
+    checkpointId({
+      prompt: "prompt-two",
+      outputSchema: { type: "object" },
+      learnerVersion: "learner-one",
+    }),
+  ).not.toBe(baseline);
+  expect(
+    checkpointId({
+      prompt: "prompt-one",
+      outputSchema: { type: "array" },
+      learnerVersion: "learner-one",
+    }),
+  ).not.toBe(baseline);
+  expect(
+    checkpointId({
+      prompt: "prompt-one",
+      outputSchema: { type: "object" },
+      learnerVersion: "learner-two",
+    }),
+  ).not.toBe(baseline);
 });

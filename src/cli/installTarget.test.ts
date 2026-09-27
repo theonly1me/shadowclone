@@ -15,7 +15,9 @@ async function gitRepository(): Promise<string> {
     stdout: "ignore",
     stderr: "ignore",
   });
+
   expect(await init.exited).toBe(0);
+
   return directory;
 }
 
@@ -46,6 +48,7 @@ test("a recorded directory that is not a repository is refused", async () => {
 test("a subdirectory of a repository is refused as a root", async () => {
   const directory = await gitRepository();
   const nested = path.join(directory, "packages", "app");
+
   await mkdir(nested, { recursive: true });
 
   expect(await resolveInstallTarget({ directory: nested })).toBeNull();
@@ -55,6 +58,7 @@ test("a symbolic link pointing at an unrelated repository is refused", async () 
   const real = await gitRepository();
   const container = await scratch("link");
   const link = path.join(container, "repo");
+
   await symlink(real, link);
 
   const resolved = await resolveInstallTarget({ directory: link });
@@ -76,6 +80,7 @@ test("an artifact path inside the root resolves", async () => {
 test("an artifact whose parent is a symbolic link is refused", async () => {
   const root = await gitRepository();
   const outside = await scratch("outside");
+
   await mkdir(path.join(outside, "agents"), { recursive: true });
   await writeFile(path.join(outside, "agents", "shadowclone.md"), "important");
   await symlink(outside, path.join(root, ".claude"));
@@ -95,6 +100,7 @@ test("an artifact that is itself a symbolic link is refused", async () => {
   const root = await gitRepository();
   const outside = await scratch("outside-file");
   const target = path.join(outside, "important.md");
+
   await writeFile(target, "important");
   await mkdir(path.join(root, ".claude", "agents"), { recursive: true });
   await symlink(target, path.join(root, ".claude", "agents", "shadowclone.md"));

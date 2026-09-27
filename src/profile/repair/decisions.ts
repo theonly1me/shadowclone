@@ -66,16 +66,24 @@ export function parseProfileCurationDecisions(
   text: string,
 ): ProfileCurationDecisions {
   let value: unknown;
+
   try {
     value = JSON.parse(text);
   } catch {
     throw new Error("Profile repair decisions must be valid JSON");
   }
+
   const parsed = decisionsSchema.safeParse(value);
-  if (!parsed.success) throw new Error("Profile repair decisions are invalid");
+
+  if (!parsed.success) {
+    throw new Error("Profile repair decisions are invalid");
+  }
+
   const keys = parsed.data.rules.map((decision) => decision.key);
+
   if (new Set(keys).size !== keys.length) {
     throw new Error("Profile repair decisions contain duplicate rule keys");
   }
+
   return parsed.data;
 }

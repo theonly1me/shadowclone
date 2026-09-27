@@ -4,7 +4,10 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "lib": [
-      "ESNext"
+      "ESNext",
+      "DOM",
+      "DOM.Iterable",
+      "DOM.AsyncIterable"
     ],
     "types": [
       "bun"

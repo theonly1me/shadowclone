@@ -1,20 +1,16 @@
-import {
-  isRecord,
-  readBoolean,
-} from "../record";
-import type {
-  AgentEvent,
-  FileTextRef,
-} from "../types";
+import { isRecord, readBoolean } from "../record";
+import type { AgentEvent, FileTextRef } from "../types";
 import { createClaudeBaseEvent } from "./claudeBase";
 
 function blockText(value: unknown): string | null {
   if (!isRecord(value)) {
     return null;
   }
+
   if (typeof value.content === "string") {
     return value.content;
   }
+
   return typeof value.text === "string" ? value.text : null;
 }
 
@@ -22,9 +18,11 @@ function contentContainsMarker(content: unknown, marker: string): boolean {
   if (typeof content === "string") {
     return content.includes(marker);
   }
+
   if (!Array.isArray(content)) {
     return false;
   }
+
   return content.some((value) => blockText(value)?.includes(marker) ?? false);
 }
 
@@ -35,10 +33,22 @@ function classifyUserContent(options: {
   readonly planResolved: boolean;
   readonly plainPrompt: boolean;
 }): AgentEvent["kind"] {
-  if (options.interrupted) return "interruption";
-  if (options.denied) return "permission-denied";
-  if (options.questionAnswered) return "question-answered";
-  if (options.planResolved) return "plan-resolved";
+  if (options.interrupted) {
+    return "interruption";
+  }
+
+  if (options.denied) {
+    return "permission-denied";
+  }
+
+  if (options.questionAnswered) {
+    return "question-answered";
+  }
+
+  if (options.planResolved) {
+    return "plan-resolved";
+  }
+
   return options.plainPrompt ? "user-prompt" : "tool-result";
 }
 
@@ -70,6 +80,7 @@ export function parseClaudeUser(options: {
     "The user has approved your plan",
   );
   const plainPrompt = typeof content === "string";
+
   const kind = classifyUserContent({
     interrupted,
     denied,

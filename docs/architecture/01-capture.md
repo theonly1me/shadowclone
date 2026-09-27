@@ -1,139 +1,51 @@
-# Capture
+# Capture and indexing
 
-## Sources
+Capture reads enabled sources and normalizes them into events. The [source inventory](../data-handling.md#sources) lists locations and consent settings. Definitions live in `src/config/schema.ts`; adapters live in `src/observe/`.
 
-Every source is opt-in, named in the config, and listed in the README. The config lives at `~/.shadowclone/config.toml` and every source defaults to off. Default `shadowclone init` lists detected paths and asks one grouped question for session sources, Git metadata, and agent context. `init --advanced` asks about each source separately. Skill maintenance has its own consent question.
+## Consent and discovery
 
-| Source | Path | Default | Notes |
-| --- | --- | --- | --- |
-| `antigravity` | `~/.gemini/antigravity-cli/brain/*/.system_generated/logs/transcript_full.jsonl` | off | Generated conversation logs |
-| `claude-code` | `~/.claude/projects/**/*.jsonl` | off | Session transcripts, the primary source |
-| `claude-prompts` | `~/.claude/history.jsonl` | off | Prompts in the user's own words |
-| `codex` | `~/.codex/sessions/**/*.jsonl` | off | Date partitioned rollouts |
-| `cursor` | `~/.cursor/chats/**/{store.db,meta.json}` | off | Per session SQLite plus cwd and timestamps |
-| `declared-rules` | repository root instructions and direct agent skill `SKILL.md` files | off | Deterministic redacted profile import |
-| `git-metadata` | observed repositories' local `remote.origin.url` | off | Organization and exact repository scope, never repository contents |
-| `repository-manifests` | `package.json` scripts and dependency names, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, `.github/workflows/*.yml`, and top-level entry names in the repository where `init --repo` runs | off | Local gate and command detection for the harness, never sent to a model |
-| `shell` | `~/.zsh_history`, `~/.bash_history` | off | Captured as user prompts, no correction signals |
+Before consent, setup can check whether a configured root exists and is non-empty. Directory checks read at most one entry, reduce the result to a boolean, and close the directory. They do not open source contents or retain entry names and metadata.
 
-Capture consent protects content. Before consent, onboarding may determine whether a configured source root exists and is non-empty, then use that one ephemeral boolean to omit absent providers from grouped consent. Directory checks use `opendir`, read at most one entry, reduce the result immediately to a boolean, and close the directory. File checks reduce existence and non-zero size to the same boolean. The check does not retain or log a path, entry name, count, timestamp, size, or provider-derived identifier.
+After consent, repository instruction import accepts the three supported root instruction files and direct skill documents. It rejects symlinks and enforces file and byte limits before materializing content. Git remote discovery has separate consent; without it, working directories remain isolated.
 
-Repository guidance presence is reduced to one ephemeral boolean as well. The check covers only root `CLAUDE.md`, root `AGENTS.md`, root `.cursorrules`, and whether `.claude/skills/` or `.agents/skills/` is non-empty. It does not read instruction content or retain an entry name. After `declared-rules` consent, import accepts only those three root files and direct `.claude/skills/*/SKILL.md` or `.agents/skills/*/SKILL.md` files. It rejects symlinks, more than 256 supported files, or more than 2,000,000 total bytes before resolving content.
+A new source, a wider slice of a file, or reading contents where only names were read requires a named, default-off source setting.
 
-Reading any source content remains opt-in. A new file, a wider slice of an existing file, or contents where only names were previously read is a new source with its own flag defaulting to off and a README entry in the same change.
+## Events and text references
 
-`git-metadata` is separate consent because transcript or declared-rule consent does not imply permission to inspect a remote. When it is disabled, each working directory is hashed into its own isolated origin and imported rules remain there. When enabled, shadowclone asks git for the local remote origin and uses a safe name plus an identity hash for exact repository profile routing.
+`AgentEvent` records source, session and event identity, ordering, timestamp, working directory, kind, tool metadata, and an optional `TextRef`. See `src/observe/types.ts` for the types.
 
-## The normalized event
+The event index does not contain transcript text. A file reference selects a bounded byte range. A Cursor reference selects a text field in a content-addressed SQLite blob. `resolveRedacted` checks the reference and redacts the selected text before it becomes learning input.
 
-Every adapter produces the same type. The stage boundary is `observeAll`, and nothing downstream knows which provider an event came from unless it asks.
-
-```ts
-export type TextRef =
-  | {
-      readonly type: "file";
-      readonly sourcePath: string;
-      readonly byteOffset: number;
-      readonly byteLength: number;
-    }
-  | {
-      readonly type: "sqlite-blob";
-      readonly sourcePath: string;
-      readonly blobId: string;
-      readonly jsonPath: readonly (string | number)[];
-      readonly unwrap: "user-query" | null;
-    };
-
-export type AgentEventKind =
-  | "user-prompt"
-  | "assistant-text"
-  | "thinking"
-  | "tool-call"
-  | "tool-result"
-  | "plan-presented"
-  | "plan-resolved"
-  | "question-asked"
-  | "question-answered"
-  | "permission-denied"
-  | "session-end";
-
-export type AgentEvent = {
-  readonly source: SourceId;
-  readonly sessionId: string;
-  readonly eventId: string;
-  readonly parentEventId: string | null;
-  readonly timestamp: number;
-  readonly cwd: string;
-  readonly gitBranch: string | null;
-  readonly kind: AgentEventKind;
-  readonly tool: ToolCall | null;
-  readonly isError: boolean;
-  readonly textRef: TextRef | null;
-};
-```
-
-`AgentEvent` carries no text. It carries a pointer to text. A file pointer selects bytes. A Cursor pointer selects one text field inside one content-addressed SQLite blob, so a neighboring thinking block or tool result cannot enter distillation. Both are resolved only inside `resolveRedacted`. That is the central decision in this document and `05-privacy.md` explains why.
+Parsers can encounter every record category in an enabled transcript. Tool-result payloads, tool-returned file contents, thinking blocks, and data-access results do not receive eligible learning references. User steering and limited assistant context can be used to understand a correction.
 
 ## Incremental reads
 
-Session history grows as the user works. Incremental reads avoid reprocessing unchanged JSONL files on every run.
+JSONL cursors track source size, modification time, and the last complete byte offset. Appends are read from that offset. Truncation, rewrites, and invalid boundaries cause a rescan. A partial trailing line waits for a later invocation.
 
-Each file gets a cursor row: `sourcePath`, `byteSize`, `modifiedAt`, `byteOffset`. Transcripts are append only JSONL, so a later run seeks to `byteOffset` and reads forward. Three cases have to be handled and each has a defined answer.
+Reads and materialization are bounded. Oversized records or databases are skipped with diagnostics; limits are defined in the implementation. SQLite chat sources are rescanned when their database, write-ahead log, or metadata changes.
 
-`byteSize` is larger and `byteOffset` still lands on a newline boundary. Read forward from the offset. This is the normal case.
+The index also records observed source/session/repository bindings. Schema rebuilding preserves known bindings, but deleting the database loses them. Unknown historical identity stays isolated.
 
-`byteSize` is smaller than the recorded `byteOffset`. The file was truncated or rewritten. Discard the cursor, delete indexed events for that path, and rescan from zero.
+## Adapter distinctions
 
-`byteSize` is unchanged and `modifiedAt` moved. Treat as a rewrite and rescan. Cheap, and it beats reading a stale offset into the middle of a record.
+| Source | Parsing concern |
+| --- | --- |
+| Claude Code | Multiple assistant blocks can share a message identity; tool results can arrive as user records; injected metadata is not user-authored guidance |
+| Codex | Message and event streams can describe the same turn; adapters avoid counting both |
+| Cursor | Chat databases contain both JSON messages and opaque blobs; only supported records are interpreted |
+| Antigravity | Generated logs provide conversation records and cancellation signals; capture does not query a live daemon or write plaintext sidecars |
+| Shell | Commands are grouped as prompts but do not provide the preceding agent context needed for correction signals |
 
-A partial trailing line is never parsed. The cursor advances only to the last byte that completed a record, so a transcript being written to right now is safe to read.
+Claude subagent transcripts are discovered separately from parent files. Provider-specific interruption markers have no stable schema guarantee, so marker-health diagnostics report suspicious gaps. Adapters normalize timestamps before derivation.
 
-## Claude Code adapter
+## Learning triggers
 
-The adapter handles the following format distinctions.
+Plain `learn` indexes and reports structural evidence. Deep learning resolves eligible references and reconciles durable guidance. Consented setup can perform a bounded first pass.
 
-**Assistant records are one per content block.** A single API message can be written as several records sharing `message.id` and `requestId`, each carrying one block and an `apiBlockIndex`. Counting records as turns overcounts multi-block messages. Group by `message.id` before deriving turn counts.
+Native integrations issue an opaque session token when automatic learning is enabled. The agent marks a session useful when it contains reusable steering; the end hook can then schedule a bounded worker. A stop alone does not authorize learning. The worker selects unprocessed evidence for the requested session and records progress for later runs.
 
-**Tool results arrive as user records.** A `user` record whose `message.content` is an array of `{tool_use_id, type: "tool_result", content, is_error}` is a result, not a prompt. A `user` record whose `message.content` is a plain string is a real typed prompt. The type of that field is the discriminator.
+The Claude plugin’s transcript hook validates its supplied path, checks consent and policy, and ingests that file through the shared cursor. It does not turn arbitrary transcript content into rules. No always-on daemon is required.
 
-**Subagent transcripts are not linked by path.** They live at `<sessionId>/subagents/agent-<hex>.jsonl` with `isSidechain: true` and an `agentId`. The parent file never names them, so the adapter walks the directory.
+## Verification
 
-**Records with `isMeta: true` are harness injected, not user authored.** They must not enter the prompt corpus, because they will otherwise be learned as the user's voice.
-
-**Marker health monitoring.** Claude Code string markers (`[Request interrupted by user`, `user doesn't want to proceed with this tool use`) have no version contract. Health monitoring audits indexed sessions for marker staleness and warns when high session volume yields zero interruption or denial signals.
-
-Useful fields on the envelope: `parentUuid`, `uuid`, `promptId`, `sessionId`, `timestamp`, `cwd`, `gitBranch`, `permissionMode`, `version`.
-
-## Other adapters
-
-**Codex** writes `{timestamp, type, payload}` with no uuid chain, so order is the chain. `response_item` and `event_msg` are redundant views of the same turn. Read `response_item` for messages and tools, and read only terminal or interruption events from `event_msg`, or every turn counts twice.
-
-**Cursor** stores chat state as a SQLite `store.db` per session under a workspace hash, with `meta.json` alongside carrying `cwd` and timestamps. The adapter opens the database read only, ignores opaque protobuf blobs, and reads plain JSON message blobs in row order. A change to the database, write-ahead log, or sidecar rescans that session because SQLite is not append-only JSONL.
-
-**Shell** emits `AgentEvent` values with `kind: "user-prompt"` and synthetic session grouping. Because shell commands lack preceding agent actions, they do not produce correction signals today.
-
-**Antigravity** reads generated `transcript_full.jsonl` logs when enabled. Step status `CANCELED` maps to an interruption signal, capturing turns aborted by the user. The adapter never queries a live language-server daemon or writes plaintext transcript sidecars.
-
-Timestamps disagree across sources and are normalized to epoch milliseconds at ingest. Claude transcripts use ISO-8601 strings, `~/.claude/history.jsonl` uses epoch milliseconds, and `~/.codex/history.jsonl` uses epoch seconds.
-
-## The index
-
-`~/.shadowclone/index.db`, opened with `bun:sqlite`.
-
-It holds cursors, event skeletons, and tool call metadata. It holds no transcript text, because events carry pointers. It is a cache: deleting it costs one reingest and nothing else. `06-roadmap.md` treats a schema change as a rebuild until the format settles.
-
-Reporting is counts only. `indexed 4,182 events from 37 sessions` is a log line. Anything that would print captured content is not.
-
-## Triggers
-
-On-demand and native lifecycle paths share the same cursors.
-
-`shadowclone learn` provides the explicit on-demand path. Consented setup and native lifecycle learning are additional bounded paths.
-
-A Claude Code `SessionEnd` hook shipped in `.claude-plugin/` receives `transcript_path` on stdin, ingests exactly one known file, and never scans a directory.
-
-The plugin hook first checks effective source consent and managed policy, rejects paths outside the Claude projects directory, and then advances the same cursor used by `learn`. It refreshes existing active guidance for the session's repository scope and never manufactures profile rules from the ingested events.
-
-Native integrations for Claude Code, Codex, Cursor, and Antigravity compile the current scoped profile at session start. With separate deep and automatic learning consent, the end hook schedules a detached bounded worker for the hashed session. The worker reads only that session's unprocessed steering episodes and drops each user-steering episode whose redacted excerpts carry no durable steering phrase, so a session without one makes no model call. Reconciliation still rejects questions, cancellations, temporary exceptions, and silence.
-
-A long-running daemon remains deferred because it adds latency reduction and queued work, not a new learning capability.
+Adapter tests must exercise the real entry point with synthetic secrets and excluded record categories. Test appends, rewrites, incomplete records, duplicate provider views, and changed source references. Logs should expose counts and source names without captured text or identifying paths.

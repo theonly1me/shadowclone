@@ -1,11 +1,8 @@
+import { guidanceImportState } from "./learningState";
+import { canonicalPath } from "../paths";
 import { lstat } from "node:fs/promises";
 import type { ProjectPaths } from "../paths";
-import {
-  createProfileRuleKey,
-  readGeneratedProfileState,
-  readProfileRejections,
-  writeProfile,
-} from "../profile";
+import { createProfileRuleKey, writeProfile } from "../profile";
 import type { ProfileRule, ProfileRuleReference } from "../profile";
 import { resolveRedacted } from "../redact";
 import {
@@ -35,13 +32,15 @@ function findIdentity(options: {
   readonly aliases: readonly string[];
   readonly locator: string;
 }): ImportIdentity | null {
-  return options.identities.find((identity) =>
-    matchingImportReference({
-      stored: identity.importReference,
-      aliases: options.aliases,
-      locator: options.locator,
-    })
-  ) ?? null;
+  return (
+    options.identities.find((identity) =>
+      matchingImportReference({
+        stored: identity.importReference,
+        aliases: options.aliases,
+        locator: options.locator,
+      }),
+    ) ?? null
+  );
 }
 
 async function resolveSource(options: {
@@ -49,15 +48,19 @@ async function resolveSource(options: {
   readonly resolveText: RedactedResolver;
 }): Promise<string> {
   let byteLength: number;
+
   try {
     const metadata = await lstat(options.source.filePath);
+
     byteLength = metadata.isFile() ? metadata.size : -1;
   } catch {
     throw new Error("Repository guidance changed during import");
   }
+
   if (byteLength !== options.source.byteLength) {
     throw new Error("Repository guidance changed during import");
   }
+
   const text = await options.resolveText({
     ref: {
       type: "file",
@@ -66,9 +69,11 @@ async function resolveSource(options: {
       byteLength,
     },
   });
+
   if (text.length === 0) {
     throw new Error("Repository guidance changed during import");
   }
+
   return text;
 }
 
@@ -102,6 +107,7 @@ export async function importRepositoryGuidance(options: {
     enabled: options.gitMetadataEnabled,
     readRemote: options.readRemote,
   });
+
   if (
     isOriginBlocked({
       repository,
@@ -110,17 +116,16 @@ export async function importRepositoryGuidance(options: {
   ) {
     throw new Error("Managed policy blocks this repository");
   }
-  const sources = await discoverRepositoryGuidance(options.workingDirectory);
+
+  const imported = await guidanceImportState(options.paths);
+  const sources = (
+    await discoverRepositoryGuidance(options.workingDirectory)
+  ).filter((source) => !imported.owned.has(canonicalPath(source.filePath)));
   const aliases = repositoryAliases({
     workingDirectory: options.workingDirectory,
     repository,
   });
-  const previous = await readGeneratedProfileState(
-    options.paths.profileManifestFile,
-  );
-  const rejections = await readProfileRejections(
-    options.paths.rejectedProfileFile,
-  );
+  const { previous, rejections } = imported;
   const identities: readonly ImportIdentity[] = [
     ...previous.filter((entry) => entry.disposition === "present"),
     ...rejections,
@@ -129,9 +134,10 @@ export async function importRepositoryGuidance(options: {
     sources.map((source) => sourceLocator(source.relativePath)),
   );
   const rules: ProfileRule[] = [];
-  const resolveText: RedactedResolver = options.resolveText ?? ((request) =>
-    resolveRedacted({ ...request, roots: [options.workingDirectory] })
-  );
+  const resolveText: RedactedResolver =
+    options.resolveText ??
+    ((request) =>
+      resolveRedacted({ ...request, roots: [options.workingDirectory] }));
 
   for (const source of sources) {
     const locator = sourceLocator(source.relativePath);
@@ -140,9 +146,11 @@ export async function importRepositoryGuidance(options: {
       source,
       redactedText: await resolveSource({ source, resolveText }),
     });
+
     if (content === null) {
       continue;
     }
+
     rules.push({
       key: identity?.key ?? createProfileRuleKey(),
       ...content,
@@ -171,15 +179,16 @@ export async function importRepositoryGuidance(options: {
   const retired: ProfileRuleReference[] = previous.flatMap((entry) =>
     isRemovedImport({ entry, aliases, currentLocators })
       ? [{ relativePath: entry.relativePath, key: entry.key }]
-      : []
+      : [],
   );
   const result = await writeProfile({ paths: options.paths, rules, retired });
   const rejectedKeys = new Set(
-    (await readProfileRejections(options.paths.rejectedProfileFile)).map(
+    (await guidanceImportState(options.paths)).rejections.map(
       (entry) => entry.key,
     ),
   );
   const rejected = rules.filter((rule) => rejectedKeys.has(rule.key)).length;
+
   return {
     imported: rules.length - result.preserved - rejected,
     preserved: result.preserved,

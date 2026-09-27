@@ -1,27 +1,33 @@
 # Why I built Shadowclone
 
-I kept repeating the same preferences to coding agents. How much to change at once. How I wanted code organized. When I wanted a plan before edits. The agent could often do the task, but I still had to explain how I wanted it done.
+I want to trust coding agents with substantial work in large repositories. I also want the result to follow my engineering standards. How much to change at once. How code should be organized. When to plan, test, or stop for review. Getting code written quickly is useful only if I can stay in control of those decisions.
 
-Instruction files and skills helped. I do not think they are a bad approach. The problem was keeping them current and carrying them between tools. Some instructions reflected an older preference. Others had never been written down because they came up as corrections during ordinary work.
+I kept repeating the same preferences. The agent could often do the task, but I still had to explain how I wanted it done. More sessions and more agents meant more opportunities for those instructions to drift.
 
-That is the problem I am trying to solve with Shadowclone. It reads the sessions a user explicitly enables, looks for reusable guidance, and keeps an editable profile that can be supplied to their existing coding agent. It can also keep personal skills synchronized. It does not train a new model or turn every past action into an instruction.
+Instruction files and skills helped. Keeping them current was the harder part. Some described preferences I had changed. Others missed guidance that only came up when I corrected an agent. Switching tools meant maintaining another copy.
 
-## What I want it to get right
+Shadowclone maintains that setup across the coding agents I use. It learns from the sessions I enable, updates the relevant skills, and carries them between agents. I can choose workflows, write preferences directly, and configure repository checks. The resulting skills and instructions remain files I can read and change.
 
-I want to repeat myself less without losing control over what the agent learns. A temporary exception should stay temporary. An interruption should not automatically become a preference. A rule learned in one repository should not quietly appear in an unrelated one.
+The goal is to use agents confidently at scale while keeping my engineering preferences and guardrails intact. Changing agents should not mean starting that work over. Corrections should help future sessions, and I should decide what becomes a lasting rule.
 
-The profile needs to be readable and correctable. I want to see what was learned, change wording I disagree with, and remove guidance that no longer fits. If the profile becomes another large instruction file that I cannot understand or maintain, the project has missed its purpose.
+## Built entirely with agents
 
-Normal sessions are the starting point. Delegated work can use the same profile, but I do not want useful guidance to depend on adopting a new agent or running everything through a custom subagent.
+I built Shadowclone without writing code by hand. Agents are better than me at producing code quickly. I set the requirements and guardrails, decide how the system should behave, and direct the agents toward those standards.
 
-## What the early results tell me
+I do not consider that vibe coding. I care about the architecture, types, module boundaries, and tests, even when an agent writes every line. My responsibility for the result stays the same. Shadowclone exists because maintaining that control becomes harder as the work grows.
 
-In a small four-task comparison, the profile-equipped setup followed more of the measured preferences than the repository-only baseline. It also scored above the existing skills setup on two tasks and tied on two. That is encouraging, but the sample is small and the judges still made mistakes. The [evaluation write-up](../evals.md) includes the tasks, scores, and those limitations.
+The repository has more than 800 source and test files. You can inspect it yourself or ask your coding agent to review it. Ask whether the design is coherent, whether the tests catch meaningful failures, and whether the code follows its own engineering rules. If you think it looks vibe coded, point to the code that led you there. The quality of the result is open to inspection.
 
-I do not have evidence for a productivity multiplier or a claim that a profile always beats well-maintained instructions. The useful question is narrower: does it help the agent follow the guidance the user actually wants on the next task? A tie or a loss is worth reporting too.
+## What matters to me
 
-## What I am not willing to trade away
+A correction should improve the next session without turning every interaction into a rule. A temporary exception should stay temporary. A preference from one project should stay in that project unless I explicitly make it global.
 
-These sessions can contain sensitive material. Learning has to be opt-in, the derived profile has to stay under the user's control, and model use has to be explicit. Local storage does not mean that analysis stays offline: eligible redacted excerpts go through the selected authenticated agent CLI. Evaluation also exposes the chosen repository snapshot and generated code to that provider.
+I want to see why guidance exists and undo a change I disagree with. Existing skills and memory should remain useful, and edits should preserve the work already in them.
 
-The current system is still early. Redaction is not a guarantee of anonymity, guidance can be wrong, and extra instructions can make an agent worse. I want the project to make those failures visible and easy to correct. That seems more useful than promising a perfect copy of how someone works.
+Learning also needs evidence. The [evaluations](../README.md#evaluations) found differences in preference adherence, along with judging mistakes and small samples. Those experiments used the earlier profile delivery. They do not establish that maintained skills improve every task or save a particular amount of time. Guardrails help direct and check an agent's work; they cannot promise perfect adherence.
+
+The project succeeds if it reduces the work of keeping an agent environment useful. Measuring that honestly includes reporting when extra guidance makes no difference or makes an agent worse.
+
+## Keeping control
+
+Coding sessions can contain sensitive material. Source access is opt-in, guidance stays editable, and changes are reversible. Model work uses the selected agent provider, so local storage does not mean the analysis stays offline. [Data handling](data-handling.md) explains that boundary.

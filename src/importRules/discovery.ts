@@ -24,12 +24,15 @@ async function supportedFile(options: {
   readonly kind: RepositoryGuidanceSource["kind"];
 }): Promise<RepositoryGuidanceSource | null> {
   const metadata = await lstat(options.filePath).catch(() => null);
+
   if (metadata === null || metadata.isSymbolicLink()) {
     return null;
   }
+
   if (!metadata.isFile()) {
     throw new Error("Repository guidance contains an unsupported entry");
   }
+
   return metadata.size === 0
     ? null
     : {
@@ -52,6 +55,7 @@ async function rootGuidance(
       }),
     ),
   );
+
   return sources.filter((source) => source !== null);
 }
 
@@ -63,40 +67,52 @@ async function skillGuidance(options: {
   const parentMetadata = await lstat(
     path.join(options.workingDirectory, options.root[0]),
   ).catch(() => null);
+
   if (parentMetadata === null || parentMetadata.isSymbolicLink()) {
     return [];
   }
+
   const metadata = await lstat(rootPath).catch(() => null);
+
   if (metadata === null || metadata.isSymbolicLink()) {
     return [];
   }
+
   if (!metadata.isDirectory()) {
     throw new Error("Repository skill root is not a directory");
   }
+
   let entries: readonly Dirent[];
+
   try {
     entries = await readdir(rootPath, { withFileTypes: true });
   } catch {
     throw new Error("Repository skill root could not be inspected");
   }
+
   const sources: RepositoryGuidanceSource[] = [];
+
   for (const entry of entries) {
     if (entry.name === "shadowclone" || entry.name === "shadowclone-context") {
       continue;
     }
+
     if (!entry.isDirectory()) {
       continue;
     }
+
     const segments = [...options.root, entry.name, "SKILL.md"];
     const source = await supportedFile({
       filePath: path.join(options.workingDirectory, ...segments),
       relativePath: segments.join("/"),
       kind: "skill",
     });
+
     if (source !== null) {
       sources.push(source);
     }
   }
+
   return sources;
 }
 
@@ -107,18 +123,21 @@ export async function discoverRepositoryGuidance(
     skillRoots.map((root) => skillGuidance({ workingDirectory, root })),
   );
   const sources = [
-    ...await rootGuidance(workingDirectory),
+    ...(await rootGuidance(workingDirectory)),
     ...skillSources.flat(),
   ].sort((left, right) => left.relativePath.localeCompare(right.relativePath));
   const totalBytes = sources.reduce(
     (total, source) => total + source.byteLength,
     0,
   );
+
   if (sources.length > maximumGuidanceFiles) {
     throw new Error("Repository guidance exceeds the supported file count");
   }
+
   if (totalBytes > maximumGuidanceBytes) {
     throw new Error("Repository guidance exceeds the supported byte limit");
   }
+
   return sources;
 }

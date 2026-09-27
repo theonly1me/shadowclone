@@ -5,10 +5,12 @@ export function rejectRepeat(
   flag: string,
 ): (value: string, previous: string | undefined) => string {
   const [name] = flag.split(" ");
+
   return (value, previous) => {
     if (previous !== undefined) {
       throw new Error(`Repeated ${name ?? flag}`);
     }
+
     return value;
   };
 }
@@ -19,10 +21,13 @@ export function parsePositiveNumber(options: {
   if (options.value === undefined) {
     return undefined;
   }
+
   const numericValue = Number(options.value);
+
   if (!Number.isFinite(numericValue) || numericValue <= 0) {
     throw new Error(`${options.name} must be positive`);
   }
+
   return numericValue;
 }
 export function parseReasoningEffort(

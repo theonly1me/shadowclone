@@ -3,7 +3,10 @@ import os from "node:os";
 import path from "node:path";
 import { defaultConfig, writeConfig, type ShadowcloneConfig } from "../config";
 import { canonicalPath, createProjectPaths, type ProjectPaths } from "../paths";
-import { materializeFixture, type FixtureRepository } from "./fixtures/materialize";
+import {
+  materializeFixture,
+  type FixtureRepository,
+} from "./fixtures/materialize";
 
 export type HarnessTestSetup = {
   readonly home: string;
@@ -16,11 +19,35 @@ export async function harnessTestSetup(options: {
   readonly globalRules?: string;
   readonly sources?: Partial<ShadowcloneConfig["sources"]>;
 }): Promise<HarnessTestSetup> {
-  const home = canonicalPath(await mkdtemp(path.join(os.tmpdir(), "shadowclone-harness-")));
+  const home = canonicalPath(
+    await mkdtemp(path.join(os.tmpdir(), "shadowclone-harness-")),
+  );
   const paths = createProjectPaths({ homeDirectory: home, platform: "linux" });
-  await writeConfig({ configPath: paths.configFile, config: { ...defaultConfig, sources: { ...defaultConfig.sources, "repository-manifests": true, ...options.sources } } });
-  if (options.globalRules !== undefined) await Bun.write(path.join(paths.profileDirectory, "global/engineering.md"), options.globalRules);
-  const root = await materializeFixture({ fixture: options.fixture, parent: path.join(home, "work") });
+
+  await writeConfig({
+    configPath: paths.configFile,
+    config: {
+      ...defaultConfig,
+      sources: {
+        ...defaultConfig.sources,
+        "repository-manifests": true,
+        ...options.sources,
+      },
+    },
+  });
+
+  if (options.globalRules !== undefined) {
+    await Bun.write(
+      path.join(paths.profileDirectory, "global/engineering.md"),
+      options.globalRules,
+    );
+  }
+
+  const root = await materializeFixture({
+    fixture: options.fixture,
+    parent: path.join(home, "work"),
+  });
+
   return { home, paths, root };
 }
 

@@ -10,14 +10,17 @@ test("evaluation callers share remaining dollars and account for failed provider
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-call-budget-"),
   );
+
   try {
     const received: (number | undefined)[] = [];
+
     const budget = await evaluationBudget({
       directory,
       resume: false,
       limitUsd: 2,
       maximumCalls: 20,
     });
+
     const call = modelCaller({
       budget,
       engine: "claude-code",
@@ -26,6 +29,7 @@ test("evaluation callers share remaining dollars and account for failed provider
       maxBudgetUsd: 2,
       runner: async (options): Promise<EngineRun> => {
         received.push(options.maxBudgetUsd);
+
         return {
           engine: "claude-code",
           sessionId: "fixture",
@@ -42,7 +46,9 @@ test("evaluation callers share remaining dollars and account for failed provider
         };
       },
     });
+
     const request = { prompt: "synthetic request", cwd: directory };
+
     await expect(call(request)).rejects.toThrow("fixture failure");
     await expect(call(request)).rejects.toThrow("fixture failure");
     await expect(call(request)).rejects.toThrow("total budget");

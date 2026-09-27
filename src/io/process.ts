@@ -27,14 +27,19 @@ async function readOutput(options: {
   try {
     while (true) {
       const result = await reader.read();
+
       if (result.done) {
         return Buffer.concat(chunks).toString("utf8");
       }
+
       totalBytes += result.value.byteLength;
+
       if (totalBytes > options.maximumBytes) {
         options.overflow();
+
         throw new ProcessLimitError("output");
       }
+
       chunks.push(result.value);
     }
   } finally {
@@ -60,9 +65,11 @@ export async function runProcess(options: {
   const signal = options.signal
     ? AbortSignal.any([deadline, options.signal])
     : deadline;
+
   if (signal.aborted) {
     throw new ProcessLimitError("cancelled");
   }
+
   const child = Bun.spawn({
     cmd: [...options.arguments],
     cwd: options.cwd,
@@ -72,6 +79,7 @@ export async function runProcess(options: {
     stderr: "pipe",
     detached: process.platform !== "win32",
   });
+
   const terminate = () => {
     try {
       if (process.platform !== "win32") {
@@ -83,7 +91,9 @@ export async function runProcess(options: {
       child.kill("SIGKILL");
     }
   };
+
   signal.addEventListener("abort", terminate, { once: true });
+
   if (signal.aborted) {
     terminate();
   }
@@ -110,15 +120,19 @@ export async function runProcess(options: {
         }
       })(),
     ]);
+
     if (signal.aborted) {
       throw new ProcessLimitError("cancelled");
     }
+
     const [stdout, stderr, exitCode] = results;
+
     for (const result of results) {
       if (result.status === "rejected") {
         throw result.reason;
       }
     }
+
     if (
       stdout?.status !== "fulfilled" ||
       stderr?.status !== "fulfilled" ||
@@ -126,6 +140,7 @@ export async function runProcess(options: {
     ) {
       throw new Error("Process did not complete");
     }
+
     return {
       exitCode: exitCode.value,
       stdout: stdout.value,

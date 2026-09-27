@@ -85,9 +85,7 @@ export type EngineRun = {
   readonly errorMessage: string | null;
 };
 
-export type EngineRunner = (
-  options: EngineRunOptions,
-) => Promise<EngineRun>;
+export type EngineRunner = (options: EngineRunOptions) => Promise<EngineRun>;
 
 export type EngineAvailability = {
   readonly engine: EngineId;

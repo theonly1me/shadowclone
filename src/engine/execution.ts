@@ -8,12 +8,15 @@ export function validateEngineExecution(options: EngineRunOptions): void {
   if (options.execution.purpose !== "learning") {
     return;
   }
+
   if (options.systemPromptFile !== undefined) {
     throw new Error("Learning cannot load a system prompt file");
   }
+
   if (options.allowedTools && options.allowedTools.length > 0) {
     throw new Error("Learning cannot enable provider tools");
   }
+
   if (
     options.permissionMode !== undefined &&
     options.permissionMode !== "dontAsk"

@@ -4,6 +4,7 @@ import type { IndexedEvent } from "../index";
 import type { SessionBehavior } from "./types";
 
 const editTools = new Set(["Edit", "Write", "NotebookEdit"]);
+
 const planTools = new Set([
   "ExitPlanMode",
   "TodoWrite",
@@ -18,19 +19,23 @@ export function normalizeRepoPath(options: {
   const normalized = path.posix.normalize(
     options.rawPath.replaceAll("\\", "/"),
   );
+
   if (options.cwd) {
     const normalizedCwd = path.posix.normalize(
       options.cwd.replaceAll("\\", "/"),
     );
+
     if (normalized.startsWith(normalizedCwd)) {
       return path.posix.relative(normalizedCwd, normalized);
     }
   }
+
   return normalized;
 }
 
 export function extractVerificationToken(command: string): string {
   const tokens = command.trim().split(/\s+/).filter(Boolean);
+
   return tokens.slice(0, 2).join(" ");
 }
 
@@ -49,19 +54,23 @@ export function extractBehaviorFromActions(options: {
     if (planTools.has(action.tool)) {
       seenPlan = true;
     }
+
     if (editTools.has(action.tool)) {
       if (!seenEdit) {
         plannedBeforeEditing = seenPlan;
         seenEdit = true;
       }
+
       if (action.path) {
         files.push(
           normalizeRepoPath({ rawPath: action.path, cwd: options.cwd }),
         );
       }
     }
+
     if (action.tool === "Bash" && action.command) {
       const step = extractVerificationToken(action.command);
+
       if (step.length > 0) {
         verificationSteps.push(step);
       }
@@ -86,12 +95,14 @@ export function extractBehaviorFromIndex(options: {
       ),
     ),
   ];
+
   let plannedBeforeEditing = false;
   let seenEdit = false;
   let seenPlan = false;
 
   for (const event of options.events) {
     const toolName = event.tool?.name;
+
     if (
       event.kind === "plan-presented" ||
       event.kind === "plan-resolved" ||
@@ -99,6 +110,7 @@ export function extractBehaviorFromIndex(options: {
     ) {
       seenPlan = true;
     }
+
     if (toolName && editTools.has(toolName)) {
       if (!seenEdit) {
         plannedBeforeEditing = seenPlan;

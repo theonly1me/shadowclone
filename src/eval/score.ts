@@ -12,13 +12,17 @@ function setSimilarity(
   if (leftValues === null || rightValues === null) {
     return null;
   }
+
   const left = new Set(leftValues.map(normalizeString));
   const right = new Set(rightValues.map(normalizeString));
   const union = new Set([...left, ...right]);
+
   if (union.size === 0) {
     return null;
   }
+
   const intersection = [...left].filter((value) => right.has(value));
+
   return intersection.length / union.size;
 }
 
@@ -26,8 +30,7 @@ export function scoreReplay(options: {
   readonly actual: SessionBehavior;
   readonly clone: SessionBehavior;
 }): ReplayScore {
-  const tools =
-    setSimilarity(options.actual.tools, options.clone.tools) ?? 0;
+  const tools = setSimilarity(options.actual.tools, options.clone.tools) ?? 0;
   const verification = setSimilarity(
     options.actual.verificationSteps,
     options.clone.verificationSteps,
@@ -42,9 +45,11 @@ export function scoreReplay(options: {
       : 0;
 
   const validDimensions: number[] = [tools, planning];
+
   if (verification !== null) {
     validDimensions.push(verification);
   }
+
   if (files !== null) {
     validDimensions.push(files);
   }

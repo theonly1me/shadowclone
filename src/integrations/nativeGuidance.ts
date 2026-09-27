@@ -11,6 +11,7 @@ export async function readNativeGuidance(options: {
 }): Promise<readonly string[]> {
   const { cwd } = options;
   const texts: string[] = [];
+
   for (const filename of nativeGuidanceFiles) {
     const snapshot = await materializeSnapshot({
       filePath: path.join(cwd, filename),
@@ -18,9 +19,16 @@ export async function readNativeGuidance(options: {
       maximumBytes: maximumProfileBytes,
       parse: () => null,
     }).catch(() => null);
-    const authored = snapshot === null ? "" : stripManagedGuidance(snapshot.redacted);
-    const text = options.includeHarness ? authored : stripHarnessSection(authored);
-    if (text.trim().length > 0) texts.push(text);
+    const authored =
+      snapshot === null ? "" : stripManagedGuidance(snapshot.redacted);
+    const text = options.includeHarness
+      ? authored
+      : stripHarnessSection(authored);
+
+    if (text.trim().length > 0) {
+      texts.push(text);
+    }
   }
+
   return texts;
 }

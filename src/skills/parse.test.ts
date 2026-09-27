@@ -4,12 +4,15 @@ import {
   parseSeedPreferenceDocument,
 } from "./parse";
 
-function agentSkill(options: {
-  readonly name?: string;
-  readonly metadata?: readonly string[];
-  readonly sections?: readonly string[];
-} = {}): string {
+function agentSkill(
+  options: {
+    readonly name?: string;
+    readonly metadata?: readonly string[];
+    readonly sections?: readonly string[];
+  } = {},
+): string {
   const name = options.name ?? "focused-review";
+
   return [
     "---",
     `name: ${name}`,

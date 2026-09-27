@@ -9,9 +9,11 @@ function resolveItemSuccess(status: unknown): boolean | null {
   if (status === "failed") {
     return false;
   }
+
   if (status === "completed") {
     return true;
   }
+
   return null;
 }
 

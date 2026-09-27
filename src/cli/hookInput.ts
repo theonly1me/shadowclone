@@ -6,6 +6,7 @@ export function parseHookInput(
   input: string,
 ): Readonly<Record<string, unknown>> {
   let parsed: unknown;
+
   try {
     parsed = JSON.parse(input);
   } catch {
@@ -13,6 +14,7 @@ export function parseHookInput(
   }
 
   const result = hookRecordSchema.safeParse(parsed);
+
   if (!result.success) {
     throw new Error("Hook input must be a JSON object");
   }
@@ -25,5 +27,6 @@ export function readHookString(
   key: string,
 ): string | null {
   const value = record[key];
+
   return typeof value === "string" ? value : null;
 }

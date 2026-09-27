@@ -1,6 +1,11 @@
 import type { ProfileRejectionReason, ProfileSection } from "../../profile";
 
-export type ClaudeMemoryKind = "user" | "feedback" | "reference" | "project" | "index";
+export type ClaudeMemoryKind =
+  | "user"
+  | "feedback"
+  | "reference"
+  | "project"
+  | "index";
 
 export type ClaudeMemoryFile = {
   readonly filename: string;

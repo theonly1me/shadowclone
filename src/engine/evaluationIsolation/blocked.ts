@@ -10,9 +10,11 @@ export function denySubpathRules(options: {
   if (options.paths.length === 0) {
     return "";
   }
+
   const predicates = options.paths
     .map((target) => `(subpath ${JSON.stringify(target)})`)
     .join(" ");
+
   return options.operations
     .map((operation) => `(deny ${operation} ${predicates})`)
     .join("");

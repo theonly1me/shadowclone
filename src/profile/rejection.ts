@@ -7,8 +7,16 @@ export type ProfileRejectionReason =
   | "duplicate"
   | "user-rejected";
 
-export function isRejectionReason(value: unknown): value is ProfileRejectionReason {
-  return value === "skill-covered" || value === "repo-covered" ||
-    value === "stale" || value === "synthetic" || value === "one-off" ||
-    value === "duplicate" || value === "user-rejected";
+export function isRejectionReason(
+  value: unknown,
+): value is ProfileRejectionReason {
+  return (
+    value === "skill-covered" ||
+    value === "repo-covered" ||
+    value === "stale" ||
+    value === "synthetic" ||
+    value === "one-off" ||
+    value === "duplicate" ||
+    value === "user-rejected"
+  );
 }

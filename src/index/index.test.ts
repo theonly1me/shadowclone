@@ -5,10 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { defaultConfig } from "../config";
 import { createProjectPaths } from "../paths";
-import {
-  ingestSources,
-  openEventIndex,
-} from "./index";
+import { ingestSources, openEventIndex } from "./index";
 
 const plantedSecret = "sk-proj-indexSecret123456789";
 
@@ -19,13 +16,16 @@ async function createCorpus(): Promise<{
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-index-"),
   );
+
   const transcriptDirectory = path.join(
     homeDirectory,
     ".claude",
     "projects",
     "fixture",
   );
+
   await mkdir(transcriptDirectory, { recursive: true });
+
   const record = {
     type: "user",
     sessionId: "session-1",
@@ -34,10 +34,12 @@ async function createCorpus(): Promise<{
     cwd: "/repo",
     message: { id: "message-1", content: plantedSecret },
   };
+
   await Bun.write(
     path.join(transcriptDirectory, "session-1.jsonl"),
     `${JSON.stringify(record)}\n`,
   );
+
   return {
     homeDirectory,
     databasePath: path.join(homeDirectory, ".shadowclone", "index.db"),
@@ -58,6 +60,7 @@ test("indexes skeletons incrementally without captured text", async () => {
 
   const first = await ingestSources({ index, config, paths });
   const second = await ingestSources({ index, config, paths });
+
   index.close();
 
   expect(first.events).toBe(1);
@@ -67,16 +70,21 @@ test("indexes skeletons incrementally without captured text", async () => {
 
   const indexDirectory = path.dirname(corpus.databasePath);
   const indexFiles = await readdir(indexDirectory);
+
   for (const fileName of indexFiles) {
     const bytes = await Bun.file(path.join(indexDirectory, fileName)).bytes();
+
     expect(new TextDecoder().decode(bytes)).not.toContain(plantedSecret);
   }
 });
 
 test("rebuilds an outdated disposable index schema", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-schema-"));
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "shadowclone-schema-"),
+  );
   const databasePath = path.join(directory, "index.db");
   const legacy = new Database(databasePath, { create: true });
+
   legacy.exec(`
     CREATE TABLE cursors (source_path TEXT PRIMARY KEY);
     CREATE TABLE events (id INTEGER PRIMARY KEY);
@@ -87,5 +95,6 @@ test("rebuilds an outdated disposable index schema", async () => {
   const index = await openEventIndex(databasePath);
 
   expect(index.countEvents()).toBe(0);
+
   index.close();
 });

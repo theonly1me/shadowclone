@@ -11,29 +11,22 @@ metadata:
 
 ## Use when
 
-Use this skill when the change should be tested in proportion to what can break. It fits maintenance work, extensions to tested modules, and changes where a presentation-only edit has a different risk than a state transition or data boundary.
+Choosing coverage in proportion to a change's possible consequences.
 
 ## Process
 
-1. List the observable behaviors touched by the change and the callers that depend on each one.
-2. Rank the risks by consequence, likelihood, and whether an existing check would detect the regression.
-3. Read nearby tests to find the established public seam and fixture style.
-4. Add or change a test for every material risk that existing coverage misses.
-5. Use the smallest fixture that still crosses the real boundary where the regression could occur.
-6. Run the focused tests, then the repository checks that cover affected consumers.
-7. Inspect the final diff and explain any material risk left to manual verification.
+1. Identify affected behavior and callers. Rank risks by consequence, likelihood, and existing coverage.
+2. Read nearby tests for the established public interface and fixture style.
+3. Cover material gaps with the smallest fixture that crosses the real failure boundary.
+4. Run focused tests and the repository checks covering affected consumers.
+5. Define any necessary manual check with its setup, action, and expected result, then report what remains unverified.
 
 ## Guardrails
 
-- Add coverage for changes to state, permissions, persistence, parsing, routing, and public contracts.
-- Prefer an existing integration seam when a unit test would only mirror private branches.
-- Skip a new test when an existing test already fails under the proposed regression and clearly names the behavior.
-- Skip tests that assert static text, styling, or reversible wiring unless those details are a supported contract.
-- Keep expected results independent from the code that computes them.
-- Do not inflate test count with cases that exercise the same branch and consequence.
+Prioritize state changes, permissions, persistence, parsing, routing, and public contracts. Reuse existing coverage when it already detects the regression.
 
-When the risk cannot be automated, define a manual check with exact setup, action, and expected result. A vague instruction to test manually is not coverage.
+Skip tests that mirror private branches or assert reversible text and styling changes unless those details are a supported contract. Keep expected results independent of production calculations and avoid redundant cases for the same risk.
 
 ## Completion
 
-The work is complete when every material regression risk is caught by an existing test, a new test, or a concrete manual check; all selected checks have run; and the handoff states any remaining unverified behavior.
+Each material risk has a meaningful automated or manual check, selected checks have run, and remaining uncertainty is explicit.

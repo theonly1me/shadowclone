@@ -1,4 +1,8 @@
-import type { ProfileRule, ProfileSnapshotRejection, ProfileSnapshotRule } from "../../profile";
+import type {
+  ProfileRule,
+  ProfileSnapshotRejection,
+  ProfileSnapshotRule,
+} from "../../profile";
 import type { CorrectionSignal } from "../../signal";
 import type { DistillBatch } from "../batch";
 
@@ -28,7 +32,13 @@ export type ReconciliationOutput = {
   readonly newRules: readonly ReconciliationNewRule[];
   readonly assessments?: readonly {
     readonly evidenceToken: string;
-    readonly intent: "preference" | "correction" | "approval" | "additional-context" | "cancellation" | "unknown";
+    readonly intent:
+      | "preference"
+      | "correction"
+      | "approval"
+      | "additional-context"
+      | "cancellation"
+      | "unknown";
     readonly durable: boolean;
     readonly explicit?: boolean;
     readonly scope: "global" | "repository";

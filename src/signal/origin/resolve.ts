@@ -1,9 +1,6 @@
 import path from "node:path";
 import type { IndexedEvent } from "../../index";
-import type {
-  OriginScope,
-  RepositoryIdentity,
-} from "../types";
+import type { OriginScope, RepositoryIdentity } from "../types";
 import {
   isolatedOrigin,
   normalizeRemoteOrigin,
@@ -41,9 +38,10 @@ export async function resolveCwdOrigin(options: {
     options.enabled && options.cwd.length > 0
       ? await readRemote(options.cwd)
       : null;
+
   return remote === null
     ? isolatedOrigin(key)
-    : normalizeRemoteOrigin(remote) ?? isolatedOrigin(key);
+    : (normalizeRemoteOrigin(remote) ?? isolatedOrigin(key));
 }
 
 export async function resolveRepository(options: {
@@ -58,14 +56,17 @@ export async function resolveRepository(options: {
       ? await readRemote(options.cwd)
       : null;
   const repository = remote ? normalizeRemoteRepository(remote) : null;
+
   if (repository !== null) {
     return repository;
   }
+
   const origin = await resolveCwdOrigin({
     cwd: options.cwd,
     fallbackKey: options.fallbackKey,
     enabled: false,
   });
+
   return { id: origin.id, name: null, profileFileName: null, origin };
 }
 
@@ -94,36 +95,43 @@ export async function resolveEventRepositories(options: {
 
   for (const event of options.events) {
     const key = eventOriginKey(event);
+
     if (repositories.has(key)) {
       continue;
     }
 
     const timeline = options.enabled
-      ? options.bindings?.getSessionOriginBinding?.({
+      ? (options.bindings?.getSessionOriginBinding?.({
           source: event.source,
           sessionId: event.sessionId,
           timestamp: event.timestamp,
-        }) ?? null
+        }) ?? null)
       : null;
-    const bound = timeline ?? (
-      options.enabled && event.cwd.length > 0
-        ? options.bindings?.getOriginBinding(key) ?? null
-        : null
-    );
+
+    const bound =
+      timeline ??
+      (options.enabled && event.cwd.length > 0
+        ? (options.bindings?.getOriginBinding(key) ?? null)
+        : null);
+
     if (bound !== null) {
       repositories.set(key, bound);
+
       continue;
     }
 
     const observedSince = options.bindings?.getOriginObservationStart?.() ?? 0;
     const hasObservedHistory = event.timestamp >= observedSince;
+
     const resolved = await resolveRepository({
       cwd: event.cwd,
       fallbackKey: eventIsolationKey(event),
       enabled: options.enabled && hasObservedHistory,
       readRemote,
     });
+
     repositories.set(key, resolved);
+
     if (options.enabled && event.cwd.length > 0 && resolved.origin.promotable) {
       options.bindings?.bindOrigin({ originKey: key, repository: resolved });
     }
@@ -138,10 +146,13 @@ export function getEventRepository(options: {
 }): RepositoryIdentity {
   const key = eventOriginKey(options.event);
   const known = options.repositories.get(key);
+
   if (known) {
     return known;
   }
+
   const origin = isolatedOrigin(eventIsolationKey(options.event));
+
   return { id: origin.id, name: null, profileFileName: null, origin };
 }
 

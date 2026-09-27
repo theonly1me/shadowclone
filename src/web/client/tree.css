@@ -1,0 +1,179 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  align-items: start;
+  gap: 32px;
+  margin: 28px 0;
+}
+
+.constellation {
+  position: relative;
+  padding: 20px 4px 8px;
+}
+
+.tree {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  min-height: 340px;
+}
+
+.branch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding-bottom: 8px;
+  align-self: start;
+}
+
+.tree-connections {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  fill: none;
+  stroke: #b299d6;
+  stroke-width: 0.8;
+  opacity: 0.65;
+}
+
+.branch-title {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  color: #a1abc4;
+  margin: 0 0 8px;
+}
+
+.skill-node {
+  position: relative;
+  width: 100%;
+  color: #cdd2e1;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 0 2px;
+}
+
+.node-gem {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #5f526f;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #1b1b29, #11131e);
+  transform: rotate(45deg);
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.node-icon {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  line-height: 1;
+  color: #b1a7c6;
+  transform: rotate(-45deg);
+}
+
+.node-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.node-label {
+  z-index: 1;
+  background: #10121be6;
+  border-radius: 4px;
+  padding: 3px 5px;
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.45;
+  max-width: 145px;
+}
+
+.skill-node:hover .node-gem {
+  border-color: #a68fd8;
+  background: #242030;
+}
+
+.skill-node.active .node-gem {
+  outline: 1px solid var(--accent);
+  outline-offset: 5px;
+  border-color: #c3b1ef;
+}
+
+.skill-node.equipped .node-gem {
+  background: linear-gradient(140deg, #514263, #2b243d);
+  border-color: #b6a2ee;
+  box-shadow: 0 0 25px #ad85f223;
+}
+
+.skill-node.equipped .node-icon {
+  color: #c9b7f5;
+}
+
+.skill-node.equipped::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  margin-left: 58px;
+  width: 7px;
+  height: 7px;
+  background: #c4aff4;
+  border: 2px solid #11131c;
+  border-radius: 50%;
+  box-sizing: content-box;
+}
+
+.skill-node.equipped .node-label {
+  color: #f0eafa;
+}
+
+.branch-empty {
+  color: var(--muted);
+  font-size: 12px;
+  z-index: 1;
+  background: #11131c;
+}
+
+.tree-root {
+  position: relative;
+  margin: 12px auto 0;
+  width: 74%;
+  height: 40px;
+}
+
+.tree-root span {
+  position: absolute;
+  left: 50%;
+  bottom: -23px;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 45px;
+  height: 45px;
+  border: 1px solid #bca2e9;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2b213d, #141522 74%);
+  color: #baa6e8;
+  font-size: 23px;
+}
+
+.tree-hint {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 42px 0 0;
+}

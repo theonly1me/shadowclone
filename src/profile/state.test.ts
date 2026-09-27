@@ -6,10 +6,9 @@ import { readProfileFiles } from "./files";
 import { readGeneratedProfileState } from "./state";
 
 test("ignores state paths outside the profile directory", async () => {
-  const directory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-state-"),
-  );
+  const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-state-"));
   const statePath = path.join(directory, ".generated");
+
   await Bun.write(
     statePath,
     [
@@ -35,6 +34,7 @@ test("refuses routed profile paths outside the closed directory shape", async ()
   const profileDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-path-"),
   );
+
   const invalidPaths = [
     "/tmp",
     "/login",

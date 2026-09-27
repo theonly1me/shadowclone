@@ -24,10 +24,17 @@ async function removeEmptyIsolatedDirectories(
 ): Promise<void> {
   for (const root of ["org", path.join("references", "org")]) {
     const directory = path.join(profileDirectory, root);
-    const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
+    const entries = await readdir(directory, { withFileTypes: true }).catch(
+      () => [],
+    );
+
     for (const entry of entries) {
-      if (!entry.isDirectory() || !entry.name.startsWith("isolated--")) continue;
+      if (!entry.isDirectory() || !entry.name.startsWith("isolated--")) {
+        continue;
+      }
+
       const isolated = path.join(directory, entry.name);
+
       await rmdir(path.join(isolated, "projects")).catch(() => undefined);
       await rmdir(isolated).catch(() => undefined);
     }
@@ -43,21 +50,29 @@ export async function applyProfileCuration(
   const lock = await acquireLocalLock(
     path.join(options.paths.shadowcloneDirectory, "profile-write.db"),
   );
-  if (!lock) throw new Error("Another profile update is running; retry shortly");
+
+  if (!lock) {
+    throw new Error("Another profile update is running; retry shortly");
+  }
+
   try {
-    const plan = "plan" in options
-      ? options.plan
-      : await createProfileCurationPlan({
-          paths: options.paths,
-          decisions: options.decisions,
-        });
+    const plan =
+      "plan" in options
+        ? options.plan
+        : await createProfileCurationPlan({
+            paths: options.paths,
+            decisions: options.decisions,
+          });
+
     const revisionId = await commitLocalChanges({
       paths: options.paths,
       root: options.paths.profileDirectory,
       kind: "profile",
       updates: plan.updates,
     });
+
     await removeEmptyIsolatedDirectories(options.paths.profileDirectory);
+
     return { revisionId, plan };
   } finally {
     lock.release();

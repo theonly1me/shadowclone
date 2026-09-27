@@ -27,6 +27,7 @@ test("an unrelated profile is absent from the frozen profile", async () => {
   );
   const includedPath = path.join(globalDirectory, "engineering.md");
   const unrelatedPath = path.join(unrelatedDirectory, "engineering.md");
+
   await Promise.all([
     mkdir(globalDirectory, { recursive: true }),
     mkdir(unrelatedDirectory, { recursive: true }),
@@ -35,6 +36,7 @@ test("an unrelated profile is absent from the frozen profile", async () => {
     Bun.write(includedPath, "## Naming\n\nUse complete variable names.\n"),
     Bun.write(unrelatedPath, "## Other\n\nUnrelated guidance.\n"),
   ]);
+
   const profile = await loadEvaluationProfile({
     profileDirectory,
     repository,

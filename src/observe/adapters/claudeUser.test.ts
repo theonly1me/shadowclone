@@ -21,15 +21,13 @@ function kindOf(content: unknown): string | undefined {
     message: { id: "message-1", role: "user", content },
     ref,
   });
+
   return event?.kind;
 }
 
 const markers = [
   ["[Request interrupted by user]", "interruption"],
-  [
-    "The user doesn't want to proceed with this tool use.",
-    "permission-denied",
-  ],
+  ["The user doesn't want to proceed with this tool use.", "permission-denied"],
   ["User has answered your questions", "question-answered"],
   ["The user has approved your plan", "plan-resolved"],
 ] as const;

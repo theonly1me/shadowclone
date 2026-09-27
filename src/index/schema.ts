@@ -6,11 +6,16 @@ function resetOutdatedSchema(database: Database): void {
   const version = database
     .query<{ readonly user_version: number }, []>("PRAGMA user_version")
     .get()?.user_version;
+
   if (
-    version === schemaVersion || version === 5 || version === 4 || version === 3
+    version === schemaVersion ||
+    version === 5 ||
+    version === 4 ||
+    version === 3
   ) {
     return;
   }
+
   database.exec(`
     DROP TABLE IF EXISTS events;
     DROP TABLE IF EXISTS cursors;
@@ -21,10 +26,13 @@ export function createSchema(database: Database): void {
   const previousVersion = database
     .query<{ user_version: number }, []>("PRAGMA user_version")
     .get()?.user_version;
+
   resetOutdatedSchema(database);
+
   const columns = database
     .query<{ name: string }, []>("PRAGMA table_info(cursors)")
     .all();
+
   if (
     columns.length > 0 &&
     !columns.some((column) => column.name === "identity")
@@ -33,6 +41,7 @@ export function createSchema(database: Database): void {
       "ALTER TABLE cursors ADD COLUMN identity TEXT; ALTER TABLE cursors ADD COLUMN discarding INTEGER NOT NULL DEFAULT 0; ALTER TABLE cursors ADD COLUMN omitted_records INTEGER NOT NULL DEFAULT 0;",
     );
   }
+
   database.exec(`
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
@@ -106,6 +115,7 @@ export function createSchema(database: Database): void {
 
     PRAGMA user_version = ${schemaVersion};
   `);
+
   if (previousVersion === 3 || previousVersion === 4) {
     database.exec(`
     INSERT OR IGNORE INTO origin_bindings

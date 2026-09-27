@@ -9,9 +9,7 @@ export function saveObservationBatch(options: {
     (observationBatch: ObservationBatch) => {
       if (observationBatch.rescanned) {
         options.database
-          .query<void, [string]>(
-            "DELETE FROM events WHERE source_path = ?",
-          )
+          .query<void, [string]>("DELETE FROM events WHERE source_path = ?")
           .run(observationBatch.sourcePath);
       }
 
@@ -59,7 +57,19 @@ export function saveObservationBatch(options: {
       }
 
       options.database
-        .query<void, [string, string, number, number, number, string | null, number, number]>(
+        .query<
+          void,
+          [
+            string,
+            string,
+            number,
+            number,
+            number,
+            string | null,
+            number,
+            number,
+          ]
+        >(
           `INSERT INTO cursors (
             source_path, source, byte_size, modified_at, byte_offset, identity, discarding, omitted_records
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)

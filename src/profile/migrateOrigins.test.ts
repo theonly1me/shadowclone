@@ -9,9 +9,11 @@ test("migrates an unambiguous scope and its state without merging ambiguous owne
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-origin-migration-"),
   );
+
   try {
     const legacy = path.join(directory, "org", "github.com--example");
     const ambiguous = path.join(directory, "org", "example.com--team--sub");
+
     await mkdir(legacy, { recursive: true });
     await mkdir(ambiguous, { recursive: true });
     await Bun.write(
@@ -22,8 +24,10 @@ test("migrates an unambiguous scope and its state without merging ambiguous owne
       path.join(directory, ".generated"),
       '{"relativePath":"org/github.com--example/workflow.md","key":"one"}\n',
     );
+
     const result = await migrateOriginProfiles(directory);
     const target = originDirectoryName("github.com/example");
+
     expect(result).toEqual({ migrated: 1, isolated: 1 });
     expect(
       await Bun.file(path.join(directory, "org", target, "workflow.md")).text(),
@@ -41,8 +45,10 @@ test("finishes interrupted state updates after the scope directory was moved", a
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-origin-recovery-"),
   );
+
   try {
     const target = originDirectoryName("github.com/example");
+
     await mkdir(path.join(directory, "org", target), { recursive: true });
     await Bun.write(
       path.join(directory, ".origin-migration"),
@@ -52,6 +58,7 @@ test("finishes interrupted state updates after the scope directory was moved", a
       path.join(directory, ".rejected"),
       '{"relativePath":"org/github.com--example/workflow.md","key":"one"}\n',
     );
+
     expect((await migrateOriginProfiles(directory)).migrated).toBe(1);
     expect(await Bun.file(path.join(directory, ".rejected")).text()).toContain(
       `org/${target}/workflow.md`,

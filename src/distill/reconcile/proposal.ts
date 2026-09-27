@@ -10,9 +10,11 @@ export function reconciliationProposal(options: {
   );
   const title = axis?.title ?? options.result.proposedTitle;
   const body = axis?.body ?? options.result.proposedBody;
+
   if (!title || !body) {
     return options.promptRule.snapshot.rule.proposal;
   }
+
   return {
     kind: options.result.verdict === "narrows" ? "narrow" : "revise",
     text: axis

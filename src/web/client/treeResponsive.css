@@ -1,0 +1,33 @@
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 270px;
+    gap: 20px;
+  }
+
+  .branch-title {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+  }
+}
+
+@media (max-width: 720px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .tree {
+    min-height: 280px;
+  }
+
+  .branch {
+    gap: 24px;
+  }
+
+  .node-label {
+    font-size: 11px;
+  }
+
+  .constellation {
+    padding-bottom: 20px;
+  }
+}

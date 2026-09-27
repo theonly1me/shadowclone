@@ -18,13 +18,17 @@ export const integrationSchema = z.strictObject({
   scope: integrationScopeSchema,
   directory: z.string().min(1),
   userDirectory: z.string().min(1),
-  codexInstructions: z.enum(["AGENTS.md", "AGENTS.override.md"]).default("AGENTS.md"),
-  files: z.array(z.strictObject({
-    relativePath: z.string().min(1),
-    kind: z.enum(["instructions", "skill", "hooks"]),
-    fingerprint: z.string(),
-    created: z.boolean(),
-  })),
+  codexInstructions: z
+    .enum(["AGENTS.md", "AGENTS.override.md"])
+    .default("AGENTS.md"),
+  files: z.array(
+    z.strictObject({
+      relativePath: z.string().min(1),
+      kind: z.enum(["instructions", "skill", "hooks"]),
+      fingerprint: z.string(),
+      created: z.boolean(),
+    }),
+  ),
   excludes: z.array(z.string()),
   deliveredAt: z.number().nullable(),
 });

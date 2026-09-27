@@ -16,7 +16,12 @@ const baseKeys = [
 ] as const;
 
 const engineKeys: Readonly<Record<EngineId, readonly string[]>> = {
-  "claude-code": ["ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL"],
+  "claude-code": [
+    "ANTHROPIC_API_KEY",
+    "CLAUDE_CODE_OAUTH_TOKEN",
+    "ANTHROPIC_AUTH_TOKEN",
+    "ANTHROPIC_BASE_URL",
+  ],
   codex: ["OPENAI_API_KEY", "OPENAI_BASE_URL"],
   "cursor-agent": ["CURSOR_API_KEY"],
   antigravity: ["GEMINI_API_KEY", "GOOGLE_API_KEY"],
@@ -46,11 +51,13 @@ export function runnerEnvironment(options: {
     if (value === undefined) {
       continue;
     }
+
     const isBase = baseKeys.some((baseKey) => baseKey === key);
     const isEngine = keys.includes(key);
     const isRemote =
       options.allowRemoteActions === true &&
       remoteActionKeys.some((remoteKey) => remoteKey === key);
+
     if (isBase || isEngine || isRemote) {
       environment[key] = value;
     }

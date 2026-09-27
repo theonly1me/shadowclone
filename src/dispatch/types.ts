@@ -1,18 +1,16 @@
-import type {
-  ActionCapability,
-  ActionTier,
-} from "../config";
+import type { ActionCapability, ActionTier } from "../config";
 import type {
   EngineId,
+  EngineRunner,
   PermissionDenial,
   PermissionMode,
 } from "../engine";
-import type { GateReceipt } from "./gate";
+import type { ProjectPaths } from "../paths";
+import type { GitRemoteReader } from "../signal";
+import type { CommandRunner } from "./command";
+import type { GateReceipt, GateExecutor } from "./gate";
 
-export type BlockedAction =
-  | ActionCapability
-  | "force-push"
-  | "merge";
+export type BlockedAction = ActionCapability | "force-push" | "merge";
 
 export type ResolvedDispatchPolicy = {
   readonly allowedTools: readonly string[];
@@ -47,12 +45,26 @@ export type RunReceipt = {
 };
 
 export type DispatchPolicyInput = {
-  readonly configuredPolicy:
-    | {
-        readonly allow: readonly ActionCapability[];
-        readonly maxBudgetUsd: number;
-      }
-    | null;
+  readonly configuredPolicy: {
+    readonly allow: readonly ActionCapability[];
+    readonly maxBudgetUsd: number;
+  } | null;
   readonly approvedActions: readonly ActionCapability[];
   readonly managedActionTier: ActionTier;
+};
+
+export type RunOptions = {
+  readonly task: string;
+  readonly pullRequestNumber?: number;
+  readonly targetDirectory?: string;
+  readonly approvedActions?: readonly ActionCapability[];
+  readonly configPath?: string;
+  readonly managedConfigPath?: string | null;
+  readonly paths?: ProjectPaths;
+  readonly readRemote?: GitRemoteReader;
+  readonly runner?: EngineRunner;
+  readonly commandRunner?: CommandRunner;
+  readonly gateExecutor?: GateExecutor;
+  readonly runId?: string;
+  readonly startedAt?: string;
 };

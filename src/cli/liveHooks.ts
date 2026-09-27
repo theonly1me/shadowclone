@@ -1,12 +1,13 @@
 import path from "node:path";
-import { compileContext, readIntegrations, sessionStartProjection } from "../integrations";
+import {
+  compileContext,
+  readIntegrations,
+  sessionStartProjection,
+} from "../integrations";
 import { canonicalPath, projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import type { GitRemoteReader } from "../signal";
-import {
-  parseHookInput,
-  readHookString,
-} from "./hookInput";
+import { parseHookInput, readHookString } from "./hookInput";
 
 type LiveHookOptions = {
   readonly input: string;
@@ -28,11 +29,13 @@ async function nativeClaudeDeliveryCovers(options: {
   readonly cwd: string;
 }): Promise<boolean> {
   const integrations = await readIntegrations(options.paths);
-  return integrations.some((integration) =>
-    integration.agent === "claude-code" &&
-    (integration.scope === "global" ||
-      options.cwd === integration.directory ||
-      options.cwd.startsWith(`${integration.directory}${path.sep}`))
+
+  return integrations.some(
+    (integration) =>
+      integration.agent === "claude-code" &&
+      (integration.scope === "global" ||
+        options.cwd === integration.directory ||
+        options.cwd.startsWith(`${integration.directory}${path.sep}`)),
   );
 }
 
@@ -40,9 +43,11 @@ async function activeProfile(options: LiveHookOptions): Promise<string | null> {
   const paths = options.paths ?? projectPaths;
   const input = parseHookInput(options.input);
   const cwd = readHookString(input, "cwd") ?? process.cwd();
+
   if (await nativeClaudeDeliveryCovers({ paths, cwd: canonicalPath(cwd) })) {
     return null;
   }
+
   const profile = await compileContext({
     paths,
     cwd,
@@ -51,6 +56,7 @@ async function activeProfile(options: LiveHookOptions): Promise<string | null> {
     readRemote: options.readRemote,
     ...sessionStartProjection,
   });
+
   return profile === null || profile.length === 0 ? null : profile;
 }
 
@@ -58,6 +64,7 @@ export async function getSessionStartContext(
   options: LiveHookOptions,
 ): Promise<SessionStartContext | null> {
   const profile = await activeProfile(options);
+
   return profile === null
     ? null
     : {
@@ -72,6 +79,7 @@ export async function runSessionStartHook(
   options: LiveHookOptions,
 ): Promise<void> {
   const response = await getSessionStartContext(options);
+
   if (response !== null) {
     await Bun.stdout.write(`${JSON.stringify(response)}\n`);
   }

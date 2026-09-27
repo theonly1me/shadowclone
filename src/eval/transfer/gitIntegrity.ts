@@ -13,11 +13,7 @@ export async function readGitIntegrity(
   const [head, refs, config] = await Promise.all([
     command({ arguments: ["git", "rev-parse", "HEAD"], cwd: directory }),
     command({
-      arguments: [
-        "git",
-        "for-each-ref",
-        "--format=%(refname):%(objectname)",
-      ],
+      arguments: ["git", "for-each-ref", "--format=%(refname):%(objectname)"],
       cwd: directory,
     }),
     command({
@@ -25,6 +21,7 @@ export async function readGitIntegrity(
       cwd: directory,
     }),
   ]);
+
   return { head, refs, config };
 }
 
@@ -34,6 +31,7 @@ function integrityCheck(options: {
   readonly after: string;
 }): CheckResult {
   const unchanged = options.before === options.after;
+
   return {
     requirement: options.requirement,
     verdict: unchanged ? "pass" : "fail",

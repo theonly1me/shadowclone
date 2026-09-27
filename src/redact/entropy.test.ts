@@ -1,8 +1,5 @@
 import { expect, test } from "bun:test";
-import {
-  entropyThresholdBitsPerCharacter,
-  shannonEntropy,
-} from "./entropy";
+import { entropyThresholdBitsPerCharacter, shannonEntropy } from "./entropy";
 import { redactSecrets } from "./index";
 
 const homeDirectory = "/Users/developer";
@@ -49,6 +46,7 @@ test("keeps the assignment name and redacts only the value", () => {
 
 test("leaves a low entropy identifier untouched", () => {
   const identifier = "computeSourceMarkerHealth";
+
   expect(redactSecrets({ text: identifier, homeDirectory })).toBe(identifier);
 });
 

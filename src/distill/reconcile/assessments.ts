@@ -7,11 +7,22 @@ export function assessedContext(options: {
   return {
     ...options.context,
     evidence: options.context.evidence.filter((entry) => {
-      if (entry.signal.kind !== "user-steering") return true;
-      const assessments = (options.output.assessments ?? []).filter((assessment) => assessment.evidenceToken === entry.token);
+      if (entry.signal.kind !== "user-steering") {
+        return true;
+      }
+
+      const assessments = (options.output.assessments ?? []).filter(
+        (assessment) => assessment.evidenceToken === entry.token,
+      );
       const [assessment] = assessments;
-      return assessments.length === 1 && assessment?.durable === true &&
-        (assessment.intent === "preference" || assessment.intent === "correction" || assessment.intent === "approval");
+
+      return (
+        assessments.length === 1 &&
+        assessment?.durable === true &&
+        (assessment.intent === "preference" ||
+          assessment.intent === "correction" ||
+          assessment.intent === "approval")
+      );
     }),
   };
 }
@@ -31,8 +42,9 @@ export function globalEvidenceTokens(
 ): ReadonlySet<string> {
   return new Set(
     (output.assessments ?? [])
-      .filter((assessment) =>
-        assessment.explicit === true && assessment.scope === "global"
+      .filter(
+        (assessment) =>
+          assessment.explicit === true && assessment.scope === "global",
       )
       .map((assessment) => assessment.evidenceToken),
   );

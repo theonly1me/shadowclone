@@ -1,10 +1,6 @@
+import { toIndexedEvent, type CursorRow, type EventRow } from "./eventRows";
 import type { Database } from "bun:sqlite";
-import {
-  parseTextRef,
-  type FileCursor,
-  type ObservationBatch,
-  type TextRef,
-} from "../observe";
+import type { FileCursor, ObservationBatch } from "../observe";
 import type { CorpusSummary, IndexedEvent } from "./types";
 import {
   readOriginBinding,
@@ -14,65 +10,6 @@ import {
   type BoundRepository,
 } from "./originBinding";
 import { saveObservationBatch } from "./write";
-
-type CursorRow = {
-  readonly source_path: string;
-  readonly byte_size: number;
-  readonly modified_at: number;
-  readonly byte_offset: number;
-  readonly identity: string | null;
-  readonly discarding: number;
-  readonly omitted_records: number;
-};
-
-type EventRow = {
-  readonly id: number;
-  readonly source_path: string;
-  readonly source: IndexedEvent["source"];
-  readonly session_id: string;
-  readonly event_id: string;
-  readonly parent_event_id: string | null;
-  readonly timestamp: number;
-  readonly cwd: string;
-  readonly git_branch: string | null;
-  readonly kind: IndexedEvent["kind"];
-  readonly tool_use_id: string | null;
-  readonly tool_name: string | null;
-  readonly is_error: number;
-  readonly text_ref: string | null;
-};
-
-function textRefFromRow(value: string | null): TextRef | null {
-  if (value === null) {
-    return null;
-  }
-  try {
-    return parseTextRef(JSON.parse(value));
-  } catch {
-    return null;
-  }
-}
-
-function toIndexedEvent(row: EventRow): IndexedEvent {
-  return {
-    id: row.id,
-    sourcePath: row.source_path,
-    source: row.source,
-    sessionId: row.session_id,
-    eventId: row.event_id,
-    parentEventId: row.parent_event_id,
-    timestamp: row.timestamp,
-    cwd: row.cwd,
-    gitBranch: row.git_branch,
-    kind: row.kind,
-    tool:
-      row.tool_name === null
-        ? null
-        : { toolUseId: row.tool_use_id, name: row.tool_name },
-    isError: row.is_error === 1,
-    textRef: textRefFromRow(row.text_ref),
-  };
-}
 
 export class EventIndex {
   readonly #database: Database;
@@ -136,6 +73,7 @@ export class EventIndex {
           )) AS activeDays`,
       )
       .get();
+
     return row ?? { sessions: 0, bytes: 0, activeDays: 0 };
   }
 
@@ -145,6 +83,7 @@ export class EventIndex {
         "SELECT COUNT(*) AS count FROM events",
       )
       .get();
+
     return row?.count ?? 0;
   }
 
