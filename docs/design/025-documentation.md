@@ -16,7 +16,7 @@ Root AGENTS.md carries shared contributor instructions. CLAUDE.md imports it. Bu
 
 Revise the entry points first, reconcile the architecture with the implementation, then condense historical records and skills. Consolidate duplicate usage guides into the README and update their inbound links. User guides show the installed `shadowclone` CLI. Bun commands belong in contributor instructions.
 
-Show the browser editor through real screenshots of the skill tree and skill creation. Inspect the live interface, capture only public-safe content, and place the images beside the relevant workflow. Preserve the current build while exploring; publication and paid model requests are outside screenshot capture.
+Use the author-provided banner as the README header, with descriptive alternative text. Show the browser editor through real screenshots of the skill tree and skill creation. Inspect the live interface, capture only public-safe content, and place the images beside the relevant workflow. Preserve the current build while exploring; publication and paid model requests are outside screenshot capture.
 
 ## Writing guidance
 
