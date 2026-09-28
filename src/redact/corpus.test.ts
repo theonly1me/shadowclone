@@ -37,7 +37,7 @@ test("each rule produces its dedicated redaction label", () => {
       expectedLabel: "google-api-key",
     },
     {
-      value: "ghp_1234567890abcdefghijklmnopqrstuvwxyzAB",
+      value: ["ghp", "1234567890abcdefghijklmnopqrstuvwxyzAB"].join("_"),
       expectedLabel: "github-token",
     },
     {

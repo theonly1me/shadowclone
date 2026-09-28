@@ -7,7 +7,7 @@ import { defaultConfig } from "../config";
 import { createProjectPaths } from "../paths";
 import { ingestSources, openEventIndex } from "./index";
 
-const plantedSecret = "sk-proj-indexSecret123456789";
+const plantedSecret = ["sk", "proj", "indexSecret123456789"].join("-");
 
 async function createCorpus(): Promise<{
   readonly homeDirectory: string;

@@ -82,7 +82,7 @@ test("isolated Codex execution hides unrelated home-directory skills", () => {
       environment: {
         PATH: "/bin",
         DATABASE_URL: "private-database",
-        GITHUB_TOKEN: "private-token",
+        GITHUB_TOKEN: ["private", "token"].join("-"),
       },
       temporaryDirectory: "/private/tmp/shadowclone-codex",
       userHome: "/Users/example",

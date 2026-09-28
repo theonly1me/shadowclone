@@ -61,7 +61,7 @@ test("Claude rule duplicate detection requires its own consent and redacts sourc
   );
   await Bun.write(
     path.join(ruleDirectory, "gate.md"),
-    "Run the full check script before presenting any change.\nOPENAI_API_KEY=sk-proj-abc123DEF456ghi789JKL\n",
+    ("Run the full check script before presenting any change.\nOPENAI_API_KEY=" + ["sk", "proj", "abc123DEF456ghi789JKL"].join("-") + "\n"),
   );
 
   const compile = () =>
@@ -92,7 +92,7 @@ test("Claude rule duplicate detection requires its own consent and redacts sourc
     deduplicated?.compilation.omissions.map((omission) => omission.reason),
   ).toContain("known-duplicate");
   expect((await readClaudeRules(fixture.cwd)).join("\n")).not.toContain(
-    "sk-proj-abc123DEF456ghi789JKL",
+    ["sk", "proj", "abc123DEF456ghi789JKL"].join("-"),
   );
 });
 

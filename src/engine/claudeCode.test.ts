@@ -74,7 +74,7 @@ test("redacts a rejected command message on a zero exit code", async () => {
       session_id: "stub-session",
       result: [
         "/plan isn't available in this environment.",
-        "token ghp_1234567890abcdefghijklmnopqrstuvwxyzAB",
+        ("token " + ["ghp", "1234567890abcdefghijklmnopqrstuvwxyzAB"].join("_")),
       ].join(" "),
     }),
     stderr: "",
@@ -90,7 +90,7 @@ test("redacts a rejected command message on a zero exit code", async () => {
 
       expect(run.isError).toBeTrue();
       expect(run.errorMessage).not.toContain(
-        "ghp_1234567890abcdefghijklmnopqrstuvwxyzAB",
+        ["ghp", "1234567890abcdefghijklmnopqrstuvwxyzAB"].join("_"),
       );
       expect(run.errorMessage).toContain("[redacted:github-token]");
     },

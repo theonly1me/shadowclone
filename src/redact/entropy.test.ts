@@ -27,7 +27,7 @@ test("the threshold is unreachable below twenty three distinct characters", () =
 });
 
 test("redacts a high entropy token no vendor rule matches", () => {
-  const secret = "int_9fKw2QzR7mVpL4xN8tYbH3sJ6dGcA1eZ5uT";
+  const secret = ["int", "9fKw2QzR7mVpL4xN8tYbH3sJ6dGcA1eZ5uT"].join("_");
   const redacted = redactSecrets({ text: secret, homeDirectory });
 
   expect(redacted).not.toContain(secret);

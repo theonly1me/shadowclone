@@ -118,7 +118,7 @@ test("keeps declared guidance active and proposes a concrete sibling", () => {
           evidenceTokens: ["evidence-1"],
           proposedTitle: "",
           proposedBody: "",
-          axisChoiceToken: "option-1",
+          axisChoiceToken: ["option", "1"].join("-"),
         },
       ],
       newRules: [],

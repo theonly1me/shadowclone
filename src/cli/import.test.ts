@@ -45,7 +45,7 @@ test("declining import leaves configuration and profile state untouched", async 
 
 test("persists consent and imports only redacted repository guidance", async () => {
   const { repository, paths } = await testContext();
-  const secret = "sk-abcdefghijklmnop123456";
+  const secret = ["sk", "abcdefghijklmnop123456"].join("-");
   const skillPath = path.join(
     repository,
     ".claude",

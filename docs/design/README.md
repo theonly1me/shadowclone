@@ -36,3 +36,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [023: Skills delivery](023-skills-as-delivery.md) | Maintain workflows directly and migrate with original baselines intact |
 | [024: Agent builds](024-agent-builds.md) | Browser and terminal editing over shared publication, with budget and check fixes |
 | [025: Documentation](025-documentation.md) | Short entry points, task guides, current architecture, and concise design history |
+| [026: Synthetic secret fixtures](026-synthetic-secret-fixtures.md) | Keep credential-shaped test inputs reproducible and identifiable as synthetic |

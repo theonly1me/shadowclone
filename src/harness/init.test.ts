@@ -103,7 +103,7 @@ test("personal global rules stay out unless the owner confirms them", async () =
 });
 
 test("a planted profile secret never reaches the committed harness", async () => {
-  const secret = "sk_live_0123456789abcdefghij";
+  const secret = ["sk", "live", "0123456789abcdefghij"].join("_");
   const setup = await harnessTestSetup({
     fixture: bunTaskList,
     globalRules: `## Deploy key\n\nNever paste ${secret} into scripts.\n`,

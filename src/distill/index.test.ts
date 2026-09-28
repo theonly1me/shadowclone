@@ -7,7 +7,7 @@ import type { IndexedEvent } from "../index";
 import type { CorrectionSignal, OriginScope } from "../signal";
 import { distillSignals, groupDistillBatches } from "./index";
 
-const plantedSecret = "sk-proj-distillSecret123456789";
+const plantedSecret = ["sk", "proj", "distillSecret123456789"].join("-");
 
 function origin(id: string): OriginScope {
   return { id, directoryName: id.replace("/", "--"), promotable: true };

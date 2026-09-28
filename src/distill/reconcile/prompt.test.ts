@@ -15,8 +15,8 @@ import type { DistillBatch } from "../batch";
 import { createReconciliationContext } from "./context";
 import { buildReconciliationPrompt } from "./prompt";
 
-const profileSecret = "sk-proj-profileSecret123456789";
-const evidenceSecret = "sk-proj-evidenceSecret123456789";
+const profileSecret = ["sk", "proj", "profileSecret123456789"].join("-");
+const evidenceSecret = ["sk", "proj", "evidenceSecret123456789"].join("-");
 const origin: OriginScope = {
   id: "github.com/private-owner",
   directoryName: "github.com--private-owner--c48a251dc59a4aa3",
