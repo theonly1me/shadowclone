@@ -41,7 +41,7 @@ Transcript parsers can encounter prompts, assistant responses, tool results, and
 | --- | --- |
 | Plain `learn` after setup | Local indexing and reporting; no model calls |
 | Deep or background learning | Selected redacted steering, supporting context, and guidance needed for reconciliation |
-| Skill maintenance | Redacted instructions and evidence for proposed updates; supporting resources are checked locally |
+| Skill maintenance | Redacted catalogs and full instructions for overlapping workflows, plus evidence for proposed updates; supporting resources are checked locally |
 | Browser editor | Opening the editor makes no model request; optional build descriptions and skill drafts require review of their redacted payload, provider, and limits |
 | `run` | The authorized task worktree and guidance |
 | Evaluation | The authorized repository snapshot and selected context; judges receive generated code without redaction |
@@ -61,6 +61,8 @@ Use only material you are authorized to send to the chosen provider. Provider qu
 | `~/.shadowclone/index.db` and sidecars | Event metadata, source references, cursors, and origin bindings |
 | `~/.shadowclone/profile/` | Legacy profile state and recovery artifacts |
 | `~/.shadowclone/distill/` | Derived learning checkpoints and fingerprints |
+| `~/.shadowclone/skills.json` | Configured roots, maintenance ownership, and cached library review fingerprints |
+| `~/.shadowclone/skill-proposals/` | Proposed edits and conflicts with redacted supporting passages and required decisions |
 | Other files under `~/.shadowclone/` | Revisions, installation ownership, original-library snapshots, and learning/skill ledgers |
 | `~/.shadowclone/runs/` and `worktrees/` | Task receipts, guidance, worktrees, and potentially unfinished changes |
 | `~/.shadowclone/eval/` and `eval-suites/` | Frozen evaluation inputs, private code evidence, receipts, and cumulative budgets |

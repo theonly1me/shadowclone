@@ -8,6 +8,7 @@ import {
 import { readRedactedEnvironment } from "./store";
 import { belongsToScope, learningScopes } from "./scope";
 import { publishedSkills } from "./catalog";
+import { recordFingerprint } from "./records";
 
 export async function explainLearningEnvironment(options: {
   readonly paths: ProjectPaths;
@@ -69,7 +70,8 @@ export async function explainLearningEnvironment(options: {
         evidence: record.rule.evidence,
         source: record.sourceLocator,
         disposition: state.dispositions.find(
-          ({ key }) => key === record.rule.key,
+          (entry) => entry.key === record.rule.key &&
+            keys.has(entry.scope ?? "") && entry.inputFingerprint === recordFingerprint(record),
         ) ?? { status: "pending" },
       })),
     },

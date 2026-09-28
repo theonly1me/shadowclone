@@ -24,6 +24,11 @@ export async function rejectSkillProposal(options: {
       throw new Error("Skill proposal is no longer pending");
     }
 
+    if (proposal.kind === "conflict") {
+      await saveSkillProposal({ paths: options.paths, proposal: { ...proposal, status: "rejected" } });
+      return;
+    }
+
     const state = await readMaintenanceState(options.paths);
 
     await writeMaintenanceState({

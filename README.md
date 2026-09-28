@@ -67,7 +67,11 @@ shadowclone skills pending
 
 Reading a library and allowing automatic edits are separate choices. Supported changes to authorized user skills can apply automatically. Third-party packages stay unchanged and receive local companion skills. Conflicts and uncertain changes remain pending for review.
 
-Personal skills use `~/.agents/skills` as their canonical directory. Claude and Antigravity receive copies; Codex and Cursor discover that directory. Repository skills live under `.agents/skills` and `.claude/skills`. `shadowclone sync` propagates a changed maintained copy and preserves conflicting edits for review.
+With maintenance enabled, updates also review overlapping workflows across the applicable library, even when no new learning is waiting. A conflict proposal contains both supporting passages and the decision needed. Inspect it with `shadowclone skills show <proposal-id>`. Conflict proposals cannot apply edits or choose precedence. Resolve the owning instructions and run an update again, or dismiss an unsupported finding with `shadowclone skills reject <proposal-id>`.
+
+`skills pending` distinguishes candidate evidence, missing repository scope, conflicting evidence, and publication backlog. Each learning decision belongs to its own rule and scope. Organization guidance waits for a matching registered repository; it is never promoted to global guidance to finish publication. Stale status alone does not authorize removing an instruction.
+
+Personal skills use `~/.agents/skills` as their canonical directory. Claude and Antigravity receive copies; Codex and Cursor discover that directory. Repository skills live under `.agents/skills` and `.claude/skills`. `shadowclone sync` propagates a changed maintained copy, refreshes native routing from its validated description, and preserves conflicting edits for review. Routing overflow requires shorter descriptions or narrower routes; existing native instructions remain intact.
 
 Every publication has a revision covering its skills, resources, native instructions, and learning decisions. Inspect or undo it with `shadowclone history`, `shadowclone history <revision>`, and `shadowclone undo <revision>`. Undo refuses to overwrite later edits. Existing profile-based installations first need [skills migration](docs/migration.md).
 
@@ -81,6 +85,8 @@ Every publication has a revision covering its skills, resources, native instruct
 | `shadowclone skills exclude <learning-key> "This was a temporary exception."` | Record why guidance should stay unpublished |
 
 Configuration accepts `--root <directory>` for a custom root and `--third-party` for a package you do not own. Model-assisted updates also require deep-learning consent. After retrying a record, run `shadowclone skills update`. Updates share a default budget of 20 model calls and five minutes, with a cumulative $2 ceiling on engines that support it. Later runs can continue unfinished work.
+
+Library review caches completed catalog batches and document comparisons. `libraryReviewed` counts review steps completed in this update. A nonzero `libraryDeferred` means review remains, including invalid documents that need repair. Run another update to continue. These counts describe review work, not newly created skills.
 
 ## Set up a repository
 

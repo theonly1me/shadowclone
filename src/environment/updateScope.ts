@@ -11,6 +11,7 @@ import { publishEnvironmentRevision } from "./revision";
 import { belongsToScope, type LearningScope } from "./scope";
 import { readRedactedEnvironment, renderEnvironment } from "./store";
 import type { EnvironmentState } from "./types";
+import { retirementRequested } from "./draftSchema";
 
 export async function updateLearningScope(options: {
   readonly paths: ProjectPaths;
@@ -52,7 +53,7 @@ export async function updateLearningScope(options: {
   const eligible = redacted.records.filter(
     (record) =>
       (record.rule.status === "active" ||
-        (record.rule.status === "stale" &&
+        (retirementRequested(record) &&
           state.dispositions.some(
             (entry) =>
               entry.key === record.rule.key && entry.status === "published",

@@ -40,6 +40,10 @@ export async function applySkillProposalUnlocked(
 
   const proposal = await readSkillProposal(options);
 
+  if (proposal.kind === "conflict") {
+    throw new Error("Conflict proposals require a precedence decision. Review both sources, resolve the owning instructions, and run skills update again.");
+  }
+
   if (proposal.status !== "pending") {
     throw new Error("Skill proposal is no longer pending");
   }

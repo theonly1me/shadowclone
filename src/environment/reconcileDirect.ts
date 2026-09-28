@@ -48,7 +48,7 @@ export function reconcileDirectLearning(options: {
             : route.destination === "fact"
               ? ("published" as const)
               : ("pending" as const),
-        reason: route.reason,
+        reason: `${record.rule.title}: ${route.reason}`,
         destinations: route.destination === "fact" ? ["native-context"] : [],
       })),
     ],

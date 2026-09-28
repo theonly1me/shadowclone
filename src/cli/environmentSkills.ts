@@ -1,6 +1,7 @@
 import { projectPaths } from "../paths";
 import { readRedactedEnvironment } from "../environment/store";
-import { recordFingerprint } from "../environment/records";
+import { pendingLearningRecords } from "../environment/pending";
+import { listSkillProposals } from "../skillMaintenance/proposals";
 import {
   reviewLearning,
   setAutomaticMaintenance,
@@ -29,32 +30,10 @@ export async function handleEnvironmentSkills(
       `Automatic supported skill maintenance ${key}. Source consent is configured separately.`,
     );
   } else if (action === "pending" && !key) {
-    const pending = state.records
-      .filter(
-        (record) =>
-          record.rule.status === "active" && record.rule.source !== "imported",
-      )
-      .flatMap((record) => {
-        const disposition = state.dispositions.find(
-          (entry) =>
-            entry.key === record.rule.key &&
-            entry.inputFingerprint === recordFingerprint(record),
-        );
-
-        return disposition && disposition.status !== "pending"
-          ? []
-          : [
-              {
-                key: record.rule.key,
-                title: record.rule.title,
-                reason:
-                  disposition?.reason ??
-                  (record.rule.proposal
-                    ? "Conflicting evidence needs reconciliation"
-                    : "Awaiting scoped publication"),
-              },
-            ];
-      });
+    const pending = [
+      ...pendingLearningRecords({ paths: projectPaths, state }),
+      ...(await listSkillProposals(projectPaths)).filter(({ status }) => status === "pending"),
+    ];
 
     console.log(JSON.stringify(pending, null, 2));
   } else if ((action === "retry" || action === "exclude") && key) {

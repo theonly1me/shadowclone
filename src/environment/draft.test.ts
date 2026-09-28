@@ -6,9 +6,7 @@ import { learningRecord } from "./fixtures";
 const record = learningRecord();
 
 const draft = {
-  status: "ready" as const,
-  reason: "Supported prerequisite",
-  accountedKeys: [record.rule.key],
+  outcomes: [{ key: record.rule.key, disposition: "apply" as const, reason: "Supported prerequisite" }],
   description: "",
   body: "",
   edits: [
@@ -47,7 +45,7 @@ test("ambiguous edits and invented evidence cannot change a skill", () => {
 
   expect(() => applySkillDraft(options)).toThrow("one exact section");
   expect(() =>
-    applySkillDraft({ ...options, draft: { ...draft, accountedKeys: [] } }),
+    applySkillDraft({ ...options, draft: { ...draft, outcomes: [] } }),
   ).toThrow("every supplied learning");
   expect(() =>
     applySkillDraft({

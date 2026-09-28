@@ -20,7 +20,11 @@ import {
 import { learningRuleSchema, type LearningRecord } from "./types";
 
 export function recordFingerprint(record: LearningRecord): string {
-  return fingerprint(JSON.stringify({ kind: record.kind, rule: record.rule }));
+  return fingerprint(JSON.stringify({
+    kind: record.kind,
+    rule: record.rule,
+    ...(record.retirementRequested ? { retirementRequested: true } : {}),
+  }));
 }
 
 export async function learningSnapshot(
@@ -84,7 +88,8 @@ export async function storeLearningRules(options: {
       if (record && profileRulePath(record.rule) === retired.relativePath) {
         records.set(retired.key, {
           ...record,
-          rule: { ...record.rule, status: "stale" },
+          rule: { ...record.rule, status: "stale", proposal: null },
+          retirementRequested: true,
         });
       }
     }

@@ -20,7 +20,6 @@ export async function skillPublication(options: {
   readonly name: string;
   readonly text: string;
   readonly records: readonly LearningRecord[];
-  readonly routingDescription?: string;
 }): Promise<{
   readonly state: EnvironmentState;
   readonly updates: readonly FileUpdate[];
@@ -129,7 +128,7 @@ export async function skillPublication(options: {
       kind: "skill" as const,
       scope: options.scope.key,
       name: options.name,
-      description: options.routingDescription || metadata.description,
+      description: metadata.description,
       learningKeys: [
         ...new Set([
           ...(tracked?.learningKeys ?? []),

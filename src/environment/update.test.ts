@@ -10,6 +10,8 @@ import { readEnvironment, writeEnvironment } from "./store";
 import { learningRecord } from "./fixtures";
 import { updateLearningEnvironment } from "./update";
 
+const updatedDescription = "Make typed code changes and validate sample palettes.";
+
 async function setupLearning() {
   const setup = await skillFixture();
   const record = learningRecord();
@@ -44,10 +46,8 @@ async function setupLearning() {
       }
 
       return skillEngineRun({
-        status: "ready",
-        reason: "Supported",
-        accountedKeys: [record.rule.key],
-        description: "",
+        outcomes: [{ key: record.rule.key, disposition: "apply", reason: "Supported" }],
+        description: updatedDescription,
         body: "",
         edits: [
           {
@@ -79,6 +79,8 @@ test("learning maintains a skill, publishes portable copies, and skips unchanged
   expect((await readEnvironment(setup.paths))?.dispositions[0]?.status).toBe(
     "published",
   );
+  expect((await readEnvironment(setup.paths))?.artifacts.filter(({ kind }) => kind === "skill")
+    .every(({ description }) => description === updatedDescription)).toBeTrue();
 
   await updateLearningEnvironment(setup);
 

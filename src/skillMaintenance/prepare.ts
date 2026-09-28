@@ -10,7 +10,7 @@ import {
 } from "./render";
 import { restoreOriginalSkill } from "./render";
 import { skillTarget } from "./state";
-import type { DiscoveredSkill, MaintenanceState, SkillProposal } from "./types";
+import type { DiscoveredSkill, MaintenanceState, SkillChangeProposal } from "./types";
 
 export function assessmentFingerprint(options: {
   readonly skill: DiscoveredSkill;
@@ -32,7 +32,7 @@ export async function prepareSkillProposal(options: {
   readonly state: MaintenanceState;
   readonly profile: string;
 }): Promise<{
-  readonly proposal: SkillProposal;
+  readonly proposal: SkillChangeProposal;
   readonly automatic: boolean;
 } | null> {
   if (

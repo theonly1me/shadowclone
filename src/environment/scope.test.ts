@@ -87,6 +87,10 @@ test("organization learning is published independently into each matching reposi
     runner: async (run) => {
       calls += 1;
 
+      if (run.prompt.includes("Review skill catalog overlap")) {
+        return skillEngineRun({ overlaps: [] });
+      }
+
       return skillEngineRun(
         run.prompt.includes("Organize durable")
           ? {
@@ -102,9 +106,7 @@ test("organization learning is published independently into each matching reposi
               ],
             }
           : {
-              status: "ready",
-              reason: "Supported",
-              accountedKeys: [record.rule.key],
+              outcomes: [{ key: record.rule.key, disposition: "apply", reason: "Supported" }],
               description: "",
               edits: [],
               body: ["# Palette validation", record.rule.body, ""].join("\n\n"),
@@ -124,7 +126,7 @@ test("organization learning is published independently into each matching reposi
       ].join("/"),
   });
 
-  expect(calls).toBe(4);
+  expect(calls).toBe(5);
   expect(
     await Bun.file(
       path.join(setup.home, "first/.agents/skills/palette-check/SKILL.md"),
