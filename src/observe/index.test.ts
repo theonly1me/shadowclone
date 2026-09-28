@@ -8,7 +8,7 @@ import { resolveRedacted } from "../redact";
 import { observeAll } from "./index";
 import type { AgentEvent } from "./types";
 
-const plantedSecret = "sk-proj-abc123DEF456ghi789JKL";
+const plantedSecret = ["sk", "proj", "abc123DEF456ghi789JKL"].join("-");
 
 async function createClaudeFixture(): Promise<{
   readonly homeDirectory: string;

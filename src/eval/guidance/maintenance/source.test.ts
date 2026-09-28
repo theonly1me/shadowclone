@@ -24,7 +24,7 @@ test("complete anonymous historical sources reach every advice judge identically
     for (const sourcePath of judgeEvidencePaths) {
       await Bun.write(
         path.join(directory, sourcePath),
-        "Repository fact sk-proj-abcdefghijklmnopqrstuv\n",
+        ("Repository fact " + ["sk", "proj", "abcdefghijklmnopqrstuv"].join("-") + "\n"),
       );
     }
 

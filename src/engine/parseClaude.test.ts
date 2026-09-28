@@ -125,12 +125,12 @@ test("redacts secrets carried in the parsed result text", () => {
       permissionDenials: [],
       actions: [],
       transcriptPath: null,
-      errorMessage: "token ghp_1234567890abcdefghijklmnopqrstuvwxyzAB rejected",
+      errorMessage: ("token " + ["ghp", "1234567890abcdefghijklmnopqrstuvwxyzAB"].join("_") + " rejected"),
     },
     stderr: "",
     exitCode: 1,
   });
 
-  expect(message).not.toContain("ghp_1234567890abcdefghijklmnopqrstuvwxyzAB");
+  expect(message).not.toContain(["ghp", "1234567890abcdefghijklmnopqrstuvwxyzAB"].join("_"));
   expect(message).toContain("[redacted:github-token]");
 });

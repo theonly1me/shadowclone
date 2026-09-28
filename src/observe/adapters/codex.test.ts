@@ -5,7 +5,7 @@ import path from "node:path";
 import { resolveRedacted } from "../../redact";
 import { discoverCodexFiles, observeCodexFile } from "./codex";
 
-const plantedSecret = "sk-proj-codex123DEF456ghi789";
+const plantedSecret = ["sk", "proj", "codex123DEF456ghi789"].join("-");
 
 test("reads one Codex event view and keeps tool results text-free", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-codex-"));

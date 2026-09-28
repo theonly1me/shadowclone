@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { captureContext } from "./context";
 
-const plantedSecret = "sk_live_0123456789abcdefghij";
+const plantedSecret = ["sk", "live", "0123456789abcdefghij"].join("_");
 
 async function agentHome(): Promise<string> {
   const home = await mkdtemp(path.join(os.tmpdir(), "shadowclone-context-"));

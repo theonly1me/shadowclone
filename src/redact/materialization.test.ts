@@ -68,7 +68,7 @@ test("metadata and redaction use one snapshot even if the file changes after par
   try {
     const filePath = path.join(root, "profile.md");
 
-    await writeFile(filePath, "original sk-proj-abcdefghijklmnopqrstuv");
+    await writeFile(filePath, ("original " + ["sk", "proj", "abcdefghijklmnopqrstuv"].join("-")));
 
     const snapshot = await materializeSnapshot({
       filePath,

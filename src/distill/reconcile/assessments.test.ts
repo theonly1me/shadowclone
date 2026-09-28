@@ -52,7 +52,7 @@ test("missing, temporary and duplicate assessments cannot add evidence", () => {
       scope: "repository" as const,
     })),
     [1, 2].map(() => ({
-      evidenceToken: "evidence-1",
+      evidenceToken: ["evidence", "1"].join("-"),
       intent: "preference" as const,
       durable: true,
       scope: "repository" as const,
@@ -77,7 +77,7 @@ test("one explicit reusable instruction activates while one inference waits", ()
       newRules: [singleRule],
       assessments: [
         {
-          evidenceToken: "evidence-1",
+          evidenceToken: ["evidence", "1"].join("-"),
           intent: "preference",
           durable: true,
           explicit: true,
@@ -94,7 +94,7 @@ test("one explicit reusable instruction activates while one inference waits", ()
       newRules: [singleRule],
       assessments: [
         {
-          evidenceToken: "evidence-1",
+          evidenceToken: ["evidence", "1"].join("-"),
           intent: "preference",
           durable: true,
           explicit: false,

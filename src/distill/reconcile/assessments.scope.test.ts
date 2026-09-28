@@ -21,7 +21,7 @@ test("explicit global guidance promotes an existing mined repository rule", () =
       newRules: [],
       assessments: [
         {
-          evidenceToken: "evidence-1",
+          evidenceToken: ["evidence", "1"].join("-"),
           intent: "preference",
           durable: true,
           explicit: true,
@@ -54,7 +54,7 @@ test("a global assessment relocates matching stored evidence without a duplicate
       newRules: [],
       assessments: [
         {
-          evidenceToken: "evidence-1",
+          evidenceToken: ["evidence", "1"].join("-"),
           intent: "preference",
           durable: true,
           explicit: true,

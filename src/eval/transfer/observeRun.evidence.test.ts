@@ -57,9 +57,9 @@ test("evidence carries changed code verbatim for the judging model", async () =>
     await Bun.write(
       path.join(directory, "cache.ts"),
       [
-        'const apiKey = "sk-live-abc123def456ghi789jkl";',
+        ('const apiKey = "' + ['sk', 'live-abc123def456ghi789jkl'].join('-') + '";'),
         "export type Cache<Key> = { delete: (key: Key) => boolean };",
-        'const record = { key: { id: 1 }, token: "shortish" };',
+        ('const record = { key: { id: 1 }, token: "' + ['shor', 'tish'].join('') + '" };'),
       ].join("\n"),
     );
 

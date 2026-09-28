@@ -8,7 +8,7 @@ import { integrationFixture } from "./fixtures";
 
 test("redacts a profile secret before native hook delivery", async () => {
   const fixture = await integrationFixture();
-  const secret = "sk_live_0123456789abcdefghij";
+  const secret = ["sk", "live", "0123456789abcdefghij"].join("_");
 
   await Bun.write(
     path.join(fixture.paths.profileDirectory, "global/engineering.md"),

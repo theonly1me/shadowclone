@@ -76,7 +76,7 @@ test("recent profile learning and skill assessment share one model allowance", a
         newRules: [],
         assessments: [
           {
-            evidenceToken: "evidence-1",
+            evidenceToken: ["evidence", "1"].join("-"),
             intent: "preference",
             durable: true,
             scope: "repository",

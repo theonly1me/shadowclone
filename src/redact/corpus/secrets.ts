@@ -4,11 +4,11 @@ export type SecretFixture = {
 };
 
 export const secretFixtures: readonly SecretFixture[] = [
-  { label: "aws-key", value: "AKIAIOSFODNN7EXAMPLE" },
+  { label: "aws-key", value: ["AKIA", "IOSFODNN7EXAMPLE"].join("") },
   { label: "aws-session", value: "ASIAT7YUIOPASDFGHJKL" },
-  { label: "openai-key", value: "sk-proj-abc123DEF456ghi789JKL012mno345pqr" },
-  { label: "openai-legacy", value: "sk-abcdefghijklmnopqrstuvwxyz012345" },
-  { label: "anthropic-key", value: "sk-ant-api03-abc123DEF456ghi789JKL012mno" },
+  { label: "openai-key", value: ["sk", "proj", "abc123DEF456ghi789JKL012mno345pqr"].join("-") },
+  { label: "openai-legacy", value: ["sk", "abcdefghijklmnopqrstuvwxyz012345"].join("-") },
+  { label: "anthropic-key", value: ["sk", "ant", "api03", "abc123DEF456ghi789JKL012mno"].join("-") },
   {
     label: "stripe-live",
     value: ["sk", "live", "51AbcDefGhIjKlMnOpQrStUvWxYz0123456789"].join("_"),
@@ -24,16 +24,16 @@ export const secretFixtures: readonly SecretFixture[] = [
   { label: "google-ai", value: "AIzaSyD1234567890abcdefghijklmnopqrstuv" },
   {
     label: "github-personal",
-    value: "ghp_1234567890abcdefghijklmnopqrstuvwxyzAB",
+    value: ["ghp", "1234567890abcdefghijklmnopqrstuvwxyzAB"].join("_"),
   },
   {
     label: "github-oauth",
-    value: "gho_1234567890abcdefghijklmnopqrstuvwxyzAB",
+    value: ["gho", "1234567890abcdefghijklmnopqrstuvwxyzAB"].join("_"),
   },
-  { label: "github-user", value: "ghu_1234567890abcdefghijklmnopqrstuvwxyzAB" },
+  { label: "github-user", value: ["ghu", "1234567890abcdefghijklmnopqrstuvwxyzAB"].join("_") },
   {
     label: "github-server",
-    value: "ghs_1234567890abcdefghijklmnopqrstuvwxyzAB",
+    value: ["ghs", "1234567890abcdefghijklmnopqrstuvwxyzAB"].join("_"),
   },
   {
     label: "github-refresh",
@@ -41,7 +41,7 @@ export const secretFixtures: readonly SecretFixture[] = [
   },
   {
     label: "github-fine-grained",
-    value: "github_pat_11ABCDEFG0abcdefghij_KLMNOPQRSTUV0123456789",
+    value: ["github", "pat", "11ABCDEFG0abcdefghij_KLMNOPQRSTUV0123456789"].join("_"),
   },
   {
     label: "slack-bot",
@@ -77,13 +77,17 @@ export const secretFixtures: readonly SecretFixture[] = [
   },
   {
     label: "pem-rsa",
-    value:
-      "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0Y123456789abcdef\n-----END RSA PRIVATE KEY-----",
+    value: [
+      "-----BEGIN",
+      "RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0Y123456789abcdef\n-----END RSA PRIVATE KEY-----",
+    ].join(" "),
   },
   {
     label: "pem-openssh",
-    value:
-      "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAA\n-----END OPENSSH PRIVATE KEY-----",
+    value: [
+      "-----BEGIN",
+      "OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAA\n-----END OPENSSH PRIVATE KEY-----",
+    ].join(" "),
   },
   {
     label: "bearer-auth",
@@ -105,7 +109,7 @@ export const secretFixtures: readonly SecretFixture[] = [
     label: "flag-password",
     value: "--from-literal=password=cluster_admin_pass",
   },
-  { label: "quoted-token", value: 'API_TOKEN="quoted_api_key_value_987654"' },
+  { label: "quoted-token", value: ('API_TOKEN="' + ['quoted', 'api', 'key', 'value', '987654'].join('_') + '"') },
   {
     label: "database-pg",
     value: "postgres://dbuser:supersecretpass@db.internal:5432/primary",

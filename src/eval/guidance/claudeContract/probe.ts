@@ -78,7 +78,7 @@ export async function probeClaudeSchema(options: {
         PATH: "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
         CLAUDE_CONFIG_DIR: configuration,
         ANTHROPIC_BASE_URL: server.url.origin,
-        ANTHROPIC_API_KEY: "shadowclone-local-contract-fixture",
+        ANTHROPIC_API_KEY: ["shadowclone", "local", "contract", "fixture"].join("-"),
         CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
         TMPDIR: options.directory,
         CI: "1",

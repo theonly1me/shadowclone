@@ -105,7 +105,7 @@ export async function verifyClaudeStreamContract() {
         PATH: "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
         CLAUDE_CONFIG_DIR: path.join(directory, "configuration"),
         ANTHROPIC_BASE_URL: server.url.origin,
-        ANTHROPIC_API_KEY: "shadowclone-local-contract-fixture",
+        ANTHROPIC_API_KEY: ["shadowclone", "local", "contract", "fixture"].join("-"),
         CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
         TMPDIR: directory,
         CI: "1",

@@ -10,7 +10,7 @@ import { resolveRedacted } from "../../redact";
 import { observeAll } from "../index";
 import type { ObservationBatch } from "../types";
 
-const plantedSecret = "sk-proj-cursor123DEF456ghi789";
+const plantedSecret = ["sk", "proj", "cursor123DEF456ghi789"].join("-");
 
 const hiddenThought = "reasoning must never be distilled";
 

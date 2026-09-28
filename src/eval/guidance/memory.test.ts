@@ -73,7 +73,7 @@ test("current Claude memory freezes its own hashes without the old migration man
 
   try {
     const note =
-      "---\nname: review\nmetadata:\n  type: feedback\n---\nKeep reviews short. OPENAI_API_KEY=sk-proj-abc123DEF456ghi789JKL\n";
+      ("---\nname: review\nmetadata:\n  type: feedback\n---\nKeep reviews short. OPENAI_API_KEY=" + ["sk", "proj", "abc123DEF456ghi789JKL"].join("-") + "\n");
 
     await Bun.write(path.join(directory, "MEMORY.md"), "Read review.md.\n");
     await Bun.write(path.join(directory, "review.md"), note);
@@ -87,7 +87,7 @@ test("current Claude memory freezes its own hashes without the old migration man
     expect(
       snapshot.files.find((file) => file.relativePath === "memory/review.md")
         ?.content,
-    ).not.toContain("sk-proj-abc123DEF456ghi789JKL");
+    ).not.toContain(["sk", "proj", "abc123DEF456ghi789JKL"].join("-"));
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

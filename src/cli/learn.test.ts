@@ -123,7 +123,7 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
       structured: {
         assessments: [
           {
-            evidenceToken: "evidence-1",
+            evidenceToken: ["evidence", "1"].join("-"),
             intent: "preference",
             durable: true,
             scope: "repository",

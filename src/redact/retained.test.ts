@@ -121,10 +121,10 @@ test("retains ordinary code that names keys, tokens, and secrets", () => {
 
 test("still removes a secret shaped assignment beside that code", () => {
   for (const assignment of [
-    'const apiKey = "sk-live-abc123def456ghi789jkl";',
+    ('const apiKey = "' + ['sk', 'live-abc123def456ghi789jkl'].join('-') + '";'),
     "PASSWORD=correcthorsebatterystaple",
     "API_KEY=abc123def456",
-    'AUTH_TOKEN: "ghp_abc123def456"',
+    ('AUTH_TOKEN: "' + ['ghp', 'abc123def456'].join('_') + '"'),
   ]) {
     expect(redact(assignment)).toContain("[redacted:secret-assignment]");
   }

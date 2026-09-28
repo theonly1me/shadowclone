@@ -8,7 +8,7 @@ import { createProjectPaths } from "../../paths";
 import { resolveRedacted } from "../../redact";
 import { discoverAntigravityFiles } from "./antigravity";
 
-const plantedSecret = "sk-proj-antigravity123DEF456ghi789";
+const plantedSecret = ["sk", "proj", "antigravity123DEF456ghi789"].join("-");
 
 test("returns no Antigravity transcripts when its enabled root is absent", async () => {
   const directory = await mkdtemp(

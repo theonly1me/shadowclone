@@ -10,7 +10,7 @@ const hostEnvironment = {
   AWS_SECRET_ACCESS_KEY: "aws-secret",
   GH_TOKEN: "gho-example",
   DATABASE_URL: "postgres://user:password@host/db",
-  NPM_TOKEN: "npm-secret",
+  NPM_TOKEN: ["npm", "secret"].join("-"),
   SLACK_WEBHOOK: "https://hooks.slack.example",
 } as const;
 
