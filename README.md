@@ -182,7 +182,7 @@ Read [the full methods, task specifications, scores, and known judging issues](e
 
 ## Built with agents
 
-I built Shadowclone without writing code by hand. Agents wrote the implementation; I set the requirements, engineering preferences, and guardrails. To me, that is still engineering. This repository has more than 800 source and test files. Ask your agent to review its architecture, code quality, and tests, then judge the result for yourself. [Why I built it and what it solves](docs/motivation.md).
+I built Shadowclone without writing code by hand. Agents wrote the implementation and I defined the architecture, set the requirements, engineering preferences, and guardrails. This repository has hundreds of source and test files. Ask your agent to review its architecture, code quality, and tests, then judge the result for yourself. [Why I built it and what it solves](docs/motivation.md).
 
 <details><summary>More commands</summary>
 
