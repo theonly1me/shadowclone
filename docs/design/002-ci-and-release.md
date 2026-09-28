@@ -29,3 +29,7 @@ Exercise each custom rule with a failing fixture and a clean fixture. Ensure the
 The `v0.0.11` release gate exposed two timing-dependent tests, although that version was later published. The deadline test allowed 200 ms for setup and receipt writes, then assumed every judge arm had saved its first vote. On a slower Linux runner, the timeout was recorded correctly but that assumption failed. A maintenance test exceeded its 30-second test limit on macOS while exercising repeated Git and receipt checks.
 
 Seed the deadline test with valid saved votes, wait for a judge call that ignores cancellation, and verify that the hard deadline preserves the receipt and resumes the remaining work. Give the deadline and maintenance tests enough time for runner variation. Run focused tests and the full check gate so future releases are not blocked by these tests.
+
+## Maintainer source scan
+
+The catalog scans Shadowclone independently, but a source change can fail that gate after passing the repository's typecheck, lint, and tests. Run the pinned HOL scanner action on pushes and pull requests with a score floor of 80 and no high-severity findings. Give it read-only repository access, keep checkout credentials out of the workspace, and leave PR comments, online probing, and SARIF upload disabled. Verify the workflow syntax, run the scanner locally against the repository, and run `bun run check` before publishing the workflow.
