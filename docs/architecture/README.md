@@ -12,7 +12,10 @@ flowchart LR
     Redaction --> Learning[Reconcile durable guidance]
     Learning --> Records[Scoped evidence records]
     Records --> Planner[Plan skill changes]
-    Library[Consented skill library] --> Planner
+    Library[Consented skill library] --> SkillText[Redacted skill documents]
+    SkillText --> Planner
+    SkillText --> Review[Review overlapping workflows]
+    Review --> Pending
     Planner --> Pending[Changes needing review]
     Planner --> Publish[Reversible publication]
     Build[Reviewed terminal or browser choices] --> Publish

@@ -6,6 +6,9 @@ import type { EnvironmentState } from "./types";
 import { learningScopes } from "./scope";
 import { skillPublication } from "./publication";
 import { materializeSnapshot } from "../redact";
+import { parseSkillDocument } from "../skillMaintenance/document";
+import { validateRouting } from "./routingValidation";
+import { pendingLearningState } from "./learningDisposition";
 
 export async function synchronizePublishedSkills(options: {
   readonly paths: ProjectPaths;
@@ -41,10 +44,6 @@ export async function synchronizePublishedSkills(options: {
       );
     }
 
-    if (changed.length === 0 && current.every(({ text }) => text !== null)) {
-      continue;
-    }
-
     const authority = changed[0] ?? current.find(({ text }) => text !== null);
 
     if (!authority?.text) {
@@ -54,6 +53,17 @@ export async function synchronizePublishedSkills(options: {
     }
 
     const { artifact, text } = authority;
+    const document = parseSkillDocument(text);
+
+    if (
+      changed.length === 0 &&
+      current.every(({ text, artifact }) =>
+        text !== null && artifact.description === document.metadata.description,
+      )
+    ) {
+      continue;
+    }
+
     const scope = learningScopes(options).find(
       (entry) => entry.key === artifact.scope,
     );
@@ -82,11 +92,10 @@ export async function synchronizePublishedSkills(options: {
       name: artifact.name,
       text,
       records: [],
-      routingDescription: artifact.description,
       skill: {
         id: fingerprint(artifact.filePath),
         name: artifact.name,
-        description: artifact.description,
+        description: document.metadata.description,
         raw: text,
         redacted: snapshot.redacted,
         body: snapshot.redacted,
@@ -103,6 +112,27 @@ export async function synchronizePublishedSkills(options: {
         },
       },
     });
+
+    try {
+      validateRouting({ paths: options.paths, state: publication.state });
+    } catch {
+      const keys = new Set(artifacts.flatMap((entry) => entry.learningKeys));
+      const records = state.records.filter(({ rule }) => keys.has(rule.key));
+
+      if (records.length === 0) {
+        throw new Error("Native routing exceeds 4 KiB. Review and shorten the validated skill descriptions before synchronizing.");
+      }
+
+      state = pendingLearningState({
+        state, scope, records, keys,
+        reasons: records.map(({ rule }) => ({
+          key: rule.key,
+          reason: "Native routing exceeds 4 KiB. Shorten the skill description, synchronize, and retry this learning. Existing routing was preserved.",
+        })),
+        destinations: artifacts.map((entry) => entry.filePath),
+      });
+      continue;
+    }
 
     state = publication.state;
     updates.push(...publication.updates);

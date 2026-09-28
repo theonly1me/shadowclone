@@ -57,6 +57,7 @@ export const learningRecordSchema = z.strictObject({
   kind: z.enum(["guidance", "context"]),
   sourceHash: z.string().nullable(),
   sourceLocator: z.string().nullable(),
+  retirementRequested: z.literal(true).optional(),
 });
 
 export const environmentRepositorySchema = z.strictObject({

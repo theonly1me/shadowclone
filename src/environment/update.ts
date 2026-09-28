@@ -9,17 +9,14 @@ import { readMaintenanceState } from "../skillMaintenance/state";
 import type { SkillUpdateSummary } from "../skillMaintenance/update";
 import { syncPersonalSkills } from "../skillMaintenance/syncPersonal";
 import { syncPortableSkills } from "../skillMaintenance/portable";
-import {
-  isOriginBlocked,
-  resolveRepository,
-  type GitRemoteReader,
-} from "../signal";
+import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "../signal";
 import { environmentFile, readEnvironment, renderEnvironment } from "./store";
 import { extractMemoryRecords } from "./memory";
 import { learningScopes } from "./scope";
 import { recordFingerprint } from "./records";
 import { publishEnvironmentRevision } from "./revision";
 import { syncLearningEnvironment } from "./sync";
+import { reviewSkillConflicts } from "../skillMaintenance/conflicts";
 
 export async function updateLearningEnvironment(options: {
   readonly paths: ProjectPaths;
@@ -181,7 +178,19 @@ export async function updateLearningEnvironment(options: {
         ),
     ).length;
 
-    return summary;
+    const review = await reviewSkillConflicts({
+      paths: options.paths,
+      execution: options.execution,
+      repositoryDirectories: registered.map(({ directory }) => directory),
+    });
+
+    return {
+      ...summary,
+      pending: summary.pending + review.pending,
+      conflicts: summary.conflicts + review.pending,
+      libraryReviewed: review.reviewed,
+      libraryDeferred: review.deferred,
+    };
   } finally {
     lock.release();
   }

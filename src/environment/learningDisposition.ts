@@ -7,10 +7,15 @@ export function pendingLearningState(options: {
   readonly records: readonly LearningRecord[];
   readonly keys: ReadonlySet<string>;
   readonly scope: LearningScope;
-  readonly reason: string;
+  readonly reasons: readonly { readonly key: string; readonly reason: string }[];
   readonly destinations: string[];
 }): EnvironmentState {
   const { state, records, keys } = options;
+  const reasons = new Map(options.reasons.map(({ key, reason }) => [key, reason]));
+
+  if (records.some(({ rule }) => !reasons.get(rule.key)?.trim())) {
+    throw new Error("Pending learning needs a reason for every record");
+  }
 
   return {
     ...state,
@@ -23,7 +28,7 @@ export function pendingLearningState(options: {
         scope: options.scope.key,
         inputFingerprint: recordFingerprint(record),
         status: "pending" as const,
-        reason: options.reason,
+        reason: `${record.rule.title}: ${reasons.get(record.rule.key)}`,
         destinations: [...options.destinations],
       })),
     ],

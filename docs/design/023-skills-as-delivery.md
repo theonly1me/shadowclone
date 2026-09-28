@@ -33,3 +33,15 @@ Private learning records and evaluation evidence stay outside the public checkou
 Cover updates and creation, baseline routing, memory idempotency, scope, consent, redaction, resource preservation, symlinks, conflicts, interrupted publication, and undo. Keep original and maintained evaluation libraries distinct. Native delivery probes use synthetic sessions; successful migration alone is not evidence of better agent behavior.
 
 Validate focused test paths and existing runtime directories before checking execution support. Unsafe links fail on every platform. A valid snapshot remains unverified on unsupported platforms, without creating a runtime directory or launching a process.
+
+## Publication quality
+
+A new draft can contain a complete skill document even when the model was asked for its body. Parse that document with the existing skill parser before rendering metadata once. Preserve the body and existing invocation settings; ambiguous metadata requires review. Store the validated description with every published artifact and refresh stale routing metadata during synchronization, including when the skill bytes have not changed. Native routing retains its 4 KiB limit and manual sections.
+
+Review overlapping workflows across the entire applicable library, including third-party packages and global skills available in a repository. Discover overlap from bounded catalogs, then compare the full redacted documents. Cache completed review work by input fingerprints and resume within the existing learning budget. Conflicts become review proposals with both sources, exact conflicting passages, and the decision required. A conflict proposal never chooses precedence or edits either skill automatically.
+
+Keep routing and drafting decisions attached to individual learning keys. A blocked shared draft leaves the skill unchanged and identifies which records block the others. Model prose and stale status alone cannot authorize retirement. Explicit retirement provenance remains separate from pending revisions or contradictions.
+
+Explain missing scope, candidate evidence, conflicting evidence, and publication backlog separately. Organization guidance without a matching registered repository remains scoped and deferred. A feature request is not automatically a standing preference, and a dated product fact is not automatically obsolete. Uncertain classifications retain their evidence for review.
+
+Implement document rendering and routing first, then keyed decisions and scope diagnostics, followed by whole-library conflict review. Verify these boundaries with synthetic fixtures, failed-before-fix regressions, budget exhaustion and retry, manual ownership, and the full repository gate. Exercise native routing through a synthetic Git repository so quality regressions do not depend on evaluation harness changes. Frozen evaluation environments and private receipts remain unchanged; repaired environments are evaluated as separate revisions.

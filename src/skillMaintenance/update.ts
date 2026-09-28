@@ -24,6 +24,8 @@ export type SkillUpdateSummary = {
   readonly verification: number;
   readonly synced: number;
   readonly conflicts: number;
+  readonly libraryReviewed?: number;
+  readonly libraryDeferred?: number;
 };
 
 export async function updateSkillLibrary(options: {

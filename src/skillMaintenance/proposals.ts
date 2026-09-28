@@ -97,6 +97,7 @@ export async function showSkillProposal(options: {
   const sourcePath = proposalPath(options);
 
   return resolveRedacted({
+    roots: [options.paths.shadowcloneDirectory],
     ref: {
       type: "file",
       sourcePath,
