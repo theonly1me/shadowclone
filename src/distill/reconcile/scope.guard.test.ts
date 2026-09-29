@@ -4,7 +4,7 @@ import { applyReconciliation } from "./apply";
 import { repositoryBound } from "./scope";
 
 test("repository-bound wording and paths are detected without flagging personal phrasing", () => {
-  expect(repositoryBound("Never read packages-runner/tester-gym/src/scenarios-validation/ in this repository.")).toBe(true);
+  expect(repositoryBound("Never read services/billing/src/fixtures/ in this repository.")).toBe(true);
   expect(repositoryBound("Run the checks in src/index.ts before committing.")).toBe(true);
   expect(repositoryBound("Keep the codebase free of generated files in this repo.")).toBe(true);
   expect(repositoryBound("Write commit messages as a subject line only, and/or ask before pushing.")).toBe(false);
@@ -12,16 +12,17 @@ test("repository-bound wording and paths are detected without flagging personal 
 });
 
 test("global evidence does not promote a repository-bound rule", () => {
-  const rule = { ...storedRule(), body: "Never modify packages-runner/tester-gym/src/scenarios-validation/ in this repository." };
+  const evidenceToken = ["evidence", "1"].join("-");
+  const rule = { ...storedRule(), body: "Never modify services/billing/src/fixtures/ in this repository." };
   const applied = applyReconciliation({
     context: contextWithRule(rule),
     output: {
       existingRules: [{
         ruleToken: "rule-1", verdict: "reinforces", observed: "The user restated the instruction.",
-        evidenceTokens: ["evidence-1"], proposedTitle: "", proposedBody: "", axisChoiceToken: "",
+        evidenceTokens: [evidenceToken], proposedTitle: "", proposedBody: "", axisChoiceToken: "",
       }],
       newRules: [],
-      assessments: [{ evidenceToken: "evidence-1", intent: "preference", durable: true, explicit: true, scope: "global" }],
+      assessments: [{ evidenceToken, intent: "preference", durable: true, explicit: true, scope: "global" }],
     },
   });
 

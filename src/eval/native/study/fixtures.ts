@@ -1,4 +1,5 @@
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import type { NativeEngineOptions, NativeEngineRun } from "../../../engine/native";
 import { fingerprint } from "../../shared/structured";
@@ -22,7 +23,7 @@ export function studyTask(overrides: Partial<StudyTask> = {}): StudyTask {
 }
 
 export async function studyFixture(options: { tasks?: readonly StudyTask[] } = {}) {
-  const root = await mkdtemp(path.join("/private/tmp", "study-fixture-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "study-fixture-"));
   const templateDirectory = path.join(root, "template");
   const outputDirectory = path.join(root, "output");
   await mkdir(outputDirectory, { recursive: true, mode: 0o700 });
