@@ -87,7 +87,7 @@ Claude's first scores were understated by the scorer. It piped test runs through
 
 **Runs.** Sonnet 5.5 at high effort, Opus 5.5 at medium effort, and GPT-6 Luna at high effort each ran controls, froze their checks, and ran three repetitions of four setups. The prepared environments were reused. GPT-6 Sol keeps its original suite, rescored with the repaired scorer, which changed no verdict.
 
-**Outcome.** Bare Sonnet 5.5, Opus 5.5, and GPT-6 Luna already met 14, 13, and 18 of the 25 candidate checks by default, so the second view keeps 7, 8, and 6 checks on four tasks each. Every candidate task ran for every agent. Sessions on tasks with no achievable check are not reported.
+**Outcome.** Bare Sonnet 5.5, Opus 5.5, and GPT-6 Luna already met 14, 13, and 18 of the 25 candidate checks by default, so the second view keeps 7, 8, and 6 checks on four tasks each. Sessions on tasks with no achievable check are not reported.
 
 ## Honest baseline and noise
 
