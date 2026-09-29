@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.12](https://github.com/theonly1me/shadowclone/compare/v0.0.11...v0.0.12) (2026-09-29)
+
+
+### Features
+
+* **eval:** add the preference study for Codex and Claude and remove superseded protocols ([#86](https://github.com/theonly1me/shadowclone/issues/86)) ([247e960](https://github.com/theonly1me/shadowclone/commit/247e960d9defa8910a67b59ce0590f50195b05a9))
+
+
+### Fixes
+
+* **environment:** preserve skill publication and review decisions ([#83](https://github.com/theonly1me/shadowclone/issues/83)) ([340a15f](https://github.com/theonly1me/shadowclone/commit/340a15f66c22d89cee65bf58e69640f8e85e6ecc))
+
 ## [0.0.11](https://github.com/theonly1me/shadowclone/compare/v0.0.10...v0.0.11) (2026-09-27)
 
 
