@@ -76,7 +76,7 @@ export function renderBuildRouting(options: {
   const lines = [
     "## Your agent build",
     "",
-    "Follow repository requirements. Repository build choices override personal global choices. Load the selected workflow skills when their descriptions match the task.",
+    "Follow repository requirements. Repository build choices override personal global choices. Load the selected workflow skills when their descriptions match the task. When a selected workflow skill conflicts with the user's own skills or learned baseline rules, follow the user's guidance.",
   ];
 
   for (const artifact of artifacts.values()) {

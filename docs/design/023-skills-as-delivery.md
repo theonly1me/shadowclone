@@ -20,7 +20,7 @@ Read consented Claude memory for registered repositories and use source hashes t
 
 Migration previews by default. Before switching delivery, freeze the original library and instructions, map active profile entries and references, record unresolved scopes, validate coverage, and publish successfully. Retain legacy profiles for recovery. Source consent alone does not authorize skill writes.
 
-Context diagnostics, hooks, MCP, dispatch, optional subagents, and repository setup use the shared skills delivery path. Historical evaluators retain their original profile semantics. The new skills protocol compares Bare, original Skills, original Skills + Memory, and maintained Skills + native routing.
+Context diagnostics, hooks, MCP, dispatch, optional subagents, and repository setup use the shared skills delivery path. The [preference study](027-preference-study.md) evaluates the resulting delivery.
 
 ## Tradeoffs
 

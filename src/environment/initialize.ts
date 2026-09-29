@@ -13,7 +13,7 @@ import { skillPublication } from "./publication";
 import { publishEnvironmentRevision } from "./revision";
 
 const baseline =
-  "---\nname: shadowclone-baseline\ndescription: Read before every task for universal working guidance.\n---\n\n# Baseline\n\nFollow the current request and select the applicable workflow skills before acting. Learned guidance does not grant permission for additional actions.\n";
+  "---\nname: shadowclone-baseline\ndescription: Read before every task for universal working guidance.\n---\n\n# Baseline\n\nFollow the current request and select the applicable workflow skills before acting. Learned guidance does not grant permission for additional actions.\n\nLearned guidance sets defaults for choices the request leaves open. An explicit request in the current conversation takes precedence; do not ask for permission the user already gave. When a bundled workflow skill conflicts with the user's own skills or these rules, follow the user's guidance.\n";
 
 export async function ensureBaselineSkill(paths: ProjectPaths): Promise<void> {
   const state = await readEnvironment(paths);

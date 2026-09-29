@@ -69,7 +69,7 @@ Reading a library and allowing automatic edits are separate choices. Supported c
 
 With maintenance enabled, updates also review overlapping workflows across the applicable library, even when no new learning is waiting. A conflict proposal contains both supporting passages and the decision needed. Inspect it with `shadowclone skills show <proposal-id>`. Conflict proposals cannot apply edits or choose precedence. Resolve the owning instructions and run an update again, or dismiss an unsupported finding with `shadowclone skills reject <proposal-id>`.
 
-`skills pending` distinguishes candidate evidence, missing repository scope, conflicting evidence, and publication backlog. Each learning decision belongs to its own rule and scope. Organization guidance waits for a matching registered repository; it is never promoted to global guidance to finish publication. Stale status alone does not authorize removing an instruction.
+`skills pending` distinguishes candidate evidence, missing repository scope, conflicting evidence, and publication backlog. Each learning decision belongs to its own rule and scope. Organization guidance waits for a matching registered repository; it is never promoted to global guidance to finish publication. With Git-metadata consent and skill maintenance enabled, setup and `learn --deep` register the repository you run them in. Stale status alone does not authorize removing an instruction.
 
 Personal skills use `~/.agents/skills` as their canonical directory. Claude and Antigravity receive copies; Codex and Cursor discover that directory. Repository skills live under `.agents/skills` and `.claude/skills`. `shadowclone sync` propagates a changed maintained copy, refreshes native routing from its validated description, and preserves conflicting edits for review. Routing overflow requires shorter descriptions or narrower routes; existing native instructions remain intact.
 
@@ -131,7 +131,7 @@ This changes the guidance an existing model receives, not its weights. It does n
 | Source | What access can include |
 | --- | --- |
 | Agent sessions | Claude Code sessions and prompt history, Codex sessions, Cursor chats, and Antigravity logs and workspace attribution |
-| Memory | Read-only Claude memory for registered repositories; selected native memory can also be frozen for evaluation |
+| Memory | Read-only Claude memory for registered repositories |
 | Instructions and skills | Native agent instructions, repository rules, and consented personal, repository, custom, or third-party skills |
 | Shell history | Separately enabled `.zsh_history` and `.bash_history` |
 | Git metadata | Remote names used to keep guidance scoped to its repository and owner |
@@ -146,7 +146,7 @@ The [source inventory](docs/data-handling.md#sources) lists exact paths and sett
 | Learning and skill maintenance | Selected redacted instructions, steering, and supporting context |
 | Browser editor | Nothing merely from opening it; optional AI drafting sends reviewed form fields, and build descriptions have a separate reviewed request |
 | Delegated `run` | The authorized task worktree and guidance |
-| Evaluation | The chosen repository snapshot and frozen context; judges receive generated code without redaction |
+| Evaluation | Synthetic task prompts, the tested setup's skills and instructions, and the generated code |
 
 Redaction catches known secret, host, path, and entropy patterns. It can miss sensitive prose or unusual secrets. Use sources and repositories you are authorized to send to the chosen provider. Native memory stays read-only, third-party packages stay unchanged, and automatic skill edits need separate permission.
 
@@ -166,29 +166,24 @@ Disable background learning with `shadowclone learning disable`, stop automatic 
 
 ## Evaluations
 
-We measure whether guidance changes an agent’s behavior on the same tasks, keeping preference adherence, correctness, and safety separate. The results below come from the earlier profile-based system. Current skills evaluations compare **Bare**, **original Skills**, **original Skills + Memory**, and **maintained Skills + native routing**, preserving the original library as a baseline.
+**What is measured.** Whether a coding agent follows one user's engineering preferences on ordinary requests. Each request ran in four setups: **without Shadowclone or user skills**, **with user skills**, **with Shadowclone skills**, and **with Shadowclone skills and deep learning**, which adds learning from the user's past sessions.
 
-**Early preference comparison.** GPT-5.6 Sol at medium reasoning effort completed four TypeScript tasks, once per setup. Each implementation was judged against the same 17 preference checks, with three model votes per check. Bare received repository guidance; Skills added existing personal skills and context; Clone added the Shadowclone profile.
+**Results.** GPT-6 Sol, GPT-6 Luna, Sonnet 5.5, and Opus 5.5 ran synthetic repository tasks three times per setup on eight to ten tasks. Deterministic checks score preferences each agent follows when told. Cells count checks followed out of checks run, with the multiple over the first row in parentheses.
 
-| Task | Bare | Skills | Clone |
-| --- | ---: | ---: | ---: |
-| Byte quantities | 11/17 | 14/17 | 15/17 |
-| Integer ranges | 15/17 | 14/17 | 16/17 |
-| Ordered query parameters | 15/17 | 16/17 | 16/17 |
-| Bounded undo/redo | 14/17 | 15/17 | 15/17 |
-| Total | 55/68 (80.9%) | 59/68 (86.8%) | 62/68 (91.2%) |
+| Setup | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
+| --- | ---: | ---: | ---: | ---: |
+| Without Shadowclone or user skills | 47 of 72 | 46 of 69 | 35 of 60 | 35 of 60 |
+| With user skills | 58 of 68 (1.3x) | 62 of 72 (1.3x) | 44 of 63 (1.2x) | 50 of 63 (1.4x) |
+| With Shadowclone skills | 59 of 71 (1.3x) | 57 of 72 (1.2x) | 43 of 61 (1.2x) | 42 of 60 (1.2x) |
+| With Shadowclone skills and deep learning | 65 of 69 (1.4x) | 61 of 72 (1.3x) | 47 of 61 (1.3x) | 50 of 60 (1.4x) |
 
-Clone exceeded Skills on two tasks and tied on two, an aggregate difference of 4.4 percentage points. These are guideline checks, not correctness or productivity scores. Candidate tests were not executed. The sample was small, the personal skills were not optimized for the comparison, and judges made documented mistakes around assertions and test setup. The recorded scores have not been silently corrected.
+**What it shows.** Deep learning followed the highest share on GPT-6 Sol, Sonnet 5.5, and Opus 5.5, and user skills on GPT-6 Luna. Without help the agents already follow most of these checks, so the gains are 1.3x to 1.4x. The gain over no help is clear (95% interval excludes zero) on GPT-6 Sol and Opus 5.5, and not on the other two.
 
-Later guidance-and-memory comparisons were mixed. After one explicitly directed reference correction, Shadowclone scored 9/10 on preferences and 8/8 on shared-memory checks; native memory scored 10/10 and 6/8. Shadowclone still used a prohibited cast and changed files outside the task. The conditions had different reference content, and runtime correctness remained unverified. These results do not establish autonomous repair or general superiority. [Later comparison details](docs/design/021-guidance-evaluation.md#recorded-comparisons).
+**Where it helps most.** Deep learning followed the review-reply preferences in every session on all four agents. On checks each agent misses by default, it followed 3.9x as many as no help on GPT-6 Sol and 3.5x on GPT-6 Luna, and 7 of 21 and 14 of 24 on the Claude models, where no help followed none.
 
-**Repository setup pilot.** Claude Code ran the same task with and without repository setup on two synthetic projects. Both arms passed held-out acceptance checks and the project gate, and neither committed. On the Python project, the baseline skipped a test while the configured agent added one. This was one run per arm per project, so it demonstrates a working practice in that sample, not a general improvement.
+Each agent has its own tasks and checks, so compare setups within a column. [Task selection, per-task results, and intervals](evals.md). [How to run the study](docs/architecture/09-evaluation.md).
 
-Read [the full methods, task specifications, scores, and known judging issues](evals.md). The [evaluation guide](docs/architecture/09-evaluation.md) explains running your own comparison, isolation, explicit spending limits, and recovery. Successful migration or skill publication alone is not evidence of improved behavior.
-
-## Built with agents
-
-I built Shadowclone without writing code by hand. Agents wrote the implementation and I defined the architecture, set the requirements, engineering preferences, and guardrails. This repository has hundreds of source and test files. Ask your agent to review its architecture, code quality, and tests, then judge the result for yourself. [Why I built it and what it solves](docs/motivation.md).
+## More commands
 
 <details><summary>More commands</summary>
 

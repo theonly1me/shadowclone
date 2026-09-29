@@ -1,66 +1,72 @@
 # Evaluation
 
-Evaluation compares how guidance changes an agent's behavior on the same tasks. Preference adherence, correctness, and execution safety are separate results. A completed comparison can show a tie or a loss. [Published results](../../README.md#evaluations) describe the early measurements and their limits.
+The preference study compares how agents follow one user's engineering preferences under different setups. Preference adherence, correctness, and safety are separate results, and a completed comparison can show a tie or a loss. [Published results](../../evals.md) describe the measurements and their limits.
 
-## Skills environment protocol
+## Setups compared
 
-`shadowclone eval --protocol guidance-skills-v1` compares the original library saved before migration with the maintained environment:
+| Setup | Report name | Inputs |
+| --- | --- | --- |
+| Without Shadowclone or user skills | `bare` | Repository guidance only, with personal memory disabled |
+| With user skills | `original` | The user's own skills and native instructions |
+| With Shadowclone skills | `first-time` | User skills plus Shadowclone setup with a scripted wizard build |
+| With Shadowclone skills and deep learning | `deep` | Setup after migrating the learned profile and running deep learning to completion |
 
-| Condition | Inputs |
+Each setup gets an isolated agent home. The setups with user skills start from identical native memory, and none receives an aggregated profile. The learning model is GPT-6 Sol at medium effort.
+
+Candidates run through the agent's own CLI and native skill discovery: Codex with GPT-6 Sol at medium effort or GPT-6 Luna at high effort, and Claude Code with Sonnet 5.5 at high effort or Opus 5.5 at medium effort.
+
+Opus 5.5 needs a newer Claude Code than some installations carry. Put a private copy first on the path instead of upgrading the installed one.
+
+## Phases
+
+Each phase gates the next, and every phase writes to a private study directory.
+
+| Phase | What it does |
 | --- | --- |
-| Bare | Task and repository-native guidance |
-| Original Skills | Bare plus the original personal instructions and skill library |
-| Original Skills + Memory | Original Skills plus frozen native memory |
-| Maintained Skills | Bare plus maintained skills and native routing |
+| `prepare` | Builds the arms in isolated homes: `original`, `first-time`, `deep`, `deep-continue`, `resolve`, `activate`, then `freeze`. For Claude, `claude` installs its routing and `freeze-claude` captures its files |
+| `coverage` | Audits which key items each arm's guidance covers, and stops if deep covers nothing first-time lacks |
+| `assemble` | Builds a draft suite from the preparation, key, and task files |
+| `derive` | Builds a suite for an agent and model from a candidate suite, keeping its tasks, checks, and analysis. `--model` and `--effort` select the model |
+| `validate` | Verifies code fixtures, calibrates judged checks, runs bare and told controls, and freezes the checks that discriminate into `<suite>.frozen.json`. `--report-only` runs the controls and drops nothing |
+| `run` | Runs the scored matrix with bounded concurrency. `--arms` runs only the listed arms |
+| `report` | Reduces the scored receipt to checks followed per task and setup with multiples over the baseline, adherence, fidelity, group results, and bootstrap intervals. `--base-receipt-file` supplies sessions for tasks or arms not rerun. `--candidate-suite-file` adds the achievable view, which rescores stored sessions against every candidate check that told passed |
 
-The maintained condition receives no compiled profile or separate reference store. Both libraries retain supporting files; routing points into the isolated snapshot. Native memory is frozen with hashes and remains read-only. Skill selection and successful reading are measured separately from adherence and correctness.
+```bash
+shadowclone eval --protocol preference-study-v1 --phase prepare --stage original --preparation-file <file> --yes
+shadowclone eval --protocol preference-study-v1 --phase coverage --preparation-file <file> --key-file <file> --yes
+shadowclone eval --protocol preference-study-v1 --phase validate --suite-file <draft> --output-directory <dir> --yes
+shadowclone eval --protocol preference-study-v1 --phase run --suite-file <frozen> --output-directory <dir> --yes
+shadowclone eval --protocol preference-study-v1 --phase report --suite-file <frozen> --output-directory <dir> --coverage-file <file> --yes
+```
 
-Choose reviewed cases before running. Use a repository whose code and guidance you are authorized to send to the selected provider. Required arguments include `--repo`, `--model`, `--reasoning-effort medium`, `--max-budget-usd`, `--max-calls`, `--deadline-seconds`, and `--yes`.
+## Tasks and checks
 
-Choose one source of work:
+Tasks are short requests on a synthetic repository with Git history, a local remote, and an offline `gh` stub that records pull request creation. Prompts are sent verbatim, with no evaluation preamble and no statement of the preference being measured. Code tasks carry hidden acceptance tests.
 
-- `--scenario-file <path>` prepares reviewed cases; `--memory-source <path>` can select their memory input.
-- `--suite-id <id>` reuses frozen tasks and sources.
-- `--eval-id <id>` resumes saved work with its original settings and limits.
+Most checks are deterministic: introduced comments and unsafe types, positional parameters, action order, commit subjects, pull request records, and answer length. Semantic checks need calibrated examples and two blinded judgments, and disagreement stays unknown.
 
-Claude requires a supported `claude-sonnet-5` model ID and a local schema-contract preflight. Codex uses `--engine codex --model gpt-6-luna` and supports fresh, frozen, and ordinary resumed skills evaluations. The resolved model must match the requested model. A `--pilot` run has a maximum $5 ceiling; pilots do not establish general superiority.
+## Isolation
 
-## Isolation and evidence
+Candidates run in disposable workspaces and homes. Native filesystem policies confine writes, deny credential reads, and disable the network. Git writes are allowed only in the disposable workspace and its local remote, so the study scores them instead of treating them as safety failures.
 
-Preparation freezes the repository's committed HEAD. Uncommitted work is excluded and reported by count. Preflight rejects unsafe archive entries, escaping or broken links, and submodules before a candidate runs. Each condition gets an independent disposable snapshot with the same task, model settings, and execution constraints.
+Claude Code runs with its own sandbox, and a Claude workspace imports the shared repository instructions through `CLAUDE.md`. Advice tasks mount their workspace read-only. Neither agent runs inside a second sandbox, because native sandbox helpers cannot start nested. A model mismatch or a change to protected guidance stops the run.
 
-Remove native Shadowclone injections before constructing each condition. Disable ambient hooks and MCP access, and block live personal guidance and the real repository. Candidate writes are confined to the snapshot, with Git metadata protected. Check HEAD, refs, and local configuration for unauthorized changes.
+## Controls and freezing
 
-Evaluation does not install dependencies, run install scripts, or launch the repository-wide test graph. Guidance protocols that support execution run changed focused tests in a restricted local sandbox with network and home access denied. Invalid test paths or linked runtime directories fail verification. Report pass, fail, or not-verified independently of preference scores.
+Before personal arms run, bare and told controls select the checks, separately for each agent and model. Told is bare plus the task's preferences stated in the prompt. A check stays only if told passes it twice and bare fails it at least once. The frozen suite keeps checks bare fails.
 
-Save diffs, changed-file contents, action metadata, and advice responses before judging. Generated code is unredacted evidence and remains private. Missing, oversized, or truncated evidence cannot pass. Count a reference read only after its successful tool result; an attempted read or a mentioned skill name is insufficient. Shell reads are not currently credited.
+The achievable view also keeps checks bare already meets and drops only checks that told fails or that never apply. A task with no kept check leaves the suite.
 
-## Judging and interpretation
+Freeze the key, wizard build, resolution rule, tasks, checks, environments, model, CLI version, and product commit before scoring. Resume never changes frozen inputs.
 
-Freeze visible completion requirements and source-backed criteria before candidate execution. Keep judge-only source evidence separate from candidate prompts. Exact syntax constraints use deterministic checks; other guidance criteria use two blinded judgments. Disagreements remain unresolved. Workflow compliance does not by itself prove technical validity or runtime correctness.
+## Budgets and recovery
 
-Reports distinguish task completion, preferences, memory accuracy, relevant skill reads, timing, and safety. Unknown or unfinished work stays ungraded. Favorable preference scores do not cancel correctness or safety regressions. Native-loader compatibility requires separate delivery probes because supplying frozen context explicitly does not test discovery.
+Each phase has a call ceiling and a deadline. Sessions persist as they finish. Resume runs only missing work, marks interrupted sessions as errors, and never repeats an unfavorable result. Unknown cost is retained as unknown, and the study stops when a subscription allowance is exhausted, without paid overflow or a model substitution.
 
-Small samples, overlapping criteria, stale baseline guidance, and model-judge errors limit interpretation. Multiple votes can repeat the same mistake. Successful publication or migration is not evidence that the maintained environment improves behavior.
+## Interpretation
 
-## Persistence and budgets
+The headline view keeps every achievable check, and a second view keeps only checks bare fails. Both weight tasks equally. Fidelity restricts an arm to the key items its guidance covers, which measures whether the preferences it carries are followed. Intervals resample tasks and then sessions within a task, and a comparison counts only when its 95% interval excludes zero.
 
-Private suites live under `~/.shadowclone/eval-suites/`. Guidance receipts, reduced reports, and durable budgets live under `~/.shadowclone/eval/<evalId>/` as `guidance-state.json`, `guidance-report.json`, and `budget.json`.
+Small samples, four to eight tasks per agent, and one user's preferences limit the result. Each agent has its own checks, so results compare setups within an agent, never agents with each other.
 
-Persist candidates and validated votes as they finish. Resume retries only missing work and verifies frozen sources, engine, model, judge contract, and original limits. It does not reset spend or renew a deadline. Unknown cost, exhausted limits, model mismatch, and safety failures stop execution. Unfavorable scores do not trigger automatic reruns.
-
-Reduced reports omit task prompts, private guidance, and code evidence. Review summaries before publishing them; raw receipts and transcripts stay outside public checkouts. [Data handling](../data-handling.md) covers provider access and local storage.
-
-## Historical protocols
-
-Existing receipts keep their original interpretation. Do not use their profile-based results as evidence about the skills environment.
-
-| Protocol | Comparison |
-| --- | --- |
-| Transfer, the original `shadowclone eval` | Bare repository guidance; added personal context including available memory; that context plus a compiled profile |
-| `guidance-v1` | Bare, personal Skills, Skills + verified memory snapshot, Skills + profile and references |
-| `guidance-v2` | The guidance comparison using a 4 KiB startup index, current memory snapshots, and restricted focused-test execution |
-
-Transfer tasks can come from `--task`, `--task-file`, generated `--tasks`, or a frozen `--suite-id`. Its default is three tasks and two repetitions. Generated tasks add bounded modules and tests without changing project wiring. Its versioned rubric covers 17 coding-preference categories, with three votes per criterion in batches of at most eight. Correctness is model review, without executing the candidate tests. The decision-grade label requires three tasks, two repetitions, and six scored pairs; it does not establish statistical significance.
-
-`guidance-v1` requires a memory migration manifest when preparing scenarios and checks source hashes. `guidance-v2` freezes current memory directly. Neither modifies live memory. The [guidance design record](../design/021-guidance-evaluation.md) preserves the experiment methods and results. [Compatibility options](../evaluation-compatibility.md) document linked historical runs and recovery.
+A favorable score does not offset a correctness or safety regression. Reduced reports omit prompts, private guidance, and code evidence. [Data handling](../data-handling.md) covers provider access and local storage, and the [design record](../design/027-preference-study.md) explains the method.

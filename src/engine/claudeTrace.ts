@@ -85,7 +85,7 @@ export function claudeTrace(stream: string): {
         action: {
           tool: block.name,
           path: typeof rawPath === "string" ? rawPath : null,
-          command: typeof fields.command === "string" ? fields.command : null,
+          command: typeof fields.command === "string" ? fields.command : typeof fields.skill === "string" ? fields.skill : null,
           requestSequence: sequence,
         },
       });

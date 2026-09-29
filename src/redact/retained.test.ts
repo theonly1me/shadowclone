@@ -88,7 +88,7 @@ test("retains repository relative paths that only look high entropy", () => {
     "packages/collections/src/operations/groupBySize.test.ts",
     "apps/service/src/controllers/taskCoordinator.ts",
     "packages/utilities/src/scheduling/retryDelays.ts",
-    "src/eval/transfer/candidateValidation.test.ts",
+    "src/eval/study/candidateValidation.test.ts",
   ];
 
   for (const value of paths) {

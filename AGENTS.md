@@ -1,6 +1,6 @@
 # Working on Shadowclone
 
-Shadowclone maintains portable coding-agent skills from consented sessions and memory. Active installations deliver skills and small native instruction sections; legacy profiles remain for migration and historical evaluations.
+Shadowclone maintains portable coding-agent skills from consented sessions and memory. Active installations deliver skills and small native instruction sections; legacy profiles remain for migration.
 
 ## Read first
 
@@ -14,7 +14,7 @@ Inspect the current worktree and preserve unrelated edits. Record the change’s
 
 Keep types and names explicit. Use Bun, the existing module boundaries, and the repository’s checks. Avoid introducing dependencies without a concrete reason.
 
-Keep active skills delivery separate from legacy profile compatibility. Do not inject an aggregated profile into an active skill environment or change historical evaluation semantics.
+Keep active skills delivery separate from legacy profile compatibility. Do not inject an aggregated profile into an active skill environment.
 
 ## Checks
 

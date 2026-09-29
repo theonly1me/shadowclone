@@ -17,6 +17,7 @@ import {
   readRedactedEnvironment,
   renderEnvironment,
 } from "./store";
+import { redactSecrets } from "../redact";
 import { learningRuleSchema, type LearningRecord } from "./types";
 
 export function recordFingerprint(record: LearningRecord): string {
@@ -31,8 +32,9 @@ export async function learningSnapshot(
   paths: ProjectPaths,
 ): Promise<ProfileSnapshot | null> {
   const state = await readRedactedEnvironment(paths);
+  const original = await readEnvironment(paths);
 
-  if (state === null) {
+  if (state === null || original === null) {
     return null;
   }
 
@@ -44,11 +46,11 @@ export async function learningSnapshot(
       promptAppliesWhen: rule.appliesWhen,
       promptProposal: rule.proposal,
     })),
-    rejections: parseProfileRejectionText(state.rejectionText).map(
+    rejections: parseProfileRejectionText(original.rejectionText).map(
       (rejection) => ({
         rejection,
-        promptTitle: rejection.title,
-        promptBody: rejection.body,
+        promptTitle: rejection.title === null ? null : redactSecrets({ text: rejection.title }),
+        promptBody: rejection.body === null ? null : redactSecrets({ text: rejection.body }),
       }),
     ),
   };

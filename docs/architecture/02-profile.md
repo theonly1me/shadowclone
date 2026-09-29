@@ -24,7 +24,7 @@ Active updates review overlapping workflows across the full applicable library, 
 
 ## Scope and ownership
 
-Global output contains global learning only. Project output requires a registered repository with verified Git identity. Organization guidance remains within its remote-owner scope. Imported repository instructions remain evidence without being republished as duplicate behavior.
+Global output contains global learning only. Project output requires a registered repository with verified Git identity. Setup and deep learning register the working repository when Git metadata and skill maintenance are consented. Organization guidance remains within its remote-owner scope. Imported repository instructions remain evidence without being republished as duplicate behavior.
 
 Pending diagnostics distinguish candidate evidence, unresolved scope, conflicting evidence, unconfirmed retirement, and publication backlog for each applicable scope. Organization records without a matching registered repository stay deferred. Product requests and dated facts retain their provenance while uncertain durability or currency remains a review question.
 
@@ -44,4 +44,4 @@ Recurring Claude memory extraction requires the named source and a registered, m
 
 Migration freezes original skills and native instructions, retains legacy learning, and publishes in bounded batches. Delivery switches only after coverage and file validation. Legacy profile files remain recovery artifacts; unmigrated installations continue using their compiler. See [migration](../migration.md).
 
-Hooks, optional subagents, dispatch, and MCP use the active delivery path. `shadowclone_context` returns scoped routing; `shadowclone_profile` remains a deprecated alias. Historical evaluators retain their original profile semantics. The [skills evaluation protocol](09-evaluation.md#skills-environment-protocol) freezes original and maintained libraries separately.
+Hooks, optional subagents, dispatch, and MCP use the active delivery path. `shadowclone_context` returns scoped routing; `shadowclone_profile` remains a deprecated alias. The [preference study](09-evaluation.md) compares original and maintained libraries in separate arms.

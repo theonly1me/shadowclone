@@ -134,3 +134,15 @@ test("redacts secrets carried in the parsed result text", () => {
   expect(message).not.toContain(["ghp", "1234567890abcdefghijklmnopqrstuvwxyzAB"].join("_"));
   expect(message).toContain("[redacted:github-token]");
 });
+
+test("records the invoked skill name for Skill tool requests", () => {
+  const stream = [
+    JSON.stringify({ type: "system", subtype: "init", model: "claude-synthetic" }),
+    JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", id: "tool-1", name: "Skill", input: { skill: "names" } }] } }),
+    JSON.stringify({ type: "user", message: { content: [{ type: "tool_result", tool_use_id: "tool-1", is_error: false }] } }),
+    JSON.stringify({ type: "result", subtype: "success", is_error: false, result: "done", num_turns: 1 }),
+  ].join("\n");
+
+  const run = parseClaudeStream({ stream, fallbackSessionId: "fallback" });
+  expect(run.actions).toEqual([expect.objectContaining({ tool: "Skill", command: "names", succeeded: true })]);
+});

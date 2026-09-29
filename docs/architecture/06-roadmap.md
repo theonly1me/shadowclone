@@ -6,7 +6,7 @@ The [architecture overview](README.md) describes the implementation. These prior
 
 Learning must preserve the intent of an existing workflow, choose an appropriate skill, and leave uncertain changes reviewable. Synthetic tests cover publication and ownership; behavioral evaluation must also measure whether agents select the skill and follow it on fresh work.
 
-Original libraries and native memory remain separate baselines. Results from the earlier profile compiler do not establish the quality of skills delivery. [Evaluation](09-evaluation.md) describes the measurements and limitations.
+Original libraries and native memory remain separate baselines. [Evaluation](09-evaluation.md) describes the measurements and limitations.
 
 ## Provider qualification
 

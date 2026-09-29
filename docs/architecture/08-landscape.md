@@ -18,4 +18,4 @@ Using the installed agent CLI avoids a separate model-account setup. Requests st
 
 Well-maintained instructions may already express what a user needs. The useful comparison is the effort and quality of maintaining that environment over time. Additional guidance can help, have no effect, or introduce conflict.
 
-The [published experiments](../../evals.md) measured the earlier profile delivery on a small set of tasks. They do not establish superiority over maintained skills or native memory. Current evaluation freezes original and maintained environments separately.
+The [published experiments](../../evals.md) compare Shadowclone setups with a user's own maintained skills on a small set of tasks. They cover one user's preferences and do not establish results for other users or tools.

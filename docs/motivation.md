@@ -24,7 +24,7 @@ A correction should improve the next session without turning every interaction i
 
 I want to see why guidance exists and undo a change I disagree with. Existing skills and memory should remain useful, and edits should preserve the work already in them.
 
-Learning also needs evidence. The [evaluations](../README.md#evaluations) found differences in preference adherence, along with judging mistakes and small samples. Those experiments used the earlier profile delivery. They do not establish that maintained skills improve every task or save a particular amount of time. Guardrails help direct and check an agent's work; they cannot promise perfect adherence.
+Learning also needs evidence. The [evaluations](../README.md#evaluations) found that setups differ in how well an agent follows preferences, and that a first run exposed product defects that later runs fixed. The samples are small and cover one user's preferences. They do not establish that maintained skills improve every task or save a particular amount of time. Guardrails help direct and check an agent's work; they cannot promise perfect adherence.
 
 The project succeeds if it reduces the work of keeping an agent environment useful. Measuring that honestly includes reporting when extra guidance makes no difference or makes an agent worse.
 

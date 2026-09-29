@@ -1,5 +1,6 @@
 import type { ManagedPolicy } from "../config";
 import { initializeSkillEnvironment } from "../environment/initialize";
+import { registerWorkingRepository } from "../environment/registerRepository";
 import { importRepositoryGuidance } from "../importRules";
 import type { ProjectPaths } from "../paths";
 import {
@@ -45,6 +46,17 @@ export async function prepareInitialEnvironment(
 
   if (policy.enabled) {
     await initializeSkillEnvironment({ paths, automatic: skills });
+  }
+
+  if (skills && policy.enabled && policy.allowedSources.includes("skill-library")) {
+    await registerWorkingRepository({
+      paths,
+      workingDirectory,
+      gitMetadataEnabled: policy.allowedSources.includes("git-metadata"),
+      blockedOrigins: policy.blockedOrigins,
+      managedConfigPath: options.managedConfigPath,
+      readRemote: options.readRemote,
+    });
   }
 
   let rulesLearned = 0;

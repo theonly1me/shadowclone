@@ -19,12 +19,14 @@ export function selectManualLearningWindow(options: {
   readonly now: number;
   readonly maximumCalls?: number;
 }): ManualLearningWindow {
-  const batchLimit = options.maximumCalls ?? manualBatchLimit;
+  const batchLimit = options.maximumCalls === undefined
+    ? manualBatchLimit
+    : Math.max(1, Math.floor(options.maximumCalls / 2));
   const pending = selectLearningEpisodes({
     ...options,
     ...(options.maximumCalls === undefined
       ? {}
-      : { limit: options.maximumCalls * distillSignalBatchSize }),
+      : { limit: batchLimit * distillSignalBatchSize }),
   });
   const batches = groupDistillBatches({ signals: pending })
     .toSorted(

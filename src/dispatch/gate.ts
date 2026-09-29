@@ -2,7 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { EngineRun } from "../engine";
-import { verificationArguments } from "../eval/transfer/verify";
+import { verificationArguments } from "./verificationSandbox";
 import { renderCheckReport, runHarnessCheck } from "../harness/check";
 import { runProcess } from "../io/process";
 import { redactSecrets } from "../redact";

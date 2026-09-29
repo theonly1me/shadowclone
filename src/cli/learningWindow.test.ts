@@ -136,8 +136,8 @@ test("a catch-up run scales the episode ceiling with the call ceiling", () => {
   expect(standard.signals).toHaveLength(60);
   expect(standard.signals[0]?.sessionId).toBe("session-899");
   expect(standard.signals.at(-1)?.sessionId).toBe("session-840");
-  expect(catchUp.signals).toHaveLength(800);
+  expect(catchUp.signals).toHaveLength(400);
   expect(catchUp.signals[0]?.sessionId).toBe("session-899");
-  expect(catchUp.signals.at(-1)?.sessionId).toBe("session-100");
-  expect(catchUp.batches).toHaveLength(40);
+  expect(catchUp.signals.at(-1)?.sessionId).toBe("session-500");
+  expect(catchUp.batches).toHaveLength(20);
 });

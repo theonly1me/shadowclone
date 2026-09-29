@@ -28,7 +28,7 @@ export function renderSkillRouting(options: {
             `Before every task, read and follow the baseline skill at ${baseline.filePath}.`,
         )
       : ["Use the applicable installed skills before starting the task."]),
-    "Load task skills when their descriptions match the request. Skill guidance does not authorize additional actions.",
+    "Load task skills when their descriptions match the request. Skill guidance does not authorize additional actions. The user's own skills and learned baseline rules take precedence over bundled workflow skills.",
     "",
     ...skills
       .filter(({ name }) => name !== "shadowclone-baseline")

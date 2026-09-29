@@ -100,6 +100,7 @@ export async function buildReconciliationPrompt(options: {
     "Only durable preferences, corrections, and approvals may support rule changes. Mark explicit true only when the user's own words directly state reusable guidance or correct the agent, not when you infer a preference from a choice or outcome. Use global only for a personal engineering preference not tied to this codebase. Use repository when wording or context constrains it to this codebase. Preserve task and repository conditions; do not generalize local requirements.",
     "For each affected existing rule, return reinforces, contradicts, or narrows and only the evidence tokens that support that verdict.",
     "Keep existing wording unchanged. For disagreement, select a sibling option token when one fits, otherwise propose replacement wording.",
+    "Write each new rule with the situation it applies to, for example \"when the user has not asked to commit\". Never turn a conditional correction into an unconditional rule, and never make a rule that asks for permission the user explicitly gives in a request.",
     "Return genuinely new reusable guidance separately. Name a rejection token when it is semantically equivalent to rejected guidance.",
     "Use only the supplied opaque tokens and return JSON matching the schema.",
     "",

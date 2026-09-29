@@ -10,7 +10,7 @@ metadata:
 
 ## Use when
 
-Code or documentation is ready for handoff.
+Code or documentation changes are ready for handoff. Answers to questions do not need this workflow; answer them directly.
 
 ## Process
 

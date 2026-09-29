@@ -97,6 +97,7 @@ export function emptyMinedRule(options: {
     .slice(0, 24);
 
   const location = learnedRuleLocation({
+    text: `${options.result.title}\n${options.result.body}`,
     tokens: options.result.evidenceTokens,
     context: options.context,
     globalTokens: options.globalTokens,

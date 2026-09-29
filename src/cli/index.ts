@@ -4,8 +4,7 @@ import { handleSkillsMigration } from "./migrateSkills";
 import packageManifest from "../../package.json";
 import { serveMcp } from "../mcp";
 import { doctor } from "./doctor";
-import { transferEvalCommand } from "./transferEval";
-import { guidanceEvalCommand } from "./guidanceEval";
+import { studyEvalCommand } from "./studyEval";
 import { forgetAll } from "./forget";
 import { runSessionEndHook, runSessionStartHook } from "./hooks";
 import { handleSetupCommand } from "./setup";
@@ -23,7 +22,7 @@ import { listSeedGuidance } from "./skills";
 import { handleSkillMaintenance } from "./skillMaintenance";
 
 const usage =
-  "Usage: shadowclone <init [--advanced] [--repo [--personal|--no-personal] [--skill <name>] [--no-enforce]]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate skills [--apply] [--automatic] [--memory] [--activate-only] [--repo <path>]|migrate claude-memory [--decisions <file>] [--apply]|install [--agent claude-code|codex|cursor|antigravity|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|run <task>|eval [--repo <path>] [--task <prompt>|--task-file <path>|--tasks N|--suite-id <id>] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--repeat N] [--timeout-seconds N] [--max-calls N] [--eval-id <id>] [--yes] [--json]|mcp|forget --all>";
+  "Usage: shadowclone <init [--advanced] [--repo [--personal|--no-personal] [--skill <name>] [--no-enforce]]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate skills [--apply] [--automatic] [--memory] [--activate-only] [--repo <path>]|migrate claude-memory [--decisions <file>] [--apply]|install [--agent claude-code|codex|cursor|antigravity|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|run <task>|eval --protocol preference-study-v1 --phase prepare|coverage|assemble|validate|run|report [--stage <stage>] [--preparation-file <path>] [--key-file <path>] [--tasks-file <path>] [--suite-file <path>] [--output-directory <path>] [--coverage-file <path>] [--concurrency N] --yes|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -97,7 +96,7 @@ async function main(arguments_: readonly string[]): Promise<void> {
     const options = parseLearnOptions(rest);
 
     if (options) {
-      await learn(options);
+      await learn({ ...options, workingDirectory: process.cwd() });
 
       return;
     }
@@ -141,13 +140,7 @@ async function main(arguments_: readonly string[]): Promise<void> {
   }
 
   if (command === "eval") {
-    if (rest.includes("--protocol")) {
-      await guidanceEvalCommand(rest);
-
-      return;
-    }
-
-    await transferEvalCommand(rest);
+    await studyEvalCommand(rest);
 
     return;
   }
