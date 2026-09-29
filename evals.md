@@ -1,23 +1,44 @@
 # Evaluation results
 
-The preference study measures whether a coding agent follows one user's engineering preferences on ordinary requests, and whether Shadowclone changes that. Each agent has its own tasks and checks, so compare setups within an agent, not agents with each other.
+The preference study measures whether a coding agent follows an anonymized participant's engineering preferences on ordinary requests, and whether Shadowclone changes that. Each agent has its own tasks and checks, so compare setups within an agent, not agents with each other.
+
+## Results
+
+The headline rate weights every task equally. Percentages in parentheses are 95% intervals.
+
+| Share of preferences followed | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
+| --- | ---: | ---: | ---: | ---: |
+| Agent alone | 72% (52% to 89%) | 73% (54% to 90%) | 55% (27% to 80%) | 57% (32% to 82%) |
+| With existing skills | 87% (70% to 100%) | 91% (79% to 99%) | 70% (42% to 96%) | 79% (56% to 100%) |
+| With Shadowclone skills | 84% (68% to 98%) | 83% (68% to 95%) | 68% (40% to 92%) | 68% (42% to 90%) |
+| With Shadowclone skills and deep learning | 97% (88% to 100%) | 88% (74% to 99%) | 76% (54% to 95%) | 82% (64% to 97%) |
+
+Each cell below compares the agent alone with Shadowclone skills and deep learning.
+
+| Preference | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
+| --- | ---: | ---: | ---: | ---: |
+| Review reply preferences | 2 of 6 → 6 of 6 | 2 of 6 → 6 of 6 | 0 of 6 → 6 of 6 | 0 of 6 → 6 of 6 |
+| Failing test first | 0 of 3 → 3 of 3 | 0 of 3 → 2 of 3 | 0 of 3 → 0 of 3 | 0 of 3 → 2 of 3 |
+| Pull request checklist | 0 of 3 → 3 of 3 | 3 of 3 → 3 of 3 | 0 of 3 → 1 of 3 | 2 of 3 → 3 of 3 |
+
+**How to read this.** Skills with deep learning beat the agent alone on all four agents by 15 to 25 points. The gain is statistically clear on GPT-6 Sol and Opus 5.5, and directional on GPT-6 Luna and Sonnet 5.5. Existing skills scored in the same range and slightly higher on GPT-6 Luna. The intervals are wide because each agent has four to ten tasks.
 
 ## Setups
 
 | Setup | What the agent has |
 | --- | --- |
 | Without Shadowclone or user skills | Repository guidance only, with personal memory disabled |
-| With user skills | The user's own skills and instructions |
-| With Shadowclone skills | The user's skills plus Shadowclone setup with a scripted agent build |
-| With Shadowclone skills and deep learning | The same setup after migrating the learned profile and learning from 14 days of the user's sessions until none remained |
+| With user skills | The participant's existing skills and instructions |
+| With Shadowclone skills | The existing skills plus Shadowclone setup with a scripted agent build |
+| With Shadowclone skills and deep learning | The same setup after learning from a consented 14-day session sample until none remained |
 
 Each setup runs in an isolated agent home. The setups with user skills start from identical native memory, and no setup receives an aggregated profile.
 
-**User skills.** They are the user's real library, not tuned for the study. The third setup adds generic Shadowclone skills and edits the native instruction files to route to them. The study does not separate those two changes.
+**Existing skills.** The participant's library was frozen before the study and not tuned for it. The third setup adds generic Shadowclone skills and edits the native instruction files to route to them. The study does not separate those two changes.
 
 ## How the tasks and checks were chosen
 
-**Preference key.** One frozen key of 17 items has four provenance groups: rules in the original skill library, behavior the wizard build selects, preferences the user's sessions evidence at least twice, and decisions on pending proposals. Key items never come from the deep-learning skills. Session text is not stored, only counts.
+**Preference key.** One frozen key of 17 items has four provenance groups: rules in the existing skill library, behavior the wizard build selects, preferences evidenced at least twice in the consented session sample, and decisions on pending proposals. Key items never come from the deep-learning skills. Session text is not stored, only counts.
 
 **Requests.** Ten candidate requests run on a synthetic repository, a usage-reporting tool. Each is written in the short style people use with coding agents: a terse first request that carries most of the detail and, on two tasks, one short follow-up. No request states a preference. Prompts are sent verbatim with no evaluation preamble.
 
@@ -59,27 +80,18 @@ Each setup runs in an isolated agent home. The setups with user skills start fro
 
 **Noise.** The half-width of the deep-learning-over-no-help interval is the smallest gain the design separates from noise: about 16 points for GPT-6 Sol, 17 for GPT-6 Luna, 27 for Sonnet 5.5, and 25 for Opus 5.5.
 
-## Results
+## Detailed results
 
-Cells show checks followed out of checks run, pooled over sessions. The multiple in parentheses is the share followed divided by the share followed without Shadowclone or user skills. Errored sessions are excluded from the counts.
-
-| Setup | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
-| --- | ---: | ---: | ---: | ---: |
-| Without Shadowclone or user skills | 47 of 72 | 46 of 69 | 35 of 60 | 35 of 60 |
-| With user skills | 58 of 68 (1.3x) | 62 of 72 (1.3x) | 44 of 63 (1.2x) | 50 of 63 (1.4x) |
-| With Shadowclone skills | 59 of 71 (1.3x) | 57 of 72 (1.2x) | 43 of 61 (1.2x) | 42 of 60 (1.2x) |
-| With Shadowclone skills and deep learning | 65 of 69 (1.4x) | 61 of 72 (1.3x) | 47 of 61 (1.3x) | 50 of 60 (1.4x) |
-
-**Reading the table.** Deep learning followed the highest share on GPT-6 Sol, Sonnet 5.5, and Opus 5.5, and user skills followed the highest on GPT-6 Luna. Its lead over user skills is within noise on every agent. Without help the agents already follow 58% to 67% of these checks, so the gains are 1.3x to 1.4x.
-
-Shares of checks followed with tasks weighted equally, with 95% intervals.
+Cells show checks followed out of checks run and the corresponding percentage, pooled over sessions. Errored sessions are excluded from the counts.
 
 | Setup | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
 | --- | ---: | ---: | ---: | ---: |
-| Without Shadowclone or user skills | 72% (52% to 89%) | 73% (54% to 90%) | 55% (27% to 80%) | 57% (32% to 82%) |
-| With user skills | 87% (70% to 100%) | 91% (79% to 99%) | 70% (42% to 96%) | 79% (56% to 100%) |
-| With Shadowclone skills | 84% (68% to 98%) | 83% (68% to 95%) | 68% (40% to 92%) | 68% (42% to 90%) |
-| With Shadowclone skills and deep learning | 97% (88% to 100%) | 88% (74% to 99%) | 76% (54% to 95%) | 82% (64% to 97%) |
+| Without Shadowclone or user skills | 47 of 72 (65%) | 46 of 69 (67%) | 35 of 60 (58%) | 35 of 60 (58%) |
+| With user skills | 58 of 68 (85%) | 62 of 72 (86%) | 44 of 63 (70%) | 50 of 63 (79%) |
+| With Shadowclone skills | 59 of 71 (83%) | 57 of 72 (79%) | 43 of 61 (70%) | 42 of 60 (70%) |
+| With Shadowclone skills and deep learning | 65 of 69 (94%) | 61 of 72 (85%) | 47 of 61 (77%) | 50 of 60 (83%) |
+
+Deep learning followed the highest pooled share on GPT-6 Sol, Sonnet 5.5, and Opus 5.5. Existing skills followed the highest share on GPT-6 Luna. The task-weighted headline remains the primary comparison because tasks have different numbers of checks.
 
 Differences in points, with 95% intervals. An asterisk marks an interval that excludes zero.
 
@@ -100,72 +112,72 @@ Differences in points, with 95% intervals. An asterisk marks an interval that ex
 
 | Task | Without Shadowclone or user skills | With user skills | With Shadowclone skills | With Shadowclone skills and deep learning |
 | --- | ---: | ---: | ---: | ---: |
-| Add TSV export | 9 of 12 | 8 of 8 (1.3x) | 11 of 11 (1.3x) | 9 of 9 (1.3x) |
-| Fix retries | 3 of 12 | 6 of 12 (2.0x) | 8 of 12 (2.7x) | 8 of 12 (2.7x) |
-| Explain a regression | 3 of 3 | 3 of 3 (1.0x) | 3 of 3 (1.0x) | 3 of 3 (1.0x) |
-| Reply to a review comment | 2 of 6 | 3 of 6 (1.5x) | 2 of 6 (1.0x) | 6 of 6 (3.0x) |
-| Create a pull request | 3 of 6 | 6 of 6 (2.0x) | 4 of 6 (1.3x) | 6 of 6 (2.0x) |
-| Rename and commit | 6 of 9 | 9 of 9 (1.5x) | 7 of 9 (1.2x) | 9 of 9 (1.5x) |
-| Parse older configs | 6 of 9 | 9 of 9 (1.5x) | 9 of 9 (1.5x) | 9 of 9 (1.5x) |
-| Remove a deprecated command | 6 of 6 | 6 of 6 (1.0x) | 6 of 6 (1.0x) | 6 of 6 (1.0x) |
-| Answer a question | 6 of 6 | 6 of 6 (1.0x) | 6 of 6 (1.0x) | 6 of 6 (1.0x) |
-| Plan a change | 3 of 3 | 2 of 3 (0.7x) | 3 of 3 (1.0x) | 3 of 3 (1.0x) |
-| **All checks** | 47 of 72 | 58 of 68 (1.3x) | 59 of 71 (1.3x) | 65 of 69 (1.4x) |
+| Add TSV export | 9 of 12 (75%) | 8 of 8 (100%) | 11 of 11 (100%) | 9 of 9 (100%) |
+| Fix retries | 3 of 12 (25%) | 6 of 12 (50%) | 8 of 12 (67%) | 8 of 12 (67%) |
+| Explain a regression | 3 of 3 (100%) | 3 of 3 (100%) | 3 of 3 (100%) | 3 of 3 (100%) |
+| Reply to a review comment | 2 of 6 (33%) | 3 of 6 (50%) | 2 of 6 (33%) | 6 of 6 (100%) |
+| Create a pull request | 3 of 6 (50%) | 6 of 6 (100%) | 4 of 6 (67%) | 6 of 6 (100%) |
+| Rename and commit | 6 of 9 (67%) | 9 of 9 (100%) | 7 of 9 (78%) | 9 of 9 (100%) |
+| Parse older configs | 6 of 9 (67%) | 9 of 9 (100%) | 9 of 9 (100%) | 9 of 9 (100%) |
+| Remove a deprecated command | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) |
+| Answer a question | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) |
+| Plan a change | 3 of 3 (100%) | 2 of 3 (67%) | 3 of 3 (100%) | 3 of 3 (100%) |
+| **All checks** | 47 of 72 (65%) | 58 of 68 (85%) | 59 of 71 (83%) | 65 of 69 (94%) |
 
 ### GPT-6 Luna
 
 | Task | Without Shadowclone or user skills | With user skills | With Shadowclone skills | With Shadowclone skills and deep learning |
 | --- | ---: | ---: | ---: | ---: |
-| Add TSV export | 9 of 12 | 10 of 12 (1.1x) | 9 of 12 (1.0x) | 9 of 12 (1.0x) |
-| Fix retries | 3 of 12 | 6 of 12 (2.0x) | 6 of 12 (2.0x) | 6 of 12 (2.0x) |
-| Explain a regression | 3 of 3 | 3 of 3 (1.0x) | 3 of 3 (1.0x) | 3 of 3 (1.0x) |
-| Reply to a review comment | 2 of 6 | 5 of 6 (2.5x) | 4 of 6 (2.0x) | 6 of 6 (3.0x) |
-| Create a pull request | 3 of 3 | 3 of 3 (1.0x) | 3 of 3 (1.0x) | 3 of 3 (1.0x) |
-| Rename and commit | 6 of 9 | 8 of 9 (1.3x) | 6 of 9 (1.0x) | 8 of 9 (1.3x) |
-| Parse older configs | 6 of 9 | 12 of 12 (1.5x) | 12 of 12 (1.5x) | 12 of 12 (1.5x) |
-| Remove a deprecated command | 6 of 6 | 6 of 6 (1.0x) | 6 of 6 (1.0x) | 6 of 6 (1.0x) |
-| Answer a question | 6 of 6 | 6 of 6 (1.0x) | 6 of 6 (1.0x) | 6 of 6 (1.0x) |
-| Plan a change | 2 of 3 | 3 of 3 (1.5x) | 2 of 3 (1.0x) | 2 of 3 (1.0x) |
-| **All checks** | 46 of 69 | 62 of 72 (1.3x) | 57 of 72 (1.2x) | 61 of 72 (1.3x) |
+| Add TSV export | 9 of 12 (75%) | 10 of 12 (83%) | 9 of 12 (75%) | 9 of 12 (75%) |
+| Fix retries | 3 of 12 (25%) | 6 of 12 (50%) | 6 of 12 (50%) | 6 of 12 (50%) |
+| Explain a regression | 3 of 3 (100%) | 3 of 3 (100%) | 3 of 3 (100%) | 3 of 3 (100%) |
+| Reply to a review comment | 2 of 6 (33%) | 5 of 6 (83%) | 4 of 6 (67%) | 6 of 6 (100%) |
+| Create a pull request | 3 of 3 (100%) | 3 of 3 (100%) | 3 of 3 (100%) | 3 of 3 (100%) |
+| Rename and commit | 6 of 9 (67%) | 8 of 9 (89%) | 6 of 9 (67%) | 8 of 9 (89%) |
+| Parse older configs | 6 of 9 (67%) | 12 of 12 (100%) | 12 of 12 (100%) | 12 of 12 (100%) |
+| Remove a deprecated command | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) |
+| Answer a question | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) |
+| Plan a change | 2 of 3 (67%) | 3 of 3 (100%) | 2 of 3 (67%) | 2 of 3 (67%) |
+| **All checks** | 46 of 69 (67%) | 62 of 72 (86%) | 57 of 72 (79%) | 61 of 72 (85%) |
 
 ### Sonnet 5.5
 
 | Task | Without Shadowclone or user skills | With user skills | With Shadowclone skills | With Shadowclone skills and deep learning |
 | --- | ---: | ---: | ---: | ---: |
-| Add TSV export | 8 of 8 | 9 of 9 (1.0x) | 9 of 9 (1.0x) | 9 of 9 (1.0x) |
-| Fix retries | 3 of 12 | 3 of 12 (1.0x) | 3 of 12 (1.0x) | 3 of 12 (1.0x) |
-| Reply to a review comment | 0 of 6 | 0 of 6 | 0 of 6 | 6 of 6 |
-| Create a pull request | 1 of 6 | 6 of 6 (6.0x) | 6 of 6 (6.0x) | 4 of 6 (4.0x) |
-| Rename and commit | 9 of 9 | 9 of 9 (1.0x) | 9 of 9 (1.0x) | 9 of 9 (1.0x) |
-| Parse older configs | 7 of 9 | 8 of 9 (1.1x) | 9 of 9 (1.3x) | 9 of 9 (1.3x) |
-| Remove a deprecated command | 4 of 4 | 6 of 6 (1.0x) | 4 of 4 (1.0x) | 4 of 4 (1.0x) |
-| Answer a question | 3 of 6 | 3 of 6 (1.0x) | 3 of 6 (1.0x) | 3 of 6 (1.0x) |
-| **All checks** | 35 of 60 | 44 of 63 (1.2x) | 43 of 61 (1.2x) | 47 of 61 (1.3x) |
+| Add TSV export | 8 of 8 (100%) | 9 of 9 (100%) | 9 of 9 (100%) | 9 of 9 (100%) |
+| Fix retries | 3 of 12 (25%) | 3 of 12 (25%) | 3 of 12 (25%) | 3 of 12 (25%) |
+| Reply to a review comment | 0 of 6 (0%) | 0 of 6 (0%) | 0 of 6 (0%) | 6 of 6 (100%) |
+| Create a pull request | 1 of 6 (17%) | 6 of 6 (100%) | 6 of 6 (100%) | 4 of 6 (67%) |
+| Rename and commit | 9 of 9 (100%) | 9 of 9 (100%) | 9 of 9 (100%) | 9 of 9 (100%) |
+| Parse older configs | 7 of 9 (78%) | 8 of 9 (89%) | 9 of 9 (100%) | 9 of 9 (100%) |
+| Remove a deprecated command | 4 of 4 (100%) | 6 of 6 (100%) | 4 of 4 (100%) | 4 of 4 (100%) |
+| Answer a question | 3 of 6 (50%) | 3 of 6 (50%) | 3 of 6 (50%) | 3 of 6 (50%) |
+| **All checks** | 35 of 60 (58%) | 44 of 63 (70%) | 43 of 61 (70%) | 47 of 61 (77%) |
 
 ### Opus 5.5
 
 | Task | Without Shadowclone or user skills | With user skills | With Shadowclone skills | With Shadowclone skills and deep learning |
 | --- | ---: | ---: | ---: | ---: |
-| Add TSV export | 9 of 9 | 9 of 9 (1.0x) | 9 of 9 (1.0x) | 9 of 9 (1.0x) |
-| Fix retries | 3 of 12 | 6 of 12 (2.0x) | 5 of 12 (1.7x) | 6 of 12 (2.0x) |
-| Reply to a review comment | 0 of 6 | 2 of 6 | 0 of 6 | 6 of 6 |
-| Create a pull request | 2 of 3 | 3 of 3 (1.5x) | 3 of 3 (1.5x) | 3 of 3 (1.5x) |
-| Rename and commit | 6 of 6 | 9 of 9 (1.0x) | 6 of 6 (1.0x) | 6 of 6 (1.0x) |
-| Parse older configs | 6 of 12 | 12 of 12 (2.0x) | 10 of 12 (1.7x) | 11 of 12 (1.8x) |
-| Remove a deprecated command | 6 of 6 | 6 of 6 (1.0x) | 6 of 6 (1.0x) | 6 of 6 (1.0x) |
-| Answer a question | 3 of 6 | 3 of 6 (1.0x) | 3 of 6 (1.0x) | 3 of 6 (1.0x) |
-| **All checks** | 35 of 60 | 50 of 63 (1.4x) | 42 of 60 (1.2x) | 50 of 60 (1.4x) |
+| Add TSV export | 9 of 9 (100%) | 9 of 9 (100%) | 9 of 9 (100%) | 9 of 9 (100%) |
+| Fix retries | 3 of 12 (25%) | 6 of 12 (50%) | 5 of 12 (42%) | 6 of 12 (50%) |
+| Reply to a review comment | 0 of 6 (0%) | 2 of 6 (33%) | 0 of 6 (0%) | 6 of 6 (100%) |
+| Create a pull request | 2 of 3 (67%) | 3 of 3 (100%) | 3 of 3 (100%) | 3 of 3 (100%) |
+| Rename and commit | 6 of 6 (100%) | 9 of 9 (100%) | 6 of 6 (100%) | 6 of 6 (100%) |
+| Parse older configs | 6 of 12 (50%) | 12 of 12 (100%) | 10 of 12 (83%) | 11 of 12 (92%) |
+| Remove a deprecated command | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) |
+| Answer a question | 3 of 6 (50%) | 3 of 6 (50%) | 3 of 6 (50%) | 3 of 6 (50%) |
+| **All checks** | 35 of 60 (58%) | 50 of 63 (79%) | 42 of 60 (70%) | 50 of 60 (83%) |
 
 ## Preferences each agent misses by default
 
-This view keeps only checks the unaided agent failed at least once in controls. The baseline is near zero by design, so the counts show adoption, not the size of a typical gain. A multiple exists only when the baseline followed at least one check.
+This view keeps only checks the unaided agent failed at least once in controls. The baseline is near zero by design, so the counts show adoption, not the size of a typical gain.
 
 | Setup | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
 | --- | ---: | ---: | ---: | ---: |
-| Without Shadowclone or user skills | 6 of 30 | 2 of 18 | 0 of 21 | 0 of 24 |
-| With user skills | 16 of 27 (3.0x) | 9 of 18 (4.5x) | 3 of 21 | 11 of 24 |
-| With Shadowclone skills | 17 of 29 (2.9x) | 5 of 18 (2.5x) | 3 of 21 | 6 of 24 |
-| With Shadowclone skills and deep learning | 21 of 27 (3.9x) | 7 of 18 (3.5x) | 7 of 21 | 14 of 24 |
+| Without Shadowclone or user skills | 6 of 30 (20%) | 2 of 18 (11%) | 0 of 21 (0%) | 0 of 24 (0%) |
+| With user skills | 16 of 27 (59%) | 9 of 18 (50%) | 3 of 21 (14%) | 11 of 24 (46%) |
+| With Shadowclone skills | 17 of 29 (59%) | 5 of 18 (28%) | 3 of 21 (14%) | 6 of 24 (25%) |
+| With Shadowclone skills and deep learning | 21 of 27 (78%) | 7 of 18 (39%) | 7 of 21 (33%) | 14 of 24 (58%) |
 
 **Not met by any setup.** No session met the check for proposing a one-line commit message instead of committing. No setup kept Sonnet 5.5 or Opus 5.5 answers to a direct question within 100 words. On Sonnet 5.5, no setup produced a failing test first or an inversion proof.
 
@@ -222,11 +234,11 @@ This view keeps only checks the unaided agent failed at least once in controls. 
 
 ## Run notes
 
-**Versions.** GPT-6 Sol and Luna ran through Codex CLI 0.156.1. Sonnet 5.5 ran through Claude Code 2.1.277. Opus 5.5 needs a newer Claude Code and ran through 2.1.284 from a private copy placed first on the path.
+**Versions.** GPT-6 Sol and Luna ran through Codex CLI 0.156.1. Sonnet 5.5 ran through Claude Code 2.1.277. Opus 5.5 ran through Claude Code 2.1.284.
 
 **Sessions.** The tables cover 432 sessions. Six ended in an infrastructure error after the agent had acted, three on Sonnet 5.5 and three on Opus 5.5, and are excluded from the counts. No session had a correctness or safety failure.
 
-**Replacements.** A session that ended in an infrastructure error before the agent acted, such as a sandbox mount failure or a usage limit, was replaced once and the failed record was kept. A session with an agent action kept its result.
+**Replacements.** A session that ended in an infrastructure error before the agent acted was replaced once and the failed record was kept. A session with an agent action kept its result.
 
 **Not reported.** Sessions on tasks outside an agent's achievable tasks also ran. They are not scored here.
 
@@ -234,14 +246,14 @@ This view keeps only checks the unaided agent failed at least once in controls. 
 
 ## Repository harness pilot (2026-09-26)
 
-Two synthetic repositories each ran once with existing guidance and once after repository setup. Claude Code used `--model sonnet`, `acceptEdits`, and a $1.50 cap per run. Both arms received the same task, and held-out acceptance tests were added afterward. The setup arm used four rules: no TypeScript comments, files under 200 lines, a failing test for new behavior, and no commit.
+Two synthetic repositories each ran once with existing guidance and once after repository setup. Claude Code used `--model sonnet` and `acceptEdits`. Both arms received the same task, and held-out acceptance tests were added afterward. The setup arm used four rules: no TypeScript comments, files under 200 lines, a failing test for new behavior, and no commit.
 
-| Repository | Arm | Held-out acceptance | Gate | Tests added | Agent committed | Cost |
-| --- | --- | --- | --- | --- | --- | --- |
-| Bun task list | baseline | 3 of 3 | pass | yes | no | $0.29 |
-| Bun task list | setup | 3 of 3 | pass | yes | no | $0.22 |
-| Python config | baseline | pass | pass | no | no | $0.29 |
-| Python config | setup | pass | pass | yes | no | $0.22 |
+| Repository | Arm | Held-out acceptance | Gate | Tests added | Agent committed |
+| --- | --- | --- | --- | --- | --- |
+| Bun task list | baseline | 3 of 3 | pass | yes | no |
+| Bun task list | setup | 3 of 3 | pass | yes | no |
+| Python config | baseline | pass | pass | no | no |
+| Python config | setup | pass | pass | yes | no |
 
 Both arms solved both tasks. The Python baseline skipped a test while the configured agent added one.
 

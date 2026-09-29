@@ -2,204 +2,76 @@
 
 # Shadowclone
 
-Your agents should share your engineering preferences, even across large repositories. Shadowclone maintains the skills, instructions, and checks that help **Claude Code, Codex, Cursor, and Antigravity** work within your guardrails.
-
-Keep working in your usual agent. Equip workflows, add your own, and let useful corrections improve future sessions. Shadowclone learns from the sessions and memory you enable. You control what it reads, which guidance applies, and what it may change. [Why I built it](docs/motivation.md).
-
-[Get started](#get-started) · [Agent builds](#agent-builds) · [Learning](#learn-from-your-work) · [Skills](#maintain-your-skills) · [How it works](#how-it-works) · [Privacy](#privacy-comes-first) · [Evaluations](#evaluations)
+Shadowclone maintains the skills, instructions, and checks that help **Claude Code, Codex, Cursor, and Antigravity** follow your engineering preferences. It works with the coding agents you already use and keeps you in control of what it reads and changes.
 
 ## Get started
 
+Install the CLI:
+
 ```bash
 npm install -g @shadowclone/cli
-shadowclone init
 ```
 
-For model-assisted learning, you need an installed and authenticated `claude`, `codex`, or `cursor-agent` CLI. Shadowclone uses that account and its quota, with no separate API key or Shadowclone account. Antigravity supports capture and native guidance; learning needs one of the other CLIs.
+| Step | Command | What happens | Time |
+| --- | --- | --- | ---: |
+| 1 | `shadowclone init` | Answer three questions about learning and skill maintenance | About 1 minute |
+| 2 | `shadowclone learn --deep` | Learn from enabled past sessions; repeat if more history remains | Up to 5 minutes per run |
+| 3 | `shadowclone wizard` | Choose skills in the browser and review the files before applying them | About 1 minute |
 
-Setup shows the sources it found and asks what it may read, whether it may maintain your skills, and whether to learn in the background. You can decline any of these. Use `shadowclone init --advanced` to choose sources individually.
+Setup takes about two to three minutes, excluding learning. Deep learning needs an installed and authenticated `claude`, `codex`, or `cursor-agent` CLI.
 
-With background learning enabled, setup makes a bounded first pass through recent sessions. Open a new coding-agent session to use the installed guidance. Run `shadowclone doctor` to check the installation and `shadowclone context --explain` from your repository to see which guidance applies.
+**Skip learning.** Run `shadowclone wizard` by itself if you do not want Shadowclone to read sessions or call a model. It starts from an empty active environment and lets you choose a build locally.
 
-## Agent builds
+**For coding agents.** Install the CLI, run `shadowclone wizard --no-open`, and give the user the printed local URL. Keep the command running while they edit their build. `shadowclone init` asks consent questions and needs the user.
 
-Choose and equip skills like putting together a character’s kit in an RPG. Open the browser wizard:
+## Evaluations
 
-```bash
-shadowclone wizard
-```
+The preference study tested ordinary coding tasks on GPT-6 Sol, GPT-6 Luna, Sonnet 5.5, and Opus 5.5. Each agent ran with no personal help, with existing skills, with Shadowclone skills, and with Shadowclone skills plus deep learning.
 
-![Agent builds showing equipped skills across Craft, Verification, and Autonomy, with a build summary and skill details](docs/assets/agent-builds.jpg)
+| Share of preferences followed | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
+| --- | ---: | ---: | ---: | ---: |
+| Agent alone | 72% | 73% | 55% | 57% |
+| With Shadowclone skills | 84% | 83% | 68% | 68% |
+| With Shadowclone skills and deep learning | 97% | 88% | 76% | 82% |
+| Improvement with skills and deep learning | **+25** | **+15** | **+22** | **+25** |
 
-Select a skill to read its instructions and decide whether to equip it. Keep a personal build across agents, tailor a private build to a repository, or choose shared repository standards. **Review your build** shows the files that will change before you apply it. You can return and adjust your build at any time.
+Here is what changed in practice. Each cell compares the agent alone with Shadowclone skills and deep learning.
 
-**Add your own skills.** Choose **Create a skill**, give it a name, explain when it applies, and write what the agent should do. **Use AI** can help draft the instructions: review the text, provider, and limits before sending, then edit the result before adding it to your build. Applying the build is a separate step.
+| Preference | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
+| --- | ---: | ---: | ---: | ---: |
+| Review reply preferences | 2 of 6 → 6 of 6 | 2 of 6 → 6 of 6 | 0 of 6 → 6 of 6 | 0 of 6 → 6 of 6 |
+| Failing test first | 0 of 3 → 3 of 3 | 0 of 3 → 2 of 3 | 0 of 3 → 0 of 3 | 0 of 3 → 2 of 3 |
+| Pull request checklist | 0 of 3 → 3 of 3 | 3 of 3 → 3 of 3 | 0 of 3 → 1 of 3 | 2 of 3 → 3 of 3 |
 
-<p align="center"><img src="docs/assets/create-skill.jpg" alt="Creating an accessible-interfaces skill with a trigger and editable instructions" width="720"></p>
-
-Prefer the terminal? Use `shadowclone wizard --cli`. Add `--repo` to open a private repository build or `--no-open` to print the browser URL. Keep the terminal running while using the editor; Ctrl+C stops it. Opening the editor makes no model request. Its optional **Describe my agent with my model** action has its own preview.
-
-## Learn from your work
-
-Run a model-assisted learning pass over your enabled session history:
-
-```bash
-shadowclone learn --deep
-```
-
-Shadowclone finds reusable instructions and corrections, compares them with existing guidance, and proposes changes for your review. Accepted learning can update skills within your edit permissions. Each run is bounded; run it again if it reports more history remains.
-
-Add **`--apply`** to accept proposed learning without the confirmation prompt. Use **`--dry-run`** to preview without applying it; this still calls the model. Deep learning requires your consent and an authenticated agent CLI. Plain `shadowclone learn` indexes and reports locally after setup. A first-time interactive run offers initialization, which can include an authorized first learning pass.
-
-**Keep learning as you work.** Background learning has its own consent. When enabled, sessions containing reusable guidance can improve future sessions. A temporary exception or an interruption alone does not become a standing preference. Use `shadowclone learning status` to inspect it and `shadowclone learning enable` or `disable` to control it.
-
-**Record a preference directly** with `shadowclone remember --repo "Use complete variable names."`. Use `--global` for guidance intended for every repository. Recording a preference and publishing it into skills are separate steps; `shadowclone skills pending` and `shadowclone context --explain` show what is active.
-
-## Maintain your skills
-
-Skills are ordinary files you can inspect and edit. Shadowclone reviews the consented library, updates a relevant workflow, or creates a skill when one is missing. Supporting files, unrelated instructions, and invocation settings are preserved.
-
-```bash
-shadowclone skills list
-shadowclone skills update
-shadowclone skills pending
-```
-
-Reading a library and allowing automatic edits are separate choices. Supported changes to authorized user skills can apply automatically. Third-party packages stay unchanged and receive local companion skills. Conflicts and uncertain changes remain pending for review.
-
-With maintenance enabled, updates also review overlapping workflows across the applicable library, even when no new learning is waiting. A conflict proposal contains both supporting passages and the decision needed. Inspect it with `shadowclone skills show <proposal-id>`. Conflict proposals cannot apply edits or choose precedence. Resolve the owning instructions and run an update again, or dismiss an unsupported finding with `shadowclone skills reject <proposal-id>`.
-
-`skills pending` distinguishes candidate evidence, missing repository scope, conflicting evidence, and publication backlog. Each learning decision belongs to its own rule and scope. Organization guidance waits for a matching registered repository; it is never promoted to global guidance to finish publication. With Git-metadata consent and skill maintenance enabled, setup and `learn --deep` register the repository you run them in. Stale status alone does not authorize removing an instruction.
-
-Personal skills use `~/.agents/skills` as their canonical directory. Claude and Antigravity receive copies; Codex and Cursor discover that directory. Repository skills live under `.agents/skills` and `.claude/skills`. `shadowclone sync` propagates a changed maintained copy, refreshes native routing from its validated description, and preserves conflicting edits for review. Routing overflow requires shorter descriptions or narrower routes; existing native instructions remain intact.
-
-Every publication has a revision covering its skills, resources, native instructions, and learning decisions. Inspect or undo it with `shadowclone history`, `shadowclone history <revision>`, and `shadowclone undo <revision>`. Undo refuses to overwrite later edits. Existing profile-based installations first need [skills migration](docs/migration.md).
-
-| Command | What it does |
-| --- | --- |
-| `shadowclone skills` | List bundled preferences and starter skills |
-| `shadowclone skills configure --global` / `--repo` | Configure personal or repository skill roots |
-| `shadowclone skills automatic on` / `off` | Allow or stop automatic edits without deleting published files |
-| `shadowclone skills disable` | Stop library access |
-| `shadowclone skills retry <learning-key>` | Queue a record again after resolving its conflict |
-| `shadowclone skills exclude <learning-key> "This was a temporary exception."` | Record why guidance should stay unpublished |
-
-Configuration accepts `--root <directory>` for a custom root and `--third-party` for a package you do not own. Model-assisted updates also require deep-learning consent. After retrying a record, run `shadowclone skills update`. Updates share a default budget of 20 model calls and five minutes, with a cumulative $2 ceiling on engines that support it. Later runs can continue unfinished work.
-
-Library review caches completed catalog batches and document comparisons. `libraryReviewed` counts review steps completed in this update. A nonzero `libraryDeferred` means review remains, including invalid documents that need repair. Run another update to continue. These counts describe review work, not newly created skills.
-
-## Set up a repository
-
-```bash
-shadowclone init --repo
-```
-
-Setup asks to read project manifests, detects checks, and previews shared instructions and workflow skills. It asks separately before including personal preferences in files your teammates may see. Review and commit the files you want to share.
-
-| File | Purpose |
-| --- | --- |
-| `AGENTS.md` | Shared instructions, selected skills, and verification commands |
-| `CLAUDE.md` | Import of the shared instructions |
-| `.agents/skills/` and `.claude/skills/` | Repository workflows and selected personal skills |
-| `.shadowclone/harness.json` | Configured checks, conventions, and file fingerprints |
-
-Run `shadowclone check --changed` to check uncommitted work, or `shadowclone check` for the repository. A local Claude Stop hook runs these checks before the agent finishes. Other agents receive the checks through repository instructions. `shadowclone sync` refreshes the setup while preserving conflicting edits.
-
-Use `--personal` or `--no-personal` to include or exclude applicable personal guidance. Repeat `--skill <name>` to copy selected personal skills with their resources. Use `--no-enforce` to skip the Claude Stop hook. Text outside managed sections stays yours, and edited managed sections are preserved for review. Private builds cannot weaken shared repository requirements. A skill omitted from Shadowclone’s routing may still be discovered through the host agent’s global configuration.
-
-## How it works
-
-```text
-enabled sessions and memory -> redacted learning -> local evidence records
-                                                  -> maintain or create skills
-skills + small native instructions -> coding agents -> new feedback
-```
-
-1. **Read what you enable.** Shadowclone indexes references to session events without making another transcript archive. It selects user instructions and corrections, with supporting context, and redacts eligible text before learning.
-2. **Decide what is durable.** Explicit reusable guidance can qualify from one session. Inferred patterns need three independent sessions. Existing instructions, manual edits, rejected proposals, and scope constrain what can change.
-3. **Improve the right workflow.** Learning updates a matching skill or creates a missing one. Supported edits follow your write permissions; conflicts and uncertain changes stay pending. Evidence survives even when publication cannot finish.
-4. **Use it in the next session.** A small baseline skill carries shared preferences. Task skills hold detailed procedures, and native agent instructions explain which skills to read. Hooks, MCP, optional subagents, and delegated runs use the same delivery path.
-
-This changes the guidance an existing model receives, not its weights. It does not guarantee compliance. The baseline and native instruction sections each have a 4 KiB limit, while detailed workflows load when selected. Your evidence and history stay available even when guidance exceeds a delivery limit.
+Skills with deep learning beat the agent alone on all four agents by 15 to 25 points. The gain is statistically clear on GPT-6 Sol and Opus 5.5, and directional on the other two. The participant's existing skills scored in the same range and slightly higher on GPT-6 Luna. [Read the tasks, intervals, and limitations](evals.md).
 
 ## Privacy comes first
 
-**There is no Shadowclone collection service or telemetry.** Learning records, revisions, and original-library snapshots stay on your machine. Model work goes through your authenticated agent CLI to its provider, so it is subject to that provider’s account and retention terms. Local storage does not make learning offline.
+**There is no Shadowclone collection service or telemetry.** Learning records, revisions, and original-library snapshots stay on your machine. Model work goes through the authenticated agent CLI you select and is subject to that provider's terms.
 
-**You choose what it reads.** Each source has its own setting and defaults off. Setup shows detected sources before asking for access; advanced setup lets you choose them individually. Reading sessions does not silently enable memory, repository metadata, or skill editing. Before consent, discovery only checks whether a configured source root exists and contains data.
-
-| Source | What access can include |
-| --- | --- |
-| Agent sessions | Claude Code sessions and prompt history, Codex sessions, Cursor chats, and Antigravity logs and workspace attribution |
-| Memory | Read-only Claude memory for registered repositories |
-| Instructions and skills | Native agent instructions, repository rules, and consented personal, repository, custom, or third-party skills |
-| Shell history | Separately enabled `.zsh_history` and `.bash_history` |
-| Git metadata | Remote names used to keep guidance scoped to its repository and owner |
-| Repository setup | Known manifests, scripts, dependency names, Makefile targets, workflow files, and top-level entry names |
-
-The [source inventory](docs/data-handling.md#sources) lists exact paths and settings. Tool-result payloads, tool-returned file contents, thinking blocks, and data-access results are excluded from learning. Enabled transcript parsers can still encounter their bytes while reading the source file.
-
-**What leaves your machine:**
+**You choose what it reads.** Every capture source is off by default and has its own consent setting. Reading sessions does not silently enable memory, repository metadata, or skill editing.
 
 | Operation | What the selected provider can receive |
 | --- | --- |
 | Learning and skill maintenance | Selected redacted instructions, steering, and supporting context |
-| Browser editor | Nothing merely from opening it; optional AI drafting sends reviewed form fields, and build descriptions have a separate reviewed request |
+| Browser editor | Nothing merely from opening it; optional AI drafting sends reviewed form fields |
 | Delegated `run` | The authorized task worktree and guidance |
-| Evaluation | Synthetic task prompts, the tested setup's skills and instructions, and the generated code |
+| Evaluation | Synthetic prompts, the tested setup's guidance, and generated code |
 
-Redaction catches known secret, host, path, and entropy patterns. It can miss sensitive prose or unusual secrets. Use sources and repositories you are authorized to send to the chosen provider. Native memory stays read-only, third-party packages stay unchanged, and automatic skill edits need separate permission.
+**Redaction is a boundary, not an anonymity guarantee.** Tool results, tool-returned file contents, thinking blocks, and data-access results are excluded from learning. Use only sources and repositories you are authorized to send to the selected provider.
 
-### Controls for teams and enterprises
+**Removal stays in your control.** Disable background learning with `shadowclone learning disable`, stop automatic skill edits with `shadowclone skills automatic off`, or remove recorded state with `shadowclone forget --all`. See [data handling](docs/data-handling.md) and [enterprise controls](docs/architecture/07-enterprise.md) for sources, storage, managed policy, and removal details.
 
-Project guidance stays with its registered repository and verified identity. Organization scope follows the remote owner; global guidance requires an explicit global instruction or decision. Unknown origins stay isolated. A remote-owner identity is a technical boundary and does not prove a legal employer boundary.
+## Guides
 
-Administrators can install a root-owned managed policy to restrict sources, providers, repository origins, hosted learning, and action tiers, or disable Shadowclone. User settings cannot widen those limits. `shadowclone doctor` reports the effective policy. Policies live at `/Library/Application Support/shadowclone/managed.json` on macOS or `/etc/shadowclone/managed.json` on Linux. See the [policy example](docs/architecture/07-enterprise.md#managed-policy).
-
-The browser editor binds only to loopback, serves local assets, checks request origins, and authenticates its API with an ephemeral token. Learning requests have no tools and use shared call, time, and supported spending limits. Delegated work uses an isolated worktree; local verification has no network or provider credentials. Required isolation must be available before the affected workflow runs.
-
-`shadowclone run <task>` authorizes one local worktree, branch, and commit. Remote actions also need a repository policy ceiling and approval for that run. Shared repository instructions require review before personal guidance is included. [Execution controls](docs/architecture/04-acting.md) describe the boundaries in detail.
-
-**Storage and removal.** State lives under `~/.shadowclone/`, with published skills and instructions in the selected agent or repository directories. Whole transcripts are not copied, but derived records and evaluation evidence can contain sensitive content. Local state is not encrypted; processes with equivalent access and backups may read it. Managed policy governs Shadowclone, not other programs under the account. There is no automatic expiry policy or local model runner.
-
-Disable background learning with `shadowclone learning disable`, stop automatic skill edits with `shadowclone skills automatic off`, or remove recorded state with `shadowclone forget --all`. Preserve unfinished worktrees first. Conflicting managed edits can block removal. Original transcripts, native memory, provider-retained requests, backups, and remote Git history remain. Repository setup files remain too; use `undo` before deleting revision history or remove them through version control. [Data handling](docs/data-handling.md) and [security reporting](SECURITY.md) cover the full details.
-
-## Evaluations
-
-**What is measured.** Whether a coding agent follows one user's engineering preferences on ordinary requests. Each request ran in four setups: **without Shadowclone or user skills**, **with user skills**, **with Shadowclone skills**, and **with Shadowclone skills and deep learning**, which adds learning from the user's past sessions.
-
-**Results.** GPT-6 Sol, GPT-6 Luna, Sonnet 5.5, and Opus 5.5 ran synthetic repository tasks three times per setup on eight to ten tasks. Deterministic checks score preferences each agent follows when told. Cells count checks followed out of checks run, with the multiple over the first row in parentheses.
-
-| Setup | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
-| --- | ---: | ---: | ---: | ---: |
-| Without Shadowclone or user skills | 47 of 72 | 46 of 69 | 35 of 60 | 35 of 60 |
-| With user skills | 58 of 68 (1.3x) | 62 of 72 (1.3x) | 44 of 63 (1.2x) | 50 of 63 (1.4x) |
-| With Shadowclone skills | 59 of 71 (1.3x) | 57 of 72 (1.2x) | 43 of 61 (1.2x) | 42 of 60 (1.2x) |
-| With Shadowclone skills and deep learning | 65 of 69 (1.4x) | 61 of 72 (1.3x) | 47 of 61 (1.3x) | 50 of 60 (1.4x) |
-
-**What it shows.** Deep learning followed the highest share on GPT-6 Sol, Sonnet 5.5, and Opus 5.5, and user skills on GPT-6 Luna. Without help the agents already follow most of these checks, so the gains are 1.3x to 1.4x. The gain over no help is clear (95% interval excludes zero) on GPT-6 Sol and Opus 5.5, and not on the other two.
-
-**Where it helps most.** Deep learning followed the review-reply preferences in every session on all four agents. On checks each agent misses by default, it followed 3.9x as many as no help on GPT-6 Sol and 3.5x on GPT-6 Luna, and 7 of 21 and 14 of 24 on the Claude models, where no help followed none.
-
-Each agent has its own tasks and checks, so compare setups within a column. [Task selection, per-task results, and intervals](evals.md). [How to run the study](docs/architecture/09-evaluation.md).
-
-## More commands
-
-<details><summary>More commands</summary>
-
-| Command | Purpose |
+| Guide | Use it to |
 | --- | --- |
-| `shadowclone import` | Refresh consented repository guidance as evidence |
-| `shadowclone recall <query>` | Search available scoped references |
-| `shadowclone install --agent all --global` | Install native guidance manually |
-| `shadowclone install --agent <agent> --local` | Install guidance for this repository without shared setup |
-| `shadowclone uninstall --global` / `--local` | Remove owned integrations in the selected scope |
-| `shadowclone migrate skills` | Preview migration from an older profile installation |
-| `shadowclone mcp` | Serve context and maintenance tools to a connected agent |
-
-Supported agent identifiers are `claude-code`, `codex`, `cursor`, and `antigravity`. Optional local Claude subagents use `--subagent`; automatic delegation is a separate `--auto-delegate` choice. Run `shadowclone --help` for the command reference.
-
-</details>
+| [Agent builds](docs/guides/agent-builds.md) | Choose, create, and equip skills |
+| [Learning](docs/guides/learning.md) | Run deep learning, background learning, or record a preference |
+| [Skill maintenance](docs/guides/skills.md) | Review updates, conflicts, history, and undo |
+| [Repository setup](docs/guides/repositories.md) | Share checks and skills with a repository |
+| [How it works](docs/guides/how-it-works.md) | Follow guidance from consented evidence to coding agents |
+| [Command reference](docs/guides/commands.md) | Find everyday and advanced commands |
 
 **Further reading:** [Documentation index](docs/README.md) · [Architecture](docs/architecture/README.md) · [Design history](docs/design/README.md) · [Migration](docs/migration.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 

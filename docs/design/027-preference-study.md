@@ -65,7 +65,7 @@ Preparation must run outside every repository, and it fails if a registered repo
 
 ## Claude repeat
 
-The same frozen suite runs on Claude Code with Sonnet 5.5 at high effort and with Opus 5.5 at medium effort. Opus 5.5 required a newer Claude Code than the installed one, so it ran from a privately installed copy placed first on the path. Tasks, checks, and analysis do not change. Claude reads `CLAUDE.md` rather than `AGENTS.md`, so every Claude arm gets a `CLAUDE.md` that imports the shared repository instructions.
+The same frozen suite runs on Claude Code with Sonnet 5.5 at high effort and with Opus 5.5 at medium effort. Tasks, checks, and analysis do not change. Claude reads `CLAUDE.md` rather than `AGENTS.md`, so every Claude arm gets a `CLAUDE.md` that imports the shared repository instructions.
 
 The learned environments are reused; no new learning runs. Bare and told controls run on Claude and are reported without dropping any check, so the report shows which checks were already default Claude behavior. Codex and Claude use different models and effort, so the two runs compare a setup's effect within each engine, not the engines.
 
@@ -83,7 +83,7 @@ Claude's first scores were understated by the scorer. It piped test runs through
 
 **Candidate pool.** The pool is the ten candidate tasks with deterministic checks only. Attribution and judged checks are excluded. Word caps are 100 words, about six sentences, instead of the 60 that was fitted to Codex output. The earlier Codex result keeps its 60-word suite.
 
-**Infrastructure failures.** A session that ends in an infrastructure error before the agent acts, such as a sandbox mount failure, a usage limit, or an unrecognized model, has no outcome. It is replaced once, in controls or scoring, and the failed record is kept beside the receipt. Any session with an agent action keeps its result and is never rerun. A usage limit pauses the study until it resets, and no paid overflow or model substitution is used.
+**Infrastructure failures.** A session that ends in an infrastructure error before the agent acts, such as a sandbox mount failure, a provider interruption, or an unrecognized model, has no outcome. It is replaced once, in controls or scoring, and the failed record is kept beside the receipt. Any session with an agent action keeps its result and is never rerun. A provider interruption pauses the study, and resume keeps the frozen model and inputs.
 
 **Runs.** Sonnet 5.5 at high effort, Opus 5.5 at medium effort, and GPT-6 Luna at high effort each ran controls, froze their checks, and ran three repetitions of four setups. The prepared environments were reused. GPT-6 Sol keeps its original suite, rescored with the repaired scorer, which changed no verdict.
 
@@ -114,6 +114,8 @@ The headline metric is task-weighted adherence to the full key. A fidelity metri
 ## Data handling
 
 Suites, keys, fixtures, environments, and receipts stay in a private directory outside every checkout. Key extraction keeps counts, not session text. Learning reads consented sessions through the normal redacted learning path. Candidate Git writes are limited to the disposable workspace and its local remote; the network remains disabled.
+
+Published reports may name models and versions, but omit evaluator identity, account or subscription details, private installations, paths, repositories, prompts, guidance, and code evidence.
 
 ## Verification
 

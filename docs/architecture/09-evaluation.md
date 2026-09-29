@@ -1,21 +1,19 @@
 # Evaluation
 
-The preference study compares how agents follow one user's engineering preferences under different setups. Preference adherence, correctness, and safety are separate results, and a completed comparison can show a tie or a loss. [Published results](../../evals.md) describe the measurements and their limits.
+The preference study compares how agents follow one anonymized participant's engineering preferences under different setups. Preference adherence, correctness, and safety are separate results, and a completed comparison can show a tie or a loss. [Published results](../../evals.md) describe the measurements and their limits.
 
 ## Setups compared
 
 | Setup | Report name | Inputs |
 | --- | --- | --- |
 | Without Shadowclone or user skills | `bare` | Repository guidance only, with personal memory disabled |
-| With user skills | `original` | The user's own skills and native instructions |
+| With user skills | `original` | The participant's existing skills and native instructions |
 | With Shadowclone skills | `first-time` | User skills plus Shadowclone setup with a scripted wizard build |
 | With Shadowclone skills and deep learning | `deep` | Setup after migrating the learned profile and running deep learning to completion |
 
 Each setup gets an isolated agent home. The setups with user skills start from identical native memory, and none receives an aggregated profile. The learning model is GPT-6 Sol at medium effort.
 
 Candidates run through the agent's own CLI and native skill discovery: Codex with GPT-6 Sol at medium effort or GPT-6 Luna at high effort, and Claude Code with Sonnet 5.5 at high effort or Opus 5.5 at medium effort.
-
-Opus 5.5 needs a newer Claude Code than some installations carry. Put a private copy first on the path instead of upgrading the installed one.
 
 ## Phases
 
@@ -61,12 +59,12 @@ Freeze the key, wizard build, resolution rule, tasks, checks, environments, mode
 
 ## Budgets and recovery
 
-Each phase has a call ceiling and a deadline. Sessions persist as they finish. Resume runs only missing work, marks interrupted sessions as errors, and never repeats an unfavorable result. Unknown cost is retained as unknown, and the study stops when a subscription allowance is exhausted, without paid overflow or a model substitution.
+Each phase has a call ceiling and a deadline. Sessions persist as they finish. Resume runs only missing work, marks interrupted sessions as errors, and never repeats an unfavorable result. Unknown cost is retained as unknown. Provider interruptions stop the phase so it can resume later without changing the frozen model or inputs.
 
 ## Interpretation
 
 The headline view keeps every achievable check, and a second view keeps only checks bare fails. Both weight tasks equally. Fidelity restricts an arm to the key items its guidance covers, which measures whether the preferences it carries are followed. Intervals resample tasks and then sessions within a task, and a comparison counts only when its 95% interval excludes zero.
 
-Small samples, four to eight tasks per agent, and one user's preferences limit the result. Each agent has its own checks, so results compare setups within an agent, never agents with each other.
+Small samples, four to eight tasks per agent, and one anonymized participant's preferences limit the result. Each agent has its own checks, so results compare setups within an agent, never agents with each other.
 
 A favorable score does not offset a correctness or safety regression. Reduced reports omit prompts, private guidance, and code evidence. [Data handling](../data-handling.md) covers provider access and local storage, and the [design record](../design/027-preference-study.md) explains the method.
