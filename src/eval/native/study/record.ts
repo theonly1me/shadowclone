@@ -46,6 +46,8 @@ export const runRecordSchema = z.strictObject({
   arm: runArmSchema,
   taskId: z.string(),
   repeat: z.number().int().min(0).max(4),
+  productCommit: z.string().optional(),
+  productTreeFingerprint: z.string().optional(),
   status: z.enum(["running", "complete", "error"]),
   turns: z.array(turnRecordSchema),
   files: z.array(changedFileSchema),

@@ -11,7 +11,7 @@ The preference study compares how agents follow one anonymized participant's eng
 | With Shadowclone skills | `first-time` | User skills plus Shadowclone setup with a scripted wizard build |
 | With Shadowclone skills and deep learning | `deep` | Setup after migrating the learned profile and running deep learning to completion |
 
-Each setup gets an isolated agent home. The setups with user skills start from identical native memory, and none receives an aggregated profile. The learning model is GPT-6 Sol at medium effort.
+Each setup gets an isolated agent home. The setups with user skills start from identical native memory, and none receives an aggregated profile. The historical study used GPT-6 Sol at medium effort for learning. Preparation automatically applied nonconflicting proposals, so the deep arm measured a completed study setup rather than ordinary user review.
 
 Candidates run through the agent's own CLI and native skill discovery: Codex with GPT-6 Sol at medium effort or GPT-6 Luna at high effort, and Claude Code with Sonnet 5.5 at high effort or Opus 5.5 at medium effort.
 
@@ -27,7 +27,7 @@ Each phase gates the next, and every phase writes to a private study directory.
 | `derive` | Builds a suite for an agent and model from a candidate suite, keeping its tasks, checks, and analysis. `--model` and `--effort` select the model |
 | `validate` | Verifies code fixtures, calibrates judged checks, runs bare and told controls, and freezes the checks that discriminate into `<suite>.frozen.json`. `--report-only` runs the controls and drops nothing |
 | `run` | Runs the scored matrix with bounded concurrency. `--arms` runs only the listed arms |
-| `report` | Reduces the scored receipt to checks followed per task and setup with multiples over the baseline, adherence, fidelity, group results, and bootstrap intervals. `--base-receipt-file` supplies sessions for tasks or arms not rerun. `--candidate-suite-file` adds the achievable view, which rescores stored sessions against every candidate check that told passed |
+| `report` | Reduces the scored receipt to checks followed per task and setup with multiples over the baseline, adherence, fidelity, group results, and bootstrap intervals. It names the scorer version and product revisions present in each arm. `--base-receipt-file` supplies sessions for tasks or arms not rerun. `--candidate-suite-file` adds the achievable view, which rescores stored sessions against every candidate check that told passed |
 
 ```bash
 shadowclone eval --protocol preference-study-v1 --phase prepare --stage original --preparation-file <file> --yes
@@ -55,7 +55,7 @@ Before personal arms run, bare and told controls select the checks, separately f
 
 The achievable view also keeps checks bare already meets and drops only checks that told fails or that never apply. A task with no kept check leaves the suite.
 
-Freeze the key, wizard build, resolution rule, tasks, checks, environments, model, CLI version, and product commit before scoring. Resume never changes frozen inputs.
+Freeze the key, wizard build, resolution rule, tasks, checks, environments, model, CLI version, and product commit before scoring. Each new run records its product commit and working-tree fingerprint so mixed receipts can identify their revisions. Historical runs without this field report an unknown revision. Resume never changes frozen inputs.
 
 ## Budgets and recovery
 
@@ -63,8 +63,8 @@ Each phase has a call ceiling and a deadline. Sessions persist as they finish. R
 
 ## Interpretation
 
-The headline view keeps every achievable check, and a second view keeps only checks bare fails. Both weight tasks equally. Fidelity restricts an arm to the key items its guidance covers, which measures whether the preferences it carries are followed. Intervals resample tasks and then sessions within a task, and a comparison counts only when its 95% interval excludes zero.
+The headline view keeps every achievable check, and a second view keeps only checks bare fails. Both weight tasks equally. Unknown and not-applicable checks are reported but excluded from rates and count denominators. Observed checks before a later infrastructure error remain scored; dropped tasks also leave session and error totals. The report phase rescores deterministic checks in both views from stored actions and responses. Fidelity restricts an arm to the key items its guidance covers. Intervals resample tasks and then complete sessions within a task, and a comparison counts only when its 95% interval excludes zero. The published aggregates were recomputed with `session-bootstrap-2` on 2026-09-30 without new model calls.
 
-Small samples, four to eight tasks per agent, and one anonymized participant's preferences limit the result. Each agent has its own checks, so results compare setups within an agent, never agents with each other.
+Small samples, eight to ten tasks per agent, and one participant's preferences limit the result. The preference key and deep learner used the same session sample, tasks were assembled after coverage analysis, and some tasks were reused after fixes. Future held-out tasks should be frozen before coverage analysis. Each agent has its own checks, so results compare setups within an agent, never agents with each other.
 
 A favorable score does not offset a correctness or safety regression. Reduced reports omit prompts, private guidance, and code evidence. [Data handling](../data-handling.md) covers provider access and local storage, and the [design record](../design/027-preference-study.md) explains the method.

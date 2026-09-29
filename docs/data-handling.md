@@ -8,7 +8,7 @@ Source settings live in `~/.shadowclone/config.toml` and default to off. Default
 
 Before consent, setup may check whether a configured source root exists and contains data. It reduces that check to a temporary boolean, without opening source contents or retaining entry names. Reading source contents requires the corresponding setting.
 
-Source access does not by itself authorize automatic skill edits. Disabling a source stops future use of its evidence; it does not erase existing learning or requests retained by a provider.
+Source access does not by itself authorize automatic skill edits. Disabling a source excludes its indexed events from later learning selection and rechecks authorization before each text reference is resolved. Pending approval also checks its saved source provenance against current effective consent. It does not erase existing published guidance or requests retained by a provider. Review and retire existing guidance separately if it should no longer be used.
 
 ## Sources
 
@@ -62,6 +62,10 @@ Use only material you are authorized to send to the chosen provider. Provider us
 | `~/.shadowclone/index.db` and sidecars | Event metadata, source references, cursors, and origin bindings |
 | `~/.shadowclone/profile/` | Legacy profile state and recovery artifacts |
 | `~/.shadowclone/distill/` | Derived learning checkpoints and fingerprints |
+| `~/.shadowclone/learning-pending.json` | Learned rules awaiting approval, named source provenance, and keys explicitly rejected during review |
+| `~/.shadowclone/learning-attempts/` | Private receipts with outcome codes, counts, and next actions, without raw excerpts or transcript paths |
+| `~/.shadowclone/learning-feedback.json` | Opaque evidence hashes, rule and guidance identifiers, source names, correction times, and explicit review acknowledgements |
+| `~/.shadowclone/learning-probes/` | Bounded native probe receipts with task and guidance hashes, provider metadata, outcomes, and loading observations; no prompt or response text |
 | `~/.shadowclone/skills.json` | Configured roots, maintenance ownership, and cached library review fingerprints |
 | `~/.shadowclone/skill-proposals/` | Proposed edits and conflicts with redacted supporting passages and required decisions |
 | Other files under `~/.shadowclone/` | Revisions, installation ownership, original-library snapshots, and learning/skill ledgers |
@@ -75,7 +79,7 @@ Generated state uses private directories and owner-only permissions where suppor
 
 ## Scope and editing
 
-Repository learning stays with the registered repository. Setup and deep learning register the working repository only when Git-metadata consent and skill maintenance are enabled and its remote identity verifies; blocked and unknown origins stay unregistered. Organization learning uses a normalized remote-owner identity, which is a technical scope and does not verify a legal employer boundary. Explicit global guidance applies across repositories. Guidance that names a repository, codebase, or repository path never receives global scope, even when the learning model assesses its evidence as global. Without Git-metadata consent, working directories remain isolated.
+Repository learning stays with the registered repository. Setup and deep learning register the working repository only when Git-metadata consent and skill maintenance are enabled and its remote identity verifies. Past sessions from before metadata consent stay isolated until the user confirms a current directory-to-remote association. Blocked and unknown origins stay unregistered. Organization learning uses a normalized remote-owner identity, which is a technical scope and does not verify a legal employer boundary. Explicit global guidance applies across repositories. Guidance that names a repository, codebase, or repository path never receives global scope, even when the learning model assesses its evidence as global. Without Git-metadata consent, working directories remain isolated.
 
 Automatic skill maintenance requires separate write authorization. Conflicting edits stay pending. Native memory and third-party packages remain unchanged. Revisions record files together and refuse an undo that would overwrite later edits.
 
@@ -93,7 +97,7 @@ Use AI in the skill editor sends only the typed form fields. It reads no reposit
 
 ## Retention and removal
 
-There is no automatic expiry policy. Use `learning disable` to stop background learning and source settings to stop future reads. Use `skills automatic off` to stop automatic skill edits. Review active guidance with `context --explain` and reverse a revision with `undo`.
+There is no automatic expiry policy. Use `learning disable` to stop background learning and source settings to stop future reads. Use `skills automatic off` to stop automatic skill edits. Review active guidance with `learning list`, `learning show`, or `context --explain`, and reverse a revision with `undo`. `learning retire`, `replace`, `narrow`, and `remove-source` preview explicit changes before application. Source removal preserves mixed-source and unresolved records for individual review and never removes original transcripts or memory.
 
 `uninstall --global` removes recorded global integrations; `uninstall --local` removes recorded integrations in the current repository. Ownership checks preserve unrelated content and refuse conflicting managed edits. Legacy artifacts without ownership records may need manual removal.
 

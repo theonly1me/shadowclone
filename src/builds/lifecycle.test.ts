@@ -30,8 +30,9 @@ test("preview is read-only and applying publishes preferences immediately", asyn
     repositoryName: null,
   });
 
-  expect(compilation?.markdown).toContain(preferencePath);
-  expect(compilation?.markdown).toContain("testing-first/SKILL.md");
+  expect(compilation?.markdown).toContain("shadowclone-build-preferences skill");
+  expect(compilation?.markdown).toContain("testing-first skill");
+  expect(compilation?.markdown).not.toContain(homeDirectory);
   expect(
     (await previewBuild({ ...context, input: buildInput() })).updates,
   ).toHaveLength(0);

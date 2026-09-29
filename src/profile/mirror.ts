@@ -32,17 +32,18 @@ function resultLine(options: {
   readonly eligibleSteeringEpisodes: number;
   readonly deepChangesProposed: number | undefined;
   readonly profileUpdated: boolean;
+  readonly pendingReview: number;
 }): string {
   if (options.deepChangesProposed === undefined) {
     return options.eligibleSteeringEpisodes === 0
-      ? "  Profile unchanged. No user steering episodes are eligible for deep learning."
-      : "  Profile unchanged. Run shadowclone learn --deep to reconcile the eligible moments.";
+      ? "  No user steering episodes are eligible for deep learning."
+      : "  Run shadowclone learn --deep to reconcile the eligible moments.";
   }
 
   if (options.deepChangesProposed === 0) {
     return options.profileUpdated
-      ? "  Deep learning produced no new profile rules. Existing profile metadata was updated."
-      : "  Deep learning produced no profile rules. Profile unchanged.";
+      ? "  Deep learning found no new rules; existing guidance was updated."
+      : "  Deep learning found no new rules.";
   }
 
   const ruleLabel = countLabel({
@@ -52,16 +53,12 @@ function resultLine(options: {
   });
 
   if (!options.profileUpdated) {
-    return [
-      `  Deep learning proposed ${options.deepChangesProposed} profile ${ruleLabel}.`,
-      "Profile unchanged.",
-    ].join(" ");
+    return options.pendingReview > 0
+      ? `  Saved ${options.pendingReview} learned ${ruleLabel} for review. Run shadowclone learning pending.`
+      : `  Deep learning proposed ${options.deepChangesProposed} ${ruleLabel}; no changes were applied.`;
   }
 
-  return [
-    `  Deep learning applied ${options.deepChangesProposed} profile ${ruleLabel}.`,
-    "Profile updated at ~/.shadowclone/profile/.",
-  ].join(" ");
+  return `  Recorded ${options.deepChangesProposed} learned ${ruleLabel}. Check shadowclone learning status for delivery.`;
 }
 
 export function renderMirror(options: {
@@ -73,6 +70,7 @@ export function renderMirror(options: {
   readonly networkCallsMade?: boolean;
   readonly deepChangesProposed?: number;
   readonly profileUpdated?: boolean;
+  readonly pendingReview?: number;
 }): string {
   const report = options.report;
   const megabytes = (report.corpus.bytes / 1_048_576).toFixed(1);
@@ -176,6 +174,7 @@ export function renderMirror(options: {
         options.deepLearningPreview.eligibleSteeringEpisodes,
       deepChangesProposed: options.deepChangesProposed,
       profileUpdated: options.profileUpdated ?? false,
+      pendingReview: options.pendingReview ?? 0,
     }),
   ].join("\n");
 }

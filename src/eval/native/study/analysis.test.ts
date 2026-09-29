@@ -44,7 +44,7 @@ test("controls keep checks told passes and bare fails, and drop defaults", async
 
 test("rates weight tasks equally and the bootstrap supports only clear differences", () => {
   const entries = (taskId: string, passes: number, total: number) =>
-    Array.from({ length: total }, (_, index) => ({ taskId, keyItem: "item", passed: index < passes, skillRead: null }));
+    Array.from({ length: total }, (_, index) => ({ taskId, sessionId: `${taskId}-${index}`, keyItem: "item", passed: index < passes, skillRead: null }));
   const deep = [...entries("one", 3, 3), ...entries("two", 1, 1), ...entries("three", 2, 2)];
   const bare = [...entries("one", 0, 3), ...entries("two", 0, 1), ...entries("three", 1, 2)];
   expect(taskWeightedRate({ observations: [...entries("one", 1, 4), ...entries("two", 1, 1)], tasks: ["one", "two"] })).toBe(0.625);
@@ -55,7 +55,7 @@ test("rates weight tasks equally and the bootstrap supports only clear differenc
 });
 
 test("intervals include run-to-run noise inside a single task", () => {
-  const entries = Array.from({ length: 6 }, (_, index) => ({ taskId: "only", keyItem: "item", passed: index < 3, skillRead: null }));
+  const entries = Array.from({ length: 6 }, (_, index) => ({ taskId: "only", sessionId: `session-${index}`, keyItem: "item", passed: index < 3, skillRead: null }));
   const rate = bootstrapRate({ observations: entries, tasks: ["only"], seed: 5, samples: 2000 });
   expect(rate.point).toBe(0.5);
   expect(rate.lower).toBeLessThan(0.5);
@@ -64,6 +64,41 @@ test("intervals include run-to-run noise inside a single task", () => {
   const difference = bootstrapDifference({ left: entries, right: entries, tasks: ["only"], seed: 5, samples: 2000 });
   expect(difference.halfWidth).toBeGreaterThan(0.2);
   expect(difference.supported).toBe(false);
+});
+
+test("duplicating correlated checks within sessions does not narrow the interval", () => {
+  const sessions = [true, true, false];
+  const observations = (checksPerSession: number) => sessions.flatMap((passed, index) =>
+    Array.from({ length: checksPerSession }, (_, check) => ({
+      taskId: "only",
+      sessionId: `session-${index}`,
+      keyItem: `item-${check}`,
+      passed,
+      skillRead: null,
+    })),
+  );
+  const single = bootstrapRate({ observations: observations(1), tasks: ["only"], seed: 7, samples: 2000 });
+  const repeated = bootstrapRate({ observations: observations(10), tasks: ["only"], seed: 7, samples: 2000 });
+
+  expect(repeated).toEqual(single);
+});
+
+test("unknown outcomes do not lower headline adherence or enter detailed counts", async () => {
+  const fixture = await studyFixture({ tasks: [studyTask()] });
+
+  try {
+    const scored = { ...receipt([
+      { arm: "deep", taskId: "rename-config", repeat: 0, verdicts: ["pass", "pass"] },
+      { arm: "deep", taskId: "rename-config", repeat: 1, verdicts: ["unknown", "unknown"] },
+    ]), phase: "scored" as const };
+    const report = studyReport({ suite: fixture.suite, receipt: scored, coverage: {} });
+
+    expect(report.arms.find((arm) => arm.arm === "deep")?.adherence).toBe(1);
+    expect(report.counts.overall.deep).toEqual({ followed: 2, checked: 2, timesBaseline: null });
+    expect(report.arms.find((arm) => arm.arm === "deep")?.unknown).toBe(2);
+  } finally {
+    await fixture.cleanup();
+  }
 });
 
 test("the report separates adherence from fidelity to covered preferences", async () => {

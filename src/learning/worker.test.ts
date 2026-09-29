@@ -6,6 +6,7 @@ import { integrationFixture } from "../integrations/fixtures";
 import { acquireLocalLock } from "../localFiles/lock";
 import { runAutomaticLearning, scheduleLearning } from "./index";
 import { learningInterval, readLearningState } from "./state";
+import { readLatestLearningReceipt } from "./receipt";
 
 test("automatic learning stays off without separate consent and internal runs do not schedule", async () => {
   const setup = await integrationFixture();
@@ -70,6 +71,8 @@ test("worker serializes attempts and processes at most sixty unseen recent episo
   const firstState = await readLearningState(setup.paths);
 
   expect(firstState.processed).toHaveLength(60);
+  expect((await readLatestLearningReceipt(setup.paths))?.episodeCount).toBe(60);
+  expect((await readLatestLearningReceipt(setup.paths))?.outcome).toBe("uncertain-evidence");
   expect(firstState.processed[0]?.timestamp).toBe(now - 10_000 + 64);
   expect(firstState.processed.at(-1)?.timestamp).toBe(now - 10_000 + 5);
   expect(calls).toBe(3);
@@ -152,6 +155,8 @@ test("a failed attempt preserves the profile and can retry at a later boundary",
     }),
   ).toBe("failed");
   expect(await Bun.file(filePath).text()).toBe(before);
+  expect((await readLatestLearningReceipt(setup.paths))?.outcome).toBe("engine-failed");
+  expect((await readLatestLearningReceipt(setup.paths))?.nextAction).toContain("retry");
   expect((await readLearningState(setup.paths)).processed).toEqual([]);
   expect(
     await runAutomaticLearning({

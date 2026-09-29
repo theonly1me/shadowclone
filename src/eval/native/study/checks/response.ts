@@ -7,11 +7,21 @@ export function extractReply(text: string): string {
   if (fenced?.[1]?.trim()) return fenced[1].trim();
   const quoted = text.split("\n").filter((line) => line.trimStart().startsWith(">"));
   if (quoted.length > 0) return quoted.map((line) => line.trimStart().replace(/^>\s?/, "")).join("\n").trim();
+  const labeled = /^(?:here(?:'s| is) (?:a |the )?(?:suggested )?reply|suggested reply|draft reply|reply):\s*([^\n]*(?:\n(?!\n)[^\n]*)*)/iu.exec(text.trim());
+  if (labeled?.[1]?.trim()) return labeled[1].trim();
   return text.trim();
 }
 
 export function sentences(text: string): string[] {
-  return text.replace(/```[\s\S]*?```/g, " ").split(/(?<=[.!?])\s+|\n+/).map((part) => part.trim()).filter((part) => /[A-Za-z]/.test(part));
+  const protectedText = text
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/\b(?:i\.e\.|e\.g\.)/giu, (abbreviation) =>
+      abbreviation.replaceAll(".", "\u0000"),
+    );
+  return protectedText
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((part) => part.trim().replaceAll("\u0000", "."))
+    .filter((part) => /[A-Za-z]/.test(part));
 }
 
 function turnText(options: { record: RunRecord; turn: number; extract: "reply" | "all" }): string | null {

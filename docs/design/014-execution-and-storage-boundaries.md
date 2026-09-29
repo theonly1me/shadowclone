@@ -1,6 +1,6 @@
 # Execution and storage boundaries
 
-This proposal identified the isolation work completed in [remediation completion](015-remediation-completion.md).
+This proposal identified the isolation work completed in [remediation completion](021-remediation-completion.md).
 
 ## Problem
 

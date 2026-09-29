@@ -80,18 +80,10 @@ export function renderBuildRouting(options: {
   ];
 
   for (const artifact of artifacts.values()) {
-    const location =
-      options.sharedOnly && options.cwd
-        ? path
-            .relative(options.cwd, artifact.filePath)
-            .split(path.sep)
-            .join("/")
-        : artifact.filePath;
-
     lines.push(
       artifact.buildEntryId === "build-preferences"
-        ? `Before acting, read the selected working preferences at ${location}.`
-        : `- ${artifact.description} Read ${location}.`,
+        ? "Follow the selected working preferences in the shadowclone-build-preferences skill when relevant."
+        : `- ${artifact.description} Use the ${artifact.name} skill when relevant.`,
     );
   }
 

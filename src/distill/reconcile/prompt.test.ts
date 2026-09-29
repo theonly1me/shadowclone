@@ -14,6 +14,7 @@ import type { SeedLibrary } from "../../skills";
 import type { DistillBatch } from "../batch";
 import { createReconciliationContext } from "./context";
 import { buildReconciliationPrompt } from "./prompt";
+import { materializeEvidence } from "../excerpts";
 
 const profileSecret = ["sk", "proj", "profileSecret123456789"].join("-");
 const evidenceSecret = ["sk", "proj", "evidenceSecret123456789"].join("-");
@@ -120,7 +121,8 @@ test("sends only redacted profile text and opaque local tokens", async () => {
     profile,
     library: emptyLibrary,
   });
-  const prompt = await buildReconciliationPrompt({ context });
+  const { excerpts } = await materializeEvidence({ signals: [signal] });
+  const prompt = await buildReconciliationPrompt({ context, excerpts });
 
   const durableEvidenceId = profileEvidenceId({
     originId: origin.id,

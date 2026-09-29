@@ -10,6 +10,7 @@ export async function materializeEvidence(options: {
   readonly signals: readonly CorrectionSignal[];
   readonly sourceRoots?: readonly string[];
   readonly requireSteeringCue?: boolean;
+  readonly authorizeRef?: (ref: CorrectionSignal["textRefs"][number]) => Promise<boolean>;
 }): Promise<{
   readonly signals: readonly CorrectionSignal[];
   readonly excerpts: ReadonlyMap<string, string>;
@@ -21,6 +22,10 @@ export async function materializeEvidence(options: {
     const textRefs = [];
 
     for (const ref of signal.textRefs) {
+      if (options.authorizeRef && !(await options.authorizeRef(ref))) {
+        continue;
+      }
+
       const redacted = await resolveRedacted({
         ref,
         roots: options.sourceRoots,
@@ -67,6 +72,10 @@ export async function materializeEvidence(options: {
     }
 
     for (const ref of signal.contextRefs ?? []) {
+      if (options.authorizeRef && !(await options.authorizeRef(ref))) {
+        continue;
+      }
+
       const text = await resolveRedacted({ ref, roots: options.sourceRoots });
 
       excerpts.set(textRefKey(ref), extractPromptText(text) ?? "");

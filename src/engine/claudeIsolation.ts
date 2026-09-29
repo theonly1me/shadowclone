@@ -1,5 +1,14 @@
 import type { EngineExecution, EngineRunOptions } from "./types";
 
+export function missingClaudeSandboxTools(options: {
+  readonly platform: NodeJS.Platform;
+  readonly which: (name: string) => string | null;
+}): readonly string[] {
+  return options.platform === "linux"
+    ? ["bwrap", "socat"].filter((name) => options.which(name) === null)
+    : [];
+}
+
 function executionDomains(execution: EngineExecution): readonly string[] {
   return execution.purpose === "dispatch"
     ? (execution.allowedDomains ?? [])

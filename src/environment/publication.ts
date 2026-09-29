@@ -170,6 +170,7 @@ export async function skillPublication(options: {
           scope: options.scope.key,
           inputFingerprint: recordFingerprint(record),
           status: "published" as const,
+          publishedAt: Date.now(),
           reason: "Reconciled into the matching skill",
           destinations,
         })),

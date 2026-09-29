@@ -5,8 +5,8 @@ import { importRepositoryGuidance } from "../importRules";
 import type { ProjectPaths } from "../paths";
 import {
   configureSkillMaintenance,
-  updateSkillLibrary,
 } from "../skillMaintenance";
+import { maintainSkills } from "../learning/maintenance";
 import type { InitializeOptions } from "./init";
 import type { OnboardingPresence } from "./onboardingPresence";
 
@@ -93,7 +93,7 @@ export async function prepareInitialEnvironment(
       managedConfigPath: options.managedConfigPath,
     });
 
-    const updated = await updateSkillLibrary({
+    const updated = await maintainSkills({
       paths,
       syncPersonal: true,
       managedConfigPath: options.managedConfigPath,

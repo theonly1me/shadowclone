@@ -43,7 +43,7 @@ export function initialConfiguration(options: {
     source: "skill-library",
     enabled: skills,
   });
-  config = setDeepEnabled({ config, enabled: background });
+  config = setDeepEnabled({ config, enabled: learn });
   config = {
     ...config,
     distillation: { ...config.distillation, automatic: background },

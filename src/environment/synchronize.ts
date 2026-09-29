@@ -16,9 +16,11 @@ export async function synchronizePublishedSkills(options: {
 }): Promise<{
   readonly state: EnvironmentState;
   readonly updates: readonly FileUpdate[];
+  readonly routingBlocked: boolean;
 }> {
   let state = options.state;
   const updates: FileUpdate[] = [];
+  let routingBlocked = false;
   const groups = Map.groupBy(
     state.artifacts.filter((artifact) => artifact.kind === "skill"),
     (artifact) => `${artifact.scope}/${artifact.name}`,
@@ -116,6 +118,7 @@ export async function synchronizePublishedSkills(options: {
     try {
       validateRouting({ paths: options.paths, state: publication.state });
     } catch {
+      routingBlocked = true;
       const keys = new Set(artifacts.flatMap((entry) => entry.learningKeys));
       const records = state.records.filter(({ rule }) => keys.has(rule.key));
 
@@ -138,5 +141,5 @@ export async function synchronizePublishedSkills(options: {
     updates.push(...publication.updates);
   }
 
-  return { state, updates };
+  return { state, updates, routingBlocked };
 }

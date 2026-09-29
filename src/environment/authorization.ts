@@ -23,6 +23,7 @@ export async function authorizedEnvironmentTarget(options: {
   if (target === environmentFile(options.paths)) {
     return true;
   }
+  if (target === path.join(options.paths.shadowcloneDirectory, "learning-pending.json")) return true;
 
   if (
     target ===

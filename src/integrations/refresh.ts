@@ -8,6 +8,7 @@ import { readIntegrations, saveIntegration } from "./state";
 import { integrationFilePath } from "./targets";
 import type { IntegrationOptions } from "./types";
 import { readEnvironment } from "../environment";
+import { ensureHookRunner } from "./hookRunner";
 
 export async function refreshIntegrations(
   options: IntegrationOptions = {},
@@ -18,6 +19,9 @@ export async function refreshIntegrations(
   let preserved = 0;
 
   for (const integration of await readIntegrations(paths)) {
+    if (integration.agent === "claude-code" || integration.agent === "codex") {
+      await ensureHookRunner({ paths });
+    }
     const profile = await compileContext({
       ...options,
       paths,

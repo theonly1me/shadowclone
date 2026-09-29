@@ -38,34 +38,24 @@ npm install -g @shadowclone/cli
 | --- | --- | --- | ---: |
 | 1 | `shadowclone init` | Answer three questions about learning and skill maintenance | About 1 minute |
 | 2 | `shadowclone learn --deep` | Learn from enabled past sessions; repeat if more history remains | Up to 5 minutes per run |
-| 3 | `shadowclone wizard` | Choose skills in the browser and review the files before applying them | About 1 minute |
+| 3 | `shadowclone learning pending` and `shadowclone skills pending` | Review learned rules, scope, and publication before relying on them | About 1 minute |
 
-Setup takes about two to three minutes, excluding learning. Deep learning needs an installed and authenticated `claude`, `codex`, or `cursor-agent` CLI.
+Setup takes about two to three minutes, excluding learning. Deep learning needs an installed and authenticated `claude`, `codex`, or `cursor-agent` CLI. Claude Code learning on Linux needs `bwrap` and `socat` for its sandbox.
 
 **Skip learning.** Run `shadowclone wizard` by itself if you do not want Shadowclone to read sessions or call a model. It starts from an empty active environment and lets you choose a build locally.
 
-The browser shows a bounded constellation grouped from each skill's category and purpose. Drag to pan, scroll or pinch to zoom, search to center a skill, select a hub to focus it, or switch to the list view. Large libraries form nested hubs instead of making the page longer.
+Run `shadowclone` to see the current result and next action. Use `shadowclone wizard` to browse optional workflow skills in a browser.
 
 ## Evaluations
 
-The preference study tested ordinary coding tasks on GPT-6 Sol, GPT-6 Luna, Sonnet 5.5, and Opus 5.5. Each agent ran with no personal help, with existing skills, with Shadowclone skills, and with Shadowclone skills plus deep learning.
+The preference study compared agent alone, existing user skills, those skills plus Shadowclone setup, and setup plus deep learning on GPT-6 Sol, GPT-6 Luna, Sonnet 5.5, and Opus 5.5. After corrected scoring, deep learning over existing skills was +10.0, -2.5, +9.7, and +7.3 percentage points respectively, with every 95% interval including zero. It recovered a concrete review-reply preference across all four models. The study covers one participant and one synthetic repository. [Read all four setups, corrected results, and limitations](evals.md).
 
-| Share of preferences followed | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
+| Preferences followed | Sol | Luna | Sonnet | Opus |
 | --- | ---: | ---: | ---: | ---: |
-| Agent alone | 72% | 73% | 55% | 57% |
-| With Shadowclone skills | 84% | 83% | 68% | 68% |
-| With Shadowclone skills and deep learning | 97% | 88% | 76% | 82% |
-| Improvement with skills and deep learning | **+25** | **+15** | **+22** | **+25** |
-
-Here is what changed in practice. Each cell compares the agent alone with Shadowclone skills and deep learning.
-
-| Preference | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
-| --- | ---: | ---: | ---: | ---: |
-| Review reply preferences | 2 of 6 → 6 of 6 | 2 of 6 → 6 of 6 | 0 of 6 → 6 of 6 | 0 of 6 → 6 of 6 |
-| Failing test first | 0 of 3 → 3 of 3 | 0 of 3 → 2 of 3 | 0 of 3 → 0 of 3 | 0 of 3 → 2 of 3 |
-| Pull request checklist | 0 of 3 → 3 of 3 | 3 of 3 → 3 of 3 | 0 of 3 → 1 of 3 | 2 of 3 → 3 of 3 |
-
-Skills with deep learning beat the agent alone on all four agents by 15 to 25 points. The gain is statistically clear on GPT-6 Sol and Opus 5.5, and directional on the other two. The participant's existing skills scored in the same range and slightly higher on GPT-6 Luna. [Read the tasks, intervals, and limitations](evals.md).
+| Agent alone | 72% | 73% | 59% | 59% |
+| Existing user skills | 87% | 91% | 70% | 79% |
+| Existing skills plus Shadowclone setup | 84% | 83% | 72% | 72% |
+| Setup plus deep learning | 97% | 88% | 80% | 86% |
 
 ## Privacy comes first
 

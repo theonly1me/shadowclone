@@ -3,7 +3,7 @@ import path from "node:path";
 import { runProcess } from "../io/process";
 import { evaluationCommand } from "./evaluationIsolation";
 import { redactSecrets } from "../redact";
-import { claudeIsolationArguments } from "./claudeIsolation";
+import { claudeIsolationArguments, missingClaudeSandboxTools } from "./claudeIsolation";
 import { runnerEnvironment } from "./environment";
 import { validateEngineExecution } from "./execution";
 import { parseClaudeStream } from "./parseClaude";
@@ -92,16 +92,20 @@ export function redactedFailure(options: {
   const stderrText = options.stderr.trim();
 
   if (stderrText.length > 0) {
-    return redactSecrets({ text: stderrText });
+    return stderrText.length <= 1_000
+      ? redactSecrets({ text: stderrText })
+      : `Claude failed with exit code ${options.exitCode}; its diagnostic output was too large to display. Run shadowclone doctor for setup checks.`;
   }
 
   if (options.run.errorMessage) {
-    return redactSecrets({ text: options.run.errorMessage });
+    return options.run.errorMessage.length <= 1_000
+      ? redactSecrets({ text: options.run.errorMessage })
+      : `Claude failed with exit code ${options.exitCode}; its diagnostic output was too large to display. Run shadowclone doctor for setup checks.`;
   }
 
   const resultText = options.run.text.trim();
 
-  return resultText.length > 0
+  return resultText.length > 0 && resultText.length <= 1_000
     ? redactSecrets({ text: resultText })
     : `Process exited with code ${options.exitCode}`;
 }
@@ -109,6 +113,17 @@ export function redactedFailure(options: {
 export async function runClaudeCode(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
+  if (options.execution.purpose === "learning" || options.execution.purpose === "dispatch") {
+    const missing = missingClaudeSandboxTools({
+      platform: process.platform,
+      which: (name) => Bun.which(name),
+    });
+
+    if (missing.length > 0) {
+      throw new Error(`Claude sandbox needs ${missing.join(" and ")} on Linux. Install the missing command(s) and retry.`);
+    }
+  }
+
   const sessionId = options.sessionId ?? crypto.randomUUID();
   const temporaryDirectory =
     options.execution.purpose === "dispatch"

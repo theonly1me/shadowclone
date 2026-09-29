@@ -1,4 +1,5 @@
 import { parseAssistant } from "./claudeAssistant";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { readJsonLines } from "../cursor";
 import {
@@ -96,6 +97,10 @@ export async function observeClaudeCodeFile(options: {
 export async function discoverClaudeCodeFiles(
   projectsDirectory: string,
 ): Promise<readonly string[]> {
+  if (!existsSync(projectsDirectory)) {
+    return [];
+  }
+
   const glob = new Bun.Glob("**/*.jsonl");
   const files: string[] = [];
 

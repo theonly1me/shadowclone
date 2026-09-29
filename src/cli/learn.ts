@@ -1,15 +1,18 @@
-import { allowlistedSignals } from "../distill";
+import { allowlistedSignals, authorizedLearningEvents, currentEvidenceAuthorization } from "../distill";
 import { ingestSources, openEventIndex } from "../index";
 import { episodeId, readLearningState, writeLearningState } from "../learning";
 import { projectPaths } from "../paths";
 import { renderMirror } from "../profile";
 import { checkMarkerStaleness, deriveSignals } from "../signal";
 import type { LearnExecutionOptions } from "./learnOptions";
-import { updateSkillLibrary } from "../skillMaintenance";
+import { maintainSkills } from "../learning/maintenance";
 import { registerWorkingRepository } from "../environment/registerRepository";
 import { runDeepLearning } from "./deepLearn";
 import { selectManualLearningWindow } from "./learningWindow";
 import { prepareManualLearning } from "./learnPreparation";
+import { writeLearningReceipt } from "../learning/receipt";
+import path from "node:path";
+import { acquireLocalLock } from "../localFiles/lock";
 
 export async function learn(
   options: LearnExecutionOptions = {},
@@ -36,11 +39,19 @@ export async function learn(
 
   const databasePath =
     options.databasePath ?? (options.dryRun ? ":memory:" : paths.indexDatabase);
-  const index = await openEventIndex(databasePath);
+  const lock = options.dryRun ? null : await acquireLocalLock(path.join(paths.shadowcloneDirectory, "learning-worker.db"));
+  if (!options.dryRun && !lock) throw new Error("Another learning attempt is running");
+  const index = await openEventIndex(databasePath).catch((error: unknown) => {
+    lock?.release();
+    throw error;
+  });
 
   try {
     const summary = await ingestSources({ index, config, paths });
-    const events = index.listEvents();
+    const events = authorizedLearningEvents({
+      events: index.listEvents(),
+      config,
+    });
     const derived = await deriveSignals({
       events,
       corpus: index.getCorpusSummary(),
@@ -78,6 +89,7 @@ export async function learn(
     let networkCallsMade = false;
     let deepChangesProposed = 0;
     let profileUpdated = false;
+    let pendingReview = 0;
 
     if (options.deep) {
       if (!config.distillation.deep) {
@@ -90,68 +102,145 @@ export async function learn(
         `Deep learning found ${batches.length} reconciliation ${batchLabel}.`,
       );
 
-      const result = await runDeepLearning({
-        signals: learningSignals,
-        events: derived.events,
-        paths,
-        policy,
-        dryRun: options.dryRun ?? false,
-        apply: options.apply ?? false,
-        ...(options.runner ? { runner: options.runner } : {}),
-        ...(options.engine ? { engine: options.engine } : {}),
-        ...(options.model ? { model: options.model } : {}),
-        ...(options.reasoningEffort
-          ? { reasoningEffort: options.reasoningEffort }
-          : {}),
-        ...(options.maximumCalls === undefined
-          ? {}
-          : { maximumCalls: options.maximumCalls }),
-        ...(options.confirm ? { confirm: options.confirm } : {}),
-        writeLine,
-      });
+      const startedAt = Date.now();
+      const sourceCounts = Object.fromEntries(
+        [...Map.groupBy(derived.events, (event) => event.source)]
+          .map(([source, sourceEvents]) => [source, sourceEvents.length]),
+      );
+      let stage: "learning" | "publication" | "complete" = "learning";
+      let pendingCount = 0;
+      let publishedCount = 0;
 
-      networkCallsMade = result.networkCallsMade;
-      deepChangesProposed = result.changesProposed;
-      profileUpdated = result.profileUpdated;
-
-      if (!options.dryRun && learningSignals.length > 0) {
-        await writeLearningState({
+      try {
+        const result = await runDeepLearning({
+          signals: learningSignals,
+          events: derived.events,
           paths,
-          state: {
-            ...learningState,
-            processed: [
-              ...learningState.processed,
-              ...learningSignals.map((signal) => ({
-                id: episodeId(signal),
-                timestamp: signal.timestamp,
-              })),
-            ],
-          },
-        });
-      }
-
-      if (!options.dryRun && config.sources["skill-library"]) {
-        if (options.workingDirectory) {
-          await registerWorkingRepository({
+          policy,
+          authorizeRef: currentEvidenceAuthorization({
             paths,
-            workingDirectory: options.workingDirectory,
-            gitMetadataEnabled: config.sources["git-metadata"] && policy.allowedSources.includes("git-metadata"),
-            blockedOrigins: policy.blockedOrigins,
+            configPath,
+            events: derived.events,
             managedConfigPath: options.managedConfigPath,
-            readRemote: options.readRemote,
+          }),
+          dryRun: options.dryRun ?? false,
+          apply: options.apply ?? false,
+          ...(options.runner ? { runner: options.runner } : {}),
+          ...(options.engine ? { engine: options.engine } : {}),
+          ...(options.model ? { model: options.model } : {}),
+          ...(options.reasoningEffort
+            ? { reasoningEffort: options.reasoningEffort }
+            : {}),
+          ...(options.maximumCalls === undefined
+            ? {}
+            : { maximumCalls: options.maximumCalls }),
+          ...(options.confirm ? { confirm: options.confirm } : {}),
+          writeLine,
+        });
+
+        networkCallsMade = result.networkCallsMade;
+        deepChangesProposed = result.changesProposed;
+        profileUpdated = result.profileUpdated;
+        pendingCount = result.pendingReview;
+        pendingReview = result.pendingReview;
+
+        if (!options.dryRun && learningSignals.length > 0) {
+          await writeLearningState({
+            paths,
+            state: {
+              ...learningState,
+              processed: [
+                ...learningState.processed,
+                ...learningSignals.map((signal) => ({
+                  id: episodeId(signal),
+                  timestamp: signal.timestamp,
+                })),
+              ],
+            },
           });
         }
 
-        const skills = await updateSkillLibrary({
-          paths,
-          execution: result.execution,
-          managedConfigPath: options.managedConfigPath,
-          readRemote: options.readRemote,
-        });
+        if (!options.dryRun && config.sources["skill-library"]) {
+          stage = "publication";
+          if (options.workingDirectory) {
+            await registerWorkingRepository({
+              paths,
+              workingDirectory: options.workingDirectory,
+              gitMetadataEnabled: config.sources["git-metadata"] && policy.allowedSources.includes("git-metadata"),
+              blockedOrigins: policy.blockedOrigins,
+              managedConfigPath: options.managedConfigPath,
+              readRemote: options.readRemote,
+            });
+          }
 
-        writeLine(
-          `Skill maintenance: ${skills.synced} synced, ${skills.applied} updated, ${skills.pending} pending, ${skills.deferred} deferred, ${skills.conflicts} conflicts.`,
-        );
+          const skills = await maintainSkills({
+            paths,
+            execution: result.execution,
+            managedConfigPath: options.managedConfigPath,
+            readRemote: options.readRemote,
+          });
+          pendingCount += skills.pending + skills.deferred + skills.conflicts;
+          publishedCount = skills.applied;
+
+          writeLine(
+            `Skill maintenance: ${skills.synced} synced, ${skills.applied} updated, ${skills.pending} pending, ${skills.deferred} deferred, ${skills.conflicts} conflicts.`,
+          );
+        }
+
+        stage = "complete";
+
+        if (!options.dryRun) {
+          const outcome = pendingCount > 0
+            ? result.pendingReview > 0 ? "awaiting-review" : "needs-scope-or-publication"
+            : publishedCount > 0 ? "guidance-published"
+              : profileUpdated ? "guidance-recorded"
+                : result.noChangeReason;
+
+          await writeLearningReceipt({
+            paths,
+            receipt: {
+              startedAt,
+              mode: "manual",
+              outcome,
+              stage,
+              episodeCount: learningSignals.length,
+              sourceCounts,
+              proposalCount: result.changesProposed,
+              engine: result.engine, model: options.model ?? null, ruleKeys: [...result.ruleKeys],
+              pendingCount,
+              nextAction: pendingCount > 0
+                ? result.pendingReview > 0
+                  ? "Run shadowclone learning pending to approve or reject the rule."
+                  : "Run shadowclone skills pending to resolve scope or publication."
+                : outcome === "uncertain-evidence"
+                  ? "No durable rule was resolved. State an explicit standing correction and run shadowclone learn --deep."
+                  : outcome === "no-eligible-evidence"
+                    ? "Enable a capture source and add a correction before running shadowclone learn --deep."
+                    : "Start a new agent session to load active guidance.",
+            },
+          });
+        }
+      } catch (error) {
+        if (!options.dryRun) {
+          await writeLearningReceipt({
+            paths,
+            receipt: {
+              startedAt,
+              mode: "manual",
+              outcome: stage === "learning" ? "engine-failed" : "publication-failed",
+              stage,
+              episodeCount: learningSignals.length,
+              sourceCounts,
+              proposalCount: deepChangesProposed,
+              pendingCount,
+              nextAction: stage === "learning"
+                ? "Check shadowclone doctor and retry shadowclone learn --deep."
+                : "Run shadowclone skills pending and retry shadowclone skills update.",
+            },
+          });
+        }
+
+        throw error;
       }
     }
 
@@ -162,6 +251,7 @@ export async function learn(
         networkCallsMade,
         ...(options.deep ? { deepChangesProposed } : {}),
         profileUpdated,
+        pendingReview,
       }),
     );
 
@@ -191,5 +281,6 @@ export async function learn(
     }
   } finally {
     index.close();
+    lock?.release();
   }
 }

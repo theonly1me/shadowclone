@@ -28,7 +28,7 @@ This runs typecheck, lint, and tests. CI also runs the tests on Linux and macOS.
 ## Code conventions
 
 - Use complete names and an options object for functions with two or more arguments.
-- Keep TypeScript files under 200 lines, including tests.
+- Keep TypeScript files at most 300 lines, including tests.
 - Avoid `any`, non-null assertions, type assertions other than `as const`, and unhandled or voided promises.
 - Write code without comments. Express intent in names, types, functions, and tests. Leave unrelated existing comments alone.
 - Fix lint findings without suppressing rules.

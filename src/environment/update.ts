@@ -6,7 +6,7 @@ import { readLocalText } from "../localFiles";
 import { acquireLocalLock } from "../localFiles/lock";
 import type { ProjectPaths } from "../paths";
 import { readMaintenanceState } from "../skillMaintenance/state";
-import type { SkillUpdateSummary } from "../skillMaintenance/update";
+import type { SkillUpdateSummary } from "../skillMaintenance/legacyUpdate";
 import { syncPersonalSkills } from "../skillMaintenance/syncPersonal";
 import { syncPortableSkills } from "../skillMaintenance/portable";
 import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "../signal";
@@ -24,6 +24,7 @@ export async function updateLearningEnvironment(options: {
   readonly syncPersonal?: boolean;
   readonly managedConfigPath?: string | null;
   readonly readRemote?: GitRemoteReader;
+  readonly learningKeys?: readonly string[];
 }): Promise<SkillUpdateSummary | null> {
   const initial = await readEnvironment(options.paths);
 
@@ -55,7 +56,7 @@ export async function updateLearningEnvironment(options: {
     return summary;
   }
 
-  if (!initial.automatic) {
+  if (!initial.automatic && options.learningKeys === undefined) {
     return {
       ...summary,
       pending: initial.records.filter(
@@ -64,14 +65,16 @@ export async function updateLearningEnvironment(options: {
     };
   }
 
-  const synchronized = options.syncPersonal
+  const synchronized = options.learningKeys !== undefined
+    ? { synced: 0, conflicts: 0 }
+    : options.syncPersonal
     ? await syncPersonalSkills({ paths: options.paths })
     : await syncPortableSkills({ paths: options.paths });
 
   summary.synced = synchronized.synced;
   summary.conflicts = synchronized.conflicts;
 
-  if (initial.phase === "active") {
+  if (initial.phase === "active" && options.learningKeys === undefined) {
     await syncLearningEnvironment(options.paths);
   }
 
@@ -100,7 +103,7 @@ export async function updateLearningEnvironment(options: {
 
     let state = stored;
 
-    if (!state.automatic) {
+    if (!state.automatic && options.learningKeys === undefined) {
       return { ...summary, pending: state.records.length };
     }
 
@@ -125,7 +128,7 @@ export async function updateLearningEnvironment(options: {
       }
     }
 
-    const extracted = await extractMemoryRecords({
+    const extracted = options.learningKeys !== undefined ? state : await extractMemoryRecords({
       paths: options.paths,
       state: { ...state, repositories: registered },
       enabled: config.sources["claude-memory"],
@@ -161,16 +164,19 @@ export async function updateLearningEnvironment(options: {
         maintenance,
         filePath,
         summary,
+        learningKeys: options.learningKeys,
       });
     }
 
     summary.pending = state.dispositions.filter(
-      ({ status }) => status === "pending",
+      ({ status, key }) => status === "pending" &&
+        (options.learningKeys === undefined || options.learningKeys.includes(key)),
     ).length;
     summary.deferred = state.records.filter(
       (record) =>
         record.rule.status === "active" &&
         record.rule.source !== "imported" &&
+        (options.learningKeys === undefined || options.learningKeys.includes(record.rule.key)) &&
         !state.dispositions.some(
           (entry) =>
             entry.key === record.rule.key &&
@@ -178,7 +184,9 @@ export async function updateLearningEnvironment(options: {
         ),
     ).length;
 
-    const review = await reviewSkillConflicts({
+    const review = options.learningKeys !== undefined
+      ? { pending: 0, reviewed: 0, deferred: 0 }
+      : await reviewSkillConflicts({
       paths: options.paths,
       execution: options.execution,
       repositoryDirectories: registered.map(({ directory }) => directory),

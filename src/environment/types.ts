@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { buildDefinitionSchema } from "../builds/types";
+import { sourceIds } from "../config";
 
 const locationSchema = z.discriminatedUnion("scope", [
   z.object({
@@ -58,6 +59,8 @@ export const learningRecordSchema = z.strictObject({
   sourceHash: z.string().nullable(),
   sourceLocator: z.string().nullable(),
   retirementRequested: z.literal(true).optional(),
+  captureSources: z.array(z.enum(sourceIds)).optional(),
+  provenanceComplete: z.boolean().optional(),
 });
 
 export const environmentRepositorySchema = z.strictObject({
@@ -85,6 +88,7 @@ export const dispositionSchema = z.strictObject({
   key: z.string(),
   inputFingerprint: z.string(),
   status: z.enum(["published", "covered", "excluded", "pending"]),
+  publishedAt: z.number().optional(),
   reason: z.string(),
   destinations: z.array(z.string()),
   fingerprints: z.record(z.string(), z.string()).optional(),

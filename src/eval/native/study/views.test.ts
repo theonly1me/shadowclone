@@ -3,7 +3,8 @@ import { turn, run } from "./checks/fixtures";
 import { studyFixture, studyTask } from "./fixtures";
 import type { MatrixReceipt } from "./matrix";
 import { achievableSuite } from "./validate";
-import { achievableReport } from "./views";
+import { achievableReport, rescoreStudyReceipt } from "./views";
+import { studyReport } from "./report";
 
 const words = (count: number) => Array.from({ length: count }, () => "word").join(" ");
 const limit = (id: string, maximum: number) => ({ id, keyItem: "concise-answers", kind: "max-words" as const, turn: 0, maximum });
@@ -33,6 +34,15 @@ test("the achievable view keeps checks bare already meets and drops checks told 
     const report = achievableReport({ candidates: fixture.suite, frozen, receipt, coverage: {} });
     expect(report.counts.overall.bare).toEqual({ followed: 1, checked: 2, timesBaseline: null });
     expect(report.counts.overall.deep).toEqual({ followed: 2, checked: 2, timesBaseline: 2 });
+    const withDiscarded = { ...receipt, runs: [...receipt.runs, {
+      ...session("bare", 100), taskId: "discarded-task", status: "error" as const,
+    }] };
+    const view = studyReport({ suite: fixture.suite, receipt: withDiscarded, coverage: {} });
+    expect(view.recordedRuns).toBe(2);
+    expect(view.arms.find((entry) => entry.arm === "bare")?.errors).toBe(0);
+    const rescored = rescoreStudyReceipt({ suite: frozen, receipt: withDiscarded });
+    expect(rescored.runs).toHaveLength(2);
+    expect(rescored.runs.find((entry) => entry.arm === "bare")?.checks[0]?.verdict).toBe("fail");
   } finally {
     await fixture.cleanup();
   }

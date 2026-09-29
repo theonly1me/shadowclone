@@ -14,11 +14,14 @@ function parseDocument(text: string | null) {
   }
 }
 
-export function ownedHooks(
-  integration: Integration,
-): Readonly<Record<string, readonly unknown[]>> {
-  const command = `shadowclone hook native-start ${integration.id}`;
-  const endCommand = `shadowclone hook native-end ${integration.id}`;
+function hookEntries(options: {
+  readonly integration: Integration;
+  readonly launcher: string;
+  readonly subagent: boolean;
+}): Readonly<Record<string, readonly unknown[]>> {
+  const { integration } = options;
+  const command = `${options.launcher} hook native-start ${integration.id}`;
+  const endCommand = `${options.launcher} hook native-end ${integration.id}`;
 
   if (integration.agent === "antigravity") {
     return {
@@ -49,7 +52,7 @@ export function ownedHooks(
             ],
           },
         ],
-        ...(integration.agent === "claude-code"
+        ...(integration.agent === "claude-code" && options.subagent
           ? {
               SubagentStart: [
                 { hooks: [{ type: "command", command, timeout: 10 }] },
@@ -62,6 +65,20 @@ export function ownedHooks(
       };
 }
 
+export function ownedHooks(integration: Integration): Readonly<Record<string, readonly unknown[]>> {
+  return hookEntries({
+    integration,
+    launcher: integration.agent === "claude-code" || integration.agent === "codex"
+      ? 'sh "$HOME/.shadowclone/bin/shadowclone"'
+      : "shadowclone",
+    subagent: false,
+  });
+}
+
+function legacyHooks(integration: Integration): Readonly<Record<string, readonly unknown[]>> {
+  return hookEntries({ integration, launcher: "shadowclone", subagent: true });
+}
+
 export function updateHookConfig(options: {
   readonly previous: string | null;
   readonly integration: Integration;
@@ -70,9 +87,11 @@ export function updateHookConfig(options: {
   const parsed = parseDocument(options.previous);
   const hooks = { ...parsed.hooks };
   const owned = ownedHooks(options.integration);
+  const legacy = legacyHooks(options.integration);
 
-  for (const [event, entries] of Object.entries(owned)) {
-    const identities = entries.map((entry) => JSON.stringify(entry));
+  for (const event of new Set([...Object.keys(owned), ...Object.keys(legacy)])) {
+    const entries = owned[event] ?? [];
+    const identities = [...entries, ...(legacy[event] ?? [])].map((entry) => JSON.stringify(entry));
     const retained = (hooks[event] ?? []).filter(
       (entry) => !identities.includes(JSON.stringify(entry)),
     );
@@ -97,14 +116,16 @@ export function hasOwnedHooks(options: {
 }): boolean {
   const document = parseDocument(options.text);
 
-  return Object.entries(ownedHooks(options.integration)).every(
-    ([event, entries]) =>
-      entries.every((entry) =>
-        (document.hooks[event] ?? []).some(
-          (installed) => JSON.stringify(installed) === JSON.stringify(entry),
-        ),
-      ),
-  );
+  const matches = (entries: Readonly<Record<string, readonly unknown[]>>) =>
+    Object.entries(entries).every(([event, eventEntries]) =>
+      eventEntries.every((entry) =>
+        (document.hooks[event] ?? []).some((installed) =>
+          JSON.stringify(installed) === JSON.stringify(entry)
+        )
+      )
+    );
+
+  return matches(ownedHooks(options.integration)) || matches(legacyHooks(options.integration));
 }
 
 export function emptyHookConfig(text: string): boolean {

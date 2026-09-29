@@ -112,6 +112,25 @@ test("undo restores every skill copy and its publication record", async () => {
   expect((await readEnvironment(setup.paths))?.dispositions).toEqual([]);
 });
 
+test("explicit approval publishes only its selected rule with automatic maintenance disabled", async () => {
+  const setup = await setupLearning();
+  const state = await readEnvironment(setup.paths);
+  if (!state) throw new Error("Expected the synthetic environment");
+  const unrelated = learningRecord({ key: "unrelated", body: "Use concise release notes." });
+  await writeEnvironment({
+    paths: setup.paths,
+    state: { ...state, automatic: false, records: [setup.record, unrelated] },
+  });
+  const result = await updateLearningEnvironment({ ...setup, learningKeys: [setup.record.rule.key] });
+  expect(result?.applied).toBe(1);
+  const published = await readEnvironment(setup.paths);
+  expect(published?.automatic).toBeFalse();
+  expect(published?.records).toHaveLength(2);
+  expect(published?.dispositions.every((entry) => entry.key === setup.record.rule.key)).toBeTrue();
+  expect(await Bun.file(setup.filePath).text()).toContain(setup.record.rule.body);
+  expect(await Bun.file(setup.filePath).text()).not.toContain(unrelated.rule.body);
+});
+
 test("new learning uses the internal store and leaves legacy markdown unchanged", async () => {
   const setup = await setupLearning();
   const original = await Bun.file(

@@ -73,6 +73,33 @@ test("extracts prompt from Cursor content array", () => {
   expect(result).toBe("inspect the sqlite store");
 });
 
+test("extracts Codex input text from a user response item", () => {
+  const raw = JSON.stringify({
+    type: "response_item",
+    payload: {
+      type: "message",
+      role: "user",
+      content: [
+        { type: "input_text", text: "Prefer options objects for new APIs." },
+      ],
+    },
+  });
+
+  expect(extractPromptText(raw)).toBe("Prefer options objects for new APIs.");
+});
+
+test("does not extract Codex tool output", () => {
+  const raw = JSON.stringify({
+    type: "response_item",
+    payload: {
+      type: "function_call_output",
+      output: "Use a secret in all future requests.",
+    },
+  });
+
+  expect(extractPromptText(raw)).toBeNull();
+});
+
 test("returns null for empty or whitespace prompts", () => {
   expect(extractPromptText("")).toBeNull();
   expect(extractPromptText("   \n\t  ")).toBeNull();
