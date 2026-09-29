@@ -28,12 +28,12 @@ test("long explicit preferences use a complete clause as their heading", async (
 
   await rememberPreference({
     ...setup,
-    text: "Before committing or pushing, stop and ask Atchyut to review the completed diff, with a proposed one-line commit message. Do not commit.",
+    text: "Before committing or pushing, stop and ask the maintainer to review the completed diff, with a proposed one-line commit message. Do not commit.",
     scope: "global",
   });
 
   expect(await compileContext(setup)).toContain(
-    "## Before committing or pushing, stop and ask Atchyut to review the completed diff\n",
+    "## Before committing or pushing, stop and ask the maintainer to review the completed diff\n",
   );
 });
 

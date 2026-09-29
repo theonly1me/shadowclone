@@ -27,6 +27,7 @@ export function parseCodexStream(options: {
   readonly stream: string;
   readonly fallbackSessionId: string;
   readonly durationMs: number;
+  readonly workspaceDirectory?: string;
 }): EngineRun {
   let sessionId = options.fallbackSessionId;
   let text = "";
@@ -81,7 +82,7 @@ export function parseCodexStream(options: {
       const id = readString(item, "id");
 
       if (id === null || !completedItems.has(id)) {
-        actions.push(...codexActions(item));
+        actions.push(...codexActions(item, { workspaceDirectory: options.workspaceDirectory }));
 
         if (id !== null) {
           completedItems.add(id);

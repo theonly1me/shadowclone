@@ -18,4 +18,4 @@ Publish revisions with fingerprints and backups. An intervening edit blocks repl
 
 ## Verification
 
-Exercise whole-library review, relevant and irrelevant matches, resource preservation, package companions, consent, conflicts, interrupted publication, and undo. See [the maintenance guide](../../README.md#maintain-your-skills) for current commands and permissions.
+Exercise whole-library review, relevant and irrelevant matches, resource preservation, package companions, consent, conflicts, interrupted publication, and undo. See [the maintenance guide](../guides/skills.md) for current commands and permissions.

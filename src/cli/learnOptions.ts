@@ -139,6 +139,7 @@ export function parseLearnOptions(
 }
 
 export type LearnExecutionOptions = {
+  readonly workingDirectory?: string;
   readonly configPath?: string;
   readonly databasePath?: string;
   readonly paths?: ProjectPaths;

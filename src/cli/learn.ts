@@ -6,6 +6,7 @@ import { renderMirror } from "../profile";
 import { checkMarkerStaleness, deriveSignals } from "../signal";
 import type { LearnExecutionOptions } from "./learnOptions";
 import { updateSkillLibrary } from "../skillMaintenance";
+import { registerWorkingRepository } from "../environment/registerRepository";
 import { runDeepLearning } from "./deepLearn";
 import { selectManualLearningWindow } from "./learningWindow";
 import { prepareManualLearning } from "./learnPreparation";
@@ -130,6 +131,17 @@ export async function learn(
       }
 
       if (!options.dryRun && config.sources["skill-library"]) {
+        if (options.workingDirectory) {
+          await registerWorkingRepository({
+            paths,
+            workingDirectory: options.workingDirectory,
+            gitMetadataEnabled: config.sources["git-metadata"] && policy.allowedSources.includes("git-metadata"),
+            blockedOrigins: policy.blockedOrigins,
+            managedConfigPath: options.managedConfigPath,
+            readRemote: options.readRemote,
+          });
+        }
+
         const skills = await updateSkillLibrary({
           paths,
           execution: result.execution,

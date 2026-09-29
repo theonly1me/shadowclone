@@ -1,5 +1,16 @@
 import { redactSecrets } from "../../redact";
+import path from "node:path";
 import type { EngineAction } from "../types";
+
+function actionPath(options: { filePath: string; workspaceDirectory?: string }): string {
+  if (options.workspaceDirectory && path.isAbsolute(options.filePath)) {
+    const relative = path.relative(options.workspaceDirectory, options.filePath);
+    if (relative.length > 0 && relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)) {
+      return relative.split(path.sep).join("/");
+    }
+  }
+  return redactSecrets({ text: options.filePath });
+}
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -19,6 +30,7 @@ function resolveItemSuccess(status: unknown): boolean | null {
 
 export function codexActions(
   item: Record<string, unknown>,
+  options: { readonly workspaceDirectory?: string } = {},
 ): readonly EngineAction[] {
   const itemType = item.item_type ?? item.type;
   const succeeded = resolveItemSuccess(item.status);
@@ -46,7 +58,7 @@ export function codexActions(
       return [
         {
           tool: "Edit",
-          path: redactSecrets({ text: change.path }),
+          path: actionPath({ filePath: change.path, workspaceDirectory: options.workspaceDirectory }),
           succeeded,
         },
       ];

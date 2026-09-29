@@ -2,7 +2,7 @@
 
 These records explain decisions and tradeoffs. Later records can replace earlier designs; use the [architecture](../architecture/README.md) and [user guide](../../README.md#get-started) for current behavior.
 
-The main delivery changes were transcript learning, native main-agent context, and then portable skills. Designs 006 through 020 include profile-era decisions that remain relevant to migration and historical evaluations. Designs 022 through 024 describe repository setup and the skills environment.
+The main delivery changes were transcript learning, native main-agent context, and then portable skills. Designs 006 through 019 include profile-era decisions that remain relevant to migration. Designs 022 through 024 describe repository setup and the skills environment, and design 027 describes the preference study.
 
 Start a new decision with the [template](template.md), or extend the relevant record. Include only sections needed to understand and verify the change. Keep implementation-session logs out of these pages.
 
@@ -11,7 +11,6 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [001: Transcript learning](001-agent-transcript-pivot.md) | Sessions and authenticated CLIs replace shell-only learning |
 | [002: CI and release checks](002-ci-and-release.md) | A shared gate and verified releases; archive publishing later replaced by npm |
 | [003: Provider qualification](003-provider-expansion.md) | Qualify capture, model execution, actions, and native delivery separately |
-| [Replay representation](eval-representation.md) | Historical comparison through coarse action fingerprints |
 | [004: Safety fixes](004-confirmed-safety-fixes.md) | Correct scope, redaction, probes, installation, and clean-exit policy |
 | [005: Consent and capability claims](005-capture-and-capability-truth.md) | Bound pre-consent checks and distinguish implementation from qualification |
 | [006: Profile lifecycle](006-profile-record-lifecycle.md) | Stable identities, user edits, rejections, and activation state |
@@ -30,10 +29,9 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [017: Portable environment](017-self-improving-agent-environment.md) | Live context, useful-session attribution, skill sync, and fresh-task evaluation |
 | [018: Incremental learning](018-incremental-learning-repair.md) | Preserve legacy records and process requested and unprocessed history |
 | [019: Setup and first learning](019-launch-readiness.md) | Simplify setup, bound the first pass, and reach spawned agents |
-| [020: Preference judging](020-preference-judging.md) | Source-backed criteria and recoverable votes |
-| [021: Guidance and memory evaluation](021-guidance-evaluation.md) | Separate skills, memory, and profile effects; preserve methods and results |
 | [022: Repository setup](022-repository-harness.md) | Preview shared instructions and configure executable checks |
 | [023: Skills delivery](023-skills-as-delivery.md) | Maintain workflows directly and migrate with original baselines intact |
 | [024: Agent builds](024-agent-builds.md) | Browser and terminal editing over shared publication, with budget and check fixes |
 | [025: Documentation](025-documentation.md) | Short entry points, task guides, current architecture, and concise design history |
 | [026: Synthetic secret fixtures](026-synthetic-secret-fixtures.md) | Keep credential-shaped test inputs reproducible and identifiable as synthetic |
+| [027: Preference study](027-preference-study.md) | One frozen preference key, control-validated checks, and gated four-arm comparisons; earlier protocols removed |

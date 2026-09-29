@@ -12,7 +12,7 @@ Without `git-metadata` consent, each working directory remains isolated. Missing
 
 Learning uses user-authored steering and bounded supporting context. Tool-result payloads, tool-returned file contents, thinking blocks, and data-access results are excluded. Enabled transcript parsers may still encounter these records; exclusion describes what enters learning.
 
-This does not cover every provider interaction. An authorized evaluation or delegated run exposes its chosen repository snapshot or worktree, and evaluation judges receive unredacted generated code. The [data-handling guide](../data-handling.md) explains each operation.
+This does not cover every provider interaction. An authorized evaluation or delegated run exposes its workspace, and evaluation judges receive unredacted generated code. The [data-handling guide](../data-handling.md) explains each operation.
 
 ## Managed policy
 

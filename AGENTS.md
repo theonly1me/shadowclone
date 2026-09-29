@@ -1,6 +1,6 @@
 # Working on Shadowclone
 
-Shadowclone maintains portable coding-agent skills from consented sessions and memory. Active installations deliver skills and small native instruction sections; legacy profiles remain for migration and historical evaluations.
+Shadowclone maintains portable coding-agent skills from consented sessions and memory. Active installations deliver skills and small native instruction sections; legacy profiles remain for migration.
 
 ## Read first
 
@@ -14,7 +14,7 @@ Inspect the current worktree and preserve unrelated edits. Record the change’s
 
 Keep types and names explicit. Use Bun, the existing module boundaries, and the repository’s checks. Avoid introducing dependencies without a concrete reason.
 
-Keep active skills delivery separate from legacy profile compatibility. Do not inject an aggregated profile into an active skill environment or change historical evaluation semantics.
+Keep active skills delivery separate from legacy profile compatibility. Do not inject an aggregated profile into an active skill environment.
 
 ## Checks
 
@@ -30,6 +30,7 @@ bun run cli --help
 ## Data boundaries
 
 - Keep private repository material, transcripts, receipts, and identifying paths outside this public checkout, including ignored files. Use independently authored synthetic examples.
+- Public evaluation material may name models and versions, but not evaluator identities, account or subscription details, private installations, paths, or repositories.
 - Each capture source needs its own consent flag, off by default. Document additions in `docs/data-handling.md`.
 - Resolve eligible learning text through `resolveRedacted`. Exclude tool results, tool-returned file contents, thinking blocks, and data-access results from learning.
 - Preserve repository and remote-owner scope. Global guidance needs explicit global evidence or a direct user decision.
@@ -41,7 +42,7 @@ Use [the documentation index](docs/README.md) to find user guides, architecture,
 
 Write for the page’s reader. Remove session narration, expired task instructions, and duplicate explanations. Keep current instructions accurate and identify historical designs as history.
 
-Keep the README self-contained for setup, everyday use, learning, skills, privacy, and evaluation results. Link to separate references for migration, architecture, and detailed evaluation methods. User-facing commands use the installed `shadowclone` CLI; Bun commands belong in contributor instructions.
+Keep the README a short path to a working setup: a quick start with time estimates, plain-language results, and a privacy summary. Put usage detail in `docs/guides/` and link to migration, architecture, and detailed evaluation methods. User-facing commands use the installed `shadowclone` CLI; Bun commands belong in contributor instructions.
 
 ## Handoff and Git
 

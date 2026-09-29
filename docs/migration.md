@@ -56,4 +56,4 @@ The compatibility commands below operate on profile-based installations:
 | `shadowclone skills reject <id>` | Reject a legacy proposal |
 | `shadowclone skills manage <skill-id>` | Authorize legacy managed additions for a skill |
 
-After migration, use the [skill maintenance](../README.md#maintain-your-skills) controls. Historical evaluation receipts keep their original profile meaning and are not converted into skills results.
+After migration, use the [skill maintenance](guides/skills.md) controls.

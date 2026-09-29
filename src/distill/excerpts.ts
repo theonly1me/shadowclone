@@ -1,4 +1,4 @@
-import { extractPromptText } from "../eval/prompt";
+import { extractPromptText } from "./promptText";
 import { stripManagedGuidance } from "../integrations";
 import { textRefKey } from "../observe";
 import { resolveRedacted } from "../redact";

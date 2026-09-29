@@ -1,5 +1,5 @@
 import type { EngineRun } from "../engine";
-import { prepareDependencies } from "../eval/transfer/dependencies";
+import { prepareDependencies } from "./dependencies";
 import { readHarnessManifest } from "../harness/manifest";
 import { runCommand, type CommandRunner } from "./command";
 import {

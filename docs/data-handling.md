@@ -24,14 +24,15 @@ Source access does not by itself authorize automatic skill edits. Disabling a so
 | `declared-rules` | Repository-root `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, and direct `SKILL.md` files under `.claude/skills/` and `.agents/skills/` |
 | `claude-rules` | Markdown rules under the current repository’s `.claude/rules/` for compatible native guidance |
 | `claude-memory` | Claude memory under `~/.claude/projects/<repo>/memory/`; recurring extraction requires registered repositories with verified identity |
-| `agent-context` | Selected-agent personal instructions, skills, and memory for evaluation, including Claude project memory and Codex memories |
+| `agent-context` | Selected-agent personal instructions and skills, kept as an original baseline and copied into evaluation arms |
 | `skill-library` | Consented personal, repository, custom, and third-party skill roots |
 | `git-metadata` | Local repository remote names used to determine scope |
 | `repository-manifests` | Scripts and dependency names in `package.json`, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, CI workflow files, and top-level entry names for repository setup |
 
 Personal skill locations include `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`, and `~/.gemini/config/skills/`. Configured provider plugin caches may also be reviewed. Codex paths follow `$CODEX_HOME` when set.
+Evaluation context can include `~/.claude/CLAUDE.md`, Codex `AGENTS.md` and `AGENTS.override.md`, and the selected skill catalog. Each study freezes its selected inputs. See [evaluation](architecture/09-evaluation.md) for the protocol.
 
-Evaluation context can include `~/.claude/CLAUDE.md`, Codex `AGENTS.md` and `AGENTS.override.md`, the selected skill catalog, and consented memory. Each evaluation freezes its selected inputs. See [evaluation](architecture/09-evaluation.md) for protocol differences.
+The preference study keeps suites, keys, agent homes, and receipts in a private directory outside every checkout. Each candidate receives separate workspace and agent-home copies. Native filesystem policies deny credential reads and network access. Authentication is copied temporarily for the selected CLI and removed in cleanup. Candidates may write Git history inside their disposable workspace and its local remote, and an offline `gh` stub records pull request requests. Learning reads only consented sources through the normal redacted path.
 
 Transcript parsers can encounter prompts, assistant responses, tool results, and thinking blocks while reading an enabled file. Tool-result payloads, tool-returned file contents, thinking, and data-access results are excluded from learning. Eligible prompts and responses can still contain sensitive information.
 
@@ -44,7 +45,7 @@ Transcript parsers can encounter prompts, assistant responses, tool results, and
 | Skill maintenance | Redacted catalogs and full instructions for overlapping workflows, plus evidence for proposed updates; supporting resources are checked locally |
 | Browser editor | Opening the editor makes no model request; optional build descriptions and skill drafts require review of their redacted payload, provider, and limits |
 | `run` | The authorized task worktree and guidance |
-| Evaluation | The authorized repository snapshot and selected context; judges receive generated code without redaction |
+| Evaluation | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction |
 
 First-time interactive `learn` can offer setup, which may make an authorized first learning pass. A deep dry run still calls a model.
 
@@ -65,17 +66,16 @@ Use only material you are authorized to send to the chosen provider. Provider qu
 | `~/.shadowclone/skill-proposals/` | Proposed edits and conflicts with redacted supporting passages and required decisions |
 | Other files under `~/.shadowclone/` | Revisions, installation ownership, original-library snapshots, and learning/skill ledgers |
 | `~/.shadowclone/runs/` and `worktrees/` | Task receipts, guidance, worktrees, and potentially unfinished changes |
-| `~/.shadowclone/eval/` and `eval-suites/` | Frozen evaluation inputs, private code evidence, receipts, and cumulative budgets |
 | Agent skill and instruction directories | Published skills, resources, native routing, and hooks |
 | Repository harness files | Reviewed shared instructions, skills, and checks intended for version control |
 
-Shadowclone does not copy whole transcripts into its store. The index holds references and event metadata. Learning records, checkpoints, original-library snapshots, and evaluation evidence can still contain sensitive derived or selected content.
+Shadowclone does not copy whole transcripts into its store. The index holds references and event metadata. Learning records, checkpoints, and original-library snapshots can still contain sensitive derived or selected content.
 
-Generated state uses private directories and owner-only permissions where supported. Shadowclone does not encrypt it. Processes with equivalent access, administrators, and backups may still read it. Interrupted evaluation can leave temporary snapshots for manual cleanup.
+Generated state uses private directories and owner-only permissions where supported. Shadowclone does not encrypt it. Processes with equivalent access, administrators, and backups may still read it. Interrupted evaluation can leave temporary workspaces in its private study directory for manual cleanup.
 
 ## Scope and editing
 
-Repository learning stays with the registered repository. Organization learning uses a normalized remote-owner identity, which is a technical scope and does not verify a legal employer boundary. Explicit global guidance applies across repositories. Without Git-metadata consent, working directories remain isolated.
+Repository learning stays with the registered repository. Setup and deep learning register the working repository only when Git-metadata consent and skill maintenance are enabled and its remote identity verifies; blocked and unknown origins stay unregistered. Organization learning uses a normalized remote-owner identity, which is a technical scope and does not verify a legal employer boundary. Explicit global guidance applies across repositories. Guidance that names a repository, codebase, or repository path never receives global scope, even when the learning model assesses its evidence as global. Without Git-metadata consent, working directories remain isolated.
 
 Automatic skill maintenance requires separate write authorization. Conflicting edits stay pending. Native memory and third-party packages remain unchanged. Revisions record files together and refuse an undo that would overwrite later edits.
 
@@ -97,7 +97,7 @@ There is no automatic expiry policy. Use `learning disable` to stop background l
 
 `uninstall --global` removes recorded global integrations; `uninstall --local` removes recorded integrations in the current repository. Ownership checks preserve unrelated content and refuse conflicting managed edits. Legacy artifacts without ownership records may need manual removal.
 
-`shadowclone forget --all` restores or removes recorded managed files and deletes Shadowclone’s local state, including task worktrees, original snapshots, and private evaluation data. Preserve unfinished work first. A conflicting maintained file can stop the operation before it completes.
+`shadowclone forget --all` restores or removes recorded managed files and deletes Shadowclone’s local state, including task worktrees and original snapshots. Preserve unfinished work first. A conflicting maintained file can stop the operation before it completes.
 
 Original transcripts, native memory, provider-retained requests, external repositories, backups, remote branches, PRs, and Git history remain. Repository harness files remain too; use `undo` before deleting revision history, or remove them through version control. There are no source-specific or repository-specific forget flags.
 

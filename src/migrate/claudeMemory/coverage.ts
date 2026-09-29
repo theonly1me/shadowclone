@@ -1,7 +1,11 @@
-import type { ContextFile } from "../../eval/transfer/types";
 import { parseProfileBlocks } from "../../profile/parse";
 import { parseReference } from "../../references";
 import type { ClaudeMemoryFile, ClaudeMemoryManifest } from "./types";
+
+export type ContextFile = {
+  readonly relativePath: string;
+  readonly content: string;
+};
 
 export type MemoryCoverageReview = {
   readonly filename: string;

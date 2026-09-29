@@ -18,6 +18,14 @@ type RuleLocation =
       readonly repositoryName: string;
     };
 
+const repositoryPhrase = /\b(?:this|the|our|that) (?:repository|repo|codebase|project|monorepo)\b|\bin (?:this|the) (?:repository|repo)\b/i;
+const repositoryPath = /(?:[\w@.-]+\/){2,}|\b[\w@-]+\/[\w@-]+\.[a-z0-9]{1,5}\b/i;
+
+export function repositoryBound(text: string): boolean {
+  const withoutExternalPaths = text.replace(/https?:\/\/\S+|~\/\S+/g, "");
+  return repositoryPhrase.test(text) || repositoryPath.test(withoutExternalPaths);
+}
+
 function usesGlobalScope(options: {
   readonly tokens: readonly string[];
   readonly context: ReconciliationContext;
@@ -38,8 +46,9 @@ export function learnedRuleLocation(options: {
   readonly tokens: readonly string[];
   readonly context: ReconciliationContext;
   readonly globalTokens: ReadonlySet<string>;
+  readonly text: string;
 }): RuleLocation {
-  if (usesGlobalScope(options)) {
+  if (usesGlobalScope(options) && !repositoryBound(options.text)) {
     return {
       scope: "global",
       originDirectory: null,
@@ -71,7 +80,8 @@ export function promoteGlobalRule(options: {
   if (
     options.rule.source !== "mined" ||
     options.rule.scope === "global" ||
-    !usesGlobalScope(options)
+    !usesGlobalScope(options) ||
+    repositoryBound(`${options.rule.title}\n${options.rule.body}`)
   ) {
     return options.rule;
   }

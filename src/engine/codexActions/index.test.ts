@@ -56,6 +56,22 @@ test("rejects truncated streams and surfaces failures", () => {
   expect(run.isError).toBeTrue();
 });
 
+test("native observations retain only confined relative edit paths", () => {
+  const run = parseCodexStream({
+    stream: [
+      { type: "thread.started", thread_id: "thread" },
+      { type: "item.completed", item: { id: "inside", type: "file_change", status: "completed",
+        changes: [{ path: "/private/tmp/workspace/pilot/retry.ts" }] } },
+      { type: "item.completed", item: { id: "outside", type: "file_change", status: "completed",
+        changes: [{ path: "/private/tmp/other/secret.ts" }] } },
+      { type: "turn.completed" },
+    ].map((event) => JSON.stringify(event)).join("\n"),
+    fallbackSessionId: "fallback", durationMs: 20, workspaceDirectory: "/private/tmp/workspace",
+  });
+  expect(run.actions[0]?.path).toBe("pilot/retry.ts");
+  expect(run.actions[1]?.path).toBe("[redacted:absolute-path]");
+});
+
 test("evaluation forwards the exact model and only enables writes for execution", () => {
   const runConfig = {
     prompt: "task",
