@@ -29,7 +29,7 @@ test("identifier checks flag new abbreviations and single letters", () => {
   expect(identifiers({ files: [file(before, `${before}for (let i = 0; i < 2; i += 1) {}\n`)], denylist: ["cfg"] }).verdict).toBe("fail");
   expect(identifiers({ files: [file(before, `${before}const cfg = {};\n`)], denylist: ["cfg"] }).verdict).toBe("fail");
   expect(identifiers({ files: [file(before, `${before}const configuration = {};\n`)], denylist: ["cfg"] }).verdict).toBe("pass");
-  expect(identifiers({ files: [file(before, before.replace("rows", "rows"))], denylist: [] }).verdict).toBe("not-applicable");
+  expect(identifiers({ files: [file(before, before)], denylist: [] }).verdict).toBe("not-applicable");
 });
 
 test("file patterns flag newly introduced prose only", () => {
