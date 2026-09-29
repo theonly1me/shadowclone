@@ -1,5 +1,0 @@
-{
-  "name": "shadowclone",
-  "version": "0.0.2",
-  "description": "Loads the user's shadowclone profile and learns when sessions end"
-}

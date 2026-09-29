@@ -16,7 +16,24 @@
   ],
   "packages": {
     ".": {
-      "package-name": "@shadowclone/cli"
+      "package-name": "@shadowclone/cli",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "plugins/shadowclone/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "plugins/shadowclone/.codex-plugin/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "plugins/shadowclone/.claude-plugin/plugin.json",
+          "jsonpath": "$.version"
+        }
+      ]
     }
   }
 }

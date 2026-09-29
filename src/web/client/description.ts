@@ -7,6 +7,7 @@ import { request } from "./api";
 import { create, element } from "./dom";
 import { showGenerationReview } from "./generationDialog";
 import { editor } from "./state";
+import { refreshTree } from "./tree";
 
 let describedInput: string | null = null;
 let description: BuildDescription | null = null;
@@ -53,6 +54,16 @@ export async function reviewDescription(): Promise<void> {
     accept: (result) => {
       description = result.description;
       describedInput = input;
+
+      for (const label of result.description.hubLabels) {
+        const hub = editor.view?.constellation.hubs.find(
+          (candidate) => candidate.id === label.id,
+        );
+
+        if (hub) hub.title = label.title;
+      }
+
+      refreshTree();
       renderModelDescription();
     },
   });

@@ -115,7 +115,7 @@ The headline metric is task-weighted adherence to the full key. A fidelity metri
 
 Suites, keys, fixtures, environments, and receipts stay in a private directory outside every checkout. Key extraction keeps counts, not session text. Learning reads consented sessions through the normal redacted learning path. Candidate Git writes are limited to the disposable workspace and its local remote; the network remains disabled.
 
-Published reports may name models and versions, but omit evaluator identity, account or subscription details, private installations, paths, repositories, prompts, guidance, and code evidence.
+Published reports may name models and versions, but omit evaluator identity, billing details, private installations, paths, repositories, prompts, guidance, and code evidence.
 
 ## Verification
 

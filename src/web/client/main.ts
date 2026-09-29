@@ -8,9 +8,8 @@ import { element, input, notice, reportError, select } from "./dom";
 import { renderIdentity } from "./identity";
 import { applyReviewedBuild, reviewChanges, undoAppliedBuild } from "./review";
 import { editor, equipped } from "./state";
-import { renderTree } from "./tree";
+import { initializeTree, renderTree } from "./tree";
 import { initializeStarfield } from "./starfield";
-import { initializeConnections, renderConnections } from "./connections";
 import { initializeCustomGeneration, customStatus } from "./customGeneration";
 import { perform, actionButton } from "./actions";
 import { initializeEditorDialogs } from "./editorDialogs";
@@ -27,7 +26,6 @@ function render(): void {
   renderDetail({ rerender: render, companion: openCustomEditor });
   renderIdentity();
   renderModelDescription();
-  renderConnections();
   element("undo").hidden = editor.view?.revisionId === null;
 }
 
@@ -136,6 +134,6 @@ const scope = buildScopeSchema.safeParse(
 );
 
 initializeStarfield();
-initializeConnections();
+initializeTree();
 initializeCustomGeneration();
 loadBuild(scope.success ? scope.data : "global").catch(reportError);

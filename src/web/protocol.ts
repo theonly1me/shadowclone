@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { constellationSchema } from "../builds/constellationSchema";
 import { buildInputSchema, buildScopeSchema } from "../builds/types";
 
 export const itemSchema = z.strictObject({
@@ -8,7 +9,8 @@ export const itemSchema = z.strictObject({
   description: z.string(),
   text: z.string(),
   kind: z.enum(["preference", "skill"]),
-  branch: z.enum(["craft", "verification", "autonomy"]),
+  category: z.string().nullable(),
+  section: z.string().nullable(),
   axis: z.string().nullable(),
   owner: z.enum(["packaged", "managed", "user", "provider"]),
 });
@@ -19,6 +21,7 @@ export const buildViewSchema = z.strictObject({
   inherited: z.record(z.string(), z.boolean()),
   locked: z.record(z.string(), z.boolean()),
   items: z.array(itemSchema),
+  constellation: constellationSchema,
   requirements: z.array(z.string()),
   libraryEnabled: z.boolean(),
   migrationRequired: z.boolean(),

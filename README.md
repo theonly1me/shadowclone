@@ -6,6 +6,28 @@ Shadowclone maintains the skills, instructions, and checks that help **Claude Co
 
 ## Get started
 
+### Let your agent set it up
+
+In Claude Code, add and install the plugin:
+
+```text
+/plugin marketplace add theonly1me/shadowclone
+/plugin install shadowclone@shadowclone
+```
+
+In Codex, add the marketplace and install **Shadowclone** from the Plugins Directory:
+
+```bash
+codex plugin marketplace add theonly1me/shadowclone
+codex plugin add shadowclone@shadowclone
+```
+
+Then tell the agent: **Set up Shadowclone.** The packaged setup skill installs the CLI if needed, asks you for three separate consent choices, installs native guidance for detected agents, and prints the local build URL. It never uses elevated privileges or chooses data access for you.
+
+Cursor, Antigravity, and other skill-compatible agents can use the portable [`setup-shadowclone` skill](plugins/shadowclone/skills/setup-shadowclone/SKILL.md). Once any supported agent completes setup, Shadowclone synchronizes native guidance across the detected agents on your machine.
+
+### Set it up manually
+
 Install the CLI:
 
 ```bash
@@ -22,7 +44,7 @@ Setup takes about two to three minutes, excluding learning. Deep learning needs 
 
 **Skip learning.** Run `shadowclone wizard` by itself if you do not want Shadowclone to read sessions or call a model. It starts from an empty active environment and lets you choose a build locally.
 
-**For coding agents.** Install the CLI, run `shadowclone wizard --no-open`, and give the user the printed local URL. Keep the command running while they edit their build. `shadowclone init` asks consent questions and needs the user.
+The browser shows a bounded constellation grouped from each skill's category and purpose. Drag to pan, scroll or pinch to zoom, search to center a skill, select a hub to focus it, or switch to the list view. Large libraries form nested hubs instead of making the page longer.
 
 ## Evaluations
 
@@ -60,7 +82,7 @@ Skills with deep learning beat the agent alone on all four agents by 15 to 25 po
 
 **Redaction is a boundary, not an anonymity guarantee.** Tool results, tool-returned file contents, thinking blocks, and data-access results are excluded from learning. Use only sources and repositories you are authorized to send to the selected provider.
 
-**Removal stays in your control.** Disable background learning with `shadowclone learning disable`, stop automatic skill edits with `shadowclone skills automatic off`, or remove recorded state with `shadowclone forget --all`. See [data handling](docs/data-handling.md) and [enterprise controls](docs/architecture/07-enterprise.md) for sources, storage, managed policy, and removal details.
+**Removal stays in your control.** Disable background learning with `shadowclone learning disable`, stop automatic skill edits with `shadowclone skills automatic off`, or remove recorded state with `shadowclone forget --all`. See the [privacy policy](PRIVACY.md), [data handling](docs/data-handling.md), and [enterprise controls](docs/architecture/07-enterprise.md) for sources, storage, managed policy, and removal details.
 
 ## Guides
 

@@ -12,7 +12,13 @@ Users can equip bundled or consented existing skills, edit user-owned instructio
 
 Private repository output stays untracked. Shared output contains explicitly reviewed portable content and relative paths. Preview fingerprints prevent overwriting intervening edits. Native providers may still discover a global skill omitted from repository routing, so the editor must distinguish routing from activation.
 
-Show every skill in the tree, with search, accessible controls, a detail editor, and review before apply. Individual stars drift, twinkle, and fade independently without restarting when a skill changes. Ambient lighting stays consistent; each equipped skill keeps its own illumination. The live build summary remains beside the tree. Short descriptions explain behavior while full instructions remain editable. Assets ship locally, and motion respects reduced-motion preferences. Optional model-written descriptions explain a build but never become injected instructions.
+Organize every skill into a deterministic constellation derived from its declared category, axis, name, and short description. The library produces four to twelve top-level hubs, with nested hubs once a group exceeds ten skills. Each skill has one primary parent and at most two related-hub links. Exact duplicate content appears once, while distinct skills with the same name remain separate. This presentation does not change build inputs, saved choices, or published guidance.
+
+Render the constellation on a bounded canvas with measured pixel coordinates so stars retain their shape. Support pan, zoom, fit, reset, search-and-center, hub focus, keyboard activation, and touch input. Provide an equivalent list view on narrow screens and as an explicit accessibility choice. Individual stars drift, twinkle, and fade independently without restarting when a skill changes. Ambient lighting stays consistent; each equipped skill keeps its own illumination. The live build summary remains beside the constellation.
+
+Use the focused D3 hierarchy, selection, and zoom modules for tree layout and input transforms. These packages replace custom geometry and gesture handling while keeping grouping, identity, and saved build state in Shadowclone's own typed modules.
+
+Derive the build identity and traits from the equipped hubs. The local fallback uses the strongest hub and never requires a model. An optional reviewed model action may refine hub labels and the identity from redacted hub summaries and selected titles. It never receives skill bodies, file paths, repository names, or owner metadata, and its output remains interface copy rather than injected guidance.
 
 The creation dialog offers Use AI alongside manual editing. It sends only the current form fields after reviewing the redacted payload, destination, and limits. Generated names, triggers, and instructions remain an editable draft until the user adds the skill and reviews publication. Failures and cancellation preserve the original fields. Both model actions share bounded no-tools execution and reject duplicate submissions.
 
@@ -37,3 +43,5 @@ Cover shared-budget exhaustion and unknown costs, check preservation, immediate 
 The comment check must use parsed token boundaries so interpolated local URLs are treated as strings while comments inside interpolation expressions remain violations.
 
 Packaged browser routes serve only files from the generated asset manifest, resolved beside the installed bundle. Public asset URLs retain their relative layout. Launching the CLI from a work repository must not make asset lookup depend on that repository's working directory.
+
+Test grouping, nesting, related links, stable output, duplicate handling, and identity derivation with synthetic libraries. Exercise one, twenty, one hundred, and five hundred item libraries in a headless browser. Confirm the page stays bounded, stars keep equal horizontal and vertical scale, controls are keyboard accessible, and the list view exposes the same skills.

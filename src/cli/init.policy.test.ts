@@ -176,7 +176,7 @@ test("first setup learning excludes indexed events after policy or consent revok
       presentCaptureSources: new Set(["claude-code"]),
     },
     agents: [],
-    ask: (question) => question.startsWith("Keep improving"),
+    consent: { learn: false, skills: false, background: false },
     runner: () => {
       modelCalls += 1;
 

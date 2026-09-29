@@ -136,12 +136,14 @@ test("the session context keeps learned boundaries advisory", async () => {
 });
 
 test("the plugin registers no tool-family blocking hook", async () => {
-  const hooks = await Bun.file(
+  const hookFiles = [
     new URL("../../.claude-plugin/hooks/hooks.json", import.meta.url),
-  ).text();
+    new URL("../../plugins/shadowclone/hooks/hooks.json", import.meta.url),
+  ];
 
-  expect(hooks).not.toContain("PreToolUse");
-  expect(hooks).not.toContain("pre-tool-use");
+  for (const hookFile of hookFiles) {
+    expect(await Bun.file(hookFile).exists()).toBeFalse();
+  }
 });
 
 test("the plugin hook stays silent beside a native Claude integration", async () => {

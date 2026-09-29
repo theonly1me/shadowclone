@@ -70,7 +70,7 @@ export function renderDetail(options: {
     create({
       tag: "p",
       className: "eyebrow",
-      text: `${item.branch.toUpperCase()} / ${item.kind.toUpperCase()}`,
+      text: `${(item.category ?? "CUSTOM").replaceAll("-", " ").toUpperCase()} / ${item.kind.toUpperCase()}`,
     }),
     create({ tag: "h2", text: skillTitle(item) }),
     create({

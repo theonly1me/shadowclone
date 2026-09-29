@@ -52,7 +52,8 @@ export async function prepareInitialEnvironment(
     await registerWorkingRepository({
       paths,
       workingDirectory,
-      gitMetadataEnabled: policy.allowedSources.includes("git-metadata"),
+      gitMetadataEnabled:
+        learn && policy.allowedSources.includes("git-metadata"),
       blockedOrigins: policy.blockedOrigins,
       managedConfigPath: options.managedConfigPath,
       readRemote: options.readRemote,

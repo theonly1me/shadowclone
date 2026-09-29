@@ -22,6 +22,7 @@ import {
   detectOnboardingPresence,
   type OnboardingPresence,
 } from "./onboardingPresence";
+import type { InitializeConsent } from "./initOptions";
 
 export type { ConsentPrompt } from "./initAdvanced";
 
@@ -46,6 +47,7 @@ export type InitializeOptions = InitializeAdvancedOptions & {
   readonly runner?: EngineRunner;
   readonly engine?: EngineId;
   readonly now?: number;
+  readonly consent?: InitializeConsent;
 };
 
 export async function initialize(
@@ -88,15 +90,21 @@ export async function initialize(
     writeLine,
   });
 
-  const learn = await ask("Learn how you work from these sessions? [Y/n]");
+  const learn =
+    options.consent?.learn ??
+    (await ask("Learn how you work from these sessions? [Y/n]"));
   const skillPrompt =
     agents.length > 0
       ? `Keep your skills in sync and automatically maintain them across ${detectedAgentNames(agents)}? [Y/n]`
       : "Keep your skills in sync and automatically maintain them across your agents? [Y/n]";
-  const skills = await ask(skillPrompt);
-  const background = await ask(
-    "Keep improving in the background as you work? [Y/n]",
-  );
+  const skills = options.consent?.skills ?? (await ask(skillPrompt));
+  const background =
+    options.consent?.background ??
+    (await ask("Keep improving in the background as you work? [Y/n]"));
+
+  if (background && !learn) {
+    throw new Error("Background learning requires session learning");
+  }
 
   const config = initialConfiguration({ learn, skills, background, presence });
 

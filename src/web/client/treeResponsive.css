@@ -4,10 +4,6 @@
     gap: 20px;
   }
 
-  .branch-title {
-    font-size: 9px;
-    letter-spacing: 0.12em;
-  }
 }
 
 @media (max-width: 720px) {
@@ -15,19 +11,23 @@
     grid-template-columns: 1fr;
   }
 
-  .tree {
-    min-height: 280px;
-  }
-
-  .branch {
-    gap: 24px;
-  }
-
-  .node-label {
-    font-size: 11px;
-  }
-
   .constellation {
-    padding-bottom: 20px;
+    height: min(680px, 70vh);
+  }
+
+  .constellation-map,
+  .tree-hint {
+    display: none;
+  }
+
+  .constellation-list {
+    display: grid;
+    align-content: start;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .constellation-controls {
+    display: none;
   }
 }

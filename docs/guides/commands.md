@@ -7,6 +7,7 @@ Run `shadowclone --help` for the complete command shape.
 | Command | Purpose |
 | --- | --- |
 | `shadowclone init` | Configure consent, learning, and skill maintenance |
+| `shadowclone init --status --json` | Check whether setup exists without changing it |
 | `shadowclone wizard` | Choose and equip skills in the browser |
 | `shadowclone learn --deep` | Run a bounded model-assisted learning pass |
 | `shadowclone doctor` | Check the installation and effective policy |
@@ -27,3 +28,11 @@ Run `shadowclone --help` for the complete command shape.
 | `shadowclone mcp` | Serve context and maintenance tools to a connected agent |
 
 Supported agent identifiers are `claude-code`, `codex`, `cursor`, and `antigravity`. Optional local Claude subagents use `--subagent`; automatic delegation is a separate `--auto-delegate` choice.
+
+Agent-led setup can pass all consent decisions without prompts:
+
+```bash
+shadowclone init --learn --skill-maintenance --background-learning
+```
+
+Each flag has a `--no-` form. If any consent flag is present, all three decisions are required. Background learning requires session learning. An incomplete non-interactive command exits without writing configuration.

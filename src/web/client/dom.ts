@@ -8,6 +8,16 @@ export function element(id: string): HTMLElement {
   return found;
 }
 
+export function svg(id: string): SVGSVGElement {
+  const found = document.querySelector(`#${id}`);
+
+  if (!(found instanceof SVGSVGElement)) {
+    throw new Error("Expected an SVG canvas");
+  }
+
+  return found;
+}
+
 export function input(id: string): HTMLInputElement {
   const found = element(id);
 

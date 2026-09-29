@@ -1,6 +1,6 @@
 import path from "node:path";
 import { buildCatalog } from "../builds/catalog";
-import { skillBranch } from "../builds/catalog";
+import { buildConstellation } from "../builds/constellation";
 import { buildIdentity, customDocument } from "../builds/selection";
 import { sharedRequirements } from "../builds/requirements";
 import type { BuildContext, BuildScope } from "../builds/types";
@@ -41,7 +41,8 @@ export async function buildView(
           description: custom.description,
           text: customDocument(custom),
           kind: "skill",
-          branch: skillBranch(custom.name),
+          category: null,
+          section: null,
           axis: null,
           owner: "managed",
         });
@@ -87,6 +88,7 @@ export async function buildView(
     },
     inherited: options.scope === "private" ? (global?.choices ?? {}) : {},
     items: catalog.map(({ source, ...item }) => item),
+    constellation: buildConstellation(catalog),
     locked:
       state && options.scope === "private"
         ? sharedRequirements({

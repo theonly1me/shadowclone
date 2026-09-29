@@ -30,7 +30,7 @@ bun run cli --help
 ## Data boundaries
 
 - Keep private repository material, transcripts, receipts, and identifying paths outside this public checkout, including ignored files. Use independently authored synthetic examples.
-- Public evaluation material may name models and versions, but not evaluator identities, account or subscription details, private installations, paths, or repositories.
+- Public evaluation material may name models and versions, but not evaluator identities, billing details, private installations, paths, or repositories.
 - Each capture source needs its own consent flag, off by default. Document additions in `docs/data-handling.md`.
 - Resolve eligible learning text through `resolveRedacted`. Exclude tool results, tool-returned file contents, thinking blocks, and data-access results from learning.
 - Preserve repository and remote-owner scope. Global guidance needs explicit global evidence or a direct user decision.

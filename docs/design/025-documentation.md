@@ -28,7 +28,7 @@ Use the author-provided banner as the README header, with descriptive alternativ
 
 **Results.** The README shows the share of preferences followed with and without Shadowclone, the gain in points, and what changes in practice. It states where the gain is statistically clear and where it is not. `evals.md` holds the method and detailed tables.
 
-**Verification.** Check every relative link, every command against `shadowclone --help`, and paragraph length. Public evaluation material contains no evaluator identity, account or subscription detail, private installation, path, or repository name.
+**Verification.** Check every relative link, every command against `shadowclone --help`, and paragraph length. Public evaluation material contains no evaluator identity, billing detail, private installation, path, or repository name.
 
 ## Writing guidance
 

@@ -8,18 +8,7 @@ import { readMaintenanceState } from "../skillMaintenance/state";
 import { installedBuildItem } from "./installed";
 import { customDocument } from "./selection";
 import type { BuildContext, BuildItem, BuildScope } from "./types";
-
-export function skillBranch(name: string): BuildItem["branch"] {
-  if (/test|verify|review|diagnos|regression|research/.test(name)) {
-    return "verification";
-  }
-
-  if (/plan|question|autonom|scope|conflict|publish/.test(name)) {
-    return "autonomy";
-  }
-
-  return "craft";
-}
+import { skillClassification } from "./classification";
 
 export async function buildCatalog(
   context: BuildContext & { readonly scope?: BuildScope },
@@ -41,7 +30,8 @@ export async function buildCatalog(
           ? await Bun.file(path.join(packaged, entry.id, "SKILL.md")).text()
           : entry.body,
       kind: entry.kind,
-      branch: skillBranch(entry.id),
+      category: entry.category,
+      section: entry.section,
       axis: entry.axis,
       owner: "packaged",
     })),
@@ -77,7 +67,8 @@ export async function buildCatalog(
           description: custom.description,
           text: build.edits[id] ?? customDocument(custom),
           kind: "skill",
-          branch: skillBranch(custom.name),
+          category: null,
+          section: null,
           axis: null,
           owner: "managed",
         });
@@ -155,6 +146,8 @@ export async function buildCatalog(
       continue;
     }
 
+    const classification = skillClassification(source.raw);
+
     items.push({
       id: source.id,
       name: source.name,
@@ -162,8 +155,9 @@ export async function buildCatalog(
       description: source.description,
       text: source.raw,
       kind: "skill",
-      branch: skillBranch(source.name),
-      axis: null,
+      category: classification.category,
+      section: classification.section,
+      axis: classification.axis,
       owner: source.root.owner === "user" ? "user" : "provider",
       source,
     });

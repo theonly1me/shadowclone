@@ -1,6 +1,7 @@
 import { projectPaths } from "../paths";
 import { harnessInitCommand, parseRepositoryInit } from "./harness";
 import { initialize } from "./init";
+import { parsePersonalInit } from "./initOptions";
 import { runWizardCommand } from "./wizardCommand";
 
 export async function handleSetupCommand(options: {
@@ -37,6 +38,49 @@ export async function handleSetupCommand(options: {
     return true;
   }
 
+  if (!repository) {
+    const parsed = parsePersonalInit(options.arguments);
+
+    if (parsed === null) {
+      throw new Error(
+        "Use init [--advanced] or pass all three consent decisions",
+      );
+    }
+
+    if (parsed.kind === "status") {
+      const initialized = await Bun.file(projectPaths.configFile).exists();
+      console.log(
+        parsed.json
+          ? JSON.stringify({ initialized })
+          : initialized
+            ? "Shadowclone is initialized."
+            : "Shadowclone is not initialized.",
+      );
+
+      return true;
+    }
+
+    if (await Bun.file(projectPaths.configFile).exists()) {
+      console.log(
+        "Shadowclone is already initialized; existing consent settings were preserved.",
+      );
+
+      return true;
+    }
+
+    if (parsed.kind === "consent") {
+      await initialize({ consent: parsed.consent });
+
+      return true;
+    }
+
+    if (!process.stdin.isTTY) {
+      throw new Error(
+        "Non-interactive setup requires all three explicit consent decisions",
+      );
+    }
+  }
+
   const repositoryOptions = parseRepositoryInit(
     options.arguments.filter(
       (argument) => argument !== "--advanced" && argument !== "--repo",
@@ -65,7 +109,7 @@ export async function handleSetupCommand(options: {
     }
   }
 
-  if (!repository || !(await Bun.file(projectPaths.configFile).exists())) {
+  if (!(await Bun.file(projectPaths.configFile).exists())) {
     await initialize({ advanced: options.arguments.includes("--advanced") });
   }
 

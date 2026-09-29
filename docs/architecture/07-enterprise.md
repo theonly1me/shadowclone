@@ -41,7 +41,7 @@ User settings can narrow these permissions but cannot widen them. `enabled: fals
 
 ## Deployment review
 
-Review enabled sources, intended global guidance, approved providers, access to local state, and retention together. An existing provider subscription does not authorize sending every local repository or transcript through it.
+Review enabled sources, intended global guidance, approved providers, access to local state, and retention together. Provider access does not authorize sending every local repository or transcript through it.
 
 Shadowclone has no hosted collection service. Evidence, skills, revisions, and receipts stay local except for the requests needed by authorized operations. Local files are not encrypted, and deleting them does not remove provider-retained data or backups.
 

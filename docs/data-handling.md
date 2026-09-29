@@ -51,7 +51,7 @@ First-time interactive `learn` can offer setup, which may make an authorized fir
 
 Eligible source text crosses the shared redaction boundary before learning or context import. Redaction detects known token, host, path, and entropy patterns. It can miss confidential prose, personal information, and unusual secrets, and can remove harmless text. It is not an anonymity guarantee.
 
-Use only material you are authorized to send to the chosen provider. Provider quota or charges still apply. Local deletion does not delete provider copies.
+Use only material you are authorized to send to the chosen provider. Provider usage limits or charges may apply. Local deletion does not delete provider copies.
 
 ## Local files
 
