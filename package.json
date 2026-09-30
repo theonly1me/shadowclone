@@ -3,7 +3,7 @@
   "version": "0.0.12",
   "module": "src/cli/index.ts",
   "type": "module",
-  "packageManager": "bun@1.3.3",
+  "packageManager": "bun@1.4.2",
   "bin": {
     "shadowclone": "bin/shadowclone.mjs"
   },

@@ -2,7 +2,7 @@
 
 ## Development setup
 
-Install [Bun](https://bun.sh), then run:
+Install [Bun](https://bun.sh) 1.4.2, as declared in `package.json`, then run:
 
 ```bash
 bun install
@@ -10,6 +10,8 @@ bun run check
 ```
 
 Use `bun run cli` to run Shadowclone from the checkout. Commands that call a model need an installed, authenticated `claude`, `codex`, or `cursor-agent` CLI. Ordinary tests use synthetic fixtures and do not need an account.
+
+On Linux, install `bubblewrap` and `socat` before running the tests so Claude's sandbox prerequisite checks can pass.
 
 `bun run cli init` changes your local setup. Use isolated test paths when exercising installation, learning, or removal code.
 
