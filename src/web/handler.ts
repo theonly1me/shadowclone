@@ -12,6 +12,7 @@ import { reviewBuild } from "./review";
 import { createModelActions } from "./modelActions";
 import type { GenerationEngine } from "./generationEngine";
 import { authorizeBrowserRequest, browserJson } from "./security";
+import { taskSummaries } from "../tasks/operations";
 
 const previewRequestSchema = z.strictObject({ previewId: z.uuid() });
 const revisionRequestSchema = z.strictObject({ revisionId: z.uuid() });
@@ -46,6 +47,9 @@ export function createBrowserHandler(
     const url = new URL(request.url);
 
     try {
+      if (request.method === "GET" && url.pathname === "/api/tasks") {
+        return browserJson({ body: await taskSummaries(context) });
+      }
       if (request.method === "GET" && url.pathname === "/api/build") {
         const scope = buildScopeSchema.parse(
           url.searchParams.get("scope") ?? "global",

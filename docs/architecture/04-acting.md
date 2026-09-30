@@ -1,5 +1,9 @@
 # Delegated tasks
 
+The optional `shadowclone-work` skill coordinates work inside an existing native agent session. Its CLI and MCP operations share the task service, private checkpoints, frozen guidance, offline verification, attributed review, and explicit repository action grants. It does not replace the host's agent runtime. [Delegated work](../guides/delegated-work.md) describes task ownership, recovery, PR maintenance, and the remaining host qualification boundary.
+
+The rest of this page describes the compatible headless runner. Its per-run authorization contract is separate from native task grants.
+
 `shadowclone run "<task>"` runs an agent in a separate local worktree and records the result. The invocation authorizes one worktree, branch, and local commit for that task. Review the result before allowing any remote action.
 
 An optional Claude subagent runs inside the user’s existing agent session and uses that session’s permissions. It receives the current native guidance. The policy below governs headless worktree runs.

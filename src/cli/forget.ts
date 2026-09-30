@@ -6,11 +6,14 @@ import { readInstallations } from "./installState";
 import { readIntegrations, uninstallIntegration } from "../integrations";
 import { removeSkillMaintenance } from "../skillMaintenance";
 import { removeLearningEnvironment } from "../environment/cleanup";
+import { assertTaskCleanupSafe } from "../tasks/cleanup";
 
 export async function forgetAll(
   options: { readonly paths?: ProjectPaths } = {},
 ): Promise<void> {
   const paths = options.paths ?? projectPaths;
+
+  await assertTaskCleanupSafe(paths);
 
   await removeLearningEnvironment(paths);
   await removeSkillMaintenance(paths);

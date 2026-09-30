@@ -3,6 +3,7 @@ import type { MatrixReceipt } from "./matrix";
 import type { RunArmName, RunRecord } from "./record";
 import { studyArms, type KeyGroup, type PersonalArm, type StudyArm, type StudySuite } from "./schema";
 import { taskResults } from "./taskResults";
+import { summarizeOutcomes } from "../../shared/outcome";
 
 type Observation = { readonly taskId: string; readonly sessionId: string; readonly keyItem: string; readonly passed: boolean; readonly skillRead: boolean | null };
 type Filter = (observation: Observation) => boolean;
@@ -135,6 +136,7 @@ export function studyReport(options: {
       const unread = all.filter((entry) => entry.skillRead === false);
       return {
         arm, adherence: rate(arm), fidelity: rate(arm, covered(arm)),
+        workflowOutcomes: summarizeOutcomes(runs.flatMap((run) => run.outcome ? [run.outcome] : [])),
         interval: bootstrapRate({ observations: all, tasks, seed: options.suite.analysis.bootstrapSeed, samples: options.suite.analysis.bootstrapSamples }),
         groups: Object.fromEntries(groups.map((name) => [name, rate(arm, (entry) => group(entry.keyItem) === name)])),
         adherenceWhenSkillRead: read.length === 0 ? null : read.filter((entry) => entry.passed).length / read.length,

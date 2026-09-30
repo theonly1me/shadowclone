@@ -39,6 +39,23 @@ Run `shadowclone --help` for the complete command shape.
 
 Supported agent identifiers are `claude-code`, `codex`, `cursor`, and `antigravity`. Optional local Claude subagents use `--subagent`; automatic delegation is a separate `--auto-delegate` choice.
 
+## Delegated engineering work
+
+Equip the optional `shadowclone-work` skill for task execution in Claude Code or Codex. See [delegated work](delegated-work.md) for input formats, verification, permissions, recovery, and qualification limits.
+
+| Command | Purpose |
+| --- | --- |
+| `shadowclone task start --input <private-json-file>` | Freeze the assignment, guidance, and verification requirements |
+| `shadowclone task status <id>` / `task list` | Inspect current readiness or recorded progress |
+| `shadowclone task checkpoint <id> --input <private-json-file>` | Record delivery, review, integration, explicit corrections, or outcomes |
+| `shadowclone task verify <id>` | Run the frozen checks against the current workspace |
+| `shadowclone task pause <id>` / `resume <id> --input <private-json-file>` | Stop dispatch or resume with fresh ownership and evidence |
+| `shadowclone task grants` / `grant <actions>` / `revoke` | Inspect or explicitly decide repository action permissions |
+| `shadowclone task action <id> --input <private-json-file>` | Perform one allowed Git or GitHub action after current checks |
+| `shadowclone task maintain <id>` / `reconcile <id>` | Observe PR progress or inspect an interrupted action's effects |
+
+## Non-interactive setup
+
 Agent-led setup can pass all consent decisions without prompts:
 
 ```bash

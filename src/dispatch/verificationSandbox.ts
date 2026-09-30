@@ -10,6 +10,7 @@ export function verificationArguments(options: {
   readonly homeDirectory?: string;
   readonly temporaryDirectory?: string;
   readonly blockedPaths?: readonly string[];
+  readonly protectedPaths?: readonly string[];
 }): readonly string[] {
   const directory = canonicalPath(options.directory);
 
@@ -30,7 +31,8 @@ export function verificationArguments(options: {
       paths: blocked.map((entry) => entry.path),
       operations: ["file-read*", "file-write*"],
     });
-    const profile = `(version 1)(allow default)(deny network*)(deny file-write*)(allow file-write* (subpath ${JSON.stringify(directory)})(subpath ${JSON.stringify(temporary)})(literal "/dev/null"))(deny appleevent-send)(deny mach-lookup)(deny ipc-posix-shm*)(deny ipc-posix-sem*)(deny signal (require-not (target self)))${denied}`;
+    const protectedRules = denySubpathRules({ paths: options.protectedPaths ?? [], operations: ["file-write*"] });
+    const profile = `(version 1)(allow default)(deny network*)(deny file-write*)(allow file-write* (subpath ${JSON.stringify(directory)})(subpath ${JSON.stringify(temporary)})(literal "/dev/null"))(deny appleevent-send)(deny mach-lookup)(deny ipc-posix-shm*)(deny ipc-posix-sem*)(deny signal (require-not (target self)))${denied}${protectedRules}`;
 
     return ["sandbox-exec", "-p", profile, ...options.arguments];
   }
@@ -61,6 +63,7 @@ export function verificationArguments(options: {
       "--bind",
       temporary,
       temporary,
+      ...(options.protectedPaths ?? []).filter(existsSync).flatMap((entry) => ["--ro-bind", entry, entry]),
       "--chdir",
       directory,
       "--",

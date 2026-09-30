@@ -18,6 +18,8 @@ export type GateExecutor = (options: {
   readonly directory: string;
   readonly command: string;
   readonly blockedPaths: readonly string[];
+  readonly protectedPaths?: readonly string[];
+  readonly signal?: AbortSignal;
 }) => Promise<{ readonly exitCode: number; readonly output: string }>;
 
 const gateTimeoutMilliseconds = 15 * 60 * 1000;
@@ -35,6 +37,7 @@ export const sandboxedGate: GateExecutor = async (options) => {
         platform: process.platform,
         temporaryDirectory,
         blockedPaths: options.blockedPaths,
+        protectedPaths: options.protectedPaths,
       }),
       cwd: options.directory,
       environment: {
@@ -46,6 +49,7 @@ export const sandboxedGate: GateExecutor = async (options) => {
         CI: "true",
       },
       timeoutMilliseconds: gateTimeoutMilliseconds,
+      signal: options.signal,
     });
 
     return {

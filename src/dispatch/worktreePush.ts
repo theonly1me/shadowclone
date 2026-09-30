@@ -6,6 +6,7 @@ export async function pushWorktree(options: {
   readonly worktree: Worktree;
   readonly repositoryId: string;
   readonly runner?: CommandRunner;
+  readonly head?: string;
 }): Promise<boolean> {
   const runner = options.runner ?? runCommand;
   const remote = await runner({
@@ -30,7 +31,7 @@ export async function pushWorktree(options: {
       "push",
       "--set-upstream",
       "origin",
-      options.worktree.branch,
+      options.head ? `${options.head}:refs/heads/${options.worktree.branch}` : options.worktree.branch,
     ],
     cwd: options.worktree.worktreeDirectory,
   });

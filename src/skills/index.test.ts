@@ -20,6 +20,7 @@ const skillIds = [
   "research-primary-sources",
   "resolve-conflicts-by-intent",
   "scope-confirmed-changes",
+  "shadowclone-work",
   "testing-first",
   "testing-risk-based",
   "typescript-type-safety",
@@ -49,7 +50,7 @@ test("ships complete Agent Skills without the local comment rule", async () => {
     skillFiles.push(skillFile);
   }
 
-  expect(skillFiles.sort()).toHaveLength(10);
+  expect(skillFiles.sort()).toHaveLength(11);
   expect(
     await Bun.file(
       path.join(directories.preferencesDirectory, "comments-none.md"),
@@ -62,7 +63,7 @@ test("loads preferences and Agent Skills into honest groups", async () => {
 
   expect(library.preferences.map((entry) => entry.id)).toEqual(preferenceIds);
   expect(library.skills.map((entry) => entry.id)).toEqual(skillIds);
-  expect(library.guidance).toHaveLength(18);
+  expect(library.guidance).toHaveLength(19);
   expect(library.axes.map((axis) => [axis.id, axis.guidance.length])).toEqual([
     ["dependency-posture", 2],
     ["planning-threshold", 2],
@@ -70,7 +71,7 @@ test("loads preferences and Agent Skills into honest groups", async () => {
     ["refactor-tolerance", 2],
     ["testing-approach", 2],
   ]);
-  expect(library.independentSkills).toHaveLength(8);
+  expect(library.independentSkills).toHaveLength(9);
   expect(
     library.guidance.some((entry) => entry.id.startsWith("comments-")),
   ).toBeFalse();

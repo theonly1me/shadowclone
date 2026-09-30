@@ -10,6 +10,7 @@ Start with the [README](../README.md) to install Shadowclone and choose your fir
 | [Learning](guides/learning.md) | Run deep learning, background learning, or record a preference |
 | [Skill maintenance](guides/skills.md) | Review updates, conflicts, history, and undo |
 | [Repository setup](guides/repositories.md) | Share checks and skills with a repository |
+| [Delegated work](guides/delegated-work.md) | Carry an agent task through verification, review, and explicitly granted actions |
 | [How it works](guides/how-it-works.md) | Follow guidance from consented evidence to coding agents |
 | [Command reference](guides/commands.md) | Find everyday and advanced commands |
 | [Migration](migration.md) | Move an existing profile installation to skills |

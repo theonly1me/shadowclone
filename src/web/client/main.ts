@@ -13,8 +13,10 @@ import { initializeStarfield } from "./starfield";
 import { initializeCustomGeneration, customStatus } from "./customGeneration";
 import { perform, actionButton } from "./actions";
 import { initializeEditorDialogs } from "./editorDialogs";
+import { initializeTaskList } from "./tasks";
 
 initializeEditorDialogs();
+initializeTaskList();
 
 function render(): void {
   renderTree({
