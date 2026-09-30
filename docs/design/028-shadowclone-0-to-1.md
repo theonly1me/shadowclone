@@ -105,8 +105,41 @@ Use at most three short authenticated sessions each on Claude Code and Codex, wi
 
 ## Implemented scope and qualification
 
+### Plugin bootstrap qualification
+
+The packaged setup skill checks the installed CLI version before reading setup state. A bundled Node helper runs only `shadowclone --version`, with bounded output and a timeout, and requires stable CLI version 0.0.13 or newer. Missing or older installations prompt an install or upgrade decision; after approval, the skill installs the public package without elevated privileges and repeats the compatibility check. A compatible existing installation keeps its consent settings. If the public package is still too old or a different executable shadows the installation, setup stops with an actionable explanation before initialization.
+
+Qualify the release candidate in a disposable installation prefix and agent home. Install the plugin through Claude's marketplace flow, install the packaged candidate through npm, exercise explicit consent, load and apply the browser build, and reconnect the configured stdio MCP server. Exercise both global and repository preferences in fresh Claude Code and Codex sessions, undo the recorded change, refresh integrations, and confirm their prior behavior in a second fresh session. Use synthetic guidance and tasks, four model calls at most, and private qualification output outside the checkout. This verifies the candidate package; the registry upgrade path remains contingent on publishing that candidate. The follow-up PR uses a conventional `fix:` title so its squash merge is releasable.
+
 The implementation includes current source authorization, Codex user-message extraction, separate manual and background consent, durable proposals and attempt receipts, reviewed historical repository association, source provenance, reversible preference edits, later-correction review signals, and an on-demand native response probe. CLI and workers use learning application services; legacy profile and library entry points remain compatibility paths. Publication preserves ownership, edited native destinations, original resources, and revision recovery. Short rules are inline, workflow skills use native names, generic starter workflows are optional, and hooks use an owned launcher independent of `PATH`. Source removal records pending rejection and environment retirement together so undo restores both.
 
 Synthetic contract tests cover each supported learning provider from capture through declined review, failed publication, retry, successful publication, and both native guidance formats. The relocated package is tested against a fresh private home, including a launcher invocation with no Shadowclone executable on `PATH`. Three short synthetic sessions per agent qualified live native delivery and the bounded probe. Both final probes matched their expected response with no permission denials. A probe pass is recorded independently from skill reads and hook observation.
 
 The published preference-study tables were recomputed from private receipts using `session-bootstrap-2` without paid reruns. The corrected intervals establish no incremental advantage over existing user skills. Historical per-session product commits cannot be reconstructed from receipts that omitted them. Held-out users, repositories, future tasks, alternative learning models, and intervention measurements remain a separate study. The initial isolated probe requires macOS and text skill resources. Cursor and Antigravity qualification remains outside this round.
+
+### Constellation spacing and scale
+
+The fixed canvas layout compresses skill rows as the library grows. Replace proportional row spacing with a world layout that reserves 88 pixels per skill and separate columns for sibling branches. Pan and zoom expose the larger world without reducing the distance between nodes. Fit calculates the actual graph bounds; Reset restores a readable scale centered on the root.
+
+The collapsed overview wraps categories into rows of at most four hubs so twelve categories remain visible instead of extending off-screen in one row. Expanding a branch uses the larger world layout, and search centers its matching skill even after category focus. List filtering updates independently of the hidden map's dimensions.
+
+Render the existing Shadowclone mark inside the root circle and use the existing SVG icon vocabulary for category hubs. Wrap long labels within their column instead of letting them overlap neighboring branches. Libraries with more than 40 leaves begin with collapsed categories; users expand a branch to see its subcategories and skills. Search reveals matching ancestor branches, and the list view retains access to every skill. Test both dispersed and single-category libraries up to 500 skills, including spacing, expansion, search, and viewport transforms.
+
+The live 500-skill fixture exposed discovery's 500-file limit before the renderer ran. Bound discovery at 2,000 distinct physical files and preserve the existing 8 MB byte limit, 48 KB per-skill limit, path-depth limit, and consented roots. Count a canonical file once when roots overlap. This permits a 500-skill library with native copies. Bound each category branch to ten children recursively so a single large category also opens in manageable groups. The list and search traverse every nesting level.
+
+The packaged 500-skill build response took about eight seconds under local load, approaching Bun's default ten-second HTTP idle timeout. Set the loopback editor's idle timeout to ninety seconds, which also covers its bounded sixty-second model action. Show loading and retry states while the catalog is requested so a slow or interrupted response never looks like an empty installed library.
+
+### Follow-up qualification results
+
+A disposable macOS installation exercised Claude Code's marketplace installation, npm installation of the packaged 0.0.13 candidate, explicit initialization choices, browser review and application, undo, and MCP reconnection. Initialization with session learning and background learning declined retained those decisions. Installing the published 0.0.12 CLI made the setup helper report `outdated`; upgrading to the candidate made it report `ready` without changing the consent configuration. Claude Code's plugin health check reported `Connected`. Two fresh stdio connections completed initialization, tool discovery, and a context request.
+
+Four authenticated sessions checked native delivery and removal of independently authored synthetic global and repository preferences. Each active session returned both installed preference values. After undoing the four preference decision and publication revisions and refreshing native integrations, each fresh session returned both fallback values. All four calls completed without permission denials.
+
+| Agent | CLI | Model | Global and repository delivery | Both preferences after undo |
+| --- | --- | --- | --- | --- |
+| Claude Code | 2.1.284 | claude-sonnet-5-5 | Passed | Restored prior behavior |
+| Codex | 0.159.0 | gpt-6-sol | Passed | Restored prior behavior |
+
+The publisher used synthetic model responses; the four real calls tested fresh native sessions with hooks disabled by the qualification runner. The package and plugin checks exercised the installed CLI separately. This qualification does not rerun the preference study or measure an agent conducting the setup conversation. Candidate artifacts, agent output, and receipts remain outside the public checkout.
+
+Browser qualification loaded 519 skills, including 500 synthetic skills in one category. The collapsed overview displayed every category, expansion exposed bounded subgroups, search revealed a deeply nested skill after a different branch had been focused, and the list retained all 519 entries. A final normal-library review applied a build and then restored it with undo. The registry setup path becomes available when the next release is published; creating the follow-up PR alone does not publish the CLI.

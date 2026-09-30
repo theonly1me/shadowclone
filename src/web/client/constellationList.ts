@@ -24,23 +24,21 @@ export function renderConstellationList(options: {
 }): void {
   const list = element("constellation-list");
   list.replaceChildren();
+  const parents = new Map(options.constellation.hubs.map((hub) => [hub.id, hub.parentId]));
 
   for (const hub of options.constellation.hubs.filter(
     (entry) => entry.parentId === null,
   )) {
     const section = create({ tag: "section", className: "skill-list-group" });
     section.append(create({ tag: "h3", text: hub.title }));
-    const descendantIds = new Set([hub.id]);
-
-    for (const child of options.constellation.hubs.filter(
-      (entry) => entry.parentId === hub.id,
-    )) {
-      descendantIds.add(child.id);
-    }
-
-    for (const leaf of options.constellation.leaves.filter((entry) =>
-      descendantIds.has(entry.parentId),
-    )) {
+    for (const leaf of options.constellation.leaves.filter((entry) => {
+      let parent: string | null = entry.parentId;
+      while (parent) {
+        if (parent === hub.id) return true;
+        parent = parents.get(parent) ?? null;
+      }
+      return false;
+    })) {
       const item = itemFor(leaf.itemIds);
 
       if (!item || !matches(item)) continue;

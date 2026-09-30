@@ -29,7 +29,7 @@ function render(): void {
   element("undo").hidden = editor.view?.revisionId === null;
 }
 
-async function loadBuild(scope: BuildScope): Promise<void> {
+async function loadBuildState(scope: BuildScope): Promise<void> {
   const view = await request({
     path: `/api/build?scope=${scope}`,
     schema: buildViewSchema,
@@ -65,6 +65,29 @@ async function loadBuild(scope: BuildScope): Promise<void> {
 
   render();
 }
+
+async function loadBuild(scope: BuildScope): Promise<void> {
+  const status = element("constellation-status");
+  const retry = element("retry-build");
+  if (!retry.hidden) notice({ message: "" });
+  status.hidden = false;
+  retry.hidden = true;
+  element("constellation-status-text").textContent = "Loading your skills…";
+  element("constellation").setAttribute("aria-busy", "true");
+  try {
+    await loadBuildState(scope);
+    status.hidden = true;
+  } catch (error) {
+    element("constellation-status-text").textContent = "Your skills couldn't be loaded. Retry to reconnect to the local editor.";
+    retry.hidden = false;
+    select("scope").value = editor.input.scope;
+    throw error;
+  } finally {
+    element("constellation").setAttribute("aria-busy", "false");
+  }
+}
+
+actionButton({ id: "retry-build", action: () => loadBuild(editor.input.scope) });
 
 actionButton({ id: "review", action: reviewChanges });
 actionButton({ id: "describe", action: reviewDescription });
@@ -136,4 +159,4 @@ const scope = buildScopeSchema.safeParse(
 initializeStarfield();
 initializeTree();
 initializeCustomGeneration();
-loadBuild(scope.success ? scope.data : "global").catch(reportError);
+perform(() => loadBuild(scope.success ? scope.data : "global")).catch(reportError);

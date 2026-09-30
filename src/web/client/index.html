@@ -82,6 +82,10 @@
             class="constellation"
             aria-label="Skill constellation"
           >
+            <div id="constellation-status" class="constellation-status" role="status">
+              <p id="constellation-status-text">Loading your skills…</p>
+              <button id="retry-build" class="quiet-button" hidden>Retry loading skills</button>
+            </div>
             <div class="constellation-controls" aria-label="Constellation controls">
               <button id="fit-constellation" class="quiet-button">Fit</button>
               <button id="reset-constellation" class="quiet-button">Reset</button>
@@ -105,7 +109,7 @@
               aria-label="Skills grouped into navigable hubs"
             ></svg>
             <div id="constellation-list" class="constellation-list"></div>
-            <p class="tree-hint">Select a star to inspect its skill. Drag to pan and scroll to zoom.</p>
+            <p class="tree-hint">Select a category to expand it or a skill to inspect it. Drag to pan and scroll to zoom.</p>
           </section>
 
           <aside class="build-panel" aria-label="Your character build">

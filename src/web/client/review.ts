@@ -10,6 +10,9 @@ import { editor } from "./state";
 let reviewed: BuildPreview | null = null;
 
 export async function reviewChanges(): Promise<void> {
+  if (editor.view === null) {
+    throw new Error("Wait for your skills to load before reviewing the build.");
+  }
   const preview = await request({
     path: "/api/preview",
     schema: previewSchema,
