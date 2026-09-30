@@ -46,6 +46,8 @@ Setup takes about two to three minutes, excluding learning. Deep learning needs 
 
 Run `shadowclone` to see the current result and next action. Use `shadowclone wizard` to browse optional workflow skills in a browser.
 
+**Delegate a task.** The optional `shadowclone-work` skill records your standards, acceptance criteria, checks, and review in a private task receipt. It adds work tracking to an existing Claude Code or Codex session. Start with review handoff; shipping actions require explicit repository grants. Native workflow qualification is still pending. [Use delegated work](docs/guides/delegated-work.md).
+
 ## Evaluations
 
 The preference study compared agent alone, existing user skills, those skills plus Shadowclone setup, and setup plus deep learning on GPT-6 Sol, GPT-6 Luna, Sonnet 5.5, and Opus 5.5. After corrected scoring, deep learning over existing skills was +10.0, -2.5, +9.7, and +7.3 percentage points respectively, with every 95% interval including zero. It recovered a concrete review-reply preference across all four models. The study covers one participant and one synthetic repository. [Read all four setups, corrected results, and limitations](evals.md).

@@ -33,6 +33,13 @@ flowchart LR
     Claude --> Probe[Reviewed frozen guidance probe]
     Probe --> ProbeReceipt[Private response assertion receipt]
     ScopedHook --> Agents
+    Agents --> Tasks[Explicit task contract and private checkpoints]
+    Skills --> Tasks
+    Tasks --> Verification[Offline checks against the exact workspace]
+    Verification --> TaskReceipt[Private verification and review receipt]
+    Owner[Explicit repository action grants] --> Actions[Policy-checked Git and GitHub helpers]
+    TaskReceipt --> Actions
+    Actions --> GitHub[GitHub]
     Agents --> Sessions
     Skills --> Eval[Preference study]
     Original[Original library and instructions] --> Eval
@@ -59,6 +66,7 @@ flowchart LR
 | `src/builds/`, `src/web/` | Apply reviewed skill selections through terminal and browser interfaces |
 | `src/integrations/`, `src/harness/` | Install native guidance and repository instructions/checks |
 | `src/engine/`, `src/dispatch/` | Invoke authenticated agent CLIs and run authorized worktree tasks |
+| `src/tasks/` | Track native-session work, freeze guidance, verify changes, and mediate explicitly granted actions |
 | `src/eval/`, `src/changes/` | Run the preference study and retain reversible file revisions |
 | `src/profile/` | Legacy profile compatibility and the reconciliation boundary |
 

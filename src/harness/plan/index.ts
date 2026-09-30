@@ -147,6 +147,7 @@ export async function planHarness(options: {
     skills: skills.map((skill) => skill.name),
     ruleKeys: [...details.compilation.appliedRuleKeys],
     artifacts: { ...carried.artifacts, ...recorded },
+    ...(manifest?.verification ? { verification: manifest.verification } : {}),
   });
 
   const previousManifest = await readLocalText(

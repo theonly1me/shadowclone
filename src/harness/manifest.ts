@@ -2,6 +2,7 @@ import path from "node:path";
 import { z } from "zod";
 import { readLocalText } from "../localFiles";
 import { conventionSchema } from "./conventions";
+import { verificationRecipeSchema } from "./recipes";
 
 export const harnessManifestPath = ".shadowclone/harness.json";
 
@@ -20,6 +21,7 @@ const manifestSchema = z.strictObject({
   skills: z.array(z.string().min(1)),
   ruleKeys: z.array(z.string().min(1)),
   artifacts: z.record(z.string(), z.string().regex(/^[a-f0-9]{64}$/)),
+  verification: z.array(verificationRecipeSchema).max(32).optional(),
 });
 
 export type HarnessManifest = z.infer<typeof manifestSchema>;

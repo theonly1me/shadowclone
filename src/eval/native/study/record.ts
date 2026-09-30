@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { changedFileSchema, usageSchema, voteSchema } from "../receipt";
 import { checkResultSchema } from "./checkSchema";
+import { workflowOutcomeSchema } from "../../shared/outcome";
 
 export const runArmSchema = z.enum(["bare", "told", "original", "first-time", "deep"]);
 
@@ -43,6 +44,7 @@ export const turnRecordSchema = z.strictObject({
 });
 
 export const runRecordSchema = z.strictObject({
+  outcome: workflowOutcomeSchema.optional(),
   arm: runArmSchema,
   taskId: z.string(),
   repeat: z.number().int().min(0).max(4),

@@ -9,11 +9,15 @@ import { publishedSkills } from "./catalog";
 import { assertRegularDestination } from "../localFiles";
 import { discoverDeliverySkills } from "../skillMaintenance/discover";
 import { readMaintenanceState } from "../skillMaintenance/state";
+import type { RepositoryIdentity } from "../signal";
 
 export async function materializeSkillDelivery(options: {
   readonly paths: ProjectPaths;
   readonly repositoryDirectory: string;
   readonly destination: string;
+  readonly repository?: RepositoryIdentity;
+  readonly includeLibrary?: boolean;
+  readonly onArtifact?: (artifact: { readonly source: string; readonly destination: string }) => Promise<void>;
 }): Promise<string | null> {
   const state = await readRedactedEnvironment(options.paths);
 
@@ -24,10 +28,10 @@ export async function materializeSkillDelivery(options: {
   const scopes = learningScopes({ paths: options.paths, state }).filter(
     (scope) =>
       scope.repository === null ||
-      path.resolve(options.repositoryDirectory) === scope.directory ||
+      ((!options.repository || (scope.repository.originDirectory === options.repository.origin.directoryName && scope.repository.repositoryName === options.repository.profileFileName)) && (path.resolve(options.repositoryDirectory) === scope.directory ||
       path
         .resolve(options.repositoryDirectory)
-        .startsWith(`${scope.directory}${path.sep}`),
+        .startsWith(`${scope.directory}${path.sep}`))),
   );
 
   const scopeKeys = new Set(scopes.map(({ key }) => key));
@@ -35,7 +39,7 @@ export async function materializeSkillDelivery(options: {
 
   const roots = (await readMaintenanceState(options.paths)).roots.filter(
     (root) =>
-      root.enabled &&
+      options.includeLibrary !== false && root.enabled &&
       (root.scope === "global" ||
         scopes.some((scope) => scope.directory === root.cwd)),
   );
@@ -140,6 +144,7 @@ export async function materializeSkillDelivery(options: {
       await Bun.write(destination, snapshot?.redacted ?? content, {
         mode: metadata.mode & 0o777,
       });
+      await options.onArtifact?.({ source: filePath, destination });
     }
 
     routing = routing.replaceAll(

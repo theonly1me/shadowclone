@@ -45,6 +45,7 @@ Transcript parsers can encounter prompts, assistant responses, tool results, and
 | Skill maintenance | Redacted catalogs and full instructions for overlapping workflows, plus evidence for proposed updates; supporting resources are checked locally |
 | Browser editor | Opening the editor makes no model request; optional build descriptions and skill drafts require review of their redacted payload, provider, and limits |
 | `run` | The authorized task worktree and guidance |
+| Native task workflow | The existing agent session reads task guidance and its authorized workspace; task helpers themselves make no model calls |
 | Evaluation | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction |
 
 First-time interactive `learn` can offer setup, which may make an authorized first learning pass. A deep dry run still calls a model.
@@ -54,6 +55,12 @@ Eligible source text crosses the shared redaction boundary before learning or co
 Use only material you are authorized to send to the chosen provider. Provider usage limits or charges may apply. Local deletion does not delete provider copies.
 
 ## Local files
+
+An explicit `task start` authorizes local execution bookkeeping, including repository identity, instruction snapshots, selected consented skills, and hashes of tracked and untracked files. It does not enable a learning source or import history. Task state never becomes learning evidence. Explicit user-requested correction checkpoints use the existing scoped preference service.
+
+Native task records, guidance copies, redacted command diagnostics, reviews, user-reported outcomes, and action intents are retained under `~/.shadowclone/runs/<id>/`. Repository grants are retained under `~/.shadowclone/task-grants/`; grants cannot be minted by learning or MCP. These records remain private until explicitly removed. `forget --all` stops before deleting data when unfinished tasks or managed worktrees remain, protecting code and unpushed changes. Stop native sessions and preserve work before removing their records.
+
+Task checks reuse the offline, credential-free verification sandbox and protect Git metadata. The user's native agent retains its own permissions; checkpoints and reported skill reads are not a containment boundary. Explicit GitHub actions send repository objects and reviewed PR text through the local Git/GitHub CLIs. They are limited by current repository grants, task allowances, managed policy, and current verification. Remote review text is untrusted execution data and is excluded from learning.
 
 | Location | Contents |
 | --- | --- |
