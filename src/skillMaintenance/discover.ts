@@ -63,9 +63,7 @@ async function inspectSkills(options: {
         continue;
       }
 
-      discovered += 1;
-
-      if (discovered > 500 || relativePath.split(path.sep).length > 12) {
+      if (relativePath.split(path.sep).length > 12) {
         throw new Error(
           "Skill library exceeds discovery limits; configure smaller roots",
         );
@@ -79,6 +77,10 @@ async function inspectSkills(options: {
       }
 
       visited.add(identity);
+      discovered += 1;
+      if (discovered > 2_000) {
+        throw new Error("Skill library exceeds discovery limits; configure smaller roots");
+      }
 
       const size = Bun.file(filePath).size;
 

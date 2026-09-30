@@ -22,6 +22,7 @@ export function serveBuildWizard(
     port: options.port ?? 0,
     development: false,
     maxRequestBodySize: 2_000_000,
+    idleTimeout: 90,
     routes: browserAssetRoutes({ page, directory: import.meta.dir }),
     fetch: handler,
   });

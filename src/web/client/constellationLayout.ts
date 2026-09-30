@@ -90,51 +90,41 @@ export function layoutConstellation(options: {
   readonly nodes: readonly PositionedConstellationNode[];
   readonly links: readonly PositionedConstellationLink[];
 } {
-  const root = hierarchy(graphData(options.constellation));
-  const horizontal = Math.max(240, options.width - 96);
-  const vertical = Math.max(320, options.height - 120);
+  const data = graphData(options.constellation);
+  const root = hierarchy(data, (node) => node.children.filter((child) => child.kind !== "skill"));
 
-  tree<LayoutDatum>().size([horizontal, vertical])(root);
+  tree<LayoutDatum>().nodeSize([210, 160])(root);
 
-  const initialNodes = root.descendants().map((node) => ({
+  let initialNodes = root.descendants().map((node) => ({
     id: node.data.id,
     title: node.data.title,
     itemIds: node.data.itemIds,
     relatedHubIds: node.data.relatedHubIds,
     kind: node.data.kind,
     parentId: node.parent?.data.id ?? null,
-    x: coordinate(node.x) + 48,
-    y: options.height - 52 - coordinate(node.y),
+    x: coordinate(node.x) + options.width / 2,
+    y: options.height - 92 - coordinate(node.y),
   }));
-  const initialById = new Map(initialNodes.map((node) => [node.id, node]));
-  const siblingIndexes = new Map<string, number>();
-  const siblingCounts = new Map<string, number>();
-
-  for (const node of initialNodes.filter((entry) => entry.kind === "skill")) {
-    if (node.parentId) {
-      siblingCounts.set(
-        node.parentId,
-        (siblingCounts.get(node.parentId) ?? 0) + 1,
-      );
+  if (options.constellation.leaves.length === 0 && root.height === 1) {
+    const hubs = initialNodes.filter((node) => node.kind === "hub");
+    const columns = Math.min(4, hubs.length);
+    const rows = Math.ceil(hubs.length / columns);
+    const indexes = new Map(hubs.map((hub, index) => [hub.id, index]));
+    initialNodes = initialNodes.map((node) => {
+      const index = indexes.get(node.id);
+      return index === undefined ? node : { ...node,
+        x: options.width / 2 + (index % columns - (columns - 1) / 2) * 210,
+        y: options.height - 92 - (rows - Math.floor(index / columns)) * 160 };
+    });
+  }
+  const nodes = [...initialNodes];
+  for (const hub of root.descendants()) {
+    const leaves = hub.data.children.filter((child) => child.kind === "skill");
+    for (const [index, leaf] of leaves.entries()) {
+      nodes.push({ ...leaf, parentId: hub.data.id, x: coordinate(hub.x) + options.width / 2,
+        y: options.height - 92 - root.height * 160 - 88 * (index + 1) });
     }
   }
-
-  const nodes = initialNodes.map((node) => {
-    const parent = node.parentId ? initialById.get(node.parentId) : undefined;
-
-    if (node.kind !== "skill" || !parent || !node.parentId) return node;
-
-    const index = siblingIndexes.get(node.parentId) ?? 0;
-    const count = siblingCounts.get(node.parentId) ?? 1;
-    const step = Math.max(14, (parent.y - 44) / (count + 1));
-    siblingIndexes.set(node.parentId, index + 1);
-
-    return {
-      ...node,
-      x: parent.x + (index % 2 === 0 ? -14 : 14),
-      y: parent.y - step * (index + 1),
-    };
-  });
   const byId = new Map(nodes.map((node) => [node.id, node]));
   const links: PositionedConstellationLink[] = nodes.flatMap((node) => {
     const parent = node.parentId ? byId.get(node.parentId) : undefined;

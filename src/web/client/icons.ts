@@ -42,10 +42,9 @@ const skillIcons: Readonly<Record<string, keyof typeof shapes>> = {
   "resolve-conflicts-by-intent": "merge",
 };
 
-export function skillIcon(item: BrowserItem): SVGSVGElement {
+function shapeIcon(shape: keyof typeof shapes): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  const shape = skillIcons[item.id] ?? "spark";
 
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("fill", "none");
@@ -58,4 +57,19 @@ export function skillIcon(item: BrowserItem): SVGSVGElement {
   svg.append(path);
 
   return svg;
+}
+
+export function skillIcon(item: BrowserItem): SVGSVGElement {
+  return shapeIcon(skillIcons[item.id] ?? "spark");
+}
+
+export function hubIcon(title: string): SVGSVGElement {
+  const category = title.toLowerCase();
+  const categories: Readonly<Record<string, keyof typeof shapes>> = {
+    engineering: "code", architecture: "modules", typescript: "code", workflow: "route",
+    dependenc: "layers", testing: "flask", communication: "question", debugging: "bug",
+    planning: "compass", research: "search", review: "check", setup: "spark",
+  };
+  const shape = Object.entries(categories).find(([name]) => category.includes(name))?.[1] ?? "compass";
+  return shapeIcon(shape);
 }

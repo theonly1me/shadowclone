@@ -93,6 +93,8 @@ Evaluation confines candidate writes to disposable workspaces. Verification runs
 
 The browser editor listens on loopback, serves local assets, checks request origins, and uses an ephemeral token. Opening it does not grant new capture consent.
 
+Skill discovery reads only configured, consented roots. It permits up to 2,000 distinct physical skill files and 8 MB in total; overlapping roots count the same canonical file once. Native copies may collapse into one browser entry. Individual skills retain their 48 KB and 500-line limits, and discovery refuses paths nested more than twelve levels.
+
 Use AI in the skill editor sends only the typed form fields. It reads no repository files. Model requests use the learning execution contract with no tools, one call, and a 60-second deadline. Providers with dollar-cap support receive a $0.25 limit; other providers show that no dollar cap can be enforced. Cancellation aborts the request, but usage already incurred may still be charged. Reviews and cached results remain in server memory until the editor closes. Generated skill drafts remain editable and require the usual build review before publication.
 
 ## Retention and removal

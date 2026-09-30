@@ -31,6 +31,25 @@
   background: #151723e8;
 }
 
+.constellation-status {
+  position: absolute;
+  z-index: 4;
+  top: 40%;
+  left: 50%;
+  width: min(280px, 85%);
+  transform: translate(-50%, -50%);
+  padding: 18px;
+  color: #d4d7e3;
+  border: 1px solid #423a50;
+  border-radius: 12px;
+  background: #151723;
+  text-align: center;
+}
+
+.constellation-status p {
+  margin: 0 0 12px;
+}
+
 .constellation-map,
 .constellation-list {
   position: absolute;
@@ -73,16 +92,23 @@
 
 .map-node text {
   fill: #d4d7e3;
-  font: 11px Inter, system-ui, sans-serif;
+  font: 15px Inter, system-ui, sans-serif;
   paint-order: stroke;
   stroke: #10121b;
   stroke-width: 5px;
   stroke-linejoin: round;
 }
 
+.map-node text.map-node-count {
+  fill: #9c90b5;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
 .map-node-hub text {
   fill: #cebaf5;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 650;
   letter-spacing: 0.04em;
 }
@@ -96,6 +122,10 @@
   fill: #332647;
   stroke: #c1a5ee;
   stroke-width: 1.5;
+}
+
+.map-node-root image {
+  pointer-events: none;
 }
 
 .map-node:hover rect,

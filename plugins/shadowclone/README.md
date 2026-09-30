@@ -10,7 +10,7 @@ Install the plugin, start a new agent session, and say:
 Set up Shadowclone.
 ```
 
-The `setup-shadowclone` skill installs the public CLI without elevated privileges, asks for three explicit consent decisions, initializes detected coding agents, and opens the loopback build editor. Existing consent settings are preserved.
+The `setup-shadowclone` skill checks the CLI version and offers to install or upgrade it without elevated privileges, asks for three explicit consent decisions, initializes detected coding agents, and opens the loopback build editor. It requires CLI 0.0.13 or newer. Existing consent settings are preserved.
 
 The bundled MCP configuration starts `shadowclone mcp` after the CLI is installed. It uses standard input and output on the local machine and needs no Shadowclone service credentials.
 

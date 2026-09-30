@@ -22,7 +22,7 @@ codex plugin marketplace add theonly1me/shadowclone
 codex plugin add shadowclone@shadowclone
 ```
 
-Then tell the agent: **Set up Shadowclone.** The packaged setup skill installs the CLI if needed, asks you for three separate consent choices, installs native guidance for detected agents, and prints the local build URL. It never uses elevated privileges or chooses data access for you.
+Then tell the agent: **Set up Shadowclone.** The packaged setup skill checks the CLI version, offers installation or an upgrade when needed, asks you for three separate consent choices, installs native guidance for detected agents, and prints the local build URL. This setup flow requires CLI 0.0.13 or newer. It never uses elevated privileges or chooses data access for you.
 
 Cursor, Antigravity, and other skill-compatible agents can use the portable [`setup-shadowclone` skill](plugins/shadowclone/skills/setup-shadowclone/SKILL.md). Once any supported agent completes setup, Shadowclone synchronizes native guidance across the detected agents on your machine.
 

@@ -1,5 +1,6 @@
 import type { BuildItem } from "./types";
 import { constellationSchema, type Constellation } from "./constellationSchema";
+import { nestConstellationBranch } from "./constellationBranches";
 
 const ignoredWords = new Set([
   "agent", "before", "change", "changing", "code", "existing", "from",
@@ -158,41 +159,26 @@ export function buildConstellation(items: readonly BuildItem[]): Constellation {
     const ordered = [...bucket.entries].sort((left, right) =>
       left.item.id.localeCompare(right.item.id),
     );
-    const chunks = Array.from(
-      { length: Math.ceil(ordered.length / 10) },
-      (_, index) => ordered.slice(index * 10, index * 10 + 10),
-    );
+    const branchLeaves = ordered.map((entry) => {
+      const relatedHubIds = buckets
+        .map((candidate, index) => ({ candidate, index }))
+        .filter(
+          ({ candidate }) =>
+            candidate.key !== bucket.key && entry.topics.includes(candidate.key),
+        )
+        .slice(0, 2)
+        .map(({ candidate, index }) => `hub:${index}:${candidate.key}`);
 
-    for (const [chunkIndex, chunk] of chunks.entries()) {
-      const parentId = chunks.length === 1 ? hubId : `${hubId}:${chunkIndex}`;
-
-      if (chunks.length > 1) {
-        const subtopic = preferredSubtopic(chunk, bucket.key);
-        hubs.push({
-          id: parentId,
-          title: `${title(subtopic)} ${chunkIndex + 1}`,
-          parentId: hubId,
-        });
-      }
-
-      for (const entry of chunk) {
-        const relatedHubIds = buckets
-          .map((candidate, index) => ({ candidate, index }))
-          .filter(
-            ({ candidate }) =>
-              candidate.key !== bucket.key && entry.topics.includes(candidate.key),
-          )
-          .slice(0, 2)
-          .map(({ candidate, index }) => `hub:${index}:${candidate.key}`);
-
-        leaves.push({
-          id: `skill:${entry.item.id}`,
-          itemIds: [...entry.itemIds],
-          parentId,
-          relatedHubIds,
-        });
-      }
-    }
+      return {
+        id: `skill:${entry.item.id}`,
+        itemIds: [...entry.itemIds],
+        relatedHubIds,
+      };
+    });
+    const nested = nestConstellationBranch({ parentId: hubId,
+      title: title(preferredSubtopic(ordered, bucket.key)), leaves: branchLeaves });
+    hubs.push(...nested.hubs);
+    leaves.push(...nested.leaves);
   }
 
   return constellationSchema.parse({ hubs, leaves });

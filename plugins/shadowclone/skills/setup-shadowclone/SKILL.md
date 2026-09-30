@@ -9,9 +9,13 @@ Complete the local setup while keeping each data choice with the user.
 
 ## Detect
 
-1. Check whether `shadowclone` is available without reading its configuration or user data.
-2. If it is missing, run `npm install -g @shadowclone/cli`. Never use `sudo`. If the package manager cannot write to its configured global directory, explain that exact failure and help the user choose a user-owned npm prefix before retrying.
-3. Run `shadowclone init --status --json`. Treat only `{"initialized":true}` as an existing setup.
+1. Run `node <this-skill-directory>/scripts/check-cli.mjs` using this skill's actual directory. The helper checks only `shadowclone --version`, reads no configuration or user data, and requires stable CLI version 0.0.13 or newer.
+2. If its status is `outdated`, show the installed and minimum versions and ask whether to upgrade the CLI. If it is `unavailable`, explain that a usable CLI is missing and ask whether to install it. Stop if the user declines.
+3. After approval, run `npm install -g @shadowclone/cli@latest`. Never use `sudo`. If the package manager cannot write to its configured global directory, explain that exact failure and help the user choose a user-owned npm prefix before retrying.
+4. Repeat the helper after installation or upgrade. Continue only when its status is `ready`. If it remains outdated, the required release may not be published yet. If the installed package is new enough but the helper still sees an older command, inspect `command -v shadowclone` and `npm prefix -g` for a stale executable or missing prefix on `PATH`; help the user resolve it without deleting unrelated installations.
+5. Run `shadowclone init --status --json`. Treat only `{"initialized":true}` as an existing setup. Preserve compatible existing installations and their consent settings.
+
+The setup skill runs independently of MCP. MCP may be disconnected until the CLI is installed; this does not prevent these shell commands or consent questions.
 
 ## Ask for consent
 
