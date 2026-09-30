@@ -1,17 +1,17 @@
 # Evaluation results
 
-The preference study measures whether a coding agent follows an anonymized participant's engineering preferences on ordinary requests, and whether Shadowclone changes that. Each agent has its own tasks and checks, so compare setups within an agent, not agents with each other.
+The preference study measured whether a coding agent followed one participant's engineering preferences on ordinary requests. These results were recomputed from the private receipts on 2026-09-30 using scorer `session-bootstrap-2`, without new model calls. Unknown and not-applicable checks are excluded consistently, complete sessions are resampled within tasks, and observable actions from incomplete sessions retain their checks.
 
 ## Results
 
-The headline rate weights every task equally. Percentages in parentheses are 95% intervals.
+The headline weights every task equally. Parentheses show the 95% percentile bootstrap interval. Deep learning over existing user skills is the relevant incremental comparison; its interval includes zero for every model.
 
 | Share of preferences followed | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
 | --- | ---: | ---: | ---: | ---: |
-| Agent alone | 72% (52% to 89%) | 73% (54% to 90%) | 55% (27% to 80%) | 57% (32% to 82%) |
-| With existing skills | 87% (70% to 100%) | 91% (79% to 99%) | 70% (42% to 96%) | 79% (56% to 100%) |
-| With Shadowclone skills | 84% (68% to 98%) | 83% (68% to 95%) | 68% (40% to 92%) | 68% (42% to 90%) |
-| With Shadowclone skills and deep learning | 97% (88% to 100%) | 88% (74% to 99%) | 76% (54% to 95%) | 82% (64% to 97%) |
+| Agent alone | 72% (54% to 88%) | 73% (55% to 90%) | 59% (31% to 85%) | 59% (34% to 82%) |
+| With existing skills | 87% (72% to 100%) | 91% (79% to 99%) | 70% (44% to 94%) | 79% (58% to 94%) |
+| With Shadowclone skills | 84% (68% to 98%) | 83% (68% to 95%) | 72% (44% to 94%) | 72% (46% to 94%) |
+| With Shadowclone skills and deep learning | 97% (89% to 100%) | 88% (75% to 99%) | 80% (59% to 100%) | 86% (69% to 100%) |
 
 Each cell below compares the agent alone with Shadowclone skills and deep learning.
 
@@ -21,7 +21,7 @@ Each cell below compares the agent alone with Shadowclone skills and deep learni
 | Failing test first | 0 of 3 → 3 of 3 | 0 of 3 → 2 of 3 | 0 of 3 → 0 of 3 | 0 of 3 → 2 of 3 |
 | Pull request checklist | 0 of 3 → 3 of 3 | 3 of 3 → 3 of 3 | 0 of 3 → 1 of 3 | 2 of 3 → 3 of 3 |
 
-**How to read this.** Skills with deep learning beat the agent alone on all four agents by 15 to 25 points. The gain is statistically clear on GPT-6 Sol and Opus 5.5, and directional on GPT-6 Luna and Sonnet 5.5. Existing skills scored in the same range and slightly higher on GPT-6 Luna. The intervals are wide because each agent has four to ten tasks.
+The first-time arm is below existing skills on three models and slightly above on Sonnet after rescoring. Deep learning recovered a specific review-reply preference, but these results establish no advantage over an existing skill library. The earlier calculation had first-time estimates below existing skills on all four models; that conclusion changes when incomplete sessions are scored consistently.
 
 ## Setups
 
@@ -52,7 +52,7 @@ Each setup runs in an isolated agent home. The setups with user skills start fro
 | Bug fix | Successful jobs still get retried | Failing test first; fix proven by inversion; commit message proposed, not committed |
 | Git and pull requests | Rename a variable, then "commit it"; create the pull request | Lowercase conventional subject with no body; an Overview of Changes checklist |
 | Questions | Which change broke exports, then "do we need a hotfix?"; is a delay capped; what would a change take | Short, direct answers |
-| Review replies | Reply to an automated review comment | One sentence with the key fact, no colons, semicolons, or dashes |
+| Review replies | Reply to an automated review comment | One sentence with the key fact, no colons, semicolons, or em dashes |
 | Documentation | Remove a deprecated command and sweep the docs | No em dashes in prose; no added comments |
 
 **Checks.** Every check is deterministic: introduced comments and unsafe types, positional parameters, action order for test-first and inversion proofs, commit subjects, pull request records, and answer length or sentence count. Test results come from command output, and an answer is the final message. Attribution lines agents add on their own, such as `Co-Authored-By`, are ignored.
@@ -76,33 +76,33 @@ Each setup runs in an isolated agent home. The setups with user skills start fro
 
 **Coverage gate.** A separate audit records which key items each setup's guidance covers, with verbatim quotes checked against the files. The study stops if deep learning covers nothing that Shadowclone skills alone lack.
 
-**Analysis.** Each setup ran three sessions per task. Rates weight tasks equally. Intervals resample tasks and then sessions within a task, so run-to-run variation widens them, and a comparison counts only when its 95% interval excludes zero.
+**Analysis correction.** Each setup ran three sessions per task. The original report claimed to resample tasks and sessions, but actually resampled individual checks within each task. This report preserves session identity and resamples complete sessions within sampled tasks using 10,000 draws and seed 20260928. It excludes unknown and not-applicable outcomes from both rates and detailed denominators while reporting their counts. Both views were rescored from recorded actions and responses. Checks observed before a later infrastructure error remain scored. Dropped tasks are excluded from session and error totals as well as rates. The reviewed punctuation pattern excludes colons, semicolons, and em dashes; ordinary hyphens are allowed.
 
-**Noise.** The half-width of the deep-learning-over-no-help interval is the smallest gain the design separates from noise: about 16 points for GPT-6 Sol, 17 for GPT-6 Luna, 27 for Sonnet 5.5, and 25 for Opus 5.5.
+The small task count and correlated checks limit precision even after the calculation is corrected.
 
 ## Detailed results
 
-Cells show checks followed out of checks run and the corresponding percentage, pooled over sessions. Errored sessions are excluded from the counts.
+Cells show known checks followed out of known checks scored and the corresponding percentage, pooled over sessions. Unknown checks are excluded here and from headline rates. Task weighting accounts for remaining differences between pooled percentages and headline percentages.
 
 | Setup | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
 | --- | ---: | ---: | ---: | ---: |
-| Without Shadowclone or user skills | 47 of 72 (65%) | 46 of 69 (67%) | 35 of 60 (58%) | 35 of 60 (58%) |
+| Without Shadowclone or user skills | 47 of 72 (65%) | 46 of 69 (67%) | 35 of 60 (58%) | 36 of 63 (57%) |
 | With user skills | 58 of 68 (85%) | 62 of 72 (86%) | 44 of 63 (70%) | 50 of 63 (79%) |
-| With Shadowclone skills | 59 of 71 (83%) | 57 of 72 (79%) | 43 of 61 (70%) | 42 of 60 (70%) |
+| With Shadowclone skills | 59 of 71 (83%) | 57 of 72 (79%) | 45 of 63 (71%) | 42 of 60 (70%) |
 | With Shadowclone skills and deep learning | 65 of 69 (94%) | 61 of 72 (85%) | 47 of 61 (77%) | 50 of 60 (83%) |
 
 Deep learning followed the highest pooled share on GPT-6 Sol, Sonnet 5.5, and Opus 5.5. Existing skills followed the highest share on GPT-6 Luna. The task-weighted headline remains the primary comparison because tasks have different numbers of checks.
 
-Differences in points, with 95% intervals. An asterisk marks an interval that excludes zero.
+Differences and 95% intervals below are percentage points. An asterisk means this bootstrap interval is entirely above zero; it does not establish transfer to other users or repositories.
 
 | Comparison | GPT-6 Sol | GPT-6 Luna | Sonnet 5.5 | Opus 5.5 |
 | --- | ---: | ---: | ---: | ---: |
-| Deep learning over no help | +25 (+10 to +42) * | +15 (-1 to +33) | +22 (-3 to +50) | +25 (+1 to +52) * |
-| Deep learning over user skills | +10 (+0 to +25) | -3 (-14 to +8) | +6 (-20 to +38) | +3 (-16 to +26) |
-| Deep learning over Shadowclone skills | +12 (+0 to +29) | +6 (-7 to +19) | +8 (-16 to +40) | +15 (-6 to +42) |
-| Shadowclone skills over no help | +13 (-1 to +27) | +9 (-5 to +24) | +13 (-7 to +38) | +10 (-5 to +27) |
+| Deep learning over user skills | +10.0 (0.0 to +23.3) | -2.5 (-13.9 to +6.1) | +9.7 (-10.4 to +37.5) | +7.3 (-3.1 to +26.0) |
+| Deep learning over no help | +25.0 (+10.8 to +40.0) * | +14.7 (0.0 to +31.1) | +21.5 (0.0 to +48.6) | +27.8 (+7.3 to +53.1) * |
+| Deep learning over Shadowclone skills | +12.2 (0.0 to +28.3) | +5.6 (-6.7 to +18.9) | +8.3 (-12.5 to +37.5) | +14.6 (0.0 to +40.6) |
+| Shadowclone skills over no help | +12.8 (+1.7 to +24.2) * | +9.2 (-3.3 to +23.3) | +13.2 (0.0 to +35.4) | +13.2 (+2.1 to +27.8) * |
 
-**What is clear.** Deep learning over no help is clear on GPT-6 Sol and Opus 5.5 and not on GPT-6 Luna or Sonnet 5.5. Shadowclone skills over no help is not clear on any agent. No comparison between two setups with skills is clear.
+None of the incremental comparisons between setups containing skills has an interval entirely above zero. With only eight to ten tasks, percentile bootstrap intervals can still be unstable and should not be read as precise population estimates.
 
 **Where the gains come from.** Deep learning followed both review-reply checks in all three sessions on all four agents. User skills followed 3 of 6 and 5 of 6 on the two Codex models and 0 of 6 and 2 of 6 on the two Claude models.
 
@@ -150,9 +150,9 @@ Differences in points, with 95% intervals. An asterisk marks an interval that ex
 | Create a pull request | 1 of 6 (17%) | 6 of 6 (100%) | 6 of 6 (100%) | 4 of 6 (67%) |
 | Rename and commit | 9 of 9 (100%) | 9 of 9 (100%) | 9 of 9 (100%) | 9 of 9 (100%) |
 | Parse older configs | 7 of 9 (78%) | 8 of 9 (89%) | 9 of 9 (100%) | 9 of 9 (100%) |
-| Remove a deprecated command | 4 of 4 (100%) | 6 of 6 (100%) | 4 of 4 (100%) | 4 of 4 (100%) |
+| Remove a deprecated command | 4 of 4 (100%) | 6 of 6 (100%) | 6 of 6 (100%) | 4 of 4 (100%) |
 | Answer a question | 3 of 6 (50%) | 3 of 6 (50%) | 3 of 6 (50%) | 3 of 6 (50%) |
-| **All checks** | 35 of 60 (58%) | 44 of 63 (70%) | 43 of 61 (70%) | 47 of 61 (77%) |
+| **All checks** | 35 of 60 (58%) | 44 of 63 (70%) | 45 of 63 (71%) | 47 of 61 (77%) |
 
 ### Opus 5.5
 
@@ -162,11 +162,11 @@ Differences in points, with 95% intervals. An asterisk marks an interval that ex
 | Fix retries | 3 of 12 (25%) | 6 of 12 (50%) | 5 of 12 (42%) | 6 of 12 (50%) |
 | Reply to a review comment | 0 of 6 (0%) | 2 of 6 (33%) | 0 of 6 (0%) | 6 of 6 (100%) |
 | Create a pull request | 2 of 3 (67%) | 3 of 3 (100%) | 3 of 3 (100%) | 3 of 3 (100%) |
-| Rename and commit | 6 of 6 (100%) | 9 of 9 (100%) | 6 of 6 (100%) | 6 of 6 (100%) |
+| Rename and commit | 7 of 9 (78%) | 9 of 9 (100%) | 6 of 6 (100%) | 6 of 6 (100%) |
 | Parse older configs | 6 of 12 (50%) | 12 of 12 (100%) | 10 of 12 (83%) | 11 of 12 (92%) |
 | Remove a deprecated command | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) | 6 of 6 (100%) |
 | Answer a question | 3 of 6 (50%) | 3 of 6 (50%) | 3 of 6 (50%) | 3 of 6 (50%) |
-| **All checks** | 35 of 60 (58%) | 50 of 63 (79%) | 42 of 60 (70%) | 50 of 60 (83%) |
+| **All checks** | 36 of 63 (57%) | 50 of 63 (79%) | 42 of 60 (70%) | 50 of 60 (83%) |
 
 ## Preferences each agent misses by default
 
@@ -236,13 +236,17 @@ This view keeps only checks the unaided agent failed at least once in controls. 
 
 **Versions.** GPT-6 Sol and Luna ran through Codex CLI 0.156.1. Sonnet 5.5 ran through Claude Code 2.1.277. Opus 5.5 ran through Claude Code 2.1.284.
 
-**Sessions.** The tables cover 432 sessions. Six ended in an infrastructure error after the agent had acted, three on Sonnet 5.5 and three on Opus 5.5, and are excluded from the counts. No session had a correctness or safety failure.
+**Sessions.** The headline covers 432 sessions: 120 each for Sol and Luna and 96 each for Sonnet and Opus. Six ended in an infrastructure error after the agent had acted, three on each Claude model. Observed checks remain scored; missing checks are unknown. There are four unknown checks on Sonnet and six on Opus. Sol has eight not-applicable checks, Luna has three, and Sonnet has one. No recorded session had a correctness or safety failure.
 
 **Replacements.** A session that ended in an infrastructure error before the agent acted was replaced once and the failed record was kept. A session with an agent action kept its result.
 
 **Not reported.** Sessions on tasks outside an agent's achievable tasks also ran. They are not scored here.
 
-**GPT-6 Sol.** Its first 96 sessions come from the first scored run and a rerun after product fixes to skill publication, scope, and precedence. The [design record](docs/design/027-preference-study.md) describes them. Rescoring them with the final scorer changed no verdict.
+**Run groups and product versions.** Sol combines 96 earlier scored sessions with 24 later sessions. Luna combines 48 discriminating-task sessions with 72 complementary sessions. Each Claude model combines 48 discriminating-task sessions with 72 complementary sessions, of which 96 remain in its achievable view. Sol's earlier group includes reruns after publication, scope, and precedence fixes described in the [design record](docs/design/027-preference-study.md). Historical receipts did not record a product commit for each session, so those revisions are unknown. Current runs record them. Rescoring changed no Sol verdict; it retained two observed Sonnet first-time checks and three observed Opus bare checks that the old error policy discarded.
+
+**Delivery condition.** The study automatically applied every nonconflicting deep-learning proposal during preparation. Ordinary users review proposals. The deep arm therefore measures guidance that was approved in the study setup, not first-use review completion.
+
+**Limits.** The learned key and the learner used the same 14-day session sample. Tasks were assembled after a coverage audit, and some tasks were reused after product or scorer fixes. Learning always used GPT-6 Sol, which also had the clearest incremental point estimate; cross-provider learning transfer remains untested. The study has one participant and one synthetic repository. The 432 sessions are repeated runs within that setup, not independent users or repositories. The study does not test Shadowclone without an existing skill library. A later held-out Claude Code and Codex study will freeze tasks before coverage and report user interventions alongside adherence and correctness.
 
 ## Repository harness pilot (2026-09-26)
 

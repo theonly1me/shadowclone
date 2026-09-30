@@ -53,6 +53,8 @@ export async function extractMemoryRecords(options: {
             ? "guidance"
             : "context",
         sourceHash: file.hash,
+        captureSources: ["claude-memory"],
+        provenanceComplete: true,
         sourceLocator: source,
         rule: {
           key: legacy?.rule.key ?? key,

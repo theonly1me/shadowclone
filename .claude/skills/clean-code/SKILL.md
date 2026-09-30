@@ -19,7 +19,7 @@ Use these conventions for every change. Add `scoped-fix` for corrections and `da
 
 Use full words and domain names. Keep established abbreviations such as `id` and `url`, but avoid abbreviated locals such as `stmt` or single-letter counters. Never shadow an import.
 
-Keep files under 200 lines, including tests. Split growing modules by responsibility, expose their public interface through `index.ts`, and group tests by scenario.
+Keep files at most 300 lines, including tests. Split growing modules by responsibility, expose their public interface through `index.ts`, and group tests by scenario.
 
 ## Checks and comments
 

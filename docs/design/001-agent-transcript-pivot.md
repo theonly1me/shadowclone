@@ -8,7 +8,7 @@ Shell history records commands but rarely explains why a user rejected an approa
 
 ## Decision
 
-Learn from consented sessions through a pipeline of observation, indexing, signal derivation, and semantic learning. Send model requests through the engine boundary using the user's authenticated CLI and account quota.
+Learn from consented sessions through a pipeline of observation, indexing, signal derivation, and semantic learning. Send model requests through the engine boundary using an authenticated CLI and its provider limits.
 
 Events carry `TextRef` locators. The index stores event metadata and incremental cursors without transcript bodies. `resolveRedacted` materializes eligible excerpts and applies redaction. Tool results, file-operation contents, thinking blocks, and data-access results are excluded from learning.
 
@@ -20,7 +20,7 @@ The original output was a Markdown profile delivered to a Claude subagent. [Nati
 
 Locators can become unreadable when transcripts change or disappear. Resolution must fail without substituting unrelated text. Incremental adapters must handle truncation and incomplete trailing records.
 
-Authenticated CLIs avoid another credential setup, but inference still sends context to a provider and consumes quota. Redaction reduces exposure without guaranteeing anonymity. Provider capabilities must be qualified separately.
+Authenticated CLIs avoid another credential setup, but inference still sends context to a provider and is subject to its usage limits. Redaction reduces exposure without guaranteeing anonymity. Provider capabilities must be qualified separately.
 
 ## Verification
 

@@ -34,6 +34,13 @@ export async function writeProfile(
     return learning;
   }
 
+  return writeLegacyProfile(options);
+}
+
+export async function writeLegacyProfile(
+  options: WriteOptions,
+): Promise<ProfileWriteResult> {
+
   await ownedDirectory(options.paths.profileDirectory);
 
   const lock = await acquireLocalLock(

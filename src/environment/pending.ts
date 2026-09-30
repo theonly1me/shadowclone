@@ -13,6 +13,10 @@ export function pendingLearningRecords(options: {
   return options.state.records.filter(({ rule }) => rule.source !== "imported").flatMap((record) => {
     const entry = { kind: "learning" as const, key: record.rule.key, title: record.rule.title, scope: record.rule.scope };
 
+    if (retirementRequested(record) && !options.state.dispositions.some((disposition) =>
+      disposition.key === record.rule.key && disposition.status === "published",
+    )) return [];
+
     if (record.rule.status === "candidate") {
       return [{ ...entry, status: "candidate", reason: "Candidate needs stronger evidence of reusable guidance before publication." }];
     }

@@ -8,6 +8,7 @@ import { refreshIntegrations } from "./refresh";
 test("preserves surrounding Codex instructions across refresh, repeat install and uninstall", async () => {
   const fixture = await integrationFixture();
   const destination = path.join(fixture.cwd, "AGENTS.md");
+  const localDestination = path.join(fixture.cwd, "AGENTS.override.md");
   const original = "# Team guidance\n\nUse the existing service.";
 
   await Bun.write(destination, original);
@@ -18,7 +19,8 @@ test("preserves surrounding Codex instructions across refresh, repeat install an
     scope: "repository",
   });
 
-  expect(await Bun.file(destination).text()).toContain("A session hook loads");
+  expect(await Bun.file(destination).text()).toBe(original);
+  expect(await Bun.file(localDestination).text()).toContain("A session hook loads");
   expect(
     await Bun.file(path.join(fixture.cwd, ".codex/hooks.json")).json(),
   ).not.toHaveProperty("hooks.SubagentStart");
@@ -41,7 +43,7 @@ test("preserves surrounding Codex instructions across refresh, repeat install an
     preserved: 0,
   });
 
-  const text = await Bun.file(destination).text();
+  const text = await Bun.file(localDestination).text();
 
   expect(text).toContain("A session hook loads");
   expect(text).toContain("run `shadowclone context`");
@@ -57,6 +59,7 @@ test("preserves surrounding Codex instructions across refresh, repeat install an
   await uninstallIntegration({ paths: fixture.paths, integration: installed });
 
   expect(await Bun.file(destination).text()).toBe(original);
+  expect(await Bun.file(localDestination).exists()).toBeFalse();
   expect(await readIntegrations(fixture.paths)).toEqual([]);
 });
 
@@ -105,10 +108,9 @@ test("preserves unrelated hooks and settings", async () => {
   const installedHooks = (await Bun.file(destination).json()).hooks;
 
   expect(installedHooks.SessionStart).toHaveLength(2);
-  expect(installedHooks.SubagentStart).toHaveLength(1);
-  expect(installedHooks.SubagentStart[0].hooks[0].command).toBe(
-    installedHooks.SessionStart[1].hooks[0].command,
-  );
+  expect(installedHooks.SubagentStart).toBeUndefined();
+  expect(installedHooks.SessionStart[1].hooks[0].command).toContain('$HOME/.shadowclone/bin/shadowclone');
+  expect(await Bun.file(path.join(fixture.paths.shadowcloneDirectory, "bin/shadowclone")).exists()).toBeTrue();
 
   await uninstallIntegration({ paths: fixture.paths, integration: installed });
 

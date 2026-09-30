@@ -4,7 +4,6 @@ import { readLocalText, fingerprint } from "../localFiles";
 import type { ProjectPaths } from "../paths";
 import { prepareIntegrationFiles } from "../integrations/files";
 import { readIntegrations } from "../integrations/state";
-import { updateManagedSection } from "../integrations/markdown";
 import { learningScopes } from "./scope";
 import { renderSkillRouting } from "./context";
 import type { EnvironmentState } from "./types";
@@ -58,7 +57,6 @@ export async function nativePublication(options: {
   const integrations = await readIntegrations(options.paths);
   const updatedIntegrations = [];
   const updates: FileUpdate[] = [];
-  const artifacts = [...options.state.artifacts];
 
   for (const integration of integrations) {
     const applicable = scopes.filter(
@@ -87,64 +85,7 @@ export async function nativePublication(options: {
     });
   }
 
-  for (const scope of scopes.filter((scope) => scope.repository !== null)) {
-    for (const name of ["AGENTS.md", "CLAUDE.md"]) {
-      const filePath = path.join(scope.directory, name);
-
-      if (updates.some((update) => update.filePath === filePath)) {
-        continue;
-      }
-
-      const previous = await readLocalText(filePath);
-      const tracked = artifacts.find(
-        (artifact) => artifact.filePath === filePath,
-      );
-
-      const body =
-        name === "CLAUDE.md"
-          ? "@AGENTS.md"
-          : renderSkillRouting({
-              state: options.state,
-              scopes: scopes.filter(
-                (entry) => entry.key === "global" || entry.key === scope.key,
-              ),
-            });
-
-      const changed = updateManagedSection({
-        previous,
-        body,
-        expected: tracked?.fingerprint,
-      });
-
-      updates.push({ filePath, previous, next: changed.text });
-
-      const artifact = {
-        filePath,
-        original: tracked ? tracked.original : previous,
-        fingerprint: changed.fingerprint,
-        kind: "instructions" as const,
-        scope: scope.key,
-        name,
-        description: "Native skill routing",
-        learningKeys: [],
-      };
-
-      const position = artifacts.findIndex(
-        (entry) => entry.filePath === filePath,
-      );
-
-      if (position >= 0) {
-        artifacts[position] = artifact;
-      } else {
-        artifacts.push(artifact);
-      }
-    }
-  }
-
-  const filePath = path.join(
-    options.paths.shadowcloneDirectory,
-    "integrations.json",
-  );
+  const filePath = path.join(options.paths.shadowcloneDirectory, "integrations.json");
   const previous = await readLocalText(filePath);
 
   if (integrations.length > 0) {
@@ -156,7 +97,7 @@ export async function nativePublication(options: {
   }
 
   return {
-    state: { ...options.state, artifacts },
+    state: options.state,
     updates: updates.filter(
       ({ previous, next }) =>
         fingerprint(previous ?? "") !== fingerprint(next ?? ""),

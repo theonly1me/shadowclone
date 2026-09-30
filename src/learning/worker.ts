@@ -1,16 +1,16 @@
 import { resolveLearningExecution } from "./execution";
+import { writeLearningReceipt, type LearningReceipt } from "./receipt";
 import path from "node:path";
 import { readEffectiveConfig } from "../config";
-import { runDeepLearning } from "../cli/deepLearn";
+import { authorizedLearningEvents, currentEvidenceAuthorization } from "../distill";
+import { runLearningService } from "./service";
 import type { EngineId, EngineRunner, LearningExecution } from "../engine";
 import { ingestSources, openEventIndex } from "../index";
 import { acquireLocalLock } from "../localFiles/lock";
 import { projectPaths, type ProjectPaths } from "../paths";
 import { deriveSignals, type GitRemoteReader } from "../signal";
-import {
-  updateSkillLibrary,
-  type SkillUpdateSummary,
-} from "../skillMaintenance";
+import type { SkillUpdateSummary } from "../skillMaintenance/legacyUpdate";
+import { maintainSkills } from "./maintenance";
 import {
   episodeId,
   learningInterval,
@@ -86,14 +86,32 @@ export async function runLearningMaintenance(
 
     await writeLearningState({ paths, state: attempt });
 
+    let stage: "ingestion" | "learning" | "publication" | "complete" = "ingestion";
+    let episodeCount = 0;
+    let sourceCounts: Record<string, number> = {};
+    let proposalCount = 0;
+    let pendingCount = 0;
+    let outcome: LearningReceipt["outcome"] = "no-eligible-evidence";
+    let receiptEngine: string | null = null;
+    let ruleKeys: string[] = [];
+
     try {
       const index = await openEventIndex(paths.indexDatabase);
 
       try {
         await ingestSources({ index, config: effective.config, paths });
 
-        const derived = await deriveSignals({
+        const authorizedEvents = authorizedLearningEvents({
           events: index.listEvents(),
+          config: effective.config,
+        });
+        sourceCounts = Object.fromEntries(
+          [...Map.groupBy(authorizedEvents, (event) => event.source)]
+            .map(([source, events]) => [source, events.length]),
+        );
+        stage = "learning";
+        const derived = await deriveSignals({
+          events: authorizedEvents,
           corpus: index.getCorpusSummary(),
           gitMetadataEnabled: effective.config.sources["git-metadata"],
           blockedOrigins: effective.policy.blockedOrigins,
@@ -111,6 +129,7 @@ export async function runLearningMaintenance(
                 sessionKeys: requestedSessions,
                 state,
               });
+        episodeCount = signals.length;
 
         if (signals.length > 0 || effective.config.sources["skill-library"]) {
           const { engine, runner, execution } = await resolveLearningExecution({
@@ -119,12 +138,18 @@ export async function runLearningMaintenance(
             execution: options.execution,
             allowedEngines: effective.policy.allowedEngines,
           });
+          receiptEngine = engine;
 
           if (signals.length > 0) {
-            await runDeepLearning({
+            const learned = await runLearningService({
               paths,
               policy: effective.policy,
               events: derived.events,
+              authorizeRef: currentEvidenceAuthorization({
+                paths,
+                events: derived.events,
+                managedConfigPath: options.managedConfigPath,
+              }),
               signals,
               engine,
               runner,
@@ -132,8 +157,13 @@ export async function runLearningMaintenance(
               dryRun: false,
               apply: true,
               writeLine: ignoreLearningOutput,
-              requireSteeringCue: options.automatic,
+              requireSteeringCue: false,
             });
+            proposalCount = learned.changesProposed;
+            ruleKeys = [...learned.ruleKeys];
+            pendingCount = learned.pendingReview;
+            outcome = pendingCount > 0 ? "awaiting-review" :
+              proposalCount > 0 ? "guidance-recorded" : learned.noChangeReason;
           }
 
           attempt = {
@@ -149,7 +179,8 @@ export async function runLearningMaintenance(
           await writeLearningState({ paths, state: attempt });
 
           if (effective.config.sources["skill-library"]) {
-            const summary = await updateSkillLibrary({
+            stage = "publication";
+            const summary = await maintainSkills({
               paths,
               execution,
               managedConfigPath: options.managedConfigPath,
@@ -157,8 +188,32 @@ export async function runLearningMaintenance(
             });
 
             options.reportSkills?.(summary);
+            pendingCount += summary.pending + summary.deferred + summary.conflicts;
+            outcome = pendingCount > 0 ? "needs-scope-or-publication" :
+              summary.applied > 0 ? "guidance-published" : outcome;
           }
         }
+
+        stage = "complete";
+        await writeLearningReceipt({
+          paths,
+          receipt: {
+            startedAt: now,
+            mode: options.automatic ? "automatic" : "maintenance",
+            outcome,
+            stage,
+            episodeCount,
+            sourceCounts,
+            proposalCount,
+            engine: receiptEngine, ruleKeys,
+            pendingCount,
+            nextAction: outcome === "needs-scope-or-publication"
+              ? "Run shadowclone skills pending to review scope or publication."
+              : outcome === "awaiting-review"
+                ? "Run shadowclone learning pending to review learned rules."
+                : "Run shadowclone learning status to inspect the latest attempt.",
+          },
+        });
 
         await writeLearningState({
           paths,
@@ -174,6 +229,23 @@ export async function runLearningMaintenance(
         index.close();
       }
     } catch {
+      await writeLearningReceipt({
+        paths,
+        receipt: {
+          startedAt: now,
+          mode: options.automatic ? "automatic" : "maintenance",
+          outcome: stage === "ingestion" ? "ingestion-failed" :
+            stage === "publication" || stage === "complete" ? "publication-failed" : "engine-failed",
+          stage,
+          episodeCount,
+          sourceCounts,
+          proposalCount,
+          pendingCount,
+          nextAction: stage === "publication"
+            ? "Run shadowclone skills pending and retry shadowclone skills update."
+            : "Check shadowclone doctor and retry learning.",
+        },
+      });
       await writeLearningState({
         paths,
         state: { ...attempt, status: "failed" },

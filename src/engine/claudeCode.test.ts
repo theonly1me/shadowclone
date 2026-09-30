@@ -2,7 +2,28 @@ import { chmod, lstat, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { expect, test } from "bun:test";
-import { runClaudeCode } from "./claudeCode";
+import { redactedFailure, runClaudeCode } from "./claudeCode";
+import { missingClaudeSandboxTools } from "./claudeIsolation";
+import { parseClaudeStream } from "./parseClaude";
+
+test("Linux Claude learning names missing sandbox commands before a run", () => {
+  expect(missingClaudeSandboxTools({
+    platform: "linux",
+    which: (name) => name === "bwrap" ? "/usr/bin/bwrap" : null,
+  })).toEqual(["socat"]);
+  expect(missingClaudeSandboxTools({ platform: "darwin", which: () => null })).toEqual([]);
+});
+
+test("a long minified provider diagnostic is not printed", () => {
+  const message = redactedFailure({
+    run: parseClaudeStream({ stream: "", fallbackSessionId: "synthetic" }),
+    stderr: "minifiedSource".repeat(400),
+    exitCode: 1,
+  });
+
+  expect(message).toContain("too large to display");
+  expect(message).not.toContain("minifiedSource");
+});
 
 async function withStub(options: {
   readonly stdout: string;

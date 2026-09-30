@@ -60,7 +60,7 @@ test("default setup asks three questions and enables only detected session sourc
   expect(config.sources["git-metadata"]).toBeTrue();
   expect(config.sources["agent-context"]).toBeTrue();
   expect(config.sources["skill-library"]).toBeFalse();
-  expect(config.distillation.deep).toBeFalse();
+  expect(config.distillation.deep).toBeTrue();
   expect(config.distillation.automatic).toBeFalse();
   expect(installs).toEqual(["claude-code", "codex"]);
   expect(output.join("\n")).toContain("~/.claude/projects");

@@ -1,14 +1,16 @@
 # Agent builds
 
-Choose and equip skills like putting together a character's kit in an RPG:
+Choose and equip skills from a constellation built from their categories and purposes:
 
 ```bash
 shadowclone wizard
 ```
 
-![Agent builds showing equipped skills across Craft, Verification, and Autonomy, with a build summary and skill details](../assets/agent-builds.jpg)
+![Agent builds showing grouped skill hubs, a build summary, and skill details](../assets/agent-builds.jpg)
 
 Select a skill to read its instructions and decide whether to equip it. Keep a personal build across agents, tailor a private build to a repository, or choose shared repository standards. **Review your build** shows the files that will change before you apply it. You can return and adjust your build at any time.
+
+The constellation creates four to twelve top-level hubs for a typical library and nests groups larger than ten skills. Drag to pan, scroll or pinch to zoom, use **Fit** or **Reset** to recover the whole map, search to center matching skills, and select a hub to focus it. **Map / list** exposes the same choices in a compact list and becomes the default on narrow screens.
 
 ## Create a skill
 

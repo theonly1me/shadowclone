@@ -42,6 +42,7 @@ export function reconcileDirectLearning(options: {
         key: record.rule.key,
         scope: options.scope.key,
         inputFingerprint: recordFingerprint(record),
+        publishedAt: route.destination === "fact" ? Date.now() : undefined,
         status:
           route.destination === "excluded"
             ? ("excluded" as const)

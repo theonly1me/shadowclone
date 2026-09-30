@@ -16,4 +16,4 @@ This record covers five confirmed defects in repository scope, redaction, and ex
 
 Each regression test must reach the original defect through the affected public path. Use synthetic remote identities and secrets. Exercise process cleanup after a timed-out probe, installation outside a valid repository, and both clean-exit policy settings.
 
-These fixes did not introduce a capture source or broaden action authority. Later [execution and storage remediation](015-remediation-completion.md) tightened the surrounding boundaries.
+These fixes did not introduce a capture source or broaden action authority. Later [execution and storage remediation](021-remediation-completion.md) tightened the surrounding boundaries.

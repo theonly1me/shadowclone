@@ -80,27 +80,32 @@
           <section
             id="constellation"
             class="constellation"
-            aria-label="Skill tree"
+            aria-label="Skill constellation"
           >
+            <div class="constellation-controls" aria-label="Constellation controls">
+              <button id="fit-constellation" class="quiet-button">Fit</button>
+              <button id="reset-constellation" class="quiet-button">Reset</button>
+              <button
+                id="toggle-constellation-view"
+                class="quiet-button"
+                aria-controls="constellation-map constellation-list"
+                aria-pressed="false"
+              >
+                Map / list
+              </button>
+            </div>
             <svg
               id="starfield"
               class="starfield"
-              viewBox="0 0 600 900"
-              preserveAspectRatio="none"
               aria-hidden="true"
             ></svg>
             <svg
-              id="tree-connections"
-              class="tree-connections"
-              aria-hidden="true"
+              id="constellation-map"
+              class="constellation-map"
+              aria-label="Skills grouped into navigable hubs"
             ></svg>
-            <div id="tree" class="tree"></div>
-            <div class="tree-root" aria-hidden="true">
-              <span id="tree-origin"
-                ><img src="./assets/shadowclone-mark.svg" alt=""
-              /></span>
-            </div>
-            <p class="tree-hint">Select a star to inspect its skill.</p>
+            <div id="constellation-list" class="constellation-list"></div>
+            <p class="tree-hint">Select a star to inspect its skill. Drag to pan and scroll to zoom.</p>
           </section>
 
           <aside class="build-panel" aria-label="Your character build">

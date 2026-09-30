@@ -21,6 +21,7 @@ export async function updateLearningScope(options: {
   readonly scope: LearningScope;
   readonly maintenance: MaintenanceState;
   readonly filePath: string;
+  readonly learningKeys?: readonly string[];
   readonly summary: {
     invalid: number;
     duplicates: number;
@@ -60,6 +61,7 @@ export async function updateLearningScope(options: {
           ))) &&
       record.rule.proposal === null &&
       record.rule.source !== "imported" &&
+      (options.learningKeys === undefined || options.learningKeys.includes(record.rule.key)) &&
       belongsToScope({ record, scope }) &&
       !state.dispositions.some(
         (entry) =>

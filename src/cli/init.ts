@@ -18,10 +18,14 @@ import {
 } from "./initDetection";
 import { createSetupEngine, runSetupLearning } from "./initLearning";
 import { installNativeCommand } from "./native";
+import { readEnvironment } from "../environment/store";
+import { pendingLearningRecords } from "../environment/pending";
+import { maintainSkills } from "../learning/maintenance";
 import {
   detectOnboardingPresence,
   type OnboardingPresence,
 } from "./onboardingPresence";
+import type { InitializeConsent } from "./initOptions";
 
 export type { ConsentPrompt } from "./initAdvanced";
 
@@ -46,6 +50,7 @@ export type InitializeOptions = InitializeAdvancedOptions & {
   readonly runner?: EngineRunner;
   readonly engine?: EngineId;
   readonly now?: number;
+  readonly consent?: InitializeConsent;
 };
 
 export async function initialize(
@@ -88,15 +93,21 @@ export async function initialize(
     writeLine,
   });
 
-  const learn = await ask("Learn how you work from these sessions? [Y/n]");
+  const learn =
+    options.consent?.learn ??
+    (await ask("Learn how you work from these sessions? [Y/n]"));
   const skillPrompt =
     agents.length > 0
       ? `Keep your skills in sync and automatically maintain them across ${detectedAgentNames(agents)}? [Y/n]`
       : "Keep your skills in sync and automatically maintain them across your agents? [Y/n]";
-  const skills = await ask(skillPrompt);
-  const background = await ask(
-    "Keep improving in the background as you work? [Y/n]",
-  );
+  const skills = options.consent?.skills ?? (await ask(skillPrompt));
+  const background =
+    options.consent?.background ??
+    (await ask("Keep improving in the background as you work? [Y/n]"));
+
+  if (background && !learn) {
+    throw new Error("Background learning requires session learning");
+  }
 
   const config = initialConfiguration({ learn, skills, background, presence });
 
@@ -116,7 +127,7 @@ export async function initialize(
   const skillsSynced = environment.skillsSynced;
 
   const deepAllowed =
-    background && policy.enabled && policy.distillation === "allowed";
+    learn && policy.enabled && policy.distillation === "allowed";
   const setupEngine = deepAllowed
     ? await createSetupEngine({
         policy,
@@ -129,12 +140,14 @@ export async function initialize(
     try {
       rulesLearned += await runSetupLearning({
         paths,
+        configPath,
         config: applyManagedPolicy({ config, policy }),
         policy,
         setupEngine,
         now: options.now ?? Date.now(),
         readRemote: options.readRemote,
         writeLine,
+        ...(options.consent === undefined ? { confirmHistoricalRepository: ask } : {}),
       });
     } catch (error) {
       if (!(error instanceof Error)) {
@@ -143,14 +156,16 @@ export async function initialize(
 
       if (error.message === "Learning deadline reached") {
         writeLine(
-          "Learning reached its time budget; background learning will continue.",
+          background ? "Learning reached its time budget; background learning will continue."
+            : "Learning reached its time budget. Run shadowclone learn --deep to continue.",
         );
       } else if (
         error.message === "Learning call limit reached" ||
         error.message === "Learning cost limit reached"
       ) {
         writeLine(
-          "Learning reached its setup budget; background learning will continue.",
+          background ? "Learning reached its setup budget; background learning will continue."
+            : "Learning reached its setup budget. Run shadowclone learn --deep to continue.",
         );
       } else {
         throw error;
@@ -162,6 +177,19 @@ export async function initialize(
     );
   }
 
+  if (skills && setupEngine && rulesLearned > environment.rulesLearned) {
+    const publication = await maintainSkills({
+      paths,
+      execution: setupEngine.execution,
+      managedConfigPath: options.managedConfigPath,
+      readRemote: options.readRemote,
+    });
+
+    if (publication.pending + publication.deferred + publication.conflicts > 0) {
+      writeLine(`${publication.pending + publication.deferred + publication.conflicts} learned guidance item(s) still need scope or publication review.`);
+    }
+  }
+
   if (agents.length > 0) {
     await (options.install ?? installNativeCommand)({
       agents,
@@ -171,10 +199,12 @@ export async function initialize(
     });
   }
 
-  writeLine(
-    `${skillsSynced} skills synced; ${rulesLearned} rules learned; ${agents.length} agents installed.`,
-  );
-  writeLine(
-    "Your next agent session will use its native instructions and learned skills.",
-  );
+  const state = await readEnvironment(paths);
+  const active = new Set(state?.dispositions.filter((entry) =>
+    entry.status === "published" || entry.status === "covered"
+  ).map((entry) => entry.key) ?? []);
+  const pending = state === null ? 0 : pendingLearningRecords({ paths, state }).length;
+
+  writeLine(`${skillsSynced} skills synced; ${rulesLearned} rules learned; ${active.size} active; ${pending} awaiting scope or publication; ${agents.length} agents installed.`);
+  writeLine("Start a new agent session to load active guidance. Review pending items with shadowclone learning pending.");
 }

@@ -6,6 +6,7 @@ import { acquireLocalLock } from "../localFiles/lock";
 import path from "node:path";
 import { recordFingerprint } from "./records";
 import { belongsToScope, learningScopes } from "./scope";
+import { readEffectiveConfig } from "../config";
 
 export async function setAutomaticMaintenance(options: {
   readonly paths: ProjectPaths;
@@ -65,6 +66,13 @@ export async function reviewLearning(options: {
 
     if (!state || !record) {
       throw new Error("Learning record was not found");
+    }
+    if (options.action === "retry") {
+      const { config } = await readEffectiveConfig({
+        configPath: options.paths.configFile, managedConfigPath: options.paths.managedConfigFile,
+      });
+      const disabled = record.captureSources?.filter((source) => !config.sources[source]) ?? [];
+      if (disabled.length > 0) throw new Error(`Learned rule uses disabled sources: ${disabled.join(", ")}`);
     }
 
     if (options.action === "exclude" && !options.reason?.trim()) {

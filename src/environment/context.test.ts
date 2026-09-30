@@ -1,4 +1,6 @@
 import { expect, test } from "bun:test";
+import { learningRecord } from "./fixtures";
+import { recordFingerprint } from "./records";
 import { emptyEnvironment } from "./types";
 import { renderSkillRouting } from "./context";
 
@@ -19,12 +21,22 @@ const baseline = {
   learningKeys: ["style"],
 };
 
-test("startup routes to skills without inlining learned behavior or other repository facts", () => {
+test("startup includes short published rules without personal skill paths", () => {
+  const record = learningRecord({ body: "Reject duplicate colors before export." });
   const text = renderSkillRouting({
     scopes: [globalScope],
     state: {
       ...emptyEnvironment,
       artifacts: [baseline],
+      records: [record],
+      dispositions: [{
+        scope: "global",
+        key: record.rule.key,
+        inputFingerprint: recordFingerprint(record),
+        status: "published",
+        reason: "Published",
+        destinations: [baseline.filePath],
+      }],
       facts: [
         {
           scope: "another-repository",
@@ -35,8 +47,8 @@ test("startup routes to skills without inlining learned behavior or other reposi
     },
   });
 
-  expect(text).toContain("Before every task");
-  expect(text).toContain(baseline.filePath);
+  expect(text).toContain("Reject duplicate colors before export.");
+  expect(text).not.toContain(baseline.filePath);
   expect(text).not.toContain("Restricted repository detail");
   expect(text).not.toContain("profile");
 });

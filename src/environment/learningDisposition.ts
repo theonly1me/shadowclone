@@ -56,6 +56,7 @@ export function coveredLearningState(options: {
         scope: options.scope.key,
         inputFingerprint: recordFingerprint(record),
         status: "covered" as const,
+        publishedAt: Date.now(),
         reason:
           "The complete learning is already present in the existing skill",
         destinations: [options.target],

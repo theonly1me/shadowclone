@@ -2,12 +2,14 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultManagedPolicy } from "../config";
+import { defaultConfig, defaultManagedPolicy, writeConfig } from "../config";
 import type { EngineRunOptions, EngineRunner } from "../engine";
 import type { IndexedEvent } from "../index";
 import { createProjectPaths } from "../paths";
 import type { CorrectionSignal, OriginScope } from "../signal";
 import { runDeepLearning } from "./deepLearn";
+import { readPendingLearning } from "../learning/pending";
+import { decidePendingLearning } from "../learning/review";
 
 const origin: OriginScope = {
   id: "github.com/acme",
@@ -20,6 +22,14 @@ async function fixture() {
     path.join(os.tmpdir(), "shadowclone-deep-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  await writeConfig({
+    configPath: paths.configFile,
+    config: {
+      ...defaultConfig,
+      sources: { ...defaultConfig.sources, "claude-code": true },
+      distillation: { deep: true, automatic: false },
+    },
+  });
   const sourcePath = path.join(paths.claudeProjectsDirectory, "evidence.txt");
   const text = "The user asked for a smaller change.";
 
@@ -172,6 +182,10 @@ test("default review can decline while apply skips confirmation", async () => {
 
   expect(confirmations).toBe(1);
   expect(declined.profileUpdated).toBeFalse();
+  expect(declined.pendingReview).toBe(1);
+  const pending = await readPendingLearning(paths);
+  expect(pending.rules).toHaveLength(1);
+  expect(pending.rules[0]?.body).toBe("Choose the smallest change that satisfies the request.");
   expect(
     await Bun.file(path.join(paths.profileDirectory, "org")).exists(),
   ).toBeFalse();
@@ -185,6 +199,7 @@ test("default review can decline while apply skips confirmation", async () => {
   });
 
   expect(applied.profileUpdated).toBeTrue();
+  expect((await readPendingLearning(paths)).rules).toHaveLength(0);
   expect(
     await Bun.file(
       path.join(
@@ -195,4 +210,54 @@ test("default review can decline while apply skips confirmation", async () => {
       ),
     ).exists(),
   ).toBeTrue();
+});
+
+test("a reviewed pending rule can be applied or rejected without learning again", async () => {
+  const { paths, signal, event } = await fixture();
+  const common = {
+    signals: [signal],
+    events: [event],
+    paths,
+    policy: defaultManagedPolicy,
+    runner: runner(() => {}),
+    engine: "claude-code" as const,
+    dryRun: false,
+    apply: false,
+    confirm: () => false,
+    writeLine: () => {},
+  };
+
+  await runDeepLearning(common);
+  const key = (await readPendingLearning(paths)).rules[0]?.key ?? "";
+  await decidePendingLearning({ paths, key, action: "apply" });
+
+  expect((await readPendingLearning(paths)).rules).toHaveLength(0);
+  expect((await Bun.file(path.join(paths.profileDirectory, "org", origin.directoryName, "workflow.md")).text()))
+    .toContain("Choose the smallest change that satisfies the request.");
+
+  await runDeepLearning(common);
+  await decidePendingLearning({ paths, key, action: "reject" });
+  const rejected = await readPendingLearning(paths);
+  expect(rejected.rules).toHaveLength(0);
+  expect(rejected.rejectedKeys).toContain(key);
+
+  const later = await runDeepLearning(common);
+  expect(later.pendingReview).toBe(0);
+  expect((await readPendingLearning(paths)).rules).toHaveLength(0);
+});
+
+test("a rejection during learning confirmation prevents the rule from being recorded", async () => {
+  const { paths, signal, event } = await fixture();
+  const options = { paths, signals: [signal], events: [event], policy: defaultManagedPolicy,
+    runner: runner(() => {}), engine: "claude-code" as const, dryRun: false, apply: false, writeLine: () => {} };
+  await runDeepLearning({ ...options, confirm: () => false });
+  const key = (await readPendingLearning(paths)).rules[0]?.key;
+  if (!key) throw new Error("Expected a pending rule");
+  const result = await runDeepLearning({ ...options, confirm: async () => {
+    await decidePendingLearning({ paths, key, action: "reject" });
+    return true;
+  } });
+  expect(result.profileUpdated).toBeFalse();
+  expect((await readPendingLearning(paths)).rejectedKeys).toContain(key);
+  expect(await Bun.file(path.join(paths.profileDirectory, "org", origin.directoryName, "workflow.md")).exists()).toBeFalse();
 });

@@ -144,7 +144,7 @@ test("mines correction markers and renders a text-free mirror", async () => {
   expect(output).toContain("No network calls were made.");
   expect(output).toContain("while using Edit");
   expect(output).toContain("reconciliation batch");
-  expect(output).toContain("Profile unchanged.");
+  expect(output).toContain("Run shadowclone learn --deep");
   expect(output).not.toContain("Profile written");
   expect(output).not.toContain("/one");
 });

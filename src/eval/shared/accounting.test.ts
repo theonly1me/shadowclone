@@ -53,7 +53,7 @@ test("unknown interrupted spend and changed resume limits cannot reset the budge
   }
 });
 
-test("subscription engines retain their attempted-call ceiling across resume", async () => {
+test("engines without reported costs retain their attempted-call ceiling across resume", async () => {
   const directory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-call-limit-"),
   );

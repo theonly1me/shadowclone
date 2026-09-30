@@ -4,6 +4,7 @@ import { redactSecrets } from "../redact";
 import { parseSkillDocument } from "../skillMaintenance/document";
 import type { EnvironmentArtifact } from "../environment/types";
 import type { BuildDefinition, BuildItem } from "./types";
+import { skillClassification } from "./classification";
 
 export async function installedBuildItem(options: {
   readonly build: BuildDefinition;
@@ -44,6 +45,7 @@ export async function installedBuildItem(options: {
   const { artifact, text } = current;
   const id = current.artifact.buildEntryId;
   const { metadata, body } = parseSkillDocument(text);
+  const classification = skillClassification(text);
   const directory = path.dirname(path.dirname(artifact.filePath));
 
   return {
@@ -53,8 +55,9 @@ export async function installedBuildItem(options: {
     description: metadata.description,
     text,
     kind: "skill",
-    branch: options.original?.branch ?? "craft",
-    axis: options.original?.axis ?? null,
+    category: options.original?.category ?? classification.category,
+    section: options.original?.section ?? classification.section,
+    axis: options.original?.axis ?? classification.axis,
     owner: "managed",
     source: {
       id,

@@ -1,4 +1,5 @@
 import { parseRecord } from "./codexRecord";
+import { existsSync } from "node:fs";
 import { readJsonLines } from "../cursor";
 import type { FileCursor, ObservationBatch } from "../types";
 import { getCodexContext } from "./codexContext";
@@ -59,6 +60,10 @@ export async function observeCodexFile(options: {
 export async function discoverCodexFiles(
   sessionsDirectory: string,
 ): Promise<readonly string[]> {
+  if (!existsSync(sessionsDirectory)) {
+    return [];
+  }
+
   const files: string[] = [];
 
   for await (const sourcePath of new Bun.Glob("**/rollout-*.jsonl").scan({

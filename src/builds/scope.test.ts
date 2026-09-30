@@ -46,7 +46,7 @@ test("private builds inherit custom skills and leave the repository untouched", 
     repositoryName: null,
   });
 
-  expect(compilation?.markdown).toContain("measure-first/SKILL.md");
+  expect(compilation?.markdown).toContain("Use the measure-first skill when relevant.");
   expect(compilation?.markdown).not.toContain("testing-first/SKILL.md");
   expect(
     await Bun.file(path.join(context.cwd, "AGENTS.md")).exists(),
@@ -64,7 +64,7 @@ test("shared builds use relative routing and reject contradictory personal choic
 
   const native = await Bun.file(path.join(context.cwd, "AGENTS.md")).text();
 
-  expect(native).toContain(".agents/skills/testing-first/SKILL.md");
+  expect(native).toContain("Use the testing-first skill when relevant.");
   expect(native).not.toContain(
     path.dirname(context.paths.shadowcloneDirectory),
   );

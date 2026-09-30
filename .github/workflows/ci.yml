@@ -39,7 +39,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y bubblewrap
+          sudo apt-get install -y bubblewrap socat
           if ! bwrap --ro-bind / / --unshare-pid --unshare-ipc -- /usr/bin/true; then
             sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
             bwrap --ro-bind / / --unshare-pid --unshare-ipc -- /usr/bin/true

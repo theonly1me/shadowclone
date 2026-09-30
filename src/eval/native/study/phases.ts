@@ -14,7 +14,7 @@ import { matrixReceiptSchema, runMatrix, type MatrixEntry, type MatrixReceipt } 
 import { keyFileSchema } from "./phase";
 import { preparationLayout, preparationSchema } from "./prepare";
 import { studyReport } from "./report";
-import { achievableReport } from "./views";
+import { achievableReport, rescoreStudyReceipt } from "./views";
 import { studyArms, studyEngines, studySuiteSchema, taskSchema, type PersonalArm, type StudySuite } from "./schema";
 import { calibrateJudges, controlDecisions, controlEntries, freezeValidatedSuite, validateFixtures } from "./validate";
 
@@ -127,7 +127,7 @@ export async function reportStudy(options: {
     coverage[arm] = z.array(z.strictObject({ keyItem: z.string(), status: z.enum(["covered", "absent", "contradicted", "unknown"]),
       file: z.string().nullable(), route: z.enum(["always-read", "description-routed", "not-invocable", "none"]), quote: z.string().nullable() })).parse(coverageJson.coverage[arm] ?? []);
   }
-  const report = studyReport({ suite, receipt, coverage });
+  const report = studyReport({ suite, receipt: rescoreStudyReceipt({ suite, receipt }), coverage });
   const candidates = options.candidateSuiteFile ? studySuiteSchema.parse(await readJson(options.candidateSuiteFile)) : null;
   const combined = candidates ? { ...report, achievable: achievableReport({ candidates, frozen: suite, receipt, coverage }) } : report;
   await ownedWrite({ path: path.join(options.outputDirectory, "report.json"), content: JSON.stringify(combined, null, 2) });

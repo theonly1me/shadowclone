@@ -6,6 +6,7 @@ import { compileContext, sessionStartProjection } from "./compile";
 import { readIntegrations, saveIntegration } from "./state";
 import type { Integration, IntegrationOptions } from "./types";
 import { bindNativeSessionOrigin, nativeBindingTimestamp } from "./bindings";
+import { readEnvironment } from "../environment/store";
 
 const inputSchema = z
   .object({
@@ -85,11 +86,15 @@ export async function nativeSessionStart(
     return {};
   }
 
+  const environment = await readEnvironment(paths);
+  const scopedDelivery = environment?.phase === "active" &&
+    (integration.agent === "claude-code" || integration.agent === "codex");
   const profile = await compileContext({
     ...options,
     paths,
     cwd,
     audience: input.hook_event_name === "SubagentStart" ? "subagent" : "main",
+    ...(scopedDelivery ? { scope: integration.scope === "global" ? "scoped" as const : "global" as const } : {}),
     ...sessionStartProjection,
   });
 
@@ -108,6 +113,10 @@ export async function nativeSessionStart(
       cwd,
       timestamp: nativeBindingTimestamp(input.timestamp),
     });
+  }
+
+  if (scopedDelivery && integration.scope === "repository") {
+    return {};
   }
 
   if (profile.length === 0) {

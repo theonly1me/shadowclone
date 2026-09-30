@@ -7,22 +7,32 @@ Shadowclone turns durable guidance from consented sessions into skills used by e
 ```mermaid
 flowchart LR
     Sessions[Consented sessions] --> Index[Event and pointer index]
-    Index --> Redaction[Eligible redacted excerpts]
+    Index --> Consent[Current source authorization]
+    Consent --> Redaction[Eligible redacted excerpts]
     Memory[Consented memory] --> Redaction
     Redaction --> Learning[Reconcile durable guidance]
-    Learning --> Records[Scoped evidence records]
+    Learning --> Decision[Apply, pending review, or reject]
+    Decision --> Records[Scoped evidence records]
+    Decision --> Pending[Changes needing review]
+    Learning --> Receipt[Private attempt receipt]
+    Learning --> Feedback[Later correction review signal]
     Records --> Planner[Plan skill changes]
     Library[Consented skill library] --> SkillText[Redacted skill documents]
     SkillText --> Planner
     SkillText --> Review[Review overlapping workflows]
     Review --> Pending
-    Planner --> Pending[Changes needing review]
+    Planner --> Pending
     Planner --> Publish[Reversible publication]
     Build[Reviewed terminal or browser choices] --> Publish
     Publish --> Skills[Baseline and workflow skills]
-    Publish --> Routing[Native instructions]
+    Publish --> Routing[Short native rules and skill routing]
+    Routing --> Claude[Claude Code and Codex native files]
+    Routing --> ScopedHook[Repository scoped session context]
     Skills --> Agents[Coding agents]
-    Routing --> Agents
+    Claude --> Agents
+    Claude --> Probe[Reviewed frozen guidance probe]
+    Probe --> ProbeReceipt[Private response assertion receipt]
+    ScopedHook --> Agents
     Agents --> Sessions
     Skills --> Eval[Preference study]
     Original[Original library and instructions] --> Eval
@@ -52,7 +62,7 @@ flowchart LR
 | `src/eval/`, `src/changes/` | Run the preference study and retain reversible file revisions |
 | `src/profile/` | Legacy profile compatibility and the reconciliation boundary |
 
-The CLI coordinates these components. All model execution goes through the engine boundary. Source reads require consent; automatic skill writes require separate authorization. Reviewed build edits use the same publication and revision machinery as learning.
+The learning service coordinates model execution, reconciliation, pending decisions, and persistence for both CLI and background paths. Its maintenance service selects the active environment or legacy fallback; the skill-maintenance package supplies library primitives and retains a compatibility entry point. The CLI owns prompts and presentation. Source authorization is checked at selection and again when a reference is resolved. Automatic skill writes require separate authorization. Reviewed build edits use the same publication and revision machinery as learning. Later corrections create review signals. An explicitly authorized probe sends redacted installed guidance into an isolated native session; its exact-response assertion does not establish hook delivery or future compliance.
 
 ## Read by topic
 

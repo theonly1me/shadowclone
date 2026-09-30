@@ -2,7 +2,7 @@
 
 ## Development setup
 
-Install [Bun](https://bun.sh), then run:
+Install [Bun](https://bun.sh) 1.4.2, as declared in `package.json`, then run:
 
 ```bash
 bun install
@@ -10,6 +10,8 @@ bun run check
 ```
 
 Use `bun run cli` to run Shadowclone from the checkout. Commands that call a model need an installed, authenticated `claude`, `codex`, or `cursor-agent` CLI. Ordinary tests use synthetic fixtures and do not need an account.
+
+On Linux, install `bubblewrap` and `socat` before running the tests so Claude's sandbox prerequisite checks can pass.
 
 `bun run cli init` changes your local setup. Use isolated test paths when exercising installation, learning, or removal code.
 
@@ -28,7 +30,7 @@ This runs typecheck, lint, and tests. CI also runs the tests on Linux and macOS.
 ## Code conventions
 
 - Use complete names and an options object for functions with two or more arguments.
-- Keep TypeScript files under 200 lines, including tests.
+- Keep TypeScript files at most 300 lines, including tests.
 - Avoid `any`, non-null assertions, type assertions other than `as const`, and unhandled or voided promises.
 - Write code without comments. Express intent in names, types, functions, and tests. Leave unrelated existing comments alone.
 - Fix lint findings without suppressing rules.

@@ -2,10 +2,23 @@ import { listRevisions, showRevision, undoRevision } from "../changes";
 import { readConfig, readEffectiveConfig, writeConfig } from "../config";
 import { refreshIntegrations } from "../integrations";
 import { readLearningState, runAutomaticLearning } from "../learning";
+import { readPendingLearning } from "../learning/pending";
+import { decidePendingLearning } from "../learning/review";
+import { readLatestLearningReceipt } from "../learning/receipt";
 import { projectPaths } from "../paths";
 import { rememberPreference } from "../preferences";
 import { readHarnessRoots } from "../harness/state";
 import { skillRevisionRoots } from "../skillMaintenance";
+import { handleHistoricalRepositories } from "./learningRepositories";
+import { learningCatalog, showLearning } from "../learning/catalog";
+import { reviewLearning } from "../environment/controls";
+import { publishReviewedLearning } from "../learning/publication";
+import { handleLearningReview } from "./learningReview";
+import { handleLearningProbe } from "./learningProbe";
+import { readLatestProbe } from "../learning/probe";
+import { acknowledgeCorrections, correctionReviewSignals } from "../learning/feedback";
+import { listSkillProposals } from "../skillMaintenance";
+import { handleSkillMaintenance } from "./skillMaintenance";
 
 export async function handlePreferenceCommand(options: {
   readonly command: string | undefined;
@@ -79,11 +92,76 @@ export async function handlePreferenceCommand(options: {
     return false;
   }
 
+  if (await handleLearningReview(options.arguments)) return true;
+  if (await handleLearningProbe(options.arguments)) return true;
+  if (action === "acknowledge" && rest.length === 1) {
+    await acknowledgeCorrections({ paths: projectPaths, key: rest[0] ?? "" });
+    console.log("Marked the recorded corrections reviewed; guidance is unchanged.");
+    return true;
+  }
+  if (["show", "apply", "reject"].includes(action ?? "") && rest.length === 1 &&
+    (await listSkillProposals(projectPaths)).some((proposal) => proposal.id === rest[0])) {
+    return handleSkillMaintenance(options.arguments);
+  }
+
+  if ((action === "pending" || action === "list") && rest.length === 0) {
+    console.log(JSON.stringify(await learningCatalog({
+      paths: projectPaths,
+      pendingOnly: action === "pending",
+    }), null, 2));
+
+    return true;
+  }
+
+  if (action === "repositories" && rest.length === 0) {
+    await handleHistoricalRepositories({ action });
+
+    return true;
+  }
+
+  if (action === "bind" && rest.length === 1) {
+    await handleHistoricalRepositories({ action, id: rest[0] });
+
+    return true;
+  }
+
+  if (action === "show" && rest.length === 1) {
+    console.log(JSON.stringify(await showLearning({
+      paths: projectPaths, key: rest[0] ?? "",
+    }), null, 2));
+
+    return true;
+  }
+
+  if ((action === "apply" || action === "reject") && rest.length === 1) {
+    const key = rest[0] ?? "";
+    const pending = await readPendingLearning(projectPaths);
+    if (pending.rules.some((rule) => rule.key === key)) {
+      await decidePendingLearning({ paths: projectPaths, key, action });
+    } else {
+      await reviewLearning({
+        paths: projectPaths, key,
+        action: action === "apply" ? "retry" : "exclude",
+        reason: action === "reject" ? "Explicitly rejected in learning review" : undefined,
+      });
+      if (action === "apply") {
+        await publishReviewedLearning({ paths: projectPaths, keys: [key] });
+      } else {
+        await refreshIntegrations();
+      }
+    }
+    console.log(action === "apply"
+      ? "Learned rule approved. Check learning status for delivery."
+      : "Learned rule rejected; the same proposal will not return.");
+
+    return true;
+  }
+
   if (
     rest.length !== 0 ||
     !["enable", "disable", "status"].includes(action ?? "status")
   ) {
-    throw new Error("Use learning enable|disable|status");
+    throw new Error("Use learning enable|disable|status|list|pending|show <key>|apply <key>|reject <key>|repositories|bind <id>|retire|replace|narrow|remove-source");
   }
 
   const { config: effective, policy } = await readEffectiveConfig();
@@ -122,6 +200,10 @@ export async function handlePreferenceCommand(options: {
           status: state.status,
           lastAttemptAt: state.lastAttemptAt,
           lastCompletedAt: state.lastCompletedAt,
+          pendingReview: (await readPendingLearning(projectPaths)).rules.length,
+          latestAttempt: await readLatestLearningReceipt(projectPaths),
+          latestProbe: await readLatestProbe(projectPaths),
+          laterCorrections: await correctionReviewSignals(projectPaths),
         },
         null,
         2,

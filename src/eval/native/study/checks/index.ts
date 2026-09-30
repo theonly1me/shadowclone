@@ -40,8 +40,19 @@ function outcome(options: { check: StudyCheck; record: RunRecord; task: StudyTas
 
 export function deterministicChecks(options: { record: RunRecord; task: StudyTask }): StudyCheckResult[] {
   return options.task.checks.map((check) => {
-    if (options.record.status !== "complete" && check.kind !== "judged") {
-      return { id: check.id, keyItem: check.keyItem, verdict: "unknown", evidence: "Candidate did not complete every turn." };
+    if (options.record.status !== "complete") {
+      const turn = "turn" in check ? options.record.turns[check.turn] :
+        "afterTurn" in check ? options.record.turns[check.afterTurn] : null;
+      const observed = check.kind === "judged" ? false :
+        turn !== null ? turn !== undefined && !turn.timedOut :
+          check.kind === "no-git-writes" ? check.untilTurn !== undefined &&
+            options.record.turns.length > check.untilTurn :
+            check.kind === "pull-request" ? options.record.toolCalls.length > 0 :
+              options.record.turns.length > 0 && options.record.files.length > 0;
+
+      if (!observed) {
+        return { id: check.id, keyItem: check.keyItem, verdict: "unknown", evidence: "The required agent action was not observed." };
+      }
     }
     const result = outcome({ check, record: options.record, task: options.task });
     return { id: check.id, keyItem: check.keyItem, verdict: result.verdict, evidence: result.evidence.slice(0, 2000) };

@@ -73,7 +73,7 @@ test("repository hook injects guidance if its native instruction file disappeare
     scope: "repository",
   });
 
-  await Bun.file(path.join(fixture.cwd, "AGENTS.md")).delete();
+  await Bun.file(path.join(fixture.cwd, "AGENTS.override.md")).delete();
 
   const output = await nativeSessionStart({
     ...fixture,

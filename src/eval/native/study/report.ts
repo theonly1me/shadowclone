@@ -4,7 +4,7 @@ import type { RunArmName, RunRecord } from "./record";
 import { studyArms, type KeyGroup, type PersonalArm, type StudyArm, type StudySuite } from "./schema";
 import { taskResults } from "./taskResults";
 
-type Observation = { readonly taskId: string; readonly keyItem: string; readonly passed: boolean; readonly skillRead: boolean | null };
+type Observation = { readonly taskId: string; readonly sessionId: string; readonly keyItem: string; readonly passed: boolean; readonly skillRead: boolean | null };
 type Filter = (observation: Observation) => boolean;
 
 export function randomSource(seed: number): () => number {
@@ -30,10 +30,10 @@ export function observations(options: {
   return options.suite.tasks.flatMap((task) => options.runs.filter((run) => run.arm === options.arm && run.taskId === task.id)
     .flatMap((run) => task.checks.flatMap((check) => {
       const verdict = run.checks.find((entry) => entry.id === check.id)?.verdict ?? "unknown";
-      if (verdict === "not-applicable") return [];
+      if (verdict !== "pass" && verdict !== "fail") return [];
       const skill = coveringSkill(coverage.find((entry) => entry.keyItem === check.keyItem));
       const read = skill === null ? null : run.turns.some((turn) => turn.skillReads.includes(skill));
-      return [{ taskId: task.id, keyItem: check.keyItem, passed: verdict === "pass", skillRead: read }];
+      return [{ taskId: task.id, sessionId: `${run.arm}:${run.taskId}:${run.repeat}`, keyItem: check.keyItem, passed: verdict === "pass", skillRead: read }];
     })));
 }
 
@@ -58,8 +58,16 @@ function pick<Value>(values: readonly Value[], random: () => number): Value[] {
 }
 
 function sampledRate(options: { entries: readonly Observation[]; tasks: readonly string[]; random: () => number }): number | null {
-  const observations = options.tasks.flatMap((taskId, index) =>
-    pick(options.entries.filter((entry) => entry.taskId === taskId), options.random).map((entry) => ({ ...entry, taskId: `${taskId}#${index}` })));
+  const observations = options.tasks.flatMap((taskId, index) => {
+    const sessions = Map.groupBy(
+      options.entries.filter((entry) => entry.taskId === taskId),
+      (entry) => entry.sessionId,
+    );
+
+    return pick([...sessions.values()], options.random).flatMap((session) =>
+      session.map((entry) => ({ ...entry, taskId: `${taskId}#${index}` })),
+    );
+  });
   return taskWeightedRate({ observations, tasks: options.tasks.map((taskId, index) => `${taskId}#${index}`) });
 }
 
@@ -100,9 +108,10 @@ export function studyReport(options: {
   suite: StudySuite; receipt: MatrixReceipt; coverage: Partial<Record<PersonalArm, readonly CoverageEntry[]>>;
 }) {
   const tasks = options.suite.tasks.map((task) => task.id);
+  const runsInView = options.receipt.runs.filter((run) => tasks.includes(run.taskId));
   const group = (keyItem: string) => options.suite.keyItems.find((item) => item.id === keyItem)?.group;
   const byArm = (arm: StudyArm, filter: Filter = () => true) =>
-    observations({ suite: options.suite, runs: options.receipt.runs, arm, coverage: options.coverage }).filter(filter);
+    observations({ suite: options.suite, runs: runsInView, arm, coverage: options.coverage }).filter(filter);
   const withoutResolved: Filter = (entry) => group(entry.keyItem) !== "resolved";
   const covered = (arm: StudyArm): Filter => (entry) => arm !== "bare" &&
     (options.coverage[arm]?.some((item) => item.keyItem === entry.keyItem && item.status === "covered") ?? false);
@@ -113,10 +122,14 @@ export function studyReport(options: {
   const groups: KeyGroup[] = ["personal", "wizard", "learned", "resolved"];
 
   return {
-    protocol: "preference-study-v1", status: options.receipt.status, failure: options.receipt.failure,
-    recordedRuns: options.receipt.runs.length,
+    protocol: "preference-study-v1", scorerVersion: "session-bootstrap-2", status: options.receipt.status, failure: options.receipt.failure,
+    recordedRuns: runsInView.length,
+    productRevisions: Object.fromEntries(studyArms.map((arm) => [arm,
+      [...new Set(runsInView.filter((run) => run.arm === arm)
+        .map((run) => run.productCommit ?? "unknown"))].sort(),
+    ])),
     arms: studyArms.map((arm) => {
-      const runs = options.receipt.runs.filter((run) => run.arm === arm);
+      const runs = runsInView.filter((run) => run.arm === arm);
       const all = byArm(arm);
       const read = all.filter((entry) => entry.skillRead === true);
       const unread = all.filter((entry) => entry.skillRead === false);
@@ -139,7 +152,7 @@ export function studyReport(options: {
       deepOverOriginalWithoutResolved: compare("deep", "original", withoutResolved),
       deepOverFirstTimeWithoutResolved: compare("deep", "first-time", withoutResolved),
     },
-    counts: taskResults({ suite: options.suite, runs: options.receipt.runs }),
+    counts: taskResults({ suite: options.suite, runs: runsInView }),
     droppedChecks: options.suite.droppedChecks,
   };
 }

@@ -3,7 +3,7 @@
   "version": "0.0.12",
   "module": "src/cli/index.ts",
   "type": "module",
-  "packageManager": "bun@1.3.3",
+  "packageManager": "bun@1.4.2",
   "bin": {
     "shadowclone": "bin/shadowclone.mjs"
   },
@@ -21,6 +21,9 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
     "@types/bun": "latest",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/d3-selection": "^3.0.12",
+    "@types/d3-zoom": "^3.0.9",
     "typescript": "~5.9"
   },
   "description": "Turns how you work into a portable, tested environment for the coding agents you already use.",
@@ -46,14 +49,19 @@
     "dist",
     "preferences",
     "skills",
+    "plugins",
     ".claude-plugin",
     "README.md",
+    "PRIVACY.md",
     "evals.md",
     "LICENSE"
   ],
   "dependencies": {
     "bun": "^1.4.2",
     "commander": "^15.0.0",
+    "d3-hierarchy": "^3.1.2",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "^3.0.0",
     "smol-toml": "^1.8.0",
     "zod": "^4.5.4"
   }

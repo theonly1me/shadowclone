@@ -19,6 +19,7 @@ import {
 } from "./store";
 import { redactSecrets } from "../redact";
 import { learningRuleSchema, type LearningRecord } from "./types";
+import type { SourceId } from "../config";
 
 export function recordFingerprint(record: LearningRecord): string {
   return fingerprint(JSON.stringify({
@@ -60,6 +61,10 @@ export async function storeLearningRules(options: {
   readonly paths: ProjectPaths;
   readonly rules: readonly ProfileRule[];
   readonly retired?: readonly ProfileRuleReference[];
+  readonly provenance?: Readonly<Record<string, {
+    readonly sources: readonly SourceId[];
+    readonly complete: boolean;
+  }>>;
 }): Promise<ProfileWriteResult | null> {
   if ((await readEnvironment(options.paths)) === null) {
     return null;
@@ -102,12 +107,20 @@ export async function storeLearningRules(options: {
       }
 
       const previous = records.get(rule.key);
+      const provenance = options.provenance?.[rule.key];
 
       records.set(rule.key, {
         kind: previous?.kind ?? "guidance",
         sourceHash: previous?.sourceHash ?? null,
         sourceLocator: previous?.sourceLocator ?? null,
         rule: learningRuleSchema.parse(rule),
+        ...(provenance ? {
+          captureSources: [...provenance.sources],
+          provenanceComplete: provenance.complete,
+        } : {
+          captureSources: previous?.captureSources,
+          provenanceComplete: previous?.provenanceComplete,
+        }),
       });
     }
 

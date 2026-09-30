@@ -47,7 +47,8 @@ export type BuildItem = {
   readonly description: string;
   readonly text: string;
   readonly kind: "preference" | "skill";
-  readonly branch: "craft" | "verification" | "autonomy";
+  readonly category: string | null;
+  readonly section: string | null;
   readonly axis: string | null;
   readonly owner: "packaged" | "managed" | "user" | "provider";
   readonly source?: DiscoveredSkill;

@@ -85,13 +85,21 @@ export async function runMatrix(options: {
       if (!entry) return;
       const task = options.suite.tasks.find((candidate) => candidate.id === entry.taskId);
       if (!task) throw new Error("Matrix task is missing from the suite");
-      upsert(pendingRun(entry));
+      upsert({
+        ...pendingRun(entry),
+        productCommit: options.suite.productCommit,
+        productTreeFingerprint: options.suite.productTreeFingerprint,
+      });
       await save();
 
       try {
         const record = await runStudySession({ ...options, ...entry, task, deadlineAt: receipt.deadlineAt });
         const mismatch = record.turns.some((turn) => turn.resolvedModel !== null && turn.resolvedModel !== options.suite.model);
-        upsert(await scoreRun({ ...options, record }));
+        upsert({
+          ...await scoreRun({ ...options, record }),
+          productCommit: options.suite.productCommit,
+          productTreeFingerprint: options.suite.productTreeFingerprint,
+        });
         if (mismatch) stopped = "Candidate model identity changed; stopped before another invocation.";
       } catch (error) {
         const message = redactSecrets({ text: error instanceof Error ? error.message : "Candidate failed" });

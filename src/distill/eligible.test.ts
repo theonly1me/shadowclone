@@ -1,7 +1,12 @@
 import { expect, test } from "bun:test";
 import type { IndexedEvent } from "../index";
+import { defaultConfig } from "../config";
 import type { CorrectionSignal } from "../signal";
-import { allowlistedSignals, isEligibleForDistillation } from "./index";
+import {
+  allowlistedSignals,
+  authorizedLearningEvents,
+  isEligibleForDistillation,
+} from "./index";
 
 function indexedEvent(kind: IndexedEvent["kind"]): IndexedEvent {
   return {
@@ -29,6 +34,24 @@ function indexedEvent(kind: IndexedEvent["kind"]): IndexedEvent {
 test("allows user-authored and correction events with text pointers", () => {
   expect(isEligibleForDistillation(indexedEvent("user-prompt"))).toBeTrue();
   expect(isEligibleForDistillation(indexedEvent("question-asked"))).toBeTrue();
+});
+
+test("removes indexed events after their source is disabled", () => {
+  const event = indexedEvent("user-prompt");
+  const disabled = authorizedLearningEvents({
+    events: [event],
+    config: defaultConfig,
+  });
+  const enabled = authorizedLearningEvents({
+    events: [event],
+    config: {
+      ...defaultConfig,
+      sources: { ...defaultConfig.sources, "claude-code": true },
+    },
+  });
+
+  expect(disabled).toEqual([]);
+  expect(enabled).toEqual([event]);
 });
 
 test("rejects tool results and thinking even if a pointer is present", () => {

@@ -49,10 +49,10 @@ test("rejects truncated streams and surfaces failures", () => {
   expect(parseStreamEvents([{ type: "thread.started" }]).isError).toBeTrue();
 
   const run = parseStreamEvents([
-    { type: "turn.failed", error: { message: "Quota exhausted" } },
+    { type: "turn.failed", error: { message: "Usage limit reached" } },
   ]);
 
-  expect(run.errorMessage).toBe("Quota exhausted");
+  expect(run.errorMessage).toBe("Usage limit reached");
   expect(run.isError).toBeTrue();
 });
 

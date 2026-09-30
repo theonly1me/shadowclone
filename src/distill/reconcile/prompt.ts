@@ -1,4 +1,3 @@
-import { resolveRedacted } from "../../redact";
 import { textRefKey } from "../../observe";
 import { internalLearningMarker } from "../excerpts";
 import type {
@@ -32,27 +31,23 @@ function ruleText(rule: PromptRule): string {
 async function evidenceText(options: {
   readonly evidence: PromptEvidence;
   readonly maxExcerptCharacters: number;
-  readonly excerpts?: ReadonlyMap<string, string>;
+  readonly excerpts: ReadonlyMap<string, string>;
 }): Promise<string> {
   const excerpts: string[] = [];
 
   for (const ref of options.evidence.signal.textRefs) {
-    const text =
-      options.excerpts?.get(textRefKey(ref)) ??
-      (await resolveRedacted({ ref }));
+    const text = options.excerpts.get(textRefKey(ref)) ?? "";
 
     if (text.length > 0) {
       excerpts.push(text.slice(0, options.maxExcerptCharacters));
     }
   }
 
-  const context = await Promise.all(
-    (options.evidence.signal.contextRefs ?? []).map(
-      async (ref) =>
-        options.excerpts?.get(textRefKey(ref)) ??
-        (await resolveRedacted({ ref })),
-    ),
-  );
+  const context = (options.evidence.signal.contextRefs ?? []).flatMap((ref) => {
+    const excerpt = options.excerpts.get(textRefKey(ref));
+
+    return excerpt === undefined ? [] : [excerpt];
+  });
 
   return [
     `${options.evidence.token} [${options.evidence.signal.kind}]`,
@@ -69,7 +64,7 @@ async function evidenceText(options: {
 export async function buildReconciliationPrompt(options: {
   readonly context: ReconciliationContext;
   readonly maxExcerptCharacters?: number;
-  readonly excerpts?: ReadonlyMap<string, string>;
+  readonly excerpts: ReadonlyMap<string, string>;
 }): Promise<string> {
   const evidence = await Promise.all(
     options.context.evidence.map((entry) =>

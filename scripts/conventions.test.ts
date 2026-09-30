@@ -30,7 +30,7 @@ test("passes a tree that follows the conventions", async () => {
 
 test("flags a source file over the line limit", async () => {
   const rootDirectory = await treeWith({
-    "src/long.ts": `${Array.from({ length: 201 }, () => "export {};").join("\n")}\n`,
+    "src/long.ts": `${Array.from({ length: 301 }, () => "export {};").join("\n")}\n`,
   });
 
   const report = await findConventionViolations({ rootDirectory });
@@ -38,9 +38,9 @@ test("flags a source file over the line limit", async () => {
   expect(report.violations).toEqual([
     {
       file: "src/long.ts",
-      line: 201,
+      line: 301,
       rule: "file-length",
-      message: "201 lines, over the 200 line limit",
+      message: "301 lines, over the 300 line limit",
     },
   ]);
 });

@@ -1,5 +1,10 @@
 import type { ManagedPolicy, ShadowcloneConfig } from "../config";
-import { allowlistedSignals, distillConcurrency } from "../distill";
+import {
+  allowlistedSignals,
+  authorizedLearningEvents,
+  currentEvidenceAuthorization,
+  distillConcurrency,
+} from "../distill";
 import {
   createLearningExecution,
   detectEngine,
@@ -18,6 +23,10 @@ import {
 import type { ProjectPaths } from "../paths";
 import { deriveSignals, type GitRemoteReader } from "../signal";
 import { runDeepLearning } from "./deepLearn";
+import { bindHistoricalRepository, listHistoricalRepositories } from "../learning/repositories";
+import { writeLearningReceipt } from "../learning/receipt";
+import path from "node:path";
+import { acquireLocalLock } from "../localFiles/lock";
 
 export type SetupEngine = {
   readonly engine: EngineId;
@@ -58,14 +67,24 @@ export async function createSetupEngine(options: {
 
 export async function runSetupLearning(options: {
   readonly paths: ProjectPaths;
+  readonly configPath?: string;
   readonly config: ShadowcloneConfig;
   readonly policy: ManagedPolicy;
   readonly setupEngine: SetupEngine;
   readonly now: number;
   readonly readRemote?: GitRemoteReader;
   readonly writeLine: (line: string) => void;
+  readonly confirmHistoricalRepository?: (question: string) => Promise<boolean> | boolean;
 }): Promise<number> {
-  const index = await openEventIndex(options.paths.indexDatabase);
+  const lock = await acquireLocalLock(path.join(options.paths.shadowcloneDirectory, "learning-worker.db"));
+  if (!lock) throw new Error("Another learning attempt is running");
+  const index = await openEventIndex(options.paths.indexDatabase).catch((error: unknown) => {
+    lock.release();
+    throw error;
+  });
+  let stage: "ingestion" | "learning" | "complete" = "ingestion";
+  let episodeCount = 0;
+  let sourceCounts: Record<string, number> = {};
 
   try {
     await ingestSources({
@@ -74,9 +93,39 @@ export async function runSetupLearning(options: {
       paths: options.paths,
     });
 
-    const events = index
-      .listEvents()
-      .filter((event) => options.config.sources[event.source]);
+    if (options.config.sources["git-metadata"]) {
+      const candidates = await listHistoricalRepositories({
+        index,
+        events: authorizedLearningEvents({ events: index.listEvents(), config: options.config }),
+        blockedOrigins: options.policy.blockedOrigins,
+        readRemote: options.readRemote,
+      });
+
+      for (const candidate of candidates) {
+        if (await options.confirmHistoricalRepository?.(
+          `Associate ${candidate.sessionCount} past session(s) in ${candidate.directory} with ${candidate.repository.id}? [y/N]`,
+        )) {
+          await bindHistoricalRepository({
+            index,
+            candidate,
+            paths: options.paths,
+            events: authorizedLearningEvents({ events: index.listEvents(), config: options.config }),
+          });
+        }
+      }
+
+      if (candidates.length > 0 && !options.confirmHistoricalRepository) {
+        options.writeLine(`${candidates.length} historical repository association(s) need review. Run shadowclone learning repositories.`);
+      }
+    }
+
+    const events = authorizedLearningEvents({
+      events: index.listEvents(),
+      config: options.config,
+    });
+    sourceCounts = Object.fromEntries([...Map.groupBy(events, (event) => event.source)]
+      .map(([source, entries]) => [source, entries.length]));
+    stage = "learning";
 
     const derived = await deriveSignals({
       events,
@@ -99,14 +148,28 @@ export async function runSetupLearning(options: {
       now: options.now,
       limit: distillConcurrency * 20,
     });
+    episodeCount = signals.length;
 
     if (signals.length === 0) {
+      await writeLearningReceipt({
+        paths: options.paths,
+        receipt: {
+          startedAt: options.now, mode: "setup", stage: "complete", outcome: "no-eligible-evidence",
+          episodeCount, sourceCounts, proposalCount: 0, pendingCount: 0,
+          nextAction: "Teach a standing preference, then run shadowclone learn --deep.",
+        },
+      });
       return 0;
     }
 
     const result = await runDeepLearning({
       signals,
       events: derived.events,
+      authorizeRef: currentEvidenceAuthorization({
+        paths: options.paths,
+        configPath: options.configPath,
+        events: derived.events,
+      }),
       paths: options.paths,
       policy: options.policy,
       runner: options.setupEngine.runner,
@@ -132,8 +195,32 @@ export async function runSetupLearning(options: {
       },
     });
 
+    stage = "complete";
+    await writeLearningReceipt({
+      paths: options.paths,
+      receipt: {
+        startedAt: options.now, mode: "setup", stage,
+        outcome: result.changesProposed > 0 ? "guidance-recorded" : result.noChangeReason,
+        engine: result.engine, ruleKeys: [...result.ruleKeys],
+        episodeCount, sourceCounts, proposalCount: result.changesProposed, pendingCount: result.pendingReview,
+        nextAction: "Run shadowclone learning pending to inspect review and delivery decisions.",
+      },
+    });
+
     return result.changesProposed;
+  } catch (error) {
+    await writeLearningReceipt({
+      paths: options.paths,
+      receipt: {
+        startedAt: options.now, mode: "setup", stage,
+        outcome: stage === "ingestion" ? "ingestion-failed" : "engine-failed",
+        episodeCount, sourceCounts, proposalCount: 0, pendingCount: 0,
+        nextAction: "Run shadowclone doctor, then retry shadowclone learn --deep.",
+      },
+    });
+    throw error;
   } finally {
     index.close();
+    lock.release();
   }
 }

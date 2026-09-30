@@ -14,7 +14,7 @@ Shadowclone maintains guidance used by existing coding agents. Instruction files
 
 Shadowclone reads enabled sessions and memory, reconciles durable guidance, and updates relevant skills. It preserves evidence and revisions locally so a user can inspect or reverse a change. Native instructions route agents to the applicable workflows.
 
-Using the installed agent CLI avoids a separate model-account setup. Requests still use provider quota and send authorized inputs to that provider. The [data-handling guide](../data-handling.md) describes those boundaries.
+Using the installed agent CLI avoids separate credential setup. Requests remain subject to provider limits and send authorized inputs to that provider. The [data-handling guide](../data-handling.md) describes those boundaries.
 
 Well-maintained instructions may already express what a user needs. The useful comparison is the effort and quality of maintaining that environment over time. Additional guidance can help, have no effect, or introduce conflict.
 

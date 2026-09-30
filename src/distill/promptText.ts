@@ -7,7 +7,9 @@ type TextContentBlock = {
 
 function isTextContentBlock(value: unknown): value is TextContentBlock {
   return (
-    isRecord(value) && value.type === "text" && typeof value.text === "string"
+    isRecord(value) &&
+    (value.type === "text" || value.type === "input_text") &&
+    typeof value.text === "string"
   );
 }
 
@@ -70,6 +72,16 @@ export function extractPromptText(rawPrompt: string): string | null {
     }
 
     if (isRecord(parsedValue)) {
+      if (isRecord(parsedValue.payload)) {
+        const payload = parsedValue.payload;
+
+        if (payload.type === "message" && payload.role === "user") {
+          return readContentText(payload.content);
+        }
+
+        return null;
+      }
+
       const fromContent = readContentText(parsedValue.content);
 
       if (fromContent !== null) {

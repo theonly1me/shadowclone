@@ -1,4 +1,5 @@
 import { customSkillSchema } from "../../builds/types";
+import { buildConstellation } from "../../builds/constellation";
 import type { BrowserItem } from "../protocol";
 import { dialog, element, input, textarea } from "./dom";
 import { editor } from "./state";
@@ -39,10 +40,15 @@ export function saveCustomSkill(): void {
     description: skill.description,
     text: `---\nname: ${skill.name}\ndescription: ${JSON.stringify(skill.description)}\n---\n\n${skill.body}\n`,
     kind: "skill",
-    branch: "craft",
+    category: null,
+    section: null,
     axis: null,
     owner: "managed",
   });
+
+  if (editor.view) {
+    editor.view.constellation = buildConstellation(editor.view.items);
+  }
 
   dialog("custom-dialog").close();
   input("custom-name").value = "";

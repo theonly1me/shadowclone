@@ -38,6 +38,6 @@ test("reports metadata-only profile updates without claiming the profile was unc
     profileUpdated: true,
   });
 
-  expect(output).toContain("Existing profile metadata was updated.");
+  expect(output).toContain("existing guidance was updated.");
   expect(output).not.toContain("Profile unchanged.");
 });

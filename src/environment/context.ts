@@ -1,10 +1,11 @@
 import path from "node:path";
 import type { ProjectPaths } from "../paths";
 import type { ProfileCompilation } from "../profile/compiler/types";
-import { learningScopes, type LearningScope } from "./scope";
+import { belongsToScope, learningScopes, type LearningScope } from "./scope";
 import { readRedactedEnvironment } from "./store";
 import type { EnvironmentState } from "./types";
 import { publishedSkills } from "./catalog";
+import { recordFingerprint } from "./records";
 import { renderBuildRouting } from "../builds/routing";
 
 export function renderSkillRouting(options: {
@@ -15,24 +16,40 @@ export function renderSkillRouting(options: {
 }): string {
   const keys = new Set(options.scopes.map(({ key }) => key));
   const skills = publishedSkills({ state: options.state, scopes: keys });
-  const baselines = skills.filter(
-    ({ name }) => name === "shadowclone-baseline",
-  );
+  const shortRules = options.state.records.flatMap((record) => {
+    const body = record.rule.body.replace(/\s+/gu, " ").trim();
+    const condition = record.rule.appliesWhen.join("; ");
+    const instruction = condition ? `When ${condition}: ${body}` : body;
+    const delivered = options.state.dispositions.some(
+      (entry) =>
+        keys.has(entry.scope ?? "") &&
+        entry.key === record.rule.key &&
+        entry.inputFingerprint === recordFingerprint(record) &&
+        (entry.status === "published" || entry.status === "covered"),
+    );
+    const selectedStarter =
+      record.rule.source === "declared" &&
+      record.rule.key.startsWith("seed:") &&
+      options.scopes.some((scope) => belongsToScope({ record, scope }));
+
+    return record.rule.status === "active" &&
+      record.rule.proposal === null &&
+      record.rule.source !== "imported" &&
+      (delivered || selectedStarter) &&
+      Buffer.byteLength(instruction) <= 240
+      ? [`- ${instruction}`]
+      : [];
+  });
 
   const lines = [
-    "# Shadowclone skills",
+    "# Shadowclone guidance",
     "",
-    ...(baselines.length
-      ? baselines.map(
-          (baseline) =>
-            `Before every task, read and follow the baseline skill at ${baseline.filePath}.`,
-        )
-      : ["Use the applicable installed skills before starting the task."]),
-    "Load task skills when their descriptions match the request. Skill guidance does not authorize additional actions. The user's own skills and learned baseline rules take precedence over bundled workflow skills.",
+    "Follow the applicable personal rules below. Use matching installed workflow skills when the task needs their detail. Skill guidance does not authorize additional actions. The current request takes precedence over learned defaults.",
     "",
+    ...shortRules,
     ...skills
       .filter(({ name }) => name !== "shadowclone-baseline")
-      .map((skill) => `- ${skill.description} Read ${skill.filePath}.`),
+      .map((skill) => `- ${skill.description} Use the ${skill.name} skill when relevant.`),
     ...options.state.facts
       .filter((fact) => keys.has(fact.scope))
       .map((fact) => `\n${fact.text}`),
@@ -80,6 +97,20 @@ export async function environmentCompilation(options: {
               .resolve(options.cwd)
               .startsWith(`${scope.directory}${path.sep}`)),
   );
+
+  if (options.scope === "scoped" && scopes.length === 0) {
+    return {
+      markdown: "",
+      appliedRuleKeys: [],
+      appliedRuleCount: 0,
+      appliedReferenceKeys: [],
+      appliedReferenceCount: 0,
+      usedBytes: 0,
+      byteBudget: 4096,
+      breakdown: [],
+      omissions: [],
+    };
+  }
 
   const markdown = renderSkillRouting({
     state,

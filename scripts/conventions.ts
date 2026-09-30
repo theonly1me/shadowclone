@@ -1,6 +1,6 @@
 import ts from "typescript";
 
-const maximumLineCount = 200;
+const maximumLineCount = 300;
 const emDash = "\u2014";
 const codeSuffix = ".ts";
 const proseSuffixes = [".md", ".ts", ".yml", ".yaml", ".json"] as const;

@@ -50,4 +50,13 @@ test("user steering crosses the pointer redaction gate and excludes generated le
   expect([...materialized.excerpts.values()].join("\n")).toContain(
     "Always keep API tokens private",
   );
+
+  const revoked = await materializeEvidence({
+    signals,
+    sourceRoots: [home],
+    authorizeRef: async () => false,
+  });
+
+  expect(revoked.signals).toHaveLength(0);
+  expect(revoked.excerpts.size).toBe(0);
 });

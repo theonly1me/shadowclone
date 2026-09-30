@@ -11,6 +11,7 @@ import type {
   IntegrationScope,
 } from "./types";
 import { readEnvironment } from "../environment";
+import { ensureHookRunner } from "./hookRunner";
 
 export async function installIntegration(
   options: IntegrationOptions & {
@@ -20,6 +21,9 @@ export async function installIntegration(
   },
 ): Promise<Integration> {
   const paths = options.paths ?? projectPaths;
+  if (options.agent === "claude-code" || options.agent === "codex") {
+    await ensureHookRunner({ paths });
+  }
   const cwd = canonicalPath(options.cwd ?? process.cwd());
   const home = path.dirname(paths.shadowcloneDirectory);
   const providerDirectory =
@@ -52,11 +56,11 @@ export async function installIntegration(
     scope: options.scope,
     directory,
     userDirectory: home,
-    codexInstructions:
-      options.agent === "codex" &&
-      (await Bun.file(path.join(directory, "AGENTS.override.md")).exists())
-        ? "AGENTS.override.md"
-        : "AGENTS.md",
+    codexInstructions: options.agent === "codex" &&
+      (options.scope === "repository" ||
+        await Bun.file(path.join(directory, "AGENTS.override.md")).exists())
+      ? "AGENTS.override.md"
+      : "AGENTS.md",
     files: [],
     excludes: [],
     deliveredAt: null,

@@ -43,11 +43,13 @@ export async function syncLearningEnvironment(
 
     const synchronized = config.sources["skill-library"]
       ? await synchronizePublishedSkills({ paths, state: current })
-      : { state: current, updates: [] };
-    const publication = await nativePublication({
-      paths,
-      state: synchronized.state,
-    });
+      : { state: current, updates: [], routingBlocked: false };
+    const publication = synchronized.routingBlocked
+      ? { state: synchronized.state, updates: [] }
+      : await nativePublication({
+          paths,
+          state: synchronized.state,
+        });
     const filePath = environmentFile(paths);
 
     await publishEnvironmentRevision({

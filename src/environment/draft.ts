@@ -107,7 +107,7 @@ export async function draftSkill(options: {
       "For a new skill return a complete instruction-only Markdown body and no edits. Include workflow triggers, steps, prerequisites, relevant corrections and validation. Do not invent technical facts, commands, paths, permissions, tools or examples unsupported by the evidence.",
       "Preserve exact identifiers and conditional exceptions. If evidence conflicts without explicit supersession or requires technical verification, mark that key pending with its reason. Any pending key blocks edits to the shared skill. If the existing skill already covers everything, return covered outcomes, no edits and empty body.",
       "Stale status does not authorize retirement. Only retirementRequested true authorizes removing that key's obsolete guidance. Preserve all other instructions and never create new guidance from retired evidence.",
-      "Return an improved description only when needed for precise task selection. Keep skills focused and avoid repeated guidance. The shadowclone-baseline skill is mandatory on every task, contains only universal behavior, and must fit in 4 KiB including frontmatter.",
+      "Return an improved description only when needed for precise task selection. Keep skills focused and avoid repeated guidance. The shadowclone-baseline skill contains only universal behavior and must fit in 4 KiB including frontmatter; it is not read on every task.",
       JSON.stringify({
         name: options.name,
         description: options.description,

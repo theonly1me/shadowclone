@@ -72,7 +72,7 @@ const sessionKeys = [
   }),
 ];
 
-test("an ended session without durable steering makes no model call and is still recorded", async () => {
+test("an ended session without an English cue is classified and recorded", async () => {
   const setup = await sessionFixture(
     "Thanks, that looks good. Continue with the next file.",
   );
@@ -87,7 +87,7 @@ test("an ended session without durable steering makes no model call and is still
       sessionKeys,
     }),
   ).toBe("completed");
-  expect(counter.calls()).toBe(0);
+  expect(counter.calls()).toBe(1);
   expect((await readLearningState(setup.paths)).processed).toHaveLength(1);
 });
 

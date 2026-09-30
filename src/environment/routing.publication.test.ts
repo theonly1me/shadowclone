@@ -9,6 +9,8 @@ import { skillPublication } from "./publication";
 import { readEnvironment, writeEnvironment } from "./store";
 import { syncLearningEnvironment } from "./sync";
 import { emptyEnvironment, type LearningRecord } from "./types";
+import { renderSkillRouting } from "./context";
+import { learningScopes } from "./scope";
 
 const initialText = "---\nname: palette-check\ndescription: Check palettes\n---\n\n# Checks\n\nValidate every export.\n";
 
@@ -67,8 +69,8 @@ test("native routing follows description edits and repairs stale metadata withou
     if (!current) throw new Error("Expected the published state");
 
     expect(current.artifacts.filter(({ kind }) => kind === "skill").every((artifact) => artifact.description === description)).toBeTrue();
-    expect(await Bun.file(setup.instructions).text()).toContain(description);
-    expect(await Bun.file(setup.instructions).text()).toContain("Keep this manually authored instruction.");
+    expect(renderSkillRouting({ state: current, scopes: learningScopes({ paths: setup.paths, state: current }) })).toContain(description);
+    expect(await Bun.file(setup.instructions).text()).toBe("Keep this manually authored instruction.\n");
 
     await writeEnvironment({ paths: setup.paths, state: {
       ...current,

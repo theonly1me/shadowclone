@@ -18,6 +18,7 @@ import { mapWithConcurrency } from "./concurrency";
 import { consolidateNewRules } from "./consolidate";
 import { allowlistedSignals } from "./eligible";
 import { materializeEvidence } from "./excerpts";
+import { assessedCorrections, type AssessedCorrection } from "./feedback";
 import {
   applyReconciliation,
   buildReconciliationPrompt,
@@ -35,7 +36,12 @@ export {
 
 export { checkpointId, reconciliationLearnerVersion } from "./checkpoint";
 
-export { allowlistedSignals, isEligibleForDistillation } from "./eligible";
+export {
+  allowlistedSignals,
+  authorizedLearningEvents,
+  currentEvidenceAuthorization,
+  isEligibleForDistillation,
+} from "./eligible";
 
 export {
   buildReconciliationPrompt,
@@ -57,6 +63,8 @@ export type DistillationResult = {
   readonly changes: readonly ReconciliationChange[];
   readonly engineRuns: number;
   readonly rejectedMatches: number;
+  readonly corrections: readonly AssessedCorrection[];
+  readonly noChangeReason: "already-covered" | "uncertain-evidence" | "no-eligible-evidence";
 };
 
 const emptyProfile: ProfileSnapshot = { rules: [], rejections: [] };
@@ -82,6 +90,7 @@ export async function distillSignals(options: {
   readonly seedLibrary?: SeedLibrary;
   readonly execution?: LearningExecution;
   readonly requireSteeringCue?: boolean;
+  readonly authorizeRef?: (ref: CorrectionSignal["textRefs"][number]) => Promise<boolean>;
 }): Promise<DistillationResult> {
   const execution =
     options.execution ??
@@ -99,6 +108,7 @@ export async function distillSignals(options: {
     signals: eligible,
     sourceRoots: options.sourceRoots,
     requireSteeringCue: options.requireSteeringCue,
+    authorizeRef: options.authorizeRef,
   });
   const appliedRules: ProfileRule[] = [];
   const changes: ReconciliationChange[] = [];
@@ -163,5 +173,8 @@ export async function distillSignals(options: {
     }),
     engineRuns: execution.callsUsed(),
     rejectedMatches,
+    corrections: batchResults.flatMap(assessedCorrections),
+    noChangeReason: batchResults.length === 0 ? "no-eligible-evidence"
+      : changes.some((change) => change.kind === "reinforces") ? "already-covered" : "uncertain-evidence",
   };
 }

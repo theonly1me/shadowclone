@@ -8,172 +8,184 @@
 
 .constellation {
   position: relative;
-  padding: 20px 4px 8px;
+  height: clamp(560px, 72vh, 820px);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #2c2a3a;
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 100%, #29203a99, #11131c 68%);
 }
 
-.tree {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  min-height: 340px;
-}
-
-.branch {
-  position: relative;
+.constellation-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30px;
-  padding-bottom: 8px;
-  align-self: start;
+  gap: 6px;
 }
 
-.tree-connections {
+.constellation-controls .quiet-button {
+  padding: 7px 10px;
+  font-size: 11px;
+  background: #151723e8;
+}
+
+.constellation-map,
+.constellation-list {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
-  z-index: -1;
+}
+
+.constellation-map {
+  z-index: 1;
+  touch-action: none;
+}
+
+.map-link {
   fill: none;
-  stroke: #b299d6;
-  stroke-width: 0.8;
-  opacity: 0.65;
+  stroke: #76668f;
+  stroke-width: 1;
+  opacity: 0.62;
 }
 
-.branch-title {
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.2em;
-  color: #a1abc4;
-  margin: 0 0 8px;
+.map-link.related {
+  stroke: #8b75ae;
+  stroke-dasharray: 3 7;
+  opacity: 0.38;
 }
 
-.skill-node {
-  position: relative;
-  width: 100%;
-  color: #cdd2e1;
-  background: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  padding: 0 2px;
-}
-
-.node-gem {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border: 1px solid #5f526f;
-  border-radius: 11px;
-  background: linear-gradient(145deg, #1b1b29, #11131e);
-  transform: rotate(45deg);
-  transition:
-    background 0.2s,
-    border-color 0.2s,
-    box-shadow 0.2s;
-}
-
-.node-icon {
-  display: grid;
-  place-items: center;
-  width: 21px;
-  height: 21px;
-  line-height: 1;
+.map-node {
   color: #b1a7c6;
-  transform: rotate(-45deg);
+  cursor: pointer;
+  outline: none;
 }
 
-.node-icon svg {
-  width: 100%;
-  height: 100%;
+.map-node rect,
+.map-node circle {
+  fill: #171824;
+  stroke: #645474;
+  stroke-width: 1;
+  transition: fill 160ms, stroke 160ms, opacity 160ms;
 }
 
-.node-label {
-  z-index: 1;
-  background: #10121be6;
-  border-radius: 4px;
-  padding: 3px 5px;
+.map-node text {
+  fill: #d4d7e3;
+  font: 11px Inter, system-ui, sans-serif;
+  paint-order: stroke;
+  stroke: #10121b;
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+.map-node-hub text {
+  fill: #cebaf5;
   font-size: 12px;
-  text-align: center;
-  line-height: 1.45;
-  max-width: 145px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
 }
 
-.skill-node:hover .node-gem {
-  border-color: #a68fd8;
-  background: #242030;
+.map-node-hub rect {
+  fill: #211b2f;
+  stroke: #a88cda;
 }
 
-.skill-node.active .node-gem {
-  outline: 1px solid var(--accent);
-  outline-offset: 5px;
-  border-color: #c3b1ef;
+.map-node-root circle {
+  fill: #332647;
+  stroke: #c1a5ee;
+  stroke-width: 1.5;
 }
 
-.skill-node.equipped .node-gem {
-  background: linear-gradient(140deg, #514263, #2b243d);
-  border-color: #b6a2ee;
-  box-shadow: 0 0 25px #ad85f223;
+.map-node:hover rect,
+.map-node:hover circle,
+.map-node:focus rect,
+.map-node:focus circle,
+.map-node.focused rect {
+  fill: #382c4c;
+  stroke: #d0b8ff;
+  stroke-width: 2;
 }
 
-.skill-node.equipped .node-icon {
-  color: #c9b7f5;
+.map-node.equipped rect {
+  fill: #544268;
+  stroke: #ceb8ff;
+  filter: drop-shadow(0 0 10px #b78cf766);
 }
 
-.skill-node.equipped::after {
-  content: "";
-  position: absolute;
-  top: 12px;
-  margin-left: 58px;
-  width: 7px;
-  height: 7px;
-  background: #c4aff4;
-  border: 2px solid #11131c;
-  border-radius: 50%;
-  box-sizing: content-box;
+.map-node.search-miss {
+  opacity: 0.16;
 }
 
-.skill-node.equipped .node-label {
-  color: #f0eafa;
-}
-
-.branch-empty {
-  color: var(--muted);
-  font-size: 12px;
-  z-index: 1;
-  background: #11131c;
-}
-
-.tree-root {
-  position: relative;
-  margin: 12px auto 0;
-  width: 74%;
-  height: 40px;
-}
-
-.tree-root span {
-  position: absolute;
-  left: 50%;
-  bottom: -23px;
-  transform: translateX(-50%);
+.map-node-icon {
   display: grid;
+  width: 18px;
+  height: 18px;
   place-items: center;
-  width: 45px;
-  height: 45px;
-  border: 1px solid #bca2e9;
-  border-radius: 50%;
-  background: radial-gradient(circle, #2b213d, #141522 74%);
-  color: #baa6e8;
-  font-size: 23px;
+  color: #c7b5ef;
+}
+
+.map-node-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.constellation-list {
+  z-index: 2;
+  display: none;
+  overflow: auto;
+  padding: 64px 20px 50px;
+  background: #11131cf5;
+}
+
+.list-view .constellation-map,
+.list-view .tree-hint {
+  display: none;
+}
+
+.list-view .constellation-list {
+  display: grid;
+  align-content: start;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.skill-list-group h3 {
+  margin: 0 0 9px;
+  color: #c9b2f1;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.skill-list-item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  color: #cfd3df;
+  background: transparent;
+  text-align: left;
+  border-left: 1px solid #423a50;
+}
+
+.skill-list-item:hover,
+.skill-list-item:focus,
+.skill-list-item.equipped {
+  color: #f2eaff;
+  border-left-color: #b999ed;
+  background: #241e30;
 }
 
 .tree-hint {
-  text-align: center;
+  position: absolute;
+  z-index: 2;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  margin: 0;
   color: var(--muted);
-  font-size: 12px;
-  margin: 42px 0 0;
+  font-size: 11px;
+  text-align: center;
+  pointer-events: none;
 }
