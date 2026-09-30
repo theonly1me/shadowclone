@@ -1,6 +1,6 @@
 {
   "name": "shadowclone",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Set up and maintain portable coding-agent skills with explicit local consent.",
   "author": {
     "name": "Shadowclone"
@@ -8,5 +8,10 @@
   "homepage": "https://shadowclone.co",
   "repository": "https://github.com/theonly1me/shadowclone",
   "license": "MIT",
-  "keywords": ["coding-agents", "skills", "local-first", "developer-tools"]
+  "keywords": [
+    "coding-agents",
+    "skills",
+    "local-first",
+    "developer-tools"
+  ]
 }

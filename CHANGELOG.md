@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.13](https://github.com/theonly1me/shadowclone/compare/v0.0.12...v0.0.13) (2026-09-30)
+
+
+### Fixes
+
+* upgrade plugin setup and polish skill navigation ([#88](https://github.com/theonly1me/shadowclone/issues/88)) ([bd239ea](https://github.com/theonly1me/shadowclone/commit/bd239ea9e56a8ee44d7566ea987680adcc9de9de))
+
 ## [0.0.12](https://github.com/theonly1me/shadowclone/compare/v0.0.11...v0.0.12) (2026-09-29)
 
 
