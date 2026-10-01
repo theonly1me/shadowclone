@@ -1,5 +1,15 @@
 # Evaluation
 
+The [fixed preference benchmark](../guides/fixed-evals.md) uses committed synthetic tasks, a handwritten target profile, existing skills, and independently authored correction sessions. `preference-respect-v2` compares bare, existing skills, the unchanged library plus Shadowclone routing, and routing plus actual deep learning. Routing preparation disables learning; the deep environment starts identically and then uses production capture, redaction, extraction, review, and publication. Its bounded learner calls and output are frozen once for both hosts. No personal installation or real history is imported.
+
+The headline is the share of applicable preference checks followed, with equal task weights and partial credit. Correctness, safety, and whole-task success are separate results. Every task and check remains in the denominator. Missing cells and unconfirmed model identities leave the report incomplete. Reports include actual preparation provenance and support matched product-revision comparisons. Private evidence stays outside every checkout. These public development tasks do not establish held-out performance.
+
+`preference-respect-v1` remains a separate delivery experiment comparing bare instructions, the full direct profile, and the same profile as maintained skills. It requires no learning and retains its three-setup reports and whole-task scoring. Its results cannot supply the new four-setup headline.
+
+The workflow outcome protocol records frozen tasks and reported acceptance, human review effort, corrections, regressions, interventions, and cost. It does not run model tasks. Outcome recording and preference adherence on this small fixed benchmark do not independently establish broad learning quality.
+
+## Historical learning study
+
 The preference study compares how agents follow one anonymized participant's engineering preferences under different setups. Preference adherence, correctness, and safety are separate results, and a completed comparison can show a tie or a loss. [Published results](../../evals.md) describe the measurements and their limits.
 
 ## Setups compared

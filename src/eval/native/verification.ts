@@ -5,6 +5,10 @@ import { runProcess } from "../../io/process";
 import { writeFrozenFile } from "./files";
 import type { AcceptanceCheck } from "./schema";
 
+export function verificationFailure(options: { exitCode: number; stderr: string }): "fail" | "unknown" {
+  return options.exitCode === 71 && /^sandbox-exec: /m.test(options.stderr) ? "unknown" : "fail";
+}
+
 export async function verifyNativeCandidate(options: {
   readonly directory: string;
   readonly homeDirectory: string;
@@ -69,7 +73,7 @@ export async function verifyNativeCandidate(options: {
     evidence.push(`${check.arguments.join(" ")}\nexit ${response.exitCode}\n${response.stdout}\n${response.stderr}`);
 
     if (response.exitCode !== 0) {
-      return { correctness: "fail", evidence: evidence.join("\n").slice(-16000) };
+      return { correctness: verificationFailure(response), evidence: evidence.join("\n").slice(-16000) };
     }
   }
 

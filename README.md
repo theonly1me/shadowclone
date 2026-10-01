@@ -50,14 +50,18 @@ Run `shadowclone` to see the current result and next action. Use `shadowclone wi
 
 ## Evaluations
 
-The preference study compared agent alone, existing user skills, those skills plus Shadowclone setup, and setup plus deep learning on GPT-6 Sol, GPT-6 Luna, Sonnet 5.5, and Opus 5.5. After corrected scoring, deep learning over existing skills was +10.0, -2.5, +9.7, and +7.3 percentage points respectively, with every 95% interval including zero. It recovered a concrete review-reply preference across all four models. The study covers one participant and one synthetic repository. [Read all four setups, corrected results, and limitations](evals.md).
+Seven fixed tasks compare four setups using synthetic skills and correction sessions. Scores measure the share of applicable preferences followed in completed sessions, with equal weight per task. Each setup ran three repetitions; one timed-out Luna session is excluded from this view.
 
-| Preferences followed | Sol | Luna | Sonnet | Opus |
+| Preferences followed | GPT 6.1 Sol, medium | GPT 6 Luna, high | Sonnet 5.5, high | Opus 5.5, medium |
 | --- | ---: | ---: | ---: | ---: |
-| Agent alone | 72% | 73% | 59% | 59% |
-| Existing user skills | 87% | 91% | 70% | 79% |
-| Existing skills plus Shadowclone setup | 84% | 83% | 72% | 72% |
-| Setup plus deep learning | 97% | 88% | 80% | 86% |
+| Bare | 96.2% | 97.1% | 59.4% | 52.1% |
+| Existing user skills | 100% | 100% | 65.0% | 63.8% |
+| Skills plus Shadowclone routing | 100% | 100% | 65.0% | 63.8% |
+| Skills, routing, and deep learning | 100% | 100% | 81.7% | 96.4% |
+
+Learning added 16.7 percentage points over existing skills on Sonnet and 32.6 on Opus; both 95% bootstrap intervals were above zero. Both Codex models were already at 100% with skills, and routing alone tied skills. All completed tasks passed correctness and safety checks. Luna's existing-skills score covers twenty completed sessions; the other setups cover twenty-one. Its original full-matrix report remains incomplete.
+
+The existing skill contains three preferences; one shared learning run added two from synthetic corrections. These public development tasks show a specific learning benefit, with no claim about other users, repositories, or engineering throughput. [Read the methods, intervals, timeout exclusion, and historical study](evals.md). The [eval guide](docs/guides/fixed-evals.md#how-this-follows-the-claudedev-recommendations) explains which Claude.dev recommendations the benchmark follows and the work still needed for held-out hillclimbing.
 
 ## Privacy comes first
 

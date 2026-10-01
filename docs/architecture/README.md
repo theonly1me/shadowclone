@@ -43,14 +43,28 @@ flowchart LR
     Agents --> Sessions
     Skills --> Eval[Preference study]
     Original[Original library and instructions] --> Eval
+    FixedFixtures[Fixed synthetic tasks and independent target profile] --> FixedEval[Four-setup preference regression suite]
+    SyntheticSkills[Unchanged synthetic skill library] --> FixtureRouting[Initialization with learning disabled]
+    SyntheticSkills --> FixedEval
+    FixtureRouting --> FixedEval
+    SyntheticCorrections[Fixed synthetic corrections] --> FixtureConsent[Private source consent and managed policy]
+    FixtureConsent --> Redaction
+    FixtureGrant[Explicit bounded learning scope] --> Learning
+    Skills --> FixtureFreeze[Private learned-guidance freeze for both hosts]
+    FixtureFreeze --> FixedEval
+    FixedEval --> Workspaces
+    FixedEval --> Homes
     Eval --> Workspaces[Disposable synthetic workspace or read-only advice mount]
     Eval --> Homes[Disposable agent home per condition]
     Workspaces --> Candidates[Native coding-agent runs]
     Homes --> Candidates
+    EvalGrant[Explicit evaluation call scope] --> Candidates
     Candidates --> Checks[Local acceptance checks without credentials or network]
+    Candidates --> FixedGrades[Fixed deterministic preference graders]
     Candidates --> Judges[Blinded provider judgments of private evidence]
     Checks --> Receipts[Private receipts and bounded reports]
     Judges --> Receipts
+    FixedGrades --> Receipts
 ```
 
 ## Components
@@ -67,7 +81,7 @@ flowchart LR
 | `src/integrations/`, `src/harness/` | Install native guidance and repository instructions/checks |
 | `src/engine/`, `src/dispatch/` | Invoke authenticated agent CLIs and run authorized worktree tasks |
 | `src/tasks/` | Track native-session work, freeze guidance, verify changes, and mediate explicitly granted actions |
-| `src/eval/`, `src/changes/` | Run the preference study and retain reversible file revisions |
+| `src/eval/`, `src/changes/` | Run fixed four-setup benchmarks and historical studies, record workflow outcomes, and retain reversible file revisions |
 | `src/profile/` | Legacy profile compatibility and the reconciliation boundary |
 
 The learning service coordinates model execution, reconciliation, pending decisions, and persistence for both CLI and background paths. Its maintenance service selects the active environment or legacy fallback; the skill-maintenance package supplies library primitives and retains a compatibility entry point. The CLI owns prompts and presentation. Source authorization is checked at selection and again when a reference is resolved. Automatic skill writes require separate authorization. Reviewed build edits use the same publication and revision machinery as learning. Later corrections create review signals. An explicitly authorized probe sends redacted installed guidance into an isolated native session; its exact-response assertion does not establish hook delivery or future compliance.
@@ -82,6 +96,6 @@ The learning service coordinates model execution, reconciliation, pending decisi
 - [Development priorities](06-roadmap.md): remaining qualification and research work.
 - [Organization boundaries](07-enterprise.md): scope and managed policy.
 - [Related approaches](08-landscape.md): how skills, memory, and transcript learning fit together.
-- [Evaluation](09-evaluation.md): the preference study protocol.
+- [Evaluation](09-evaluation.md): fixed four-setup benchmarks and prior delivery and learning studies.
 
 The [data-handling guide](../data-handling.md) owns the source and storage inventory. [Design records](../design/README.md) explain historical decisions; their original implementation details may have been superseded.

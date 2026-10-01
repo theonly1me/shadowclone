@@ -34,6 +34,10 @@ Evaluation context can include `~/.claude/CLAUDE.md`, Codex `AGENTS.md` and `AGE
 
 The preference study keeps suites, keys, agent homes, and receipts in a private directory outside every checkout. Each candidate receives separate workspace and agent-home copies. Native filesystem policies deny credential reads and network access. Authentication is copied temporarily for the selected CLI and removed in cleanup. Candidates may write Git history inside their disposable workspace and its local remote, and an offline `gh` stub records pull request requests. Learning reads only consented sources through the normal redacted path.
 
+The fixed four-setup benchmark uses independently authored synthetic tasks, a target profile, an existing skill, and correction sessions. It never imports the evaluator's private installation or history. Offline preparation freezes the source, grader, learner identity, and limits. Routing initialization disables learning and background work. Separately authorized learning enables only the synthetic transcript source and skill library inside the private deep environment; production ingestion and `resolveRedacted` select eligible excerpts before extraction and publication. Managed source, engine, and distillation restrictions apply. One frozen learned environment supplies both hosts.
+
+Explicitly authorized scored execution sends the synthetic repository, prompts, and selected guidance to the selected provider. Generated responses, code, traces, frozen inputs, learning receipts, scores, and identifying local paths remain in private evaluation storage outside every checkout. Generated execution evidence never becomes learning input. The older three-setup delivery benchmark requires no learning and remains separate. See [fixed preference evals](guides/fixed-evals.md).
+
 Transcript parsers can encounter prompts, assistant responses, tool results, and thinking blocks while reading an enabled file. Tool-result payloads, tool-returned file contents, thinking, and data-access results are excluded from learning. Eligible prompts and responses can still contain sensitive information.
 
 ## What reaches a model

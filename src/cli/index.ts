@@ -24,6 +24,8 @@ import { showHome } from "./home";
 import { redactSecrets } from "../redact";
 import { taskCommandLine } from "./tasks";
 import { handleWorkflowEval } from "./workflowEval";
+import { handleFixedEval } from "./fixedEval";
+import { handleFourSetupEval } from "./fourSetupEval";
 
 const usage =
   "Usage: shadowclone <init [--advanced]|init --status [--json]|init (--learn|--no-learn) (--skill-maintenance|--no-skill-maintenance) (--background-learning|--no-background-learning)|init --repo [--personal|--no-personal] [--skill <name>] [--no-enforce]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate skills [--apply] [--automatic] [--memory] [--activate-only] [--repo <path>]|migrate claude-memory [--decisions <file>] [--apply]|install [--agent claude-code|codex|cursor|antigravity|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|run <task>|eval --protocol preference-study-v1 --phase prepare|coverage|assemble|validate|run|report [--stage <stage>] [--preparation-file <path>] [--key-file <path>] [--tasks-file <path>] [--suite-file <path>] [--output-directory <path>] [--coverage-file <path>] [--concurrency N] --yes|mcp|forget --all>";
@@ -37,6 +39,7 @@ function printUsage(): void {
   console.log("Review: learning retire|narrow <key>, learning replace <key> <guidance>, learning remove-source <source> [--apply --expected <fingerprint>]");
   console.log("Behavior: learning probe <key> --agent claude-code|codex --task <synthetic task> --expect <exact response> [--model <model>] --yes; learning probe status; learning acknowledge <key>");
   console.log("Work: task start|status|list|checkpoint|verify|pause|resume|cancel|action|maintain|reconcile; task grants|grant|revoke; task --help");
+  console.log("Fixed evals: eval --protocol preference-respect-v2 --help; legacy three-setup evals use preference-respect-v1");
   console.log(
     "Skill maintenance: skills configure [--repo|--global], skills list|update|pending, skills show|apply|reject <id>, skills manage <skill-id>, skills disable",
   );
@@ -158,6 +161,8 @@ async function main(arguments_: readonly string[]): Promise<void> {
   }
 
   if (command === "eval") {
+    if (await handleFourSetupEval(rest)) return;
+    if (await handleFixedEval(rest)) return;
     if (await handleWorkflowEval(rest)) return;
     await studyEvalCommand(rest);
 

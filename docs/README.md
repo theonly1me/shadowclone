@@ -24,6 +24,7 @@ Start with the [README](../README.md) to install Shadowclone and choose your fir
 - [Enterprise controls](architecture/07-enterprise.md): scope, managed policy, and deployment review.
 - [Design history](design/README.md): decisions and the designs that superseded them.
 - [Contributing](../CONTRIBUTING.md): development setup, checks, and pull requests.
+- [Fixed preference evals](guides/fixed-evals.md): compare four setups on repeatable tasks using synthetic skills and correction sessions.
 - [Security](../SECURITY.md): reporting vulnerabilities.
 
 Coding assistants start with [AGENTS.md](../AGENTS.md).
