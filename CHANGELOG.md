@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.15](https://github.com/theonly1me/shadowclone/compare/v0.0.14...v0.0.15) (2026-10-01)
+
+
+### Features
+
+* **eval:** add fixed four-setup preference benchmark ([286030f](https://github.com/theonly1me/shadowclone/commit/286030faf125e65b3af6db4a27ab7e3345f10271))
+
 ## [0.0.14](https://github.com/theonly1me/shadowclone/compare/v0.0.13...v0.0.14) (2026-09-30)
 
 
