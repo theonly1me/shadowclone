@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.14](https://github.com/theonly1me/shadowclone/compare/v0.0.13...v0.0.14) (2026-09-30)
+
+
+### Features
+
+* add verified engineering workflows ([#90](https://github.com/theonly1me/shadowclone/issues/90)) ([b7d2c5b](https://github.com/theonly1me/shadowclone/commit/b7d2c5b8107edfd4aefb09f6e2fab37bcd5b2084))
+
 ## [0.0.13](https://github.com/theonly1me/shadowclone/compare/v0.0.12...v0.0.13) (2026-09-30)
 
 
