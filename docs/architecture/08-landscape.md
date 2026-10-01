@@ -18,4 +18,4 @@ Using the installed agent CLI avoids separate credential setup. Requests remain 
 
 Well-maintained instructions may already express what a user needs. The useful comparison is the effort and quality of maintaining that environment over time. Additional guidance can help, have no effect, or introduce conflict.
 
-The [published experiments](../../evals.md) compare Shadowclone setups with a user's own maintained skills on a small set of tasks. They cover one user's preferences and do not establish results for other users or tools.
+The [published experiments](../../evals.md) include a fixed benchmark with synthetic skills and corrections, and a separate historical study of one user's maintained skills. Both use small task sets. They do not establish results for other users, repositories, or tools.

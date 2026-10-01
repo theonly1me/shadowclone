@@ -101,12 +101,12 @@ export function scoredEntries(suite: StudySuite): MatrixEntry[] {
     studyArms.map((_, position) => ({ arm: studyArms[(taskIndex + repeat + position) % studyArms.length] ?? "bare", taskId: task.id, repeat })))).flat();
 }
 
-export async function runStudy(options: { suiteFile: string; outputDirectory: string; arms?: readonly string[]; tasks?: readonly string[]; concurrency?: number; runner?: NativeEngineRunner }) {
+export async function runStudy(options: { suiteFile: string; outputDirectory: string; arms?: readonly string[]; tasks?: readonly string[]; concurrency?: number; runner?: NativeEngineRunner; writeLine?: (line: string) => void }) {
   const context = await phaseContext({ ...options, phase: "scored" });
   const release = await lockEvaluation(context.directory);
   try {
     const receipt = await runMatrix({ ...context, entries: scoredEntries(context.suite).filter((entry) => (!options.arms || options.arms.includes(entry.arm)) && (!options.tasks || options.tasks.includes(entry.taskId))), runner: options.runner ?? runNativeEngine,
-      outputDirectory: context.directory, concurrency: options.concurrency ?? context.suite.limits.concurrency, writeLine: console.log });
+      outputDirectory: context.directory, concurrency: options.concurrency ?? context.suite.limits.concurrency, writeLine: options.writeLine ?? console.log });
     return { status: receipt.status, failure: receipt.failure, runs: receipt.runs.length };
   } finally {
     await release();

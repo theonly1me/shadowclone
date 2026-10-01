@@ -1,5 +1,35 @@
 # Evaluation results
 
+## Fixed four-setup results, 2026-10-01
+
+The [fixed preference benchmark](docs/guides/fixed-evals.md) compares bare, existing synthetic skills, skills plus Shadowclone routing, and routing plus actual learning from synthetic corrections. Each model ran seven tasks with three repetitions per setup. This completed-session analysis excludes one timed-out Luna attempt after the runs; all completed sessions, including preference failures, remain. Scores measure preference adherence within each task with equal task weights. Correctness, safety, and whole-task success are separate outcomes.
+
+| Share of preferences followed | GPT 6.1 Sol, medium | GPT 6 Luna, high | Sonnet 5.5, high | Opus 5.5, medium |
+| --- | ---: | ---: | ---: | ---: |
+| Bare | 96.2% | 97.1% | 59.4% | 52.1% |
+| Existing user skills | 100% | 100% | 65.0% | 63.8% |
+| Skills plus Shadowclone routing | 100% | 100% | 65.0% | 63.8% |
+| Skills, routing, and deep learning | 100% | 100% | 81.7% | 96.4% |
+
+| Deep learning over existing skills | Gain in percentage points | 95% bootstrap interval |
+| --- | ---: | --- |
+| GPT 6.1 Sol | 0.0 | 0.0 to 0.0 |
+| GPT 6 Luna | 0.0 | 0.0 to 0.0 |
+| Sonnet 5.5 | +16.7 | +6.0 to +31.0 |
+| Opus 5.5 | +32.6 | +16.4 to +57.1 |
+
+Routing alone tied existing skills in the completed-session analysis. Both Codex models already met every preference with existing skills. The Claude learning gains came primarily from shorter final answers; all thirteen remaining preference misses in their deep setups were answers exceeding eighty words. Every completed session passed correctness and safety checks: 335 passed, one unknown.
+
+Luna's existing-skills setup timed out on the first turn of the second parser-extension repetition after 240 seconds. Its four preference checks, correctness, safety, and model confirmation remain unknown in the unchanged full-matrix report, which emits no final Luna score. The failed attempt was retained without replacement. The separately requested completed-session view uses twenty existing-skills sessions, including two parser-extension repetitions, and twenty-one sessions in each other setup. Its exclusion is a post-run analysis choice, not a successful or complete execution result.
+
+The handwritten existing skill contains comments, type-safety, and options-object preferences. One shared production learning run processed two independent synthetic corrections about Git authorization and answer length, published two rules in six Codex Sol medium invocations, and preserved the manual skill. Learning output was frozen once for both hosts. The study used 383 scored agent turns and six learning turns. [The contributor guide](docs/guides/fixed-evals.md#authenticated-run-record) records versions, aggregate counts, and reproducibility details.
+
+These seven public tasks had already been used for development, and the three-existing plus two-learned provenance split was authored after the earlier three-setup run. They are not held-out evidence. Bootstrap intervals describe variation in this small task set, with no multiple-comparison correction. The results establish a specific synthetic learning benefit on Claude, not an advantage over a complete handwritten profile, automatic hillclimbing, or useful engineering throughput.
+
+## Historical preference study
+
+Earlier three-setup delivery runs and the historical learning study below use different guidance and remain separate experiments.
+
 The preference study measured whether a coding agent followed one participant's engineering preferences on ordinary requests. These results were recomputed from the private receipts on 2026-09-30 using scorer `session-bootstrap-2`, without new model calls. Unknown and not-applicable checks are excluded consistently, complete sessions are resampled within tasks, and observable actions from incomplete sessions retain their checks.
 
 ## Results
