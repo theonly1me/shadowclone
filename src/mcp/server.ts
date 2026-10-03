@@ -1,7 +1,6 @@
 import { handleMcpRequest, isRecord, parseRequest } from "./protocol";
 import { runPreferenceTool } from "./preferences";
 import { runReferenceTool } from "./references";
-import { runTaskTool } from "./tasks";
 import { createBotTool } from "./bot";
 import { compileContext } from "../integrations";
 import { projectPaths } from "../paths";
@@ -33,7 +32,7 @@ export async function serveMcp(
 ): Promise<void> {
   const cwd = options.cwd ?? process.cwd();
   const paths = options.paths ?? projectPaths;
-  const taskPaths = {
+  const botPaths = {
     ...paths,
     configFile: options.configPath ?? paths.configFile,
     managedConfigFile:
@@ -41,7 +40,7 @@ export async function serveMcp(
   };
   let buffer = "";
   const decoder = new TextDecoder();
-  const bot = createBotTool({ cwd, paths: taskPaths });
+  const bot = createBotTool({ cwd, paths: botPaths });
 
   for await (const chunk of Bun.stdin.stream()) {
     buffer += decoder.decode(chunk, { stream: true });
@@ -81,7 +80,6 @@ export async function serveMcp(
             const toolResult =
               request.method === "tools/call"
                 ? ((await bot.run(request.params)) ??
-                  (await runTaskTool({ params: request.params, cwd, paths: taskPaths })) ??
                   (await runPreferenceTool({
                     params: request.params,
                     cwd,

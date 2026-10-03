@@ -1,7 +1,6 @@
 import packageManifest from "../../package.json";
 import { preferenceTools } from "./preferences";
 import { referenceTools } from "./references";
-import { taskTools } from "./tasks";
 import { botTools } from "./bot";
 
 type JsonRpcId = string | number | null;
@@ -51,7 +50,6 @@ export function handleMcpRequest(options: {
         tools: [
           ...preferenceTools,
           ...referenceTools,
-          ...taskTools,
           ...botTools,
           {
             name: "shadowclone_context",

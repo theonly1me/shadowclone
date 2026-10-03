@@ -13,12 +13,10 @@ import { initializeStarfield } from "./starfield";
 import { initializeCustomGeneration, customStatus } from "./customGeneration";
 import { perform, actionButton } from "./actions";
 import { initializeEditorDialogs } from "./editorDialogs";
-import { initializeTaskList } from "./tasks";
 import { initializeLearningModels } from "./models";
 import { initializeBotSetup } from "./bot";
 
 initializeEditorDialogs();
-initializeTaskList();
 initializeLearningModels();
 initializeBotSetup();
 

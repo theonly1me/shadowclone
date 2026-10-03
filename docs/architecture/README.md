@@ -33,13 +33,7 @@ flowchart LR
     Claude --> Probe[Reviewed frozen guidance probe]
     Probe --> ProbeReceipt[Private response assertion receipt]
     ScopedHook --> Agents
-    Agents --> Tasks[Explicit task contract and private checkpoints]
-    Skills --> Tasks
-    Tasks --> Verification[Offline checks against the exact workspace]
-    Verification --> TaskReceipt[Private verification and review receipt]
-    Owner[Explicit repository action grants] --> Actions[Policy-checked Git and GitHub helpers]
-    TaskReceipt --> Actions
-    Actions --> GitHub[GitHub]
+    Agents --> GitHub[Pull requests through git and gh in the agent session]
     CloudApproval[Owner reviews cloud guidance and subscription use] --> CloudSetup[Named App and selected repository]
     Skills --> CloudApproval
     CloudSetup --> Environment[Default-branch environment secrets]
@@ -81,21 +75,20 @@ flowchart LR
 
 ## Components
 
-| Component                              | Responsibility                                                                                                         |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `src/config/`                          | Source consent and managed policy                                                                                      |
-| `src/observe/`, `src/index/`           | Incremental transcript parsing and a rebuildable pointer index                                                         |
-| `src/redact/`, `src/signal/`           | Materialize eligible excerpts and identify learning evidence                                                           |
-| `src/distill/`, `src/learning/`        | Reconcile guidance within shared call, time, and supported cost limits                                                 |
-| `src/environment/`                     | Store evidence, publish skills, migrate installations, and preserve originals                                          |
-| `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows                                        |
-| `src/builds/`, `src/web/`              | Apply reviewed skill selections through terminal and browser interfaces                                                |
-| `src/integrations/`, `src/harness/`    | Install native guidance and repository instructions/checks                                                             |
-| `src/engine/`, `src/dispatch/`         | Invoke authenticated agent CLIs and run authorized worktree tasks                                                      |
-| `src/cloud/`                           | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows                                |
-| `src/tasks/`                           | Track native-session work, freeze guidance, verify changes, and mediate explicitly granted actions                     |
-| `src/eval/`, `src/changes/`            | Run fixed four-setup benchmarks and historical studies, record workflow outcomes, and retain reversible file revisions |
-| `src/profile/`                         | Legacy profile compatibility and the reconciliation boundary                                                           |
+| Component | Responsibility |
+| --- | --- |
+| `src/config/` | Source consent and managed policy |
+| `src/observe/`, `src/index/` | Incremental transcript parsing and a rebuildable pointer index |
+| `src/redact/`, `src/signal/` | Materialize eligible excerpts and identify learning evidence |
+| `src/distill/`, `src/learning/` | Reconcile guidance within shared call, time, and supported cost limits |
+| `src/environment/` | Store evidence, publish skills, migrate installations, and preserve originals |
+| `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows |
+| `src/builds/`, `src/web/` | Apply reviewed skill selections through terminal and browser interfaces |
+| `src/integrations/`, `src/harness/` | Install native guidance and repository instructions/checks |
+| `src/engine/` | Invoke authenticated agent CLIs |
+| `src/cloud/` | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows |
+| `src/eval/`, `src/changes/` | Run fixed four-setup benchmarks and historical studies, record workflow outcomes, and retain reversible file revisions |
+| `src/profile/` | Legacy profile compatibility and the reconciliation boundary |
 
 The learning service coordinates model execution, reconciliation, pending decisions, and persistence for both CLI and background paths. Its maintenance service selects the active environment or legacy fallback; the skill-maintenance package supplies library primitives and retains a compatibility entry point. The CLI owns prompts and presentation. Source authorization is checked at selection and again when a reference is resolved. Automatic skill writes require separate authorization. Reviewed build edits use the same publication and revision machinery as learning. Later corrections create review signals. An explicitly authorized probe sends redacted installed guidance into an isolated native session; its exact-response assertion does not establish hook delivery or future compliance.
 
@@ -104,7 +97,7 @@ The learning service coordinates model execution, reconciliation, pending decisi
 - [Capture](01-capture.md): source adapters, eligible content, and incremental indexing.
 - [Learning and skill delivery](02-profile.md): evidence, publication, scope, and migration.
 - [Engine](03-engine.md): provider capabilities and execution limits.
-- [Acting](04-acting.md): worktree runs, checks, receipts, and remote actions.
+- [Acting](04-acting.md): how delegated work acts through the host agent.
 - [Privacy boundaries](05-privacy.md): redaction, ownership, and execution isolation.
 - [Development priorities](06-roadmap.md): remaining qualification and research work.
 - [Organization boundaries](07-enterprise.md): scope and managed policy.

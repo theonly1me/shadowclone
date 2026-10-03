@@ -3,7 +3,6 @@ import packageManifest from "../../package.json";
 import { handleMcpRequest } from "./server";
 import { preferenceTools } from "./preferences";
 import { referenceTools } from "./references";
-import { taskTools } from "./tasks";
 import { botTools } from "./bot";
 
 test("responds to initialize with protocol version and serverInfo", () => {
@@ -36,7 +35,6 @@ test("advertises profile recall and explicit preference operations", () => {
       tools: [
         ...preferenceTools,
         ...referenceTools,
-        ...taskTools,
         ...botTools,
         {
           name: "shadowclone_context",

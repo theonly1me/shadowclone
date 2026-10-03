@@ -1,7 +1,5 @@
 import { z } from "zod";
 import type { EngineId } from "../engine/types";
-import type { RepoSettings } from "./repo";
-import { parseRepoSettings } from "./repo";
 
 export const sourceIds = [
   "agent-context",
@@ -17,11 +15,20 @@ export const sourceIds = [
   "git-metadata",
   "repository-manifests",
   "pi",
-  "shell",
   "skill-library",
 ] as const;
 
 export type SourceId = (typeof sourceIds)[number];
+
+export const retiredSourceIds = ["shell"] as const;
+
+export function isSourceId(value: string): value is SourceId {
+  return sourceIds.some((sourceId) => sourceId === value);
+}
+
+function isRetiredSourceId(value: string): boolean {
+  return retiredSourceIds.some((sourceId) => sourceId === value);
+}
 
 export type SourceSettings = {
   readonly [Source in SourceId]: boolean;
@@ -36,7 +43,6 @@ export type ShadowcloneConfig = {
     readonly engine?: EngineId;
     readonly model?: string;
   };
-  readonly repo: RepoSettings;
 };
 
 export const defaultConfig: ShadowcloneConfig = {
@@ -55,14 +61,12 @@ export const defaultConfig: ShadowcloneConfig = {
     "declared-rules": false,
     "git-metadata": false,
     "repository-manifests": false,
-    shell: false,
     "skill-library": false,
   },
   distillation: {
     deep: false,
     automatic: false,
   },
-  repo: {},
 };
 
 const sourcesSchema = z.strictObject({
@@ -79,7 +83,6 @@ const sourcesSchema = z.strictObject({
   "declared-rules": z.boolean().optional().default(false),
   "git-metadata": z.boolean().optional().default(false),
   "repository-manifests": z.boolean().optional().default(false),
-  shell: z.boolean(),
   "skill-library": z.boolean().optional().default(false),
 });
 
@@ -88,7 +91,6 @@ const requiredCoreSourceIds = [
   "claude-prompts",
   "codex",
   "cursor",
-  "shell",
 ] as const;
 
 function hasUnknownKey(issues: readonly z.core.$ZodIssue[]): boolean {
@@ -102,10 +104,13 @@ function parseSources(value: unknown): SourceSettings {
     );
   }
 
-  const result = sourcesSchema.safeParse(value);
+  const sources = Object.fromEntries(
+    Object.entries(value).filter(([key]) => !isRetiredSourceId(key)),
+  );
+  const result = sourcesSchema.safeParse(sources);
 
   if (!result.success) {
-    const missingCore = requiredCoreSourceIds.some((key) => !(key in value));
+    const missingCore = requiredCoreSourceIds.some((key) => !(key in sources));
 
     if (hasUnknownKey(result.error.issues) || missingCore) {
       throw new Error(
@@ -182,6 +187,5 @@ export function parseConfig(value: unknown): ShadowcloneConfig {
     schemaVersion: 1,
     sources: parseSources(result.data.sources),
     distillation: parseDistillation(result.data.distillation),
-    repo: parseRepoSettings(result.data.repo),
   };
 }

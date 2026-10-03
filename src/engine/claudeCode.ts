@@ -113,7 +113,7 @@ export function redactedFailure(options: {
 export async function runClaudeCode(
   options: EngineRunOptions,
 ): Promise<EngineRun> {
-  if (options.execution.purpose === "learning" || options.execution.purpose === "dispatch") {
+  if (options.execution.purpose === "learning") {
     const missing = missingClaudeSandboxTools({
       platform: process.platform,
       which: (name) => Bun.which(name),
@@ -126,11 +126,9 @@ export async function runClaudeCode(
 
   const sessionId = options.sessionId ?? crypto.randomUUID();
   const temporaryDirectory =
-    options.execution.purpose === "dispatch"
-      ? (options.execution.temporaryDirectory ?? options.cwd)
-      : options.execution.purpose === "evaluation"
-        ? path.join(options.cwd, ".eval-runtime")
-        : options.cwd;
+    options.execution.purpose === "evaluation"
+      ? path.join(options.cwd, ".eval-runtime")
+      : options.cwd;
 
   if (options.execution.purpose === "evaluation") {
     await mkdir(temporaryDirectory, { recursive: true, mode: 0o700 });

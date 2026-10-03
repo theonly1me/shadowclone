@@ -72,7 +72,6 @@ function detectedSourcePaths(options: {
     "claude-prompts": [options.paths.claudePromptHistoryFile],
     codex: [options.paths.codexSessionsDirectory],
     cursor: [options.paths.cursorChatsDirectory],
-    shell: options.paths.shellHistoryFiles,
     pi: [options.paths.piSessionsDirectory],
   };
   const homeDirectory = path.dirname(

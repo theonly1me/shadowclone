@@ -29,3 +29,5 @@ If an approach causes another regression, remove that approach and reconsider th
 ## Completion
 
 The requested outcome works, focused verification passes, and every hunk has a reason within scope.
+
+Report the outcome in one sentence, the verification command with its result, and each changed file with the reason it is in scope. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.

@@ -31,7 +31,6 @@ const captureSources: readonly {
   { id: "claude-prompts", question: "Enable Claude prompt history?" },
   { id: "codex", question: "Enable Codex transcripts?" },
   { id: "cursor", question: "Enable Cursor CLI chat stores?" },
-  { id: "shell", question: "Enable shell history?" },
   { id: "pi", question: "Enable Pi transcripts?" },
 ];
 

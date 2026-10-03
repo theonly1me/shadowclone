@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { allowsRemoteActions, runnerEnvironment } from "./environment";
+import { runnerEnvironment } from "./environment";
 
 const hostEnvironment = {
   PATH: "/usr/bin",
@@ -49,32 +49,6 @@ test("unrelated host credentials never reach a spawned engine", () => {
   }
 });
 
-test("a github token reaches the engine only when a remote action is granted", () => {
-  const withoutAction = runnerEnvironment({
-    engine: "claude-code",
-    source: hostEnvironment,
-  });
-  const withAction = runnerEnvironment({
-    engine: "claude-code",
-    allowRemoteActions: true,
-    source: hostEnvironment,
-  });
-
-  expect(withoutAction.GH_TOKEN).toBeUndefined();
-  expect(withAction.GH_TOKEN).toBe("gho-example");
-});
-
-test("remote actions are allowed only for a dispatch that opened a domain", () => {
-  expect(allowsRemoteActions({ purpose: "dispatch" })).toBeFalse();
-  expect(
-    allowsRemoteActions({ purpose: "dispatch", allowedDomains: [] }),
-  ).toBeFalse();
-  expect(
-    allowsRemoteActions({
-      purpose: "dispatch",
-      allowedDomains: ["github.com"],
-    }),
-  ).toBeTrue();
-  expect(allowsRemoteActions({ purpose: "learning" })).toBeFalse();
-  expect(allowsRemoteActions({ purpose: "evaluation" })).toBeFalse();
+test("a github token never reaches the engine", () => {
+  expect(runnerEnvironment({ engine: "claude-code", source: hostEnvironment }).GH_TOKEN).toBeUndefined();
 });

@@ -29,3 +29,5 @@ A setup error, compilation failure, timeout, or unrelated assertion does not pro
 ## Completion
 
 The visible inverse fails the intended assertion, restoration passes, and the final diff contains no proof mutation.
+
+Report the test name, the inverse you applied, the assertion line that failed under it, and the passing run after restoring. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.

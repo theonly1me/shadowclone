@@ -10,22 +10,25 @@
   "scripts": {
     "start": "bun run src/cli/index.ts",
     "cli": "bun run src/cli/index.ts",
-    "check": "bun run typecheck && bun run lint && bun test",
+    "check": "bun run typecheck && bun run lint && bun run knip && bun test",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write",
     "format:check": "prettier --check",
     "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run scripts/conventions.ts",
     "lint:fix": "biome lint --write .",
+    "knip": "knip",
+    "eval:work": "bun evals/shadowclone-work/run.ts",
     "build": "bun run scripts/build.ts",
     "prepack": "bun run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.14",
+    "@biomejs/biome": "2.5.15",
     "@types/bun": "latest",
     "@types/d3-hierarchy": "^3.1.7",
     "@types/d3-selection": "^3.0.12",
     "@types/d3-zoom": "^3.0.9",
+    "knip": "6.39.0",
     "prettier": "3.9.9",
     "typescript": "~5.9"
   },

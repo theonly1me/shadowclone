@@ -1,4 +1,4 @@
-import { rm } from "node:fs/promises";
+import { readdir, rm } from "node:fs/promises";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import { removeArtifacts, removeGitExcludes } from "./installArtifacts";
@@ -6,14 +6,17 @@ import { readInstallations } from "./installState";
 import { readIntegrations, uninstallIntegration } from "../integrations";
 import { removeSkillMaintenance } from "../skillMaintenance";
 import { removeLearningEnvironment } from "../environment/cleanup";
-import { assertTaskCleanupSafe } from "../tasks/cleanup";
 
 export async function forgetAll(
   options: { readonly paths?: ProjectPaths } = {},
 ): Promise<void> {
   const paths = options.paths ?? projectPaths;
 
-  await assertTaskCleanupSafe(paths);
+  if ((await readdir(paths.worktreesDirectory).catch(() => [])).length > 0) {
+    throw new Error(
+      `Worktrees from earlier delegated tasks remain in ${paths.worktreesDirectory}. Move or remove them yourself before forgetting Shadowclone data`,
+    );
+  }
 
   await removeLearningEnvironment(paths);
   await removeSkillMaintenance(paths);

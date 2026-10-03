@@ -1,4 +1,4 @@
-import type { EngineExecution, EngineId } from "./types";
+import type { EngineId } from "./types";
 
 const baseKeys = [
   "PATH",
@@ -30,18 +30,8 @@ const engineKeys: Readonly<Record<EngineId, readonly string[]>> = {
   "openai-compatible": ["OPENAI_API_KEY", "OPENAI_BASE_URL"],
 };
 
-const remoteActionKeys = ["GH_TOKEN", "GITHUB_TOKEN", "GH_HOST"] as const;
-
-export function allowsRemoteActions(execution: EngineExecution): boolean {
-  return (
-    execution.purpose === "dispatch" &&
-    (execution.allowedDomains ?? []).length > 0
-  );
-}
-
 export function runnerEnvironment(options: {
   readonly engine: EngineId;
-  readonly allowRemoteActions?: boolean;
   readonly source?: Readonly<Record<string, string | undefined>>;
 }): Record<string, string> {
   const source = options.source ?? process.env;
@@ -58,11 +48,7 @@ export function runnerEnvironment(options: {
 
     const isBase = baseKeys.some((baseKey) => baseKey === key);
     const isEngine = keys.includes(key);
-    const isRemote =
-      options.allowRemoteActions === true &&
-      remoteActionKeys.some((remoteKey) => remoteKey === key);
-
-    if (isBase || isEngine || isRemote) {
+    if (isBase || isEngine) {
       environment[key] = value;
     }
   }

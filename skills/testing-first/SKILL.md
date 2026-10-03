@@ -31,3 +31,5 @@ Do not weaken an assertion to make a failing implementation pass. If harmless re
 ## Completion
 
 Requested behaviors have tests observed failing first, implementation passes through public interfaces, and affected checks pass.
+
+Report each test name with the assertion that failed first and its passing run, then the affected checks with their result. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.
