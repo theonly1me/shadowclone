@@ -30,7 +30,7 @@ Create an issue as the installing owner. Its stated scope authorizes a plan, cha
 
 Write `@shadowclone` followed by a request on an issue or a same-repository PR. You can also use the App slug, such as `@my-shadowclone`. External users, fork PRs, and the clone's own comments cannot start work.
 
-The clone follows the exported `shadowclone-work` skill and native engineering rules. The prompt asks it to repair checks, conflicts, and valid reviewer findings before marking the PR ready. Each run has a 20-minute limit and 60 turns. Each branch has a daily limit of ten worker runs. A run can stop before the finish line; inspect its Actions result before requesting another attempt.
+The clone follows the exported `shadowclone-work` skill and native engineering rules. It repairs checks, conflicts, and valid reviewer findings before it marks the PR ready. It reports a check that waits for a human and does not retrigger it. Each run has a 20-minute limit and 60 turns. Each branch has a daily limit of ten worker runs. A run can stop before the finish line; inspect its Actions result before requesting another attempt.
 
 GitHub Actions completion and approved reviewer events can resume a managed PR. The default reviewer bot list contains `coderabbitai[bot]` and `github-actions[bot]`. Review findings from repository writers also qualify. To change requesters, reviewers, or limits, review both workflow configurations in a PR.
 
@@ -52,7 +52,7 @@ The preview contains only selected skills, supporting resources, plugin metadata
 
 The App private key, Claude subscription token, and guidance are secrets in the `shadowclone` environment. Only the repository's default branch can deploy to it. Setup preserves an existing environment's approval settings and rejects broader branch policies. GitHub plan support for environments and environment secrets must cover the target repository.
 
-The environment still trusts its default-branch workflows and code executed with credentials. An App installation token reaches the coding agent for Git and GitHub actions. The private App key does not. The owner can change App permissions on GitHub, so inspect the installation when its access changes.
+The environment still trusts its default-branch workflows and code executed with credentials. An App installation token reaches the coding agent for Git and GitHub actions. The agent can run any shell command on the runner with that token. The private App key does not. The owner can change App permissions on GitHub, so inspect the installation when its access changes.
 
 Setup keeps App registration credentials in memory until the local server closes. It never reads an existing Claude credential store. The token travels through the loopback password request and GitHub CLI stdin. The exported bundle is frozen; later local guidance edits do not automatically upload.
 

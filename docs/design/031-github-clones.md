@@ -25,6 +25,8 @@ The owner can start work with an issue or an `@shadowclone` request. The App slu
 
 The workflow invokes the selected `shadowclone-work` skill. Updating that export adopts the owner's evaluated variant without changing the execution architecture.
 
+The skill holds every pull request rule. The worker prompt adds only cloud facts: the entity, the authorized scope, the branch, the pause check, and a ban on pushes to the default branch. The pinned action allows only read tools by default, so the worker grants `Bash` and `Skill` and accepts file edits. The skill needs `git`, `gh`, and the repository's checks.
+
 ## Delivery
 
 A main-only environment secret holds the compressed plugin marketplace. The runner restores it outside the checkout and supplies it through `plugin_marketplaces` and `plugins`. Reject an oversized encoded bundle before upload. This option adds no private guidance repository or second repository token.

@@ -133,7 +133,7 @@ jobs:
           trigger_phrase: '@shadowclone'
           plugin_marketplaces: \${{ env.SHADOWCLONE_GUIDANCE_DIRECTORY }}
           plugins: shadowclone-personal@shadowclone-personal
-          claude_args: '--max-turns 60 --append-system-prompt-file \${{ env.SHADOWCLONE_GUIDANCE_DIRECTORY }}/native.md'
+          claude_args: '--max-turns 60 --permission-mode acceptEdits --allowedTools Bash,Skill --append-system-prompt-file \${{ env.SHADOWCLONE_GUIDANCE_DIRECTORY }}/native.md'
           prompt: |
 ${options.prompt
   .split("\n")

@@ -29,6 +29,8 @@ test(
     );
     expect(worker).toContain("timeout-minutes: 20");
     expect(worker).toContain("show_full_output: false");
+    expect(worker).toContain("--permission-mode acceptEdits --allowedTools Bash,Skill");
+    expect(worker).toContain("Never push to the default branch.");
 
     for (const action of Object.values(actionPins)) {
       expect(action).toMatch(/@[a-f0-9]{40}$/);
