@@ -40,7 +40,7 @@ The fixed four-setup benchmark uses independently authored synthetic tasks, a ta
 
 Explicitly authorized scored execution sends the synthetic repository, prompts, and selected guidance to the selected provider. Generated responses, code, traces, frozen inputs, learning receipts, scores, and identifying local paths remain in private evaluation storage outside every checkout. Generated execution evidence never becomes learning input. The older three-setup delivery benchmark requires no learning and remains separate. See [fixed preference evals](guides/fixed-evals.md).
 
-Transcript parsers can encounter prompts, assistant responses, tool results, and thinking blocks while reading an enabled file. Tool-result payloads, tool-returned file contents, thinking, and data-access results are excluded from learning. Eligible prompts and responses can still contain sensitive information.
+Transcript parsers can encounter prompts, assistant responses, tool results, and thinking blocks while reading an enabled file. Tool-result payloads, tool-returned file contents, thinking, and data-access results are excluded from learning. Only user-authored text counts as learning evidence. Agent responses, presented plans, and agent questions reach the model only as labeled context next to a user correction. Eligible text can still contain sensitive information.
 
 Pi capture retains parent links across session branches. Its system and custom injected messages, compaction records, and branch summaries are excluded. Pi transcript consent is separate from Git metadata and skill maintenance. Session start records repository identity only when both Pi capture and Git metadata are enabled.
 
