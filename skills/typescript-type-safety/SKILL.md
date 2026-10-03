@@ -32,3 +32,5 @@ Contain imprecise library types in one adapter returning a precise project type.
 ## Completion
 
 Valid states are constructible, invalid combinations are rejected, relationships survive the call path, and type and boundary checks pass.
+
+Report the type that now rejects the invalid state, one example the compiler rejects, and the typecheck and boundary test commands with their results. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.
