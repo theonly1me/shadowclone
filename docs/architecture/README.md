@@ -33,13 +33,7 @@ flowchart LR
     Claude --> Probe[Reviewed frozen guidance probe]
     Probe --> ProbeReceipt[Private response assertion receipt]
     ScopedHook --> Agents
-    Agents --> Tasks[Explicit task contract and private checkpoints]
-    Skills --> Tasks
-    Tasks --> Verification[Offline checks against the exact workspace]
-    Verification --> TaskReceipt[Private verification and review receipt]
-    Owner[Explicit repository action grants] --> Actions[Policy-checked Git and GitHub helpers]
-    TaskReceipt --> Actions
-    Actions --> GitHub[GitHub]
+    Agents --> GitHub[Pull requests through git and gh in the agent session]
     Agents --> Sessions
     Learning --> PiBridge[Private Pi model bridge]
     PiBridge --> PiRegistry[Pi provider-neutral registry, empty tools]
