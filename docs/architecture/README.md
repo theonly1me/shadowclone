@@ -75,20 +75,20 @@ flowchart LR
 
 ## Components
 
-| Component | Responsibility |
-| --- | --- |
-| `src/config/` | Source consent and managed policy |
-| `src/observe/`, `src/index/` | Incremental transcript parsing and a rebuildable pointer index |
-| `src/redact/`, `src/signal/` | Materialize eligible excerpts and identify learning evidence |
-| `src/distill/`, `src/learning/` | Reconcile guidance within shared call, time, and supported cost limits |
-| `src/environment/` | Store evidence, publish skills, migrate installations, and preserve originals |
-| `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows |
-| `src/builds/`, `src/web/` | Apply reviewed skill selections through terminal and browser interfaces |
-| `src/integrations/`, `src/harness/` | Install native guidance and repository instructions/checks |
-| `src/engine/` | Invoke authenticated agent CLIs |
-| `src/cloud/` | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows |
-| `src/eval/`, `src/changes/` | Run fixed four-setup benchmarks and historical studies, record workflow outcomes, and retain reversible file revisions |
-| `src/profile/` | Legacy profile compatibility and the reconciliation boundary |
+| Component                              | Responsibility                                                                                                         |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `src/config/`                          | Source consent and managed policy                                                                                      |
+| `src/observe/`, `src/index/`           | Incremental transcript parsing and a rebuildable pointer index                                                         |
+| `src/redact/`, `src/signal/`           | Materialize eligible excerpts and identify learning evidence                                                           |
+| `src/distill/`, `src/learning/`        | Reconcile guidance within shared call, time, and supported cost limits                                                 |
+| `src/environment/`                     | Store evidence, publish skills, migrate installations, and preserve originals                                          |
+| `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows                                        |
+| `src/builds/`, `src/web/`              | Apply reviewed skill selections through terminal and browser interfaces                                                |
+| `src/integrations/`, `src/harness/`    | Install native guidance and repository instructions/checks                                                             |
+| `src/engine/`                          | Invoke authenticated agent CLIs                                                                                        |
+| `src/cloud/`                           | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows                                |
+| `src/eval/`, `src/changes/`            | Run fixed four-setup benchmarks and historical studies, record workflow outcomes, and retain reversible file revisions |
+| `src/profile/`                         | Legacy profile compatibility and the reconciliation boundary                                                           |
 
 The learning service coordinates model execution, reconciliation, pending decisions, and persistence for both CLI and background paths. Its maintenance service selects the active environment or legacy fallback; the skill-maintenance package supplies library primitives and retains a compatibility entry point. The CLI owns prompts and presentation. Source authorization is checked at selection and again when a reference is resolved. Automatic skill writes require separate authorization. Reviewed build edits use the same publication and revision machinery as learning. Later corrections create review signals. An explicitly authorized probe sends redacted installed guidance into an isolated native session; its exact-response assertion does not establish hook delivery or future compliance.
 
