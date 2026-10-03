@@ -16,6 +16,7 @@ test("all installs every supported main-agent adapter", () => {
     "codex",
     "cursor",
     "antigravity",
+    "pi",
   ]);
 });
 

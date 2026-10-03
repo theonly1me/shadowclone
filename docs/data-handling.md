@@ -18,6 +18,7 @@ Source access does not by itself authorize automatic skill edits. Disabling a so
 | `claude-prompts` | `~/.claude/history.jsonl` |
 | `codex` | Sessions under `~/.codex/sessions/`, or `$CODEX_HOME/sessions/` |
 | `cursor` | Chat databases and metadata under `~/.cursor/chats/` |
+| `pi` | Version 3 session JSONL under `~/.pi/agent/sessions/`, or `$PI_CODING_AGENT_DIR/sessions/`; original files remain untouched |
 | `antigravity` | Generated conversation logs under `~/.gemini/antigravity-cli/brain/` |
 | `antigravity-workspaces` | `~/.gemini/antigravity-cli/history.jsonl` for workspace attribution |
 | `shell` | `~/.zsh_history` and `~/.bash_history` |
@@ -40,6 +41,8 @@ Explicitly authorized scored execution sends the synthetic repository, prompts, 
 
 Transcript parsers can encounter prompts, assistant responses, tool results, and thinking blocks while reading an enabled file. Tool-result payloads, tool-returned file contents, thinking, and data-access results are excluded from learning. Eligible prompts and responses can still contain sensitive information.
 
+Pi capture retains parent links across session branches. Its system and custom injected messages, compaction records, and branch summaries are excluded. Pi transcript consent is separate from Git metadata and skill maintenance. Session start records repository identity only when both Pi capture and Git metadata are enabled.
+
 ## What reaches a model
 
 | Operation | Provider access |
@@ -53,6 +56,8 @@ Transcript parsers can encounter prompts, assistant responses, tool results, and
 | Evaluation | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction |
 
 First-time interactive `learn` can offer setup, which may make an authorized first learning pass. A deep dry run still calls a model.
+
+Pi session learning uses a private, token-authenticated socket to the running harness's provider-neutral model API. The directory is private to the user and disappears on shutdown. Only prepared redacted input reaches the model, with no tools or coding-session context. Standalone requests use temporary private files, remove them in cleanup, and invoke the installed Pi CLI. Pi retains provider configuration and credential resolution, including its trusted extensions and environment-backed custom provider credentials. Shadowclone stores only model references. A missing live bridge or selected model fails without a provider fallback.
 
 Eligible source text crosses the shared redaction boundary before learning or context import. Redaction detects known token, host, path, and entropy patterns. It can miss confidential prose, personal information, and unusual secrets, and can remove harmless text. It is not an anonymity guarantee.
 

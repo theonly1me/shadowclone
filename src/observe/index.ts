@@ -12,6 +12,7 @@ import { observeClaudePromptsFile } from "./adapters/claudePrompts";
 import { discoverCodexFiles, observeCodexFile } from "./adapters/codex";
 import { discoverCursorFiles, observeCursorFile } from "./adapters/cursor";
 import { observeShellFile } from "./adapters/shell";
+import { discoverPiFiles, observePiFile } from "./adapters/pi";
 import type { CursorLookup, ObservationBatch } from "./types";
 
 export type {
@@ -43,6 +44,12 @@ export async function* observeAll(options: {
   readonly paths: ProjectPaths;
   readonly getCursor: CursorLookup;
 }): AsyncIterable<ObservationBatch> {
+  if (options.config.sources.pi) {
+    for (const sourcePath of await discoverPiFiles(options.paths.piSessionsDirectory)) {
+      const batch = await observePiFile({ sourcePath, cursor: await options.getCursor(sourcePath) });
+      if (batch) yield batch;
+    }
+  }
   if (options.config.sources.antigravity) {
     const sourcePaths = await discoverAntigravityFiles(
       options.paths.antigravityBrainDirectory,

@@ -7,6 +7,7 @@ test("reports provider support as three independent levels", () => {
     "codex: observe=yes, distill=yes, dispatch=no",
     "cursor: observe=yes, distill=yes, dispatch=no",
     "antigravity: observe=yes, distill=no, dispatch=no",
+    "pi: observe=yes, distill=yes, dispatch=no",
   ]);
 });
 

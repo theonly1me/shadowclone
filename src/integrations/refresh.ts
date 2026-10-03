@@ -19,7 +19,7 @@ export async function refreshIntegrations(
   let preserved = 0;
 
   for (const integration of await readIntegrations(paths)) {
-    if (integration.agent === "claude-code" || integration.agent === "codex") {
+    if (integration.agent === "claude-code" || integration.agent === "codex" || integration.agent === "pi") {
       await ensureHookRunner({ paths });
     }
     const profile = await compileContext({

@@ -26,7 +26,7 @@ flowchart LR
     Build[Reviewed terminal or browser choices] --> Publish
     Publish --> Skills[Baseline and workflow skills]
     Publish --> Routing[Short native rules and skill routing]
-    Routing --> Claude[Claude Code and Codex native files]
+    Routing --> Claude[Claude Code, Codex, and Pi native files]
     Routing --> ScopedHook[Repository scoped session context]
     Skills --> Agents[Coding agents]
     Claude --> Agents
@@ -41,6 +41,9 @@ flowchart LR
     TaskReceipt --> Actions
     Actions --> GitHub[GitHub]
     Agents --> Sessions
+    Learning --> PiBridge[Private Pi model bridge]
+    PiBridge --> PiRegistry[Pi provider-neutral registry, empty tools]
+    PiRegistry --> Models[Model configured in Pi]
     Skills --> Eval[Preference study]
     Original[Original library and instructions] --> Eval
     FixedFixtures[Fixed synthetic tasks and independent target profile] --> FixedEval[Four-setup preference regression suite]

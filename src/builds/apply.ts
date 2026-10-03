@@ -4,6 +4,7 @@ import { readLocalText } from "../localFiles";
 import { acquireLocalLock } from "../localFiles/lock";
 import { publishEnvironmentRevision } from "../environment/revision";
 import type { BuildContext, BuildPlan } from "./types";
+import { ensureHookRunner } from "../integrations/hookRunner";
 
 export async function applyBuild(
   options: BuildContext & { readonly plan: BuildPlan },
@@ -32,6 +33,10 @@ export async function applyBuild(
           "The build changed after preview; review a fresh preview before applying",
         );
       }
+    }
+
+    if (options.plan.updates.some(update => update.filePath.endsWith("/extensions/shadowclone.js"))) {
+      await ensureHookRunner({ paths: options.paths });
     }
 
     return await publishEnvironmentRevision({

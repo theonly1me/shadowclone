@@ -24,6 +24,7 @@ export const engineIds = [
   "antigravity",
   "anthropic-api",
   "openai-compatible",
+  "pi",
 ] as const;
 
 export const defaultManagedPolicy: ManagedPolicy = {
@@ -90,6 +91,7 @@ export function applyManagedPolicy(options: {
         sourceAllowed("claude-prompts"),
       codex: options.config.sources.codex && sourceAllowed("codex"),
       cursor: options.config.sources.cursor && sourceAllowed("cursor"),
+      pi: options.config.sources.pi && sourceAllowed("pi"),
       "declared-rules":
         options.config.sources["declared-rules"] &&
         sourceAllowed("declared-rules"),
@@ -104,6 +106,7 @@ export function applyManagedPolicy(options: {
         sourceAllowed("skill-library"),
     },
     distillation: {
+      ...options.config.distillation,
       automatic:
         options.config.distillation.automatic === true &&
         options.config.distillation.deep &&

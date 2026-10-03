@@ -27,6 +27,7 @@ import { bindHistoricalRepository, listHistoricalRepositories } from "../learnin
 import { writeLearningReceipt } from "../learning/receipt";
 import path from "node:path";
 import { acquireLocalLock } from "../localFiles/lock";
+import { selectLearningPreferences, type LearningPreferences } from "../learning/modelPreferences";
 
 export type SetupEngine = {
   readonly engine: EngineId;
@@ -38,21 +39,24 @@ export async function createSetupEngine(options: {
   readonly policy: ManagedPolicy;
   readonly engine?: EngineId;
   readonly runner?: EngineRunner;
+  readonly preferences?: LearningPreferences;
 }): Promise<SetupEngine | null> {
+  const selected = selectLearningPreferences({ explicit: options, saved: options.preferences });
   const detected = options.runner
     ? null
     : await detectEngine({
         purpose: "distill",
-        allowedEngines: options.engine
-          ? [options.engine]
-          : options.policy.allowedEngines,
+        allowedEngines: options.policy.allowedEngines,
+        preferredEngine: selected.engine,
+        model: selected.model,
       });
-  const engine = options.engine ?? detected?.selectedEngine;
+  const engine = selected.engine ?? detected?.selectedEngine;
   const runner = options.runner ?? detected?.runner;
 
   if (!engine || !runner) {
     return null;
   }
+  if (!options.policy.allowedEngines.includes(engine)) throw new Error("Managed policy blocks the selected learning engine");
 
   return {
     engine,

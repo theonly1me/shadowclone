@@ -9,6 +9,7 @@ import {
 export async function resolveLearningExecution(options: {
   readonly runner?: EngineRunner;
   readonly engine?: EngineId;
+  readonly model?: string;
   readonly execution?: LearningExecution;
   readonly allowedEngines: readonly EngineId[];
 }): Promise<{
@@ -21,14 +22,18 @@ export async function resolveLearningExecution(options: {
     : await detectEngine({
         purpose: "distill",
         allowedEngines: options.allowedEngines,
+        preferredEngine: options.engine,
+        model: options.model,
       });
 
-  const runner = options.runner ?? detection?.runner;
+  const selectedRunner = options.runner ?? detection?.runner;
+  const runner = selectedRunner && options.model ? (run: Parameters<EngineRunner>[0]) => selectedRunner({ ...run, model: options.model }) : selectedRunner;
   const engine = options.engine ?? detection?.selectedEngine;
 
   if (!runner || !engine) {
     throw new Error("No authenticated learning engine is available");
   }
+  if (!options.allowedEngines.includes(engine)) throw new Error("Managed policy blocks the selected learning engine");
 
   const execution =
     options.execution ?? createLearningExecution({ engine, runner });

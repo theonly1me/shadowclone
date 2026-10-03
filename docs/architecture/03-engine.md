@@ -11,10 +11,13 @@ The registry in `src/provider/` records capabilities independently from installa
 | `claude-code` | Implemented | Structured output, isolated no-tools execution, caller session IDs, dollar budgets, granular tool policy |
 | `codex` | Implemented | Structured output and isolated no-tools execution; no native dollar ceiling in this adapter |
 | `cursor-agent` | Implemented | Prompted structured output and isolated no-tools execution; no native dollar ceiling in this adapter |
+| `pi` | Implemented through an owned extension | Prepared model input and empty tools through Pi's registry; bounded private bridge, exact model selection, no dollar ceiling; dispatch and evaluation unavailable |
 | `antigravity` | Not implemented | Capture and native guidance are separate from engine support |
 | `anthropic-api`, `openai-compatible` | Not implemented | Reserved engine identifiers |
 
 Observation support does not imply permission to run learning or delegated tasks. An unsupported security option must fail before spawning the process. Provider compatibility needs live checks in addition to argument and parser tests.
+
+Learning selection follows explicit command options, a triggering session's harness and model, saved distillation preferences, then detection. A selected unavailable or blocked harness does not silently fall back. Pi model references use exact `provider/model` identifiers from the harness's available model catalog.
 
 ## Execution purposes
 
@@ -37,6 +40,8 @@ Attempts, failures, and timeouts consume calls. A deadline aborts the provider r
 ## Isolation and process handling
 
 Learning adapters disable tools, hooks, MCP access, ambient instructions, and native memory through provider-specific controls. An empty auto-approval list alone is not a no-tools boundary. Prompt text and settings use controlled input channels, and provider output is bounded.
+
+Pi's extension bypasses the coding agent loop for learning by calling `modelRegistry.streamSimple` with only prepared messages and an empty tool set. Live session requests use a private authenticated socket, preserving session-registered providers. Standalone requests invoke an extension command in the installed Pi CLI from an empty temporary directory. Trusted global provider extensions and Pi credential resolution remain available; ambient coding instructions and tools do not enter the nested request. Pi dispatch and evaluation remain disabled because its tool loop lacks qualified enforcement of Shadowclone's execution restrictions.
 
 Dispatch and evaluation use purpose-specific filesystem and process restrictions. Verification is a separate no-network process without provider credentials. Unsupported isolation fails before the affected operation. Authentication refresh may need to happen outside the restricted run.
 

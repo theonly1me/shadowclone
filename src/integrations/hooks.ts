@@ -7,6 +7,7 @@ import { readIntegrations, saveIntegration } from "./state";
 import type { Integration, IntegrationOptions } from "./types";
 import { bindNativeSessionOrigin, nativeBindingTimestamp } from "./bindings";
 import { readEnvironment } from "../environment/store";
+import { readEffectiveConfig } from "../config";
 
 const inputSchema = z
   .object({
@@ -88,7 +89,7 @@ export async function nativeSessionStart(
 
   const environment = await readEnvironment(paths);
   const scopedDelivery = environment?.phase === "active" &&
-    (integration.agent === "claude-code" || integration.agent === "codex");
+    (integration.agent === "claude-code" || integration.agent === "codex" || integration.agent === "pi");
   const profile = await compileContext({
     ...options,
     paths,
@@ -130,6 +131,8 @@ export async function nativeSessionStart(
     integration: { ...integration, deliveredAt: Date.now() },
   });
 
+  if (integration.agent === "pi") return { additionalContext };
+
   if (integration.agent === "cursor") {
     return { additional_context: additionalContext };
   }
@@ -170,7 +173,15 @@ export async function nativeSessionEnd(
     return null;
   }
 
-  const nativeId = nativeSessionId(parseInput(options.input));
+  const input = parseInput(options.input);
+  if (integration.agent === "pi") {
+    const integrations = await readIntegrations(paths);
+    if (!activeIntegration({ integration, integrations, cwd: canonicalPath(input.cwd ?? process.cwd()) })) return null;
+    const { config } = await readEffectiveConfig({ configPath: options.configPath ?? paths.configFile,
+      managedConfigPath: options.managedConfigPath === undefined ? paths.managedConfigFile : options.managedConfigPath });
+    if (!config.sources.pi) return null;
+  }
+  const nativeId = nativeSessionId(input);
 
   if (!nativeId) {
     return null;

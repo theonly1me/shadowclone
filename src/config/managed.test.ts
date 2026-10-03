@@ -19,6 +19,7 @@ test("managed policy can only narrow user source consent", () => {
       "claude-prompts": true,
       codex: false,
       cursor: false,
+      pi: true,
       "declared-rules": true,
       "git-metadata": true,
       "repository-manifests": true,
@@ -75,4 +76,16 @@ test("rejects unknown engines in managed policy", () => {
       maxActionTier: "draft",
     }),
   ).toThrow("invalid or missing fields");
+});
+
+test("managed policy retains harness and model selections while narrowing learning permissions", () => {
+  for (const engine of ["claude-code", "codex", "cursor-agent", "pi"] as const) {
+    const preferences = { deep: true, automatic: true, engine, model: "synthetic-model" };
+    const config = { ...defaultConfig, distillation: preferences };
+    expect(applyManagedPolicy({ config, policy: defaultManagedPolicy }).distillation).toEqual(preferences);
+    const restricted = applyManagedPolicy({ config, policy: {
+      ...defaultManagedPolicy, allowedEngines: [], distillation: "disabled",
+    } });
+    expect(restricted.distillation).toEqual({ ...preferences, deep: false, automatic: false });
+  }
 });

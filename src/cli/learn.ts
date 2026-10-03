@@ -13,6 +13,7 @@ import { prepareManualLearning } from "./learnPreparation";
 import { writeLearningReceipt } from "../learning/receipt";
 import path from "node:path";
 import { acquireLocalLock } from "../localFiles/lock";
+import { selectLearningPreferences } from "../learning/modelPreferences";
 
 export async function learn(
   options: LearnExecutionOptions = {},
@@ -126,8 +127,7 @@ export async function learn(
           dryRun: options.dryRun ?? false,
           apply: options.apply ?? false,
           ...(options.runner ? { runner: options.runner } : {}),
-          ...(options.engine ? { engine: options.engine } : {}),
-          ...(options.model ? { model: options.model } : {}),
+          ...selectLearningPreferences({ explicit: options, saved: config.distillation }),
           ...(options.reasoningEffort
             ? { reasoningEffort: options.reasoningEffort }
             : {}),
@@ -206,7 +206,7 @@ export async function learn(
               episodeCount: learningSignals.length,
               sourceCounts,
               proposalCount: result.changesProposed,
-              engine: result.engine, model: options.model ?? null, ruleKeys: [...result.ruleKeys],
+              engine: result.engine, model: selectLearningPreferences({ explicit: options, saved: config.distillation }).model ?? null, ruleKeys: [...result.ruleKeys],
               pendingCount,
               nextAction: pendingCount > 0
                 ? result.pendingReview > 0

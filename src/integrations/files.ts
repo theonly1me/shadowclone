@@ -7,6 +7,9 @@ import {
 } from "./markdown";
 import { integrationFilePath, integrationTargets } from "./targets";
 import type { Integration, IntegrationFile } from "./types";
+import { renderPiExtension } from "./piExtension";
+import { readIntegrations } from "./state";
+import { createProjectPaths } from "../paths";
 
 export type IntegrationFileChange = {
   readonly filePath: string;
@@ -22,6 +25,7 @@ export async function prepareIntegrationFiles(options: {
   readonly environment?: boolean;
 }): Promise<readonly IntegrationFileChange[]> {
   const changes: IntegrationFileChange[] = [];
+  const integrations = await readIntegrations(createProjectPaths({ homeDirectory: options.integration.userDirectory, platform: process.platform }));
 
   for (const target of integrationTargets(options.integration)) {
     const filePath = integrationFilePath({
@@ -29,9 +33,13 @@ export async function prepareIntegrationFiles(options: {
       file: target,
     });
     const previous = await readLocalText(filePath);
+    const shared = integrations.flatMap((integration) => integration.id === options.integration.id ? [] :
+      integration.files.filter((file) => integrationFilePath({ integration, file }) === filePath));
     const recorded = options.integration.files.find(
       (file) => file.relativePath === target.relativePath,
-    );
+    ) ?? shared[0];
+
+    if (options.remove && shared.length > 0) continue;
 
     if (options.remove && (!recorded || previous === null)) {
       continue;
@@ -61,18 +69,20 @@ export async function prepareIntegrationFiles(options: {
       if (options.remove && recorded?.created && emptyHookConfig(next)) {
         next = null;
       }
-    } else if (target.kind === "skill") {
+    } else if (target.kind === "skill" || target.kind === "extension") {
       if (
         previous !== null &&
-        (!recorded || fingerprint(previous) !== recorded.fingerprint)
+        (!recorded || (fingerprint(previous) !== recorded.fingerprint &&
+          !shared.some(file => file.kind === target.kind && file.fingerprint === fingerprint(previous))))
       ) {
         throw new Error(
-          "Integration skill was edited or already exists; preserving it",
+          "Integration skill or extension was edited or already exists; preserving it",
         );
       }
 
       next = options.remove
         ? null
+        : target.kind === "extension" ? renderPiExtension(options.integration)
         : `${renderContextSkill(options.environment)}\n`;
       digest = fingerprint(next ?? "");
     } else {

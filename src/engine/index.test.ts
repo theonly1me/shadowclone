@@ -158,6 +158,8 @@ test("detects authenticated engines in selection order", async () => {
     "codex login status",
     "cursor-agent --version",
     "cursor-agent status",
+    "pi --version",
+    "pi --list-models",
   ]);
   expect(detection.availability[0]?.authenticated).toBeTrue();
   expect(detection.selectedEngine).toBe("claude-code");

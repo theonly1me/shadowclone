@@ -1,13 +1,37 @@
 import path from "node:path";
 import { z } from "zod";
-import { readLocalText, replaceLocalText } from "../localFiles";
+import { fingerprint, readLocalText, replaceLocalText } from "../localFiles";
 import type { ProjectPaths } from "../paths";
 import { integrationSchema, type Integration } from "./types";
+import { integrationFilePath } from "./targets";
 
 const stateSchema = z.strictObject({
   version: z.literal(1),
   integrations: z.array(integrationSchema),
 });
+
+async function remainingSharedOwners(options: {
+  readonly integration: Integration;
+  readonly remaining: readonly Integration[];
+}): Promise<readonly Integration[]> {
+  const verified = new Map<string, string>();
+  for (const file of options.integration.files) {
+    if (file.kind !== "skill") continue;
+    const filePath = integrationFilePath({ integration: options.integration, file });
+    const current = await readLocalText(filePath);
+    if (current !== null && fingerprint(current) === file.fingerprint) {
+      verified.set(filePath, file.fingerprint);
+    }
+  }
+  return options.remaining.map(integration => ({
+    ...integration,
+    files: integration.files.map(file => {
+      if (file.kind !== "skill") return file;
+      const digest = verified.get(integrationFilePath({ integration, file }));
+      return digest ? { ...file, fingerprint: digest } : file;
+    }),
+  }));
+}
 
 export async function readIntegrations(
   paths: ProjectPaths,
@@ -55,10 +79,13 @@ export async function saveIntegration(options: {
   const kept = integrations.filter(
     (entry) => entry.id !== options.integration.id,
   );
+  const updated = options.remove
+    ? await remainingSharedOwners({ integration: options.integration, remaining: kept })
+    : [...kept, options.integration];
 
   await replaceLocalText({
     filePath,
     previous,
-    next: `${JSON.stringify({ version: 1, integrations: options.remove ? kept : [...kept, options.integration] }, null, 2)}\n`,
+    next: `${JSON.stringify({ version: 1, integrations: updated }, null, 2)}\n`,
   });
 }

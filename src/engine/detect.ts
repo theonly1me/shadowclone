@@ -7,6 +7,7 @@ import {
 import { runClaudeCode } from "./claudeCode";
 import { runCodex } from "./codex";
 import { runCursorAgent } from "./cursorAgent";
+import { availablePiModels, runPi } from "./pi";
 
 export type CommandProbe = (options: {
   readonly command: readonly string[];
@@ -66,6 +67,7 @@ export async function detectCursorAgent(
 }
 
 function getEngineRunner(engineId: EngineId): EngineRunner | null {
+  if (engineId === "pi") return runPi;
   if (engineId === "claude-code") {
     return runClaudeCode;
   }
@@ -100,6 +102,8 @@ export async function detectEngine(options: {
   readonly purpose: EnginePurpose;
   readonly probe?: CommandProbe;
   readonly allowedEngines?: readonly EngineId[];
+  readonly preferredEngine?: EngineId;
+  readonly model?: string;
 }): Promise<{
   readonly availability: readonly EngineAvailability[];
   readonly runner: EngineRunner | null;
@@ -108,17 +112,20 @@ export async function detectEngine(options: {
   const claudeCode = await detectClaudeCode(options);
   const codex = await detectCodex(options);
   const cursorAgent = await detectCursorAgent(options);
+  const pi = await detectPi(options);
 
   const allowed = options.allowedEngines ?? [
     "claude-code",
     "codex",
     "cursor-agent",
+    "pi",
   ];
-  const availability = [claudeCode, codex, cursorAgent];
+  const availability = [claudeCode, codex, cursorAgent, pi];
 
   const selected = availability.find(
     (candidate) =>
       candidate.authenticated &&
+      (!options.preferredEngine || candidate.engine === options.preferredEngine) &&
       allowed.includes(candidate.engine) &&
       supportsPurpose({
         engineId: candidate.engine,
@@ -129,7 +136,20 @@ export async function detectEngine(options: {
 
   return {
     availability,
-    runner,
+    runner: runner && options.model ? (run) => runner({ ...run, model: run.model ?? options.model }) : runner,
     selectedEngine: runner ? (selected?.engine ?? null) : null,
   };
+}
+
+export async function detectPi(options: {
+  readonly probe?: CommandProbe;
+  readonly environment?: Readonly<Record<string, string | undefined>>;
+} = {}): Promise<EngineAvailability> {
+  const environment = options.environment ?? process.env;
+  const live = Boolean(environment.SHADOWCLONE_PI_SOCKET && environment.SHADOWCLONE_PI_TOKEN);
+  const installed = live || await (options.probe ?? probeCommand)({ command: ["pi", "--version"] });
+  const authenticated = installed && (options.probe
+    ? await options.probe({ command: ["pi", "--list-models"] })
+    : (await availablePiModels({ environment }).catch(() => [])).length > 0);
+  return { engine: "pi", installed, authenticated };
 }

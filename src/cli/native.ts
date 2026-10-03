@@ -18,9 +18,10 @@ import { canonicalPath, projectPaths } from "../paths";
 import { installLiveClone } from "./install";
 import { uninstallLiveClone } from "./uninstall";
 import { removeUneditedLegacySubagent } from "./legacyUpgrade";
-import { scheduleLearning } from "../learning";
+import { scheduleLearning, runAutomaticLearning } from "../learning";
 import { explainContext, renderContextExplanation } from "./contextExplain";
 import { harnessSyncCommand } from "./harnessSync";
+import { nativeModelSchema } from "./automaticLearning";
 
 export async function installNativeCommand(
   options: NativeInstallOptions,
@@ -81,7 +82,7 @@ export async function handleNativeCommand(options: {
 
     if (!parsed) {
       throw new Error(
-        "Use --agent claude-code|codex|cursor|antigravity|all and --global or --local; subagents require local Claude installation",
+        "Use --agent claude-code|codex|cursor|antigravity|pi|all and --global or --local; subagents require local Claude installation",
       );
     }
 
@@ -181,13 +182,19 @@ export async function handleNativeCommand(options: {
     }
 
     if (event === "native-end") {
+      const input = await Bun.stdin.text();
       const sessionKey = await nativeSessionEnd({
         id,
-        input: await Bun.stdin.text(),
+        input,
       });
 
       if (sessionKey) {
-        await scheduleLearning({ sessionKeys: [sessionKey] });
+        const selection = nativeModelSchema.parse(JSON.parse(input || "{}"));
+        if (selection.engine === "pi" && process.env.SHADOWCLONE_PI_SOCKET) {
+          await runAutomaticLearning({ sessionKeys: [sessionKey], ...selection });
+        } else {
+          await scheduleLearning({ sessionKeys: [sessionKey], ...selection });
+        }
       }
 
       return true;

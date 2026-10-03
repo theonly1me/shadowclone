@@ -24,6 +24,7 @@ const engineKeys: Readonly<Record<EngineId, readonly string[]>> = {
   ],
   codex: ["OPENAI_API_KEY", "OPENAI_BASE_URL"],
   "cursor-agent": ["CURSOR_API_KEY"],
+  pi: ["PI_CODING_AGENT_DIR"],
   antigravity: ["GEMINI_API_KEY", "GOOGLE_API_KEY"],
   "anthropic-api": ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL"],
   "openai-compatible": ["OPENAI_API_KEY", "OPENAI_BASE_URL"],
@@ -44,6 +45,9 @@ export function runnerEnvironment(options: {
   readonly source?: Readonly<Record<string, string | undefined>>;
 }): Record<string, string> {
   const source = options.source ?? process.env;
+  if (options.engine === "pi") {
+    return Object.fromEntries(Object.entries(source).filter((entry): entry is [string, string] => entry[1] !== undefined));
+  }
   const keys = engineKeys[options.engine];
   const environment: Record<string, string> = {};
 

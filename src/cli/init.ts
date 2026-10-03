@@ -26,6 +26,7 @@ import {
   type OnboardingPresence,
 } from "./onboardingPresence";
 import type { InitializeConsent } from "./initOptions";
+import { chooseLearningModel } from "./initModels";
 
 export type { ConsentPrompt } from "./initAdvanced";
 
@@ -109,7 +110,11 @@ export async function initialize(
     throw new Error("Background learning requires session learning");
   }
 
-  const config = initialConfiguration({ learn, skills, background, presence });
+  const initial = initialConfiguration({ learn, skills, background, presence });
+  const selection = learn && agents.includes("pi") && options.consent === undefined && !options.runner
+    ? await chooseLearningModel({ paths, answer: options.answer, writeLine }) : null;
+  const config = { ...initial, distillation: { ...initial.distillation,
+    ...(selection ? { engine: selection.engine, model: selection.model } : {}) } };
 
   await writeConfig({ config, configPath });
 
@@ -133,6 +138,7 @@ export async function initialize(
         policy,
         engine: options.engine,
         runner: options.runner,
+        preferences: config.distillation,
       })
     : null;
 

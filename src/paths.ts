@@ -34,6 +34,8 @@ export type ProjectPaths = {
   readonly claudePromptHistoryFile: string;
   readonly codexSessionsDirectory: string;
   readonly cursorChatsDirectory: string;
+  readonly piAgentDirectory: string;
+  readonly piSessionsDirectory: string;
   readonly shellHistoryFiles: readonly string[];
   readonly managedConfigFile: string | null;
   readonly runDirectory: (runId: string) => string;
@@ -56,6 +58,7 @@ export function createProjectPaths(options: {
   readonly homeDirectory: string;
   readonly platform: NodeJS.Platform;
   readonly codexHomeDirectory?: string;
+  readonly piAgentDirectory?: string;
 }): ProjectPaths {
   const shadowcloneDirectory = path.join(
     canonicalPath(options.homeDirectory),
@@ -102,6 +105,8 @@ export function createProjectPaths(options: {
       "sessions",
     ),
     cursorChatsDirectory: path.join(options.homeDirectory, ".cursor", "chats"),
+    piAgentDirectory: options.piAgentDirectory ?? path.join(options.homeDirectory, ".pi", "agent"),
+    piSessionsDirectory: path.join(options.piAgentDirectory ?? path.join(options.homeDirectory, ".pi", "agent"), "sessions"),
     shellHistoryFiles: [
       path.join(options.homeDirectory, ".zsh_history"),
       path.join(options.homeDirectory, ".bash_history"),
@@ -117,4 +122,5 @@ export const projectPaths = createProjectPaths({
   homeDirectory: os.homedir(),
   platform: process.platform,
   codexHomeDirectory: process.env.CODEX_HOME,
+  piAgentDirectory: process.env.PI_CODING_AGENT_DIR,
 });

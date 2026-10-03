@@ -4,6 +4,7 @@ import { readLocalText, fingerprint } from "../localFiles";
 import type { ProjectPaths } from "../paths";
 import { prepareIntegrationFiles } from "../integrations/files";
 import { readIntegrations } from "../integrations/state";
+import { sharedIntegrationUpdates } from "../integrations/sharedUpdates";
 import { learningScopes } from "./scope";
 import { renderSkillRouting } from "./context";
 import type { EnvironmentState } from "./types";
@@ -98,7 +99,7 @@ export async function nativePublication(options: {
 
   return {
     state: options.state,
-    updates: updates.filter(
+    updates: sharedIntegrationUpdates(updates).filter(
       ({ previous, next }) =>
         fingerprint(previous ?? "") !== fingerprint(next ?? ""),
     ),

@@ -30,6 +30,8 @@ Shared repository files require review because they can publish personal guidanc
 
 Learning uses a no-tools engine request with shared limits. Authorized coding runs expose a worktree to the selected provider. Evaluation exposes synthetic task workspaces and the tested setup's guidance, and judges receive generated code without redaction to preserve its meaning. These are distinct input contracts.
 
+Pi learning supplies prepared messages and an empty tool set through its model registry. A private socket with a per-session token connects a worker to a live Pi extension; standalone requests use owner-only temporary files and the installed Pi CLI. Neither path supplies the coding conversation or its system prompt. Provider credentials remain available to Pi's configured providers and extensions, outside the learning input. Pi dispatch and evaluation remain disabled because their action restrictions are unqualified.
+
 Candidate writes and verification have separate operating-system restrictions. Verification receives no provider credentials or network access. Unknown spend or unavailable required isolation stops the affected workflow.
 
 The browser server binds to loopback, serves bundled assets, validates origins, and authenticates requests with an ephemeral token. Opening it does not enable capture. Optional model descriptions preview their input and destination and never become agent instructions.

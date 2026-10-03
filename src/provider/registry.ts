@@ -66,6 +66,22 @@ export const providerDefinitions: readonly ProviderDefinition[] = [
       },
     },
   },
+  {
+    id: "pi",
+    captureSource: "pi",
+    transcriptFormat: "jsonl",
+    engine: {
+      id: "pi",
+      implemented: true,
+      capabilities: {
+        structuredOutput: "prompted",
+        callerSessionId: false,
+        maxBudgetUsd: false,
+        granularToolPolicy: false,
+        isolatedNoTools: true,
+      },
+    },
+  },
 ];
 
 export function getProvider(providerId: ProviderId): ProviderDefinition {

@@ -36,6 +36,8 @@ export async function publishReviewedLearning(options: {
     config.distillation.deep && policy.distillation === "allowed") {
     const execution = options.execution ?? (await resolveLearningExecution({
       allowedEngines: policy.allowedEngines,
+      engine: config.distillation.engine,
+      model: config.distillation.model,
     })).execution;
     const summary = await updateLearningEnvironment({
       ...options,

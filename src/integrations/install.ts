@@ -21,13 +21,15 @@ export async function installIntegration(
   },
 ): Promise<Integration> {
   const paths = options.paths ?? projectPaths;
-  if (options.agent === "claude-code" || options.agent === "codex") {
+  if (options.agent === "claude-code" || options.agent === "codex" || options.agent === "pi") {
     await ensureHookRunner({ paths });
   }
   const cwd = canonicalPath(options.cwd ?? process.cwd());
   const home = path.dirname(paths.shadowcloneDirectory);
   const providerDirectory =
-    options.agent === "claude-code"
+    options.agent === "pi"
+      ? ".pi/agent"
+      : options.agent === "claude-code"
       ? ".claude"
       : options.agent === "codex"
         ? ".codex"
@@ -38,7 +40,9 @@ export async function installIntegration(
     options.scope === "repository"
       ? cwd
       : canonicalPath(
-          options.agent === "codex"
+          options.agent === "pi"
+            ? paths.piAgentDirectory
+            : options.agent === "codex"
             ? path.dirname(paths.codexSessionsDirectory)
             : path.join(home, providerDirectory),
         );
@@ -125,24 +129,26 @@ export async function uninstallIntegration(options: {
   readonly paths?: IntegrationOptions["paths"];
 }): Promise<void> {
   const paths = options.paths ?? projectPaths;
+  const integration = (await readIntegrations(paths)).find(entry => entry.id === options.integration.id);
+  if (!integration) return;
   const changes = await prepareIntegrationFiles({
-    integration: options.integration,
+    integration,
     profile: "",
     remove: true,
   });
 
   await applyIntegrationFiles(changes);
 
-  if (options.integration.scope === "repository") {
+  if (integration.scope === "repository") {
     await removeGitExcludes({
-      cwd: options.integration.directory,
-      patterns: options.integration.excludes,
+      cwd: integration.directory,
+      patterns: integration.excludes,
     });
   }
 
   await saveIntegration({
     paths,
-    integration: options.integration,
+    integration,
     remove: true,
   });
 }

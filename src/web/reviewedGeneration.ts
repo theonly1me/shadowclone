@@ -41,7 +41,7 @@ export function createReviewedGeneration<Output>(options: {
       }
 
       const connection = await generationEngine(options.context);
-      const key = fingerprint(`${connection.engine}\n${payload}`);
+      const key = fingerprint(JSON.stringify({ engine: connection.engine, model: connection.model ?? null, payload }));
       const id = crypto.randomUUID();
 
       reviews.clear();
@@ -49,7 +49,7 @@ export function createReviewedGeneration<Output>(options: {
 
       return {
         id,
-        destination: `${connection.engine} using its default model`,
+        destination: `${connection.engine} using ${connection.model ?? "its default model"}`,
         payload,
         limits: generationLimits(connection.engine),
         cached: cache.get(key) ?? null,

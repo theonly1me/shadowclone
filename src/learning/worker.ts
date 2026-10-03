@@ -1,4 +1,5 @@
 import { resolveLearningExecution } from "./execution";
+import { selectLearningPreferences } from "./modelPreferences";
 import { writeLearningReceipt, type LearningReceipt } from "./receipt";
 import path from "node:path";
 import { readEffectiveConfig } from "../config";
@@ -26,6 +27,7 @@ type LearningOptions = {
   readonly now?: number;
   readonly runner?: EngineRunner;
   readonly engine?: EngineId;
+  readonly model?: string;
   readonly readRemote?: GitRemoteReader;
   readonly reportSkills?: (summary: SkillUpdateSummary) => void;
   readonly execution?: LearningExecution;
@@ -93,6 +95,7 @@ export async function runLearningMaintenance(
     let pendingCount = 0;
     let outcome: LearningReceipt["outcome"] = "no-eligible-evidence";
     let receiptEngine: string | null = null;
+    let receiptModel: string | null = null;
     let ruleKeys: string[] = [];
 
     try {
@@ -134,11 +137,12 @@ export async function runLearningMaintenance(
         if (signals.length > 0 || effective.config.sources["skill-library"]) {
           const { engine, runner, execution } = await resolveLearningExecution({
             runner: options.runner,
-            engine: options.engine,
+            ...selectLearningPreferences({ triggered: options, saved: effective.config.distillation }),
             execution: options.execution,
             allowedEngines: effective.policy.allowedEngines,
           });
           receiptEngine = engine;
+          receiptModel = selectLearningPreferences({ triggered: options, saved: effective.config.distillation }).model ?? null;
 
           if (signals.length > 0) {
             const learned = await runLearningService({
@@ -205,7 +209,7 @@ export async function runLearningMaintenance(
             episodeCount,
             sourceCounts,
             proposalCount,
-            engine: receiptEngine, ruleKeys,
+            engine: receiptEngine, model: receiptModel, ruleKeys,
             pendingCount,
             nextAction: outcome === "needs-scope-or-publication"
               ? "Run shadowclone skills pending to review scope or publication."

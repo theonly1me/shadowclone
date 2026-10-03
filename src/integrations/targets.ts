@@ -12,6 +12,19 @@ export function integrationTargets(
 }[] {
   const global = integration.scope === "global";
 
+  if (integration.agent === "pi") {
+    return [
+      { relativePath: "AGENTS.md", kind: "instructions" },
+      { relativePath: global ? "extensions/shadowclone.js" : ".pi/extensions/shadowclone.js", kind: "extension" },
+      {
+        relativePath: global
+          ? path.relative(integration.directory, path.join(integration.userDirectory, ".agents/skills/shadowclone-context/SKILL.md"))
+          : ".agents/skills/shadowclone-context/SKILL.md",
+        kind: "skill",
+      },
+    ];
+  }
+
   if (integration.agent === "claude-code") {
     return [
       {

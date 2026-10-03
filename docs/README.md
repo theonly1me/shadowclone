@@ -8,6 +8,7 @@ Start with the [README](../README.md) to install Shadowclone and choose your fir
 | --- | --- |
 | [Agent builds](guides/agent-builds.md) | Choose, create, and equip skills |
 | [Learning](guides/learning.md) | Run deep learning, background learning, or record a preference |
+| [Pi setup](guides/pi.md) | Use Pi's models, skills, and consented sessions |
 | [Skill maintenance](guides/skills.md) | Review updates, conflicts, history, and undo |
 | [Repository setup](guides/repositories.md) | Share checks and skills with a repository |
 | [Delegated work](guides/delegated-work.md) | Carry an agent task through verification, review, and explicitly granted actions |

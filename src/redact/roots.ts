@@ -7,6 +7,7 @@ export function captureRoots(paths: ProjectPaths): readonly string[] {
     paths.claudePromptHistoryFile,
     paths.codexSessionsDirectory,
     paths.cursorChatsDirectory,
+    paths.piSessionsDirectory,
     ...paths.shellHistoryFiles,
   ];
 }
