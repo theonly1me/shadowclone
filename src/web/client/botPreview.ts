@@ -28,8 +28,9 @@ export function showBotPreview(options: {
       tag: "p",
       text:
         "Review every file below. Approval uploads this exact bundle to a GitHub " +
-        "environment for Claude subscription runs. The default-branch workflow and " +
-        "code executed with credentials remain trusted.",
+        "environment for Claude subscription runs. It also adds a ruleset so only " +
+        "people with write access can update the default branch. The default-branch " +
+        "workflow and code executed with credentials remain trusted.",
     }),
   );
 

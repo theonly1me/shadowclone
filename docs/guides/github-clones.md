@@ -54,12 +54,14 @@ The App private key, Claude subscription token, and guidance are secrets in the 
 
 The environment still trusts its default-branch workflows and code executed with credentials. An App installation token reaches the coding agent for Git and GitHub actions. The agent can run any shell command on the runner with that token. The private App key does not. The owner can change App permissions on GitHub, so inspect the installation when its access changes.
 
+Before it uploads any secret, setup adds the `shadowclone default branch` ruleset. Only people with the admin, maintain, or write role can update or delete the default branch, so the App cannot push to it or merge into it. People keep their access. Workflows that push to the default branch with `GITHUB_TOKEN` stop working, because GitHub Actions is not on the bypass list. Setup stops if a ruleset with that name has other settings. Rulesets need the same plan support as environments.
+
 Setup keeps App registration credentials in memory until the local server closes. It never reads an existing Claude credential store. The token travels through the loopback password request and GitHub CLI stdin. The exported bundle is frozen; later local guidance edits do not automatically upload.
 
 `shadowclone bot export --skill shadowclone-work --skill shadowclone-baseline --output <private-file>` writes a bounded bundle outside the checkout. It makes no upload. `shadowclone bot status` shows saved installation metadata and its setup PR link. GitHub Actions and the PR show live work status.
 
 ## Stop and remove
 
-Pause current work, cancel any remaining Actions run, and remove the two Shadowclone workflows and `.github/shadowclone/` through a reviewed PR. Delete the three secrets from the `shadowclone` environment. Uninstall or delete the App on GitHub. Remove local metadata under `~/.shadowclone/cloud/installations/` if it is no longer needed.
+Pause current work, cancel any remaining Actions run, and remove the two Shadowclone workflows and `.github/shadowclone/` through a reviewed PR. Delete the three secrets from the `shadowclone` environment and the `shadowclone default branch` ruleset. Uninstall or delete the App on GitHub. Remove local metadata under `~/.shadowclone/cloud/installations/` if it is no longer needed.
 
 Closing the setup server removes its in-memory preview and registration credentials. Export files remain until you delete them. GitHub and the selected provider apply their own retention policies to cloud runs and repository content.
