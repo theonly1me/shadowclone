@@ -2,13 +2,13 @@
 
 Shadowclone maintains guidance used by existing coding agents. Instruction files, skills, and memory remain part of that environment.
 
-| Approach | Useful for | Maintenance concern |
-| --- | --- | --- |
-| Repository instructions | Explicit project conventions | Keeping them current and readable by the chosen agents |
-| Personal skills | Reusable task workflows | Routing, ownership, supporting resources, and conflicting copies |
-| Native memory | Context carried between sessions | Scope, accuracy, retention, and correction |
-| Transcript analysis | Finding repeated steering and corrections | Consent and whether evidence justifies durable guidance |
-| Evaluation | Checking behavior under stated guidance | Fair baselines, judge errors, and correctness |
+| Approach                | Useful for                                | Maintenance concern                                              |
+| ----------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
+| Repository instructions | Explicit project conventions              | Keeping them current and readable by the chosen agents           |
+| Personal skills         | Reusable task workflows                   | Routing, ownership, supporting resources, and conflicting copies |
+| Native memory           | Context carried between sessions          | Scope, accuracy, retention, and correction                       |
+| Transcript analysis     | Finding repeated steering and corrections | Consent and whether evidence justifies durable guidance          |
+| Evaluation              | Checking behavior under stated guidance   | Fair baselines, judge errors, and correctness                    |
 
 ## Shadowclone’s role
 

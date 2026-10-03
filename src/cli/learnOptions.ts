@@ -14,12 +14,7 @@ export type LearnCommandOptions = {
 };
 
 function parseEngine(value: string): EngineId {
-  if (
-    value === "claude-code" ||
-    value === "codex" ||
-    value === "cursor-agent" ||
-    value === "pi"
-  ) {
+  if (value === "claude-code" || value === "codex" || value === "cursor-agent" || value === "pi") {
     return value;
   }
 
@@ -64,9 +59,7 @@ function optionValue(options: {
   return value;
 }
 
-export function parseLearnOptions(
-  arguments_: readonly string[],
-): LearnCommandOptions | null {
+export function parseLearnOptions(arguments_: readonly string[]): LearnCommandOptions | null {
   let deep = false;
   let dryRun = false;
   let apply = false;

@@ -4,13 +4,13 @@ This contributor benchmark measures learning fidelity and guidance delivery. The
 
 ## Fixed contract
 
-| Setup | Guidance |
-| --- | --- |
-| Agent alone | Shared repository requirements |
-| Existing user skills | Unchanged handwritten code-style skill |
-| Existing skills + Shadowclone routing | The same library with production initialization and native startup guidance |
+| Setup                                     | Guidance                                                                    |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| Agent alone                               | Shared repository requirements                                              |
+| Existing user skills                      | Unchanged handwritten code-style skill                                      |
+| Existing skills + Shadowclone routing     | The same library with production initialization and native startup guidance |
 | Existing skills + handwritten preferences | The routed library plus independently handwritten intended learned guidance |
-| Existing skills + Shadowclone learning | The routed library plus actual learning output |
+| Existing skills + Shadowclone learning    | The routed library plus actual learning output                              |
 
 The handwritten reference and learned guidance use the same delivery path. Neither receives answers appended to task prompts. Saved receipts call them `told` and `deep`. Their difference measures fidelity to intended guidance. Comparing learned guidance with routing measures the effect of learning. Neither comparison alone proves production throughput.
 
@@ -18,16 +18,16 @@ The [public cases](../../src/eval/fixed/reusable/cases/), [target specification]
 
 These synthetic fixtures are versioned source inputs. Each run materializes them into fresh disposable homes and repositories through the standard CLI. No custom sessions or handwritten setup scripts are needed. Credentials, held-out content, learned environments, and execution evidence remain in private storage.
 
-| Family | Development cases | Held-out cases | Headline weight |
-| --- | ---: | ---: | ---: |
-| Comments | 2 | 1 | 12.5% |
-| Types | 2 | 1 | 12.5% |
-| API conventions | 2 | 1 | 12.5% |
-| Git authorization | 2 | 1 | 12.5% |
-| Answer length | 2 | 1 | 12.5% |
-| Test-first behavior | 2 | 1 | 12.5% |
-| PR structure | 2 | 1 | 12.5% |
-| Scope and lifecycle | 2 | 1 | 12.5% |
+| Family              | Development cases | Held-out cases | Headline weight |
+| ------------------- | ----------------: | -------------: | --------------: |
+| Comments            |                 2 |              1 |           12.5% |
+| Types               |                 2 |              1 |           12.5% |
+| API conventions     |                 2 |              1 |           12.5% |
+| Git authorization   |                 2 |              1 |           12.5% |
+| Answer length       |                 2 |              1 |           12.5% |
+| Test-first behavior |                 2 |              1 |           12.5% |
+| PR structure        |                 2 |              1 |           12.5% |
+| Scope and lifecycle |                 2 |              1 |           12.5% |
 
 Eight held-out cases live in a private bundle outside every checkout. Only their [hashes and family coverage](../../src/eval/fixed/reusable/heldout-manifest.json) are public. Store the bundle in durable private storage and back it up independently; it cannot be reconstructed from hashes. Do not give it to an optimizer. Human reviewers inspect its case-and-verdict specification before freezing; candidates access its prompts only during qualification. Development uses the sixteen public cases.
 
@@ -115,12 +115,12 @@ bun run cli eval --protocol preference-respect-v3 --phase prepare \
 
 Choose `claude-code` for Claude. Choose `qualification` only after the separately budgeted preflight and case review. The optional full `development` run compares five setups on the sixteen public cases. Qualification retains all 24 cases, including saturated or ambiguous checks; it never drops a case based on results. To run the routing experiment choose `--experiment routing`, omit `--environments-file`, and use a new output directory.
 
-| Experiment | Sessions per model | Planned turns | Reserved retry turns | Candidate ceiling | Shared preparation ceiling |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Bare/told preflight | 32 | 32 | 32 | 64 | 0 |
-| Learning development | 240 | 240 | 240 | 480 | 48 |
-| Learning qualification | 360 | 360 | 360 | 720 | 48 |
-| Routing | 72 | 72 | 72 | 144 | 0 |
+| Experiment             | Sessions per model | Planned turns | Reserved retry turns | Candidate ceiling | Shared preparation ceiling |
+| ---------------------- | -----------------: | ------------: | -------------------: | ----------------: | -------------------------: |
+| Bare/told preflight    |                 32 |            32 |                   32 |                64 |                          0 |
+| Learning development   |                240 |           240 |                  240 |               480 |                         48 |
+| Learning qualification |                360 |           360 |                  360 |               720 |                         48 |
+| Routing                |                 72 |            72 |                   72 |               144 |                          0 |
 
 The preparation ceiling is paid once for a shared cohort, not once per scored host. Qualification plus routing across four models has a ceiling of 3,504 calls including shared preparation. Most runs should use fewer; the ceiling includes one full replacement per cell. Subscription costs unavailable from CLIs stay unknown. No previous evaluation approval covers these calls.
 

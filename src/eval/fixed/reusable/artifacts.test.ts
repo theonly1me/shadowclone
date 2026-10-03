@@ -18,15 +18,29 @@ test("development remains sealed from held-out contents and stale inputs cannot 
     suite.phase = "development";
     suite.templateDirectory = path.join(directory, "template");
     await mkdir(suite.templateDirectory, { mode: 0o700 });
-    await Bun.write(path.join(suite.templateDirectory, "AGENTS.md"), "Synthetic repository requirements.\n");
+    await Bun.write(
+      path.join(suite.templateDirectory, "AGENTS.md"),
+      "Synthetic repository requirements.\n",
+    );
     suite.templateFingerprint = await treeFingerprint(suite.templateDirectory);
     suite.privateBundle = path.join(directory, "sealed-bundle-does-not-exist.json");
     suite.bundleFingerprint = publishedHeldout.fingerprint;
     suite.benchmarkFingerprint = benchmarkFingerprint;
     suite.graderFingerprint = await graderFingerprint();
     suite.runtime = fixedRuntime;
-    const ceiling = invocationCeiling({ cases: suite.cases, experiment: "learning", preparationCalls: 48 });
-    suite.limits = { preparationCalls: 48, candidateCalls: ceiling.candidateCalls, retryCalls: ceiling.retryCalls, maximumCalls: ceiling.maximumCalls, codeSeconds: 240, adviceSeconds: 120 };
+    const ceiling = invocationCeiling({
+      cases: suite.cases,
+      experiment: "learning",
+      preparationCalls: 48,
+    });
+    suite.limits = {
+      preparationCalls: 48,
+      candidateCalls: ceiling.candidateCalls,
+      retryCalls: ceiling.retryCalls,
+      maximumCalls: ceiling.maximumCalls,
+      codeSeconds: 240,
+      adviceSeconds: 120,
+    };
     const file = path.join(directory, "suite.json");
     await writeFrozenArtifact({ file, value: suite });
     expect((await readReusableSuite(file)).cases).toHaveLength(16);
@@ -34,9 +48,14 @@ test("development remains sealed from held-out contents and stale inputs cannot 
     await writeFrozenArtifact({ file, value: stale });
     await expect(readReusableSuite(file)).rejects.toThrow("stale");
     await writeFrozenArtifact({ file, value: suite });
-    await Bun.write(path.join(suite.templateDirectory, "new-untracked.txt"), "A changed workspace input.");
+    await Bun.write(
+      path.join(suite.templateDirectory, "new-untracked.txt"),
+      "A changed workspace input.",
+    );
     await expect(readReusableSuite(file)).rejects.toThrow("template changed");
     await Bun.write(file, JSON.stringify({ ...suite, repetitions: 2 }));
     await expect(readReusableSuite(file)).rejects.toThrow("artifact changed");
-  } finally { await rm(directory, { recursive: true, force: true }); }
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

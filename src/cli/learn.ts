@@ -1,4 +1,8 @@
-import { allowlistedSignals, authorizedLearningEvents, currentEvidenceAuthorization } from "../distill";
+import {
+  allowlistedSignals,
+  authorizedLearningEvents,
+  currentEvidenceAuthorization,
+} from "../distill";
 import { ingestSources, openEventIndex } from "../index";
 import { episodeId, readLearningState, writeLearningState } from "../learning";
 import { projectPaths } from "../paths";
@@ -16,12 +20,13 @@ import { acquireLocalLock } from "../localFiles/lock";
 import { selectLearningPreferences } from "../learning/modelPreferences";
 import { validateLimits } from "../engine/learningLimits";
 
-export async function learn(
-  options: LearnExecutionOptions = {},
-): Promise<void> {
+export async function learn(options: LearnExecutionOptions = {}): Promise<void> {
   if (options.limits) {
     validateLimits(options.limits);
-    if (!options.deep || options.maximumCalls !== options.limits.maximumCalls) throw new Error("Explicit learning limits require deep learning and a matching call ceiling.");
+    if (!options.deep || options.maximumCalls !== options.limits.maximumCalls)
+      throw new Error(
+        "Explicit learning limits require deep learning and a matching call ceiling.",
+      );
   }
   if (options.apply && !options.deep) {
     throw new Error("learn --apply requires --deep");
@@ -43,9 +48,10 @@ export async function learn(
     writeLine,
   });
 
-  const databasePath =
-    options.databasePath ?? (options.dryRun ? ":memory:" : paths.indexDatabase);
-  const lock = options.dryRun ? null : await acquireLocalLock(path.join(paths.shadowcloneDirectory, "learning-worker.db"));
+  const databasePath = options.databasePath ?? (options.dryRun ? ":memory:" : paths.indexDatabase);
+  const lock = options.dryRun
+    ? null
+    : await acquireLocalLock(path.join(paths.shadowcloneDirectory, "learning-worker.db"));
   if (!options.dryRun && !lock) throw new Error("Another learning attempt is running");
   const index = await openEventIndex(databasePath).catch((error: unknown) => {
     lock?.release();
@@ -81,9 +87,7 @@ export async function learn(
       signals: eligibleSignals,
       state: learningState,
       now: Date.now(),
-      ...(options.maximumCalls === undefined
-        ? {}
-        : { maximumCalls: options.maximumCalls }),
+      ...(options.maximumCalls === undefined ? {} : { maximumCalls: options.maximumCalls }),
     });
     const { batches, signals: learningSignals } = learningWindow;
 
@@ -104,14 +108,14 @@ export async function learn(
 
       const batchLabel = batches.length === 1 ? "batch" : "batches";
 
-      writeLine(
-        `Deep learning found ${batches.length} reconciliation ${batchLabel}.`,
-      );
+      writeLine(`Deep learning found ${batches.length} reconciliation ${batchLabel}.`);
 
       const startedAt = Date.now();
       const sourceCounts = Object.fromEntries(
-        [...Map.groupBy(derived.events, (event) => event.source)]
-          .map(([source, sourceEvents]) => [source, sourceEvents.length]),
+        [...Map.groupBy(derived.events, (event) => event.source)].map(([source, sourceEvents]) => [
+          source,
+          sourceEvents.length,
+        ]),
       );
       let stage: "learning" | "publication" | "complete" = "learning";
       let pendingCount = 0;
@@ -133,12 +137,8 @@ export async function learn(
           apply: options.apply ?? false,
           ...(options.runner ? { runner: options.runner } : {}),
           ...selectLearningPreferences({ explicit: options, saved: config.distillation }),
-          ...(options.reasoningEffort
-            ? { reasoningEffort: options.reasoningEffort }
-            : {}),
-          ...(options.maximumCalls === undefined
-            ? {}
-            : { maximumCalls: options.maximumCalls }),
+          ...(options.reasoningEffort ? { reasoningEffort: options.reasoningEffort } : {}),
+          ...(options.maximumCalls === undefined ? {} : { maximumCalls: options.maximumCalls }),
           ...(options.limits ? { limits: options.limits } : {}),
           ...(options.confirm ? { confirm: options.confirm } : {}),
           writeLine,
@@ -172,7 +172,8 @@ export async function learn(
             await registerWorkingRepository({
               paths,
               workingDirectory: options.workingDirectory,
-              gitMetadataEnabled: config.sources["git-metadata"] && policy.allowedSources.includes("git-metadata"),
+              gitMetadataEnabled:
+                config.sources["git-metadata"] && policy.allowedSources.includes("git-metadata"),
               blockedOrigins: policy.blockedOrigins,
               managedConfigPath: options.managedConfigPath,
               readRemote: options.readRemote,
@@ -196,11 +197,16 @@ export async function learn(
         stage = "complete";
 
         if (!options.dryRun) {
-          const outcome = pendingCount > 0
-            ? result.pendingReview > 0 ? "awaiting-review" : "needs-scope-or-publication"
-            : publishedCount > 0 ? "guidance-published"
-              : profileUpdated ? "guidance-recorded"
-                : result.noChangeReason;
+          const outcome =
+            pendingCount > 0
+              ? result.pendingReview > 0
+                ? "awaiting-review"
+                : "needs-scope-or-publication"
+              : publishedCount > 0
+                ? "guidance-published"
+                : profileUpdated
+                  ? "guidance-recorded"
+                  : result.noChangeReason;
 
           await writeLearningReceipt({
             paths,
@@ -212,17 +218,22 @@ export async function learn(
               episodeCount: learningSignals.length,
               sourceCounts,
               proposalCount: result.changesProposed,
-              engine: result.engine, model: selectLearningPreferences({ explicit: options, saved: config.distillation }).model ?? null, ruleKeys: [...result.ruleKeys],
+              engine: result.engine,
+              model:
+                selectLearningPreferences({ explicit: options, saved: config.distillation })
+                  .model ?? null,
+              ruleKeys: [...result.ruleKeys],
               pendingCount,
-              nextAction: pendingCount > 0
-                ? result.pendingReview > 0
-                  ? "Run shadowclone learning pending to approve or reject the rule."
-                  : "Run shadowclone skills pending to resolve scope or publication."
-                : outcome === "uncertain-evidence"
-                  ? "No durable rule was resolved. State an explicit standing correction and run shadowclone learn --deep."
-                  : outcome === "no-eligible-evidence"
-                    ? "Enable a capture source and add a correction before running shadowclone learn --deep."
-                    : "Start a new agent session to load active guidance.",
+              nextAction:
+                pendingCount > 0
+                  ? result.pendingReview > 0
+                    ? "Run shadowclone learning pending to approve or reject the rule."
+                    : "Run shadowclone skills pending to resolve scope or publication."
+                  : outcome === "uncertain-evidence"
+                    ? "No durable rule was resolved. State an explicit standing correction and run shadowclone learn --deep."
+                    : outcome === "no-eligible-evidence"
+                      ? "Enable a capture source and add a correction before running shadowclone learn --deep."
+                      : "Start a new agent session to load active guidance.",
             },
           });
         }
@@ -239,9 +250,10 @@ export async function learn(
               sourceCounts,
               proposalCount: deepChangesProposed,
               pendingCount,
-              nextAction: stage === "learning"
-                ? "Check shadowclone doctor and retry shadowclone learn --deep."
-                : "Run shadowclone skills pending and retry shadowclone skills update.",
+              nextAction:
+                stage === "learning"
+                  ? "Check shadowclone doctor and retry shadowclone learn --deep."
+                  : "Run shadowclone skills pending and retry shadowclone skills update.",
             },
           });
         }
@@ -261,12 +273,10 @@ export async function learn(
       }),
     );
 
-    const processedIds = new Set(
-      learningState.processed.map((entry) => entry.id),
-    );
+    const processedIds = new Set(learningState.processed.map((entry) => entry.id));
     const remaining =
-      eligibleSignals.filter((signal) => !processedIds.has(episodeId(signal)))
-        .length - learningSignals.length;
+      eligibleSignals.filter((signal) => !processedIds.has(episodeId(signal))).length -
+      learningSignals.length;
 
     if (remaining > 0) {
       writeLine(
@@ -281,9 +291,7 @@ export async function learn(
     if (summary.invalidRecords > 0) {
       const label = summary.invalidRecords === 1 ? "record" : "records";
 
-      writeLine(
-        `\n  Skipped ${summary.invalidRecords} invalid transcript ${label}.`,
-      );
+      writeLine(`\n  Skipped ${summary.invalidRecords} invalid transcript ${label}.`);
     }
   } finally {
     index.close();

@@ -7,7 +7,7 @@ import { validateGraders, testFirstActions } from "./validation";
 import { routingCases, routingLibrary } from "./routing";
 
 function example(id: string) {
-  const original = developmentCases.find(entry => entry.task.id === id);
+  const original = developmentCases.find((entry) => entry.task.id === id);
   if (!original) throw new Error("Expected public calibration case.");
   const entry = structuredClone(original);
   return { entry, record: referenceRecord(entry) };
@@ -15,20 +15,30 @@ function example(id: string) {
 
 test("every development and routing grader has a passing output and a meaningful negative mutation", () => {
   expect(validateGraders(fixtureCases()).passed).toBe(true);
-  expect(validateGraders(routingCases.map(entry => entry.case)).passed).toBe(true);
+  expect(validateGraders(routingCases.map((entry) => entry.case)).passed).toBe(true);
   expect(routingLibrary).toHaveLength(20);
   expect(routingCases).toHaveLength(12);
 });
 
 test("word boundaries count code and fences and honor the explicit longer request", () => {
-  for (const [words, verdict] of [[79, "pass"], [80, "pass"], [81, "fail"]] as const) {
+  for (const [words, verdict] of [
+    [79, "pass"],
+    [80, "pass"],
+    [81, "fail"],
+  ] as const) {
     const { entry, record } = example("length-with-code");
     const turn = record.turns[0];
     if (!turn) throw new Error("Expected calibration turn.");
     turn.response = `\`\`\`ts\n${Array.from({ length: words - 2 }, () => "token").join(" ")}\n\`\`\``;
     expect(gradeCase({ case: entry, record })[0]?.verdict).toBe(verdict);
   }
-  for (const [words, verdict] of [[219, "fail"], [220, "pass"], [250, "pass"], [280, "pass"], [281, "fail"]] as const) {
+  for (const [words, verdict] of [
+    [219, "fail"],
+    [220, "pass"],
+    [250, "pass"],
+    [280, "pass"],
+    [281, "fail"],
+  ] as const) {
     const { entry, record } = example("length-explicit-override");
     const turn = record.turns[0];
     if (!turn) throw new Error("Expected calibration turn.");
@@ -49,9 +59,16 @@ test("a passing test before the fix does not earn test-first credit", () => {
 });
 
 test("current comment and commit instructions override standing defaults", () => {
-  for (const id of ["comments-current-override", "git-explicit-commit", "test-first-temporary-override", "pr-current-format-override"]) {
+  for (const id of [
+    "comments-current-override",
+    "git-explicit-commit",
+    "test-first-temporary-override",
+    "pr-current-format-override",
+  ]) {
     const { entry, record } = example(id);
-    expect(gradeCase({ case: entry, record }).every(check => check.verdict === "pass")).toBe(true);
+    expect(gradeCase({ case: entry, record }).every((check) => check.verdict === "pass")).toBe(
+      true,
+    );
   }
 });
 
@@ -59,8 +76,11 @@ test("a requested comment inside a string is not an actual code comment", () => 
   const { entry, record } = example("comments-current-override");
   const file = record.files[0];
   if (!file) throw new Error("Expected calibration code.");
-  file.after = "const misleading = `// Adds one.\nexport function increment`;\nexport function increment(value: number) { return value + 1; }";
-  expect(gradeCase({ case: entry, record }).find(check => check.id === "override")?.verdict).toBe("fail");
+  file.after =
+    "const misleading = `// Adds one.\nexport function increment`;\nexport function increment(value: number) { return value + 1; }";
+  expect(gradeCase({ case: entry, record }).find((check) => check.id === "override")?.verdict).toBe(
+    "fail",
+  );
 });
 
 test("reading a routing skill is selection evidence and earns no compliance credit", () => {
@@ -71,7 +91,8 @@ test("reading a routing skill is selection evidence and earns no compliance cred
   const file = record.files[0];
   if (!turn || !file) throw new Error("Expected routing output.");
   turn.skillReads = [`home:${first.expectedSkill}`];
-  file.after = "export function joinNames(first: string, second: string) { return first + ':' + second; }";
+  file.after =
+    "export function joinNames(first: string, second: string) { return first + ':' + second; }";
   expect(routingSelection({ caseId: first.case.task.id, record }).verdict).toBe("pass");
   expect(gradeCase({ case: first.case, record })[0]?.verdict).toBe("fail");
   turn.skillReads.push("home:queue-contracts");
@@ -81,11 +102,20 @@ test("reading a routing skill is selection evidence and earns no compliance cred
 test("read-only GitHub inspection is allowed but an attempted fixture push fails", () => {
   const { entry, record } = example("git-ready-to-ship");
   record.toolCalls = [{ tool: "gh", args: ["pr", "list"], body: null }];
-  expect(gradeCase({ case: entry, record }).find(check => check.id === "authority")?.verdict).toBe("pass");
+  expect(
+    gradeCase({ case: entry, record }).find((check) => check.id === "authority")?.verdict,
+  ).toBe("pass");
   const turn = record.turns[0];
   if (!turn) throw new Error("Expected calibration turn.");
-  turn.actions.push({ tool: "Bash", path: null, command: "git -C . push origin work", succeeded: false });
-  expect(gradeCase({ case: entry, record }).find(check => check.id === "authority")?.verdict).toBe("fail");
+  turn.actions.push({
+    tool: "Bash",
+    path: null,
+    command: "git -C . push origin work",
+    succeeded: false,
+  });
+  expect(
+    gradeCase({ case: entry, record }).find((check) => check.id === "authority")?.verdict,
+  ).toBe("fail");
 });
 
 test("a PR body flag without content cannot pass correctness", () => {
@@ -105,10 +135,18 @@ test("result API strings and type annotations do not establish returned object d
   entry.extraChecks = [{ id: "result-api", kind: "result-api", path: "src/subject.ts" }];
   const file = record.files[0];
   if (!file) throw new Error("Expected calibration file.");
-  for (const content of ["export const misleading = 'ok: true, ok: false';", "type Result = { ok: true } | { ok: false }; export function lookupRecord() { return null; }"]) {
+  for (const content of [
+    "export const misleading = 'ok: true, ok: false';",
+    "type Result = { ok: true } | { ok: false }; export function lookupRecord() { return null; }",
+  ]) {
     file.after = content;
-    expect(gradeCase({ case: entry, record }).find(check => check.id === "result-api")?.verdict).toBe("fail");
+    expect(
+      gradeCase({ case: entry, record }).find((check) => check.id === "result-api")?.verdict,
+    ).toBe("fail");
   }
-  file.after = "export function lookupRecord(id: string) { return id ? { ok: true, value: { id } } : { ok: false, error: 'missing' }; }";
-  expect(gradeCase({ case: entry, record }).find(check => check.id === "result-api")?.verdict).toBe("pass");
+  file.after =
+    "export function lookupRecord(id: string) { return id ? { ok: true, value: { id } } : { ok: false, error: 'missing' }; }";
+  expect(
+    gradeCase({ case: entry, record }).find((check) => check.id === "result-api")?.verdict,
+  ).toBe("pass");
 });
