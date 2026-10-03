@@ -90,15 +90,7 @@ test("mounts the resolved path over a symbolic link on Linux", async () => {
   }
 });
 
-test("wraps dispatch even when no additional paths are blocked", () => {
-  expect(
-    evaluationCommand({
-      arguments: ["claude", "-p"],
-      run: { prompt: "", cwd: "/tmp", execution: { purpose: "dispatch" } },
-      platform: "darwin",
-    }),
-  ).toContain("sandbox-exec");
-
+test("wraps evaluation even when no additional paths are blocked", () => {
   expect(
     evaluationCommand({
       arguments: ["claude", "-p"],

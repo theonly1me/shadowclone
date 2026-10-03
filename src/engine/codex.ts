@@ -10,7 +10,6 @@ import {
   codexProcessArguments,
   validateCodexOptions,
 } from "./codexArguments";
-import { isIsolatedExecution } from "./execution";
 import { parseCodexStream } from "./parseCodex";
 import { buildEnginePrompt } from "./prompt";
 import type { EngineRun, EngineRunOptions } from "./types";
@@ -53,14 +52,12 @@ async function runCodexProcess(options: {
 
   const fallbackSessionId = crypto.randomUUID();
   const startedAt = Date.now();
-  const temporaryDirectory = isIsolatedExecution(options.run)
-    ? await mkdtemp(
-        path.join(
-          process.platform === "darwin" ? "/private/tmp" : "/tmp",
-          "shadowclone-codex-",
-        ),
-      )
-    : undefined;
+  const temporaryDirectory = await mkdtemp(
+    path.join(
+      process.platform === "darwin" ? "/private/tmp" : "/tmp",
+      "shadowclone-codex-",
+    ),
+  );
 
   try {
     const codexHome = temporaryDirectory

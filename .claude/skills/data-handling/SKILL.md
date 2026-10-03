@@ -1,6 +1,6 @@
 ---
 name: data-handling
-description: Read before changing capture, indexing, redaction, learning, profiles, skill publication, engine execution, dispatch, or any path that stores or sends user data.
+description: Read before changing capture, indexing, redaction, learning, profiles, skill publication, engine execution, or any path that stores or sends user data.
 ---
 
 # Data handling

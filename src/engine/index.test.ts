@@ -35,7 +35,7 @@ test("builds bounded Claude arguments without a prompt or bypass mode", () => {
     run: {
       prompt: "private prompt",
       cwd: "/worktree",
-      execution: { purpose: "dispatch" },
+      execution: { purpose: "evaluation" },
       systemPromptFile: "/profile.md",
       allowedTools: ["Edit"],
       permissionMode: "dontAsk",
@@ -63,7 +63,7 @@ test("omits allowedTools flag when empty list is supplied", () => {
     run: {
       prompt: "private prompt",
       cwd: "/worktree",
-      execution: { purpose: "dispatch" },
+      execution: { purpose: "evaluation" },
       allowedTools: [],
       permissionMode: "dontAsk",
     },
@@ -102,7 +102,7 @@ test("builds bounded provider arguments without prompts or bypass flags", () => 
   const run = {
     prompt: "private prompt",
     cwd: "/worktree",
-    execution: { purpose: "dispatch" as const },
+    execution: { purpose: "evaluation" as const },
     allowedTools: [],
     permissionMode: "dontAsk" as const,
   };
@@ -125,7 +125,7 @@ test("fails when a provider cannot enforce a requested ceiling", () => {
       run: {
         prompt: "task",
         cwd: "/repo",
-        execution: { purpose: "dispatch" },
+        execution: { purpose: "evaluation" },
         maxBudgetUsd: 1,
       },
     }),
@@ -134,7 +134,7 @@ test("fails when a provider cannot enforce a requested ceiling", () => {
     buildCursorArguments({
       prompt: "task",
       cwd: "/repo",
-      execution: { purpose: "dispatch" },
+      execution: { purpose: "evaluation" },
       disallowedTools: ["Bash(git push:*)"],
     }),
   ).toThrow("granular tool denylist");
@@ -178,9 +178,9 @@ test("falls back to Codex when Claude is unavailable", async () => {
 
 test("selects only engines that support the requested purpose", async () => {
   const detection = await detectEngine({
-    purpose: "dispatch",
+    purpose: "eval",
     probe: () => Promise.resolve(true),
-    allowedEngines: ["codex", "cursor-agent"],
+    allowedEngines: ["cursor-agent"],
   });
 
   expect(detection.selectedEngine).toBeNull();

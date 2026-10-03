@@ -20,6 +20,6 @@ test("Pi detection never falls back when an explicitly selected harness is unava
   expect((await detectEngine({ purpose: "distill", preferredEngine: "pi", probe: async () => true, allowedEngines: ["codex"] })).runner).toBeNull();
   const provider = getProviderByEngine("pi");
   if (!provider) throw new Error("Missing Pi registration");
-  expect(getProviderSupport(provider)).toMatchObject({ observe: true, distill: true, dispatch: false });
+  expect(getProviderSupport(provider)).toEqual({ observe: true, distill: true });
   expect((await detectEngine({ purpose: "eval", preferredEngine: "pi", probe: async () => true })).runner).toBeNull();
 });

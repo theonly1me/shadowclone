@@ -1,13 +1,13 @@
 import { expect, test } from "bun:test";
 import { renderEngineSelection, renderProviderSupport } from "./doctor";
 
-test("reports provider support as three independent levels", () => {
+test("reports provider support as two independent levels", () => {
   expect(renderProviderSupport()).toEqual([
-    "claude-code: observe=yes, distill=yes, dispatch=yes",
-    "codex: observe=yes, distill=yes, dispatch=no",
-    "cursor: observe=yes, distill=yes, dispatch=no",
-    "antigravity: observe=yes, distill=no, dispatch=no",
-    "pi: observe=yes, distill=yes, dispatch=no",
+    "claude-code: observe=yes, distill=yes",
+    "codex: observe=yes, distill=yes",
+    "cursor: observe=yes, distill=yes",
+    "antigravity: observe=yes, distill=no",
+    "pi: observe=yes, distill=yes",
   ]);
 });
 

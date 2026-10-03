@@ -53,4 +53,4 @@ shadowclone uninstall --agent pi --local
 
 Uninstall removes owned integration files and sections. Edited files block removal and remain available for review. It preserves original sessions, other integrations, and manually maintained skills.
 
-Pi dispatch and evaluation are unavailable. Its coding tools have not qualified for Shadowclone's filesystem isolation and action-policy contracts. Users can continue coding directly in Pi with its existing permissions. Zed follows the harness it hosts and gains no separate inference backend from this integration.
+Pi evaluation is unavailable. Its coding tools have not qualified for Shadowclone's filesystem isolation contract. Users can continue coding directly in Pi with its existing permissions. Zed follows the harness it hosts and gains no separate inference backend from this integration.

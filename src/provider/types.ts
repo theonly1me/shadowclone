@@ -29,10 +29,9 @@ export type ProviderDefinition = {
 export type ProviderSupport = {
   readonly observe: boolean;
   readonly distill: boolean;
-  readonly dispatch: boolean;
 };
 
-export type EnginePurpose = "distill" | "dispatch" | "eval";
+export type EnginePurpose = "distill" | "eval";
 
 export const providerIds = [
   "claude-code",
@@ -55,18 +54,9 @@ function supportsDistillation(engine: ProviderEngine | null): boolean {
 export function getProviderSupport(
   definition: ProviderDefinition,
 ): ProviderSupport {
-  const distill = supportsDistillation(definition.engine);
-  const engineImplemented = definition.engine?.implemented === true;
-  const capabilities = definition.engine?.capabilities;
-
   return {
     observe: definition.captureSource !== null,
-    distill,
-    dispatch:
-      engineImplemented &&
-      capabilities?.callerSessionId === true &&
-      capabilities.maxBudgetUsd &&
-      capabilities.granularToolPolicy,
+    distill: supportsDistillation(definition.engine),
   };
 }
 
@@ -81,7 +71,5 @@ export function providerSupportsPurpose(options: {
     );
   }
 
-  const support = getProviderSupport(options.definition);
-
-  return options.purpose === "distill" ? support.distill : support.dispatch;
+  return getProviderSupport(options.definition).distill;
 }
