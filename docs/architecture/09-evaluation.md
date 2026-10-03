@@ -16,7 +16,7 @@ Every task receives a disposable repository and isolated agent home. Credentials
 
 Review, preparation, and offline validation authorize no model calls. Authenticated phases require an explicit fingerprint, host, model, effort, and invocation ceiling. Persist reservations and ownership before dispatch. Resume checks immutable inputs and preserves prior attempts. Unresolved infrastructure and provider holds stop further dispatch.
 
-One confirmed infrastructure failure permits one replacement in a fresh workspace. Retain and charge both attempts. Ordinary model failures and unclassified timeouts do not qualify. Private stage diagnostics cover setup, mounts, native execution, verification, and cleanup. Explicitly authorized exceptions remain part of the execution record.
+Each `hdiutil` command for the read-only advice mount runs up to three times with a short pause, because disk-image commands fail at random on hosted macOS runners. The last detach attempt adds `-force`. Only a command that fails all three times becomes a confirmed infrastructure failure. One confirmed infrastructure failure permits one replacement in a fresh workspace. Retain and charge both attempts. Ordinary model failures and unclassified timeouts do not qualify. Private stage diagnostics cover setup, mounts, native execution, verification, and cleanup. Explicitly authorized exceptions remain part of the execution record.
 
 Codex permissions deny shared temporary access and grant only the requested workspace and private paths. Model-free checks exercise writable and read-only modes, memory settings, guidance protection, and answer isolation. Native Claude sandbox qualification remains host-specific.
 
