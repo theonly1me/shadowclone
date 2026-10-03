@@ -18,4 +18,4 @@ Limit startup context to a deduplicated 4 KiB index. Do not copy imported native
 
 Repository check configuration is explicit state. [Agent builds](024-agent-builds.md) later fixed refresh so replacing profile prose with routing could not erase configured checks.
 
-Test detection, consent, preview, cancellation, ownership, shared and private output, check execution, and bounded repair. The [evaluation report](../../evals.md#repository-harness-pilot-2026-09-26) records the small synthetic harness pilot and its limits.
+Test detection, consent, preview, cancellation, ownership, shared and private output, check execution, and bounded repair. The current [evaluation](../../evals.md) measures preference delivery separately from repository harness effectiveness.

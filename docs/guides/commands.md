@@ -2,7 +2,7 @@
 
 Run `shadowclone --help` for the complete command shape.
 
-For contributor evaluations, use the source runner with `eval --protocol preference-respect-v2 --help`. The [fixed eval guide](fixed-evals.md) explains four setups, synthetic skills and corrections, separate learning and scoring authorization, preference-share grading, and product-revision comparisons. The prior three-setup protocol remains available as `preference-respect-v1`.
+For contributor evaluations, use the source runner with `eval --protocol preference-respect-v3 --help`. The [evaluation guide](evaluations.md) explains five setups, private held-out tasks, preparation reuse, approved run scopes, and the separate routing comparison.
 
 ## Everyday commands
 

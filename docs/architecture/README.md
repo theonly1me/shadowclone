@@ -51,14 +51,19 @@ flowchart LR
     PiRegistry --> Models[Model configured in Pi]
     Skills --> Eval[Preference study]
     Original[Original library and instructions] --> Eval
-    FixedFixtures[Fixed synthetic tasks and independent target profile] --> FixedEval[Four-setup preference regression suite]
+    FixedFixtures[Reviewed fixed synthetic cases and independent target] --> FixedEval[Five-setup preference evaluation]
+    Heldout[Private held-out cases and public seals] --> Qualification[Separately authorized qualification]
+    Qualification --> FixedEval
+    Told[Independent handwritten intended skills] --> FixtureRouting
+    RoutingLibrary[20 synthetic skills and 12 cases] --> RoutingEval[Separate routing experiment]
+    RoutingEval --> Workspaces
     SyntheticSkills[Unchanged synthetic skill library] --> FixtureRouting[Initialization with learning disabled]
     SyntheticSkills --> FixedEval
     FixtureRouting --> FixedEval
     SyntheticCorrections[Fixed synthetic corrections] --> FixtureConsent[Private source consent and managed policy]
     FixtureConsent --> Redaction
     FixtureGrant[Explicit bounded learning scope] --> Learning
-    Skills --> FixtureFreeze[Private learned-guidance freeze for both hosts]
+    Skills --> FixtureFreeze[Three private preparation freezes shared by both hosts]
     FixtureFreeze --> FixedEval
     FixedEval --> Workspaces
     FixedEval --> Homes
@@ -67,30 +72,37 @@ flowchart LR
     Workspaces --> Candidates[Native coding-agent runs]
     Homes --> Candidates
     EvalGrant[Explicit evaluation call scope] --> Candidates
+    FixedEval --> NativeQualification[Model-free Codex filesystem qualification]
+    NativeQualification --> Candidates
     Candidates --> Checks[Local acceptance checks without credentials or network]
     Candidates --> FixedGrades[Fixed deterministic preference graders]
     Candidates --> Judges[Blinded provider judgments of private evidence]
     Checks --> Receipts[Private receipts and bounded reports]
     Judges --> Receipts
     FixedGrades --> Receipts
+    Candidates --> Diagnostics[Private stage failures and charged attempt ledger]
+    Candidates --> Transport[Private native transport for observation audits]
+    Transport --> Receipts
+    Diagnostics --> QuotaPause[Confirmed provider refusal pauses further dispatch]
+    Diagnostics --> Receipts
 ```
 
 ## Components
 
-| Component                              | Responsibility                                                                                                         |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `src/config/`                          | Source consent and managed policy                                                                                      |
-| `src/observe/`, `src/index/`           | Incremental transcript parsing and a rebuildable pointer index                                                         |
-| `src/redact/`, `src/signal/`           | Materialize eligible excerpts and identify learning evidence                                                           |
-| `src/distill/`, `src/learning/`        | Reconcile guidance within shared call, time, and supported cost limits                                                 |
-| `src/environment/`                     | Store evidence, publish skills, migrate installations, and preserve originals                                          |
-| `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows                                        |
-| `src/builds/`, `src/web/`              | Apply reviewed skill selections through terminal and browser interfaces                                                |
-| `src/integrations/`, `src/harness/`    | Install native guidance and repository instructions/checks                                                             |
-| `src/engine/`                          | Invoke authenticated agent CLIs                                                                                        |
-| `src/cloud/`                           | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows                                |
-| `src/eval/`, `src/changes/`            | Run fixed four-setup benchmarks and historical studies, record workflow outcomes, and retain reversible file revisions |
-| `src/profile/`                         | Legacy profile compatibility and the reconciliation boundary                                                           |
+| Component                              | Responsibility                                                                                           |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `src/config/`                          | Source consent and managed policy                                                                        |
+| `src/observe/`, `src/index/`           | Incremental transcript parsing and a rebuildable pointer index                                           |
+| `src/redact/`, `src/signal/`           | Materialize eligible excerpts and identify learning evidence                                             |
+| `src/distill/`, `src/learning/`        | Reconcile guidance within shared call, time, and supported cost limits                                   |
+| `src/environment/`                     | Store evidence, publish skills, migrate installations, and preserve originals                            |
+| `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows                          |
+| `src/builds/`, `src/web/`              | Apply reviewed skill selections through terminal and browser interfaces                                  |
+| `src/integrations/`, `src/harness/`    | Install native guidance and repository instructions/checks                                               |
+| `src/engine/`                          | Invoke authenticated agent CLIs                                                                          |
+| `src/cloud/`                           | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows                  |
+| `src/eval/`, `src/changes/`            | Run reviewed learning and routing suites, record workflow outcomes, and retain reversible file revisions |
+| `src/profile/`                         | Legacy profile compatibility and the reconciliation boundary                                             |
 
 The learning service coordinates model execution, reconciliation, pending decisions, and persistence for both CLI and background paths. Its maintenance service selects the active environment or legacy fallback; the skill-maintenance package supplies library primitives and retains a compatibility entry point. The CLI owns prompts and presentation. Source authorization is checked at selection and again when a reference is resolved. Automatic skill writes require separate authorization. Reviewed build edits use the same publication and revision machinery as learning. Later corrections create review signals. An explicitly authorized probe sends redacted installed guidance into an isolated native session; its exact-response assertion does not establish hook delivery or future compliance.
 
@@ -104,6 +116,6 @@ The learning service coordinates model execution, reconciliation, pending decisi
 - [Development priorities](06-roadmap.md): remaining qualification and research work.
 - [Organization boundaries](07-enterprise.md): scope and managed policy.
 - [Related approaches](08-landscape.md): how skills, memory, and transcript learning fit together.
-- [Evaluation](09-evaluation.md): fixed four-setup benchmarks and prior delivery and learning studies.
+- [Evaluation](09-evaluation.md): reviewed learning and routing suites, private execution, and family-weighted results.
 
 The [data-handling guide](../data-handling.md) owns the source and storage inventory. [Design records](../design/README.md) explain historical decisions; their original implementation details may have been superseded.
