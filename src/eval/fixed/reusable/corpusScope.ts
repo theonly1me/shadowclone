@@ -1,4 +1,4 @@
-import { Database } from "bun:sqlite";
+import { Database, constants } from "bun:sqlite";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
@@ -39,7 +39,7 @@ export async function validateCorpusScope(options: { directory: string; preparat
   const repository = await verifiedCorpusRepository(options);
   const journal = Bun.file(`${paths.indexDatabase}-wal`);
   if (await journal.exists() && journal.size > 0) throw new Error("Correction scope validation requires a checkpointed, inactive index.");
-  const index = new EventIndex(new Database(`${pathToFileURL(paths.indexDatabase).href}?immutable=1`, { readonly: true }));
+  const index = new EventIndex(new Database(`${pathToFileURL(paths.indexDatabase).href}?immutable=1`, constants.SQLITE_OPEN_READONLY | constants.SQLITE_OPEN_URI));
   try {
     const events: IndexedEvent[] = [];
     for (const session of correctionSessions) {
