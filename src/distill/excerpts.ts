@@ -78,7 +78,10 @@ export async function materializeEvidence(options: {
 
       const text = await resolveRedacted({ ref, roots: options.sourceRoots });
 
-      excerpts.set(textRefKey(ref), extractPromptText(text) ?? "");
+      excerpts.set(
+        textRefKey(ref),
+        signal.kind === "user-steering" ? (extractPromptText(text) ?? "") : text,
+      );
     }
 
     accepted.push({ ...signal, textRefs });

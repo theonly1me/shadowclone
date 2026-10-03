@@ -16,7 +16,7 @@ A new source, a wider slice of a file, or reading contents where only names were
 
 The event index does not contain transcript text. A file reference selects a bounded byte range. A Cursor reference selects a text field in a content-addressed SQLite blob. `resolveRedacted` checks the reference and redacts the selected text before it becomes learning input.
 
-Parsers can encounter every record category in an enabled transcript. Tool-result payloads, tool-returned file contents, thinking blocks, and data-access results do not receive eligible learning references. User steering and limited assistant context can be used to understand a correction.
+Parsers can encounter every record category in an enabled transcript. Tool-result payloads, tool-returned file contents, thinking blocks, and data-access results do not receive eligible learning references. Only user-authored text is learning evidence. Agent responses, presented plans, and agent questions appear only as labeled context beside a user correction.
 
 ## Incremental reads
 

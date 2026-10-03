@@ -52,10 +52,7 @@ function createSignal(options: {
   readonly repository: RepositoryIdentity;
   readonly relatedEvent?: IndexedEvent | null;
 }): CorrectionSignal {
-  const textRefs = [
-    options.relatedEvent?.textRef,
-    options.event.textRef,
-  ].filter((ref) => ref !== null && ref !== undefined);
+  const relatedRef = options.relatedEvent?.textRef;
 
   return {
     kind: options.kind,
@@ -65,7 +62,8 @@ function createSignal(options: {
     timestamp: options.event.timestamp,
     origin: options.repository.origin,
     repositoryName: options.repository.profileFileName,
-    textRefs,
+    textRefs: options.event.textRef ? [options.event.textRef] : [],
+    contextRefs: relatedRef ? [relatedRef] : [],
   };
 }
 

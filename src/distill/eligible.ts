@@ -4,11 +4,15 @@ import { textRefKey } from "../observe";
 import type { ProjectPaths } from "../paths";
 import type { CorrectionSignal } from "../signal";
 
+const agentContextKinds = new Set<IndexedEvent["kind"]>([
+  "assistant-text",
+  "plan-presented",
+  "question-asked",
+]);
+
 const eligibleKinds = new Set<IndexedEvent["kind"]>([
   "user-prompt",
-  "plan-presented",
   "plan-resolved",
-  "question-asked",
   "question-answered",
   "permission-denied",
   "interruption",
@@ -65,9 +69,9 @@ export function allowlistedSignals(options: {
     ),
   );
 
-  const assistantReferences = new Set(
+  const agentContextReferences = new Set(
     options.events.flatMap((event) =>
-      event.kind === "assistant-text" && event.textRef
+      agentContextKinds.has(event.kind) && event.textRef
         ? [textRefKey(event.textRef)]
         : [],
     ),
@@ -76,14 +80,10 @@ export function allowlistedSignals(options: {
   return options.signals.map((signal) => ({
     ...signal,
     contextRefs: (signal.contextRefs ?? []).filter((ref) =>
-      assistantReferences.has(textRefKey(ref)),
+      agentContextReferences.has(textRefKey(ref)),
     ),
-    textRefs: signal.textRefs.filter((ref) => {
-      const key = textRefKey(ref);
-
-      return (
-        independentlyEligibleReferences.has(key) || assistantReferences.has(key)
-      );
-    }),
+    textRefs: signal.textRefs.filter((ref) =>
+      independentlyEligibleReferences.has(textRefKey(ref)),
+    ),
   }));
 }
