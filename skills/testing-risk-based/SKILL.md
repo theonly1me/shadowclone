@@ -30,3 +30,5 @@ Skip tests that mirror private branches or assert reversible text and styling ch
 ## Completion
 
 Each material risk has a meaningful automated or manual check, selected checks have run, and remaining uncertainty is explicit.
+
+Report each material risk with the check that covers it and its result, and each risk left uncovered with the reason. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.
