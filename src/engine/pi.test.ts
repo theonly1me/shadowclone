@@ -57,8 +57,6 @@ test("Pi cancels a running model command and removes its prepared input", async 
 
 test("Pi refuses unsupported tool-using execution and unenforceable budgets before invoking its harness", async () => {
   await expect(requestPi({ request: { prompt: "Synthetic" }, environment: { SHADOWCLONE_PI_SOCKET: "/synthetic/socket" } })).rejects.toThrow("incomplete");
-  for (const purpose of ["dispatch", "evaluation"] as const) {
-    await expect(runPi({ prompt: "Synthetic", cwd: "/synthetic", execution: { purpose } })).rejects.toThrow("unavailable");
-  }
+  await expect(runPi({ prompt: "Synthetic", cwd: "/synthetic", execution: { purpose: "evaluation" } })).rejects.toThrow("unavailable");
   await expect(runPi({ prompt: "Synthetic", cwd: "/synthetic", execution: { purpose: "learning" }, maxBudgetUsd: 1 })).rejects.toThrow("cannot enforce");
 });

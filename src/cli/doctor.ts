@@ -23,7 +23,7 @@ export function renderProviderSupport(): readonly string[] {
 
     return `${definition.id}: observe=${support.observe ? "yes" : "no"}, distill=${
       support.distill ? "yes" : "no"
-    }, dispatch=${support.dispatch ? "yes" : "no"}`;
+    }`;
   });
 }
 

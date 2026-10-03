@@ -21,6 +21,25 @@ Use full words and domain names. Keep established abbreviations such as `id` and
 
 Keep files at most 300 lines, including tests. Split growing modules by responsibility, expose their public interface through `index.ts`, and group tests by scenario.
 
+## Formatting and readability
+
+Match the layout of established files such as `src/web/review.ts` and `src/storage/write.ts`.
+
+- Use two spaces for indentation. Prettier wraps code at a target width of 100 characters from `.prettierrc.json`.
+- Put blank lines between declarations, guards, and distinct steps. Keep related statements together.
+- Expand long options objects, parameter types, schemas, and conditions across multiple lines.
+- Give a guard its own block. Do not put a condition, a throw, and the next step on one line.
+- Split a long conditional expression into named values or a small function when that makes the decision easier to read.
+- Never compress code to meet a file-size limit. Split the module by responsibility when its readable form exceeds the limit.
+- Format the changed files before handoff:
+
+  `bun run format <changed files>`
+
+- Check the changed files with `bun run format:check <changed files>`.
+- Prettier does not wrap every string or template literal. Break long prose strings and generated source into readable lines yourself.
+
+The formatter controls indentation and wrapping. Check blank lines and logical grouping separately against nearby files.
+
 ## Checks and comments
 
 Run `bun run check` before handoff, with focused tests during editing. Do not suppress lint or type errors with disable directives or TypeScript ignore comments. Existing violations are not permission to add more.

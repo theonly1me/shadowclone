@@ -13,7 +13,6 @@ import { handleNativeCommand } from "./native";
 import { handlePreferenceCommand } from "./preferences";
 import { learn } from "./learn";
 import { parseLearnOptions } from "./learnOptions";
-import { runClone } from "./run";
 import { parseRecallOptions, recallCommand } from "./recall";
 import { handleProfileRepairCommand } from "./profileRepair";
 import { handleMigrateCommand } from "./migrate";
@@ -22,14 +21,14 @@ import { listSeedGuidance } from "./skills";
 import { handleSkillMaintenance } from "./skillMaintenance";
 import { showHome } from "./home";
 import { redactSecrets } from "../redact";
-import { taskCommandLine } from "./tasks";
 import { handleWorkflowEval } from "./workflowEval";
 import { handleFixedEval } from "./fixedEval";
 import { handleFourSetupEval } from "./fourSetupEval";
 import { handleReusableEval } from "./reusableEval";
+import { botCommand } from "./bot";
 
 const usage =
-  "Usage: shadowclone <init [--advanced]|init --status [--json]|init (--learn|--no-learn) (--skill-maintenance|--no-skill-maintenance) (--background-learning|--no-background-learning)|init --repo [--personal|--no-personal] [--skill <name>] [--no-enforce]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate skills [--apply] [--automatic] [--memory] [--activate-only] [--repo <path>]|migrate claude-memory [--decisions <file>] [--apply]|install [--agent claude-code|codex|cursor|antigravity|pi|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|run <task>|eval --protocol preference-respect-v3 --help|mcp|forget --all>";
+  "Usage: shadowclone <init [--advanced]|init --status [--json]|init (--learn|--no-learn) (--skill-maintenance|--no-skill-maintenance) (--background-learning|--no-background-learning)|init --repo [--personal|--no-personal] [--skill <name>] [--no-enforce]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate skills [--apply] [--automatic] [--memory] [--activate-only] [--repo <path>]|migrate claude-memory [--decisions <file>] [--apply]|install [--agent claude-code|codex|cursor|antigravity|pi|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|eval --protocol preference-respect-v3 --help|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -37,9 +36,15 @@ function printUsage(): void {
   console.log(
     "Preferences: remember [--repo|--global] <text>, history [revision-id], undo <revision-id>, learning enable|disable|status|list|pending|show <key>|apply <key>|reject <key>|repositories|bind <id>",
   );
-  console.log("Review: learning retire|narrow <key>, learning replace <key> <guidance>, learning remove-source <source> [--apply --expected <fingerprint>]");
-  console.log("Behavior: learning probe <key> --agent claude-code|codex --task <synthetic task> --expect <exact response> [--model <model>] --yes; learning probe status; learning acknowledge <key>");
-  console.log("Work: task start|status|list|checkpoint|verify|pause|resume|cancel|action|maintain|reconcile; task grants|grant|revoke; task --help");
+  console.log(
+    "Review: learning retire|narrow <key>, learning replace <key> <guidance>, learning remove-source <source> [--apply --expected <fingerprint>]",
+  );
+  console.log(
+    "Behavior: learning probe <key> --agent claude-code|codex --task <synthetic task> --expect <exact response> [--model <model>] --yes; learning probe status; learning acknowledge <key>",
+  );
+  console.log(
+    "GitHub clone: bot setup [--repo owner/repository] [--no-open]; bot export; bot status",
+  );
   console.log("Evaluations: eval --protocol preference-respect-v3 --help");
   console.log(
     "Skill maintenance: skills configure [--repo|--global], skills list|update|pending, skills show|apply|reject <id>, skills manage <skill-id>, skills disable",
@@ -79,9 +84,7 @@ async function main(arguments_: readonly string[]): Promise<void> {
     const parsed = parseHarnessCheck(rest);
 
     if (parsed === null) {
-      throw new Error(
-        "Use check [--changed] [--format human|json|claude-stop]",
-      );
+      throw new Error("Use check [--changed] [--format human|json|claude-stop]");
     }
 
     process.exitCode = await harnessCheckCommand(parsed);
@@ -150,17 +153,6 @@ async function main(arguments_: readonly string[]): Promise<void> {
     return;
   }
 
-  if (command === "run") {
-    await runClone(rest);
-
-    return;
-  }
-
-  if (command === "task") {
-    await taskCommandLine({ arguments: rest });
-    return;
-  }
-
   if (command === "eval") {
     if (await handleReusableEval(rest)) return;
     if (await handleFourSetupEval(rest)) return;
@@ -173,6 +165,12 @@ async function main(arguments_: readonly string[]): Promise<void> {
 
   if (command === "mcp") {
     await serveMcp();
+
+    return;
+  }
+
+  if (command === "bot") {
+    await botCommand(rest);
 
     return;
   }
@@ -203,9 +201,12 @@ async function main(arguments_: readonly string[]): Promise<void> {
 }
 
 await main(Bun.argv.slice(2)).catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : "Shadowclone could not complete this command";
-  console.error(message.length <= 1_000
-    ? redactSecrets({ text: message })
-    : "Shadowclone could not complete this command. Run shadowclone doctor and inspect learning status.");
+  const message =
+    error instanceof Error ? error.message : "Shadowclone could not complete this command";
+  console.error(
+    message.length <= 1_000
+      ? redactSecrets({ text: message })
+      : "Shadowclone could not complete this command. Run shadowclone doctor and inspect learning status.",
+  );
   process.exitCode = 1;
 });

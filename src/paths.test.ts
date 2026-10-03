@@ -32,10 +32,6 @@ test("holds every user path under the selected home directory", () => {
     cursorChatsDirectory: "/Users/example/.cursor/chats",
     piAgentDirectory: "/Users/example/.pi/agent",
     piSessionsDirectory: "/Users/example/.pi/agent/sessions",
-    shellHistoryFiles: [
-      "/Users/example/.zsh_history",
-      "/Users/example/.bash_history",
-    ],
     managedConfigFile: "/Library/Application Support/shadowclone/managed.json",
     runDirectory: "/Users/example/.shadowclone/runs/run-1",
     worktreeDirectory: "/Users/example/.shadowclone/worktrees/run-1",

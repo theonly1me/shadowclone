@@ -32,12 +32,6 @@ export {
   type ManagedPolicy,
 } from "./managed";
 
-export {
-  actionCapabilities,
-  type ActionCapability,
-  type RepoPolicy,
-  type RepoSettings,
-} from "./repo";
 
 export async function readConfig(
   options: { readonly configPath?: string } = {},
@@ -84,10 +78,6 @@ export function renderConfig(config: ShadowcloneConfig): string {
     sources: config.sources,
     distillation: config.distillation,
   };
-
-  if (Object.keys(config.repo).length > 0) {
-    document.repo = config.repo;
-  }
 
   return toml.stringify(document);
 }

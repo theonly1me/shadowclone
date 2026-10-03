@@ -3,7 +3,7 @@ import packageManifest from "../../package.json";
 import { handleMcpRequest } from "./server";
 import { preferenceTools } from "./preferences";
 import { referenceTools } from "./references";
-import { taskTools } from "./tasks";
+import { botTools } from "./bot";
 
 test("responds to initialize with protocol version and serverInfo", () => {
   const response = handleMcpRequest({
@@ -35,11 +35,10 @@ test("advertises profile recall and explicit preference operations", () => {
       tools: [
         ...preferenceTools,
         ...referenceTools,
-        ...taskTools,
+        ...botTools,
         {
           name: "shadowclone_context",
-          description:
-            "Inspect applicable learned skills and native routing for this repository",
+          description: "Inspect applicable learned skills and native routing for this repository",
           inputSchema: { type: "object", properties: {} },
         },
         {

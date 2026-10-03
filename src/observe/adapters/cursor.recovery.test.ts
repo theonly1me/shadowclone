@@ -24,18 +24,14 @@ test("survives an unreadable cursor database without breaking the generator", as
 
   await Bun.write(sourcePath, "not a sqlite database");
 
-  const shellHistory = paths.shellHistoryFiles[0];
-
-  if (!shellHistory) {
-    throw new Error("No shell history files configured");
-  }
-
-  await mkdir(path.dirname(shellHistory), { recursive: true });
-  await Bun.write(shellHistory, "echo hello\n");
+  await Bun.write(
+    paths.claudePromptHistoryFile,
+    `${JSON.stringify({ display: "keep tests synthetic", timestamp: 1 })}\n`,
+  );
 
   const config = {
     ...defaultConfig,
-    sources: { ...defaultConfig.sources, cursor: true, shell: true },
+    sources: { ...defaultConfig.sources, "claude-prompts": true, cursor: true },
   };
 
   const batches: ObservationBatch[] = [];
@@ -49,5 +45,5 @@ test("survives an unreadable cursor database without breaking the generator", as
   }
 
   expect(batches.length).toBe(1);
-  expect(batches[0]?.source).toBe("shell");
+  expect(batches[0]?.source).toBe("claude-prompts");
 });

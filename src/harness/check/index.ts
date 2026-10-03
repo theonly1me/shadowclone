@@ -1,6 +1,6 @@
 import { lstat } from "node:fs/promises";
 import path from "node:path";
-import { runCommand, type CommandRunner } from "../../dispatch/command";
+import { runCommand, type CommandRunner } from "../../io/command";
 import { canonicalPath } from "../../paths";
 import { readHarnessManifest } from "../manifest";
 import { loadRepositoryCommentReader } from "./comments";

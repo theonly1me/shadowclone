@@ -25,7 +25,7 @@ Keep changes focused. Add tests for behavior that can regress, and run the affec
 bun run check
 ```
 
-This runs typecheck, lint, and tests. CI also runs the tests on Linux and macOS. The [plugin security scan](.github/workflows/plugin-security-scan.yml) runs on pushes and pull requests and requires a score of at least 80 with no high-severity findings.
+This runs typecheck, lint, the knip unused-file check, and tests. CI also runs the tests on Linux and macOS. The [plugin security scan](.github/workflows/plugin-security-scan.yml) runs on pushes and pull requests and requires a score of at least 80 with no high-severity findings.
 
 ## Code conventions
 
@@ -48,7 +48,7 @@ Leave session approvals, expired deadlines, progress logs, and incidental test c
 
 Use the [PR template](.github/pull_request_template.md). Keep the body under 250 words, with one sentence per change bullet, at most seven bullets, and at most three sentences explaining why. Include verification and any material limitation. Remove unused sections.
 
-Commit messages use a single lowercase conventional-commit subject. Do not add a co-author trailer or force push reviewed work.
+Commit messages use a single lowercase conventional-commit subject. Pull request titles use the same format, because a squash merge uses the title as the commit subject on `main` and Release Please ignores commits that are not conventional. Do not add a co-author trailer or force push reviewed work.
 
 ## Changes involving user data
 

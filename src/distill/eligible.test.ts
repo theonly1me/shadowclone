@@ -31,9 +31,12 @@ function indexedEvent(kind: IndexedEvent["kind"]): IndexedEvent {
   };
 }
 
-test("allows user-authored and correction events with text pointers", () => {
+test("allows only user-authored events with text pointers", () => {
   expect(isEligibleForDistillation(indexedEvent("user-prompt"))).toBeTrue();
-  expect(isEligibleForDistillation(indexedEvent("question-asked"))).toBeTrue();
+  expect(isEligibleForDistillation(indexedEvent("question-answered"))).toBeTrue();
+  expect(isEligibleForDistillation(indexedEvent("plan-resolved"))).toBeTrue();
+  expect(isEligibleForDistillation(indexedEvent("question-asked"))).toBeFalse();
+  expect(isEligibleForDistillation(indexedEvent("plan-presented"))).toBeFalse();
 });
 
 test("removes indexed events after their source is disabled", () => {
@@ -89,7 +92,7 @@ test("removes a tool result pointer before a distillation batch", () => {
   ).toEqual([]);
 });
 
-test("allows assistant text only through a correction signal", () => {
+test("keeps assistant text as context and never as evidence", () => {
   const event = indexedEvent("assistant-text");
   const ref = event.textRef;
 
@@ -110,9 +113,10 @@ test("allows assistant text only through a correction signal", () => {
     },
     repositoryName: null,
     textRefs: [ref],
+    contextRefs: [ref],
   };
+  const [allowed] = allowlistedSignals({ signals: [signal], events: [event] });
 
-  expect(
-    allowlistedSignals({ signals: [signal], events: [event] })[0]?.textRefs,
-  ).toEqual([ref]);
+  expect(allowed?.textRefs).toEqual([]);
+  expect(allowed?.contextRefs).toEqual([ref]);
 });

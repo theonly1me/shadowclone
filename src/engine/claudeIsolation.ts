@@ -1,4 +1,4 @@
-import type { EngineExecution, EngineRunOptions } from "./types";
+import type { EngineRunOptions } from "./types";
 
 export function missingClaudeSandboxTools(options: {
   readonly platform: NodeJS.Platform;
@@ -6,12 +6,6 @@ export function missingClaudeSandboxTools(options: {
 }): readonly string[] {
   return options.platform === "linux"
     ? ["bwrap", "socat"].filter((name) => options.which(name) === null)
-    : [];
-}
-
-function executionDomains(execution: EngineExecution): readonly string[] {
-  return execution.purpose === "dispatch"
-    ? (execution.allowedDomains ?? [])
     : [];
 }
 
@@ -32,7 +26,7 @@ export function claudeIsolationArguments(
       enabled: true,
       failIfUnavailable: true,
       allowUnsandboxedCommands: false,
-      autoAllowBashIfSandboxed: run.execution.purpose !== "dispatch",
+      autoAllowBashIfSandboxed: true,
       excludedCommands: [],
       filesystem: {
         allowWrite: [run.cwd],
@@ -42,13 +36,10 @@ export function claudeIsolationArguments(
           "**/.codex/**",
           "**/.mcp.json",
         ],
-        denyRead:
-          run.execution.purpose === "dispatch"
-            ? ["~/.ssh", "~/.aws", "~/.config/gh", "~/.netrc", "~/.npmrc"]
-            : [],
+        denyRead: [],
       },
       network: {
-        allowedDomains: executionDomains(run.execution),
+        allowedDomains: [],
         allowLocalBinding: false,
       },
     },

@@ -3,7 +3,6 @@ import { chmod, mkdir, mkdtemp, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
-import { writeReceipt } from "../dispatch";
 import { openEventIndex } from "../index";
 import { createProjectPaths } from "../paths";
 import { profileRulePath, writeProfile, type ProfileRule } from "../profile";
@@ -29,39 +28,6 @@ test("the config write leaves an owner-only file", async () => {
 
   expect(await modeOf(paths.configFile)).toBe(0o600);
   expect(await modeOf(paths.shadowcloneDirectory)).toBe(0o700);
-});
-
-test("the run receipt write leaves an owner-only file", async () => {
-  const paths = await scratchPaths();
-  const runDirectory = paths.runDirectory("abc");
-
-  const receiptPath = await writeReceipt({
-    runDirectory,
-    receipt: {
-      runId: "abc",
-      taskSlug: "fix-the-flaky-test",
-      taskHash: "0000",
-      repo: "github.com/owner/repo",
-      branch: "shadowclone/fix",
-      engine: "claude-code",
-      model: null,
-      sessionId: "session",
-      startedAt: "2026-09-10T00:00:00.000Z",
-      durationMs: 1,
-      costUsd: null,
-      turns: 1,
-      filesChanged: [],
-      commits: [],
-      actionsTaken: [],
-      actionsBlockedByPolicy: [],
-      permissionDenials: [],
-      profileRulesApplied: 0,
-      gate: { status: "not-configured", command: null, attempts: 0 },
-    },
-  });
-
-  expect(await modeOf(receiptPath)).toBe(0o600);
-  expect(await modeOf(runDirectory)).toBe(0o700);
 });
 
 test("the profile write leaves owner-only rule files and state", async () => {

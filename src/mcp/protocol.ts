@@ -1,7 +1,7 @@
 import packageManifest from "../../package.json";
 import { preferenceTools } from "./preferences";
 import { referenceTools } from "./references";
-import { taskTools } from "./tasks";
+import { botTools } from "./bot";
 
 type JsonRpcId = string | number | null;
 
@@ -20,10 +20,7 @@ export function parseRequest(value: unknown): JsonRpcRequest | null {
     return null;
   }
 
-  const id =
-    typeof value.id === "string" || typeof value.id === "number"
-      ? value.id
-      : null;
+  const id = typeof value.id === "string" || typeof value.id === "number" ? value.id : null;
 
   return { id, method: value.method, params: value.params };
 }
@@ -53,11 +50,10 @@ export function handleMcpRequest(options: {
         tools: [
           ...preferenceTools,
           ...referenceTools,
-          ...taskTools,
+          ...botTools,
           {
             name: "shadowclone_context",
-            description:
-              "Inspect applicable learned skills and native routing for this repository",
+            description: "Inspect applicable learned skills and native routing for this repository",
             inputSchema: { type: "object", properties: {} },
           },
           {
@@ -75,14 +71,9 @@ export function handleMcpRequest(options: {
       return { ...base, result: options.toolResult };
     }
 
-    const params = isRecord(options.request.params)
-      ? options.request.params
-      : {};
+    const params = isRecord(options.request.params) ? options.request.params : {};
 
-    if (
-      params.name !== "shadowclone_profile" &&
-      params.name !== "shadowclone_context"
-    ) {
+    if (params.name !== "shadowclone_profile" && params.name !== "shadowclone_context") {
       return {
         ...base,
         error: { code: -32602, message: "Unknown tool" },

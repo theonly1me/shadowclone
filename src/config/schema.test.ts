@@ -6,7 +6,6 @@ const coreSources = {
   "claude-prompts": true,
   codex: true,
   cursor: true,
-  shell: true,
 };
 
 function config(overrides: Record<string, unknown>): Record<string, unknown> {
@@ -73,5 +72,13 @@ test("defaults the sources an older config predates", () => {
   expect(parsed.sources["declared-rules"]).toBeFalse();
   expect(parsed.sources["git-metadata"]).toBeFalse();
   expect(parsed.sources["repository-manifests"]).toBeFalse();
-  expect(parsed.sources.shell).toBeTrue();
+});
+
+test("drops the retired shell source from an older config", () => {
+  const parsed = parseConfig(
+    config({ sources: { ...coreSources, shell: true } }),
+  );
+
+  expect("shell" in parsed.sources).toBeFalse();
+  expect(parsed.sources["claude-code"]).toBeTrue();
 });

@@ -33,3 +33,5 @@ If reproduction fails, report what was tried and the missing evidence. Do not tu
 ## Completion
 
 The cause explains the original symptom, the fix passes both reproductions and affected checks, and temporary instrumentation is gone.
+
+Report the reproduction command with its failing line before the fix and its passing line after, the cause in one sentence with the file and line where state first goes wrong, and anything you could not reproduce. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.

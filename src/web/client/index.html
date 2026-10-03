@@ -6,14 +6,10 @@
     <meta name="referrer" content="no-referrer" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"
+      content="default-src 'self'; connect-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action https://github.com"
     />
     <title>Your agent build · Shadowclone</title>
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="./assets/shadowclone-mark.svg"
-    />
+    <link rel="icon" type="image/svg+xml" href="./assets/shadowclone-mark.svg" />
     <link rel="stylesheet" href="./base.css" />
     <link rel="stylesheet" href="./controls.css" />
     <link rel="stylesheet" href="./pageLayout.css" />
@@ -21,6 +17,7 @@
     <link rel="stylesheet" href="./treeResponsive.css" />
     <link rel="stylesheet" href="./panels.css" />
     <link rel="stylesheet" href="./dialogs.css" />
+    <link rel="stylesheet" href="./bot.css" />
     <link rel="stylesheet" href="./atmosphere.css" />
     <link rel="stylesheet" href="./library.css" />
     <link rel="stylesheet" href="./starfield.css" />
@@ -42,8 +39,7 @@
           <p class="eyebrow">YOUR AGENT. YOUR INSTINCTS.</p>
           <h1 id="page-title">Build the way you think.</h1>
           <p class="subtitle">
-            Equip a way of working. Every skill shapes how your agent approaches
-            a task.
+            Equip a way of working. Every skill shapes how your agent approaches a task.
           </p>
         </section>
 
@@ -67,27 +63,28 @@
           <p id="scope-note" class="scope-note"></p>
           <details id="library-note" class="library-note" hidden>
             <summary>Built-in library · add your own</summary>
-            <p>
-              Include your installed skills by choosing the folders Shadowclone
-              can read.
-            </p>
+            <p>Include your installed skills by choosing the folders Shadowclone can read.</p>
             <code>shadowclone skills configure</code>
           </details>
         </div>
         <div id="notice" role="status" class="notice" hidden></div>
         <details class="requirements">
           <summary>Learning model</summary>
-          <p>Models and credentials are configured in your coding harness. Session learning follows that session's model.</p>
+          <p>
+            Models and credentials are configured in your coding harness. Session learning follows
+            that session's model.
+          </p>
           <button id="load-models" class="quiet-button">Refresh available models</button>
-          <label>Saved model <select id="learning-model"><option>Refresh models to choose</option></select></label>
+          <label
+            >Saved model
+            <select id="learning-model">
+              <option>Refresh models to choose</option>
+            </select></label
+          >
         </details>
 
         <div class="workspace">
-          <section
-            id="constellation"
-            class="constellation"
-            aria-label="Skill constellation"
-          >
+          <section id="constellation" class="constellation" aria-label="Skill constellation">
             <div id="constellation-status" class="constellation-status" role="status">
               <p id="constellation-status-text">Loading your skills…</p>
               <button id="retry-build" class="quiet-button" hidden>Retry loading skills</button>
@@ -104,18 +101,17 @@
                 Map / list
               </button>
             </div>
-            <svg
-              id="starfield"
-              class="starfield"
-              aria-hidden="true"
-            ></svg>
+            <svg id="starfield" class="starfield" aria-hidden="true"></svg>
             <svg
               id="constellation-map"
               class="constellation-map"
               aria-label="Skills grouped into navigable hubs"
             ></svg>
             <div id="constellation-list" class="constellation-list"></div>
-            <p class="tree-hint">Select a category to expand it or a skill to inspect it. Drag to pan and scroll to zoom.</p>
+            <p class="tree-hint">
+              Select a category to expand it or a skill to inspect it. Drag to pan and scroll to
+              zoom.
+            </p>
           </section>
 
           <aside class="build-panel" aria-label="Your character build">
@@ -128,20 +124,10 @@
                 </p>
               </div>
               <div id="traits" class="traits"></div>
-              <button id="describe" class="quiet-button">
-                Describe my agent with my model
-              </button>
-              <div
-                id="model-description"
-                class="requirements"
-                aria-live="polite"
-              ></div>
+              <button id="describe" class="quiet-button">Describe my agent with my model</button>
+              <div id="model-description" class="requirements" aria-live="polite"></div>
             </section>
-            <section
-              id="detail"
-              class="detail"
-              aria-label="Selected skill"
-            ></section>
+            <section id="detail" class="detail" aria-label="Selected skill"></section>
           </aside>
         </div>
 
@@ -151,12 +137,6 @@
           hidden
           aria-label="Repository requirements"
         ></section>
-        <details class="requirements">
-          <summary>Work in this repository</summary>
-          <p>Last recorded progress. Inspect a task for current verification and review readiness.</p>
-          <button id="refresh-tasks" class="quiet-button">Refresh recorded work</button>
-          <div id="task-list" aria-live="polite"></div>
-        </details>
       </main>
 
       <footer class="footer">

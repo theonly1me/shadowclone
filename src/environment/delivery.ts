@@ -17,7 +17,11 @@ export async function materializeSkillDelivery(options: {
   readonly destination: string;
   readonly repository?: RepositoryIdentity;
   readonly includeLibrary?: boolean;
-  readonly onArtifact?: (artifact: { readonly source: string; readonly destination: string }) => Promise<void>;
+  readonly selectedNames?: readonly string[];
+  readonly onArtifact?: (artifact: {
+    readonly source: string;
+    readonly destination: string;
+  }) => Promise<void>;
 }): Promise<string | null> {
   const state = await readRedactedEnvironment(options.paths);
 
@@ -28,10 +32,11 @@ export async function materializeSkillDelivery(options: {
   const scopes = learningScopes({ paths: options.paths, state }).filter(
     (scope) =>
       scope.repository === null ||
-      ((!options.repository || (scope.repository.originDirectory === options.repository.origin.directoryName && scope.repository.repositoryName === options.repository.profileFileName)) && (path.resolve(options.repositoryDirectory) === scope.directory ||
-      path
-        .resolve(options.repositoryDirectory)
-        .startsWith(`${scope.directory}${path.sep}`))),
+      ((!options.repository ||
+        (scope.repository.originDirectory === options.repository.origin.directoryName &&
+          scope.repository.repositoryName === options.repository.profileFileName)) &&
+        (path.resolve(options.repositoryDirectory) === scope.directory ||
+          path.resolve(options.repositoryDirectory).startsWith(`${scope.directory}${path.sep}`))),
   );
 
   const scopeKeys = new Set(scopes.map(({ key }) => key));
@@ -39,9 +44,9 @@ export async function materializeSkillDelivery(options: {
 
   const roots = (await readMaintenanceState(options.paths)).roots.filter(
     (root) =>
-      options.includeLibrary !== false && root.enabled &&
-      (root.scope === "global" ||
-        scopes.some((scope) => scope.directory === root.cwd)),
+      options.includeLibrary !== false &&
+      root.enabled &&
+      (root.scope === "global" || scopes.some((scope) => scope.directory === root.cwd)),
   );
 
   const library = await discoverDeliverySkills(roots);
@@ -77,6 +82,10 @@ export async function materializeSkillDelivery(options: {
   let bytes = 0;
 
   for (const [position, skill] of skills.entries()) {
+    if (options.selectedNames && !options.selectedNames.includes(skill.name)) {
+      continue;
+    }
+
     const sourceRoot = path.dirname(skill.filePath);
 
     assertRegularDestination(skill.filePath);
@@ -147,10 +156,7 @@ export async function materializeSkillDelivery(options: {
       await options.onArtifact?.({ source: filePath, destination });
     }
 
-    routing = routing.replaceAll(
-      skill.filePath,
-      path.join(targetRoot, "SKILL.md"),
-    );
+    routing = routing.replaceAll(skill.filePath, path.join(targetRoot, "SKILL.md"));
     catalog.push({
       name: skill.name,
       description: skill.description,

@@ -34,11 +34,11 @@ Install the CLI:
 npm install -g @shadowclone/cli
 ```
 
-| Step | Command | What happens | Time |
-| --- | --- | --- | ---: |
-| 1 | `shadowclone init` | Answer three questions about learning and skill maintenance | About 1 minute |
-| 2 | `shadowclone learn --deep` | Learn from enabled past sessions; repeat if more history remains | Up to 5 minutes per run |
-| 3 | `shadowclone learning pending` and `shadowclone skills pending` | Review learned rules, scope, and publication before relying on them | About 1 minute |
+| Step | Command                                                         | What happens                                                        |                    Time |
+| ---- | --------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------: |
+| 1    | `shadowclone init`                                              | Answer three questions about learning and skill maintenance         |          About 1 minute |
+| 2    | `shadowclone learn --deep`                                      | Learn from enabled past sessions; repeat if more history remains    | Up to 5 minutes per run |
+| 3    | `shadowclone learning pending` and `shadowclone skills pending` | Review learned rules, scope, and publication before relying on them |          About 1 minute |
 
 Setup takes about two to three minutes, excluding learning. Deep learning needs an installed and configured `claude`, `codex`, `cursor-agent`, or `pi` CLI. [Pi setup](docs/guides/pi.md) uses any suitable model configured in Pi, including local providers. Claude Code learning on Linux needs `bwrap` and `socat` for its sandbox.
 
@@ -46,19 +46,21 @@ Setup takes about two to three minutes, excluding learning. Deep learning needs 
 
 Run `shadowclone` to see the current result and next action. Use `shadowclone wizard` to browse optional workflow skills in a browser.
 
-**Delegate a task.** The optional `shadowclone-work` skill records your standards, acceptance criteria, checks, and review in a private task receipt. It adds work tracking to an existing Claude Code or Codex session. Start with review handoff; shipping actions require explicit repository grants. Native workflow qualification is still pending. [Use delegated work](docs/guides/delegated-work.md).
+**Delegate a pull request.** The optional `shadowclone-work` skill takes a request, an issue, or an existing PR to ready for review: green checks, conflicts resolved, and review comments fixed or left for you. It replies to fixed comments with commit SHAs only and never merges. [Use delegated work](docs/guides/delegated-work.md).
+
+**Use a personal GitHub clone.** Run `shadowclone bot setup` from a repository checkout. Name your App, select its repositories, and review the exact guidance before connecting your Claude subscription. The clone handles owner issues and tagged PR requests. Live installation qualification is pending. [Set up a GitHub clone](docs/guides/github-clones.md).
 
 ## Evaluations
 
 We tested 24 fixed engineering tasks across eight preference families, with three repetitions per setup and model. Scores measure preference adherence, with each family weighted equally.
 
-| Setup | GPT 6.1 Sol | GPT 6 Luna | Claude Sonnet 5.5 | Claude Opus 5.5 |
-| --- | ---: | ---: | ---: | ---: |
-| Agent alone | 77.3% | 59.0% | 56.5% | 53.2% |
-| Existing user skills | 85.2% | 80.6% | 76.4% | 73.6% |
-| Existing skills + Shadowclone routing | 86.1% | 72.7% | 76.9% | 75.9% |
-| Existing skills + handwritten preferences | 92.4% | 81.2% | 91.7% | 86.1% |
-| Existing skills + Shadowclone learning | 89.4% | 83.3% | 90.0% | 82.9% |
+| Setup                                     | GPT 6.1 Sol | GPT 6 Luna | Claude Sonnet 5.5 | Claude Opus 5.5 |
+| ----------------------------------------- | ----------: | ---------: | ----------------: | --------------: |
+| Agent alone                               |       77.3% |      59.0% |             56.5% |           53.2% |
+| Existing user skills                      |       85.2% |      80.6% |             76.4% |           73.6% |
+| Existing skills + Shadowclone routing     |       86.1% |      72.7% |             76.9% |           75.9% |
+| Existing skills + handwritten preferences |       92.4% |      81.2% |             91.7% |           86.1% |
+| Existing skills + Shadowclone learning    |       89.4% |      83.3% |             90.0% |           82.9% |
 
 Shadowclone learning improved recorded adherence over existing skills on all four models. The gain ranges from 2.8 to 13.7 percentage points. Handwritten preferences provide a reference for what agents can follow when the intended rules are supplied directly.
 
@@ -70,12 +72,12 @@ The learning setup includes routing and actual learned preferences from syntheti
 
 **You choose what it reads.** Every capture source is off by default and has its own consent setting. Reading sessions does not silently enable memory, repository metadata, or skill editing.
 
-| Operation | What the selected provider can receive |
-| --- | --- |
-| Learning and skill maintenance | Selected redacted instructions, steering, and supporting context |
-| Browser editor | Nothing merely from opening it; optional AI drafting sends reviewed form fields |
-| Delegated `run` | The authorized task worktree and guidance |
-| Evaluation | Synthetic prompts, the tested setup's guidance, and generated code |
+| Operation                      | What the selected provider can receive                                          |
+| ------------------------------ | ------------------------------------------------------------------------------- |
+| Learning and skill maintenance | Selected redacted instructions, steering, and supporting context                |
+| Personal GitHub clone          | The reviewed skills, native rules, selected repository, and issue or PR task    |
+| Browser editor                 | Nothing merely from opening it; optional AI drafting sends reviewed form fields |
+| Evaluation                     | Synthetic prompts, the tested setup's guidance, and generated code              |
 
 **Redaction is a boundary, not an anonymity guarantee.** Tool results, tool-returned file contents, thinking blocks, and data-access results are excluded from learning. Use only sources and repositories you are authorized to send to the selected provider.
 
@@ -83,14 +85,14 @@ The learning setup includes routing and actual learned preferences from syntheti
 
 ## Guides
 
-| Guide | Use it to |
-| --- | --- |
-| [Agent builds](docs/guides/agent-builds.md) | Choose, create, and equip skills |
-| [Learning](docs/guides/learning.md) | Run deep learning, background learning, or record a preference |
-| [Skill maintenance](docs/guides/skills.md) | Review updates, conflicts, history, and undo |
-| [Repository setup](docs/guides/repositories.md) | Share checks and skills with a repository |
-| [How it works](docs/guides/how-it-works.md) | Follow guidance from consented evidence to coding agents |
-| [Command reference](docs/guides/commands.md) | Find everyday and advanced commands |
+| Guide                                           | Use it to                                                      |
+| ----------------------------------------------- | -------------------------------------------------------------- |
+| [Agent builds](docs/guides/agent-builds.md)     | Choose, create, and equip skills                               |
+| [Learning](docs/guides/learning.md)             | Run deep learning, background learning, or record a preference |
+| [Skill maintenance](docs/guides/skills.md)      | Review updates, conflicts, history, and undo                   |
+| [Repository setup](docs/guides/repositories.md) | Share checks and skills with a repository                      |
+| [How it works](docs/guides/how-it-works.md)     | Follow guidance from consented evidence to coding agents       |
+| [Command reference](docs/guides/commands.md)    | Find everyday and advanced commands                            |
 
 **Further reading:** [Documentation index](docs/README.md) · [Architecture](docs/architecture/README.md) · [Design history](docs/design/README.md) · [Migration](docs/migration.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
