@@ -52,8 +52,7 @@ Pi capture retains parent links across session branches. Its system and custom i
 | Deep or background learning | Selected redacted steering, supporting context, and guidance needed for reconciliation |
 | Skill maintenance | Redacted catalogs and full instructions for overlapping workflows, plus evidence for proposed updates; supporting resources are checked locally |
 | Browser editor | Opening the editor makes no model request; optional build descriptions and skill drafts require review of their redacted payload, provider, and limits |
-| `run` | The authorized task worktree and guidance |
-| Native task workflow | The existing agent session reads task guidance and its authorized workspace; task helpers themselves make no model calls |
+| `shadowclone-work` skill | The existing agent session reads the skill and its own workspace; Shadowclone makes no model calls for it |
 | Evaluation | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction |
 
 First-time interactive `learn` can offer setup, which may make an authorized first learning pass. A deep dry run still calls a model.
