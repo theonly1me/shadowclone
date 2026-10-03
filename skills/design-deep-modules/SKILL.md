@@ -30,3 +30,5 @@ Add an abstraction for a concrete variation or isolation need. A short interface
 ## Completion
 
 Callers express intent without coordinating internal steps, and tests exercise behavior without depending on that sequence.
+
+Report the module's new interface (its exported names and one call example), the caller steps it absorbed, and the test command with its result. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.

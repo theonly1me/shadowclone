@@ -30,3 +30,5 @@ Avoid introducing an unrelated third design. Remove all conflict markers and pre
 ## Completion
 
 No unmerged paths remain, compatible requirements survive, checks cover the combined behavior, and the authorized operation is finished.
+
+Report each conflicted file with the intent kept from each side, the check that covers the combined behavior with its result, and the operation you finished. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.
