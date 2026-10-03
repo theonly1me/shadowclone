@@ -10,6 +10,7 @@ The owner can start work with an issue or an `@shadowclone` request. The App slu
 
 - Reject installations with access to all repositories. Verify repository IDs and mint installation tokens for one repository.
 - Keep the App key, Claude subscription token, and guidance in a default-branch-only environment. An event relay uses the repository token to dispatch the worker on that branch. The worker validates the live entity, sender, head, pause state, and run budget again.
+- Add a `shadowclone default branch` ruleset before any secret upload. It restricts updates and deletion of the default branch to the admin, maintain, and write roles, so the App cannot push or merge there while people keep their access. GitHub Actions gets no bypass, because a workflow added on a branch could otherwise push with `GITHUB_TOKEN`.
 - Treat issue text and reviewer comments as untrusted task data. They cannot widen repository access or the authorized scope.
 - Export only selected maintained skills and their supporting resources through the existing redacted delivery boundary. Include applicable native rules. Exclude capture, evidence records, receipts, source history, credentials, and identifying local paths.
 - Store setup state and credential material outside the checkout. The MCP can start setup and inspect status. Human browser actions authorize App creation, repository installation, guidance upload, and subscription use.

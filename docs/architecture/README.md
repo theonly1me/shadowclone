@@ -37,6 +37,8 @@ flowchart LR
     CloudApproval[Owner reviews cloud guidance and subscription use] --> CloudSetup[Named App and selected repository]
     Skills --> CloudApproval
     CloudSetup --> Environment[Default-branch environment secrets]
+    CloudSetup --> Ruleset[Default-branch ruleset without App bypass]
+    Ruleset --> DraftPR
     GitHubEvents[Owner requests and validated maintenance events] --> Relay[Secret-free event relay]
     Relay --> Guard[Live entity, head, pause, and budget validation]
     Guard --> CloudWorker[Pinned Claude Code Action]
