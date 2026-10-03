@@ -5,7 +5,7 @@ import { mountReadOnlyWorkspace } from "../readOnlyWorkspace";
 import { copyWorkspace, validateNativeFile } from "../workspace";
 import { buildGitHistory } from "./git";
 import type { RunArmName } from "./record";
-import type { StudySuite, StudyTask } from "./schema";
+import type { ArmEnvironment, StudySuite, StudyTask } from "./schema";
 
 export const githubStub = (logFile: string) => `#!/usr/bin/env bun
 import { appendFileSync, readFileSync } from "node:fs";
@@ -36,8 +36,11 @@ export type StudyWorkspace = {
   readonly cleanup: () => Promise<void>;
 };
 
-function armFiles(options: { suite: StudySuite; arm: RunArmName }) {
-  return options.arm === "bare" || options.arm === "told" ? [] : options.suite.arms[options.arm].files;
+function armFiles(options: { suite: StudySuite; arm: RunArmName; guidance?: ArmEnvironment }) {
+  if (options.guidance) return options.guidance.files;
+  return options.arm === "bare" || options.arm === "told"
+    ? []
+    : options.suite.arms[options.arm].files;
 }
 
 export async function createStudyWorkspace(options: {
@@ -45,6 +48,7 @@ export async function createStudyWorkspace(options: {
   readonly task: StudyTask;
   readonly arm: RunArmName;
   readonly outputDirectory: string;
+  readonly guidance?: ArmEnvironment;
 }): Promise<StudyWorkspace> {
   await requirePrivateDirectory(options.outputDirectory);
   const container = await mkdtemp(path.join(options.outputDirectory, "candidate-"));
@@ -58,7 +62,10 @@ export async function createStudyWorkspace(options: {
     await copyWorkspace({ source: options.suite.templateDirectory, target: directory });
     await mkdir(path.join(homeDirectory, "tmp"), { recursive: true, mode: 0o700 });
     await mkdir(toolDirectory, { mode: 0o700 });
-    await Bun.write(path.join(toolDirectory, "gh"), githubStub(path.join(homeDirectory, "tmp/tool-calls.jsonl")));
+    await Bun.write(
+      path.join(toolDirectory, "gh"),
+      githubStub(path.join(homeDirectory, "tmp/tool-calls.jsonl")),
+    );
     await chmod(path.join(toolDirectory, "gh"), 0o700);
     const protectedPaths = [path.join(directory, "node_modules")];
     const skillLocations: Record<string, string[]> = {};
@@ -66,8 +73,12 @@ export async function createStudyWorkspace(options: {
     for (const file of armFiles(options)) {
       validateNativeFile(file);
       const root = file.root === "home" ? homeDirectory : directory;
-      const content = file.encoding === "utf8"
-        ? file.content.replaceAll("{{home}}", homeDirectory).replaceAll("{{workspace}}", directory) : file.content;
+      const content =
+        file.encoding === "utf8"
+          ? file.content
+              .replaceAll("{{home}}", homeDirectory)
+              .replaceAll("{{workspace}}", directory)
+          : file.content;
       await writeFrozenFile({ directory: root, file: { ...file, content } });
       const target = confinedPath({ directory: root, relative: file.path });
       protectedPaths.push(target);
@@ -82,29 +93,54 @@ export async function createStudyWorkspace(options: {
       await writeFrozenFile({ directory, file });
     }
 
-    if (options.arm !== "bare" && options.arm !== "told") {
+    if (options.guidance || (options.arm !== "bare" && options.arm !== "told")) {
       const memoryDirectory = path.join(homeDirectory, ".codex/memories");
       await mkdir(memoryDirectory, { recursive: true, mode: 0o700 });
-      for (const file of options.suite.memory) await writeFrozenFile({ directory: memoryDirectory, file });
+      for (const file of options.suite.memory)
+        await writeFrozenFile({ directory: memoryDirectory, file });
     }
 
-    for (const name of ["AGENTS.md", "AGENTS.override.md", "CLAUDE.md", ".agents", ".codex", ".claude"]) {
-      if (await lstat(path.join(directory, name)).catch(() => null)) protectedPaths.push(path.join(directory, name));
+    for (const name of [
+      "AGENTS.md",
+      "AGENTS.override.md",
+      "CLAUDE.md",
+      ".agents",
+      ".codex",
+      ".claude",
+    ]) {
+      if (await lstat(path.join(directory, name)).catch(() => null))
+        protectedPaths.push(path.join(directory, name));
     }
 
     const initialCommits = options.task.git
-      ? await buildGitHistory({ directory, origin, history: options.task.git }) : [];
-    mounted = options.task.mode === "advice" ? await mountReadOnlyWorkspace({ sourceDirectory: directory }) : null;
+      ? await buildGitHistory({ directory, origin, history: options.task.git })
+      : [];
+    mounted =
+      options.task.mode === "advice"
+        ? await mountReadOnlyWorkspace({ sourceDirectory: directory })
+        : null;
     const active = mounted?.directory ?? directory;
-    const relocate = (entry: string) => entry.startsWith(`${directory}${path.sep}`) ? path.join(active, path.relative(directory, entry)) : entry;
+    const relocate = (entry: string) =>
+      entry.startsWith(`${directory}${path.sep}`)
+        ? path.join(active, path.relative(directory, entry))
+        : entry;
     const mount = mounted;
 
     return {
-      directory: active, homeDirectory, toolDirectory, initialCommits,
+      directory: active,
+      homeDirectory,
+      toolDirectory,
+      initialCommits,
       writablePaths: options.task.git && !mount ? [path.join(directory, ".git"), origin] : [],
       protectedPaths: protectedPaths.map(relocate),
-      skillLocations: Object.fromEntries(Object.entries(skillLocations).map(([name, targets]) => [name, targets.map(relocate)])),
-      skillPaths: Object.fromEntries(Object.entries(skillLocations).flatMap(([name, targets]) => targets[0] ? [[name, relocate(targets[0])]] : [])),
+      skillLocations: Object.fromEntries(
+        Object.entries(skillLocations).map(([name, targets]) => [name, targets.map(relocate)]),
+      ),
+      skillPaths: Object.fromEntries(
+        Object.entries(skillLocations).flatMap(([name, targets]) =>
+          targets[0] ? [[name, relocate(targets[0])]] : [],
+        ),
+      ),
       cleanup: async () => {
         await mount?.cleanup();
         await rm(container, { recursive: true, force: true });

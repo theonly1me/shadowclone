@@ -1,4 +1,4 @@
-import type { EngineId, EngineRunner, ReasoningEffort } from "../engine";
+import type { EngineId, EngineRunner, LearningExecutionLimits, ReasoningEffort } from "../engine";
 import type { ProjectPaths } from "../paths";
 import type { GitRemoteReader } from "../signal";
 import type { ConfirmPrompt } from "./confirm";
@@ -14,12 +14,7 @@ export type LearnCommandOptions = {
 };
 
 function parseEngine(value: string): EngineId {
-  if (
-    value === "claude-code" ||
-    value === "codex" ||
-    value === "cursor-agent" ||
-    value === "pi"
-  ) {
+  if (value === "claude-code" || value === "codex" || value === "cursor-agent" || value === "pi") {
     return value;
   }
 
@@ -64,9 +59,7 @@ function optionValue(options: {
   return value;
 }
 
-export function parseLearnOptions(
-  arguments_: readonly string[],
-): LearnCommandOptions | null {
+export function parseLearnOptions(arguments_: readonly string[]): LearnCommandOptions | null {
   let deep = false;
   let dryRun = false;
   let apply = false;
@@ -153,6 +146,7 @@ export type LearnExecutionOptions = {
   readonly model?: string;
   readonly reasoningEffort?: ReasoningEffort;
   readonly maximumCalls?: number;
+  readonly limits?: LearningExecutionLimits;
   readonly confirm?: ConfirmPrompt;
   readonly writeLine?: (line: string) => void;
   readonly managedConfigPath?: string | null;
