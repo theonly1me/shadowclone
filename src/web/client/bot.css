@@ -1,0 +1,30 @@
+.bot-dialog {
+  width: min(48rem, calc(100vw - 3rem));
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+}
+
+.bot-dialog .field {
+  display: grid;
+  gap: 0.4rem;
+  margin: 1rem 0;
+}
+
+.bot-dialog details {
+  margin: 0.7rem 0;
+}
+
+.bot-dialog pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.bot-dialog .bot-consent {
+  display: block;
+  margin: 1.3rem 0;
+}
+
+.bot-dialog .bot-actions {
+  display: block;
+  margin: 1rem 0;
+}

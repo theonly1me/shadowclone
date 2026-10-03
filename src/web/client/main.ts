@@ -14,9 +14,11 @@ import { initializeCustomGeneration, customStatus } from "./customGeneration";
 import { perform, actionButton } from "./actions";
 import { initializeEditorDialogs } from "./editorDialogs";
 import { initializeLearningModels } from "./models";
+import { initializeBotSetup } from "./bot";
 
 initializeEditorDialogs();
 initializeLearningModels();
+initializeBotSetup();
 
 function render(): void {
   renderTree({
@@ -80,7 +82,8 @@ async function loadBuild(scope: BuildScope): Promise<void> {
     await loadBuildState(scope);
     status.hidden = true;
   } catch (error) {
-    element("constellation-status-text").textContent = "Your skills couldn't be loaded. Retry to reconnect to the local editor.";
+    element("constellation-status-text").textContent =
+      "Your skills couldn't be loaded. Retry to reconnect to the local editor.";
     retry.hidden = false;
     select("scope").value = editor.input.scope;
     throw error;
@@ -118,9 +121,7 @@ element("custom-form").addEventListener("submit", (event) => {
     saveCustomSkill();
     render();
   } catch (error) {
-    customStatus(
-      error instanceof Error ? error.message : "The skill could not be added.",
-    );
+    customStatus(error instanceof Error ? error.message : "The skill could not be added.");
   }
 });
 
@@ -130,10 +131,7 @@ input("search").addEventListener("input", () => {
 });
 
 select("scope").addEventListener("change", () => {
-  if (
-    editor.dirty &&
-    !window.confirm("Discard the draft and switch build scope?")
-  ) {
+  if (editor.dirty && !window.confirm("Discard the draft and switch build scope?")) {
     select("scope").value = editor.input.scope;
 
     return;

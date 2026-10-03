@@ -12,22 +12,22 @@ Source access does not by itself authorize automatic skill edits. Disabling a so
 
 ## Sources
 
-| Setting | What may be read |
-| --- | --- |
-| `claude-code` | Session JSONL under `~/.claude/projects/` |
-| `claude-prompts` | `~/.claude/history.jsonl` |
-| `codex` | Sessions under `~/.codex/sessions/`, or `$CODEX_HOME/sessions/` |
-| `cursor` | Chat databases and metadata under `~/.cursor/chats/` |
-| `pi` | Version 3 session JSONL under `~/.pi/agent/sessions/`, or `$PI_CODING_AGENT_DIR/sessions/`; original files remain untouched |
-| `antigravity` | Generated conversation logs under `~/.gemini/antigravity-cli/brain/` |
-| `antigravity-workspaces` | `~/.gemini/antigravity-cli/history.jsonl` for workspace attribution |
-| `declared-rules` | Repository-root `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, and direct `SKILL.md` files under `.claude/skills/` and `.agents/skills/` |
-| `claude-rules` | Markdown rules under the current repository’s `.claude/rules/` for compatible native guidance |
-| `claude-memory` | Claude memory under `~/.claude/projects/<repo>/memory/`; recurring extraction requires registered repositories with verified identity |
-| `agent-context` | Selected-agent personal instructions and skills, kept as an original baseline and copied into evaluation arms |
-| `skill-library` | Consented personal, repository, custom, and third-party skill roots |
-| `git-metadata` | Local repository remote names used to determine scope |
-| `repository-manifests` | Scripts and dependency names in `package.json`, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, CI workflow files, and top-level entry names for repository setup |
+| Setting                  | What may be read                                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `claude-code`            | Session JSONL under `~/.claude/projects/`                                                                                                                                                   |
+| `claude-prompts`         | `~/.claude/history.jsonl`                                                                                                                                                                   |
+| `codex`                  | Sessions under `~/.codex/sessions/`, or `$CODEX_HOME/sessions/`                                                                                                                             |
+| `cursor`                 | Chat databases and metadata under `~/.cursor/chats/`                                                                                                                                        |
+| `pi`                     | Version 3 session JSONL under `~/.pi/agent/sessions/`, or `$PI_CODING_AGENT_DIR/sessions/`; original files remain untouched                                                                 |
+| `antigravity`            | Generated conversation logs under `~/.gemini/antigravity-cli/brain/`                                                                                                                        |
+| `antigravity-workspaces` | `~/.gemini/antigravity-cli/history.jsonl` for workspace attribution                                                                                                                         |
+| `declared-rules`         | Repository-root `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, and direct `SKILL.md` files under `.claude/skills/` and `.agents/skills/`                                                         |
+| `claude-rules`           | Markdown rules under the current repository’s `.claude/rules/` for compatible native guidance                                                                                               |
+| `claude-memory`          | Claude memory under `~/.claude/projects/<repo>/memory/`; recurring extraction requires registered repositories with verified identity                                                       |
+| `agent-context`          | Selected-agent personal instructions and skills, kept as an original baseline and copied into evaluation arms                                                                               |
+| `skill-library`          | Consented personal, repository, custom, and third-party skill roots                                                                                                                         |
+| `git-metadata`           | Local repository remote names used to determine scope                                                                                                                                       |
+| `repository-manifests`   | Scripts and dependency names in `package.json`, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, CI workflow files, and top-level entry names for repository setup |
 
 Shell history is not a source. Upgrading deletes indexed shell history events, cursors, and repository bindings, and Shadowclone ignores a `shell` setting left in an older `config.toml` or managed policy.
 
@@ -46,14 +46,15 @@ Pi capture retains parent links across session branches. Its system and custom i
 
 ## What reaches a model
 
-| Operation | Provider access |
-| --- | --- |
-| Plain `learn` after setup | Local indexing and reporting; no model calls |
-| Deep or background learning | Selected redacted steering, supporting context, and guidance needed for reconciliation |
-| Skill maintenance | Redacted catalogs and full instructions for overlapping workflows, plus evidence for proposed updates; supporting resources are checked locally |
-| Browser editor | Opening the editor makes no model request; optional build descriptions and skill drafts require review of their redacted payload, provider, and limits |
-| `shadowclone-work` skill | The existing agent session reads the skill and its own workspace; Shadowclone makes no model calls for it |
-| Evaluation | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction |
+| Operation                   | Provider access                                                                                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Plain `learn` after setup   | Local indexing and reporting; no model calls                                                                                                           |
+| Deep or background learning | Selected redacted steering, supporting context, and guidance needed for reconciliation                                                                 |
+| Skill maintenance           | Redacted catalogs and full instructions for overlapping workflows, plus evidence for proposed updates; supporting resources are checked locally        |
+| Browser editor              | Opening the editor makes no model request; optional build descriptions and skill drafts require review of their redacted payload, provider, and limits |
+| Personal GitHub clone       | Reviewed exported guidance, the selected repository, and an authorized issue or PR task                                                                |
+| `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace; Shadowclone makes no model calls for it                                              |
+| Evaluation                  | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction                              |
 
 First-time interactive `learn` can offer setup, which may make an authorized first learning pass. A deep dry run still calls a model.
 
@@ -67,23 +68,23 @@ Use only material you are authorized to send to the chosen provider. Provider us
 
 Earlier versions kept delegated task records under `~/.shadowclone/runs/`, grants under `~/.shadowclone/task-grants/`, and task worktrees under `~/.shadowclone/worktrees/`. Shadowclone no longer creates them. `forget --all` stops while old worktrees remain, so unfinished changes are not deleted; move or remove them yourself.
 
-| Location | Contents |
-| --- | --- |
-| `~/.shadowclone/config.toml` | Source consent and model/action settings |
-| `~/.shadowclone/environment.json` | Learned guidance, scope, evidence, publication decisions, and builds |
-| `~/.shadowclone/index.db` and sidecars | Event metadata, source references, cursors, and origin bindings |
-| `~/.shadowclone/profile/` | Legacy profile state and recovery artifacts |
-| `~/.shadowclone/distill/` | Derived learning checkpoints and fingerprints |
-| `~/.shadowclone/learning-pending.json` | Learned rules awaiting approval, named source provenance, and keys explicitly rejected during review |
-| `~/.shadowclone/learning-attempts/` | Private receipts with outcome codes, counts, and next actions, without raw excerpts or transcript paths |
-| `~/.shadowclone/learning-feedback.json` | Opaque evidence hashes, rule and guidance identifiers, source names, correction times, and explicit review acknowledgements |
-| `~/.shadowclone/learning-probes/` | Bounded native probe receipts with task and guidance hashes, provider metadata, outcomes, and loading observations; no prompt or response text |
-| `~/.shadowclone/skills.json` | Configured roots, maintenance ownership, and cached library review fingerprints |
-| `~/.shadowclone/skill-proposals/` | Proposed edits and conflicts with redacted supporting passages and required decisions |
-| Other files under `~/.shadowclone/` | Revisions, installation ownership, original-library snapshots, and learning/skill ledgers |
-| `~/.shadowclone/runs/` and `worktrees/` | Records and worktrees left by earlier versions, which may hold unfinished changes |
-| Agent skill and instruction directories | Published skills, resources, native routing, and hooks |
-| Repository harness files | Reviewed shared instructions, skills, and checks intended for version control |
+| Location                                | Contents                                                                                                                                       |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `~/.shadowclone/config.toml`            | Source consent and model/action settings                                                                                                       |
+| `~/.shadowclone/environment.json`       | Learned guidance, scope, evidence, publication decisions, and builds                                                                           |
+| `~/.shadowclone/index.db` and sidecars  | Event metadata, source references, cursors, and origin bindings                                                                                |
+| `~/.shadowclone/profile/`               | Legacy profile state and recovery artifacts                                                                                                    |
+| `~/.shadowclone/distill/`               | Derived learning checkpoints and fingerprints                                                                                                  |
+| `~/.shadowclone/learning-pending.json`  | Learned rules awaiting approval, named source provenance, and keys explicitly rejected during review                                           |
+| `~/.shadowclone/learning-attempts/`     | Private receipts with outcome codes, counts, and next actions, without raw excerpts or transcript paths                                        |
+| `~/.shadowclone/learning-feedback.json` | Opaque evidence hashes, rule and guidance identifiers, source names, correction times, and explicit review acknowledgements                    |
+| `~/.shadowclone/learning-probes/`       | Bounded native probe receipts with task and guidance hashes, provider metadata, outcomes, and loading observations; no prompt or response text |
+| `~/.shadowclone/skills.json`            | Configured roots, maintenance ownership, and cached library review fingerprints                                                                |
+| `~/.shadowclone/skill-proposals/`       | Proposed edits and conflicts with redacted supporting passages and required decisions                                                          |
+| Other files under `~/.shadowclone/`     | Revisions, installation ownership, original-library snapshots, and learning/skill ledgers                                                      |
+| `~/.shadowclone/runs/` and `worktrees/` | Records and worktrees left by earlier versions, which may hold unfinished changes                                                              |
+| Agent skill and instruction directories | Published skills, resources, native routing, and hooks                                                                                         |
+| Repository harness files                | Reviewed shared instructions, skills, and checks intended for version control                                                                  |
 
 Shadowclone does not copy whole transcripts into its store. The index holds references and event metadata. Learning records, checkpoints, and original-library snapshots can still contain sensitive derived or selected content.
 
@@ -99,7 +100,7 @@ Shared repository output is visible to anyone with repository access once commit
 
 ## Execution
 
-Shadowclone does not commit, push, or act on GitHub itself. The `shadowclone-work` skill acts through the host agent's own tools and permissions. A push sends Git objects, including repository code, without redacting them. Review comment text is untrusted data and is excluded from learning.
+Outside personal GitHub clone setup, Shadowclone does not commit, push, or act on GitHub itself. The `shadowclone-work` skill acts through the host agent's own tools and permissions. A push sends Git objects, including repository code, without redacting them. Review comment text is untrusted data and is excluded from learning.
 
 Evaluation confines candidate writes to disposable workspaces. Verification runs separately without provider credentials or network access and does not send verifier stdout to judges. These controls depend on the supported provider and operating-system sandbox. [Execution](architecture/04-acting.md) and [evaluation](architecture/09-evaluation.md) describe their contracts.
 
@@ -108,6 +109,20 @@ The browser editor listens on loopback, serves local assets, checks request orig
 Skill discovery reads only configured, consented roots. It permits up to 2,000 distinct physical skill files and 8 MB in total; overlapping roots count the same canonical file once. Native copies may collapse into one browser entry. Individual skills retain their 48 KB and 500-line limits, and discovery refuses paths nested more than twelve levels.
 
 Use AI in the skill editor sends only the typed form fields. It reads no repository files. Model requests use the learning execution contract with no tools, one call, and a 60-second deadline. Providers with dollar-cap support receive a $0.25 limit; other providers show that no dollar cap can be enforced. Cancellation aborts the request, but usage already incurred may still be charged. Reviews and cached results remain in server memory until the editor closes. Generated skill drafts remain editable and require the usual build review before publication.
+
+## Personal GitHub clones
+
+`bot setup` authorizes reading the current repository origin for that setup without enabling ongoing Git metadata capture. Managed source, engine, blocked-origin, and action restrictions still apply. The browser previews selected scoped skills, resources, plugin metadata, and native rules through the existing redacted delivery boundary. It excludes transcripts, source history, receipts, and raw learning records.
+
+App registration and installation require the owner's GitHub browser interaction. Setup rejects All repositories and checks repository IDs. Guidance upload and subscription use require approval of the exact preview in the local browser. MCP can start setup or return saved status; it provides no activation or credential operation.
+
+App registration credentials and the preview stay in server memory until shutdown. The documented `claude setup-token` flow produces a credential that the owner pastes into a loopback password request. Setup never extracts an existing interactive credential. GitHub CLI receives secrets through stdin, and diagnostics exclude credentials. Non-secret installation metadata lives under `~/.shadowclone/cloud/installations/`. Explicit exports use owner-only files outside the checkout and remain until deleted.
+
+The App private key, subscription token, and bounded guidance bundle become secrets in a default-branch-only GitHub environment. Existing approval settings remain intact. The default-branch workflow and code executed with credentials remain trusted. Each cloud worker receives an App token for one repository and sends the authorized repository task and guidance to Claude. The private App key stays outside the coding agent.
+
+Owner issues and approved tagged requests grant work within their stated scope. Validated checks and reviewer findings can resume managed PRs. Forks, other repositories, unapproved authors, and clone comment loops cannot dispatch work. A pause label blocks dispatch and cancels matching worker runs. The model receives instructions to check pause state before writes; cancellation cannot make an already-started write atomic. The clone opens draft PRs and can mark them ready, but the owner merges.
+
+Cloud tasks and exported guidance are not new learning sources. GitHub and the selected provider apply their retention policies. Local guidance changes do not automatically update the frozen cloud bundle. See [GitHub clones](guides/github-clones.md) for installation, limits, and removal.
 
 ## Retention and removal
 
