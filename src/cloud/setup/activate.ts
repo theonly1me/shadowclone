@@ -6,6 +6,7 @@ import { cloneSchema, type Delivery, type Repository } from "../types";
 import { saveInstallation } from "../status";
 import { verifyInstallation } from "./installation";
 import { configureEnvironment } from "./environment";
+import { protectDefaultBranch } from "./ruleset";
 import { createSetupPull } from "./pull";
 import type { App } from "./app";
 import type { GhCommand, GithubApi } from "./github";
@@ -77,6 +78,8 @@ export async function activateClone(
     reviewerBots: ["coderabbitai[bot]", "github-actions[bot]"],
     maximumRuns: 10,
   });
+
+  await protectDefaultBranch({ repository: preview.repository, command });
 
   await configureEnvironment({
     repository: preview.repository,
