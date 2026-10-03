@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.0.17](https://github.com/theonly1me/shadowclone/compare/v0.0.16...v0.0.17) (2026-10-03)
+
+
+### Features
+
+* add personal github clones ([8451dac](https://github.com/theonly1me/shadowclone/commit/8451dac2ea7b0a3a21cdc11c3d89942f72e0c2ec))
+* block clone pushes to the default branch with a ruleset ([a09f8af](https://github.com/theonly1me/shadowclone/commit/a09f8af6a99849402ee72ad9e8b47fbb57d9b36d))
+* **eval:** add reusable preference evaluations and publish results ([0a53945](https://github.com/theonly1me/shadowclone/commit/0a539453ace85697401c5339b5b64b96f91da11f))
+* remove shell history as a capture source ([3cf3a7a](https://github.com/theonly1me/shadowclone/commit/3cf3a7a520bdc922da349a7d132e6caffed67271))
+* remove the shadowclone run command ([0772bc9](https://github.com/theonly1me/shadowclone/commit/0772bc94f8744f22f14feccbc80ea1fb4438ad3e))
+* ship the ready-for-review shadowclone-work skill and remove the task harness ([cff2b0d](https://github.com/theonly1me/shadowclone/commit/cff2b0d988226d5f5e550b1be7697372953a01a2))
+* state the evidence each bundled skill reports ([b2236f6](https://github.com/theonly1me/shadowclone/commit/b2236f69b0ce41480f37ed640048dca0fb0e0e14))
+
+
+### Fixes
+
+* count only user-authored text as learning evidence ([1d5a725](https://github.com/theonly1me/shadowclone/commit/1d5a725129d9b910fe92b5bb795c3d9742e58eab))
+* open the cursor store fallback with an encoded sqlite uri ([93c44e3](https://github.com/theonly1me/shadowclone/commit/93c44e3f0e443e8cb4afe4e81f483c62d8294078))
+* retry hdiutil commands for read-only eval workspaces ([fa01ff1](https://github.com/theonly1me/shadowclone/commit/fa01ff10a6ef26da3ce5b6984742f6da64f0c375))
+
+
+### Documentation
+
+* require conventional-commit pull request titles ([a51fddf](https://github.com/theonly1me/shadowclone/commit/a51fddf1f37669025f0331d1567816edb1acc949))
+
 ## [0.0.16](https://github.com/theonly1me/shadowclone/compare/v0.0.15...v0.0.16) (2026-10-03)
 
 
