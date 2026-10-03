@@ -25,7 +25,7 @@ Keep changes focused. Add tests for behavior that can regress, and run the affec
 bun run check
 ```
 
-This runs typecheck, lint, and tests. CI also runs the tests on Linux and macOS. The [plugin security scan](.github/workflows/plugin-security-scan.yml) runs on pushes and pull requests and requires a score of at least 80 with no high-severity findings.
+This runs typecheck, lint, the knip unused-file check, and tests. CI also runs the tests on Linux and macOS. The [plugin security scan](.github/workflows/plugin-security-scan.yml) runs on pushes and pull requests and requires a score of at least 80 with no high-severity findings.
 
 ## Code conventions
 

@@ -10,6 +10,8 @@ Local type checks and tests did not prevent unchecked changes from merging. Seve
 
 Use `bun run check` as the shared local and CI gate: typecheck, lint, then tests. Run tests on Linux and macOS because filesystem paths, policy locations, and process behavior differ.
 
+Run knip after lint to fail on unused files, dependencies, and binaries. `knip.json` lists the entry points that a static import graph cannot find: the MCP server, the browser client, scripts, plugin helpers, and tests. Unused exports stay ungated until the barrel re-exports are pruned.
+
 Use Biome for TypeScript linting, a GritQL rule for type assertions, and a tested repository checker for file length, comments, and prohibited prose characters. Keep the runtime version pinned in `package.json` and GitHub Actions pinned to commit digests. Grant workflows only the permissions their jobs need.
 
 Release checks verify the package version, exercise the built CLI, and attach provenance to published output. Provenance identifies the source and build process; it does not prove the program is safe or the build byte-for-byte reproducible.
