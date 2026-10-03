@@ -1,6 +1,7 @@
 import type { IndexedEvent } from "../index";
 import { getEventRepository } from "./origin";
 import type { CorrectionSignal, RepositoryIdentity } from "./types";
+import { minePiEpisodes } from "./piEpisodes";
 
 export function mineSteeringEpisodes(options: {
   readonly events: readonly IndexedEvent[];
@@ -13,6 +14,10 @@ export function mineSteeringEpisodes(options: {
   );
 
   for (const session of sessions.values()) {
+    if (session[0]?.source === "pi") {
+      episodes.push(...minePiEpisodes({ events: session, repositories: options.repositories }));
+      continue;
+    }
     let preceding: IndexedEvent | null = null;
     let prompts: IndexedEvent[] = [];
 

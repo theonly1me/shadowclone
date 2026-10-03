@@ -7,6 +7,7 @@ export const integrationAgentSchema = z.enum([
   "codex",
   "cursor",
   "antigravity",
+  "pi",
 ]);
 export type IntegrationAgent = z.infer<typeof integrationAgentSchema>;
 export const integrationScopeSchema = z.enum(["global", "repository"]);
@@ -24,7 +25,7 @@ export const integrationSchema = z.strictObject({
   files: z.array(
     z.strictObject({
       relativePath: z.string().min(1),
-      kind: z.enum(["instructions", "skill", "hooks"]),
+      kind: z.enum(["instructions", "skill", "hooks", "extension"]),
       fingerprint: z.string(),
       created: z.boolean(),
     }),

@@ -30,6 +30,8 @@ test("holds every user path under the selected home directory", () => {
     claudePromptHistoryFile: "/Users/example/.claude/history.jsonl",
     codexSessionsDirectory: "/Users/example/.codex/sessions",
     cursorChatsDirectory: "/Users/example/.cursor/chats",
+    piAgentDirectory: "/Users/example/.pi/agent",
+    piSessionsDirectory: "/Users/example/.pi/agent/sessions",
     shellHistoryFiles: [
       "/Users/example/.zsh_history",
       "/Users/example/.bash_history",

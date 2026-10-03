@@ -39,7 +39,7 @@ For contributor evaluations, use the source runner with `eval --protocol prefere
 | `shadowclone migrate skills` | Preview migration from an older profile installation |
 | `shadowclone mcp` | Serve context and maintenance tools to a connected agent |
 
-Supported agent identifiers are `claude-code`, `codex`, `cursor`, and `antigravity`. Optional local Claude subagents use `--subagent`; automatic delegation is a separate `--auto-delegate` choice.
+Supported agent identifiers are `claude-code`, `codex`, `cursor`, `antigravity`, and `pi`. Optional local Claude subagents use `--subagent`; automatic delegation is a separate `--auto-delegate` choice. See [Pi setup](pi.md) for provider configuration and execution limits.
 
 ## Delegated engineering work
 

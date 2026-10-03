@@ -1,6 +1,6 @@
 # Learning
 
-Shadowclone can learn reusable instructions and corrections from the sources you enable. Model-assisted learning needs an installed and authenticated `claude`, `codex`, or `cursor-agent` CLI. Antigravity supports capture and native guidance, while learning uses one of the other CLIs.
+Shadowclone can learn reusable instructions and corrections from the sources you enable. Model-assisted learning needs an installed and configured `claude`, `codex`, `cursor-agent`, or `pi` CLI. Antigravity supports capture and native guidance, while learning uses one of the other CLIs. [Pi setup](pi.md) describes session model inheritance and local models configured through Pi.
 
 ## Run deep learning
 

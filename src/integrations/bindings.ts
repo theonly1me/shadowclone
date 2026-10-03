@@ -9,6 +9,7 @@ const sourceByAgent: Readonly<Record<Integration["agent"], SourceId>> = {
   codex: "codex",
   cursor: "cursor",
   antigravity: "antigravity",
+  pi: "pi",
 };
 
 export function nativeBindingTimestamp(value: unknown): number {
@@ -52,6 +53,7 @@ export async function bindNativeSessionOrigin(
   if (!policy.enabled || !config.sources["git-metadata"]) {
     return;
   }
+  if (options.integration.agent === "pi" && !config.sources.pi) return;
 
   const repository = await resolveRepository({
     cwd: options.cwd,

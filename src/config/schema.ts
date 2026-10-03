@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { EngineId } from "../engine/types";
 import type { RepoSettings } from "./repo";
 import { parseRepoSettings } from "./repo";
 
@@ -15,6 +16,7 @@ export const sourceIds = [
   "declared-rules",
   "git-metadata",
   "repository-manifests",
+  "pi",
   "shell",
   "skill-library",
 ] as const;
@@ -31,6 +33,8 @@ export type ShadowcloneConfig = {
   readonly distillation: {
     readonly deep: boolean;
     readonly automatic?: boolean;
+    readonly engine?: EngineId;
+    readonly model?: string;
   };
   readonly repo: RepoSettings;
 };
@@ -47,6 +51,7 @@ export const defaultConfig: ShadowcloneConfig = {
     "claude-prompts": false,
     codex: false,
     cursor: false,
+    pi: false,
     "declared-rules": false,
     "git-metadata": false,
     "repository-manifests": false,
@@ -70,6 +75,7 @@ const sourcesSchema = z.strictObject({
   "claude-prompts": z.boolean(),
   codex: z.boolean(),
   cursor: z.boolean(),
+  pi: z.boolean().optional().default(false),
   "declared-rules": z.boolean().optional().default(false),
   "git-metadata": z.boolean().optional().default(false),
   "repository-manifests": z.boolean().optional().default(false),
@@ -116,6 +122,8 @@ function parseSources(value: unknown): SourceSettings {
 const distillationSchema = z.strictObject({
   deep: z.boolean(),
   automatic: z.boolean().optional().default(false),
+  engine: z.enum(["claude-code", "codex", "cursor-agent", "pi"]).optional(),
+  model: z.string().trim().min(1).optional(),
 });
 
 function parseDistillation(value: unknown): ShadowcloneConfig["distillation"] {

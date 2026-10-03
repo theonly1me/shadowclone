@@ -22,6 +22,7 @@ async function initializeWithAllSources(options: {
     paths,
     advanced: true,
     ask: (question) =>
+      question === "Enable Pi transcripts?" ||
       question === "Import existing repository guidance?" ||
       question === "Set up a seed profile instead?"
         ? false

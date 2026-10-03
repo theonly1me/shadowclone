@@ -93,10 +93,13 @@ export async function doctor(
 
   const allowedEngines =
     policy.distillation === "allowed" ? policy.allowedEngines : [];
+  const { config } = await readEffectiveConfig({ managedConfigPath });
   const detection = await detectEngine({
     purpose: "distill",
     probe: options.probe,
     allowedEngines,
+    preferredEngine: config.distillation.engine,
+    model: config.distillation.model,
   });
 
   for (const engine of detection.availability) {
@@ -135,7 +138,6 @@ export async function doctor(
     ),
   );
 
-  const { config } = await readEffectiveConfig({ managedConfigPath });
   const learning = await readLearningState(projectPaths);
 
   console.log(

@@ -3,10 +3,12 @@ import { detectEngine } from "../engine";
 import type { EngineId, EngineRunner } from "../engine/types";
 import { getProviderByEngine } from "../provider";
 import type { BuildContext } from "../builds/types";
+import { selectLearningPreferences } from "../learning/modelPreferences";
 
 export type GenerationEngine = {
   readonly engine: EngineId;
   readonly runner: EngineRunner;
+  readonly model?: string;
 };
 
 export async function allowedGenerationEngines(context: BuildContext) {
@@ -26,11 +28,15 @@ export async function generationEngine(
   options: BuildContext & { readonly engine?: GenerationEngine },
 ): Promise<GenerationEngine> {
   const allowed = await allowedGenerationEngines(options);
+  const { config } = await readEffectiveConfig({ configPath: options.paths.configFile, managedConfigPath: options.paths.managedConfigFile });
+  const preferences = selectLearningPreferences({ explicit: options.engine, saved: config.distillation });
   const detected = options.engine
     ? null
     : await detectEngine({
         purpose: "distill",
         allowedEngines: allowed,
+        model: preferences.model,
+        preferredEngine: preferences.engine,
       });
 
   const engine = options.engine?.engine ?? detected?.selectedEngine;
@@ -40,7 +46,8 @@ export async function generationEngine(
     throw new Error("Sign in to a supported coding-agent CLI to use AI");
   }
 
-  return { engine, runner };
+  const model = preferences.model;
+  return { engine, model, runner: model ? run => runner({ ...run, model }) : runner };
 }
 
 export function generationLimits(engine: EngineId): string {

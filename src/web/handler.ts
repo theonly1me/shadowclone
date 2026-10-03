@@ -13,6 +13,7 @@ import { createModelActions } from "./modelActions";
 import type { GenerationEngine } from "./generationEngine";
 import { authorizeBrowserRequest, browserJson } from "./security";
 import { taskSummaries } from "../tasks/operations";
+import { learningModelCatalog, saveLearningModel } from "../learning/modelCatalog";
 
 const previewRequestSchema = z.strictObject({ previewId: z.uuid() });
 const revisionRequestSchema = z.strictObject({ revisionId: z.uuid() });
@@ -47,6 +48,9 @@ export function createBrowserHandler(
     const url = new URL(request.url);
 
     try {
+      if (request.method === "GET" && url.pathname === "/api/learning-models") {
+        return browserJson({ body: await learningModelCatalog(context.paths) });
+      }
       if (request.method === "GET" && url.pathname === "/api/tasks") {
         return browserJson({ body: await taskSummaries(context) });
       }
@@ -84,6 +88,10 @@ export function createBrowserHandler(
       }
 
       const body: unknown = await request.json();
+      if (url.pathname === "/api/learning-model") {
+        await saveLearningModel({ paths: context.paths, input: body });
+        return browserJson({ body: { saved: true } });
+      }
       const generated = await modelAction({
         pathname: url.pathname,
         body,

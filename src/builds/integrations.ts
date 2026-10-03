@@ -5,6 +5,7 @@ import { readIntegrations } from "../integrations/state";
 import { prepareIntegrationFiles } from "../integrations/files";
 import type { Integration } from "../integrations/types";
 import type { BuildContext } from "./types";
+import { sharedIntegrationUpdates } from "../integrations/sharedUpdates";
 
 export async function buildIntegrations(
   context: BuildContext,
@@ -22,6 +23,7 @@ export async function buildIntegrations(
     codex: canonicalPath(path.dirname(context.paths.codexSessionsDirectory)),
     cursor: path.join(homeDirectory, ".cursor"),
     antigravity: path.join(homeDirectory, ".gemini/config"),
+    pi: canonicalPath(context.paths.piAgentDirectory),
   };
 
   const overrideExists = await Bun.file(
@@ -30,7 +32,7 @@ export async function buildIntegrations(
 
   return [
     ...current,
-    ...(["claude-code", "codex", "cursor", "antigravity"] as const).map(
+    ...(["claude-code", "codex", "cursor", "antigravity", "pi"] as const).map(
       (agent): Integration => ({
         id: crypto.randomUUID(),
         agent,
@@ -90,5 +92,5 @@ export async function planBuildIntegrations(
     next: `${JSON.stringify({ version: 1, integrations: updated }, null, 2)}\n`,
   });
 
-  return { updates, integrations: updated };
+  return { updates: sharedIntegrationUpdates(updates), integrations: updated };
 }

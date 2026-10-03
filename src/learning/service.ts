@@ -1,6 +1,8 @@
 import { captureRoots } from "../redact";
 import { normalizeExplicitCandidates } from "./candidates";
 import type { ManagedPolicy } from "../config";
+import { readConfig } from "../config";
+import { selectLearningPreferences } from "./modelPreferences";
 import { distillSignals, renderReconciliationChanges } from "../distill";
 import {
   defaultLearningExecutionLimits,
@@ -56,14 +58,16 @@ export async function runLearningService(options: {
   readonly authorizeRef?: (ref: CorrectionSignal["textRefs"][number]) => Promise<boolean>;
 }): Promise<DeepLearningResult> {
   const writeLine = options.writeLine ?? console.log;
+  const preferences = selectLearningPreferences({ explicit: options,
+    saved: (await readConfig({ configPath: options.paths.configFile })).distillation });
 
   if (options.policy.distillation !== "allowed") {
     throw new Error("Managed policy does not allow remote distillation");
   }
 
   if (
-    options.engine &&
-    !options.policy.allowedEngines.includes(options.engine)
+    preferences.engine &&
+    !options.policy.allowedEngines.includes(preferences.engine)
   ) {
     throw new Error("Managed policy blocks the selected learning engine");
   }
@@ -72,12 +76,11 @@ export async function runLearningService(options: {
     ? null
     : await detectEngine({
         purpose: "distill",
-        allowedEngines: options.engine
-          ? [options.engine]
-          : options.policy.allowedEngines,
+        allowedEngines: options.policy.allowedEngines,
+        preferredEngine: preferences.engine,
       });
   const detectedRunner = options.runner ?? detection?.runner;
-  const engine = options.engine ?? detection?.selectedEngine;
+  const engine = preferences.engine ?? detection?.selectedEngine;
 
   if (!detectedRunner || !engine) {
     throw new Error("No authenticated agent engine is available");
@@ -86,7 +89,7 @@ export async function runLearningService(options: {
   const runner: EngineRunner = (run) =>
     detectedRunner({
       ...run,
-      ...(options.model ? { model: options.model } : {}),
+      ...(preferences.model ? { model: preferences.model } : {}),
       ...(options.reasoningEffort
         ? { reasoningEffort: options.reasoningEffort }
         : {}),

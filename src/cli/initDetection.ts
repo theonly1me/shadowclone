@@ -14,6 +14,7 @@ const agentNames: Record<IntegrationAgent, string> = {
   codex: "Codex",
   cursor: "Cursor",
   antigravity: "Antigravity",
+  pi: "Pi",
 };
 
 async function directoryHasEntry(directoryPath: string): Promise<boolean> {
@@ -72,6 +73,7 @@ function detectedSourcePaths(options: {
     codex: [options.paths.codexSessionsDirectory],
     cursor: [options.paths.cursorChatsDirectory],
     shell: options.paths.shellHistoryFiles,
+    pi: [options.paths.piSessionsDirectory],
   };
   const homeDirectory = path.dirname(
     path.dirname(options.paths.claudeProjectsDirectory),

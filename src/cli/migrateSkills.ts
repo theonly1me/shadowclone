@@ -1,4 +1,4 @@
-import { readConfig, setSourceEnabled, writeConfig } from "../config";
+import { readConfig, readEffectiveConfig, setSourceEnabled, writeConfig } from "../config";
 import {
   createLearningExecution,
   detectEngine,
@@ -9,6 +9,7 @@ import { prepareEnvironmentMigration } from "../environment/migrate";
 import { updateLearningEnvironment } from "../environment/update";
 import { activateEnvironment } from "../environment/activate";
 import { belongsToScope, learningScopes } from "../environment/scope";
+import { selectLearningPreferences } from "../learning/modelPreferences";
 
 export async function handleSkillsMigration(options: {
   readonly command: string | undefined;
@@ -52,7 +53,8 @@ export async function handleSkillsMigration(options: {
       if (
         value !== "claude-code" &&
         value !== "codex" &&
-        value !== "cursor-agent"
+        value !== "cursor-agent" &&
+        value !== "pi"
       ) {
         throw new Error("Unsupported learning engine");
       }
@@ -118,9 +120,14 @@ export async function handleSkillsMigration(options: {
     return true;
   }
 
+  const { config, policy } = await readEffectiveConfig();
+  if (!policy.enabled || policy.distillation !== "allowed") throw new Error("Managed policy does not allow migration learning");
+  const preferences = selectLearningPreferences({ explicit: { engine, model }, saved: config.distillation });
   const detection = await detectEngine({
     purpose: "distill",
-    ...(engine ? { allowedEngines: [engine] } : {}),
+    allowedEngines: policy.allowedEngines,
+    preferredEngine: preferences.engine,
+    model: preferences.model,
   });
 
   if (!detection.runner || !detection.selectedEngine) {
@@ -133,7 +140,7 @@ export async function handleSkillsMigration(options: {
     runner: (run) =>
       detectedRunner({
         ...run,
-        ...(model ? { model } : {}),
+        ...(preferences.model ? { model: preferences.model } : {}),
         reasoningEffort: "medium",
       }),
   });

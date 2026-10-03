@@ -2,7 +2,7 @@
 
 # Shadowclone
 
-Shadowclone maintains the skills, instructions, and checks that help **Claude Code, Codex, Cursor, and Antigravity** follow your engineering preferences. It works with the coding agents you already use and keeps you in control of what it reads and changes.
+Shadowclone maintains the skills, instructions, and checks that help **Claude Code, Codex, Pi, Cursor, and Antigravity** follow your engineering preferences. It works with the coding agents you already use and keeps you in control of what it reads and changes.
 
 ## Get started
 
@@ -40,7 +40,7 @@ npm install -g @shadowclone/cli
 | 2 | `shadowclone learn --deep` | Learn from enabled past sessions; repeat if more history remains | Up to 5 minutes per run |
 | 3 | `shadowclone learning pending` and `shadowclone skills pending` | Review learned rules, scope, and publication before relying on them | About 1 minute |
 
-Setup takes about two to three minutes, excluding learning. Deep learning needs an installed and authenticated `claude`, `codex`, or `cursor-agent` CLI. Claude Code learning on Linux needs `bwrap` and `socat` for its sandbox.
+Setup takes about two to three minutes, excluding learning. Deep learning needs an installed and configured `claude`, `codex`, `cursor-agent`, or `pi` CLI. [Pi setup](docs/guides/pi.md) uses any suitable model configured in Pi, including local providers. Claude Code learning on Linux needs `bwrap` and `socat` for its sandbox.
 
 **Skip learning.** Run `shadowclone wizard` by itself if you do not want Shadowclone to read sessions or call a model. It starts from an empty active environment and lets you choose a build locally.
 

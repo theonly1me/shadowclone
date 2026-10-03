@@ -35,6 +35,7 @@ test("writes and reads the config without changing it", async () => {
 
   const config = {
     ...defaultConfig,
+    distillation: { ...defaultConfig.distillation, engine: "pi" as const, model: "custom/local-model" },
     sources: {
       ...defaultConfig.sources,
       "claude-code": true,
@@ -61,6 +62,7 @@ test("renders named source settings as TOML", () => {
       "claude-prompts = false",
       "codex = false",
       "cursor = false",
+      "pi = false",
       "declared-rules = false",
       "git-metadata = false",
       "repository-manifests = false",
@@ -84,6 +86,7 @@ test("migrates an existing config with git metadata disabled", async () => {
     .replace("agent-context = false\n", "")
     .replace("antigravity = false\n", "")
     .replace("declared-rules = false\n", "")
+    .replace("pi = false\n", "")
     .replace("git-metadata = false\n", "");
 
   await Bun.write(configPath, legacy);
@@ -93,6 +96,7 @@ test("migrates an existing config with git metadata disabled", async () => {
   expect(migrated.sources["declared-rules"]).toBeFalse();
   expect(migrated.sources["claude-rules"]).toBeFalse();
   expect(migrated.sources["git-metadata"]).toBeFalse();
+  expect(migrated.sources.pi).toBeFalse();
 });
 
 test("migrates an existing config with Antigravity disabled", async () => {

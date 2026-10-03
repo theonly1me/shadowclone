@@ -17,7 +17,8 @@ function parseEngine(value: string): EngineId {
   if (
     value === "claude-code" ||
     value === "codex" ||
-    value === "cursor-agent"
+    value === "cursor-agent" ||
+    value === "pi"
   ) {
     return value;
   }

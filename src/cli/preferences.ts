@@ -1,7 +1,7 @@
 import { listRevisions, showRevision, undoRevision } from "../changes";
 import { readConfig, readEffectiveConfig, writeConfig } from "../config";
 import { refreshIntegrations } from "../integrations";
-import { readLearningState, runAutomaticLearning } from "../learning";
+import { readLearningState } from "../learning";
 import { readPendingLearning } from "../learning/pending";
 import { decidePendingLearning } from "../learning/review";
 import { readLatestLearningReceipt } from "../learning/receipt";
@@ -19,6 +19,7 @@ import { readLatestProbe } from "../learning/probe";
 import { acknowledgeCorrections, correctionReviewSignals } from "../learning/feedback";
 import { listSkillProposals } from "../skillMaintenance";
 import { handleSkillMaintenance } from "./skillMaintenance";
+import { automaticLearning } from "./automaticLearning";
 
 export async function handlePreferenceCommand(options: {
   readonly command: string | undefined;
@@ -73,17 +74,7 @@ export async function handlePreferenceCommand(options: {
   }
 
   if (options.command === "learn" && action === "--automatic") {
-    const sessionKeys: string[] = [];
-
-    for (let index = 0; index < rest.length; index += 2) {
-      if (rest[index] !== "--session-key" || !rest[index + 1]) {
-        throw new Error("Invalid internal learning request");
-      }
-
-      sessionKeys.push(rest[index + 1] ?? "");
-    }
-
-    await runAutomaticLearning({ sessionKeys });
+    await automaticLearning(rest);
 
     return true;
   }

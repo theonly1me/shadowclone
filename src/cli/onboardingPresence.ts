@@ -9,6 +9,7 @@ export const onboardingCaptureSourceIds = [
   "codex",
   "cursor",
   "shell",
+  "pi",
 ] as const;
 
 export type OnboardingCaptureSourceId =
@@ -109,6 +110,7 @@ export async function detectOnboardingPresence(options: {
     directoryHasEntry(options.paths.codexSessionsDirectory),
     directoryHasEntry(options.paths.cursorChatsDirectory),
     anyFileHasContent(options.paths.shellHistoryFiles),
+    directoryHasEntry(options.paths.piSessionsDirectory),
   ]);
   const presentCaptureSources = new Set<OnboardingCaptureSourceId>();
 

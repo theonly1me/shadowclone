@@ -1,11 +1,12 @@
 import { readEffectiveConfig } from "../config";
 import { projectPaths, type ProjectPaths } from "../paths";
 import { learningInterval, readLearningState } from "./state";
+import type { LearningPreferences } from "./modelPreferences";
 
 function spawnLearningWorker(options: {
   readonly paths: ProjectPaths;
   readonly sessionKeys: readonly string[];
-}): void {
+} & LearningPreferences): void {
   const worker = Bun.spawn({
     cmd: [
       process.execPath,
@@ -13,6 +14,8 @@ function spawnLearningWorker(options: {
       "learn",
       "--automatic",
       ...options.sessionKeys.flatMap((key) => ["--session-key", key]),
+      ...(options.engine ? ["--engine", options.engine] : []),
+      ...(options.model ? ["--model", options.model] : []),
     ],
     cwd: options.paths.shadowcloneDirectory,
     stdin: "ignore",
@@ -35,8 +38,8 @@ export async function scheduleLearning(
     readonly spawn?: (options: {
       readonly paths: ProjectPaths;
       readonly sessionKeys: readonly string[];
-    }) => void;
-  } = {},
+    } & LearningPreferences) => void;
+  } & LearningPreferences = {},
 ): Promise<boolean> {
   if (options.internalRun ?? process.env.SHADOWCLONE_INTERNAL_RUN === "1") {
     return false;
@@ -71,7 +74,7 @@ export async function scheduleLearning(
     return false;
   }
 
-  (options.spawn ?? spawnLearningWorker)({ paths, sessionKeys });
+  (options.spawn ?? spawnLearningWorker)({ paths, sessionKeys, engine: options.engine, model: options.model });
 
   return true;
 }

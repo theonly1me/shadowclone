@@ -52,3 +52,4 @@ export type {
   ReasoningEffort,
 } from "./types";
 export { reasoningEfforts } from "./types";
+export { runPi, availablePiModels } from "./pi";
