@@ -16,7 +16,7 @@ Start with the [README](../README.md) to install Shadowclone and choose your fir
 | [Command reference](guides/commands.md) | Find everyday and advanced commands |
 | [Migration](migration.md) | Move an existing profile installation to skills |
 | [Data handling](data-handling.md) | Understand sources, provider requests, local files, and deletion |
-| [Evaluation results](../evals.md) | Read the published experiments and their limitations |
+| [Evaluation results](../evals.md) | Compare preference adherence across five setups and four models |
 
 ## Understanding and contributing
 
@@ -25,7 +25,7 @@ Start with the [README](../README.md) to install Shadowclone and choose your fir
 - [Enterprise controls](architecture/07-enterprise.md): scope, managed policy, and deployment review.
 - [Design history](design/README.md): decisions and the designs that superseded them.
 - [Contributing](../CONTRIBUTING.md): development setup, checks, and pull requests.
-- [Fixed preference evals](guides/fixed-evals.md): compare four setups on repeatable tasks using synthetic skills and correction sessions.
+- [Running evaluations](guides/evaluations.md): validate frozen tasks, reuse learning preparations, and authorize exact execution scopes.
 - [Security](../SECURITY.md): reporting vulnerabilities.
 
 Coding assistants start with [AGENTS.md](../AGENTS.md).

@@ -14,10 +14,15 @@ import { writeLearningReceipt } from "../learning/receipt";
 import path from "node:path";
 import { acquireLocalLock } from "../localFiles/lock";
 import { selectLearningPreferences } from "../learning/modelPreferences";
+import { validateLimits } from "../engine/learningLimits";
 
 export async function learn(
   options: LearnExecutionOptions = {},
 ): Promise<void> {
+  if (options.limits) {
+    validateLimits(options.limits);
+    if (!options.deep || options.maximumCalls !== options.limits.maximumCalls) throw new Error("Explicit learning limits require deep learning and a matching call ceiling.");
+  }
   if (options.apply && !options.deep) {
     throw new Error("learn --apply requires --deep");
   }
@@ -134,6 +139,7 @@ export async function learn(
           ...(options.maximumCalls === undefined
             ? {}
             : { maximumCalls: options.maximumCalls }),
+          ...(options.limits ? { limits: options.limits } : {}),
           ...(options.confirm ? { confirm: options.confirm } : {}),
           writeLine,
         });

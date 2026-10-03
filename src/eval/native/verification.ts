@@ -4,6 +4,7 @@ import os from "node:os";
 import { runProcess } from "../../io/process";
 import { writeFrozenFile } from "./files";
 import type { AcceptanceCheck } from "./schema";
+import type { NativeDiagnostic } from "./diagnostics";
 
 export function verificationFailure(options: { exitCode: number; stderr: string }): "fail" | "unknown" {
   return options.exitCode === 71 && /^sandbox-exec: /m.test(options.stderr) ? "unknown" : "fail";
@@ -14,6 +15,7 @@ export async function verifyNativeCandidate(options: {
   readonly homeDirectory: string;
   readonly scenario: { readonly acceptance: AcceptanceCheck | null };
   readonly blockedPaths?: readonly string[];
+  readonly onDiagnostic?: (diagnostic: NativeDiagnostic) => Promise<void>;
 }): Promise<{ correctness: "pass" | "fail" | "unknown"; evidence: string }> {
   if (!options.scenario.acceptance) {
     return { correctness: "unknown", evidence: "Advice completion is judged separately." };
@@ -73,6 +75,8 @@ export async function verifyNativeCandidate(options: {
     evidence.push(`${check.arguments.join(" ")}\nexit ${response.exitCode}\n${response.stdout}\n${response.stderr}`);
 
     if (response.exitCode !== 0) {
+      if (verificationFailure(response) === "unknown") await options.onDiagnostic?.({ stage: "verification", confirmedInfrastructure: true,
+        message: "Acceptance sandbox failed to start.", details: `${response.exitCode}\n${response.stderr}` });
       return { correctness: verificationFailure(response), evidence: evidence.join("\n").slice(-16000) };
     }
   }

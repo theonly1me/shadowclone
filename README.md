@@ -50,18 +50,19 @@ Run `shadowclone` to see the current result and next action. Use `shadowclone wi
 
 ## Evaluations
 
-Seven fixed tasks compare four setups using synthetic skills and correction sessions. Scores measure the share of applicable preferences followed in completed sessions, with equal weight per task. Each setup ran three repetitions; one timed-out Luna session is excluded from this view.
+We tested 24 fixed engineering tasks across eight preference families, with three repetitions per setup and model. Scores measure preference adherence, with each family weighted equally.
 
-| Preferences followed | GPT 6.1 Sol, medium | GPT 6 Luna, high | Sonnet 5.5, high | Opus 5.5, medium |
+| Setup | GPT 6.1 Sol | GPT 6 Luna | Claude Sonnet 5.5 | Claude Opus 5.5 |
 | --- | ---: | ---: | ---: | ---: |
-| Bare | 96.2% | 97.1% | 59.4% | 52.1% |
-| Existing user skills | 100% | 100% | 65.0% | 63.8% |
-| Skills plus Shadowclone routing | 100% | 100% | 65.0% | 63.8% |
-| Skills, routing, and deep learning | 100% | 100% | 81.7% | 96.4% |
+| Agent alone | 77.3% | 59.0% | 56.5% | 53.2% |
+| Existing user skills | 85.2% | 80.6% | 76.4% | 73.6% |
+| Existing skills + Shadowclone routing | 86.1% | 72.7% | 76.9% | 75.9% |
+| Existing skills + handwritten preferences | 92.4% | 81.2% | 91.7% | 86.1% |
+| Existing skills + Shadowclone learning | 89.4% | 83.3% | 90.0% | 82.9% |
 
-Learning added 16.7 percentage points over existing skills on Sonnet and 32.6 on Opus; both 95% bootstrap intervals were above zero. Both Codex models were already at 100% with skills, and routing alone tied skills. All completed tasks passed correctness and safety checks. Luna's existing-skills score covers twenty completed sessions; the other setups cover twenty-one. Its original full-matrix report remains incomplete.
+Shadowclone learning improved recorded adherence over existing skills on all four models. The gain ranges from 2.8 to 13.7 percentage points. Handwritten preferences provide a reference for what agents can follow when the intended rules are supplied directly.
 
-The existing skill contains three preferences; one shared learning run added two from synthetic corrections. These public development tasks show a specific learning benefit, with no claim about other users, repositories, or engineering throughput. [Read the methods, intervals, timeout exclusion, and historical study](evals.md). The [eval guide](docs/guides/fixed-evals.md#how-this-follows-the-claudedev-recommendations) explains which Claude.dev recommendations the benchmark follows and the work still needed for held-out hillclimbing.
+The learning setup includes routing and actual learned preferences from synthetic correction sessions. These results measure preference delivery on this task set. [Read the setup definitions, family scores, methods, and measurement limits](evals.md).
 
 ## Privacy comes first
 

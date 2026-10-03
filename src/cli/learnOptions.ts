@@ -1,4 +1,4 @@
-import type { EngineId, EngineRunner, ReasoningEffort } from "../engine";
+import type { EngineId, EngineRunner, LearningExecutionLimits, ReasoningEffort } from "../engine";
 import type { ProjectPaths } from "../paths";
 import type { GitRemoteReader } from "../signal";
 import type { ConfirmPrompt } from "./confirm";
@@ -153,6 +153,7 @@ export type LearnExecutionOptions = {
   readonly model?: string;
   readonly reasoningEffort?: ReasoningEffort;
   readonly maximumCalls?: number;
+  readonly limits?: LearningExecutionLimits;
   readonly confirm?: ConfirmPrompt;
   readonly writeLine?: (line: string) => void;
   readonly managedConfigPath?: string | null;

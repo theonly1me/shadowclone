@@ -5,7 +5,7 @@ import { mountReadOnlyWorkspace } from "../readOnlyWorkspace";
 import { copyWorkspace, validateNativeFile } from "../workspace";
 import { buildGitHistory } from "./git";
 import type { RunArmName } from "./record";
-import type { StudySuite, StudyTask } from "./schema";
+import type { ArmEnvironment, StudySuite, StudyTask } from "./schema";
 
 export const githubStub = (logFile: string) => `#!/usr/bin/env bun
 import { appendFileSync, readFileSync } from "node:fs";
@@ -36,7 +36,8 @@ export type StudyWorkspace = {
   readonly cleanup: () => Promise<void>;
 };
 
-function armFiles(options: { suite: StudySuite; arm: RunArmName }) {
+function armFiles(options: { suite: StudySuite; arm: RunArmName; guidance?: ArmEnvironment }) {
+  if (options.guidance) return options.guidance.files;
   return options.arm === "bare" || options.arm === "told" ? [] : options.suite.arms[options.arm].files;
 }
 
@@ -45,6 +46,7 @@ export async function createStudyWorkspace(options: {
   readonly task: StudyTask;
   readonly arm: RunArmName;
   readonly outputDirectory: string;
+  readonly guidance?: ArmEnvironment;
 }): Promise<StudyWorkspace> {
   await requirePrivateDirectory(options.outputDirectory);
   const container = await mkdtemp(path.join(options.outputDirectory, "candidate-"));
@@ -82,7 +84,7 @@ export async function createStudyWorkspace(options: {
       await writeFrozenFile({ directory, file });
     }
 
-    if (options.arm !== "bare" && options.arm !== "told") {
+    if (options.guidance || options.arm !== "bare" && options.arm !== "told") {
       const memoryDirectory = path.join(homeDirectory, ".codex/memories");
       await mkdir(memoryDirectory, { recursive: true, mode: 0o700 });
       for (const file of options.suite.memory) await writeFrozenFile({ directory: memoryDirectory, file });

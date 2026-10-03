@@ -49,10 +49,22 @@ test("failed learning retains its charged invocation and cannot produce a scored
   const directory = await mkdtemp(path.join(os.tmpdir(), "four-setup-failed-learning-"));
   try {
     const preparationFile = await prepareWorkflowEnvironments({ directory, engine: "codex", model: "synthetic-model", effort: "medium", maximumCalls: 1, cliVersion: "synthetic-cli" });
-    const result = await learnWorkflowEnvironments({ preparationFile, managedConfigPath: null, runner: async () => { throw new Error("Synthetic engine failure"); } });
+    const result = await learnWorkflowEnvironments({ preparationFile, managedConfigPath: null, runner: async options => {
+      await options.debugTransport?.({ stdout: "Synthetic failed native transport.", stderr: "Synthetic native failure." });
+      throw new Error("Synthetic engine failure");
+    } });
     expect(result.learning.outcome).toBe("incomplete");
     expect(result.learning.calls).toHaveLength(1);
     expect(result.learning.calls[0]?.isError).toBeTrue();
+    const diagnostics = await Array.fromAsync(new Bun.Glob("learning/call-*-diagnostic.json").scan({ cwd: directory }));
+    const transports = await Array.fromAsync(new Bun.Glob("learning/call-*-transport.json").scan({ cwd: directory }));
+    expect(diagnostics).toHaveLength(1);
+    expect(transports).toHaveLength(1);
+    const diagnostic = diagnostics[0];
+    const transport = transports[0];
+    if (!diagnostic || !transport) throw new Error("Missing retained native evidence.");
+    expect(await Bun.file(path.join(directory, diagnostic)).json()).toMatchObject({ message: "Synthetic engine failure", confirmedInfrastructure: false });
+    expect(await Bun.file(path.join(directory, transport)).json()).toMatchObject({ stdout: "Synthetic failed native transport." });
     await expect(readPreparedEnvironments(result.environmentsFile)).rejects.toThrow("incomplete");
     await expect(learnWorkflowEnvironments({ preparationFile, managedConfigPath: null })).rejects.toThrow("already attempted");
   } finally { await rm(directory, { recursive: true, force: true }); }

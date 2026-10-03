@@ -34,5 +34,5 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [024: Agent builds](024-agent-builds.md) | Browser and terminal editing over shared publication, with budget and check fixes |
 | [025: Documentation](025-documentation.md) | Short entry points, task guides, current architecture, and concise design history |
 | [026: Synthetic secret fixtures](026-synthetic-secret-fixtures.md) | Keep credential-shaped test inputs reproducible and identifiable as synthetic |
-| [027: Preference study](027-preference-study.md) | One frozen preference key, control-validated checks, and gated four-arm comparisons; earlier protocols removed |
+| [027: Preference evaluation](027-preference-study.md) | Five fixed setups, shared learning preparations, isolated execution, and family-weighted reports |
 | [028: From correction to guidance](028-shadowclone-0-to-1.md) | Reliable consented learning, review, publication, delivery, and evaluation for Claude Code and Codex |

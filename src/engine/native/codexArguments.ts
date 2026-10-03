@@ -10,10 +10,12 @@ export function nativeCodexArguments(options: NativeEngineOptions): string[] {
     return executable ? [path.dirname(executable), path.dirname(realpathSync(executable))] : [];
   });
   const permissions = {
-    extends: ":workspace",
+    extends: ":read-only",
     filesystem: {
       ":root": "deny",
       ":minimal": "read",
+      "/tmp": "deny",
+      "/private/tmp": "deny",
       ...Object.fromEntries(runtimeDirectories.map((directory) => [directory, "read"])),
       [options.directory]: options.access === "write" ? "write" : "read",
       [path.join(home, "tmp")]: "write",
@@ -55,7 +57,7 @@ export function nativeCodexArguments(options: NativeEngineOptions): string[] {
     "-c", 'approval_policy="never"',
     "-c", "mcp_servers={}",
     "-c", 'default_permissions="native-evaluation"',
-    "-c", `permissions.native-evaluation={extends=":workspace",filesystem={${filesystem}},network={enabled=false}}`,
+    "-c", `permissions.native-evaluation={extends=${JSON.stringify(permissions.extends)},filesystem={${filesystem}},network={enabled=false}}`,
     "-c", `shell_environment_policy={inherit="core",set={${settings}}}`,
     "-c", `features.memories=${options.memoryEnabled}`,
     "-c", `memories.use_memories=${options.memoryEnabled}`,

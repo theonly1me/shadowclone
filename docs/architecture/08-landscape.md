@@ -18,4 +18,4 @@ Using the installed agent CLI avoids separate credential setup. Requests remain 
 
 Well-maintained instructions may already express what a user needs. The useful comparison is the effort and quality of maintaining that environment over time. Additional guidance can help, have no effect, or introduce conflict.
 
-The [published experiments](../../evals.md) include a fixed benchmark with synthetic skills and corrections, and a separate historical study of one user's maintained skills. Both use small task sets. They do not establish results for other users, repositories, or tools.
+The [evaluation](../../evals.md) compares five setups on 24 fixed tasks using synthetic skills and corrections. It measures preference delivery on that task set. Production effectiveness for other users, repositories, and tools remains unproven.

@@ -3,6 +3,7 @@ import path from "node:path";
 import { runNativeEngine, type NativeEngineRunner } from "../../../engine/native";
 import type { EngineRunner } from "../../../engine/types";
 import { ownedWrite } from "../../../storage";
+import { redactSecrets } from "../../../redact";
 import type { EvaluationBudget } from "../../shared/accounting";
 import type { LearnerConfiguration, LearningCall } from "./schema";
 
@@ -20,6 +21,7 @@ export function workflowLearningRunner(options: {
     const container = await mkdtemp(path.join(options.directory, "call-"));
     let costUsd: number | null = null;
     const call: LearningCall = { model: "unconfirmed", cliVersion: "unconfirmed", durationMs: 0, isError: true };
+    const callId = path.basename(container);
     try {
       const directory = path.join(container, "workspace");
       const homeDirectory = path.join(container, "home");
@@ -29,7 +31,9 @@ export function workflowLearningRunner(options: {
       const result = await nativeRunner({ engine: options.configuration.engine, model: options.configuration.model, effort: options.configuration.effort,
         directory, homeDirectory, access: "none", memoryEnabled: false, blockedPaths: options.blockedPaths, protectedPaths: [],
         prompt: run.prompt, outputSchema: run.outputSchema, signal: run.signal ? AbortSignal.any([run.signal, timeout]) : timeout,
-        expectedCliVersion: options.configuration.cliVersion });
+        expectedCliVersion: options.configuration.cliVersion, debugTransport: async output => {
+          await ownedWrite({ path: path.join(options.directory, `${callId}-transport.json`), content: JSON.stringify(output) });
+        } });
       costUsd = result.costUsd;
       call.model = result.resolvedModel ?? "unconfirmed";
       call.cliVersion = result.cliVersion;
@@ -38,6 +42,11 @@ export function workflowLearningRunner(options: {
       }
       call.isError = false;
       return result;
+    } catch (error) {
+      await ownedWrite({ path: path.join(options.directory, `${callId}-diagnostic.json`), content: JSON.stringify({ stage: "learning-execution",
+        message: redactSecrets({ text: error instanceof Error ? error.message : String(error) }),
+        confirmedInfrastructure: false, model: call.model, cliVersion: call.cliVersion }) });
+      throw error;
     } finally {
       call.durationMs = Date.now() - startedAt;
       options.calls.push(call);
