@@ -30,3 +30,5 @@ Preserve unrelated work. An existing dirty worktree is not a reason to delete an
 ## Completion
 
 The final diff has been reviewed, required checks have run, and the handoff states the evidence and material limitations.
+
+Report each check you ran with its result, what you exercised by hand and what you saw, and each unverified path or pre-existing failure apart from regressions. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.

@@ -29,3 +29,5 @@ Quote sparingly and keep credentials, private URLs, and captured user data out o
 ## Completion
 
 The question has a supported answer or an explicit unknown, and the resulting constraint is clear enough to implement.
+
+Report the answer or the explicit unknown, each claim with its primary source (a link, or a file path and line), and the constraint it puts on the change. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.
