@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.16](https://github.com/theonly1me/shadowclone/compare/v0.0.15...v0.0.16) (2026-10-03)
+
+
+### Features
+
+* **pi:** add native harness integration ([#94](https://github.com/theonly1me/shadowclone/issues/94)) ([316aefd](https://github.com/theonly1me/shadowclone/commit/316aefda2e2c6f00726e274c2a6ab9338de83011))
+
 ## [0.0.15](https://github.com/theonly1me/shadowclone/compare/v0.0.14...v0.0.15) (2026-10-01)
 
 
