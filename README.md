@@ -34,11 +34,11 @@ Install the CLI:
 npm install -g @shadowclone/cli
 ```
 
-| Step | Command | What happens | Time |
-| --- | --- | --- | ---: |
-| 1 | `shadowclone init` | Answer three questions about learning and skill maintenance | About 1 minute |
-| 2 | `shadowclone learn --deep` | Learn from enabled past sessions; repeat if more history remains | Up to 5 minutes per run |
-| 3 | `shadowclone learning pending` and `shadowclone skills pending` | Review learned rules, scope, and publication before relying on them | About 1 minute |
+| Step | Command                                                         | What happens                                                        |                    Time |
+| ---- | --------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------: |
+| 1    | `shadowclone init`                                              | Answer three questions about learning and skill maintenance         |          About 1 minute |
+| 2    | `shadowclone learn --deep`                                      | Learn from enabled past sessions; repeat if more history remains    | Up to 5 minutes per run |
+| 3    | `shadowclone learning pending` and `shadowclone skills pending` | Review learned rules, scope, and publication before relying on them |          About 1 minute |
 
 Setup takes about two to three minutes, excluding learning. Deep learning needs an installed and configured `claude`, `codex`, `cursor-agent`, or `pi` CLI. [Pi setup](docs/guides/pi.md) uses any suitable model configured in Pi, including local providers. Claude Code learning on Linux needs `bwrap` and `socat` for its sandbox.
 
@@ -48,16 +48,18 @@ Run `shadowclone` to see the current result and next action. Use `shadowclone wi
 
 **Delegate a task.** The optional `shadowclone-work` skill records your standards, acceptance criteria, checks, and review in a private task receipt. It adds work tracking to an existing Claude Code or Codex session. Start with review handoff; shipping actions require explicit repository grants. Native workflow qualification is still pending. [Use delegated work](docs/guides/delegated-work.md).
 
+**Use a personal GitHub clone.** Run `shadowclone bot setup` from a repository checkout. Name your App, select its repositories, and review the exact guidance before connecting your Claude subscription. The clone handles owner issues and tagged PR requests. Live installation qualification is pending. [Set up a GitHub clone](docs/guides/github-clones.md).
+
 ## Evaluations
 
 Seven fixed tasks compare four setups using synthetic skills and correction sessions. Scores measure the share of applicable preferences followed in completed sessions, with equal weight per task. Each setup ran three repetitions; one timed-out Luna session is excluded from this view.
 
-| Preferences followed | GPT 6.1 Sol, medium | GPT 6 Luna, high | Sonnet 5.5, high | Opus 5.5, medium |
-| --- | ---: | ---: | ---: | ---: |
-| Bare | 96.2% | 97.1% | 59.4% | 52.1% |
-| Existing user skills | 100% | 100% | 65.0% | 63.8% |
-| Skills plus Shadowclone routing | 100% | 100% | 65.0% | 63.8% |
-| Skills, routing, and deep learning | 100% | 100% | 81.7% | 96.4% |
+| Preferences followed               | GPT 6.1 Sol, medium | GPT 6 Luna, high | Sonnet 5.5, high | Opus 5.5, medium |
+| ---------------------------------- | ------------------: | ---------------: | ---------------: | ---------------: |
+| Bare                               |               96.2% |            97.1% |            59.4% |            52.1% |
+| Existing user skills               |                100% |             100% |            65.0% |            63.8% |
+| Skills plus Shadowclone routing    |                100% |             100% |            65.0% |            63.8% |
+| Skills, routing, and deep learning |                100% |             100% |            81.7% |            96.4% |
 
 Learning added 16.7 percentage points over existing skills on Sonnet and 32.6 on Opus; both 95% bootstrap intervals were above zero. Both Codex models were already at 100% with skills, and routing alone tied skills. All completed tasks passed correctness and safety checks. Luna's existing-skills score covers twenty completed sessions; the other setups cover twenty-one. Its original full-matrix report remains incomplete.
 
@@ -69,12 +71,13 @@ The existing skill contains three preferences; one shared learning run added two
 
 **You choose what it reads.** Every capture source is off by default and has its own consent setting. Reading sessions does not silently enable memory, repository metadata, or skill editing.
 
-| Operation | What the selected provider can receive |
-| --- | --- |
-| Learning and skill maintenance | Selected redacted instructions, steering, and supporting context |
-| Browser editor | Nothing merely from opening it; optional AI drafting sends reviewed form fields |
-| Delegated `run` | The authorized task worktree and guidance |
-| Evaluation | Synthetic prompts, the tested setup's guidance, and generated code |
+| Operation                      | What the selected provider can receive                                          |
+| ------------------------------ | ------------------------------------------------------------------------------- |
+| Learning and skill maintenance | Selected redacted instructions, steering, and supporting context                |
+| Personal GitHub clone          | The reviewed skills, native rules, selected repository, and issue or PR task    |
+| Browser editor                 | Nothing merely from opening it; optional AI drafting sends reviewed form fields |
+| Delegated `run`                | The authorized task worktree and guidance                                       |
+| Evaluation                     | Synthetic prompts, the tested setup's guidance, and generated code              |
 
 **Redaction is a boundary, not an anonymity guarantee.** Tool results, tool-returned file contents, thinking blocks, and data-access results are excluded from learning. Use only sources and repositories you are authorized to send to the selected provider.
 
@@ -82,14 +85,14 @@ The existing skill contains three preferences; one shared learning run added two
 
 ## Guides
 
-| Guide | Use it to |
-| --- | --- |
-| [Agent builds](docs/guides/agent-builds.md) | Choose, create, and equip skills |
-| [Learning](docs/guides/learning.md) | Run deep learning, background learning, or record a preference |
-| [Skill maintenance](docs/guides/skills.md) | Review updates, conflicts, history, and undo |
-| [Repository setup](docs/guides/repositories.md) | Share checks and skills with a repository |
-| [How it works](docs/guides/how-it-works.md) | Follow guidance from consented evidence to coding agents |
-| [Command reference](docs/guides/commands.md) | Find everyday and advanced commands |
+| Guide                                           | Use it to                                                      |
+| ----------------------------------------------- | -------------------------------------------------------------- |
+| [Agent builds](docs/guides/agent-builds.md)     | Choose, create, and equip skills                               |
+| [Learning](docs/guides/learning.md)             | Run deep learning, background learning, or record a preference |
+| [Skill maintenance](docs/guides/skills.md)      | Review updates, conflicts, history, and undo                   |
+| [Repository setup](docs/guides/repositories.md) | Share checks and skills with a repository                      |
+| [How it works](docs/guides/how-it-works.md)     | Follow guidance from consented evidence to coding agents       |
+| [Command reference](docs/guides/commands.md)    | Find everyday and advanced commands                            |
 
 **Further reading:** [Documentation index](docs/README.md) · [Architecture](docs/architecture/README.md) · [Design history](docs/design/README.md) · [Migration](docs/migration.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 

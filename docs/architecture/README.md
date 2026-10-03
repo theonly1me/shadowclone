@@ -40,6 +40,15 @@ flowchart LR
     Owner[Explicit repository action grants] --> Actions[Policy-checked Git and GitHub helpers]
     TaskReceipt --> Actions
     Actions --> GitHub[GitHub]
+    CloudApproval[Owner reviews cloud guidance and subscription use] --> CloudSetup[Named App and selected repository]
+    Skills --> CloudApproval
+    CloudSetup --> Environment[Default-branch environment secrets]
+    GitHubEvents[Owner requests and validated maintenance events] --> Relay[Secret-free event relay]
+    Relay --> Guard[Live entity, head, pause, and budget validation]
+    Guard --> CloudWorker[Pinned Claude Code Action]
+    Environment --> CloudWorker
+    CloudWorker --> DraftPR[Draft PR, checks, and review fixes]
+    DraftPR --> OwnerMerge[Owner review and merge]
     Agents --> Sessions
     Learning --> PiBridge[Private Pi model bridge]
     PiBridge --> PiRegistry[Pi provider-neutral registry, empty tools]
@@ -72,20 +81,21 @@ flowchart LR
 
 ## Components
 
-| Component | Responsibility |
-| --- | --- |
-| `src/config/` | Source consent and managed policy |
-| `src/observe/`, `src/index/` | Incremental transcript parsing and a rebuildable pointer index |
-| `src/redact/`, `src/signal/` | Materialize eligible excerpts and identify learning evidence |
-| `src/distill/`, `src/learning/` | Reconcile guidance within shared call, time, and supported cost limits |
-| `src/environment/` | Store evidence, publish skills, migrate installations, and preserve originals |
-| `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows |
-| `src/builds/`, `src/web/` | Apply reviewed skill selections through terminal and browser interfaces |
-| `src/integrations/`, `src/harness/` | Install native guidance and repository instructions/checks |
-| `src/engine/`, `src/dispatch/` | Invoke authenticated agent CLIs and run authorized worktree tasks |
-| `src/tasks/` | Track native-session work, freeze guidance, verify changes, and mediate explicitly granted actions |
-| `src/eval/`, `src/changes/` | Run fixed four-setup benchmarks and historical studies, record workflow outcomes, and retain reversible file revisions |
-| `src/profile/` | Legacy profile compatibility and the reconciliation boundary |
+| Component                              | Responsibility                                                                                                         |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `src/config/`                          | Source consent and managed policy                                                                                      |
+| `src/observe/`, `src/index/`           | Incremental transcript parsing and a rebuildable pointer index                                                         |
+| `src/redact/`, `src/signal/`           | Materialize eligible excerpts and identify learning evidence                                                           |
+| `src/distill/`, `src/learning/`        | Reconcile guidance within shared call, time, and supported cost limits                                                 |
+| `src/environment/`                     | Store evidence, publish skills, migrate installations, and preserve originals                                          |
+| `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows                                        |
+| `src/builds/`, `src/web/`              | Apply reviewed skill selections through terminal and browser interfaces                                                |
+| `src/integrations/`, `src/harness/`    | Install native guidance and repository instructions/checks                                                             |
+| `src/engine/`, `src/dispatch/`         | Invoke authenticated agent CLIs and run authorized worktree tasks                                                      |
+| `src/cloud/`                           | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows                                |
+| `src/tasks/`                           | Track native-session work, freeze guidance, verify changes, and mediate explicitly granted actions                     |
+| `src/eval/`, `src/changes/`            | Run fixed four-setup benchmarks and historical studies, record workflow outcomes, and retain reversible file revisions |
+| `src/profile/`                         | Legacy profile compatibility and the reconciliation boundary                                                           |
 
 The learning service coordinates model execution, reconciliation, pending decisions, and persistence for both CLI and background paths. Its maintenance service selects the active environment or legacy fallback; the skill-maintenance package supplies library primitives and retains a compatibility entry point. The CLI owns prompts and presentation. Source authorization is checked at selection and again when a reference is resolved. Automatic skill writes require separate authorization. Reviewed build edits use the same publication and revision machinery as learning. Later corrections create review signals. An explicitly authorized probe sends redacted installed guidance into an isolated native session; its exact-response assertion does not establish hook delivery or future compliance.
 

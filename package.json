@@ -13,6 +13,8 @@
     "check": "bun run typecheck && bun run lint && bun test",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
+    "format": "prettier --write",
+    "format:check": "prettier --check",
     "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run scripts/conventions.ts",
     "lint:fix": "biome lint --write .",
     "build": "bun run scripts/build.ts",
@@ -24,6 +26,7 @@
     "@types/d3-hierarchy": "^3.1.7",
     "@types/d3-selection": "^3.0.12",
     "@types/d3-zoom": "^3.0.9",
+    "prettier": "3.9.9",
     "typescript": "~5.9"
   },
   "description": "Turns how you work into a portable, tested environment for the coding agents you already use.",

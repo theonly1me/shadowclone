@@ -1,0 +1,67 @@
+import { expect, test } from "bun:test";
+import path from "node:path";
+import { createRequire } from "node:module";
+import { renderWorkflows, actionPins } from "./workflow";
+import {
+  fixtureClone,
+  guidanceFixture,
+  eventContext,
+  fixtureIssue,
+  githubFixture,
+} from "./fixtures";
+import { record } from "./guard/records";
+
+test(
+  "rendered workflows pin actions and restrict credentials to a validated " + "repository worker",
+  () => {
+    const files = renderWorkflows(fixtureClone);
+    const relay = files[".github/workflows/shadowclone-relay.yml"] ?? "";
+    const worker = files[".github/workflows/shadowclone.yml"] ?? "";
+
+    expect(relay).not.toContain("secrets.");
+    expect(relay).toContain("ref: config.defaultBranch");
+    expect(relay).toContain("pull_request_target:");
+    expect(worker).toContain("environment: shadowclone");
+    expect(worker).toContain("github.ref == 'refs/heads/main'");
+    expect(worker).toContain("repositories: 'project'");
+    expect(worker.indexOf("allowWorker")).toBeLessThan(
+      worker.indexOf("secrets.SHADOWCLONE_APP_PRIVATE_KEY"),
+    );
+    expect(worker).toContain("timeout-minutes: 20");
+    expect(worker).toContain("show_full_output: false");
+
+    for (const action of Object.values(actionPins)) {
+      expect(action).toMatch(/@[a-f0-9]{40}$/);
+      expect(relay + worker).toContain(action);
+    }
+  },
+);
+
+test("generated CommonJS guards execute with the same owner issue policy", async () => {
+  const fixture = await guidanceFixture();
+
+  try {
+    for (const [file, content] of Object.entries(renderWorkflows(fixtureClone))) {
+      await Bun.write(path.join(fixture.root, file), content);
+    }
+
+    const require = createRequire(import.meta.url);
+    const module = record(require(path.join(fixture.root, ".github/shadowclone/guard/events.cjs")));
+    const resolve = module.resolveTrigger;
+
+    if (typeof resolve !== "function") {
+      throw new Error("The generated guard does not export its policy.");
+    }
+
+    const { request } = githubFixture({ "GET /repos/sample/project/issues/1": fixtureIssue });
+    const result: unknown = await resolve({
+      clone: fixtureClone,
+      context: eventContext(),
+      request,
+    });
+
+    expect(record(result).branch).toBe("shadowclone/issue-1");
+  } finally {
+    await fixture.cleanup();
+  }
+});

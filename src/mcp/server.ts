@@ -2,6 +2,7 @@ import { handleMcpRequest, isRecord, parseRequest } from "./protocol";
 import { runPreferenceTool } from "./preferences";
 import { runReferenceTool } from "./references";
 import { runTaskTool } from "./tasks";
+import { createBotTool } from "./bot";
 import { compileContext } from "../integrations";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
@@ -14,14 +15,10 @@ async function activeProfile(options: {
   readonly readRemote?: GitRemoteReader;
   readonly managedConfigPath?: string | null;
 }): Promise<string> {
-  return (
-    (await compileContext(options)) ?? "Shadowclone context is disabled.\n"
-  );
+  return (await compileContext(options)) ?? "Shadowclone context is disabled.\n";
 }
 
-async function writeMessage(
-  value: Readonly<Record<string, unknown>>,
-): Promise<void> {
+async function writeMessage(value: Readonly<Record<string, unknown>>): Promise<void> {
   await Bun.stdout.write(`${JSON.stringify(value)}\n`);
 }
 
@@ -36,9 +33,15 @@ export async function serveMcp(
 ): Promise<void> {
   const cwd = options.cwd ?? process.cwd();
   const paths = options.paths ?? projectPaths;
-  const taskPaths = { ...paths, configFile: options.configPath ?? paths.configFile, managedConfigFile: options.managedConfigPath === undefined ? paths.managedConfigFile : options.managedConfigPath };
+  const taskPaths = {
+    ...paths,
+    configFile: options.configPath ?? paths.configFile,
+    managedConfigFile:
+      options.managedConfigPath === undefined ? paths.managedConfigFile : options.managedConfigPath,
+  };
   let buffer = "";
   const decoder = new TextDecoder();
+  const bot = createBotTool({ cwd, paths: taskPaths });
 
   for await (const chunk of Bun.stdin.stream()) {
     buffer += decoder.decode(chunk, { stream: true });
@@ -77,7 +80,9 @@ export async function serveMcp(
 
             const toolResult =
               request.method === "tools/call"
-                ? ((await runTaskTool({ params: request.params, cwd, paths: taskPaths })) ?? (await runPreferenceTool({
+                ? ((await bot.run(request.params)) ??
+                  (await runTaskTool({ params: request.params, cwd, paths: taskPaths })) ??
+                  (await runPreferenceTool({
                     params: request.params,
                     cwd,
                     paths,
@@ -111,6 +116,8 @@ export async function serveMcp(
       lineEnd = buffer.indexOf("\n");
     }
   }
+
+  bot.stop();
 }
 
 if (import.meta.main) {

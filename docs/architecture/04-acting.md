@@ -2,6 +2,8 @@
 
 The optional `shadowclone-work` skill coordinates work inside an existing native agent session. Its CLI and MCP operations share the task service, private checkpoints, frozen guidance, offline verification, attributed review, and explicit repository action grants. It does not replace the host's agent runtime. [Delegated work](../guides/delegated-work.md) describes task ownership, recovery, PR maintenance, and the remaining host qualification boundary.
 
+Personal GitHub clones use a separate cloud contract. The owner reviews a frozen skills bundle, registers a named App, selects repositories, and authorizes Claude subscription use. Secret-free events dispatch the pinned Claude Code Action only after live request, repository, head, pause, and budget validation. Each worker receives a single-repository App token. The clone maintains a draft PR and can mark it ready; the owner merges. See [GitHub clones](../guides/github-clones.md) for environment trust, limits, and local handoff.
+
 The rest of this page describes the compatible headless runner. Its per-run authorization contract is separate from native task grants.
 
 `shadowclone run "<task>"` runs an agent in a separate local worktree and records the result. The invocation authorizes one worktree, branch, and local commit for that task. Review the result before allowing any remote action.

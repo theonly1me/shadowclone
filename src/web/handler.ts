@@ -1,11 +1,7 @@
 import { z } from "zod";
 import { applyBuild, previewBuild } from "../builds";
 import { lastBuildRevision } from "../builds/history";
-import {
-  buildScopeSchema,
-  type BuildContext,
-  type BuildPlan,
-} from "../builds/types";
+import { buildScopeSchema, type BuildContext, type BuildPlan } from "../builds/types";
 import { undoRevision } from "../changes";
 import { buildView } from "./view";
 import { reviewBuild } from "./review";
@@ -23,6 +19,7 @@ export function createBrowserHandler(
     readonly token: string;
     readonly origin: () => string;
     readonly engine?: GenerationEngine;
+    readonly botHandler?: (request: Request) => Promise<Response>;
   },
 ) {
   const previews = new Map<string, BuildPlan>();
@@ -48,6 +45,10 @@ export function createBrowserHandler(
     const url = new URL(request.url);
 
     try {
+      if (url.pathname.startsWith("/api/bot/") && context.botHandler) {
+        return context.botHandler(request);
+      }
+
       if (request.method === "GET" && url.pathname === "/api/learning-models") {
         return browserJson({ body: await learningModelCatalog(context.paths) });
       }
@@ -55,9 +56,7 @@ export function createBrowserHandler(
         return browserJson({ body: await taskSummaries(context) });
       }
       if (request.method === "GET" && url.pathname === "/api/build") {
-        const scope = buildScopeSchema.parse(
-          url.searchParams.get("scope") ?? "global",
-        );
+        const scope = buildScopeSchema.parse(url.searchParams.get("scope") ?? "global");
         const revisionId = await lastBuildRevision({ ...context, scope });
 
         if (revisionId) {
@@ -135,9 +134,7 @@ export function createBrowserHandler(
         const { revisionId } = revisionRequestSchema.parse(body);
 
         if (!revisions.has(revisionId)) {
-          throw new Error(
-            "Use shadowclone history to review older revisions before undoing them",
-          );
+          throw new Error("Use shadowclone history to review older revisions before undoing them");
         }
 
         const reversed = await undoRevision({

@@ -1,0 +1,44 @@
+# Named GitHub clones
+
+## Decision
+
+Each personal installation uses a named GitHub App owned by the user. Organization repositories register a private App under their organization because GitHub restricts private Apps to their owning account. The App operates only on explicitly selected repositories. Claude Code runs through the pinned upstream GitHub Action. Shadowclone supplies a reviewed skills bundle and repository workflows. It adds no coding runtime.
+
+The owner can start work with an issue or an `@shadowclone` request. The App slug is an alias. The issue grants plan approval within its stated scope. The clone opens a draft PR, maintains checks and reviewer findings, then marks it ready for owner review. It never merges or force pushes.
+
+## Boundaries
+
+- Reject installations with access to all repositories. Verify repository IDs and mint installation tokens for one repository.
+- Keep the App key, Claude subscription token, and guidance in a default-branch-only environment. An event relay uses the repository token to dispatch the worker on that branch. The worker validates the live entity, sender, head, pause state, and run budget again.
+- Treat issue text and reviewer comments as untrusted task data. They cannot widen repository access or the authorized scope.
+- Export only selected maintained skills and their supporting resources through the existing redacted delivery boundary. Include applicable native rules. Exclude capture, evidence records, receipts, source history, credentials, and identifying local paths.
+- Store setup state and credential material outside the checkout. The MCP can start setup and inspect status. Human browser actions authorize App creation, repository installation, guidance upload, and subscription use.
+- The default branch and authorized repository code remain trusted. Environment restrictions do not isolate credentials from code that executes with them.
+
+## Sequence
+
+1. Export reviewed guidance into a Claude Code plugin. Encode its compressed bundle within the GitHub secret limit.
+2. Render pinned relay and worker workflows with live event validation, one-repository tokens, serialized branch work, and bounded runs.
+3. Extend the existing loopback browser wizard for App registration, installation validation, subscription connection, and a setup PR.
+4. Add CLI and MCP entry points and document the data flow.
+5. Verify with synthetic fixtures and the repository gate. Qualify installation separately before claiming a click count.
+
+The workflow invokes the selected `shadowclone-work` skill. Updating that export adopts the owner's evaluated variant without changing the execution architecture.
+
+## Delivery
+
+A main-only environment secret holds the compressed plugin marketplace. The runner restores it outside the checkout and supplies it through `plugin_marketplaces` and `plugins`. Reject an oversized encoded bundle before upload. This option adds no private guidance repository or second repository token.
+
+The browser wizard previews the exact selected skill bodies, resources, and native rules before upload. The Claude token comes from `claude setup-token`, never an existing interactive credential. A native sign-in may require one secure paste into the local wizard. Credentials never enter MCP arguments or responses.
+
+## Maintenance
+
+Validated CI completion and named reviewer bots can resume a managed PR. The relay ignores the clone's own comments and worker runs. A pause label blocks new work. Local handoff cancels active worker runs before the owner edits, then resumes explicitly. Branch work preserves the owner's commits.
+
+Label authorization reads all issue-event pages within a 1,000-event bound. An incomplete history rejects the trigger. This prevents a first-page actor from authorizing a later label change.
+
+A fixed finding receives only its commit hash. Only bot threads are resolved. Declined findings receive no reply and stay open. The owner performs the final merge.
+
+## Verification
+
+Synthetic tests cover selected scope, resource delivery, local path rejection, installation selection, callback replay, forged requests, stale heads, forks, bot loops, pause, and workflow pins. The repository typecheck, lint, tests, and CLI help remain the release gate. A bounded synthetic live pilot qualifies behavior beyond the isolated plugin-delivery spike.
