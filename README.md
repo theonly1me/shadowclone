@@ -73,7 +73,6 @@ The existing skill contains three preferences; one shared learning run added two
 | --- | --- |
 | Learning and skill maintenance | Selected redacted instructions, steering, and supporting context |
 | Browser editor | Nothing merely from opening it; optional AI drafting sends reviewed form fields |
-| Delegated `run` | The authorized task worktree and guidance |
 | Evaluation | Synthetic prompts, the tested setup's guidance, and generated code |
 
 **Redaction is a boundary, not an anonymity guarantee.** Tool results, tool-returned file contents, thinking blocks, and data-access results are excluded from learning. Use only sources and repositories you are authorized to send to the selected provider.

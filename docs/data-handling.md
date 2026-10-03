@@ -104,7 +104,7 @@ Shared repository output is visible to anyone with repository access once commit
 
 ## Execution
 
-`shadowclone run` authorizes one local task worktree, branch, and commit. Remote actions additionally require a repository policy ceiling and a matching grant for that run. A push sends Git objects, including repository code, without redacting them. Live agent sessions retain their host agent’s permission model.
+Delegated task actions require a repository policy ceiling and a current owner grant. A push sends Git objects, including repository code, without redacting them. Live agent sessions retain their host agent’s permission model.
 
 Evaluation confines candidate writes to disposable workspaces. Verification runs separately without provider credentials or network access and does not send verifier stdout to judges. These controls depend on the supported provider and operating-system sandbox. [Execution](architecture/04-acting.md) and [evaluation](architecture/09-evaluation.md) describe their contracts.
 
