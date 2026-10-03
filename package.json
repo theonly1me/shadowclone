@@ -20,7 +20,7 @@
     "prepack": "bun run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.14",
+    "@biomejs/biome": "2.5.15",
     "@types/bun": "latest",
     "@types/d3-hierarchy": "^3.1.7",
     "@types/d3-selection": "^3.0.12",
