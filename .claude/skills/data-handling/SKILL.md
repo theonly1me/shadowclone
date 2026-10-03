@@ -37,7 +37,7 @@ Learning uses bounded redacted excerpts. Authorized coding runs can expose a rep
 
 Log counts, sizes, hashes, source names, and opaque locators. Samples require an explicit debug flag and redaction. Never put raw capture or identifying transcript paths in errors or reports. Review any new network destination against the consent and purpose authorizing it.
 
-Source, model, and publication permissions govern unattended learning. External actions require explicit approval for the particular action. In the product, delegated task actions need the repository policy ceiling and a current owner grant. That product contract does not authorize an assistant's unrelated Git operations.
+Source, model, and publication permissions govern unattended learning. External actions require explicit approval for the particular action. The product does not commit, push, or act on GitHub itself; the `shadowclone-work` skill acts through the host agent's permissions.
 
 ## Removal and verification
 

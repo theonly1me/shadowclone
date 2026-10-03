@@ -1,4 +1,4 @@
-import { runHostCommand } from "../io/hostCommand";
+import { runHostCommand } from "./hostCommand";
 export type CommandResult = {
   readonly exitCode: number;
   readonly stdout: string;

@@ -66,11 +66,7 @@ Use only material you are authorized to send to the chosen provider. Provider us
 
 ## Local files
 
-An explicit `task start` authorizes local execution bookkeeping, including repository identity, instruction snapshots, selected consented skills, and hashes of tracked and untracked files. It does not enable a learning source or import history. Task state never becomes learning evidence. Explicit user-requested correction checkpoints use the existing scoped preference service.
-
-Native task records, guidance copies, redacted command diagnostics, reviews, user-reported outcomes, and action intents are retained under `~/.shadowclone/runs/<id>/`. Repository grants are retained under `~/.shadowclone/task-grants/`; grants cannot be minted by learning or MCP. These records remain private until explicitly removed. `forget --all` stops before deleting data when unfinished tasks or managed worktrees remain, protecting code and unpushed changes. Stop native sessions and preserve work before removing their records.
-
-Task checks reuse the offline, credential-free verification sandbox and protect Git metadata. The user's native agent retains its own permissions; checkpoints and reported skill reads are not a containment boundary. Explicit GitHub actions send repository objects and reviewed PR text through the local Git/GitHub CLIs. They are limited by current repository grants, task allowances, managed policy, and current verification. Remote review text is untrusted execution data and is excluded from learning.
+Earlier versions kept delegated task records under `~/.shadowclone/runs/`, grants under `~/.shadowclone/task-grants/`, and task worktrees under `~/.shadowclone/worktrees/`. Shadowclone no longer creates them. `forget --all` stops while old worktrees remain, so unfinished changes are not deleted; move or remove them yourself.
 
 | Location | Contents |
 | --- | --- |
@@ -86,7 +82,7 @@ Task checks reuse the offline, credential-free verification sandbox and protect 
 | `~/.shadowclone/skills.json` | Configured roots, maintenance ownership, and cached library review fingerprints |
 | `~/.shadowclone/skill-proposals/` | Proposed edits and conflicts with redacted supporting passages and required decisions |
 | Other files under `~/.shadowclone/` | Revisions, installation ownership, original-library snapshots, and learning/skill ledgers |
-| `~/.shadowclone/runs/` and `worktrees/` | Task receipts, guidance, worktrees, and potentially unfinished changes |
+| `~/.shadowclone/runs/` and `worktrees/` | Records and worktrees left by earlier versions, which may hold unfinished changes |
 | Agent skill and instruction directories | Published skills, resources, native routing, and hooks |
 | Repository harness files | Reviewed shared instructions, skills, and checks intended for version control |
 
@@ -104,7 +100,7 @@ Shared repository output is visible to anyone with repository access once commit
 
 ## Execution
 
-Delegated task actions require a repository policy ceiling and a current owner grant. A push sends Git objects, including repository code, without redacting them. Live agent sessions retain their host agent’s permission model.
+Shadowclone does not commit, push, or act on GitHub itself. The `shadowclone-work` skill acts through the host agent's own tools and permissions. A push sends Git objects, including repository code, without redacting them. Review comment text is untrusted data and is excluded from learning.
 
 Evaluation confines candidate writes to disposable workspaces. Verification runs separately without provider credentials or network access and does not send verifier stdout to judges. These controls depend on the supported provider and operating-system sandbox. [Execution](architecture/04-acting.md) and [evaluation](architecture/09-evaluation.md) describe their contracts.
 

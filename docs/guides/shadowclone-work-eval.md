@@ -1,6 +1,6 @@
 # shadowclone-work evaluation
 
-This contributor guide runs the `shadowclone-work` evaluation described in [design record 030](../design/030-shadowclone-work-eval.md). It compares no skill, the skill alone, and the skill with task receipts on fifteen synthetic pull request cases.
+This contributor guide runs the `shadowclone-work` evaluation described in [design record 030](../design/030-shadowclone-work-eval.md). It compares no skill with the shipped skill on fifteen synthetic pull request cases.
 
 ## Requirements
 
@@ -14,11 +14,10 @@ This contributor guide runs the `shadowclone-work` evaluation described in [desi
 bun run eval:work --runs 3 --baseline-runs 2 --concurrency 4
 ```
 
-The runner builds three plugin variants under `~/.cache/shadowclone-evals/shadowclone-work/build` (or `--output <dir>`), runs every case, and grades each kept run. Results land in `flow/` next to the build, outside the checkout:
+The runner builds two plugin variants under `~/.cache/shadowclone-evals/shadowclone-work/build` (or `--output <dir>`), runs every case, and grades each kept run. Results land in `flow/` next to the build, outside the checkout:
 
 - `baseline/`: no skill
-- `v1/`: the skill alone
-- `v2/`: the skill with task receipts
+- `v1/`: the skill (`skills/shadowclone-work/SKILL.md`)
 
 Each folder holds `results.jsonl` with one graded row per run, `traces/` with each transcript, and `errors.jsonl` for runs that never produced a gradable result. `--cases <glob>` limits the cases, `--variants skill-only` runs one arm, and `--skill <file> --skill-label v3` evaluates an edited skill as a new variant.
 

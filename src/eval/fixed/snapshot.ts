@@ -1,18 +1,35 @@
 import path from "node:path";
 import { lstat, readlink } from "node:fs/promises";
-import { fingerprint } from "../localFiles";
-import { taskCommand, type TaskContext } from "./context";
-import { canonicalPath } from "../paths";
-import type { WorkspaceSnapshot } from "./schema";
+import { runCommand } from "../../io/command";
+import { fingerprint } from "../../localFiles";
+import { canonicalPath } from "../../paths";
+
+export type WorkspaceSnapshot = {
+  readonly head: string;
+  readonly branch: string;
+  readonly fingerprint: string;
+  readonly contentFingerprint: string;
+  readonly files: Readonly<Record<string, string>>;
+  readonly dirty: boolean;
+};
+
+async function repositoryCommand(options: {
+  readonly cwd: string;
+  readonly command: readonly string[];
+}): Promise<string> {
+  const result = await runCommand({ command: options.command, cwd: options.cwd });
+  if (result.exitCode !== 0) throw new Error("Task repository command failed");
+  return result.stdout;
+}
 
 export async function snapshotWorkspace(
-  options: TaskContext,
+  options: { readonly cwd: string },
 ): Promise<WorkspaceSnapshot> {
   const [head, branch, listed, index, status] = await Promise.all([
-    taskCommand({ ...options, command: ["git", "rev-parse", "HEAD"] }),
-    taskCommand({ ...options, command: ["git", "branch", "--show-current"] }),
-    taskCommand({
-      ...options,
+    repositoryCommand({ cwd: options.cwd, command: ["git", "rev-parse", "HEAD"] }),
+    repositoryCommand({ cwd: options.cwd, command: ["git", "branch", "--show-current"] }),
+    repositoryCommand({
+      cwd: options.cwd,
       command: [
         "git",
         "ls-files",
@@ -22,9 +39,9 @@ export async function snapshotWorkspace(
         "--exclude-standard",
       ],
     }),
-    taskCommand({ ...options, command: ["git", "ls-files", "--stage", "-z"] }),
-    taskCommand({
-      ...options,
+    repositoryCommand({ cwd: options.cwd, command: ["git", "ls-files", "--stage", "-z"] }),
+    repositoryCommand({
+      cwd: options.cwd,
       command: [
         "git",
         "status",
@@ -90,23 +107,4 @@ export async function snapshotWorkspace(
       ]),
     ),
   };
-}
-
-export function outsideTaskScope(options: {
-  readonly baseline: WorkspaceSnapshot;
-  readonly current: WorkspaceSnapshot;
-  readonly scopes: readonly string[];
-}): readonly string[] {
-  const names = new Set([
-    ...Object.keys(options.baseline.files),
-    ...Object.keys(options.current.files),
-  ]);
-  return [...names].filter(
-    (name) =>
-      options.baseline.files[name] !== options.current.files[name] &&
-      !options.scopes.some(
-        (scope) =>
-          scope === "." || name === scope || name.startsWith(`${scope}/`),
-      ),
-  );
 }

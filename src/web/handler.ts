@@ -12,7 +12,6 @@ import { reviewBuild } from "./review";
 import { createModelActions } from "./modelActions";
 import type { GenerationEngine } from "./generationEngine";
 import { authorizeBrowserRequest, browserJson } from "./security";
-import { taskSummaries } from "../tasks/operations";
 import { learningModelCatalog, saveLearningModel } from "../learning/modelCatalog";
 
 const previewRequestSchema = z.strictObject({ previewId: z.uuid() });
@@ -50,9 +49,6 @@ export function createBrowserHandler(
     try {
       if (request.method === "GET" && url.pathname === "/api/learning-models") {
         return browserJson({ body: await learningModelCatalog(context.paths) });
-      }
-      if (request.method === "GET" && url.pathname === "/api/tasks") {
-        return browserJson({ body: await taskSummaries(context) });
       }
       if (request.method === "GET" && url.pathname === "/api/build") {
         const scope = buildScopeSchema.parse(

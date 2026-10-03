@@ -1,25 +1,9 @@
-# Delegated tasks
+# Acting
 
-The optional `shadowclone-work` skill coordinates work inside an existing native agent session. Its CLI and MCP operations share the task service, private checkpoints, frozen guidance, offline verification, attributed review, and explicit repository action grants. It does not replace the host's agent runtime. [Delegated work](../guides/delegated-work.md) describes task ownership, recovery, PR maintenance, and the remaining host qualification boundary.
+Shadowclone does not commit, push, or act on GitHub itself. Delegated work is the `shadowclone-work` skill, which runs inside the user's existing agent session and acts through that session's own tools and permissions. [Delegated work](../guides/delegated-work.md) describes its rules.
 
-An optional Claude subagent runs inside the user’s existing agent session and uses that session’s permissions. It receives the current native guidance.
+An optional Claude subagent also runs inside the user's existing agent session, uses that session's permissions, and receives the current native guidance.
 
-## Policy and grants
+Earlier versions included a task harness with private task records, owner grants for remote actions, and a headless `run` command. [Design record 029](../design/029-narrow-the-surface.md) explains the `run` removal, and [design record 030](../design/030-shadowclone-work-eval.md) the harness removal: its receipts did not change measured outcomes.
 
-Repository policy sets the maximum remote actions available to a task. It is not approval to perform them. Each remote action also needs a current owner grant from `shadowclone task grant`, and MCP cannot create grants.
-
-```toml
-[repo."github.com/example-team/service"]
-allow = ["push", "pr-draft", "pr-reply"]
-maxBudgetUsd = 2.00
-```
-
-Policy uses the full repository identity and requires `git-metadata` consent. Without it, the repository receives an isolated identity and cannot match a named remote policy. Managed policy can narrow the action tier further.
-
-Host helpers perform granted Git and GitHub operations with validated targets and never force push. A merge also requires a shipping finish line, an open PR that GitHub reports as clean and approved, and passing checks.
-
-Verification recipes run in a sandbox that can write only the task worktree and its temporary directory, without network access or provider credentials.
-
-Provider transcripts remain available through their normal locations. Later learning still requires source consent and durable user guidance. A merge, deletion, or successful agent result alone does not establish a preference.
-
-See [data handling](../data-handling.md#execution) for the provider and storage boundaries. A push sends repository Git objects without redacting their contents.
+Provider transcripts remain available through their normal locations. Later learning still requires source consent and durable user guidance. Review comment text and a merge, deletion, or successful agent result alone do not establish a preference.

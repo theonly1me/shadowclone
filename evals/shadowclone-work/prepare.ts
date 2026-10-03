@@ -4,14 +4,15 @@ import path from "node:path";
 import { cases } from "./cases";
 import { runCommand } from "./fakeGh/git";
 import type { CaseDefinition } from "./scaffold/definition";
-import { withReceipts } from "./variants/receipts";
 
 export const pluginName = "shadowclone-work-eval";
-export const variantNames = ["baseline", "skill-only", "with-receipts"] as const;
+export const variantNames = ["baseline", "skill-only"] as const;
 export type VariantName = (typeof variantNames)[number];
 
 const evalDirectory = path.dirname(new URL(import.meta.url).pathname);
 const repositoryRoot = path.resolve(evalDirectory, "..", "..");
+
+export const defaultSkillFile = path.join(repositoryRoot, "skills", "shadowclone-work", "SKILL.md");
 
 export function defaultOutputDirectory(): string {
   return path.join(os.homedir(), ".cache", "shadowclone-evals", "shadowclone-work", "build");
@@ -77,19 +78,7 @@ function buildVariant(options: { readonly output: string; readonly variant: Vari
   );
   if (options.variant !== "baseline") {
     mkdirSync(path.join(root, "skills", "shadowclone-work"), { recursive: true });
-    writeFileSync(
-      path.join(root, "skills", "shadowclone-work", "SKILL.md"),
-      options.variant === "with-receipts" ? withReceipts(options.skillText) : options.skillText,
-    );
-  }
-
-  if (options.variant === "with-receipts") {
-    writeFileSync(
-      path.join(root, ".mcp.json"),
-      `${JSON.stringify({ mcpServers: { shadowclone: { command: path.join(options.output, "bin", "shadowclone-mcp.sh") } } }, null, 2)}\n`,
-    );
-  } else {
-    rmSync(path.join(root, ".mcp.json"), { force: true });
+    writeFileSync(path.join(root, "skills", "shadowclone-work", "SKILL.md"), options.skillText);
   }
 
   for (const definition of cases) {
@@ -111,11 +100,6 @@ export function prepare(options: { readonly output: string; readonly skillFile: 
     throw new Error(`Could not compile the fake gh: ${compiled.stderr}`);
   }
 
-  writeExecutable({
-    file: path.join(options.output, "bin", "shadowclone-mcp.sh"),
-    text: `#!/bin/sh\nexport HOME="$(mktemp -d "\${TMPDIR:-/tmp}/shadowclone-mcp-home.XXXXXX")"\nunset GH_TOKEN GITHUB_TOKEN GH_ENTERPRISE_TOKEN\nexec "${process.execPath}" "${path.join(repositoryRoot, "src", "cli", "index.ts")}" mcp\n`,
-  });
-
   const skillText = readFileSync(options.skillFile, "utf8");
 
   return variantNames.map((variant) => buildVariant({ output: options.output, variant, skillText }));
@@ -125,7 +109,7 @@ if (import.meta.main) {
   const [output, skillFile] = process.argv.slice(2);
   const roots = prepare({
     output: output ?? defaultOutputDirectory(),
-    skillFile: skillFile ?? path.join(evalDirectory, "variants", "skill-only", "SKILL.md"),
+    skillFile: skillFile ?? defaultSkillFile,
   });
 
   process.stdout.write(`${roots.join("\n")}\n`);

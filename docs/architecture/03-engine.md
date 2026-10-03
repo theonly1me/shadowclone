@@ -1,6 +1,6 @@
 # Agent execution
 
-`src/engine/` is the model-process boundary shared by learning, delegated tasks, and evaluation. It invokes an installed, authenticated agent CLI. Shadowclone does not require its own model account or API key.
+`src/engine/` is the model-process boundary shared by learning and evaluation. It invokes an installed, authenticated agent CLI. Shadowclone does not require its own model account or API key.
 
 ## Provider selection
 
@@ -15,7 +15,7 @@ The registry in `src/provider/` records capabilities independently from installa
 | `antigravity` | Not implemented | Capture and native guidance are separate from engine support |
 | `anthropic-api`, `openai-compatible` | Not implemented | Reserved engine identifiers |
 
-Observation support does not imply permission to run learning or delegated tasks. An unsupported security option must fail before spawning the process. Provider compatibility needs live checks in addition to argument and parser tests.
+Observation support does not imply permission to run learning or evaluation. An unsupported security option must fail before spawning the process. Provider compatibility needs live checks in addition to argument and parser tests.
 
 Learning selection follows explicit command options, a triggering session's harness and model, saved distillation preferences, then detection. A selected unavailable or blocked harness does not silently fall back. Pi model references use exact `provider/model` identifiers from the harness's available model catalog.
 

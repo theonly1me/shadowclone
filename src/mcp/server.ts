@@ -1,7 +1,6 @@
 import { handleMcpRequest, isRecord, parseRequest } from "./protocol";
 import { runPreferenceTool } from "./preferences";
 import { runReferenceTool } from "./references";
-import { runTaskTool } from "./tasks";
 import { compileContext } from "../integrations";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
@@ -36,7 +35,6 @@ export async function serveMcp(
 ): Promise<void> {
   const cwd = options.cwd ?? process.cwd();
   const paths = options.paths ?? projectPaths;
-  const taskPaths = { ...paths, configFile: options.configPath ?? paths.configFile, managedConfigFile: options.managedConfigPath === undefined ? paths.managedConfigFile : options.managedConfigPath };
   let buffer = "";
   const decoder = new TextDecoder();
 
@@ -77,7 +75,7 @@ export async function serveMcp(
 
             const toolResult =
               request.method === "tools/call"
-                ? ((await runTaskTool({ params: request.params, cwd, paths: taskPaths })) ?? (await runPreferenceTool({
+                ? ((await runPreferenceTool({
                     params: request.params,
                     cwd,
                     paths,
