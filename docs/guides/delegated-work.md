@@ -31,4 +31,4 @@ Outside a stack, the skill merges the base branch in and never force pushes. In 
 
 ## Limits
 
-The skill never merges, closes, or approves a pull request. It does not change files outside the pull request's scope. Its behavior is measured by the [shadowclone-work evaluation](shadowclone-work-eval.md).
+The skill never merges, closes, or approves a pull request. It does not change files outside the pull request's scope.
