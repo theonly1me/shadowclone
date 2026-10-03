@@ -23,7 +23,6 @@ test("managed policy can only narrow user source consent", () => {
       "declared-rules": true,
       "git-metadata": true,
       "repository-manifests": true,
-      shell: false,
       "skill-library": true,
     },
     distillation: { deep: true },
@@ -75,6 +74,25 @@ test("rejects unknown engines in managed policy", () => {
       blockedOrigins: [],
       maxActionTier: "draft",
     }),
+  ).toThrow("invalid or missing fields");
+});
+
+test("drops the retired shell source from managed policy and still rejects unknown sources", () => {
+  const policy = {
+    enabled: true,
+    allowedEngines: ["claude-code"],
+    distillation: "allowed",
+    originScope: "strict",
+    blockedOrigins: [],
+    maxActionTier: "draft",
+  };
+
+  expect(
+    parseManagedPolicy({ ...policy, allowedSources: ["claude-code", "shell"] })
+      .allowedSources,
+  ).toEqual(["claude-code"]);
+  expect(() =>
+    parseManagedPolicy({ ...policy, allowedSources: ["invented"] }),
   ).toThrow("invalid or missing fields");
 });
 

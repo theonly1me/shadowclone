@@ -21,7 +21,6 @@ Source access does not by itself authorize automatic skill edits. Disabling a so
 | `pi` | Version 3 session JSONL under `~/.pi/agent/sessions/`, or `$PI_CODING_AGENT_DIR/sessions/`; original files remain untouched |
 | `antigravity` | Generated conversation logs under `~/.gemini/antigravity-cli/brain/` |
 | `antigravity-workspaces` | `~/.gemini/antigravity-cli/history.jsonl` for workspace attribution |
-| `shell` | `~/.zsh_history` and `~/.bash_history` |
 | `declared-rules` | Repository-root `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, and direct `SKILL.md` files under `.claude/skills/` and `.agents/skills/` |
 | `claude-rules` | Markdown rules under the current repository’s `.claude/rules/` for compatible native guidance |
 | `claude-memory` | Claude memory under `~/.claude/projects/<repo>/memory/`; recurring extraction requires registered repositories with verified identity |
@@ -29,6 +28,8 @@ Source access does not by itself authorize automatic skill edits. Disabling a so
 | `skill-library` | Consented personal, repository, custom, and third-party skill roots |
 | `git-metadata` | Local repository remote names used to determine scope |
 | `repository-manifests` | Scripts and dependency names in `package.json`, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, CI workflow files, and top-level entry names for repository setup |
+
+Shell history is not a source. Upgrading deletes indexed shell history events, cursors, and repository bindings, and Shadowclone ignores a `shell` setting left in an older `config.toml` or managed policy.
 
 Personal skill locations include `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`, and `~/.gemini/config/skills/`. Configured provider plugin caches may also be reviewed. Codex paths follow `$CODEX_HOME` when set.
 Evaluation context can include `~/.claude/CLAUDE.md`, Codex `AGENTS.md` and `AGENTS.override.md`, and the selected skill catalog. Each study freezes its selected inputs. See [evaluation](architecture/09-evaluation.md) for the protocol.

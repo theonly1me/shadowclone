@@ -11,7 +11,6 @@ import {
 import { observeClaudePromptsFile } from "./adapters/claudePrompts";
 import { discoverCodexFiles, observeCodexFile } from "./adapters/codex";
 import { discoverCursorFiles, observeCursorFile } from "./adapters/cursor";
-import { observeShellFile } from "./adapters/shell";
 import { discoverPiFiles, observePiFile } from "./adapters/pi";
 import type { CursorLookup, ObservationBatch } from "./types";
 
@@ -120,19 +119,6 @@ export async function* observeAll(options: {
 
     for (const sourcePath of sourcePaths) {
       const batch = await observeCursorFile({
-        sourcePath,
-        cursor: await options.getCursor(sourcePath),
-      });
-
-      if (batch !== null) {
-        yield batch;
-      }
-    }
-  }
-
-  if (options.config.sources.shell) {
-    for (const sourcePath of options.paths.shellHistoryFiles) {
-      const batch = await observeShellFile({
         sourcePath,
         cursor: await options.getCursor(sourcePath),
       });

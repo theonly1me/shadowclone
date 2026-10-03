@@ -66,7 +66,6 @@ test("renders named source settings as TOML", () => {
       "declared-rules = false",
       "git-metadata = false",
       "repository-manifests = false",
-      "shell = false",
       "skill-library = false",
       "",
       "[distillation]",
@@ -177,8 +176,8 @@ test("rejects unknown source names instead of silently enabling them", async () 
   );
   const configPath = path.join(directory, "config.toml");
   const text = renderConfig(defaultConfig).replace(
-    "shell = false",
-    "shell = false\nbrowser = true",
+    "skill-library = false",
+    "skill-library = false\nbrowser = true",
   );
 
   await Bun.write(configPath, text);

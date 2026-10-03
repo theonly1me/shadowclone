@@ -35,19 +35,3 @@ export async function readJsonLines(options: {
 
   return { ...result, values, invalidRecords };
 }
-
-export async function readLineRefs(options: {
-  readonly sourcePath: string;
-  readonly cursor: FileCursor | null;
-}): Promise<CursorRead<FileTextRef> | null> {
-  const result = await getLineBoundaries(options);
-
-  if (result === null) {
-    return null;
-  }
-
-  return {
-    ...result,
-    values: result.values.map((line) => line.ref),
-  };
-}

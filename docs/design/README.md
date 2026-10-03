@@ -36,3 +36,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [026: Synthetic secret fixtures](026-synthetic-secret-fixtures.md) | Keep credential-shaped test inputs reproducible and identifiable as synthetic |
 | [027: Preference study](027-preference-study.md) | One frozen preference key, control-validated checks, and gated four-arm comparisons; earlier protocols removed |
 | [028: From correction to guidance](028-shadowclone-0-to-1.md) | Reliable consented learning, review, publication, delivery, and evaluation for Claude Code and Codex |
+| [029: Narrow the surface](029-narrow-the-surface.md) | Remove shell history and `shadowclone run`, and keep learning evidence user-authored |

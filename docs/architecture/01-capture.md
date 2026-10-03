@@ -35,7 +35,6 @@ The index also records observed source/session/repository bindings. Schema rebui
 | Pi | Version 3 JSONL entries retain parent links; each correction uses its own ancestor context, with tools, thinking, injected messages, and summaries excluded |
 | Cursor | Chat databases contain both JSON messages and opaque blobs; only supported records are interpreted |
 | Antigravity | Generated logs provide conversation records and cancellation signals; capture does not query a live daemon or write plaintext sidecars |
-| Shell | Commands are grouped as prompts but do not provide the preceding agent context needed for correction signals |
 
 Claude subagent transcripts are discovered separately from parent files. Provider-specific interruption markers have no stable schema guarantee, so marker-health diagnostics report suspicious gaps. Adapters normalize timestamps before derivation.
 

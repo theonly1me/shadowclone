@@ -40,15 +40,10 @@ test("detects non-empty file sources without returning their metadata", async ()
     path.join(os.tmpdir(), "shadowclone-presence-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const [shellHistoryFile] = paths.shellHistoryFiles;
-
-  if (!shellHistoryFile) {
-    throw new Error("Test paths need one shell history file");
-  }
 
   await Promise.all([
     Bun.write(paths.claudePromptHistoryFile, "fixture"),
-    Bun.write(shellHistoryFile, "fixture"),
+    Bun.write(path.join(homeDirectory, ".zsh_history"), "fixture"),
   ]);
 
   const presence = await detectOnboardingPresence({
@@ -56,10 +51,7 @@ test("detects non-empty file sources without returning their metadata", async ()
     workingDirectory: homeDirectory,
   });
 
-  expect([...presence.presentCaptureSources]).toEqual([
-    "claude-prompts",
-    "shell",
-  ]);
+  expect([...presence.presentCaptureSources]).toEqual(["claude-prompts"]);
 });
 
 test("reduces a non-empty repository skill root to one boolean", async () => {

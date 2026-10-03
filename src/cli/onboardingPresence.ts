@@ -8,7 +8,6 @@ export const onboardingCaptureSourceIds = [
   "claude-prompts",
   "codex",
   "cursor",
-  "shell",
   "pi",
 ] as const;
 
@@ -42,12 +41,6 @@ async function fileHasContent(filePath: string): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-async function anyFileHasContent(
-  filePaths: readonly string[],
-): Promise<boolean> {
-  return (await Promise.all(filePaths.map(fileHasContent))).some(Boolean);
 }
 
 async function repositoryFileExists(filePath: string): Promise<boolean> {
@@ -109,7 +102,6 @@ export async function detectOnboardingPresence(options: {
     fileHasContent(options.paths.claudePromptHistoryFile),
     directoryHasEntry(options.paths.codexSessionsDirectory),
     directoryHasEntry(options.paths.cursorChatsDirectory),
-    anyFileHasContent(options.paths.shellHistoryFiles),
     directoryHasEntry(options.paths.piSessionsDirectory),
   ]);
   const presentCaptureSources = new Set<OnboardingCaptureSourceId>();
