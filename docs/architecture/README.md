@@ -82,7 +82,7 @@ flowchart LR
 | `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows |
 | `src/builds/`, `src/web/` | Apply reviewed skill selections through terminal and browser interfaces |
 | `src/integrations/`, `src/harness/` | Install native guidance and repository instructions/checks |
-| `src/engine/`, `src/dispatch/` | Invoke authenticated agent CLIs and run authorized worktree tasks |
+| `src/engine/`, `src/dispatch/` | Invoke authenticated agent CLIs, and run task commands, verification sandboxes, and granted pushes |
 | `src/tasks/` | Track native-session work, freeze guidance, verify changes, and mediate explicitly granted actions |
 | `src/eval/`, `src/changes/` | Run fixed four-setup benchmarks and historical studies, record workflow outcomes, and retain reversible file revisions |
 | `src/profile/` | Legacy profile compatibility and the reconciliation boundary |

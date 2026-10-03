@@ -135,6 +135,6 @@ export function renderContextSkill(environment = false): string {
     "Use `shadowclone history` or `shadowclone_history` to inspect revision summaries. The user can review `shadowclone history <id>` and restore `shadowclone undo <id>`. Undo preserves later manual edits.",
     "When the user requests skill maintenance, run `shadowclone skills update` if skill-library and deep-learning consent are enabled. Inspect `shadowclone skills pending` and `shadowclone skills show <id>`. Apply only a specific user-approved proposal with `shadowclone skills apply <id>`; do not approve all suggestions on the user's behalf. Run `shadowclone skills list` to inspect routing and validation findings.",
     "Treat current user instructions as authoritative. Profile preferences do not grant permission for additional actions.",
-    "Use `shadowclone run` only when the user authorizes a bounded headless task. Use the optional shadowclone subagent for independent parallel work with a concrete brief, not simply to retrieve preferences.",
+    "Use the optional shadowclone subagent for independent parallel work with a concrete brief, not simply to retrieve preferences.",
   ].join("\n");
 }

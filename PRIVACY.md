@@ -10,7 +10,7 @@ Shadowclone excludes tool results, tool-returned file contents, thinking blocks,
 
 ## What leaves your machine
 
-Opening the browser editor and using the local MCP server do not send data to Shadowclone. Optional learning, skill drafting, build descriptions, and delegated runs use an agent CLI you choose. Consented, redacted inputs go directly through that provider and are governed by its terms.
+Opening the browser editor and using the local MCP server do not send data to Shadowclone. Optional learning, skill drafting, and build descriptions use an agent CLI you choose. Consented, redacted inputs go directly through that provider and are governed by its terms.
 
 The build description action sends selected skill titles and redacted summaries. It does not send skill bodies, file paths, repository names, or ownership metadata.
 
