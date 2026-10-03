@@ -1,7 +1,5 @@
 import { z } from "zod";
 import type { EngineId } from "../engine/types";
-import type { RepoSettings } from "./repo";
-import { parseRepoSettings } from "./repo";
 
 export const sourceIds = [
   "agent-context",
@@ -45,7 +43,6 @@ export type ShadowcloneConfig = {
     readonly engine?: EngineId;
     readonly model?: string;
   };
-  readonly repo: RepoSettings;
 };
 
 export const defaultConfig: ShadowcloneConfig = {
@@ -70,7 +67,6 @@ export const defaultConfig: ShadowcloneConfig = {
     deep: false,
     automatic: false,
   },
-  repo: {},
 };
 
 const sourcesSchema = z.strictObject({
@@ -191,6 +187,5 @@ export function parseConfig(value: unknown): ShadowcloneConfig {
     schemaVersion: 1,
     sources: parseSources(result.data.sources),
     distillation: parseDistillation(result.data.distillation),
-    repo: parseRepoSettings(result.data.repo),
   };
 }

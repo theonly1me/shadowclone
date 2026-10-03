@@ -33,13 +33,7 @@ flowchart LR
     Claude --> Probe[Reviewed frozen guidance probe]
     Probe --> ProbeReceipt[Private response assertion receipt]
     ScopedHook --> Agents
-    Agents --> Tasks[Explicit task contract and private checkpoints]
-    Skills --> Tasks
-    Tasks --> Verification[Offline checks against the exact workspace]
-    Verification --> TaskReceipt[Private verification and review receipt]
-    Owner[Explicit repository action grants] --> Actions[Policy-checked Git and GitHub helpers]
-    TaskReceipt --> Actions
-    Actions --> GitHub[GitHub]
+    Agents --> GitHub[Pull requests through git and gh in the agent session]
     Agents --> Sessions
     Learning --> PiBridge[Private Pi model bridge]
     PiBridge --> PiRegistry[Pi provider-neutral registry, empty tools]
@@ -82,8 +76,7 @@ flowchart LR
 | `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows |
 | `src/builds/`, `src/web/` | Apply reviewed skill selections through terminal and browser interfaces |
 | `src/integrations/`, `src/harness/` | Install native guidance and repository instructions/checks |
-| `src/engine/`, `src/dispatch/` | Invoke authenticated agent CLIs, and run task commands, verification sandboxes, and granted pushes |
-| `src/tasks/` | Track native-session work, freeze guidance, verify changes, and mediate explicitly granted actions |
+| `src/engine/` | Invoke authenticated agent CLIs |
 | `src/eval/`, `src/changes/` | Run fixed four-setup benchmarks and historical studies, record workflow outcomes, and retain reversible file revisions |
 | `src/profile/` | Legacy profile compatibility and the reconciliation boundary |
 
@@ -94,7 +87,7 @@ The learning service coordinates model execution, reconciliation, pending decisi
 - [Capture](01-capture.md): source adapters, eligible content, and incremental indexing.
 - [Learning and skill delivery](02-profile.md): evidence, publication, scope, and migration.
 - [Engine](03-engine.md): provider capabilities and execution limits.
-- [Acting](04-acting.md): worktree runs, checks, receipts, and remote actions.
+- [Acting](04-acting.md): how delegated work acts through the host agent.
 - [Privacy boundaries](05-privacy.md): redaction, ownership, and execution isolation.
 - [Development priorities](06-roadmap.md): remaining qualification and research work.
 - [Organization boundaries](07-enterprise.md): scope and managed policy.

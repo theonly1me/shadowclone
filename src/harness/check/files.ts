@@ -1,4 +1,4 @@
-import { runCommand, type CommandRunner } from "../../dispatch/command";
+import { runCommand, type CommandRunner } from "../../io/command";
 
 const skippedDirectories = new Set([
   ".git",

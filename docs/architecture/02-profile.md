@@ -44,4 +44,4 @@ Recurring Claude memory extraction requires the named source and a registered, m
 
 Migration freezes original skills and native instructions, retains legacy learning, and publishes in bounded batches. Delivery switches only after coverage and file validation. Legacy profile files remain recovery artifacts; unmigrated installations continue using their compiler. See [migration](../migration.md).
 
-Hooks, optional subagents, dispatch, and MCP use the active delivery path. `shadowclone_context` returns scoped routing; `shadowclone_profile` remains a deprecated alias. The [preference study](09-evaluation.md) compares original and maintained libraries in separate arms.
+Hooks, optional subagents, and MCP use the active delivery path. `shadowclone_context` returns scoped routing; `shadowclone_profile` remains a deprecated alias. The [preference study](09-evaluation.md) compares original and maintained libraries in separate arms.

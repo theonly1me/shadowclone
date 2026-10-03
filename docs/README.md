@@ -11,7 +11,7 @@ Start with the [README](../README.md) to install Shadowclone and choose your fir
 | [Pi setup](guides/pi.md) | Use Pi's models, skills, and consented sessions |
 | [Skill maintenance](guides/skills.md) | Review updates, conflicts, history, and undo |
 | [Repository setup](guides/repositories.md) | Share checks and skills with a repository |
-| [Delegated work](guides/delegated-work.md) | Carry an agent task through verification, review, and explicitly granted actions |
+| [Delegated work](guides/delegated-work.md) | Take a change or a PR to ready for review with the `shadowclone-work` skill |
 | [How it works](guides/how-it-works.md) | Follow guidance from consented evidence to coding agents |
 | [Command reference](guides/commands.md) | Find everyday and advanced commands |
 | [Migration](migration.md) | Move an existing profile installation to skills |

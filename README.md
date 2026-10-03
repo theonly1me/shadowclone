@@ -46,7 +46,7 @@ Setup takes about two to three minutes, excluding learning. Deep learning needs 
 
 Run `shadowclone` to see the current result and next action. Use `shadowclone wizard` to browse optional workflow skills in a browser.
 
-**Delegate a task.** The optional `shadowclone-work` skill records your standards, acceptance criteria, checks, and review in a private task receipt. It adds work tracking to an existing Claude Code or Codex session. Start with review handoff; shipping actions require explicit repository grants. Native workflow qualification is still pending. [Use delegated work](docs/guides/delegated-work.md).
+**Delegate a pull request.** The optional `shadowclone-work` skill takes a request, an issue, or an existing PR to ready for review: green checks, conflicts resolved, and review comments fixed or left for you. It replies to fixed comments with commit SHAs only and never merges. [Use delegated work](docs/guides/delegated-work.md).
 
 ## Evaluations
 

@@ -6,7 +6,7 @@ import { copyForGrading, readTrace } from "./grade/collect";
 import { gradeRun, metricIds } from "./grade/index";
 import { bashCommands, parseTrace } from "./grade/trace";
 import { dockerConfigLinks, dockerLinksMessage } from "./preflight";
-import { defaultOutputDirectory, pluginName, prepare, type VariantName, variantNames } from "./prepare";
+import { defaultOutputDirectory, defaultSkillFile, prepare, type VariantName, variantNames } from "./prepare";
 
 const runSchema = z.looseObject({
   score: z.number(),
@@ -47,8 +47,7 @@ async function runVariant(options: {
     "--model", "claude-sonnet-5-5", "--judge-model", "claude-opus-5-5",
     "--scaffold", "--keep-temp", "--trust-plugin", "--no-publish",
     ...(options.cases === undefined ? [] : ["--case", options.cases]),
-    ...(options.variant === "with-receipts" ? ["--allow-real-servers"] : []),
-    "--allow-tools", "Bash", "Edit", "Write", ...(options.variant === "with-receipts" ? [`mcp__plugin_${pluginName}_shadowclone__*`] : []),
+    "--allow-tools", "Bash", "Edit", "Write",
     "--json", json,
   ];
   const child = Bun.spawn({ cmd: command, cwd: options.root, stdout: "pipe", stderr: "pipe" });
@@ -155,7 +154,7 @@ if (import.meta.main) {
   const baselineRuns = Number(option("--baseline-runs", "1"));
   const concurrency = Number(option("--concurrency", "4"));
   const casesOption = option("--cases", "");
-  const roots = prepare({ output: path.join(outputRoot, "build"), skillFile: option("--skill", path.join(import.meta.dir, "variants", "skill-only", "SKILL.md")) });
+  const roots = prepare({ output: path.join(outputRoot, "build"), skillFile: option("--skill", defaultSkillFile) });
 
   mkdirSync(flow, { recursive: true });
   writeState(flow);
@@ -174,7 +173,7 @@ if (import.meta.main) {
     })),
   );
 
-  const labels: Readonly<Record<VariantName, string>> = { baseline: "baseline", "skill-only": option("--skill-label", "v1"), "with-receipts": "v2" };
+  const labels: Readonly<Record<VariantName, string>> = { baseline: "baseline", "skill-only": option("--skill-label", "v1") };
 
   for (const output of outputs) {
     writeVariant({ flow, label: labels[output.variant], json: output.json });

@@ -1,4 +1,4 @@
-# Measure shadowclone-work before keeping its harness
+# Measure shadowclone-work, then remove its harness
 
 ## Problem
 
@@ -15,7 +15,7 @@ Rewrite `shadowclone-work` as a skill that takes a request, an issue, or an exis
 5. Outside a stack, merge the base branch in and never force push. In a stack, restack with `gh stack rebase` and push with `gh stack push`.
 6. Mark the PR ready for review. Never merge, and never post words on the PR or add attribution.
 
-Compare three arms with `claude plugin eval` and `claude-sonnet-5-5`, each loaded as a plugin with `--ablation none`: no skill, the skill alone, and the skill plus task receipts. The receipts arm runs the real `shadowclone mcp` server for `start`, `verify`, review, and completion receipts. Its git and `gh` actions go through the same stand-ins as the other arms, because task grants bind to a real GitHub remote and the harness would otherwise call the real `gh` outside the sandbox.
+Compare arms with `claude plugin eval` and `claude-sonnet-5-5`, each loaded as a plugin with `--ablation none`: no skill, the skill alone, and, for this decision, the skill plus task receipts. The receipts arm ran the real `shadowclone mcp` server for `start`, `verify`, review, and completion receipts. Its git and `gh` actions went through the same stand-ins as the other arms, because task grants bind to a real GitHub remote and the harness would otherwise call the real `gh` outside the sandbox.
 
 Fifteen cases come from the owner's pull request history, rewritten as synthetic fixtures. They cover a feature from an issue, flaky and real CI failures, a human-approval check, bot noise next to real bugs, human scope requests, reviews that arrive after a push or after marking ready, a moved base, a stack restack conflict, a fix that belongs in a stack's parent, another bot's commit on the branch, approval while blockers remain, severity labels that mislead, and comments addressed to other tools. A seeded split holds out five cases for testing.
 
@@ -33,13 +33,28 @@ A grader reads each kept run after it finishes. It copies only the remote's obje
 
 An Opus judge checks only the final chat report. The owner decides whether the receipts layer stays after reading the held-out results and transcripts.
 
+## Results
+
+All runs used `claude-sonnet-5-5`, with two runs per case for no skill and three for each skill arm. Pass means every grading rule held.
+
+| Arm | Train | Test | All |
+| --- | --- | --- | --- |
+| No skill | 0% | 20% | 7% |
+| Skill | 47% | 67% | 53% |
+| Skill with task receipts | 50% | 53% | 51% |
+| Skill after one hillclimb round | 97% | 100% | 98% |
+
+Receipts did not change the outcome, so the task harness, its `task` command, its MCP tool, and the dispatch code only it used are removed. The skill ships without them.
+
+One hillclimb round on the train cases found two gaps. Claude Code adds a `Co-Authored-By` trailer to commits unless told not to, which failed half of the train runs. The agent also replied once with a later test-only commit instead of the commit that changed the code. Two explicit rules fixed both. The one remaining failure came from the stand-in's check logs pointing into its private folder, which is fixed.
+
 ## Consequences
 
 Evaluation material in `evals/shadowclone-work/` is synthetic and stays out of the npm package. Builds, run results, transcripts, and costs stay outside the checkout.
 
 The stand-in cannot reproduce every GitHub behavior. Calls it does not support fail with a logged error and are counted per run, so they show up as harness gaps rather than skill failures.
 
-A full comparison is 120 runs and a hillclimb round is 45 runs. With about one minute and $0.17 per run at four runs at a time per arm, the whole evaluation finishes in under an hour. Two or three runs per case resolve only large differences, about 15 points.
+A comparison of both arms is 75 runs. At about one minute and $0.19 per run, four at a time per arm, it finishes in about 10 minutes. Two or three runs per case resolve only large differences, about 15 points.
 
 `claude plugin eval` refuses Bash-granting runs while `~/.docker` holds symbolic links, which Docker Desktop creates for its CLI plugins. Move them aside for the length of a run and restore them afterwards.
 

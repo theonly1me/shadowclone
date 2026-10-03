@@ -17,7 +17,6 @@ export {
   type BlockedPath,
 } from "./evaluationIsolation/blocked";
 export {
-  allowsRemoteActions,
   runnerEnvironment,
 } from "./environment";
 export {

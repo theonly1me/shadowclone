@@ -21,7 +21,6 @@ import { listSeedGuidance } from "./skills";
 import { handleSkillMaintenance } from "./skillMaintenance";
 import { showHome } from "./home";
 import { redactSecrets } from "../redact";
-import { taskCommandLine } from "./tasks";
 import { handleWorkflowEval } from "./workflowEval";
 import { handleFixedEval } from "./fixedEval";
 import { handleFourSetupEval } from "./fourSetupEval";
@@ -37,7 +36,6 @@ function printUsage(): void {
   );
   console.log("Review: learning retire|narrow <key>, learning replace <key> <guidance>, learning remove-source <source> [--apply --expected <fingerprint>]");
   console.log("Behavior: learning probe <key> --agent claude-code|codex --task <synthetic task> --expect <exact response> [--model <model>] --yes; learning probe status; learning acknowledge <key>");
-  console.log("Work: task start|status|list|checkpoint|verify|pause|resume|cancel|action|maintain|reconcile; task grants|grant|revoke; task --help");
   console.log("Fixed evals: eval --protocol preference-respect-v2 --help; legacy three-setup evals use preference-respect-v1");
   console.log(
     "Skill maintenance: skills configure [--repo|--global], skills list|update|pending, skills show|apply|reject <id>, skills manage <skill-id>, skills disable",
@@ -145,11 +143,6 @@ async function main(arguments_: readonly string[]): Promise<void> {
   }
 
   if (await handleNativeCommand({ command, arguments: rest })) {
-    return;
-  }
-
-  if (command === "task") {
-    await taskCommandLine({ arguments: rest });
     return;
   }
 

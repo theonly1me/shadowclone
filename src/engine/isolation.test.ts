@@ -1,13 +1,13 @@
 import { expect, test } from "bun:test";
 import { buildClaudeArguments } from "./claudeCode";
 
-test("dispatch loads no host settings, hooks, or MCP servers", () => {
+test("a tool-using run loads no host settings, hooks, or MCP servers and opens no domains", () => {
   const arguments_ = buildClaudeArguments({
     sessionId: "00000000-0000-4000-8000-000000000000",
     run: {
       prompt: "private prompt",
       cwd: "/worktree",
-      execution: { purpose: "dispatch" },
+      execution: { purpose: "evaluation" },
       systemPromptFile: "/profile.md",
       allowedTools: ["Edit"],
       permissionMode: "dontAsk",
@@ -28,28 +28,4 @@ test("dispatch loads no host settings, hooks, or MCP servers", () => {
   expect(settings).toContain('"failIfUnavailable":true');
   expect(settings).toContain('"allowUnsandboxedCommands":false');
   expect(settings).toContain('"allowedDomains":[]');
-});
-
-test("dispatch opens only the domains a granted action needs", () => {
-  const arguments_ = buildClaudeArguments({
-    sessionId: "00000000-0000-4000-8000-000000000000",
-    run: {
-      prompt: "private prompt",
-      cwd: "/worktree",
-      execution: {
-        purpose: "dispatch",
-        allowedDomains: ["github.com", "api.github.com"],
-      },
-      allowedTools: ["Bash(gh pr comment:*)"],
-      permissionMode: "dontAsk",
-    },
-  });
-
-  const settingsIndex = arguments_.indexOf("--settings");
-  const settings = arguments_[settingsIndex + 1] ?? "";
-
-  expect(settings).toContain(
-    '"allowedDomains":["github.com","api.github.com"]',
-  );
-  expect(settings).toContain('"allowLocalBinding":false');
 });
