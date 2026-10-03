@@ -37,3 +37,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [027: Preference study](027-preference-study.md) | One frozen preference key, control-validated checks, and gated four-arm comparisons; earlier protocols removed |
 | [028: From correction to guidance](028-shadowclone-0-to-1.md) | Reliable consented learning, review, publication, delivery, and evaluation for Claude Code and Codex |
 | [029: Narrow the surface](029-narrow-the-surface.md) | Remove shell history and `shadowclone run`, and keep learning evidence user-authored |
+| [030: shadowclone-work evaluation](030-shadowclone-work-eval.md) | Ready-for-review workflow, reviewer comment rules, and a fake-`gh` evaluation that decides the task harness |

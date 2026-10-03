@@ -16,6 +16,7 @@
     "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run scripts/conventions.ts",
     "lint:fix": "biome lint --write .",
     "knip": "knip",
+    "eval:work": "bun evals/shadowclone-work/run.ts",
     "build": "bun run scripts/build.ts",
     "prepack": "bun run build"
   },
