@@ -56,7 +56,7 @@ test("default setup asks three questions and enables only detected session sourc
   expect(config.sources["claude-code"]).toBeTrue();
   expect(config.sources.codex).toBeTrue();
   expect(config.sources.cursor).toBeFalse();
-  expect(config.sources.shell).toBeFalse();
+  expect("shell" in config.sources).toBeFalse();
   expect(config.sources["git-metadata"]).toBeTrue();
   expect(config.sources["agent-context"]).toBeTrue();
   expect(config.sources["skill-library"]).toBeFalse();

@@ -36,7 +36,6 @@ export type ProjectPaths = {
   readonly cursorChatsDirectory: string;
   readonly piAgentDirectory: string;
   readonly piSessionsDirectory: string;
-  readonly shellHistoryFiles: readonly string[];
   readonly managedConfigFile: string | null;
   readonly runDirectory: (runId: string) => string;
   readonly worktreeDirectory: (runId: string) => string;
@@ -107,10 +106,6 @@ export function createProjectPaths(options: {
     cursorChatsDirectory: path.join(options.homeDirectory, ".cursor", "chats"),
     piAgentDirectory: options.piAgentDirectory ?? path.join(options.homeDirectory, ".pi", "agent"),
     piSessionsDirectory: path.join(options.piAgentDirectory ?? path.join(options.homeDirectory, ".pi", "agent"), "sessions"),
-    shellHistoryFiles: [
-      path.join(options.homeDirectory, ".zsh_history"),
-      path.join(options.homeDirectory, ".bash_history"),
-    ],
     managedConfigFile: getManagedConfigFile(options.platform),
     runDirectory: (runId) => path.join(shadowcloneDirectory, "runs", runId),
     worktreeDirectory: (runId) =>

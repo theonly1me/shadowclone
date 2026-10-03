@@ -1,7 +1,13 @@
 import { z } from "zod";
 import type { EngineId } from "../engine";
 import { readRootOwnedFile } from "./managedFile";
-import { sourceIds, type ShadowcloneConfig, type SourceId } from "./schema";
+import {
+  isSourceId,
+  retiredSourceIds,
+  sourceIds,
+  type ShadowcloneConfig,
+  type SourceId,
+} from "./schema";
 
 export type DistillationPolicy = "allowed" | "local-only" | "disabled";
 
@@ -39,7 +45,9 @@ export const defaultManagedPolicy: ManagedPolicy = {
 
 const managedPolicySchema = z.object({
   enabled: z.boolean(),
-  allowedSources: z.array(z.enum(sourceIds)),
+  allowedSources: z
+    .array(z.enum([...sourceIds, ...retiredSourceIds]))
+    .transform((sources) => sources.filter(isSourceId)),
   allowedEngines: z.array(z.enum(engineIds)),
   distillation: z.enum(["allowed", "local-only", "disabled"]),
   originScope: z.literal("strict"),
@@ -100,7 +108,6 @@ export function applyManagedPolicy(options: {
       "repository-manifests":
         options.config.sources["repository-manifests"] &&
         sourceAllowed("repository-manifests"),
-      shell: options.config.sources.shell && sourceAllowed("shell"),
       "skill-library":
         options.config.sources["skill-library"] &&
         sourceAllowed("skill-library"),

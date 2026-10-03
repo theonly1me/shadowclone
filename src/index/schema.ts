@@ -1,6 +1,13 @@
 import type { Database } from "bun:sqlite";
 
-const schemaVersion = 6;
+const schemaVersion = 7;
+
+const retiredSourcePurge = `
+  DELETE FROM events WHERE source = 'shell';
+  DELETE FROM cursors WHERE source = 'shell';
+  DELETE FROM origin_binding_timeline WHERE source = 'shell';
+  DELETE FROM origin_bindings WHERE origin_key LIKE '["shell",%';
+`;
 
 function resetOutdatedSchema(database: Database): void {
   const version = database
@@ -9,6 +16,7 @@ function resetOutdatedSchema(database: Database): void {
 
   if (
     version === schemaVersion ||
+    version === 6 ||
     version === 5 ||
     version === 4 ||
     version === 3
@@ -125,5 +133,9 @@ export function createSchema(database: Database): void {
       FROM events JOIN origin_bindings AS binding ON binding.origin_key = events.cwd;
 
     `);
+  }
+
+  if (previousVersion !== schemaVersion) {
+    database.exec(retiredSourcePurge);
   }
 }
