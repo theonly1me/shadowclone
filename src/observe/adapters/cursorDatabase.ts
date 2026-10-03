@@ -1,6 +1,7 @@
-import { Database } from "bun:sqlite";
+import { Database, constants } from "bun:sqlite";
 import { stat } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 export type FileStats = {
   readonly size: number;
@@ -17,9 +18,7 @@ async function fileStats(sourcePath: string): Promise<FileStats | null> {
   }
 }
 
-export async function cursorStoreSignature(
-  sourcePath: string,
-): Promise<FileStats | null> {
+export async function cursorStoreSignature(sourcePath: string): Promise<FileStats | null> {
   const database = await fileStats(sourcePath);
 
   if (database === null) {
@@ -30,9 +29,7 @@ export async function cursorStoreSignature(
     fileStats(`${sourcePath}-wal`),
     fileStats(path.join(path.dirname(sourcePath), "meta.json")),
   ]);
-  const files = [database, writeAheadLog, sidecar].filter(
-    (entry) => entry !== null,
-  );
+  const files = [database, writeAheadLog, sidecar].filter((entry) => entry !== null);
 
   return {
     size: files.reduce((total, entry) => total + entry.size, 0),
@@ -57,9 +54,10 @@ export function openCursorDatabase(sourcePath: string): Database {
     let fallback: Database | null = null;
 
     try {
-      fallback = new Database(`file:${sourcePath}?mode=ro&immutable=1`, {
-        strict: true,
-      });
+      fallback = new Database(
+        `${pathToFileURL(sourcePath).href}?mode=ro&immutable=1`,
+        constants.SQLITE_OPEN_READONLY | constants.SQLITE_OPEN_URI,
+      );
       fallback.query("SELECT 1").get();
 
       return fallback;
