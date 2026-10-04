@@ -14,7 +14,7 @@ export function integrationTargets(
 
   if (integration.agent === "pi") {
     return [
-      { relativePath: "AGENTS.md", kind: "instructions" },
+      ...(global ? [{ relativePath: "AGENTS.md", kind: "instructions" as const }] : []),
       { relativePath: global ? "extensions/shadowclone.js" : ".pi/extensions/shadowclone.js", kind: "extension" },
       {
         relativePath: global
@@ -103,12 +103,23 @@ export function integrationTargets(
   ];
 }
 
+export function retiredIntegrationTargets(
+  integration: Pick<Integration, "agent" | "scope">,
+): readonly { readonly relativePath: string; readonly kind: IntegrationFile["kind"] }[] {
+  return integration.agent === "pi" && integration.scope === "repository"
+    ? [{ relativePath: "AGENTS.md", kind: "instructions" }]
+    : [];
+}
+
 export function integrationFilePath(options: {
   readonly integration: Integration;
   readonly file: Pick<IntegrationFile, "relativePath" | "kind">;
 }): string {
   if (
-    !integrationTargets(options.integration).some(
+    ![
+      ...integrationTargets(options.integration),
+      ...retiredIntegrationTargets(options.integration),
+    ].some(
       (target) =>
         target.relativePath === options.file.relativePath &&
         target.kind === options.file.kind,

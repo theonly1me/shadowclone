@@ -1,6 +1,7 @@
 import { lstatSync, readlinkSync } from "node:fs";
 import { mkdir, open, rename, rm } from "node:fs/promises";
 import path from "node:path";
+import { removeEmptySkillFolders } from "./skillFolders";
 
 export function fingerprint(text: string): string {
   return new Bun.CryptoHasher("sha256").update(text).digest("hex");
@@ -93,6 +94,7 @@ export async function replaceLocalText(options: {
 
   if (options.next === null) {
     await rm(options.filePath, { force: true });
+    await removeEmptySkillFolders(options.filePath);
 
     return;
   }

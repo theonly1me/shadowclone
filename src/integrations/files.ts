@@ -1,11 +1,13 @@
 import { fingerprint, readLocalText, replaceLocalText } from "../localFiles";
 import { emptyHookConfig, hasOwnedHooks, updateHookConfig } from "./hookConfig";
 import {
+  guidanceMarkers,
+  markedSection,
   renderContextSkill,
   renderInstructionPointer,
   updateManagedSection,
 } from "./markdown";
-import { integrationFilePath, integrationTargets } from "./targets";
+import { integrationFilePath, integrationTargets, retiredIntegrationTargets } from "./targets";
 import type { Integration, IntegrationFile } from "./types";
 import { renderPiExtension } from "./piExtension";
 import { readIntegrations } from "./state";
@@ -16,7 +18,12 @@ export type IntegrationFileChange = {
   readonly previous: string | null;
   readonly next: string | null;
   readonly record: IntegrationFile;
+  readonly retired?: boolean;
 };
+
+export function savedRecords(changes: readonly IntegrationFileChange[]): IntegrationFile[] {
+  return changes.flatMap((change) => (change.retired ? [] : [change.record]));
+}
 
 export async function prepareIntegrationFiles(options: {
   readonly integration: Integration;
@@ -122,6 +129,32 @@ export async function prepareIntegrationFiles(options: {
         fingerprint: digest,
         created: recorded?.created ?? previous === null,
       },
+    });
+  }
+
+  for (const target of retiredIntegrationTargets(options.integration)) {
+    const recorded = options.integration.files.find(
+      (file) => file.relativePath === target.relativePath && file.kind === target.kind,
+    );
+    const filePath = integrationFilePath({ integration: options.integration, file: target });
+    const previous = recorded ? await readLocalText(filePath) : null;
+
+    if (
+      !recorded ||
+      previous === null ||
+      markedSection({ text: previous, markers: guidanceMarkers }) === null
+    ) {
+      continue;
+    }
+
+    const changed = updateManagedSection({ previous, body: null, expected: recorded.fingerprint });
+
+    changes.push({
+      filePath,
+      previous,
+      next: recorded.created && changed.text.trim() === "" ? null : changed.text,
+      record: { ...target, fingerprint: changed.fingerprint, created: recorded.created },
+      retired: true,
     });
   }
 

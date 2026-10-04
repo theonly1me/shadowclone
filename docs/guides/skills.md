@@ -32,6 +32,8 @@ Native routing lists each equipped skill as `- <moment>: <skill>`, using its `sh
 
 When a release retires a bundled skill, `sync` replaces it with its successor in each build that selected it, and prints one line per build. A retired skill whose copy you edited, or that you changed in the build editor, stays selected, and `sync` names it so you can replace it in `shadowclone wizard`. If the successor cannot be installed, `sync` names the build and the reason, changes nothing in that build, and exits with status 1.
 
+When Shadowclone removes the last file of a skill, it also removes the empty skill folder. Folders that still hold your own files stay.
+
 ## History and undo
 
 Every publication has a revision covering its skills, resources, native instructions, and learning decisions:

@@ -44,6 +44,8 @@ For contributor evaluations, use the source runner with `eval --protocol prefere
 
 Supported agent identifiers are `claude-code`, `codex`, `cursor`, `antigravity`, and `pi`. Optional local Claude subagents use `--subagent`; automatic delegation is a separate `--auto-delegate` choice. See [Pi setup](pi.md) for provider configuration and execution limits.
 
+A repository install adds each file that it creates to `.git/info/exclude`, so the files stay out of commits. Uninstall removes those entries.
+
 Shadowclone never writes through a symbolic link. If an agent's instruction file is a link, for example `~/.codex/AGENTS.md` pointing to a shared `AGENTS.md`, setup skips that agent, installs the others, and ends with a line that names the link and the file it points to. `shadowclone install --agent <agent>` fails on such a link until it is replaced by a regular file.
 
 A Codex repository install writes `AGENTS.override.md`, and Codex reads only one instruction file in each folder. If the repository already has an `AGENTS.md`, the override would hide it, so the install skips Codex, names both files, and exits with status 1. Other agents still install. Use `shadowclone install --agent codex --global` for Codex in such a repository. If an earlier version created the override, the install says so and tells you how to remove it.

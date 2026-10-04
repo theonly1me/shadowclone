@@ -2,7 +2,7 @@ import path from "node:path";
 import { canonicalPath } from "../paths";
 import { readLocalText } from "../localFiles";
 import { readIntegrations } from "../integrations/state";
-import { prepareIntegrationFiles } from "../integrations/files";
+import { prepareIntegrationFiles, savedRecords } from "../integrations/files";
 import type { Integration } from "../integrations/types";
 import type { BuildContext } from "./types";
 import { sharedIntegrationUpdates } from "../integrations/sharedUpdates";
@@ -77,7 +77,7 @@ export async function planBuildIntegrations(
     );
     updated.push({
       ...integration,
-      files: changes.map(({ record }) => record),
+      files: savedRecords(changes),
     });
   }
 
