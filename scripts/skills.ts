@@ -206,10 +206,12 @@ export async function findSkillQualityViolations(options: {
         exemptions: exemptions.get(skill.name) ?? [],
       }),
       ...(await scriptFindings({ rootDirectory: options.rootDirectory, skill })),
-      ...plainEnglishFindings({
-        skill: skill.name,
-        filePath: path.join(options.rootDirectory, "skills", skill.name, "SKILL.md"),
-      }),
+      ...(exemptions.get(skill.name)?.includes("plain-english")
+        ? []
+        : plainEnglishFindings({
+            skill: skill.name,
+            filePath: path.join(options.rootDirectory, "skills", skill.name, "SKILL.md"),
+          })),
     ];
 
     if (!pending.has(skill.name)) {

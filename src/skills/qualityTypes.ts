@@ -10,12 +10,13 @@ export type SkillRule =
   | "completion"
   | "host-tools"
   | "references"
-  | "voice";
+  | "voice"
+  | "plain-english";
 
 export type SkillFinding = {
   readonly skill: string;
   readonly line: number;
-  readonly rule: SkillRule | "repeated-sentence" | "pending-list" | "script" | "plain-english";
+  readonly rule: SkillRule | "repeated-sentence" | "pending-list" | "script";
   readonly message: string;
 };
 

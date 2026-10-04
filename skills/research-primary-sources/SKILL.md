@@ -1,33 +1,51 @@
 ---
 name: research-primary-sources
-description: Resolve a technical implementation question against authoritative first-party evidence. Use when behavior depends on a library, platform, protocol, standard, or tool that may have changed.
+description: 'Use when a decision depends on how a library, platform, protocol, or tool behaves, and that behavior can change by version. Also use it when the user says "check the docs", "is this still true?", or "what does the spec say?". Finds the first-party source for the installed version and reads it. Separates what the source guarantees from what you infer. Not for debugging a failure in your own code (use `diagnose-before-editing`).'
 metadata:
   shadowclone-category: research
   shadowclone-section: workflow
-  shadowclone-applies-when: resolving an implementation question that depends on external facts
+  shadowclone-applies-when: when a decision depends on facts outside the repository
 ---
 # Research Primary Sources
 
 ## Use when
 
-An implementation decision depends on external facts or behavior that varies by version.
+A decision depends on outside facts about a library, a platform, a protocol, a standard, or a tool. Those facts change with versions, and memory or a search snippet can be out of date.
+
+## Gates
+
+1. Is the question specific enough to have one answer?
+2. Did you record the installed version, the runtime, and the platform that the answer must match?
+3. Did you read the first-party source itself, such as the specification, the official documents, the source code, or the release notes?
+4. Does each claim say whether the source guarantees it or you infer it?
+5. If no source answers the question, did you say so and keep the choice easy to reverse?
 
 ## Process
 
-1. State the decision as an answerable question. Record the project's relevant version, runtime, platform, and constraints.
-2. Find the specification, official documentation, implementation, release note, or first-party issue that defines the behavior.
-3. Open the exact source and check its version and date. Trace consequential claims back from summaries.
-4. Compare the evidence with the installed version and code path. Explain disagreements caused by different environments or versions.
-5. Give the conclusion with direct supporting links and the implementation constraint it creates.
+1. Write the decision as a question. Record the version, the runtime, the platform, and the limits that apply.
+2. Find the source that defines the behavior. Prefer the specification, the official documents, the source code, a release note, or a first-party issue.
+3. Open the exact page or file. Check that its version and date match yours.
+4. Compare the source with the installed code. Explain each difference that comes from a version or an environment.
+5. Write the answer, the link or `file:line` for each claim, and the limit that it puts on the change.
+
+## Example
+
+**Situation:** A change must know which instruction file a coding agent reads when two files exist in one folder.
+**Easy route:** Answer from memory: "it reads both".
+**Hidden cost:** If memory is wrong, an install can write a file that hides a file of the team, and nobody notices.
+**Best route:** Open the official documents for the installed version, find the section about file order, and quote it.
+**Evidence:** The documents said that the agent reads the override file first, and reads at most one file in each folder. The install now stops before it writes a file that hides another one.
 
 ## Guardrails
 
-Search snippets are leads; read the underlying source. Distinguish documented guarantees from inferences and identify the observations supporting an inference.
-
-Quote sparingly and keep credentials, private URLs, and captured user data out of research notes. If authoritative evidence is unavailable, state the unknown and contain it behind a reversible implementation choice.
+- A search result is a lead. Read the source that it points to.
+- Quote only the lines that support the decision.
+- Keep credentials, private links, and user data out of research notes.
+- If the evidence is old, say so, and name the version that it covers.
 
 ## Completion
 
-The question has a supported answer or an explicit unknown, and the resulting constraint is clear enough to implement.
-
-Report the answer or the explicit unknown, each claim with its primary source (a link, or a file path and line), and the constraint it puts on the change. Keep the reply to these facts. When a pull request exists, put full command output in its verification section instead of the reply.
+- The answer, or the exact unknown.
+- Each claim with its source: a link, or a `file:line`.
+- The version that each source covers.
+- The limit that the answer puts on the change.
