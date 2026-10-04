@@ -24,6 +24,21 @@ import { explainContext, renderContextExplanation } from "./contextExplain";
 import { harnessSyncCommand } from "./harnessSync";
 import { nativeModelSchema } from "./automaticLearning";
 
+export type SkippedAgent = {
+  readonly agent: NativeInstallOptions["agents"][number];
+  readonly path: string;
+  readonly target: string | null;
+};
+
+export function describeSkippedAgent(skipped: SkippedAgent): string {
+  const reason =
+    skipped.target === null
+      ? `${skipped.path} is not a regular file`
+      : `${skipped.path} is a symbolic link to ${skipped.target}`;
+
+  return `Not installed for ${skipped.agent}: ${reason}. Shadowclone does not write through links, so ${skipped.agent} gets no Shadowclone guidance. Replace the link with a regular file, then run shadowclone install --agent ${skipped.agent}.`;
+}
+
 export async function installNativeCommand(
   options: NativeInstallOptions & {
     readonly skipUnsafeDestinations?: boolean;
@@ -32,7 +47,9 @@ export async function installNativeCommand(
       readonly scope: NativeInstallOptions["scope"];
     }) => Promise<unknown>;
   },
-): Promise<void> {
+): Promise<{ readonly skipped: readonly SkippedAgent[] }> {
+  const skipped: SkippedAgent[] = [];
+
   for (const agent of options.agents) {
     try {
       await (options.install ?? installIntegration)({ agent, scope: options.scope });
@@ -42,9 +59,7 @@ export async function installNativeCommand(
         throw error;
       }
 
-      console.log(
-        `Skipped ${agent} main-agent guidance: ${error.path} is a symbolic link or not a regular file, and Shadowclone does not write through links. Replace it with a regular file, then run shadowclone install --agent ${agent}.`,
-      );
+      skipped.push({ agent, path: error.path, target: error.target });
     }
   }
 
@@ -57,6 +72,8 @@ export async function installNativeCommand(
   if (options.subagent) {
     await installLiveClone({ autoDelegate: options.autoDelegate });
   }
+
+  return { skipped };
 }
 
 export async function uninstallNativeCommand(

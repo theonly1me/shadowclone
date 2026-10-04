@@ -26,8 +26,9 @@ test("a symbolic link destination reports the link that blocks the write", async
 
     expect(failure).toBeInstanceOf(UnsafeDestinationError);
     expect(failure).toMatchObject({
-      message: "Destination must be a regular file without symbolic links",
+      message: `Destination must be a regular file without symbolic links: ${link} (a link to ${target})`,
       path: link,
+      target,
     });
     expect(() => assertRegularDestination(target)).not.toThrow();
   } finally {

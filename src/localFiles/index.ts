@@ -1,4 +1,4 @@
-import { lstatSync } from "node:fs";
+import { lstatSync, readlinkSync } from "node:fs";
 import { mkdir, open, rename, rm } from "node:fs/promises";
 import path from "node:path";
 
@@ -8,10 +8,16 @@ export function fingerprint(text: string): string {
 
 export class UnsafeDestinationError extends Error {
   readonly path: string;
+  readonly target: string | null;
 
-  constructor(path: string) {
-    super("Destination must be a regular file without symbolic links");
+  constructor(path: string, target: string | null) {
+    super(
+      `Destination must be a regular file without symbolic links: ${path}${
+        target === null ? "" : ` (a link to ${target})`
+      }`,
+    );
     this.path = path;
+    this.target = target;
   }
 }
 
@@ -25,7 +31,10 @@ export function assertRegularDestination(filePath: string): void {
       metadata?.isSymbolicLink() ||
       (current === path.resolve(filePath) && metadata && !metadata.isFile())
     ) {
-      throw new UnsafeDestinationError(current);
+      throw new UnsafeDestinationError(
+        current,
+        metadata?.isSymbolicLink() ? readlinkSync(current) : null,
+      );
     }
 
     const parent = path.dirname(current);
