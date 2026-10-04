@@ -6,6 +6,15 @@ export function fingerprint(text: string): string {
   return new Bun.CryptoHasher("sha256").update(text).digest("hex");
 }
 
+export class UnsafeDestinationError extends Error {
+  readonly path: string;
+
+  constructor(path: string) {
+    super("Destination must be a regular file without symbolic links");
+    this.path = path;
+  }
+}
+
 export function assertRegularDestination(filePath: string): void {
   let current = path.resolve(filePath);
 
@@ -16,9 +25,7 @@ export function assertRegularDestination(filePath: string): void {
       metadata?.isSymbolicLink() ||
       (current === path.resolve(filePath) && metadata && !metadata.isFile())
     ) {
-      throw new Error(
-        "Destination must be a regular file without symbolic links",
-      );
+      throw new UnsafeDestinationError(current);
     }
 
     const parent = path.dirname(current);

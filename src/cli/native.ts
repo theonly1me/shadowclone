@@ -3,6 +3,7 @@ import { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
 
 export { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
 import { explainLearningEnvironment } from "../environment/diagnostics";
+import { UnsafeDestinationError } from "../localFiles";
 import {
   compileContext,
   compileContextDetails,
@@ -24,11 +25,27 @@ import { harnessSyncCommand } from "./harnessSync";
 import { nativeModelSchema } from "./automaticLearning";
 
 export async function installNativeCommand(
-  options: NativeInstallOptions,
+  options: NativeInstallOptions & {
+    readonly skipUnsafeDestinations?: boolean;
+    readonly install?: (options: {
+      readonly agent: NativeInstallOptions["agents"][number];
+      readonly scope: NativeInstallOptions["scope"];
+    }) => Promise<unknown>;
+  },
 ): Promise<void> {
   for (const agent of options.agents) {
-    await installIntegration({ agent, scope: options.scope });
-    console.log(`Installed ${agent} main-agent guidance (${options.scope}).`);
+    try {
+      await (options.install ?? installIntegration)({ agent, scope: options.scope });
+      console.log(`Installed ${agent} main-agent guidance (${options.scope}).`);
+    } catch (error) {
+      if (!options.skipUnsafeDestinations || !(error instanceof UnsafeDestinationError)) {
+        throw error;
+      }
+
+      console.log(
+        `Skipped ${agent} main-agent guidance: ${error.path} is a symbolic link or not a regular file, and Shadowclone does not write through links. Replace it with a regular file, then run shadowclone install --agent ${agent}.`,
+      );
+    }
   }
 
   if (!options.subagent && (await removeUneditedLegacySubagent())) {
