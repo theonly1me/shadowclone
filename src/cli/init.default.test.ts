@@ -207,7 +207,7 @@ test("setup reports an agent it skipped and counts only the agents it installed"
     ask: (_question) => false,
     install: async () => ({
       skipped: [
-        { agent: "codex", path: "/home/sample/.codex/AGENTS.md", target: "/home/sample/.agents/AGENTS.md" },
+        { agent: "codex", kind: "link", path: "/home/sample/.codex/AGENTS.md", target: "/home/sample/.agents/AGENTS.md" },
       ],
     }),
     writeLine: (line) => output.push(line),

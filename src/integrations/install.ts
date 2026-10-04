@@ -12,6 +12,7 @@ import type {
 } from "./types";
 import { readEnvironment } from "../environment";
 import { ensureHookRunner } from "./hookRunner";
+import { assertCodexOverrideHidesNothing } from "./hiddenInstructions";
 
 export async function installIntegration(
   options: IntegrationOptions & {
@@ -21,9 +22,6 @@ export async function installIntegration(
   },
 ): Promise<Integration> {
   const paths = options.paths ?? projectPaths;
-  if (options.agent === "claude-code" || options.agent === "codex" || options.agent === "pi") {
-    await ensureHookRunner({ paths });
-  }
   const cwd = canonicalPath(options.cwd ?? process.cwd());
   const home = path.dirname(paths.shadowcloneDirectory);
   const providerDirectory =
@@ -54,6 +52,15 @@ export async function installIntegration(
       entry.scope === options.scope &&
       entry.directory === directory,
   );
+
+  if (options.agent === "codex" && options.scope === "repository") {
+    await assertCodexOverrideHidesNothing({ directory, previous });
+  }
+
+  if (options.agent === "claude-code" || options.agent === "codex" || options.agent === "pi") {
+    await ensureHookRunner({ paths });
+  }
+
   const integration: Integration = previous ?? {
     id: crypto.randomUUID(),
     agent: options.agent,
