@@ -2,57 +2,14 @@ import { expect, test } from "bun:test";
 import { cp, mkdtemp, realpath } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
 import { publishEnvironmentRevision } from "../environment/revision";
 import { readEnvironment } from "../environment/store";
-import { syncLearningEnvironment } from "../environment/sync";
 import { seedSkillsDirectory } from "../skills/library";
 import { applyBuild } from "./apply";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildInput } from "./fixtures";
 import { previewBuild } from "./plan";
 import { renderBuildSkillSync, syncBuildSkills } from "./sync";
-import type { BuildInput } from "./types";
-
-const roots = [".agents/skills", ".claude/skills", ".gemini/config/skills"];
-const addedLine = "\nRun the command the user runs and read every output line.\n";
-
-async function installedBuild(input: Partial<BuildInput> = {}) {
-  const context = await buildFixture();
-
-  await writeConfig({
-    config: { ...defaultConfig, sources: { ...defaultConfig.sources, "skill-library": true } },
-    configPath: context.paths.configFile,
-  });
-  await applyBuild({
-    ...context,
-    plan: await previewBuild({
-      ...context,
-      input: buildInput({ choices: { "verify-and-review": true }, ...input }),
-    }),
-  });
-
-  const state = await readEnvironment(context.paths);
-
-  if (state === null) {
-    throw new Error("The build did not record an environment.");
-  }
-
-  return { ...context, state, home: path.dirname(context.paths.shadowcloneDirectory) };
-}
-
-async function newerPackage(): Promise<string> {
-  const directory = await realpath(await mkdtemp(path.join(os.tmpdir(), "shadowclone-package-")));
-  const skill = path.join(directory, "verify-and-review/SKILL.md");
-
-  await cp(await seedSkillsDirectory(), directory, { recursive: true });
-  await Bun.write(skill, (await Bun.file(skill).text()) + addedLine);
-
-  return directory;
-}
-
-function copyPath(options: { readonly home: string; readonly root: string }): string {
-  return path.join(options.home, options.root, "verify-and-review/SKILL.md");
-}
+import { addedLine, copyPath, installedBuild, newerPackage, skillRoots } from "./syncFixtures";
 
 test("an unedited installed skill takes the newer bundled version in every copy", async () => {
   const setup = await installedBuild();
@@ -67,7 +24,7 @@ test("an unedited installed skill takes the newer bundled version in every copy"
     state: synced.state,
   });
 
-  for (const root of roots) {
+  for (const root of skillRoots) {
     expect(await Bun.file(copyPath({ home: setup.home, root })).text()).toEndWith(addedLine);
   }
 
@@ -138,7 +95,7 @@ test("an edit that a wizard apply copied to every copy is kept at the next sync"
 
   expect(synced.updates).toEqual([]);
   expect(synced.kept.map((entry) => entry.filePath).sort()).toEqual(
-    roots.map((root) => copyPath({ home: setup.home, root })).sort(),
+    skillRoots.map((root) => copyPath({ home: setup.home, root })).sort(),
   );
 });
 
@@ -157,7 +114,7 @@ test("a release that changes only a script installs it next to every copy", asyn
     state: synced.state,
   });
 
-  for (const root of roots) {
+  for (const root of skillRoots) {
     expect(
       await Bun.file(path.join(setup.home, root, "verify-and-review/scripts/check.mjs")).text(),
     ).toBe("export {};\n");
@@ -166,18 +123,4 @@ test("a release that changes only a script installs it next to every copy", asyn
   expect(renderBuildSkillSync(synced)).toEqual([
     "Updated verify-and-review to the bundled version (3 copies).",
   ]);
-});
-
-test("sync reports an edited copy of an equipped skill instead of failing", async () => {
-  const setup = await installedBuild();
-  const edited = copyPath({ home: setup.home, root: ".claude/skills" });
-
-  await Bun.write(edited, `${await Bun.file(edited).text()}\nMy own rule.\n`);
-
-  const report = await syncLearningEnvironment(setup.paths);
-
-  expect(report?.kept).toEqual([{ name: "verify-and-review", filePath: edited }]);
-  expect(
-    await Bun.file(copyPath({ home: setup.home, root: ".agents/skills" })).text(),
-  ).not.toContain("My own rule.");
 });
