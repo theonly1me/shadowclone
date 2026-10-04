@@ -79,7 +79,10 @@ export async function publishSkillResources(options: {
         (artifact) => artifact.filePath === filePath,
       );
 
-      if (previous !== null && previous !== content) {
+      const unedited =
+        tracked !== undefined && previous !== null && fingerprint(previous) === tracked.fingerprint;
+
+      if (previous !== null && previous !== content && !unedited) {
         throw new Error(
           "Skill resource copies disagree; reconcile them before publication",
         );

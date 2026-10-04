@@ -7,6 +7,7 @@ import {
   validateSkillReferences,
 } from "../skillMaintenance/document";
 import { publishSkillResources } from "../environment/resources";
+import { seedSkillsDirectory } from "../skills/library";
 import { buildDirectories } from "./selection";
 import type { BuildContext, BuildDefinition, BuildItem } from "./types";
 
@@ -17,6 +18,7 @@ export async function publishBuildSkill(
     readonly item: BuildItem;
     readonly text: string;
     readonly edited: boolean;
+    readonly packagedSkillsDirectory?: string;
   },
 ): Promise<{
   readonly state: EnvironmentState;
@@ -98,13 +100,18 @@ export async function publishBuildSkill(
   const updates: FileUpdate[] = [];
   const artifacts = [...options.state.artifacts];
 
-  if (source?.root.owner === "user") {
-    const sourcePath = path.join(source.root.directory, source.relativePath);
+  const resourceDirectory =
+    source?.root.owner === "user"
+      ? path.dirname(path.join(source.root.directory, source.relativePath))
+      : options.item.owner === "packaged"
+        ? path.join(options.packagedSkillsDirectory ?? (await seedSkillsDirectory()), metadata.name)
+        : null;
 
-    await validateSkillReferences({ filePath: sourcePath, text });
+  if (resourceDirectory !== null) {
+    await validateSkillReferences({ filePath: path.join(resourceDirectory, "SKILL.md"), text });
 
     const resources = await publishSkillResources({
-      source: path.dirname(sourcePath),
+      source: resourceDirectory,
       destinations: targets,
       state: options.state,
       scope: options.build.id,
