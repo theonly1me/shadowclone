@@ -43,6 +43,8 @@ test("default setup asks three questions and enables only detected session sourc
     },
     install: async (options) => {
       installs.push(...options.agents);
+
+      return { skipped: [] };
     },
     writeLine: (line) => output.push(line),
   });
@@ -187,4 +189,34 @@ test("default setup retains imported guidance as internal learning with an injec
 
   expect((await readProfileSnapshot(paths)).rules).toHaveLength(1);
   expect(await Bun.file(paths.profileManifestFile).exists()).toBeFalse();
+});
+
+test("setup reports an agent it skipped and counts only the agents it installed", async () => {
+  const homeDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-init-skipped-"));
+  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  const output: string[] = [];
+
+  await initialize({
+    paths,
+    workingDirectory: homeDirectory,
+    presence: {
+      hasRepositoryGuidance: false,
+      presentCaptureSources: new Set(["claude-code", "codex"]),
+    },
+    agents: ["claude-code", "codex"],
+    ask: (_question) => false,
+    install: async () => ({
+      skipped: [
+        { agent: "codex", path: "/home/sample/.codex/AGENTS.md", target: "/home/sample/.agents/AGENTS.md" },
+      ],
+    }),
+    writeLine: (line) => output.push(line),
+  });
+
+  const lines = output.join("\n");
+
+  expect(lines).toContain("1 agents installed.");
+  expect(output.at(-1)).toBe(
+    "Not installed for codex: /home/sample/.codex/AGENTS.md is a symbolic link to /home/sample/.agents/AGENTS.md. Shadowclone does not write through links, so codex gets no Shadowclone guidance. Replace the link with a regular file, then run shadowclone install --agent codex.",
+  );
 });

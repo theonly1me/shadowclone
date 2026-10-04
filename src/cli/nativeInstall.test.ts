@@ -10,7 +10,10 @@ function installer(blocked: string) {
     attempted.push(options.agent);
 
     if (options.agent === blocked) {
-      throw new UnsafeDestinationError("/home/sample/.codex/AGENTS.md");
+      throw new UnsafeDestinationError(
+        "/home/sample/.codex/AGENTS.md",
+        "/home/sample/.agents/AGENTS.md",
+      );
     }
 
     return {};
@@ -31,7 +34,7 @@ test("setup skips an agent whose file is a symbolic link and installs the rest",
   const fixture = installer("codex");
 
   try {
-    await installNativeCommand({
+    const result = await installNativeCommand({
       ...options,
       skipUnsafeDestinations: true,
       install: fixture.install,
@@ -42,9 +45,14 @@ test("setup skips an agent whose file is a symbolic link and installs the rest",
     expect(fixture.attempted).toEqual(["claude-code", "codex", "cursor"]);
     expect(lines).toContain("Installed claude-code main-agent guidance (global).");
     expect(lines).toContain("Installed cursor main-agent guidance (global).");
-    expect(lines.find((line) => line.startsWith("Skipped codex"))).toContain(
-      "/home/sample/.codex/AGENTS.md is a symbolic link",
-    );
+    expect(lines.some((line) => line.includes("codex"))).toBeFalse();
+    expect(result.skipped).toEqual([
+      {
+        agent: "codex",
+        path: "/home/sample/.codex/AGENTS.md",
+        target: "/home/sample/.agents/AGENTS.md",
+      },
+    ]);
   } finally {
     log.mockRestore();
   }

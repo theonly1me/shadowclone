@@ -63,6 +63,8 @@ export async function prepareFirstTime(options: {
       for (const agent of agents) {
         await installIntegration({ paths: options.paths, agent, scope: "global", cwd: options.workspace });
       }
+
+      return { skipped: [] };
     },
     writeLine: options.writeLine,
   });

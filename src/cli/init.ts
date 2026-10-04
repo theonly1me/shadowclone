@@ -17,7 +17,7 @@ import {
   printDetectionSummary,
 } from "./initDetection";
 import { createSetupEngine, runSetupLearning } from "./initLearning";
-import { installNativeCommand } from "./native";
+import { describeSkippedAgent, installNativeCommand, type SkippedAgent } from "./native";
 import { readEnvironment } from "../environment/store";
 import { pendingLearningRecords } from "../environment/pending";
 import { maintainSkills } from "../learning/maintenance";
@@ -196,14 +196,16 @@ export async function initialize(
     }
   }
 
+  let skippedAgents: readonly SkippedAgent[] = [];
+
   if (agents.length > 0) {
-    await (options.install ?? installNativeCommand)({
+    ({ skipped: skippedAgents } = await (options.install ?? installNativeCommand)({
       agents,
       scope: "global",
       subagent: false,
       autoDelegate: false,
       skipUnsafeDestinations: true,
-    });
+    }));
   }
 
   const state = await readEnvironment(paths);
@@ -212,6 +214,10 @@ export async function initialize(
   ).map((entry) => entry.key) ?? []);
   const pending = state === null ? 0 : pendingLearningRecords({ paths, state }).length;
 
-  writeLine(`${skillsSynced} skills synced; ${rulesLearned} rules learned; ${active.size} active; ${pending} awaiting scope or publication; ${agents.length} agents installed.`);
+  writeLine(`${skillsSynced} skills synced; ${rulesLearned} rules learned; ${active.size} active; ${pending} awaiting scope or publication; ${agents.length - skippedAgents.length} agents installed.`);
   writeLine("Start a new agent session to load active guidance. Review pending items with shadowclone learning pending.");
+
+  for (const skipped of skippedAgents) {
+    writeLine(describeSkippedAgent(skipped));
+  }
 }
