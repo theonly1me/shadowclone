@@ -10,7 +10,7 @@ export const variantNames = ["baseline", "skill-only"] as const;
 export type VariantName = (typeof variantNames)[number];
 
 const evalDirectory = path.dirname(new URL(import.meta.url).pathname);
-const repositoryRoot = path.resolve(evalDirectory, "..", "..");
+const repositoryRoot = path.resolve(evalDirectory, "..", "..", "..");
 
 export const defaultSkillFile = path.join(repositoryRoot, "skills", "shadowclone-work", "SKILL.md");
 
