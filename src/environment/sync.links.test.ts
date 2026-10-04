@@ -1,13 +1,37 @@
 import { expect, test } from "bun:test";
-import { readlink, rm, symlink } from "node:fs/promises";
+import { mkdir, mkdtemp, readlink, realpath, rm, symlink } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { installedBuild } from "../builds/syncFixtures";
 import { installIntegration } from "../integrations/install";
 import { updateManagedSection } from "../integrations/markdown";
 import { readIntegrations, saveIntegration } from "../integrations/state";
+import type { ProjectPaths } from "../paths";
 import { syncLearningEnvironment } from "./sync";
 
-async function linkedCodexInstructions() {
+const olderBody = "# Shadowclone guidance\n\n- when testing: an-old-skill\n";
+
+async function recordOlderSection(options: {
+  readonly paths: ProjectPaths;
+  readonly agent: "claude-code" | "codex";
+  readonly fingerprint: string;
+}): Promise<void> {
+  const integration = (await readIntegrations(options.paths)).find((entry) => entry.agent === options.agent);
+
+  if (!integration) throw new Error(`The ${options.agent} integration was not installed`);
+
+  await saveIntegration({
+    paths: options.paths,
+    integration: {
+      ...integration,
+      files: integration.files.map((file) =>
+        file.kind === "instructions" ? { ...file, fingerprint: options.fingerprint } : file,
+      ),
+    },
+  });
+}
+
+async function linkedCodexInstructions(options: { readonly outsideHome: boolean }) {
   const setup = await installedBuild();
 
   await installIntegration({ paths: setup.paths, cwd: setup.cwd, agent: "claude-code", scope: "global" });
@@ -15,49 +39,60 @@ async function linkedCodexInstructions() {
 
   const claude = path.join(setup.home, ".claude/CLAUDE.md");
   const codex = path.join(setup.home, ".codex/AGENTS.md");
-  const shared = path.join(setup.home, "shared/AGENTS.md");
-  const sharedText = (await Bun.file(codex).text()).replace("verify-and-review", "an-old-skill");
+  const shared = options.outsideHome
+    ? path.join(await realpath(await mkdtemp(path.join(os.tmpdir(), "shadowclone-outside-"))), "AGENTS.md")
+    : path.join(setup.home, ".agents/AGENTS.md");
+  const older = updateManagedSection({ previous: "# My instructions\n", body: olderBody });
 
-  await Bun.write(shared, sharedText);
+  await mkdir(path.dirname(shared), { recursive: true });
+  await Bun.write(shared, older.text);
   await rm(codex);
   await symlink(shared, codex);
+  await recordOlderSection({ paths: setup.paths, agent: "codex", fingerprint: older.fingerprint });
 
-  const olderSection = updateManagedSection({ previous: null, body: "# Shadowclone guidance\n\n- when testing: an-old-skill\n" });
-  const claudeIntegration = (await readIntegrations(setup.paths)).find((entry) => entry.agent === "claude-code");
-
-  if (!claudeIntegration) throw new Error("The Claude Code integration was not installed");
-
-  await Bun.write(claude, olderSection.text);
-  await saveIntegration({
-    paths: setup.paths,
-    integration: {
-      ...claudeIntegration,
-      files: claudeIntegration.files.map((file) =>
-        file.relativePath.endsWith("CLAUDE.md") ? { ...file, fingerprint: olderSection.fingerprint } : file,
-      ),
-    },
-  });
-
-  return { ...setup, claude, codex, shared, sharedText };
+  return { ...setup, claude, codex, shared, sharedText: older.text };
 }
 
-test("sync updates every other agent and reports an instruction file that is a link", async () => {
-  const setup = await linkedCodexInstructions();
-  const skipped: unknown[] = [];
+test("sync writes the routing block into the home file that a linked instruction file points to", async () => {
+  const setup = await linkedCodexInstructions({ outsideHome: false });
 
-  expect(await syncLearningEnvironment(setup.paths, { onSkipped: (entries) => skipped.push(...entries) })).toBeTrue();
+  expect(await syncLearningEnvironment(setup.paths)).toBeTrue();
 
-  expect(skipped).toEqual([{ agent: "codex", path: setup.codex, target: setup.shared }]);
-  expect(await Bun.file(setup.claude).text()).toContain(": verify-and-review");
-  expect(await Bun.file(setup.claude).text()).not.toContain("an-old-skill");
+  const shared = await Bun.file(setup.shared).text();
+
+  expect(shared.startsWith("# My instructions\n")).toBeTrue();
+  expect(shared).toContain(": verify-and-review");
+  expect(shared).not.toContain("an-old-skill");
   expect(await readlink(setup.codex)).toBe(setup.shared);
-  expect(await Bun.file(setup.shared).text()).toBe(setup.sharedText);
-  expect((await readIntegrations(setup.paths)).some((entry) => entry.agent === "codex")).toBeTrue();
+  expect(await Bun.file(setup.claude).text()).toContain("<shadowclone-guidance>");
 });
 
-test("callers that do not ask for skips still stop at a linked instruction file", async () => {
-  const setup = await linkedCodexInstructions();
+test("Claude Code gets no second block when CLAUDE.md imports the file that Codex links to", async () => {
+  const setup = await linkedCodexInstructions({ outsideHome: false });
 
-  await expect(syncLearningEnvironment(setup.paths)).rejects.toThrow("Destination must be a regular file without symbolic links");
+  await Bun.write(setup.claude, `@~/.agents/AGENTS.md\n${await Bun.file(setup.claude).text()}`);
+
+  expect(await syncLearningEnvironment(setup.paths)).toBeTrue();
+
+  const claude = await Bun.file(setup.claude).text();
+
+  expect(claude).toBe("@~/.agents/AGENTS.md\n");
+  expect(await Bun.file(setup.shared).text()).toContain(": verify-and-review");
+
+  await syncLearningEnvironment(setup.paths);
+
+  expect(await Bun.file(setup.claude).text()).toBe(claude);
+});
+
+test("sync skips and reports a linked instruction file whose target is outside the home folder", async () => {
+  const setup = await linkedCodexInstructions({ outsideHome: true });
+  const skipped: unknown[] = [];
+
+  await expect(syncLearningEnvironment(setup.paths)).rejects.toThrow(
+    "Destination must be a regular file without symbolic links",
+  );
+  expect(await syncLearningEnvironment(setup.paths, { onSkipped: (entries) => skipped.push(...entries) })).toBeTrue();
+  expect(skipped).toEqual([{ agent: "codex", path: setup.codex, target: setup.shared }]);
   expect(await Bun.file(setup.shared).text()).toBe(setup.sharedText);
+  expect(await readlink(setup.codex)).toBe(setup.shared);
 });

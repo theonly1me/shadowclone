@@ -66,6 +66,7 @@ export async function previewBuild(
 
     state = published.state;
     updates.push(...published.updates);
+    warnings.push(...published.warnings);
     retained.add(item.id);
   }
 

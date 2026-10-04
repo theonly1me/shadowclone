@@ -83,6 +83,7 @@ async function migrateBuild(options: {
   const context = { paths: options.paths, cwd: build.directory };
   const items = await packagedBuildItems();
   const updates: FileUpdate[] = [];
+  const warnings: string[] = [];
   let state = {
     ...options.state,
     builds: options.state.builds.map((entry) => (entry.id === build.id ? build : entry)),
@@ -114,6 +115,7 @@ async function migrateBuild(options: {
 
     state = published.state;
     updates.push(...published.updates);
+    warnings.push(...published.warnings);
   }
 
   const retired = await retireBuildSkills({
@@ -134,7 +136,7 @@ async function migrateBuild(options: {
   return {
     state: routing.state,
     updates: [...updates, ...retired.updates, ...routing.updates],
-    warnings: retired.warnings,
+    warnings: [...warnings, ...retired.warnings],
   };
 }
 

@@ -2,6 +2,9 @@
 
 # Shadowclone
 
+[![HOL Guard](https://img.shields.io/endpoint?url=https%3A%2F%2Fhol.org%2Fapi%2Fregistry%2Fbadges%2Fplugin%3Fslug%3Dtheonly1me%252Fshadowclone%26metric%3Dtrust)](https://hol.org/registry/plugins/theonly1me%2Fshadowclone)
+[![Shadowclone trust badge](https://img.shields.io/endpoint?url=https%3A%2F%2Fhol.org%2Fapi%2Fregistry%2Fbadges%2Fplugin%3Fslug%3Dshadowclone%252Fshadowclone%26metric%3Dtrust%26style%3Dflat)](https://hol.org/registry/plugins/shadowclone%2Fshadowclone)
+
 Shadowclone maintains the skills, instructions, and checks that help **Claude Code, Codex, Pi, Cursor, and Antigravity** follow your engineering preferences. It works with the coding agents you already use and keeps you in control of what it reads and changes.
 
 ## Get started
