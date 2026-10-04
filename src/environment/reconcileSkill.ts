@@ -12,6 +12,11 @@ import { skillPublication } from "./publication";
 import { validateRouting } from "./routingValidation";
 import type { LearningScope } from "./scope";
 import type { EnvironmentState, LearningRecord } from "./types";
+import type { SkillDraft } from "./draftSchema";
+
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 export async function reconcileSkillLearning(options: {
   readonly paths: ProjectPaths;
@@ -35,25 +40,55 @@ export async function reconcileSkillLearning(options: {
     updates: [],
     applied: 0,
   });
-  const draft = await draftSkill({
-    original,
-    name,
-    description: route.description,
-    records,
-    execution: options.execution,
-    cwd: options.paths.shadowcloneDirectory,
-  });
+  const draftFor = (repair?: { readonly draft: SkillDraft; readonly error: string }) =>
+    draftSkill({
+      original,
+      name,
+      description: route.description,
+      records,
+      execution: options.execution,
+      cwd: options.paths.shadowcloneDirectory,
+      ...(repair ? { repair } : {}),
+    });
+  const reviewNeeded = (candidate: SkillDraft) =>
+    candidate.outcomes.some(({ disposition }) => disposition === "pending")
+      ? {
+          state: pendingLearningState({
+            ...options,
+            reasons: pendingDraftReasons(candidate),
+            destinations: [target],
+          }),
+          updates: [],
+          applied: 0,
+        }
+      : selected &&
+          !companion &&
+          selected.raw !== selected.redacted &&
+          candidate.edits.some((edit) => edit.before && !selected.raw.includes(edit.before))
+        ? pending(
+            "The proposed edit overlaps redacted content. Review the target skill locally before retrying.",
+          )
+        : null;
+  const apply = (candidate: SkillDraft) =>
+    applySkillDraft({
+      draft:
+        companion && rawOriginal === null
+          ? {
+              ...candidate,
+              description: `Use only with the already selected ${selected.name} skill. ${candidate.description || route.description}`,
+              body: `# Local guidance for ${selected.name}\n\nUse these instructions only when the installed ${selected.name} skill is already selected. Preserve its workflow and permissions. If it is unavailable, report that limitation.\n\n${generatedSkillBody({ text: candidate.body, name })}`,
+            }
+          : candidate,
+      original: rawOriginal,
+      name,
+      description: route.description,
+      records,
+    });
+  const draft = await draftFor();
+  const firstReview = reviewNeeded(draft);
 
-  if (draft.outcomes.some(({ disposition }) => disposition === "pending")) {
-    return {
-      state: pendingLearningState({
-        ...options,
-        reasons: pendingDraftReasons(draft),
-        destinations: [target],
-      }),
-      updates: [],
-      applied: 0,
-    };
+  if (firstReview) {
+    return firstReview;
   }
 
   if (
@@ -72,27 +107,36 @@ export async function reconcileSkillLearning(options: {
     };
   }
 
-  if (
-    selected && !companion && selected.raw !== selected.redacted &&
-    draft.edits.some((edit) => edit.before && !selected.raw.includes(edit.before))
-  ) {
-    return pending("The proposed edit overlaps redacted content. Review the target skill locally before retrying.");
-  }
-
   let text: string;
 
   try {
-    const supportedDraft = companion && rawOriginal === null
-      ? {
-          ...draft,
-          description: `Use only with the already selected ${selected.name} skill. ${draft.description || route.description}`,
-          body: `# Local guidance for ${selected.name}\n\nUse these instructions only when the installed ${selected.name} skill is already selected. Preserve its workflow and permissions. If it is unavailable, report that limitation.\n\n${generatedSkillBody({ text: draft.body, name })}`,
-        }
-      : draft;
+    text = apply(draft);
+  } catch (error) {
+    const firstError = messageOf(error);
 
-    text = applySkillDraft({ draft: supportedDraft, original: rawOriginal, name, description: route.description, records });
-  } catch {
-    return pending("The draft failed skill metadata, section-edit, or size validation. Review the target document and retry this learning.");
+    if (options.execution.callsRemaining() < 1) {
+      return pending(`The draft failed validation: ${firstError}. No learning call was left for a repair turn. Retry this learning.`);
+    }
+
+    let repaired: SkillDraft;
+
+    try {
+      repaired = await draftFor({ draft, error: firstError });
+    } catch {
+      return pending(`The draft failed validation: ${firstError}. The repair turn did not return a valid draft. Retry this learning.`);
+    }
+
+    const repairReview = reviewNeeded(repaired);
+
+    if (repairReview) {
+      return repairReview;
+    }
+
+    try {
+      text = apply(repaired);
+    } catch (secondError) {
+      return pending(`The draft failed validation: ${firstError}. One repair turn also failed: ${messageOf(secondError)}. Review the target document and retry this learning.`);
+    }
   }
 
   let publication: Awaited<ReturnType<typeof skillPublication>>;

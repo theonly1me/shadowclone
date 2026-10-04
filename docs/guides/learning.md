@@ -8,7 +8,7 @@ Shadowclone can learn reusable instructions and corrections from the sources you
 shadowclone learn --deep
 ```
 
-Shadowclone compares eligible evidence with existing guidance and proposes changes for review. When new rules overlap, the model merges them. Every new rule ends up merged, kept as it is, or listed in the output as dropped with a reason. Pressing Enter at the review prompt leaves the learned rules pending. Approval records the rule and attempts its scoped publication within the configured learning budget. Publication may still need a repository scope or a separate conflict decision. Approval can call the model to edit a skill, but does not rerun preference extraction. If a supporting source was disabled since extraction, the rule stays pending.
+Shadowclone compares eligible evidence with existing guidance and proposes changes for review. When new rules overlap, the model merges them. Every new rule ends up merged, kept as it is, or listed in the output as dropped with a reason. Pressing Enter at the review prompt leaves the learned rules pending. Approval records the rule and attempts its scoped publication within the configured learning budget. Publication may still need a repository scope or a separate conflict decision. Approval can call the model to edit a skill, but does not rerun preference extraction. If a skill draft fails validation, the model gets one repair turn with the exact error. If the repair also fails, or no learning call is left, the rule stays pending with both errors. If a supporting source was disabled since extraction, the rule stays pending.
 
 ```bash
 shadowclone learning pending
