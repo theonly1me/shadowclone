@@ -65,6 +65,7 @@ test("renders named source settings as TOML", () => {
       "pi = false",
       "declared-rules = false",
       "git-metadata = false",
+      "github-writing = false",
       "repository-manifests = false",
       "skill-library = false",
       "",
@@ -86,7 +87,8 @@ test("migrates an existing config with git metadata disabled", async () => {
     .replace("antigravity = false\n", "")
     .replace("declared-rules = false\n", "")
     .replace("pi = false\n", "")
-    .replace("git-metadata = false\n", "");
+    .replace("git-metadata = false\n", "")
+    .replace("github-writing = false\n", "");
 
   await Bun.write(configPath, legacy);
 
@@ -95,6 +97,7 @@ test("migrates an existing config with git metadata disabled", async () => {
   expect(migrated.sources["declared-rules"]).toBeFalse();
   expect(migrated.sources["claude-rules"]).toBeFalse();
   expect(migrated.sources["git-metadata"]).toBeFalse();
+  expect(migrated.sources["github-writing"]).toBeFalse();
   expect(migrated.sources.pi).toBeFalse();
 });
 

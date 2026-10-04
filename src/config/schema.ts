@@ -13,6 +13,7 @@ export const sourceIds = [
   "cursor",
   "declared-rules",
   "git-metadata",
+  "github-writing",
   "repository-manifests",
   "pi",
   "skill-library",
@@ -60,6 +61,7 @@ export const defaultConfig: ShadowcloneConfig = {
     pi: false,
     "declared-rules": false,
     "git-metadata": false,
+    "github-writing": false,
     "repository-manifests": false,
     "skill-library": false,
   },
@@ -82,6 +84,7 @@ const sourcesSchema = z.strictObject({
   pi: z.boolean().optional().default(false),
   "declared-rules": z.boolean().optional().default(false),
   "git-metadata": z.boolean().optional().default(false),
+  "github-writing": z.boolean().optional().default(false),
   "repository-manifests": z.boolean().optional().default(false),
   "skill-library": z.boolean().optional().default(false),
 });

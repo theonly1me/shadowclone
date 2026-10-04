@@ -27,6 +27,7 @@ Source access does not by itself authorize automatic skill edits. Disabling a so
 | `agent-context`          | Selected-agent personal instructions and skills, kept as an original baseline and copied into evaluation arms                                                                               |
 | `skill-library`          | Consented personal, repository, custom, and third-party skill roots                                                                                                                         |
 | `git-metadata`           | Local repository remote names used to determine scope                                                                                                                                       |
+| `github-writing`         | Through your `gh` login: your 40 newest pull request titles and bodies, your 40 newest reviews with up to 10 comments each, and your 60 newest commit messages, for voice capture only      |
 | `repository-manifests`   | Scripts and dependency names in `package.json`, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, CI workflow files, and top-level entry names for repository setup |
 
 Shell history is not a source. Upgrading deletes indexed shell history events, cursors, and repository bindings, and Shadowclone ignores a `shell` setting left in an older `config.toml` or managed policy.
@@ -46,15 +47,15 @@ Pi capture retains parent links across session branches. Its system and custom i
 
 ## What reaches a model
 
-| Operation                   | Provider access                                                                                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Plain `learn` after setup   | Local indexing and reporting; no model calls                                                                                                           |
-| Deep or background learning | Selected redacted steering, supporting context, and guidance needed for reconciliation                                                                 |
-| Skill maintenance           | Redacted catalogs and full instructions for overlapping workflows, plus evidence for proposed updates; supporting resources are checked locally        |
-| Browser editor              | Opening the editor makes no model request; build naming after an equip change sends redacted skill titles and summaries; skill drafts need review      |
-| Personal GitHub clone       | Reviewed exported guidance, the selected repository, and an authorized issue or PR task                                                                |
-| `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace; Shadowclone makes no model calls for it                                              |
-| Evaluation                  | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction                              |
+| Operation                   | Provider access                                                                                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plain `learn` after setup   | Local indexing and reporting; no model calls                                                                                                         |
+| Deep or background learning | Selected redacted steering, supporting context, and guidance needed for reconciliation                                                               |
+| Skill maintenance           | Redacted catalogs and full instructions for overlapping workflows, plus evidence for proposed updates; supporting resources are checked locally      |
+| Browser editor              | Opening the editor makes no model request; build naming sends redacted skill titles and summaries; voice capture and skill drafts need a user action |
+| Personal GitHub clone       | Reviewed exported guidance, the selected repository, and an authorized issue or PR task                                                              |
+| `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace; Shadowclone makes no model calls for it                                            |
+| Evaluation                  | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction                            |
 
 First-time interactive `learn` can offer setup, which may make an authorized first learning pass. A deep dry run still calls a model.
 
@@ -115,6 +116,8 @@ The browser editor listens on loopback, serves local assets, checks request orig
 Skill discovery reads only configured, consented roots. It permits up to 2,000 distinct physical skill files and 8 MB in total; overlapping roots count the same canonical file once. Native copies may collapse into one browser entry. Individual skills retain their 48 KB and 500-line limits, and discovery refuses paths nested more than twelve levels.
 
 Build naming sends the redacted titles and one-line summaries of the equipped skills and preferences. It never sends skill bodies, paths, repository names, or ownership metadata. It runs 5 seconds after the last equip change, or when the user chooses **Name my build**. It uses the fast model of the engine with no tools, one call, a 30-second deadline, and a $0.05 limit where the provider supports a dollar cap. The character sheet names the engine and model. **Turn naming off** stores the choice in that browser and stops every naming request. Results stay in server memory until the editor closes.
+
+Voice capture needs the `github-writing` setting. The **My voice** dialog in the editor turns it on or off, and managed policy can block it. With the setting off, the editor makes no `gh` call. Capture reads only text that the signed-in user wrote. It skips pull requests from `codex/`, `claude/`, and `cursor/` branches, text with agent attribution lines, release pull requests, and merge and revert commits. It removes fenced code, comments, and images, redacts each item through `redactSecrets`, and keeps at most 1,200 characters per item and 24,000 in total. One call to the saved learning model describes the voice and writes 3 invented examples, with a 120-second deadline and a $0.25 limit where the provider supports a dollar cap. A result that copies 8 or more words in a row from the writing is discarded. The dialog shows only the description and the invented examples. Rewriting the examples after an edit sends only the edited description to the fast model. Collected writing stays in server memory until the editor closes or the setting is turned off. Saving writes `~/.agents/voice.md` only when no file or link exists at that path.
 
 Use AI in the skill editor sends only the typed form fields. It reads no repository files. Model requests use the learning execution contract with no tools, one call, and a 60-second deadline. Providers with dollar-cap support receive a $0.25 limit; other providers show that no dollar cap can be enforced. Cancellation aborts the request, but usage already incurred may still be charged. Reviews and cached results remain in server memory until the editor closes. Generated skill drafts remain editable and require the usual build review before publication.
 

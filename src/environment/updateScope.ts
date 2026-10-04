@@ -129,7 +129,7 @@ export async function updateLearningScope(options: {
             state: result.state,
             readRemote: options.readRemote,
           })
-        : { state: result.state, updates: [] };
+        : { state: result.state, updates: [], skipped: [] };
 
     await publishEnvironmentRevision({
       paths: options.paths,

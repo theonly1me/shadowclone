@@ -105,6 +105,9 @@ export function applyManagedPolicy(options: {
         sourceAllowed("declared-rules"),
       "git-metadata":
         options.config.sources["git-metadata"] && sourceAllowed("git-metadata"),
+      "github-writing":
+        options.config.sources["github-writing"] &&
+        sourceAllowed("github-writing"),
       "repository-manifests":
         options.config.sources["repository-manifests"] &&
         sourceAllowed("repository-manifests"),

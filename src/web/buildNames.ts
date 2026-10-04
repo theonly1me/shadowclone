@@ -1,11 +1,9 @@
-import { z } from "zod";
 import type { BuildContext } from "../builds/types";
-import { createLearningExecution } from "../engine";
 import { fingerprint } from "../localFiles";
-import { redactSecrets } from "../redact";
 import { bannedTitleWords, buildNamePrompt, buildNameSkills, type NamedSkill } from "./buildNamePrompt";
 import { buildNameSchema, type BuildName, type BuildNameResult } from "./buildNameProtocol";
 import { generationEngine, type GenerationEngine } from "./generationEngine";
+import { generationDestination, structuredCall } from "./structuredCall";
 
 export const buildNameLimits = { maximumCalls: 1, timeoutMilliseconds: 30_000, maximumCostUsd: 0.05 } as const;
 
@@ -51,7 +49,7 @@ export function createBuildNames(
     if (skills.length === 0) throw new Error("Equip a skill before naming your build");
 
     const connection = await generationEngine({ ...context, tier: "fast" });
-    const destination = `${connection.engine} using ${connection.model ?? "its default model"}`;
+    const destination = generationDestination(connection);
     const key = fingerprint(JSON.stringify({ engine: connection.engine, model: connection.model ?? null, skills }));
     const cached = cache.get(key);
 
@@ -69,27 +67,16 @@ export function createBuildNames(
 
       if (Buffer.byteLength(prompt) > 12_000) throw new Error("This build is too large to name");
 
-      const execution = createLearningExecution({
-        engine: connection.engine,
-        runner: (run) => connection.runner({ ...run, signal: run.signal ? AbortSignal.any([run.signal, signal]) : signal }),
-        limits: buildNameLimits,
-      });
-      const result = await execution.runner({
+      const result = await structuredCall({
+        connection,
         prompt,
+        schema: buildNameSchema,
+        limits: buildNameLimits,
         cwd: context.cwd,
-        execution: { purpose: "learning" },
-        outputSchema: z.toJSONSchema(buildNameSchema, { target: "draft-7" }),
+        signal,
+        task: "name the build",
       });
-
-      signal.throwIfAborted();
-
-      if (result.isError) {
-        const reason = redactSecrets({ text: result.errorMessage ?? "No provider diagnostic was returned." }).slice(0, 600);
-
-        throw new Error(`${destination} could not name the build: ${reason}`);
-      }
-
-      const name = checkedName({ name: buildNameSchema.parse(result.structured ?? JSON.parse(result.text)), skills });
+      const name = checkedName({ name: result, skills });
       const output = { name, destination };
 
       if (cache.size >= 64) cache.clear();

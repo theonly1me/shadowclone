@@ -3,13 +3,14 @@ import { readLocalText } from "../localFiles";
 import { acquireLocalLock } from "../localFiles/lock";
 import type { ProjectPaths } from "../paths";
 import { environmentFile, readEnvironment, renderEnvironment } from "./store";
-import { nativePublication } from "./native";
+import { nativePublication, type SkippedRouting } from "./native";
 import { publishEnvironmentRevision } from "./revision";
 import { synchronizePublishedSkills } from "./synchronize";
 import { readEffectiveConfig } from "../config";
 
 export async function syncLearningEnvironment(
   paths: ProjectPaths,
+  options: { readonly onSkipped?: (skipped: readonly SkippedRouting[]) => void } = {},
 ): Promise<boolean> {
   const state = await readEnvironment(paths);
 
@@ -45,10 +46,11 @@ export async function syncLearningEnvironment(
       ? await synchronizePublishedSkills({ paths, state: current })
       : { state: current, updates: [], routingBlocked: false };
     const publication = synchronized.routingBlocked
-      ? { state: synchronized.state, updates: [] }
+      ? { state: synchronized.state, updates: [], skipped: [] }
       : await nativePublication({
           paths,
           state: synchronized.state,
+          skipLinkedFiles: options.onSkipped !== undefined,
         });
     const filePath = environmentFile(paths);
 
@@ -64,6 +66,8 @@ export async function syncLearningEnvironment(
         },
       ],
     });
+
+    options.onSkipped?.(publication.skipped);
 
     return true;
   } finally {

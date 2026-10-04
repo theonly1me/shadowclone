@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { FileUpdate } from "../changes";
-import { readLocalText, fingerprint } from "../localFiles";
+import { readLocalText, fingerprint, UnsafeDestinationError } from "../localFiles";
 import type { ProjectPaths } from "../paths";
 import { prepareIntegrationFiles, savedRecords } from "../integrations/files";
 import { readIntegrations } from "../integrations/state";
@@ -15,13 +15,17 @@ import {
   type GitRemoteReader,
 } from "../signal";
 
+export type SkippedRouting = { readonly agent: string; readonly path: string; readonly target: string | null };
+
 export async function nativePublication(options: {
   readonly paths: ProjectPaths;
   readonly state: EnvironmentState;
   readonly readRemote?: GitRemoteReader;
+  readonly skipLinkedFiles?: boolean;
 }): Promise<{
   readonly state: EnvironmentState;
   readonly updates: readonly FileUpdate[];
+  readonly skipped: readonly SkippedRouting[];
 }> {
   const scopes = learningScopes(options);
   const { config, policy } = await readEffectiveConfig({
@@ -58,6 +62,7 @@ export async function nativePublication(options: {
   const integrations = await readIntegrations(options.paths);
   const updatedIntegrations = [];
   const updates: FileUpdate[] = [];
+  const skipped: SkippedRouting[] = [];
 
   for (const integration of integrations) {
     const applicable = scopes.filter(
@@ -71,7 +76,18 @@ export async function nativePublication(options: {
       integration,
       profile: renderSkillRouting({ state: options.state, scopes: applicable }),
       environment: true,
+    }).catch((error: unknown) => {
+      if (!options.skipLinkedFiles || !(error instanceof UnsafeDestinationError)) throw error;
+
+      skipped.push({ agent: integration.agent, path: error.path, target: error.target });
+
+      return null;
     });
+
+    if (changes === null) {
+      updatedIntegrations.push(integration);
+      continue;
+    }
 
     updates.push(
       ...changes.map(({ filePath, previous, next }) => ({
@@ -99,6 +115,7 @@ export async function nativePublication(options: {
 
   return {
     state: options.state,
+    skipped,
     updates: sharedIntegrationUpdates(updates).filter(
       ({ previous, next }) =>
         fingerprint(previous ?? "") !== fingerprint(next ?? ""),

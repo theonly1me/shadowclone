@@ -18,6 +18,17 @@ The map shows every local skill at once. Skills group by source first: bundled s
 
 The character sheet names your build, with a short profile, three abilities tied to your equipped skills, and one tradeoff. Five seconds after your last equip change, the wizard asks your fast model for a new name. On Claude Code that is Haiku at low effort, and on Codex it is `gpt-6-luna` at low effort. The sheet says which engine and model wrote the name. A saved build that you open without a change shows **Name my build** instead, so opening the wizard makes no model request. If naming fails, the sheet shows the error and a **Retry** button. **Turn naming off** stops all naming requests in this browser.
 
+## Your writing voice
+
+Skills that write for you, such as pull request and review skills, read `~/.agents/voice.md`. **My voice** can draft that file from your own GitHub writing:
+
+1. Choose **My voice** and allow Shadowclone to read your GitHub writing. It reads through your `gh` login.
+2. Choose **Read my writing and describe my voice**. Your learning model describes how you write and writes 3 invented examples.
+3. Edit any line of the description. Choose **Rewrite the samples** to see the examples follow your edits.
+4. Choose **Save my voice** to write `~/.agents/voice.md`, or **Discard**.
+
+The dialog never shows your writing itself. Shadowclone skips text that an agent wrote, and it discards a result that copies 8 or more of your words in a row. If `~/.agents/voice.md` already exists or is a link, Shadowclone does not change it. [Data handling](../data-handling.md) lists what is read and sent.
+
 ## Create a skill
 
 Choose **Create a skill**, give it a name, explain when it applies, and write what the agent should do.
