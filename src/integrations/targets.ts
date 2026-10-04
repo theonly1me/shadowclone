@@ -1,4 +1,5 @@
 import path from "node:path";
+import { linkedHomeFile } from "../localFiles/links";
 import type { Integration, IntegrationFile } from "./types";
 
 export function integrationTargets(
@@ -128,5 +129,9 @@ export function integrationFilePath(options: {
     throw new Error("Unknown integration destination");
   }
 
-  return path.resolve(options.integration.directory, options.file.relativePath);
+  const filePath = path.resolve(options.integration.directory, options.file.relativePath);
+
+  return options.integration.scope === "global" && options.file.kind === "instructions"
+    ? (linkedHomeFile({ filePath, homeDirectory: options.integration.userDirectory }) ?? filePath)
+    : filePath;
 }

@@ -12,6 +12,7 @@ import type { Integration, IntegrationFile } from "./types";
 import { renderPiExtension } from "./piExtension";
 import { readIntegrations } from "./state";
 import { createProjectPaths } from "../paths";
+import { importsPeerInstructions } from "./sharedInstructions";
 
 export type IntegrationFileChange = {
   readonly filePath: string;
@@ -30,6 +31,7 @@ export async function prepareIntegrationFiles(options: {
   readonly profile: string;
   readonly remove?: boolean;
   readonly environment?: boolean;
+  readonly peers?: readonly Integration[];
 }): Promise<readonly IntegrationFileChange[]> {
   const changes: IntegrationFileChange[] = [];
   const integrations = await readIntegrations(createProjectPaths({ homeDirectory: options.integration.userDirectory, platform: process.platform }));
@@ -97,9 +99,15 @@ export async function prepareIntegrationFiles(options: {
         previous === null && options.integration.agent === "cursor"
           ? "---\ndescription: Personal engineering preferences from Shadowclone\nalwaysApply: true\n---\n"
           : previous;
+      const importsPeer = importsPeerInstructions({
+        integration: options.integration,
+        filePath,
+        text: previous,
+        peers: options.peers ?? integrations,
+      });
       const changed = updateManagedSection({
         previous: prefix,
-        body: options.remove
+        body: options.remove || importsPeer
           ? null
           : options.environment
             ? options.profile

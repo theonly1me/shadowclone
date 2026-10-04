@@ -98,3 +98,16 @@ Cheap model ids change over time. Each tier entry names its source, and a reject
 - Unit tests for naming: the 5-second debounce and the cache work, and a failure shows on the sheet.
 - Unit tests for voice: with consent off, collection makes no `gh` call. Agent text is filtered, and synthetic secrets are redacted. A sample that copies 8 words is rejected. A linked `voice.md` is not written.
 - The real wizard in a throwaway home with about 70 skills: headless Chrome screenshots at 1440, 1920, and 390 px. One click equips a skill, nothing zooms, and two reloads show different star layouts. The name appears after the loading state, and the Voice panel shows only invented samples.
+
+## Shared files through links
+
+Many users keep one copy of their instructions and skills in `~/.agents` and link each agent to it. For example, `~/.codex/AGENTS.md` links to `~/.agents/AGENTS.md`, `~/.claude/CLAUDE.md` imports that file with `@`, and `~/.claude/skills/<name>` links to `~/.agents/skills/<name>`. The wizard preview stopped at the first link, so such a user could not review or apply any build.
+
+Decisions:
+
+- Skill copies: if a destination folder is a link to the skill's own source, or to another destination of the same skill, the agent already reads that file. The wizard does not write or track it. A link to anything else is skipped, and the review names the link and its target.
+- Instruction files: if a global instruction file is a link to a regular file inside the home folder, Shadowclone keeps the link and writes its block into that real file. The review shows the real path, and undo restores it. A link to anything else is skipped, as before.
+- One block per agent: if `~/.claude/CLAUDE.md` imports, with `@`, the file that another agent's instruction file resolves to, Claude Code gets no block of its own. It reads the shared block through the import.
+- `integrationFilePath` resolves the link, so install, sync, the wizard, and removal agree on one path.
+
+Tests use the same layout in a throwaway home: the preview, the apply, and the undo, with each link unchanged afterwards.

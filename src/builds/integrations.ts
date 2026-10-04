@@ -66,6 +66,7 @@ export async function planBuildIntegrations(
       integration,
       profile: options.routing,
       environment: true,
+      peers: integrations,
     });
 
     updates.push(
