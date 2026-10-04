@@ -78,6 +78,7 @@ export const artifactSchema = z.strictObject({
   scope: z.string(),
   name: z.string(),
   description: z.string(),
+  appliesWhen: z.string().optional(),
   learningKeys: z.array(z.string()),
   buildId: z.string().optional(),
   buildEntryId: z.string().optional(),

@@ -4,6 +4,7 @@ import { publishSkillResources } from "../environment/resources";
 import type { EnvironmentArtifact, EnvironmentState } from "../environment/types";
 import { fingerprint, readLocalFile } from "../localFiles";
 import { parseSkillDocument } from "../skillMaintenance/document";
+import { skillClassification } from "./classification";
 import { isBundledVersion } from "../skills/bundledVersions";
 import { loadSeedLibrary, seedSkillsDirectory } from "../skills/library";
 
@@ -131,10 +132,11 @@ export async function syncBuildSkills(options: {
         ...resources.updates.filter((update) => update.previous !== update.next),
       ];
       const description = parseSkillDocument(packagedText).metadata.description;
+      const appliesWhen = skillClassification(packagedText).appliesWhen ?? undefined;
 
       artifacts = artifacts.map((artifact) =>
         copies.includes(artifact)
-          ? { ...artifact, fingerprint: fingerprint(packagedText), description }
+          ? { ...artifact, fingerprint: fingerprint(packagedText), description, appliesWhen }
           : artifact,
       );
 

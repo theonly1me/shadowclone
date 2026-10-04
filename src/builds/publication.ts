@@ -8,6 +8,7 @@ import {
 } from "../skillMaintenance/document";
 import { publishSkillResources } from "../environment/resources";
 import { seedSkillsDirectory } from "../skills/library";
+import { skillClassification } from "./classification";
 import { buildDirectories } from "./selection";
 import type { BuildContext, BuildDefinition, BuildItem } from "./types";
 
@@ -175,6 +176,7 @@ export async function publishBuildSkill(
       scope: options.build.id,
       name: metadata.name,
       description: parseSkillDocument(text).metadata.description,
+      appliesWhen: skillClassification(text).appliesWhen ?? undefined,
       learningKeys: existing?.learningKeys ?? [],
       buildId: options.build.id,
       buildEntryId: options.item.id,

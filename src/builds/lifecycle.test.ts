@@ -31,7 +31,9 @@ test("preview is read-only and applying publishes preferences immediately", asyn
   });
 
   expect(compilation?.markdown).toContain("shadowclone-build-preferences skill");
-  expect(compilation?.markdown).toContain("testing-first skill");
+  expect(compilation?.markdown).toContain(
+    "- changing observable behavior with a test-first workflow: testing-first\n",
+  );
   expect(compilation?.markdown).not.toContain(homeDirectory);
   expect(
     (await previewBuild({ ...context, input: buildInput() })).updates,
