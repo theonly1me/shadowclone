@@ -6,7 +6,7 @@ import { renderDetail } from "./detail";
 import { element, input, notice, reportError, select } from "./dom";
 import { initializeIdentity, renderIdentity } from "./identity";
 import { applyReviewedBuild, reviewChanges, undoAppliedBuild } from "./review";
-import { editor, equipped, setEquipped } from "./state";
+import { editor, equipped, setEquipped, setGroupEquipped } from "./state";
 import { initializeTree, renderTree } from "./tree";
 import { initializeStarfield } from "./starfield";
 import { initializeCustomGeneration, customStatus } from "./customGeneration";
@@ -30,6 +30,10 @@ function render(): void {
         setEquipped(item);
       }
 
+      render();
+    },
+    chooseGroup: (items) => {
+      setGroupEquipped(items);
       render();
     },
   });

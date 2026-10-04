@@ -64,3 +64,27 @@ export function setEquipped(item: BrowserItem): void {
 
   editor.dirty = true;
 }
+
+export function equippableItems(items: readonly BrowserItem[]): readonly BrowserItem[] {
+  return items.filter((item) => item.owner !== "provider" && editor.view?.locked[item.id] === undefined);
+}
+
+export function setGroupEquipped(items: readonly BrowserItem[]): void {
+  const open = equippableItems(items);
+  const enable = !open.every(equipped);
+  const axes = new Set<string>();
+
+  for (const item of open) {
+    if (equipped(item) === enable) {
+      if (item.axis) axes.add(item.axis);
+
+      continue;
+    }
+
+    if (enable && item.axis && axes.has(item.axis)) continue;
+
+    setEquipped(item);
+
+    if (item.axis) axes.add(item.axis);
+  }
+}

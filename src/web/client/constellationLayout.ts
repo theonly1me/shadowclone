@@ -8,6 +8,7 @@ export type PositionedConstellationNode = {
   readonly parentId: string | null;
   readonly x: number;
   readonly y: number;
+  readonly hidden: number;
 };
 
 export type PositionedConstellationLink = {
@@ -64,7 +65,12 @@ function link(options: {
   };
 }
 
-type Block = { readonly category: Constellation["hubs"][number]; readonly members: readonly Constellation["leaves"][number][]; readonly columns: number };
+type Block = {
+  readonly category: Constellation["hubs"][number];
+  readonly members: readonly Constellation["leaves"][number][];
+  readonly hidden: number;
+  readonly columns: number;
+};
 
 function packRows(options: { readonly blocks: readonly Block[]; readonly cells: number }): readonly (readonly Block[])[] {
   const rows: Block[][] = [];
@@ -86,6 +92,7 @@ function packRows(options: { readonly blocks: readonly Block[]; readonly cells: 
 export function layoutConstellation(options: {
   readonly constellation: Constellation;
   readonly width: number;
+  readonly collapsed?: ReadonlySet<string>;
 }): {
   readonly nodes: readonly PositionedConstellationNode[];
   readonly links: readonly PositionedConstellationLink[];
@@ -96,18 +103,25 @@ export function layoutConstellation(options: {
   const nodes: PositionedConstellationNode[] = [];
   const links: PositionedConstellationLink[] = [];
   const sourceNodes: PositionedConstellationNode[] = [];
+  const collapsed = options.collapsed ?? new Set<string>();
   let cursor = mapMetrics.padding;
 
   for (const source of hubs.filter((hub) => hub.parentId === null)) {
     const categoryNodes: PositionedConstellationNode[] = [];
     const rowStarts: PositionedConstellationNode[] = [];
-    const blocks = hubs
-      .filter((hub) => hub.parentId === source.id)
-      .map((category) => {
-        const members = leaves.filter((leaf) => leaf.parentId === category.id);
+    const categories = hubs.filter((hub) => hub.parentId === source.id);
+    const sourceCollapsed = collapsed.has(source.id);
+    const blocks = (sourceCollapsed ? [] : categories).map((category) => {
+      const all = leaves.filter((leaf) => leaf.parentId === category.id);
+      const members = collapsed.has(category.id) ? [] : all;
 
-        return { category, members, columns: Math.max(1, Math.min(members.length, cells - 1)) };
-      });
+      return {
+        category,
+        members,
+        hidden: all.length - members.length,
+        columns: Math.max(1, Math.min(members.length, cells - 1)),
+      };
+    });
 
     for (const row of packRows({ blocks, cells })) {
       let cell = 0;
@@ -124,6 +138,7 @@ export function layoutConstellation(options: {
           parentId: source.id,
           x,
           y: cursor + mapMetrics.cellHeight / 2,
+          hidden: block.hidden,
         };
         let previous = categoryNode;
 
@@ -140,6 +155,7 @@ export function layoutConstellation(options: {
             itemIds: leaf.itemIds,
             kind: "skill",
             parentId: block.category.id,
+            hidden: 0,
             x: x + (column + 1) * mapMetrics.cellWidth + jitter({ key: leaf.id, range: mapMetrics.jitterX }),
             y:
               cursor +
@@ -171,7 +187,10 @@ export function layoutConstellation(options: {
       parentId: "constellation-root",
       x: mapMetrics.sourceX,
       y: first && last ? (first.y + last.y) / 2 : cursor + mapMetrics.cellHeight / 2,
+      hidden: sourceCollapsed ? leaves.filter((leaf) => categories.some((category) => category.id === leaf.parentId)).length : 0,
     };
+
+    if (sourceCollapsed) cursor += mapMetrics.cellHeight;
 
     sourceNodes.push(sourceNode);
     nodes.push(sourceNode, ...categoryNodes);
@@ -187,6 +206,7 @@ export function layoutConstellation(options: {
     itemIds: [],
     kind: "root",
     parentId: null,
+    hidden: 0,
     x: mapMetrics.rootX,
     y:
       firstSource && lastSource

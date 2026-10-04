@@ -9,13 +9,16 @@ import {
 import { create, element, svg } from "./dom";
 import { hubIcon, skillIcon } from "./icons";
 import { skillTitle } from "./presentation";
+import { collapsedGroups, drawGroupControls, toggleGroup, updateGroupState } from "./mapGroups";
 import { editor, equipped } from "./state";
 
 const namespace = "http://www.w3.org/2000/svg";
 let chooseItem: (item: BrowserItem) => void = () => undefined;
+let chooseGroup: (items: readonly BrowserItem[]) => void = () => undefined;
 let renderedSignature = "";
 let itemsById: ReadonlyMap<string, BrowserItem> = new Map();
 const skillElements = new Map<string, { readonly node: PositionedConstellationNode; readonly element: SVGGElement }>();
+const hubElements = new Map<string, { readonly node: PositionedConstellationNode; readonly element: SVGGElement }>();
 
 function svgElement<Name extends keyof SVGElementTagNameMap>(name: Name): SVGElementTagNameMap[Name] {
   return document.createElementNS(namespace, name);
@@ -27,6 +30,17 @@ function itemFor(node: PositionedConstellationNode): BrowserItem | undefined {
     .filter((item): item is BrowserItem => item !== undefined);
 
   return items.find(equipped) ?? items[0];
+}
+
+function groupItems(hubId: string): readonly BrowserItem[] {
+  return (editor.view?.constellation.leaves ?? [])
+    .filter((leaf) => leaf.parentId === hubId)
+    .flatMap((leaf) => {
+      const items = leaf.itemIds.map((id) => itemsById.get(id)).filter((item): item is BrowserItem => item !== undefined);
+      const item = items.find(equipped) ?? items[0];
+
+      return item ? [item] : [];
+    });
 }
 
 function nodeTitle(node: PositionedConstellationNode): string {
@@ -68,6 +82,7 @@ function drawNode(options: { readonly group: SVGGElement; readonly node: Positio
 
   container.setAttribute("class", `map-node map-node-${node.kind}`);
   container.setAttribute("transform", `translate(${node.x} ${node.y})`);
+  container.dataset.nodeId = node.id;
 
   if (node.kind === "skill") {
     const hit = svgElement("rect");
@@ -145,6 +160,20 @@ function drawNode(options: { readonly group: SVGGElement; readonly node: Positio
     container.append(icon);
   }
 
+  if (node.kind === "category" || node.kind === "source") {
+    drawGroupControls({
+      container,
+      node,
+      toggle: (id) => {
+        toggleGroup(id);
+        refreshTree();
+        document.querySelector<SVGGElement>(`[data-node-id="${CSS.escape(id)}"] .map-collapse`)?.focus();
+      },
+      equipAll: (id) => chooseGroup(groupItems(id)),
+    });
+    hubElements.set(node.id, { node, element: container });
+  }
+
   if (node.kind === "skill" && item) {
     const choose = (): void => chooseItem(itemFor(node) ?? item);
 
@@ -170,6 +199,10 @@ function linkPath(link: PositionedConstellationLink): string {
 }
 
 function updateStates(): void {
+  for (const { node, element: container } of hubElements.values()) {
+    updateGroupState({ element: container, node, items: groupItems(node.id) });
+  }
+
   for (const { node, element: container } of skillElements.values()) {
     const item = itemFor(node);
     const selected = item ? equipped(item) : false;
@@ -185,8 +218,12 @@ function updateStates(): void {
   }
 }
 
-export function renderTree(options: { readonly choose: (item: BrowserItem) => void }): void {
+export function renderTree(options: {
+  readonly choose: (item: BrowserItem) => void;
+  readonly chooseGroup: (items: readonly BrowserItem[]) => void;
+}): void {
   chooseItem = options.choose;
+  chooseGroup = options.chooseGroup;
   const canvas = svg("constellation-map");
   const view = editor.view;
 
@@ -204,14 +241,15 @@ export function renderTree(options: { readonly choose: (item: BrowserItem) => vo
 
   itemsById = new Map(view.items.map((item) => [item.id, item]));
 
-  const signature = JSON.stringify([cellsPerRow(width), view.constellation]);
+  const signature = JSON.stringify([cellsPerRow(width), view.constellation, [...collapsedGroups()]]);
 
   if (signature !== renderedSignature) {
-    const layout = layoutConstellation({ constellation: view.constellation, width });
+    const layout = layoutConstellation({ constellation: view.constellation, width, collapsed: collapsedGroups() });
     const group = svgElement("g");
 
     renderedSignature = signature;
     skillElements.clear();
+    hubElements.clear();
     canvas.setAttribute("viewBox", `0 0 ${Math.round(width)} ${Math.round(layout.height)}`);
     canvas.style.height = `${Math.round(layout.height)}px`;
     canvas.replaceChildren(group);
@@ -239,7 +277,7 @@ export function initializeTree(): void {
 
     if (Math.round(width) !== Math.round(lastWidth)) {
       lastWidth = width;
-      renderTree({ choose: chooseItem });
+      renderTree({ choose: chooseItem, chooseGroup });
     }
   }).observe(canvas);
 
@@ -253,5 +291,5 @@ export function initializeTree(): void {
 }
 
 export function refreshTree(): void {
-  renderTree({ choose: chooseItem });
+  renderTree({ choose: chooseItem, chooseGroup });
 }

@@ -98,3 +98,10 @@ Cheap model ids change over time. Each tier entry names its source, and a reject
 - Unit tests for naming: the 5-second debounce and the cache work, and a failure shows on the sheet.
 - Unit tests for voice: with consent off, collection makes no `gh` call. Agent text is filtered, and synthetic secrets are redacted. A sample that copies 8 words is rejected. A linked `voice.md` is not written.
 - The real wizard in a throwaway home with about 70 skills: headless Chrome screenshots at 1440, 1920, and 390 px. One click equips a skill, nothing zooms, and two reloads show different star layouts. The name appears after the loading state, and the Voice panel shows only invented samples.
+
+## Category selection and collapsed groups
+
+Equipping a large library one skill at a time is slow, and a fully expanded map is long.
+
+- One click on a category equips every skill in it that the user can equip. If all of them are already equipped, the click unequips them. Plugin-managed and locked skills are left alone. When two skills in the category share an axis, only the first is equipped.
+- A chevron beside each category and source collapses or expands that group. A collapsed group shows how many skills it hides. Groups start expanded. The collapsed set is a per-browser convenience in `localStorage`, and the map works without it.
