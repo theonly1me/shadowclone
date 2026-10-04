@@ -105,7 +105,7 @@ Sync now changes skill files on users' machines. It changes only copies whose fi
 
 The ideas behind several gates come from the public, MIT-licensed skill collections `mattpocock/skills`, `poteto/noodle`, and the pstack plugin in `cursor/plugins`. The text in this repository is original.
 
-Three delivery gaps stay open for a later change: private builds reach no host, the Antigravity CLI global skill folder receives nothing, and Cursor lists global skills twice because it reads both `~/.agents/skills` and `~/.claude/skills`.
+Three delivery gaps stay open for a later change: private builds reach no host, the Antigravity CLI global skill folder receives nothing, and Cursor reads both `~/.agents/skills` and `~/.claude/skills`, so each global skill reaches it twice. Cursor's documentation does not say how it treats two skills with the same name.
 
 ## Verification
 
