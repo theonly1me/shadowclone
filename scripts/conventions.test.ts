@@ -114,6 +114,25 @@ test("flags an em dash in prose and in source", async () => {
   ).toBeTrue();
 });
 
+test("flags an en dash in a document, a script, and a page", async () => {
+  const rootDirectory = await treeWith({
+    "docs/guide.md": "Steps 2\u20135 run in order.\n",
+    "skills/sample/scripts/check.mjs": 'export const range = "1\u20139";\n',
+    "skills/sample/assets/page.html": "<p>Mon\u2013Fri</p>\n",
+  });
+
+  const report = await findConventionViolations({ rootDirectory });
+
+  expect(report.checkedFileCount).toBe(3);
+  expect(
+    report.violations.map((violation) => `${violation.file}:${violation.line} ${violation.rule}`),
+  ).toEqual([
+    "docs/guide.md:1 no-en-dash",
+    "skills/sample/assets/page.html:1 no-en-dash",
+    "skills/sample/scripts/check.mjs:1 no-en-dash",
+  ]);
+});
+
 test("reads no file inside a skipped directory", async () => {
   const rootDirectory = await treeWith({
     "node_modules/library/index.ts": "// vendored comment\n",
