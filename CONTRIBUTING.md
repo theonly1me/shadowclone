@@ -54,6 +54,8 @@ Commit messages use a single lowercase conventional-commit subject. Pull request
 
 Read [data handling](docs/data-handling.md) and the [contributor data rules](.claude/skills/data-handling/SKILL.md) before changing capture, storage, model requests, or delegated actions.
 
+Shipped guidance in `skills/`, `preferences/`, and `plugins/shadowclone/skills/` must hold no private material. `bun run lint` runs `scripts/privacy.ts`, which flags email addresses, machine paths, repository item references, unlisted URLs, gendered pronouns, and private terms. To add a private term without writing it in the repository, run `bun run scripts/privacy.ts --hash "<term>"` and add the printed hash to `scripts/privacyTerms.json`.
+
 New sources need an opt-in flag and an entry in the data-handling source list. Tests must exercise the real input path with synthetic sensitive values. Keep private source material, raw transcripts, and evaluation receipts out of the checkout and public reports.
 
 For a redaction gap, describe the format using a synthetic example. Report exposures and other vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
