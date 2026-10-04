@@ -1,4 +1,5 @@
 import { syncLearningEnvironment } from "../environment/sync";
+import { renderBuildSkillSync } from "../builds/sync";
 import { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
 
 export { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
@@ -181,7 +182,13 @@ export async function handleNativeCommand(options: {
   }
 
   if (options.command === "sync" && options.arguments.length === 0) {
-    if (await syncLearningEnvironment(projectPaths)) {
+    const synchronized = await syncLearningEnvironment(projectPaths);
+
+    if (synchronized) {
+      for (const line of renderBuildSkillSync(synchronized)) {
+        console.log(line);
+      }
+
       console.log("Synchronized learned skills and native routing.");
 
       return true;

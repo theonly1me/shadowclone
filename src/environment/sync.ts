@@ -7,14 +7,15 @@ import { nativePublication } from "./native";
 import { publishEnvironmentRevision } from "./revision";
 import { synchronizePublishedSkills } from "./synchronize";
 import { readEffectiveConfig } from "../config";
+import { syncBuildSkills, type BuildSkillSyncReport } from "../builds/sync";
 
 export async function syncLearningEnvironment(
   paths: ProjectPaths,
-): Promise<boolean> {
+): Promise<BuildSkillSyncReport | null> {
   const state = await readEnvironment(paths);
 
   if (state?.phase !== "active") {
-    return false;
+    return null;
   }
 
   const { config, policy } = await readEffectiveConfig({
@@ -38,12 +39,13 @@ export async function syncLearningEnvironment(
     const current = await readEnvironment(paths);
 
     if (current?.phase !== "active") {
-      return false;
+      return null;
     }
 
+    const builds = await syncBuildSkills({ state: current });
     const synchronized = config.sources["skill-library"]
-      ? await synchronizePublishedSkills({ paths, state: current })
-      : { state: current, updates: [], routingBlocked: false };
+      ? await synchronizePublishedSkills({ paths, state: builds.state })
+      : { state: builds.state, updates: [], routingBlocked: false };
     const publication = synchronized.routingBlocked
       ? { state: synchronized.state, updates: [] }
       : await nativePublication({
@@ -55,6 +57,7 @@ export async function syncLearningEnvironment(
     await publishEnvironmentRevision({
       paths,
       updates: [
+        ...builds.updates,
         ...synchronized.updates,
         ...publication.updates,
         {
@@ -65,7 +68,7 @@ export async function syncLearningEnvironment(
       ],
     });
 
-    return true;
+    return { updated: builds.updated, kept: builds.kept };
   } finally {
     lock.release();
   }
