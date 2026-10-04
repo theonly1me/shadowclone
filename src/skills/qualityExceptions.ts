@@ -8,7 +8,6 @@ export const pendingSkillNames: ReadonlySet<string> = new Set([
   "scope-confirmed-changes",
   "shadowclone-work",
   "typescript-type-safety",
-  "verify-and-review",
 ]);
 
 export const permanentRuleExemptions: ReadonlyMap<string, readonly SkillRule[]> = new Map([

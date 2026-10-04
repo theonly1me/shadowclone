@@ -33,6 +33,6 @@ test("a build with every bundled skill and preference leaves 1 KiB of routing fo
     nativeRoutingLimit - userRoutingReserve,
   );
   expect(compilation?.markdown).toContain(
-    "- preparing completed work for review or handoff: verify-and-review",
+    "- before you say that work is done or ready for review: verify-and-review",
   );
 });

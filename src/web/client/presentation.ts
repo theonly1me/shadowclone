@@ -34,9 +34,9 @@ const presentations: Readonly<
       "Write a few tests that each name the bug they catch, check what the user sees, and fail when the fix is removed.",
   },
   "verify-and-review": {
-    title: "Verify the finish",
+    title: "Verify the real outcome",
     summary:
-      "Run the relevant checks, inspect the complete diff, and report what was verified before calling the task done.",
+      "Run what the user runs, read every count and exit code, and label each claim as measured, inferred, or not verified.",
   },
   "research-primary-sources": {
     title: "Go to the source",

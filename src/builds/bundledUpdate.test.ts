@@ -89,5 +89,5 @@ test("sync stores the routing moment on copies installed before routing used it"
     )
     .map((artifact) => artifact.appliesWhen);
 
-  expect(moments).toEqual(skillRoots.map(() => "preparing completed work for review or handoff"));
+  expect(moments).toEqual(skillRoots.map(() => "before you say that work is done or ready for review"));
 });
