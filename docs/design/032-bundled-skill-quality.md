@@ -114,5 +114,5 @@ Three delivery gaps stay open for a later change: private builds reach no host, 
 
 - `bun run check` passes, including the skill lint, the privacy check, and the conventions check.
 - `bun test src/integrations/deliveryMatrix.test.ts` shows every host receiving the same skills and routing text.
-- The plain-English checker reports no errors on every bundled skill, under both `node` and `bun`.
+- The plain-English checker reports no errors on every bundled skill, under both `node` and `bun`, except in the measured body of `shadowclone-work`.
 - In a synthetic home with an old build that selected `testing-first`, `shadowclone sync` prints one line per update and swap, lists edited copies, reports true counts, and exits 0.
