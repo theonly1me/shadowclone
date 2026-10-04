@@ -14,10 +14,12 @@ import { perform, actionButton } from "./actions";
 import { initializeEditorDialogs } from "./editorDialogs";
 import { initializeLearningModels } from "./models";
 import { initializeBotSetup } from "./bot";
+import { initializeVoice } from "./voice";
 
 initializeEditorDialogs();
 initializeLearningModels();
 initializeBotSetup();
+initializeVoice();
 
 function render(): void {
   renderTree({

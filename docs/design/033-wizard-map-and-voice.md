@@ -60,10 +60,10 @@ The prompt never invents skills, and it uses no dashes. Each preference is sent 
 
 ### Voice capture
 
-- Consent: a new capture source for the GitHub writing of the user, off by default (`src/config/schema.ts`, `src/config/managed.ts`, `docs/data-handling.md`).
+- Consent: a new capture source, `github-writing`, off by default (`src/config/schema.ts`, `src/config/managed.ts`, `docs/data-handling.md`). The dialog turns it on or off, and turning it off discards collected writing.
 - Collection: `src/voice/` reads pull request titles and bodies, review comments, and commit messages of the user through `runHostCommand`, with timeouts and bounded output. It skips text that an agent wrote: attribution lines, branches that start with `codex/`, `claude/`, or `cursor/`, and bot authors. It redacts with `redactSecrets` and caps the payload. With consent off, it makes no `gh` call.
 - Profile: the saved model of the user returns a voice profile with traits, and do and do not lists. It also returns 3 invented samples on fictional topics: a pull request body, a review comment, and a commit message. A rewrite of the samples after an edit uses the fast tier.
-- Review: the Voice panel shows the traits and the samples, and never the source text. A check rejects any sample that copies 8 or more consecutive words from a source. The user accepts the voice, edits a trait and rewrites the samples, or discards the result.
+- Review: the **My voice** dialog shows the traits and the samples, and never the source text. A check rejects any sample that copies 8 or more consecutive words from a source. The user accepts the voice, edits a trait and rewrites the samples, or discards the result.
 - Save: accepting writes `~/.agents/voice.md`. If that file exists or is a link, the wizard does not write it and names it instead.
 
 ### Sequence

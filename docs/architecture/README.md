@@ -24,6 +24,9 @@ flowchart LR
     Planner --> Pending
     Planner --> Publish[Reversible publication]
     Build[Reviewed terminal or browser choices] --> Publish
+    GitHubWriting[Consented own GitHub writing through gh] --> VoiceFilter[Agent text filtered and redacted]
+    VoiceFilter --> VoiceModel[Voice description and invented examples]
+    VoiceModel --> VoiceFile[Reviewed ~/.agents/voice.md, never overwritten]
     Publish --> Skills[Baseline and workflow skills]
     Publish --> Routing[Short native rules and skill routing]
     Routing --> Claude[Claude Code, Codex, and Pi native files]
@@ -98,6 +101,7 @@ flowchart LR
 | `src/environment/`                     | Store evidence, publish skills, migrate installations, and preserve originals                            |
 | `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows                          |
 | `src/builds/`, `src/web/`              | Apply reviewed skill selections through terminal and browser interfaces                                  |
+| `src/voice/`                           | Read consented own GitHub writing and save a reviewed voice description                                  |
 | `src/integrations/`, `src/harness/`    | Install native guidance and repository instructions/checks                                               |
 | `src/engine/`                          | Invoke authenticated agent CLIs                                                                          |
 | `src/cloud/`                           | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows                  |
