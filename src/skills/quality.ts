@@ -9,6 +9,7 @@ import {
 } from "./qualitySections";
 import { finding, type SkillFinding, type SkillRule } from "./qualityTypes";
 import type { SkillDocument } from "./qualityDocument";
+import { voiceBlock } from "./voiceBlock";
 
 export type { SkillFinding, SkillRule } from "./qualityTypes";
 
@@ -57,6 +58,25 @@ function lineFindings(options: {
   return findings;
 }
 
+function voiceFindings(document: SkillDocument): readonly SkillFinding[] {
+  const hasBlock = document.bodyLines.some((line) => line.text === voiceBlock);
+
+  if (hasBlock === document.voice) {
+    return [];
+  }
+
+  return [
+    finding({
+      skill: document.name,
+      line: document.voice ? document.voiceLine : document.bodyStartLine,
+      rule: "voice",
+      message: document.voice
+        ? "add the voice block from src/skills/voiceBlock.ts as its own paragraph"
+        : 'set metadata shadowclone-voice to "true" for a skill with the voice block',
+    }),
+  ];
+}
+
 export function skillQualityFindings(options: {
   readonly name: string;
   readonly text: string;
@@ -88,6 +108,7 @@ export function skillQualityFindings(options: {
     ...nameFindings(document),
     ...appliesWhenFindings(document),
     ...bodyLengthFindings(document),
+    ...voiceFindings(document),
   ];
 
   return findings.filter(

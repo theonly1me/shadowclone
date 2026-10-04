@@ -1,6 +1,6 @@
 ---
 name: verify-and-review
-description: 'Use before you say that work is done, fixed, or ready for review, or when the user says "make sure it works", "verify this", or "is it ready?". Runs the command or page that the user will use, reads every count, status line, and the exit code, reviews the whole diff, and labels each claim as measured, inferred, or not verified, so that a wrong count or a buried warning is caught before handoff. Not for writing or proving tests (use `tests-that-catch-bugs`).'
+description: 'Use before you say that work is done, fixed, or ready for review. Also use it when the user says "make sure it works", "verify this", or "is it ready?". Runs the command or page that the user will use, and reads every count, status line, and exit code. Reviews the whole diff, and labels each claim as measured, inferred, or not verified. This catches a wrong count or a buried warning before handoff. Not for writing or proving tests (use `tests-that-catch-bugs`).'
 metadata:
   shadowclone-category: review
   shadowclone-section: workflow

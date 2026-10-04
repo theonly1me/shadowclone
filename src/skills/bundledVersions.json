@@ -1,6 +1,9 @@
 {
   "choose-by-consequence": {
-    "SKILL.md": ["77cdc4f354f680eb91280bccae3c75d4854e6a3bce5319fee23629952dbdd49c"]
+    "SKILL.md": [
+      "77cdc4f354f680eb91280bccae3c75d4854e6a3bce5319fee23629952dbdd49c",
+      "469d74b656f55c9061c50924caf0f9b9c7a9ca49a45b1707687cd786b53dcc28"
+    ]
   },
   "design-deep-modules": {
     "SKILL.md": [
@@ -65,7 +68,10 @@
     ]
   },
   "tests-that-catch-bugs": {
-    "SKILL.md": ["4034b8b61ef6116b6f1627b68607a0d96ba0203ce9218100a396effd89f70f5a"]
+    "SKILL.md": [
+      "4034b8b61ef6116b6f1627b68607a0d96ba0203ce9218100a396effd89f70f5a",
+      "17825aa6187232601e4c7d2420fc0d307d0605b11054ed8ddeecc97fe361e42f"
+    ]
   },
   "typescript-type-safety": {
     "SKILL.md": [
@@ -80,7 +86,12 @@
       "94fa891930e24202fd0ec5acd36885d56917874d10bddf076e8eac33c4027495",
       "cecee9bc6878c4e15b6496c410f51e71911c21cceb822a05cdcad8c46f95421f",
       "cb9c7c2095eeb9bf645c1505ed0b5f500b9aa9b04414673fb85af0ae3b690a07",
-      "31ddbb7e63e625a9c444433a7ea62d281f4c1649ca0dad045313ce0c73ca20a1"
+      "31ddbb7e63e625a9c444433a7ea62d281f4c1649ca0dad045313ce0c73ca20a1",
+      "f57d34dffb1177703a4c55b094e7616738f1bc38dbeb57c26f870fb0fd13954c"
     ]
+  },
+  "write-plain-english": {
+    "scripts/check-ste.mjs": ["cf3338f4797e692308005703995539fdf3db1e1a2b61e22b359de4d83934684f"],
+    "SKILL.md": ["fc40ec50b6e6f888427d281352df83a156ee4845b01f4b6c4a75138df3f2b8bf"]
   }
 }

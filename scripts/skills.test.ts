@@ -3,6 +3,7 @@ import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { sampleSkillText } from "../src/skills/qualityFixtures";
+import { voiceBlock } from "../src/skills/voiceBlock";
 import { findSkillQualityViolations } from "./skills";
 
 const sharedSentence =
@@ -140,4 +141,56 @@ test("a bundled script needs only node modules and its own test", async () => {
     "scripts/check.mjs needs a test at src/skills/scripts/check-real-output.check.test.ts",
   ]);
   expect(passing.findings).toEqual([]);
+});
+
+test("a finished skill with a long sentence fails the plain-English check", async () => {
+  const longSentence = `${Array.from({ length: 30 }, (_, index) => `word${index}`).join(" ")}.`;
+  const files = {
+    "skills/check-real-output/SKILL.md": skill({
+      name: "check-real-output",
+      alternative: "write-real-tests",
+    }).replace("Keep the check read-only.", `Keep the check read-only. ${longSentence}`),
+    "skills/write-real-tests/SKILL.md": skill({
+      name: "write-real-tests",
+      alternative: "check-real-output",
+    }),
+  };
+  const rootDirectory = await treeWith(files);
+  const finished = await findSkillQualityViolations({
+    rootDirectory,
+    pending: new Set(),
+    exemptions: new Map(),
+  });
+  const pending = await findSkillQualityViolations({
+    rootDirectory,
+    pending: new Set(["check-real-output"]),
+    exemptions: new Map(),
+  });
+
+  expect(finished.findings.map((finding) => `${finding.skill} ${finding.rule}`)).toEqual([
+    "check-real-output plain-english",
+  ]);
+  expect(pending.findings).toEqual([]);
+});
+
+test("the voice block may repeat in every skill that writes for the user", async () => {
+  const names = ["check-real-output", "write-real-tests", "plan-real-work"];
+  const files = Object.fromEntries(
+    names.map((name, index) => [
+      `skills/${name}/SKILL.md`,
+      skill({ name, alternative: names[(index + 1) % names.length] ?? "" })
+        .replace(
+          "  shadowclone-applies-when: before you say the work is done",
+          '  shadowclone-applies-when: before you say the work is done\n  shadowclone-voice: "true"',
+        )
+        .replace("Keep the check read-only.", `Keep the check read-only for ${name}.\n\n${voiceBlock}`),
+    ]),
+  );
+  const report = await findSkillQualityViolations({
+    rootDirectory: await treeWith(files),
+    pending: new Set(),
+    exemptions: new Map(),
+  });
+
+  expect(report.findings).toEqual([]);
 });

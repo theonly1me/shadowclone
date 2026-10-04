@@ -1,6 +1,6 @@
 ---
 name: choose-by-consequence
-description: 'Use when code must decide what happens on an unusual or failing path, or when the user says "just handle that case", "skip it if it fails", or "is this the best way?". Compares the easy route with each alternative by what it does to the user''s files, data, and output, then picks the option that fails loudly, keeps every count and exit code true, and never writes through a file the change does not own. Not for checking finished work against the real command output (use `verify-and-review`).'
+description: 'Use when code must decide what happens on an unusual or failing path. Also use it when the user says "just handle that case", "skip it if it fails", or "is this the best way?". Compares the easy route with each alternative by what it does to the user''s files, data, and output. Picks the option that fails loudly and keeps every count and exit code true. Never writes through a file that the change does not own. Not for checking finished work against the real command output (use `verify-and-review`).'
 metadata:
   shadowclone-category: change-control
   shadowclone-section: workflow
@@ -14,7 +14,7 @@ The code must decide what happens when something is unusual or fails. Examples: 
 
 ## Gates
 
-1. For each option, can you say what the user sees and what happens to their files and data? If not, find out before you choose.
+1. For each option, can you say what the user sees and what happens to their files and data? If not, check before you choose.
 2. While you plan, did you give each risky choice to the user as an open decision? Put the option that fails loudly first.
 3. While you execute, did you pick the option that fails loudly? A skip is loud only when the summary counts it, the final output names it, and the exit code shows it.
 4. Do all counts, totals, and statuses in the output still match what happened?
@@ -45,7 +45,7 @@ The code must decide what happens when something is unusual or fails. Examples: 
 
 **Situation:** A setup command installs guidance for several agents. The instruction file of one agent is a symbolic link to a file that other tools share.
 **Easy route:** Skip that agent, print the skip in the middle of the output, and report success.
-**Hidden cost:** The summary still said "Installed for 2 agents". The user believed that the agent was set up, and nothing told them that the shared file was left alone.
+**Hidden cost:** The summary still said "Installed for 2 agents". The user believed that the setup installed the agent, and nothing told them that the shared file was left alone.
 **Best route:** Do not write through the link. Count the agent as not installed. End the output with a line that names the agent and the link target. Exit with a nonzero code.
 **Evidence:** The last line is "Not installed for codex: its AGENTS.md is a symbolic link to a shared file". The summary says "Installed for 1 agent", and the exit code is 1.
 

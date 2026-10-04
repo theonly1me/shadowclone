@@ -17,6 +17,8 @@ export type SkillDocument = {
   readonly descriptionLine: number;
   readonly appliesWhen: string;
   readonly appliesWhenLine: number;
+  readonly voice: boolean;
+  readonly voiceLine: number;
   readonly bodyStartLine: number;
   readonly bodyLines: readonly BodyLine[];
   readonly sections: readonly SkillSection[];
@@ -91,6 +93,8 @@ export function readSkillDocument(text: string): SkillDocument | null {
     descriptionLine: 1 + lineOfKey({ lines: frontmatter, key: "description" }),
     appliesWhen: parsed.data.metadata["shadowclone-applies-when"],
     appliesWhenLine: 1 + lineOfKey({ lines: frontmatter, key: "shadowclone-applies-when" }),
+    voice: parsed.data.metadata["shadowclone-voice"] === "true",
+    voiceLine: 1 + lineOfKey({ lines: frontmatter, key: "shadowclone-voice" }),
     bodyStartLine: firstBodyLine?.number ?? closingIndex + 2,
     bodyLines,
     sections: readSections(bodyLines),

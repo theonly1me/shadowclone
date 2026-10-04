@@ -1,6 +1,6 @@
 ---
 name: tests-that-catch-bugs
-description: 'Use when adding, changing, or reviewing tests, or when the user says "add a regression test", "write the test first", or "make sure this cannot break again". Writes a few tests that each name the bug they catch, check the result where the user sees it, take expected values from an independent source, and fail when the change is removed. Test first is an ordering choice inside this skill. Not for checking finished work against the real command output (use `verify-and-review`).'
+description: 'Use when adding, changing, or reviewing tests. Also use it when the user says "add a regression test", "write the test first", or "make sure this cannot break again". Writes a few tests that each name a bug and check the result where the user sees it. Expected values come from an independent source, and each test fails without the change. Test first is an ordering choice inside this skill. Not for checking finished work against the real command output (use `verify-and-review`).'
 metadata:
   shadowclone-category: testing
   shadowclone-section: workflow
@@ -25,7 +25,7 @@ You add or change a test, you fix a bug, or the user asks for test first work. A
 
 ### Choose the order
 
-- Test first: write the failing test before the change. Use this order when the user or a saved preference asks for it. Also use it when the behavior is new and its interface is settled. Run the test and see it fail because the behavior is missing.
+- Test first: write the failing test before the change. Use this order when the user or a saved preference asks for it. Also use it when the behavior is new and you know its interface. Run the test and see it fail because the behavior is missing.
 - Fix first, then prove: use this order when the fix for a confirmed bug already exists. Write the test, then undo the smallest part of the fix and see the test fail.
 - Both orders end with the same proof.
 

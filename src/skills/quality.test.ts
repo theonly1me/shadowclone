@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { skillQualityFindings } from "./quality";
 import { sampleSkillText } from "./qualityFixtures";
+import { voiceBlock } from "./voiceBlock";
 
 const bundledNames = ["check-real-output", "write-real-tests"];
 const goodText = sampleSkillText({ name: "check-real-output", alternative: "write-real-tests" });
@@ -164,4 +165,17 @@ test("an exempted rule is not reported, and its section may be absent", () => {
 
 test("a document whose frontmatter does not parse is flagged once", () => {
   expect(rulesFor("# No frontmatter\n")).toEqual(["document"]);
+});
+
+test("a skill has the voice block exactly when its voice metadata says so", () => {
+  const withMetadata = goodText.replace(
+    "  shadowclone-applies-when: before you say the work is done",
+    '  shadowclone-applies-when: before you say the work is done\n  shadowclone-voice: "true"',
+  );
+  const withBlock = (text: string) =>
+    text.replace("Keep the check read-only.", `Keep the check read-only.\n\n${voiceBlock}`);
+
+  expect(rulesFor(withMetadata)).toEqual(["voice"]);
+  expect(rulesFor(withBlock(goodText))).toEqual(["voice"]);
+  expect(rulesFor(withBlock(withMetadata))).toEqual([]);
 });

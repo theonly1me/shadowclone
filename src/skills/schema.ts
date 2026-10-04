@@ -21,6 +21,7 @@ export const seedAgentSkillMetadataSchema = z.strictObject({
     "shadowclone-section": profileSectionSchema,
     "shadowclone-applies-when": z.string().trim().min(1),
     "shadowclone-axis": slugSchema.optional(),
+    "shadowclone-voice": z.literal("true").optional(),
   }),
 });
 
