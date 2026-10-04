@@ -97,6 +97,9 @@
       "f57d34dffb1177703a4c55b094e7616738f1bc38dbeb57c26f870fb0fd13954c"
     ]
   },
+  "verify-review-findings": {
+    "SKILL.md": ["6d484e0627b5a14e65ad4707dbf5a2cb368ea1e4786c83091de6c37aff8c0f89"]
+  },
   "write-plain-english": {
     "scripts/check-ste.mjs": ["cf3338f4797e692308005703995539fdf3db1e1a2b61e22b359de4d83934684f"],
     "SKILL.md": ["fc40ec50b6e6f888427d281352df83a156ee4845b01f4b6c4a75138df3f2b8bf"]

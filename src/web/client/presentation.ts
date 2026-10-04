@@ -13,6 +13,11 @@ const presentations: Readonly<
     summary:
       "Represent valid states in the type system. Narrow uncertain values and keep unsafe assertions out of the implementation.",
   },
+  "verify-review-findings": {
+    title: "Check review findings",
+    summary:
+      "Check each review comment against the code at the pull request head, and report a verdict before any change or reply.",
+  },
   "plan-with-review-page": {
     title: "Plan first",
     summary:
