@@ -25,6 +25,7 @@ const skillIcons: Readonly<Record<string, keyof typeof shapes>> = {
   "design-deep-modules": "modules",
   "typescript-type-safety": "code",
   "scope-confirmed-changes": "focus",
+  "choose-by-consequence": "compass",
   "refactor-boundaries": "layers",
   "refactor-preserve": "shield",
   "dependencies-existing": "link",
