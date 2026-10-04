@@ -22,7 +22,7 @@ export async function synchronizePublishedSkills(options: {
   const updates: FileUpdate[] = [];
   let routingBlocked = false;
   const groups = Map.groupBy(
-    state.artifacts.filter((artifact) => artifact.kind === "skill"),
+    state.artifacts.filter((artifact) => artifact.kind === "skill" && !artifact.buildId),
     (artifact) => `${artifact.scope}/${artifact.name}`,
   );
 

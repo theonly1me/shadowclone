@@ -16,5 +16,5 @@ export async function installClaudeRouting(options: {
 }): Promise<{ readonly synchronized: boolean }> {
   await installIntegration({ paths: options.paths, agent: "claude-code", scope: "global", cwd: options.workspace });
   if (options.remote !== null) await configureRemote({ workspace: options.workspace, remote: options.remote });
-  return { synchronized: await syncLearningEnvironment(options.paths) };
+  return { synchronized: (await syncLearningEnvironment(options.paths)) !== null };
 }
