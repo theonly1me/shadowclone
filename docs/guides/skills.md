@@ -28,6 +28,8 @@ Personal skills use `~/.agents/skills` as their canonical directory. Claude and 
 
 `shadowclone sync` propagates a changed maintained copy, refreshes native routing from its validated description, and preserves conflicting edits for review. For skills equipped from Shadowclone's bundled library, `sync` replaces a copy only when its text matches a version that Shadowclone shipped, and prints one line per updated skill. A copy with any other text stays as it is, including an edit that the wizard copied to every location when you applied a build. `sync` names each such path so you can review it in `shadowclone wizard`. A skill you changed in the build editor is never replaced. Only `shadowclone sync` updates bundled skills. Background learning, `learn`, and `init` leave them unchanged, so run `shadowclone sync` after you upgrade Shadowclone. Routing overflow requires shorter descriptions or narrower routes; existing native instructions remain intact.
 
+When a release retires a bundled skill, `sync` replaces it with its successor in each build that selected it, and prints one line per build. A retired skill whose copy you edited, or that you changed in the build editor, stays selected, and `sync` names it so you can replace it in `shadowclone wizard`. If the successor cannot be installed, `sync` names the build and the reason, changes nothing in that build, and exits with status 1.
+
 ## History and undo
 
 Every publication has a revision covering its skills, resources, native instructions, and learning decisions:

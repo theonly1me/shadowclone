@@ -47,6 +47,8 @@ test("skill maintenance leaves an older bundled copy alone, and sync updates it"
   expect(await updateBundledSkills(setup.paths)).toEqual({
     updated: [{ name: "verify-and-review", copies: 3 }],
     kept: [],
+    retired: [],
+    warnings: [],
   });
 
   for (const root of skillRoots) {

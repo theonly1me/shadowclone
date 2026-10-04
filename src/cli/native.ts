@@ -1,6 +1,5 @@
 import { syncLearningEnvironment } from "../environment/sync";
-import { renderBuildSkillSync } from "../builds/sync";
-import { updateBundledSkills } from "../builds/bundledUpdate";
+import { renderBundledSkillReport, updateBundledSkills } from "../builds/bundledUpdate";
 import { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
 
 export { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
@@ -185,8 +184,12 @@ export async function handleNativeCommand(options: {
   if (options.command === "sync" && options.arguments.length === 0) {
     const bundled = await updateBundledSkills(projectPaths);
 
-    for (const line of bundled ? renderBuildSkillSync(bundled) : []) {
+    for (const line of bundled ? renderBundledSkillReport(bundled) : []) {
       console.log(line);
+    }
+
+    if (bundled?.retired.some((change) => change.kind === "failed")) {
+      process.exitCode = 1;
     }
 
     if (await syncLearningEnvironment(projectPaths)) {

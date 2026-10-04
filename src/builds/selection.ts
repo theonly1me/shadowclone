@@ -55,8 +55,9 @@ export function selectedItems(options: {
     (item) => choices[item.id] && locked[item.id] !== true,
   );
 
-  for (const id of Object.keys(options.build.choices)) {
+  for (const [id, chosen] of Object.entries(options.build.choices)) {
     if (
+      chosen &&
       !options.catalog.some((item) => item.id === id) &&
       !options.build.custom.some((skill) => id === `custom:${skill.name}`)
     ) {

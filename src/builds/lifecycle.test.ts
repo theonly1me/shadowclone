@@ -84,3 +84,19 @@ test("an intervening skill edit invalidates the preview without partial writes",
 
   expect(await Bun.file(skillPath).text()).toBe(edited);
 });
+
+test("a deselected skill that left the library does not block the build, and a selected one does", async () => {
+  const context = await buildFixture();
+
+  expect(
+    (
+      await previewBuild({
+        ...context,
+        input: buildInput({ choices: { "retired-skill": false, "verify-and-review": true } }),
+      })
+    ).input.choices,
+  ).toEqual({ "retired-skill": false, "verify-and-review": true });
+  await expect(
+    previewBuild({ ...context, input: buildInput({ choices: { "retired-skill": true } }) }),
+  ).rejects.toThrow("The selected library changed; reload the build before applying");
+});
