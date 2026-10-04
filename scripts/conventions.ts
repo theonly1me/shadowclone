@@ -1,9 +1,28 @@
 import ts from "typescript";
 
 const maximumLineCount = 300;
-const emDash = "\u2014";
+const dashRules = [
+  {
+    character: "\u2014",
+    rule: "no-em-dash",
+    message: "em dash, recast with plain punctuation",
+  },
+  {
+    character: "\u2013",
+    rule: "no-en-dash",
+    message: "en dash, write \"to\" for a range or recast the sentence",
+  },
+] as const;
 const codeSuffix = ".ts";
-const proseSuffixes = [".md", ".ts", ".yml", ".yaml", ".json"] as const;
+const proseSuffixes = [
+  ".md",
+  ".ts",
+  ".mjs",
+  ".html",
+  ".yml",
+  ".yaml",
+  ".json",
+] as const;
 
 const skippedDirectories = [
   ".git",
@@ -128,13 +147,15 @@ function proseViolations(options: {
   const violations: Violation[] = [];
 
   for (const [lineIndex, line] of options.text.split("\n").entries()) {
-    if (line.includes(emDash)) {
-      violations.push({
-        file: options.file,
-        line: lineIndex + 1,
-        rule: "no-em-dash",
-        message: "em dash, recast with plain punctuation",
-      });
+    for (const dash of dashRules) {
+      if (line.includes(dash.character)) {
+        violations.push({
+          file: options.file,
+          line: lineIndex + 1,
+          rule: dash.rule,
+          message: dash.message,
+        });
+      }
     }
   }
 
