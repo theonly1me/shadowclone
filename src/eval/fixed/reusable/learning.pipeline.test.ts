@@ -58,8 +58,9 @@ function fixtureOutput(prompt: string): unknown {
         : [],
     };
   }
-  if (prompt.includes("Merge the duplicates into single, strong rules"))
+  if (prompt.includes("Merge duplicates into one rule"))
     return {
+      dropped: [],
       rules: [
         ...prompt.matchAll(/\[(\d+)\] Title: ([^\n]+)\nBody: ([^\n]+)\nSection: ([^\n]+)/g),
       ].map((match) => ({

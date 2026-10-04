@@ -145,6 +145,7 @@ export async function runLearningService(options: {
     renderReconciliationChanges({
       changes: result.changes,
       rejectedMatches: result.rejectedMatches,
+      droppedRules: result.droppedRules,
     }),
   );
 

@@ -11,8 +11,20 @@ export type DistilledRule = {
 export const distillationMergeOutputSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["rules"],
+  required: ["rules", "dropped"],
   properties: {
+    dropped: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["index", "reason"],
+        properties: {
+          index: { type: "integer" },
+          reason: { type: "string", maxLength: 200 },
+        },
+      },
+    },
     rules: {
       type: "array",
       maxItems: 8,
@@ -52,6 +64,26 @@ function normalizeText(value: string, maxLength: number): string {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, maxLength);
+}
+
+const mergeDropSchema = z.object({
+  index: z.number().int().nonnegative(),
+  reason: z.string(),
+});
+
+export function parseMergeDrops(value: unknown): readonly { index: number; reason: string }[] {
+  if (typeof value !== "object" || value === null || !("dropped" in value)) {
+    return [];
+  }
+
+  const entries = Array.isArray(value.dropped) ? value.dropped : [];
+
+  return entries.flatMap((entry) => {
+    const parsed = mergeDropSchema.safeParse(entry);
+    const reason = parsed.success ? normalizeText(parsed.data.reason, 200) : "";
+
+    return parsed.success && reason ? [{ index: parsed.data.index, reason }] : [];
+  });
 }
 
 export function parseDistilledRules(value: unknown): readonly DistilledRule[] {
