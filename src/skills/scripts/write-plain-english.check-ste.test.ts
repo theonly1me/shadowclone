@@ -71,6 +71,16 @@ for (const runtime of runtimes) {
     expect(result.lines).toEqual(["check-ste: 0 errors, 0 warnings in 1 file"]);
   });
 
+  test(`${name}: a sentence that starts with inline code is its own sentence`, async () => {
+    const filePath = await textFile(
+      "The sync command updates every copy of each bundled skill on the machine. `sync` prints one line for each change that it makes to a copy.\n",
+    );
+
+    expect(check({ runtime, files: [filePath] }).lines).toEqual([
+      "check-ste: 0 errors, 0 warnings in 1 file",
+    ]);
+  });
+
   test(`${name}: passive voice, phrasal verbs, and vague words are warnings only`, async () => {
     const filePath = await textFile(
       "The file was deleted by the script. We set up the tool. This fix is robust.\n",
