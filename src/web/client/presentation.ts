@@ -13,6 +13,11 @@ const presentations: Readonly<
     summary:
       "Represent valid states in the type system. Narrow uncertain values and keep unsafe assertions out of the implementation.",
   },
+  "choose-by-consequence": {
+    title: "Fail loudly",
+    summary:
+      "Compare each shortcut by what it does to the user's files and output. Pick the option that fails loudly and keeps counts true.",
+  },
   "scope-confirmed-changes": {
     title: "Scoped changes",
     summary:
