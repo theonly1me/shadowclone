@@ -24,7 +24,7 @@ Conflict proposals cannot apply edits or choose precedence. Stale status alone d
 
 ## Skill locations and synchronization
 
-Personal skills use `~/.agents/skills` as their canonical directory. Claude and Antigravity receive copies; Codex and Cursor discover that directory. Repository skills live under `.agents/skills` and `.claude/skills`.
+Personal skills use `~/.agents/skills` as their canonical directory. Claude and Antigravity receive copies; Codex, Cursor, and Pi discover that directory. Cursor also reads `~/.claude/skills`, so it sees the Claude copies as well. Repository skills live under `.agents/skills` and `.claude/skills`.
 
 `shadowclone sync` propagates a changed maintained copy, refreshes native routing from its validated description, and preserves conflicting edits for review. Routing overflow requires shorter descriptions or narrower routes; existing native instructions remain intact.
 
