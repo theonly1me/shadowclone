@@ -113,6 +113,61 @@ test("a skill edited in the build editor is not replaced by the bundled version"
   expect(synced.kept).toEqual([]);
 });
 
+test("an edit that a wizard apply copied to every copy is kept at the next sync", async () => {
+  const setup = await installedBuild();
+  const edited = copyPath({ home: setup.home, root: ".claude/skills" });
+
+  await Bun.write(edited, `${await Bun.file(edited).text()}\nMy own rule.\n`);
+  await applyBuild({
+    paths: setup.paths,
+    cwd: setup.cwd,
+    plan: await previewBuild({
+      paths: setup.paths,
+      cwd: setup.cwd,
+      input: buildInput({ choices: { "verify-and-review": true } }),
+    }),
+  });
+
+  const state = await readEnvironment(setup.paths);
+
+  if (state === null) {
+    throw new Error("The build did not record an environment.");
+  }
+
+  const synced = await syncBuildSkills({ state, packagedSkillsDirectory: await newerPackage() });
+
+  expect(synced.updates).toEqual([]);
+  expect(synced.kept.map((entry) => entry.filePath).sort()).toEqual(
+    roots.map((root) => copyPath({ home: setup.home, root })).sort(),
+  );
+});
+
+test("a release that changes only a script installs it next to every copy", async () => {
+  const setup = await installedBuild();
+  const packaged = await realpath(await mkdtemp(path.join(os.tmpdir(), "shadowclone-package-")));
+
+  await cp(await seedSkillsDirectory(), packaged, { recursive: true });
+  await Bun.write(path.join(packaged, "verify-and-review/scripts/check.mjs"), "export {};\n");
+
+  const synced = await syncBuildSkills({ state: setup.state, packagedSkillsDirectory: packaged });
+
+  await publishEnvironmentRevision({
+    paths: setup.paths,
+    updates: synced.updates,
+    state: synced.state,
+  });
+
+  for (const root of roots) {
+    expect(
+      await Bun.file(path.join(setup.home, root, "verify-and-review/scripts/check.mjs")).text(),
+    ).toBe("export {};\n");
+  }
+
+  expect(renderBuildSkillSync(synced)).toEqual([
+    "Updated verify-and-review to the bundled version (3 copies).",
+  ]);
+});
+
 test("sync reports an edited copy of an equipped skill instead of failing", async () => {
   const setup = await installedBuild();
   const edited = copyPath({ home: setup.home, root: ".claude/skills" });

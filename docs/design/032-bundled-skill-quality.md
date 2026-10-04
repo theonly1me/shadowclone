@@ -78,7 +78,7 @@ Skills that write pull requests, commit messages, comments, or documents for the
 ### Delivery
 
 - Bundled skills publish their supporting files, and retirement removes them.
-- `shadowclone sync` replaces installed copies whose fingerprint matches the published text, and prints one line per replaced copy. A copy the user edited stays untouched and is listed for review.
+- `shadowclone sync` replaces an installed copy only when its text matches a version that Shadowclone shipped, and prints one line per updated skill. `src/skills/bundledVersions.json` records the fingerprint of every shipped version of each bundled skill file. A copy with any other text stays untouched and is listed for review. This includes an edit that a wizard apply copied to every location, because the apply records the edited text as the installed text.
 - `src/builds/retired.ts` maps the three retired testing ids to `tests-that-catch-bugs`. Sync selects the new skill wherever a retired one was selected, and prints one line per change. An edited retired copy stays as the user's own skill. Users who chose `testing-first` also see a `shadowclone remember` hint, and nothing creates a rule for them.
 - The package-root check stops depending on any one skill.
 - Routing lines become `- <moment>: <skill>`, built from `shadowclone-applies-when`. With all 13 skills, routing uses about 1.6 KiB. Each host still lists the full descriptions through its own skill catalog.
@@ -88,6 +88,7 @@ Skills that write pull requests, commit messages, comments, or documents for the
 ### Checks that replace rules
 
 - The skill lint.
+- `scripts/skillVersions.ts` fails when a file in `skills/` has no recorded fingerprint. `--record` adds the current fingerprints and keeps every earlier one.
 - `scripts/privacy.ts` scans `skills/`, `preferences/`, and `plugins/shadowclone/skills/`. It flags email addresses, home paths that are not synthetic, `owner/repo#N` references, URLs not on an allowlist, gendered pronouns where a skill should say "the user", and private terms stored as SHA-256 hashes so the plain names never enter the repository.
 - `scripts/conventions.ts` rejects the en dash as well as the em dash, and also checks `.mjs` and `.html` files.
 - `skills/write-plain-english/scripts/check-ste.mjs` reports dashes and sentences over 25 words as errors, and passive voice, phrasal verbs, and vague words as warnings.
