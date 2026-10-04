@@ -49,6 +49,10 @@ export function buildClaudeArguments(options: {
     );
   }
 
+  if (options.run.systemPrompt) {
+    arguments_.push("--system-prompt", options.run.systemPrompt);
+  }
+
   if (options.run.model) {
     arguments_.push("--model", options.run.model);
   }

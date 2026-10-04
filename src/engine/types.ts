@@ -52,6 +52,8 @@ export type EngineRunOptions = {
   readonly cwd: string;
   readonly execution: EngineExecution;
   readonly systemPromptFile?: string;
+  readonly systemPrompt?: string;
+  readonly thinking?: "off";
   readonly sessionId?: string;
   readonly model?: string;
   readonly reasoningEffort?: ReasoningEffort;

@@ -58,7 +58,13 @@ export async function generationEngine(
       engine,
       ...(model ? { model } : {}),
       runner: (run) =>
-        runner({ ...run, ...(model ? { model } : {}), ...(effort ? { reasoningEffort: effort } : {}) }),
+        runner({
+          ...run,
+          ...(model ? { model } : {}),
+          ...(effort ? { reasoningEffort: effort } : {}),
+          ...(tier.thinking ? { thinking: tier.thinking } : {}),
+          ...(tier.systemPrompt ? { systemPrompt: tier.systemPrompt } : {}),
+        }),
     };
   }
 

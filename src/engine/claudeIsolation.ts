@@ -20,6 +20,7 @@ export function claudeIsolationArguments(
         run.allowedTools ?? ["Read", "Edit", "Write", "Glob", "Grep", "Bash"]
       ).join(",");
   const settingsJson = JSON.stringify({
+    ...(run.thinking === "off" ? { env: { MAX_THINKING_TOKENS: "0" } } : {}),
     disableAllHooks: true,
     autoMemoryEnabled: false,
     sandbox: {
