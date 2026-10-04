@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.0.18](https://github.com/theonly1me/shadowclone/compare/v0.0.17...v0.0.18) (2026-10-04)
+
+
+### Features
+
+* add the choose-by-consequence skill ([67f5eea](https://github.com/theonly1me/shadowclone/commit/67f5eea92b2a7502ad2dc21d25dd62aaed0e4b8b))
+* add the planning skill with a review page ([ba36df8](https://github.com/theonly1me/shadowclone/commit/ba36df8b2dba101d74a37728ace2b5edc41671bd))
+* add the review findings verification skill ([06f281b](https://github.com/theonly1me/shadowclone/commit/06f281bbc165789511bf70830edb1cd6bdd7bba9))
+* add the write-plain-english skill with a checker ([0d9ae80](https://github.com/theonly1me/shadowclone/commit/0d9ae80c86e4428b90d459acb4fa59cb8d567a61))
+* bring the remaining bundled skills to the quality bar ([6f9e0d4](https://github.com/theonly1me/shadowclone/commit/6f9e0d4a019462c0c0707eaf200a83e807e81be8))
+* capture the user's writing voice with consent, and keep sync going past a linked agent file ([179f681](https://github.com/theonly1me/shadowclone/commit/179f68186a8fa0c2a23e2bb9cc592e51a861c1d3))
+* check shipped guidance for private material ([28be732](https://github.com/theonly1me/shadowclone/commit/28be73230e2c845681632da6f85ee490995735a0))
+* flag instruction-shaped text in learned rules before publication ([04f6e4a](https://github.com/theonly1me/shadowclone/commit/04f6e4a554fa8f8073c800d6561e3cc19cc192e8))
+* fold scoped fix discipline into scope-confirmed-changes ([1ea94db](https://github.com/theonly1me/shadowclone/commit/1ea94dbd4c917fa70b546f92aedb7ec05aaf1184))
+* give a failed learned skill draft one repair turn ([f8ee3ab](https://github.com/theonly1me/shadowclone/commit/f8ee3ab6eb2c73d02bd23e4dc366b99a8859287f))
+* lint bundled skills against the quality bar ([40ca632](https://github.com/theonly1me/shadowclone/commit/40ca6327b44bd01321e5ccb9324e7ec249b67294))
+* merge the testing skills into tests-that-catch-bugs ([b552eec](https://github.com/theonly1me/shadowclone/commit/b552eecff951cd0397673c84fd3b60cdb2735e24))
+* migrate builds away from retired bundled skill ids ([535c097](https://github.com/theonly1me/shadowclone/commit/535c097e33e25963febf6f5add76d576cf29e1c9))
+* publish supporting files of bundled skills ([4f4adf5](https://github.com/theonly1me/shadowclone/commit/4f4adf5900ca951009eb8e92e19d7a3b45c66205))
+* reject en dashes in repository prose ([398e120](https://github.com/theonly1me/shadowclone/commit/398e120d18fb15190dc14966cff0dcbaa4ad1ad4))
+* route bundled skills by the moment they apply ([31c6db6](https://github.com/theonly1me/shadowclone/commit/31c6db6ef6a6487c3088bbb130cf0ae6d88b0004))
+* show every skill on a scrollable star map and name the build with the fast model ([5d805fe](https://github.com/theonly1me/shadowclone/commit/5d805fe776a278dbf673d6636e7e19a88e1130e2))
+* update unedited installed copies of bundled skills during sync ([155c2ff](https://github.com/theonly1me/shadowclone/commit/155c2ffcebfb87dd0bc0b4ba36b8a66ca5210d59))
+* verify the real outcome before handoff ([d4316a4](https://github.com/theonly1me/shadowclone/commit/d4316a49aacc927eb468b7f126c01e7d310573d4))
+
+
+### Fixes
+
+* block codex repository installs that hide a team AGENTS.md ([e371c9c](https://github.com/theonly1me/shadowclone/commit/e371c9cfdf7626808f576f6220e6ab31dcf904de))
+* keep repository installs out of team files and commits, and remove empty skill folders ([f134152](https://github.com/theonly1me/shadowclone/commit/f13415246f865c43eb3328ec12411f3e71c785c3))
+* replace only shipped versions of bundled skills during sync ([b8113a6](https://github.com/theonly1me/shadowclone/commit/b8113a61132e7ac7ab9dddc5c920c373696189a0))
+* report agents that setup skipped and name the blocking link ([d6cd1d0](https://github.com/theonly1me/shadowclone/commit/d6cd1d0857e80df792bf48738d3e4206cb9c6987))
+* report every rule that a learning merge drops ([be31bbd](https://github.com/theonly1me/shadowclone/commit/be31bbd80f4f788713ef4452be48b1f681cb2fc9))
+* skip agents whose instruction file is a symbolic link during setup ([ff035b5](https://github.com/theonly1me/shadowclone/commit/ff035b559a379b242b684f978ab97dd9c12d3c47))
+* update bundled skills only when the user runs sync ([028e091](https://github.com/theonly1me/shadowclone/commit/028e091df2b0325fa3eb961a3d2cca2a7f9852f2))
+
+
+### Documentation
+
+* record the bundled skill quality and delivery design ([b62d8e9](https://github.com/theonly1me/shadowclone/commit/b62d8e95d3309b6c5d1863e9a94a757e6a69d86c))
+* record the wizard map, build naming, and voice capture design ([7568ddf](https://github.com/theonly1me/shadowclone/commit/7568ddf14fec214389251a43b9eabeadeef0932f))
+
 ## [0.0.17](https://github.com/theonly1me/shadowclone/compare/v0.0.16...v0.0.17) (2026-10-03)
 
 
