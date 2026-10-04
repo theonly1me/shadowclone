@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.19](https://github.com/theonly1me/shadowclone/compare/v0.0.18...v0.0.19) (2026-10-04)
+
+
+### Features
+
+* equip a whole category, collapse map groups, and name the limit when a model call stops ([94040e1](https://github.com/theonly1me/shadowclone/commit/94040e1f8adf80504e5c2c844a2b9c95d7c98598))
+
+
+### Fixes
+
+* let the wizard apply builds when agent instructions and skills are shared through links ([290fa4b](https://github.com/theonly1me/shadowclone/commit/290fa4be194180e2dd0fa7ed08cedd858fe2b13e))
+* name builds in seconds by turning off thinking for the claude code fast tier ([e95b2be](https://github.com/theonly1me/shadowclone/commit/e95b2beb07cdc3b05c1d36c27abb31bdab1b45b0))
+
 ## [0.0.18](https://github.com/theonly1me/shadowclone/compare/v0.0.17...v0.0.18) (2026-10-04)
 
 
