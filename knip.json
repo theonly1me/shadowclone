@@ -6,17 +6,16 @@
     "scripts/*.ts",
     "plugins/shadowclone/skills/*/scripts/*.mjs",
     "src/**/*.test.ts",
-    "evals/shadowclone-work/prepare.ts",
-    "evals/shadowclone-work/scaffold/cli.ts",
-    "evals/shadowclone-work/fakeGh/main.ts",
-    "evals/shadowclone-work/regrade.ts"
+    "src/eval/work/prepare.ts",
+    "src/eval/work/scaffold/cli.ts",
+    "src/eval/work/fakeGh/main.ts",
+    "src/eval/work/regrade.ts"
   ],
   "project": [
     "src/**/*.ts",
     "scripts/**/*.ts",
     "bin/*.mjs",
-    "plugins/**/*.mjs",
-    "evals/**/*.ts"
+    "plugins/**/*.mjs"
   ],
   "ignoreBinaries": [
     "shadowclone"
