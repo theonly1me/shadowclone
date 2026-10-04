@@ -91,6 +91,7 @@ export async function draftSkill(options: {
   readonly records: readonly LearningRecord[];
   readonly execution: LearningExecution;
   readonly cwd: string;
+  readonly repair?: { readonly draft: SkillDraft; readonly error: string };
 }): Promise<SkillDraft> {
   const result = await options.execution.runner({
     cwd: options.cwd,
@@ -122,6 +123,12 @@ export async function draftSkill(options: {
           retirementRequested: retirementRequested === true,
         })),
       }),
+      ...(options.repair
+        ? [
+            `Your previous draft failed host validation with this error: ${options.repair.error}. Return a corrected complete draft that fixes this error and keeps every supported change. The previous draft follows.`,
+            JSON.stringify(options.repair.draft),
+          ]
+        : []),
     ].join("\n\n"),
   });
 
