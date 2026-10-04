@@ -20,7 +20,7 @@
     ]
   },
   "plan-with-review-page": {
-    "assets/review-page.html": ["692468299e7f3dc0d3e6757aa49e2c0b22fe8a23c0bbb801dd061315ae26dbd2"],
+    "assets/review-page.html": ["8a587b325fc576a2eefb247baa2d3374ce1e5633f62fbe7987e2e65141292964"],
     "scripts/validate-page.mjs": [
       "b73ec4a524a8ba274087cd293061b3dda3658e63533e9c43b621ecf116018d3f"
     ],

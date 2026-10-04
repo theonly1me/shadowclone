@@ -38,6 +38,7 @@ th, td { text-align: left; vertical-align: top; padding: 7px 8px; border-bottom:
 th { color: var(--muted); font-weight: 600; }
 code, pre { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
 pre { white-space: pre-wrap; margin: 0; }
+#diagram img { display: block; max-width: 100%; height: auto; margin-bottom: 10px; }
 </style>
 </head>
 <body>
@@ -135,9 +136,18 @@ if (plan.diagram) {
   script.crossOrigin = "anonymous";
   script.onload = async () => {
     const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    window.mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: dark ? "dark" : "default" });
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      htmlLabels: false,
+      flowchart: { htmlLabels: false },
+      theme: dark ? "dark" : "default",
+    });
     const { svg } = await window.mermaid.render("plan-diagram", plan.diagram);
-    document.getElementById("diagram").innerHTML = svg;
+    const image = document.createElement("img");
+    image.alt = "Plan diagram";
+    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    document.getElementById("diagram").replaceChildren(image);
     document.getElementById("diagram-note").textContent = "Diagram source:";
   };
   script.onerror = () => {
