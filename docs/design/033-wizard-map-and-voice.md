@@ -27,6 +27,8 @@ The owner has about 70 local skills. The wizard must show all of them, not only 
 
 `src/web/generationEngine.ts` takes a tier and stops replacing the model for fast calls. A fast call gets 1 call and a 30-second deadline. Where the provider supports a dollar cap, the cap is $0.05. If the provider rejects the model, the error shows on the character sheet.
 
+On Claude Code, `--effort low` did not stop Haiku 4.5 from thinking. A three-skill name took 54 seconds and $0.043, and the 30-second deadline usually stopped it first. The fast tier now also sets `MAX_THINKING_TOKENS=0` through the `env` key of the `--settings` JSON, and it replaces the default system prompt with one short sentence through `--system-prompt`. The call has no tools, so the default coding-agent prompt only added cost. Measured on the same name: thinking off took 5.8 seconds and $0.012, and with the short system prompt it took 5.8 seconds and $0.0035. Saved-tier calls, which do the learning, keep thinking and the default prompt.
+
 ### Grouping
 
 Skills group first by source: bundled skills, working preferences, custom skills, the skills of the user, and each plugin. Inside a source, skills group by their `shadowclone-category` metadata. A skill without that metadata gets a category from a fixed keyword list, or goes to "More skills". A filler word is never a hub. A large group wraps in its row instead of splitting into numbered hubs.

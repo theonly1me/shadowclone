@@ -3,6 +3,7 @@ import { buildFixture, buildInput } from "../builds/fixtures";
 import { defaultConfig, writeConfig } from "../config";
 import { buildClaudeArguments } from "../engine/claudeCode";
 import { buildCodexArguments } from "../engine/codex";
+import { fastSystemPrompt } from "../engine/fastTier";
 import type { EngineId, EngineRunOptions } from "../engine/types";
 import { createBuildNames } from "./buildNames";
 import { generationResult } from "./fixtures";
@@ -41,7 +42,7 @@ async function namer(options: { readonly engine?: EngineId; readonly structured?
 
 const input = buildInput({ choices: { "tests-that-catch-bugs": true } });
 
-test("Claude Code names the build with haiku at low effort under the fast limits", async () => {
+test("Claude Code names the build with haiku at low effort, thinking off, and a short system prompt under the fast limits", async () => {
   const { runs, names } = await namer();
   const result = await names({ input });
   const [run] = runs;
@@ -52,6 +53,8 @@ test("Claude Code names the build with haiku at low effort under the fast limits
 
   expect(arguments_.join(" ")).toContain("--model haiku --effort low");
   expect(arguments_.join(" ")).toContain("--max-budget-usd 0.05");
+  expect(arguments_.join(" ")).toContain('"env":{"MAX_THINKING_TOKENS":"0"}');
+  expect(arguments_[arguments_.indexOf("--system-prompt") + 1]).toBe(fastSystemPrompt);
   expect(result.destination).toBe("claude-code using haiku");
 });
 
@@ -70,7 +73,7 @@ test("Codex names the build with gpt-6-luna at low effort", async () => {
   expect(arguments_).toContain('model_reasoning_effort="low"');
 });
 
-test("the saved tier keeps the saved model and sets no effort", async () => {
+test("the saved tier keeps the saved model, sets no effort, and keeps thinking and the default system prompt", async () => {
   const { context, runs } = await namer();
 
   await writeConfig({
@@ -92,7 +95,9 @@ test("the saved tier keeps the saved model and sets no effort", async () => {
 
   await saved.runner({ prompt: "p", cwd: context.cwd, execution: { purpose: "learning" } });
 
-  expect(runs.map((run) => [run.model, run.reasoningEffort])).toEqual([["synthetic-saved", undefined]]);
+  expect(runs.map((run) => [run.model, run.reasoningEffort, run.thinking, run.systemPrompt])).toEqual([
+    ["synthetic-saved", undefined, undefined, undefined],
+  ]);
 });
 
 test("the request sends only titles and summaries, and a repeat selection uses the cache", async () => {
