@@ -1,3 +1,4 @@
+import type { SkippedRouting } from "../environment/native";
 import { syncLearningEnvironment } from "../environment/sync";
 import { renderBundledSkillReport, updateBundledSkills } from "../builds/bundledUpdate";
 import { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
@@ -191,8 +192,22 @@ export async function handleNativeCommand(options: {
       process.exitCode = 1;
     }
 
-    if (await syncLearningEnvironment(projectPaths)) {
-      console.log("Synchronized learned skills and native routing.");
+    const skipped: SkippedRouting[] = [];
+
+    if (await syncLearningEnvironment(projectPaths, { onSkipped: (entries) => skipped.push(...entries) })) {
+      for (const entry of skipped) {
+        console.log(
+          `Did not update ${entry.agent}: ${entry.path} is ${entry.target === null ? "not a regular file" : `a symbolic link to ${entry.target}`}. Shadowclone does not write through links, so ${entry.agent} keeps its old routing. Replace the link with a regular file, then run shadowclone sync.`,
+        );
+      }
+
+      console.log(
+        skipped.length === 0
+          ? "Synchronized learned skills and native routing."
+          : `Synchronized learned skills and native routing for every agent except ${skipped.map((entry) => entry.agent).join(", ")}.`,
+      );
+
+      if (skipped.length > 0) process.exitCode = 1;
 
       return true;
     }
