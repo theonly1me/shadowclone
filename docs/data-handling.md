@@ -51,7 +51,7 @@ Pi capture retains parent links across session branches. Its system and custom i
 | Plain `learn` after setup   | Local indexing and reporting; no model calls                                                                                                           |
 | Deep or background learning | Selected redacted steering, supporting context, and guidance needed for reconciliation                                                                 |
 | Skill maintenance           | Redacted catalogs and full instructions for overlapping workflows, plus evidence for proposed updates; supporting resources are checked locally        |
-| Browser editor              | Opening the editor makes no model request; optional build descriptions and skill drafts require review of their redacted payload, provider, and limits |
+| Browser editor              | Opening the editor makes no model request; build naming after an equip change sends redacted skill titles and summaries; skill drafts need review      |
 | Personal GitHub clone       | Reviewed exported guidance, the selected repository, and an authorized issue or PR task                                                                |
 | `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace; Shadowclone makes no model calls for it                                              |
 | Evaluation                  | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction                              |
@@ -113,6 +113,8 @@ Native Codex evaluation explicitly denies shared `/tmp` and `/private/tmp` acces
 The browser editor listens on loopback, serves local assets, checks request origins, and uses an ephemeral token. Opening it does not grant new capture consent.
 
 Skill discovery reads only configured, consented roots. It permits up to 2,000 distinct physical skill files and 8 MB in total; overlapping roots count the same canonical file once. Native copies may collapse into one browser entry. Individual skills retain their 48 KB and 500-line limits, and discovery refuses paths nested more than twelve levels.
+
+Build naming sends the redacted titles and one-line summaries of the equipped skills and preferences. It never sends skill bodies, paths, repository names, or ownership metadata. It runs 5 seconds after the last equip change, or when the user chooses **Name my build**. It uses the fast model of the engine with no tools, one call, a 30-second deadline, and a $0.05 limit where the provider supports a dollar cap. The character sheet names the engine and model. **Turn naming off** stores the choice in that browser and stops every naming request. Results stay in server memory until the editor closes.
 
 Use AI in the skill editor sends only the typed form fields. It reads no repository files. Model requests use the learning execution contract with no tools, one call, and a 60-second deadline. Providers with dollar-cap support receive a $0.25 limit; other providers show that no dollar cap can be enforced. Cancellation aborts the request, but usage already incurred may still be charged. Reviews and cached results remain in server memory until the editor closes. Generated skill drafts remain editable and require the usual build review before publication.
 

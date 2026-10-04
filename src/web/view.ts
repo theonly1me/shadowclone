@@ -8,6 +8,7 @@ import { readEffectiveConfig } from "../config";
 import { readEnvironment } from "../environment/store";
 import { readHarnessManifest } from "../harness/manifest";
 import { canonicalPath } from "../paths";
+import { loadSeedLibrary } from "../skills/library";
 import { buildViewSchema, type BuildView } from "./protocol";
 
 export async function buildView(
@@ -88,7 +89,10 @@ export async function buildView(
     },
     inherited: options.scope === "private" ? (global?.choices ?? {}) : {},
     items: catalog.map(({ source, ...item }) => item),
-    constellation: buildConstellation(catalog),
+    constellation: buildConstellation({
+      items: catalog,
+      packagedIds: new Set((await loadSeedLibrary()).guidance.map((entry) => entry.id)),
+    }),
     locked:
       state && options.scope === "private"
         ? sharedRequirements({

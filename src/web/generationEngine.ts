@@ -4,12 +4,15 @@ import type { EngineId, EngineRunner } from "../engine/types";
 import { getProviderByEngine } from "../provider";
 import type { BuildContext } from "../builds/types";
 import { selectLearningPreferences } from "../learning/modelPreferences";
+import { fastTier } from "../engine/fastTier";
 
 export type GenerationEngine = {
   readonly engine: EngineId;
   readonly runner: EngineRunner;
   readonly model?: string;
 };
+
+export type GenerationTier = "saved" | "fast";
 
 export async function allowedGenerationEngines(context: BuildContext) {
   const { policy } = await readEffectiveConfig({
@@ -25,7 +28,7 @@ export async function allowedGenerationEngines(context: BuildContext) {
 }
 
 export async function generationEngine(
-  options: BuildContext & { readonly engine?: GenerationEngine },
+  options: BuildContext & { readonly engine?: GenerationEngine; readonly tier?: GenerationTier },
 ): Promise<GenerationEngine> {
   const allowed = await allowedGenerationEngines(options);
   const { config } = await readEffectiveConfig({ configPath: options.paths.configFile, managedConfigPath: options.paths.managedConfigFile });
@@ -44,6 +47,19 @@ export async function generationEngine(
 
   if (!engine || !runner || !allowed.includes(engine)) {
     throw new Error("Sign in to a supported coding-agent CLI to use AI");
+  }
+
+  if (options.tier === "fast") {
+    const tier = fastTier({ engine, savedModel: preferences.model });
+    const model = tier.model ?? undefined;
+    const effort = tier.reasoningEffort ?? undefined;
+
+    return {
+      engine,
+      ...(model ? { model } : {}),
+      runner: (run) =>
+        runner({ ...run, ...(model ? { model } : {}), ...(effort ? { reasoningEffort: effort } : {}) }),
+    };
   }
 
   const model = preferences.model;

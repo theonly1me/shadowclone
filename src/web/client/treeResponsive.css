@@ -11,10 +11,6 @@
     grid-template-columns: 1fr;
   }
 
-  .constellation {
-    height: min(680px, 70vh);
-  }
-
   .constellation-map,
   .tree-hint {
     display: none;

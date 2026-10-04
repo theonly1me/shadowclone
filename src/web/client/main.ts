@@ -3,11 +3,10 @@ import { buildViewSchema } from "../protocol";
 import { request } from "./api";
 import { openCustomEditor, saveCustomSkill } from "./custom";
 import { renderDetail } from "./detail";
-import { renderModelDescription, reviewDescription } from "./description";
 import { element, input, notice, reportError, select } from "./dom";
-import { renderIdentity } from "./identity";
+import { initializeIdentity, renderIdentity } from "./identity";
 import { applyReviewedBuild, reviewChanges, undoAppliedBuild } from "./review";
-import { editor, equipped } from "./state";
+import { editor, equipped, setEquipped } from "./state";
 import { initializeTree, renderTree } from "./tree";
 import { initializeStarfield } from "./starfield";
 import { initializeCustomGeneration, customStatus } from "./customGeneration";
@@ -22,14 +21,18 @@ initializeBotSetup();
 
 function render(): void {
   renderTree({
-    inspect: (id) => {
-      editor.activeId = id;
+    choose: (item) => {
+      editor.activeId = item.id;
+
+      if (item.owner !== "provider") {
+        setEquipped(item);
+      }
+
       render();
     },
   });
   renderDetail({ rerender: render, companion: openCustomEditor });
   renderIdentity();
-  renderModelDescription();
   element("undo").hidden = editor.view?.revisionId === null;
 }
 
@@ -95,7 +98,6 @@ async function loadBuild(scope: BuildScope): Promise<void> {
 actionButton({ id: "retry-build", action: () => loadBuild(editor.input.scope) });
 
 actionButton({ id: "review", action: reviewChanges });
-actionButton({ id: "describe", action: reviewDescription });
 
 actionButton({
   id: "apply",
@@ -158,5 +160,6 @@ const scope = buildScopeSchema.safeParse(
 
 initializeStarfield();
 initializeTree();
+initializeIdentity();
 initializeCustomGeneration();
 perform(() => loadBuild(scope.success ? scope.data : "global")).catch(reportError);

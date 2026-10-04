@@ -8,7 +8,7 @@
 
 .constellation {
   position: relative;
-  height: clamp(560px, 72vh, 820px);
+  min-height: 360px;
   min-width: 0;
   overflow: hidden;
   border: 1px solid #2c2a3a;
@@ -50,17 +50,12 @@
   margin: 0 0 12px;
 }
 
-.constellation-map,
-.constellation-list {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
 .constellation-map {
+  position: relative;
   z-index: 1;
-  touch-action: none;
+  display: block;
+  width: 100%;
+  margin-top: 36px;
 }
 
 .map-link {
@@ -70,19 +65,27 @@
   opacity: 0.62;
 }
 
-.map-link.related {
-  stroke: #8b75ae;
-  stroke-dasharray: 3 7;
-  opacity: 0.38;
+.map-link.sibling {
+  stroke-dasharray: 2 6;
+  opacity: 0.4;
 }
 
 .map-node {
   color: #b1a7c6;
-  cursor: pointer;
   outline: none;
 }
 
-.map-node rect,
+.map-node-skill {
+  cursor: pointer;
+}
+
+.map-node-hit {
+  fill: transparent;
+  stroke: none;
+  rx: 12px;
+}
+
+.map-node-gem,
 .map-node circle {
   fill: #171824;
   stroke: #645474;
@@ -92,30 +95,33 @@
 
 .map-node text {
   fill: #d4d7e3;
-  font: 15px Inter, system-ui, sans-serif;
+  font: 13px Inter, system-ui, sans-serif;
   paint-order: stroke;
   stroke: #10121b;
   stroke-width: 5px;
   stroke-linejoin: round;
 }
 
-.map-node text.map-node-count {
-  fill: #9c90b5;
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0;
-}
-
-.map-node-hub text {
+.map-node-source text {
   fill: #cebaf5;
   font-size: 14px;
   font-weight: 650;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
-.map-node-hub rect {
+.map-node-category text {
+  fill: #b9abd6;
+  font-weight: 600;
+}
+
+.map-node-source .map-node-gem {
   fill: #211b2f;
   stroke: #a88cda;
+}
+
+.map-node-category .map-node-gem {
+  fill: #1b1a28;
+  stroke: #8b75ae;
 }
 
 .map-node-root circle {
@@ -128,17 +134,24 @@
   pointer-events: none;
 }
 
-.map-node:hover rect,
-.map-node:hover circle,
-.map-node:focus rect,
-.map-node:focus circle,
-.map-node.focused rect {
+.map-node-skill:hover .map-node-gem,
+.map-node-skill:focus-visible .map-node-gem {
   fill: #382c4c;
   stroke: #d0b8ff;
   stroke-width: 2;
 }
 
-.map-node.equipped rect {
+.map-node-skill:focus-visible .map-node-hit,
+.map-node-skill.active .map-node-hit {
+  stroke: #8dd0bd;
+  stroke-width: 1.5;
+}
+
+.map-node-skill.active text {
+  fill: #f2eaff;
+}
+
+.map-node.equipped .map-node-gem {
   fill: #544268;
   stroke: #ceb8ff;
   filter: drop-shadow(0 0 10px #b78cf766);
@@ -162,11 +175,10 @@
 }
 
 .constellation-list {
+  position: relative;
   z-index: 2;
   display: none;
-  overflow: auto;
-  padding: 64px 20px 50px;
-  background: #11131cf5;
+  padding: 56px 20px 20px;
 }
 
 .list-view .constellation-map,
@@ -208,12 +220,9 @@
 }
 
 .tree-hint {
-  position: absolute;
+  position: relative;
   z-index: 2;
-  bottom: 12px;
-  left: 0;
-  right: 0;
-  margin: 0;
+  margin: 0 0 14px;
   color: var(--muted);
   font-size: 11px;
   text-align: center;
