@@ -3,6 +3,7 @@ import { readdir } from "node:fs/promises";
 import { skillQualityFindings, type SkillFinding, type SkillRule } from "../src/skills/quality";
 import { readSkillDocument } from "../src/skills/qualityDocument";
 import { pendingSkillNames, permanentRuleExemptions } from "../src/skills/qualityExceptions";
+import { voiceBlock } from "../src/skills/voiceBlock";
 
 export type SkillQualityReport = {
   readonly checkedSkillCount: number;
@@ -17,6 +18,10 @@ type BundledSkill = {
 };
 
 const minimumSharedSentenceWords = 8;
+const plainEnglishChecker = path.resolve(
+  import.meta.dir,
+  "../skills/write-plain-english/scripts/check-ste.mjs",
+);
 
 async function listSkillFiles(directory: string): Promise<readonly string[]> {
   const files: string[] = [];
@@ -48,18 +53,65 @@ async function readBundledSkills(skillsDirectory: string): Promise<readonly Bund
   );
 }
 
+function splitSentences(prose: string): readonly string[] {
+  return prose
+    .replace(/\s+/g, " ")
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim().toLowerCase());
+}
+
+const voiceSentences = new Set(splitSentences(voiceBlock));
+
 function sentencesOf(text: string): readonly string[] {
   const document = readSkillDocument(text);
   const prose = (document?.bodyLines ?? [])
     .map((line) => line.text)
     .filter((line) => !line.startsWith("#"))
-    .join(" ")
-    .replace(/\s+/g, " ");
+    .join(" ");
 
-  return prose
-    .split(/(?<=[.!?])\s+/)
-    .map((sentence) => sentence.trim().toLowerCase())
-    .filter((sentence) => sentence.split(" ").length >= minimumSharedSentenceWords);
+  return splitSentences(prose).filter(
+    (sentence) =>
+      sentence.split(" ").length >= minimumSharedSentenceWords && !voiceSentences.has(sentence),
+  );
+}
+
+function plainEnglishFindings(options: {
+  readonly skill: string;
+  readonly filePath: string;
+}): readonly SkillFinding[] {
+  const result = Bun.spawnSync([process.execPath, plainEnglishChecker, options.filePath], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+
+  if (result.exitCode !== 0 && result.exitCode !== 1) {
+    return [
+      {
+        skill: options.skill,
+        line: 1,
+        rule: "plain-english",
+        message: `the checker did not run: ${result.stderr.toString().trim()}`,
+      },
+    ];
+  }
+
+  return result.stdout
+    .toString()
+    .split("\n")
+    .flatMap((line) => {
+      const match = /:(\d+): error (\S+) (.*)$/.exec(line);
+
+      return match
+        ? [
+            {
+              skill: options.skill,
+              line: Number(match[1]),
+              rule: "plain-english" as const,
+              message: `${match[2]} ${match[3]}`,
+            },
+          ]
+        : [];
+    });
 }
 
 function repeatedSentenceFindings(skills: readonly BundledSkill[]): readonly SkillFinding[] {
@@ -154,6 +206,10 @@ export async function findSkillQualityViolations(options: {
         exemptions: exemptions.get(skill.name) ?? [],
       }),
       ...(await scriptFindings({ rootDirectory: options.rootDirectory, skill })),
+      ...plainEnglishFindings({
+        skill: skill.name,
+        filePath: path.join(options.rootDirectory, "skills", skill.name, "SKILL.md"),
+      }),
     ];
 
     if (!pending.has(skill.name)) {

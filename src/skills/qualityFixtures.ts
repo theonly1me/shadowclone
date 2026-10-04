@@ -5,7 +5,7 @@ export function sampleSkillText(options: {
   return [
     "---",
     `name: ${options.name}`,
-    'description: \'Use before you call a change done, or when the user says "make sure it works" or "check this before merging". Runs the command the user runs, reads every line of the real output, and reports the exit code and the line that shows the result, so a wrong count or a buried warning is caught before handoff. Not for writing new tests (use `' +
+    'description: \'Use before you call a change done. Also use it when the user says "make sure it works" or "check this before merging". Runs the command that the user runs, and reads every line of the real output. Reports the exit code and the line that shows the result, so that a wrong count shows before handoff. Not for writing new tests (use `' +
       options.alternative +
       "`).'",
     "metadata:",

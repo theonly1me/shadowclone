@@ -13,6 +13,11 @@ const presentations: Readonly<
     summary:
       "Represent valid states in the type system. Narrow uncertain values and keep unsafe assertions out of the implementation.",
   },
+  "write-plain-english": {
+    title: "Plain English",
+    summary:
+      "Write short sentences with one idea each and no dashes, in the user's voice. A checker reports long sentences and dashes.",
+  },
   "choose-by-consequence": {
     title: "Fail loudly",
     summary:

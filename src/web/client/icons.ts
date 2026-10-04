@@ -26,6 +26,7 @@ const skillIcons: Readonly<Record<string, keyof typeof shapes>> = {
   "typescript-type-safety": "code",
   "scope-confirmed-changes": "focus",
   "choose-by-consequence": "compass",
+  "write-plain-english": "spark",
   "refactor-boundaries": "layers",
   "refactor-preserve": "shield",
   "dependencies-existing": "link",

@@ -92,7 +92,8 @@ Skills that write pull requests, commit messages, comments, or documents for the
 - `scripts/skillVersions.ts` fails when a file in `skills/` has no recorded fingerprint. `--record` adds the current fingerprints and keeps every earlier one.
 - `scripts/privacy.ts` scans `skills/`, `preferences/`, and `plugins/shadowclone/skills/`. It flags email addresses, home paths that are not synthetic, `owner/repo#N` references, URLs not on an allowlist, gendered pronouns where a skill should say "the user", and private terms stored as SHA-256 hashes so the plain names never enter the repository.
 - `scripts/conventions.ts` rejects the en dash as well as the em dash, and also checks `.mjs` and `.html` files.
-- `skills/write-plain-english/scripts/check-ste.mjs` reports dashes and sentences over 25 words as errors, and passive voice, phrasal verbs, and vague words as warnings.
+- `skills/write-plain-english/scripts/check-ste.mjs` reports dashes and sentences over 25 words as errors, and passive voice, phrasal verbs, and vague words as warnings. It skips code and quoted examples. The skill lint runs it on each finished skill and fails on its errors.
+- A skill with `shadowclone-voice: "true"` metadata must contain the voice block from `src/skills/voiceBlock.ts`, and the repeated sentence check skips that block.
 - The review page validator, the routing budget test, the migration tests, the `voice.md` write guard, and the delivery matrix.
 
 ### Sequence
