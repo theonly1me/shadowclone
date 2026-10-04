@@ -8,6 +8,25 @@ import type { InstalledArtifact } from "./installState";
 
 export { artifactRelativePaths, artifactExcludePatterns } from "./installPaths";
 import { artifactRelativePaths, artifactExcludePatterns } from "./installPaths";
+import { integrationTargets } from "../integrations/targets";
+import { integrationAgentSchema } from "../integrations/types";
+
+export function integrationExcludePattern(relativePath: string): string {
+  return `/${relativePath}`;
+}
+
+const ownedExcludePatterns = new Set([
+  ...Object.values(artifactExcludePatterns),
+  ...integrationAgentSchema.options.flatMap((agent) =>
+    integrationTargets({
+      agent,
+      scope: "repository",
+      directory: "/",
+      userDirectory: "/",
+      codexInstructions: "AGENTS.override.md",
+    }).map(({ relativePath }) => integrationExcludePattern(relativePath)),
+  ),
+]);
 
 const ownedLeafDirectory = path.join(".claude", "skills", "shadowclone");
 
@@ -53,9 +72,7 @@ export async function addGitExcludes(options: {
   const existing = (await excludeFile.exists()) ? await excludeFile.text() : "";
   const lines = existing.split("\n").map((line) => line.trim());
   const missing = options.patterns
-    .filter((pattern) =>
-      Object.values(artifactExcludePatterns).includes(pattern),
-    )
+    .filter((pattern) => ownedExcludePatterns.has(pattern))
     .filter((pattern) => !lines.includes(pattern));
 
   if (missing.length === 0) {
@@ -100,7 +117,7 @@ export async function removeGitExcludes(options: {
     .filter(
       (line) =>
         !(
-          Object.values(artifactExcludePatterns).includes(line.trim()) &&
+          ownedExcludePatterns.has(line.trim()) &&
           options.patterns.includes(line.trim())
         ),
     );

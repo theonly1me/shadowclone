@@ -1,7 +1,7 @@
 import { fingerprint, readLocalText } from "../localFiles";
 import { projectPaths } from "../paths";
 import { compileContext } from "./compile";
-import { applyIntegrationFiles, prepareIntegrationFiles } from "./files";
+import { applyIntegrationFiles, prepareIntegrationFiles, savedRecords } from "./files";
 import { hasOwnedHooks } from "./hookConfig";
 import { managedSection } from "./markdown";
 import { readIntegrations, saveIntegration } from "./state";
@@ -45,7 +45,7 @@ export async function refreshIntegrations(
         paths,
         integration: {
           ...integration,
-          files: changes.map((change) => change.record),
+          files: savedRecords(changes),
         },
       });
       refreshed += 1;

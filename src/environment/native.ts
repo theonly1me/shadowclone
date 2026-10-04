@@ -2,7 +2,7 @@ import path from "node:path";
 import type { FileUpdate } from "../changes";
 import { readLocalText, fingerprint } from "../localFiles";
 import type { ProjectPaths } from "../paths";
-import { prepareIntegrationFiles } from "../integrations/files";
+import { prepareIntegrationFiles, savedRecords } from "../integrations/files";
 import { readIntegrations } from "../integrations/state";
 import { sharedIntegrationUpdates } from "../integrations/sharedUpdates";
 import { learningScopes } from "./scope";
@@ -82,7 +82,7 @@ export async function nativePublication(options: {
     );
     updatedIntegrations.push({
       ...integration,
-      files: changes.map(({ record }) => record),
+      files: savedRecords(changes),
     });
   }
 

@@ -1,8 +1,12 @@
 import path from "node:path";
-import { addGitExcludes, removeGitExcludes } from "../cli/installArtifacts";
+import {
+  addGitExcludes,
+  integrationExcludePattern,
+  removeGitExcludes,
+} from "../cli/installArtifacts";
 import { canonicalPath, projectPaths } from "../paths";
 import { compileContext } from "./compile";
-import { applyIntegrationFiles, prepareIntegrationFiles } from "./files";
+import { applyIntegrationFiles, prepareIntegrationFiles, savedRecords } from "./files";
 import { readIntegrations, saveIntegration } from "./state";
 import type {
   Integration,
@@ -95,7 +99,7 @@ export async function installIntegration(
   });
   const updated = {
     ...integration,
-    files: changes.map((change) => change.record),
+    files: savedRecords(changes),
   };
 
   await saveIntegration({ paths, integration: updated });
@@ -117,8 +121,8 @@ export async function installIntegration(
       ? await addGitExcludes({
           cwd,
           patterns: changes
-            .filter((change) => change.record.created)
-            .map((change) => change.record.relativePath),
+            .filter((change) => change.record.created && !change.retired)
+            .map((change) => integrationExcludePattern(change.record.relativePath)),
         })
       : [];
   const installed = {

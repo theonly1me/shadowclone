@@ -73,7 +73,7 @@ function proseLines(text) {
     prose.push({
       number,
       text: line
-        .replace(/`[^`]*`/g, "code")
+        .replace(/`[^`]*`/g, "Code")
         .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
         .replace(/^\s*(?:[-*]|\d+\.)\s+/, "")
         .replace(/\*\*([^*]+):\*\*/g, "$1:")
