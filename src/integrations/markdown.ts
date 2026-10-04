@@ -72,8 +72,11 @@ export function updateMarkedSection(options: {
   const previous = options.previous ?? "";
   const section = markedSection({ text: previous, markers: options.markers });
 
+  const recordedEmpty = options.expected === fingerprint("") && section === null;
+
   if (
     options.expected !== undefined &&
+    !recordedEmpty &&
     (!section || fingerprint(section) !== options.expected)
   ) {
     throw new Error(

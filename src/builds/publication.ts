@@ -10,6 +10,7 @@ import { publishSkillResources } from "../environment/resources";
 import { seedSkillsDirectory } from "../skills/library";
 import { skillClassification } from "./classification";
 import { buildDirectories } from "./selection";
+import { skillDestinationsWithoutLinks } from "./linkedDestinations";
 import type { BuildContext, BuildDefinition, BuildItem } from "./types";
 
 export async function publishBuildSkill(
@@ -24,6 +25,7 @@ export async function publishBuildSkill(
 ): Promise<{
   readonly state: EnvironmentState;
   readonly updates: readonly FileUpdate[];
+  readonly warnings: readonly string[];
 }> {
   const { metadata } = parseSkillDocument(options.text);
 
@@ -44,7 +46,12 @@ export async function publishBuildSkill(
     destinations.push(path.join(source.root.directory, source.relativePath));
   }
 
-  const targets = [...new Set(destinations)];
+  const { targets, warnings } = skillDestinationsWithoutLinks({
+    destinations,
+    source: source ? path.join(source.root.directory, source.relativePath) : null,
+    name: metadata.name,
+    homeDirectory: path.dirname(options.paths.shadowcloneDirectory),
+  });
   let text = options.text;
 
   const tracked = options.state.artifacts.filter(
@@ -191,7 +198,7 @@ export async function publishBuildSkill(
     }
   }
 
-  return { state: { ...options.state, artifacts }, updates };
+  return { state: { ...options.state, artifacts }, updates, warnings };
 }
 
 export { retireBuildSkills } from "./retirement";
