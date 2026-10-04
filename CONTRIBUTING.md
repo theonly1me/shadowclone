@@ -34,7 +34,8 @@ This runs typecheck, lint, the knip unused-file check, and tests. CI also runs t
 - Avoid `any`, non-null assertions, type assertions other than `as const`, and unhandled or voided promises.
 - Write code without comments. Express intent in names, types, functions, and tests. Leave unrelated existing comments alone.
 - Fix lint findings without suppressing rules.
-- Use plain prose and ordinary punctuation. Do not use em dashes.
+- Use plain prose and ordinary punctuation. Do not use em or en dashes.
+- Keep each bundled skill in `skills/` at the quality bar in [design record 032](docs/design/032-bundled-skill-quality.md). `bun run lint` checks it with `scripts/skills.ts`.
 
 The repository [clean-code skill](.claude/skills/clean-code/SKILL.md) gives the full conventions. [AGENTS.md](AGENTS.md) is the entry point for coding assistants.
 
