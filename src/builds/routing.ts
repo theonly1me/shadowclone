@@ -76,14 +76,16 @@ export function renderBuildRouting(options: {
   const lines = [
     "## Your agent build",
     "",
-    "Follow repository requirements. Repository build choices override personal global choices. Load the selected workflow skills when their descriptions match the task. When a selected workflow skill conflicts with the user's own skills or learned baseline rules, follow the user's guidance.",
+    "Follow repository requirements. Repository build choices override personal global choices. Load each selected workflow skill at the moment listed for it. When a selected workflow skill conflicts with the user's own skills or learned baseline rules, follow the user's guidance.",
   ];
 
   for (const artifact of artifacts.values()) {
     lines.push(
       artifact.buildEntryId === "build-preferences"
         ? "Follow the selected working preferences in the shadowclone-build-preferences skill when relevant."
-        : `- ${artifact.description} Use the ${artifact.name} skill when relevant.`,
+        : artifact.appliesWhen
+          ? `- ${artifact.appliesWhen}: ${artifact.name}`
+          : `- ${artifact.description} Use the ${artifact.name} skill when relevant.`,
     );
   }
 

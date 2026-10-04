@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import path from "node:path";
 import { applyBuild } from "../builds/apply";
 import { buildFixture, buildInput } from "../builds/fixtures";
+import { skillClassification } from "../builds/classification";
 import { previewBuild } from "../builds/plan";
 import type { BuildContext } from "../builds/types";
 import { defaultConfig, writeConfig } from "../config";
@@ -128,7 +129,15 @@ test("every host receives the same routing text, and it names each selected skil
   expect(
     [...routing.entries()].filter(([, text]) => text !== first).map(([agent]) => agent),
   ).toEqual([]);
-  expect(delivered.selected.filter((skill) => !first.includes(`${skill} skill`))).toEqual([]);
+  expect(first).toContain(
+    "Name every skipped step and every fallback in your final answer and handoff.",
+  );
+
+  for (const skill of delivered.selected) {
+    const text = await Bun.file(path.join(await seedSkillsDirectory(), skill, "SKILL.md")).text();
+
+    expect(first.split("\n")).toContain(`- ${skillClassification(text).appliesWhen}: ${skill}`);
+  }
 });
 
 test("the recorded delivery gaps still hold, so closing one means updating the table", async () => {

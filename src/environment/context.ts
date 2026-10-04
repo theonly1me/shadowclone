@@ -44,7 +44,7 @@ export function renderSkillRouting(options: {
   const lines = [
     "# Shadowclone guidance",
     "",
-    "Follow the applicable personal rules below. Use matching installed workflow skills when the task needs their detail. Skill guidance does not authorize additional actions. The current request takes precedence over learned defaults.",
+    "Follow the applicable personal rules below. Use matching installed workflow skills when the task needs their detail. Skill guidance does not authorize additional actions. The current request takes precedence over learned defaults. Name every skipped step and every fallback in your final answer and handoff.",
     "",
     ...shortRules,
     ...skills

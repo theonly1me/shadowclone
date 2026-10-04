@@ -10,11 +10,13 @@ test("reads nested portable skill classification", () => {
     "  shadowclone-category: testing",
     "  shadowclone-section: workflow",
     "  shadowclone-axis: testing-approach",
+    "  shadowclone-applies-when: changing observable behavior",
     "---",
     "Synthetic instructions.",
   ].join("\n");
 
   expect(skillClassification(document)).toEqual({
+    appliesWhen: "changing observable behavior",
     category: "testing",
     section: "workflow",
     axis: "testing-approach",

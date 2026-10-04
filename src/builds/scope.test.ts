@@ -64,7 +64,7 @@ test("shared builds use relative routing and reject contradictory personal choic
 
   const native = await Bun.file(path.join(context.cwd, "AGENTS.md")).text();
 
-  expect(native).toContain("Use the testing-first skill when relevant.");
+  expect(native).toContain("- changing observable behavior with a test-first workflow: testing-first\n");
   expect(native).not.toContain(
     path.dirname(context.paths.shadowcloneDirectory),
   );

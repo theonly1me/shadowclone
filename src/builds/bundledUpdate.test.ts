@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { environmentFile, renderEnvironment } from "../environment/store";
+import { environmentFile, readEnvironment, renderEnvironment } from "../environment/store";
 import { syncLearningEnvironment } from "../environment/sync";
 import { fingerprint } from "../localFiles";
 import { seedSkillsDirectory } from "../skills/library";
@@ -69,4 +69,25 @@ test("sync reports an edited copy of an equipped skill instead of failing", asyn
   expect(
     await Bun.file(copyPath({ home: setup.home, root: ".agents/skills" })).text(),
   ).not.toContain("My own rule.");
+});
+
+test("sync stores the routing moment on copies installed before routing used it", async () => {
+  const setup = await installedBuild();
+
+  await Bun.write(
+    environmentFile(setup.paths),
+    renderEnvironment({
+      ...setup.state,
+      artifacts: setup.state.artifacts.map((artifact) => ({ ...artifact, appliesWhen: undefined })),
+    }),
+  );
+  await updateBundledSkills(setup.paths);
+
+  const moments = (await readEnvironment(setup.paths))?.artifacts
+    .filter(
+      (artifact) => artifact.kind === "skill" && artifact.buildEntryId === "verify-and-review",
+    )
+    .map((artifact) => artifact.appliesWhen);
+
+  expect(moments).toEqual(skillRoots.map(() => "preparing completed work for review or handoff"));
 });
