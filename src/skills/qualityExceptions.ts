@@ -5,7 +5,6 @@ export const pendingSkillNames: ReadonlySet<string> = new Set([
   "diagnose-before-editing",
   "research-primary-sources",
   "resolve-conflicts-by-intent",
-  "scope-confirmed-changes",
   "shadowclone-work",
   "typescript-type-safety",
 ]);

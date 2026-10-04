@@ -34,9 +34,9 @@ const presentations: Readonly<
       "Compare each shortcut by what it does to the user's files and output. Pick the option that fails loudly and keeps counts true.",
   },
   "scope-confirmed-changes": {
-    title: "Scoped changes",
+    title: "Reproduce, then fix",
     summary:
-      "Confirm the problem before editing. Keep the change focused, preserve surrounding behavior, and verify the result.",
+      "Reproduce the bug before any fix, then run the same reproduction after it. Keep the change to confirmed behavior.",
   },
   "diagnose-before-editing": {
     title: "Prove the bug",
