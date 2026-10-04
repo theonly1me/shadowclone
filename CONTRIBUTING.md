@@ -36,6 +36,7 @@ This runs typecheck, lint, the knip unused-file check, and tests. CI also runs t
 - Fix lint findings without suppressing rules.
 - Use plain prose and ordinary punctuation. Do not use em or en dashes.
 - Keep each bundled skill in `skills/` at the quality bar in [design record 032](docs/design/032-bundled-skill-quality.md). `bun run lint` checks it with `scripts/skills.ts`.
+- After you change a file in `skills/`, run `bun run scripts/skillVersions.ts --record`. `shadowclone sync` replaces an installed copy only when its text matches a recorded version, and the lint fails until the new version is recorded.
 
 The repository [clean-code skill](.claude/skills/clean-code/SKILL.md) gives the full conventions. [AGENTS.md](AGENTS.md) is the entry point for coding assistants.
 

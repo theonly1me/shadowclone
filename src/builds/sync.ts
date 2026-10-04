@@ -2,8 +2,9 @@ import path from "node:path";
 import type { FileUpdate } from "../changes";
 import { publishSkillResources } from "../environment/resources";
 import type { EnvironmentArtifact, EnvironmentState } from "../environment/types";
-import { fingerprint, readLocalFile, readLocalText } from "../localFiles";
+import { fingerprint, readLocalFile } from "../localFiles";
 import { parseSkillDocument } from "../skillMaintenance/document";
+import { isBundledVersion } from "../skills/bundledVersions";
 import { loadSeedLibrary, seedSkillsDirectory } from "../skills/library";
 
 export type BuildSkillSyncReport = {
@@ -16,23 +17,56 @@ type BuildSkillSync = BuildSkillSyncReport & {
   readonly updates: readonly FileUpdate[];
 };
 
-async function editedCopies(
-  artifacts: readonly EnvironmentArtifact[],
-): Promise<readonly EnvironmentArtifact[]> {
-  const edited: EnvironmentArtifact[] = [];
+type InstalledFile = {
+  readonly artifact: EnvironmentArtifact;
+  readonly bundledFile: string | null;
+  readonly text: string | null;
+};
 
-  for (const artifact of artifacts) {
-    const text = await readLocalFile({
-      filePath: artifact.filePath,
-      encoding: artifact.kind === "resource" ? "base64" : "utf8",
-    });
+async function installedFiles(options: {
+  readonly copies: readonly EnvironmentArtifact[];
+  readonly resources: readonly EnvironmentArtifact[];
+}): Promise<readonly InstalledFile[]> {
+  const directories = options.copies.map((copy) => path.dirname(copy.filePath));
 
-    if (text !== null && fingerprint(text) !== artifact.fingerprint) {
-      edited.push(artifact);
-    }
-  }
+  return Promise.all(
+    [...options.copies, ...options.resources].map(async (artifact) => {
+      const directory = directories.find((candidate) =>
+        artifact.filePath.startsWith(`${candidate}${path.sep}`),
+      );
 
-  return edited;
+      return {
+        artifact,
+        bundledFile:
+          artifact.kind === "skill"
+            ? "SKILL.md"
+            : directory === undefined
+              ? null
+              : path.relative(directory, artifact.filePath).split(path.sep).join("/"),
+        text: await readLocalFile({
+          filePath: artifact.filePath,
+          encoding: artifact.kind === "resource" ? "base64" : "utf8",
+        }),
+      };
+    }),
+  );
+}
+
+function changedOutsideBundle(options: {
+  readonly skill: string;
+  readonly file: InstalledFile;
+}): boolean {
+  const { bundledFile, text } = options.file;
+
+  return (
+    text !== null &&
+    (bundledFile === null ||
+      !isBundledVersion({
+        skill: options.skill,
+        file: bundledFile,
+        fingerprint: fingerprint(text),
+      }))
+  );
 }
 
 export async function syncBuildSkills(options: {
@@ -59,32 +93,26 @@ export async function syncBuildSkills(options: {
     );
 
     for (const [entryId, copies] of groups) {
-      const resourceCopies = options.state.artifacts.filter(
-        (artifact) =>
-          artifact.buildId === build.id &&
-          artifact.kind === "resource" &&
-          artifact.buildEntryId === entryId,
-      );
-      const edited = await editedCopies([...copies, ...resourceCopies]);
+      const files = await installedFiles({
+        copies,
+        resources: options.state.artifacts.filter(
+          (artifact) =>
+            artifact.buildId === build.id &&
+            artifact.kind === "resource" &&
+            artifact.buildEntryId === entryId,
+        ),
+      });
+      const changed = files.filter((file) => changedOutsideBundle({ skill: entryId, file }));
 
-      if (edited.length > 0) {
+      if (changed.length > 0) {
         kept.push(
-          ...edited.map((artifact) => ({ name: artifact.name, filePath: artifact.filePath })),
+          ...changed.map(({ artifact }) => ({ name: artifact.name, filePath: artifact.filePath })),
         );
 
         continue;
       }
 
       const packagedText = await Bun.file(path.join(packagedDirectory, entryId, "SKILL.md")).text();
-      const outdated = copies.filter(
-        (artifact) => artifact.fingerprint !== fingerprint(packagedText),
-      );
-
-      if (outdated.length === 0) {
-        continue;
-      }
-
-      const description = parseSkillDocument(packagedText).metadata.description;
       const resources = await publishSkillResources({
         source: path.join(packagedDirectory, entryId),
         destinations: copies.map((artifact) => artifact.filePath),
@@ -92,18 +120,20 @@ export async function syncBuildSkills(options: {
         scope: build.id,
         name: entryId,
       });
+      const entryUpdates = [
+        ...files
+          .filter((file) => file.artifact.kind === "skill" && file.text !== packagedText)
+          .map((file) => ({
+            filePath: file.artifact.filePath,
+            previous: file.text,
+            next: packagedText,
+          })),
+        ...resources.updates.filter((update) => update.previous !== update.next),
+      ];
+      const description = parseSkillDocument(packagedText).metadata.description;
 
-      for (const artifact of outdated) {
-        updates.push({
-          filePath: artifact.filePath,
-          previous: await readLocalText(artifact.filePath),
-          next: packagedText,
-        });
-      }
-
-      updates.push(...resources.updates);
       artifacts = artifacts.map((artifact) =>
-        outdated.includes(artifact)
+        copies.includes(artifact)
           ? { ...artifact, fingerprint: fingerprint(packagedText), description }
           : artifact,
       );
@@ -115,7 +145,19 @@ export async function syncBuildSkills(options: {
         artifacts = index < 0 ? [...artifacts, tracked] : artifacts.with(index, tracked);
       }
 
-      updated.push({ name: entryId, copies: outdated.length });
+      if (entryUpdates.length > 0) {
+        updates.push(...entryUpdates);
+        updated.push({
+          name: entryId,
+          copies: copies.filter((copy) =>
+            entryUpdates.some(
+              (update) =>
+                update.filePath === copy.filePath ||
+                update.filePath.startsWith(`${path.dirname(copy.filePath)}${path.sep}`),
+            ),
+          ).length,
+        });
+      }
     }
   }
 
