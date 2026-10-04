@@ -1,10 +1,11 @@
 ---
 name: shadowclone-work
-description: Take a feature request, an issue, or an existing pull request to a pull request that is ready to merge, then keep it there. Use when the user asks to implement something and open a PR, get a PR ready to merge, fix a red PR, address review comments, resolve conflicts, or restack a stack of PRs. Covers CI failures and flakes, bot and human review threads, conflicts with a moving base, and gh stack restacks.
+description: 'Use when the user asks to implement a change and open a pull request, or to get a pull request ready to merge. Also use it when the user says "fix the red PR", "address the review comments", or "restack my PRs". Covers CI failures and flakes, bot and human review threads, conflicts with a moving base, and stack restacks. Takes the work to a pull request that is ready for review, and keeps it there without merging. Not for checking review comments before you act on them (use `verify-review-findings`).'
 metadata:
   shadowclone-category: workflow
   shadowclone-section: workflow
-  shadowclone-applies-when: taking a change or a pull request to ready for review
+  shadowclone-applies-when: when taking a change or a pull request to ready for review
+  shadowclone-voice: "true"
 ---
 # Take Work to a Ready Pull Request
 
@@ -13,6 +14,8 @@ metadata:
 The user wants a change delivered as a pull request that is ready to merge, or wants an existing pull request made ready: red CI, open review comments, a conflict, or a stack that needs restacking. The finish line is "ready for review, every code check green, every comment handled". Never merge.
 
 ## Process
+
+Write in the user's voice. Before you write, read `~/.agents/voice.md`. If it does not exist, build it once from the user's merged pull requests, review comments, and commit messages. Use only text that the user wrote, and name those sources in your handoff. Never overwrite an existing or linked `voice.md`.
 
 1. **Find the target.** For a request or an issue, branch from an up-to-date default branch. For an existing pull request, check out its branch and run `git fetch`. Run `gh stack view` to learn whether the branch is part of a stack, and note each pull request's base.
 2. **Read the repository's rules.** Read `README.md`, `CONTRIBUTING.md`, `AGENTS.md`, and the pull request template when they exist. Follow their title format (for example conventional commits for squash-merged repositories), template sections, and check commands.

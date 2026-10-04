@@ -194,3 +194,28 @@ test("the voice block may repeat in every skill that writes for the user", async
 
   expect(report.findings).toEqual([]);
 });
+
+test("a permanent plain-English exemption skips the checker for that skill only", async () => {
+  const longSentence = `${Array.from({ length: 30 }, (_, index) => `word${index}`).join(" ")}.`;
+  const names = ["check-real-output", "write-real-tests"];
+  const rootDirectory = await treeWith(
+    Object.fromEntries(
+      names.map((name, index) => [
+        `skills/${name}/SKILL.md`,
+        skill({ name, alternative: names[(index + 1) % names.length] ?? "" }).replace(
+          "Keep the check read-only.",
+          `Keep the check read-only. ${longSentence}`,
+        ),
+      ]),
+    ),
+  );
+  const report = await findSkillQualityViolations({
+    rootDirectory,
+    pending: new Set(),
+    exemptions: new Map([["check-real-output", ["plain-english"]]]),
+  });
+
+  expect(report.findings.map((finding) => `${finding.skill} ${finding.rule}`)).toEqual([
+    "write-real-tests plain-english",
+  ]);
+});

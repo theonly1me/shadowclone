@@ -39,9 +39,9 @@ const presentations: Readonly<
       "Reproduce the bug before any fix, then run the same reproduction after it. Keep the change to confirmed behavior.",
   },
   "diagnose-before-editing": {
-    title: "Prove the bug",
+    title: "Find the cause",
     summary:
-      "Trace the failure and establish its cause before changing code. Use evidence to choose the smallest useful fix.",
+      "Reproduce the failure, make it smaller, and test one cause at a time until one cause predicts the symptom.",
   },
   "tests-that-catch-bugs": {
     title: "Tests that catch bugs",
