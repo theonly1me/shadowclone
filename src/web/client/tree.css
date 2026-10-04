@@ -228,3 +228,56 @@
   text-align: center;
   pointer-events: none;
 }
+
+.map-node-category {
+  cursor: pointer;
+}
+
+.map-node-category:hover .map-node-gem,
+.map-node-category:focus-visible .map-node-gem {
+  stroke: #d0b8ff;
+  stroke-width: 2;
+}
+
+.map-node-category:focus-visible .map-node-hit {
+  stroke: #8dd0bd;
+  stroke-width: 1.5;
+}
+
+.map-node-category.partial .map-node-gem {
+  stroke: #ceb8ff;
+  stroke-dasharray: 4 3;
+}
+
+.map-collapse {
+  cursor: pointer;
+}
+
+.map-collapse circle {
+  fill: #141522;
+  stroke: #4c4260;
+  stroke-width: 1;
+}
+
+.map-collapse path {
+  fill: none;
+  stroke: #cbbcec;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.map-collapse:hover circle,
+.map-collapse:focus-visible circle {
+  stroke: #8dd0bd;
+}
+
+.map-collapse:focus {
+  outline: none;
+}
+
+.map-node text.map-hidden-count {
+  fill: #9a92b4;
+  font-size: 12px;
+  font-weight: 400;
+}

@@ -111,3 +111,10 @@ Decisions:
 - `integrationFilePath` resolves the link, so install, sync, the wizard, and removal agree on one path.
 
 Tests use the same layout in a throwaway home: the preview, the apply, and the undo, with each link unchanged afterwards.
+
+## Category selection and collapsed groups
+
+Equipping a large library one skill at a time is slow, and a fully expanded map is long.
+
+- One click on a category equips every skill in it that the user can equip. If all of them are already equipped, the click unequips them. Plugin-managed and locked skills are left alone. When two skills in the category share an axis, only the first is equipped.
+- A chevron beside each category and source collapses or expands that group. A collapsed group shows how many skills it hides. Groups start expanded. The collapsed set is a per-browser convenience in `localStorage`, and the map works without it.
