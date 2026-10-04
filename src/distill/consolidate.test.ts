@@ -63,7 +63,7 @@ test("retains the first key and unions exact constituent evidence", async () => 
       errorMessage: null,
     });
 
-  const consolidated = await consolidateNewRules({
+  const { rules: consolidated } = await consolidateNewRules({
     rules: [rule(1), rule(2), rule(3)],
     runner,
     workingDirectory: "/tmp",
@@ -112,7 +112,7 @@ test("keeps explicit guidance active when consolidating fewer than three session
     },
   };
 
-  const consolidated = await consolidateNewRules({
+  const { rules: consolidated } = await consolidateNewRules({
     rules: [explicit, rule(2)],
     runner,
     workingDirectory: "/tmp",

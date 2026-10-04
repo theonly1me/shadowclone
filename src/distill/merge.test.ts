@@ -53,7 +53,7 @@ test("returns the consolidated rules the engine produced", async () => {
     cwd: "/tmp",
   });
 
-  expect(merged.length).toBe(1);
+  expect(merged.rules.length).toBe(1);
 });
 
 test("retains constituent source indices from engine output", async () => {
@@ -72,8 +72,8 @@ test("retains constituent source indices from engine output", async () => {
     cwd: "/tmp",
   });
 
-  expect(merged.length).toBe(1);
-  expect(merged[0]?.sources).toEqual([0, 1]);
+  expect(merged.rules.length).toBe(1);
+  expect(merged.rules[0]?.sources).toEqual([0, 1]);
 });
 
 test("keeps the unmerged rules when the engine returns an unusable shape", async () => {
@@ -83,7 +83,7 @@ test("keeps the unmerged rules when the engine returns an unusable shape", async
     cwd: "/tmp",
   });
 
-  expect(merged).toEqual(rules);
+  expect(merged).toEqual({ rules, dropped: [] });
 });
 
 test("reads merge from checkpoint on repeated invocation without calling runner", async () => {
@@ -128,7 +128,7 @@ test("reads merge from checkpoint on repeated invocation without calling runner"
   });
 
   expect(callCount).toBe(1);
-  expect(first.length).toBe(1);
+  expect(first.rules.length).toBe(1);
 
   const second = await mergeDistilledRules({
     rules,
@@ -138,5 +138,64 @@ test("reads merge from checkpoint on repeated invocation without calling runner"
   });
 
   expect(callCount).toBe(1);
-  expect(second.length).toBe(1);
+  expect(second.rules.length).toBe(1);
+});
+
+const completeNames: DistilledRule = {
+  title: "Use complete names",
+  body: "Write full words in identifiers.",
+  section: "engineering",
+};
+const noForcePush: DistilledRule = {
+  title: "Never force push",
+  body: "Merge the base branch in instead of rewriting history.",
+  section: "workflow",
+};
+const telemetry: DistilledRule = {
+  title: "Session telemetry",
+  body: "The session ran 14 tool calls.",
+  section: "workflow",
+};
+const distinctRules: readonly DistilledRule[] = [completeNames, noForcePush, telemetry];
+
+test("a rule the engine leaves out of every source is kept unmerged", async () => {
+  const merged = await mergeDistilledRules({
+    rules: distinctRules,
+    runner: runnerReturning({
+      rules: [{ ...completeNames, sources: [0] }],
+      dropped: [],
+    }),
+    cwd: "/tmp",
+  });
+
+  expect(merged.rules.map((rule) => rule.title)).toEqual([
+    "Use complete names",
+    "Never force push",
+    "Session telemetry",
+  ]);
+  expect(merged.rules.map((rule) => rule.sources)).toEqual([[0], [1], [2]]);
+  expect(merged.dropped).toEqual([]);
+});
+
+test("a dropped rule is reported with its reason, and a merged rule cannot also be dropped", async () => {
+  const merged = await mergeDistilledRules({
+    rules: distinctRules,
+    runner: runnerReturning({
+      rules: [
+        { ...completeNames, sources: [0] },
+        { ...noForcePush, sources: [1] },
+      ],
+      dropped: [
+        { index: 2, reason: "It records activity, not guidance." },
+        { index: 0, reason: "Duplicate." },
+        { index: 9, reason: "Out of range." },
+      ],
+    }),
+    cwd: "/tmp",
+  });
+
+  expect(merged.rules.map((rule) => rule.title)).toEqual(["Use complete names", "Never force push"]);
+  expect(merged.dropped).toEqual([
+    { rule: telemetry, reason: "It records activity, not guidance." },
+  ]);
 });

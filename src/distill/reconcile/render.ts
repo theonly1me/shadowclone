@@ -7,8 +7,11 @@ function sourceLabel(change: ReconciliationChange): string {
 export function renderReconciliationChanges(options: {
   readonly changes: readonly ReconciliationChange[];
   readonly rejectedMatches?: number;
+  readonly droppedRules?: readonly { readonly title: string; readonly reason: string }[];
 }): string {
-  if (options.changes.length === 0 && !options.rejectedMatches) {
+  const droppedRules = options.droppedRules ?? [];
+
+  if (options.changes.length === 0 && !options.rejectedMatches && droppedRules.length === 0) {
     return "No profile changes proposed.";
   }
 
@@ -29,6 +32,15 @@ export function renderReconciliationChanges(options: {
   if (options.rejectedMatches) {
     blocks.push(
       `${options.rejectedMatches} proposed rule matched rejected guidance and was omitted.`,
+    );
+  }
+
+  if (droppedRules.length > 0) {
+    blocks.push(
+      [
+        `${droppedRules.length} learned rule${droppedRules.length === 1 ? " was" : "s were"} dropped while merging:`,
+        ...droppedRules.map((rule) => `- ${rule.title}: ${rule.reason}`),
+      ].join("\n"),
     );
   }
 

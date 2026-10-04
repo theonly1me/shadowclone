@@ -15,7 +15,7 @@ import {
 } from "./aggregate";
 import { distillConcurrency, groupDistillBatches } from "./batch";
 import { mapWithConcurrency } from "./concurrency";
-import { consolidateNewRules } from "./consolidate";
+import { consolidateNewRules, type DroppedMergeRule } from "./consolidate";
 import { allowlistedSignals } from "./eligible";
 import { materializeEvidence } from "./excerpts";
 import { assessedCorrections, type AssessedCorrection } from "./feedback";
@@ -63,6 +63,7 @@ export type DistillationResult = {
   readonly changes: readonly ReconciliationChange[];
   readonly engineRuns: number;
   readonly rejectedMatches: number;
+  readonly droppedRules: readonly DroppedMergeRule[];
   readonly corrections: readonly AssessedCorrection[];
   readonly noChangeReason: "already-covered" | "uncertain-evidence" | "no-eligible-evidence";
 };
@@ -155,7 +156,7 @@ export async function distillSignals(options: {
     appliedRules.filter((rule) => !newKeys.has(rule.key)),
   );
 
-  const newRules = await consolidateNewRules({
+  const consolidated = await consolidateNewRules({
     rules: appliedRules.filter((rule) => newKeys.has(rule.key)),
     runner: execution.runner,
     workingDirectory: options.workingDirectory,
@@ -163,6 +164,7 @@ export async function distillSignals(options: {
       ? { checkpointDirectory: options.checkpointDirectory }
       : {}),
   });
+  const newRules = consolidated.rules;
 
   return {
     rules: [...existingRules, ...newRules],
@@ -173,6 +175,7 @@ export async function distillSignals(options: {
     }),
     engineRuns: execution.callsUsed(),
     rejectedMatches,
+    droppedRules: consolidated.dropped,
     corrections: batchResults.flatMap(assessedCorrections),
     noChangeReason: batchResults.length === 0 ? "no-eligible-evidence"
       : changes.some((change) => change.kind === "reinforces") ? "already-covered" : "uncertain-evidence",

@@ -7,6 +7,16 @@ import {
 } from "../profile";
 import { mergeDistilledRules } from "./merge";
 
+export type DroppedMergeRule = {
+  readonly title: string;
+  readonly reason: string;
+};
+
+type ConsolidatedRules = {
+  readonly rules: readonly ProfileRule[];
+  readonly dropped: readonly DroppedMergeRule[];
+};
+
 function unionEvidence(rules: readonly ProfileRule[]): ProfileEvidence {
   return {
     for: [...new Set(rules.flatMap((rule) => rule.evidence.for))],
@@ -19,9 +29,9 @@ async function consolidateOrigin(options: {
   readonly runner: EngineRunner;
   readonly workingDirectory: string;
   readonly checkpointDirectory?: string;
-}): Promise<readonly ProfileRule[]> {
+}): Promise<ConsolidatedRules> {
   if (options.rules.length <= 1) {
-    return options.rules;
+    return { rules: options.rules, dropped: [] };
   }
 
   const merged = await mergeDistilledRules({
@@ -35,7 +45,7 @@ async function consolidateOrigin(options: {
     checkpointDirectory: options.checkpointDirectory,
   });
 
-  return merged.flatMap((result, resultIndex) => {
+  const rules = merged.rules.flatMap((result, resultIndex) => {
     const sourceIndices = result.sources ?? [resultIndex];
     const constituents = [...new Set(sourceIndices)].flatMap((index) =>
       options.rules[index] ? [options.rules[index]] : [],
@@ -70,6 +80,11 @@ async function consolidateOrigin(options: {
       },
     ];
   });
+
+  return {
+    rules,
+    dropped: merged.dropped.map((drop) => ({ title: drop.rule.title, reason: drop.reason })),
+  };
 }
 
 export async function consolidateNewRules(options: {
@@ -77,13 +92,17 @@ export async function consolidateNewRules(options: {
   readonly runner: EngineRunner;
   readonly workingDirectory: string;
   readonly checkpointDirectory?: string;
-}): Promise<readonly ProfileRule[]> {
+}): Promise<ConsolidatedRules> {
   const groups = Map.groupBy(options.rules, (rule) => rule.originDirectory);
-  const consolidated: ProfileRule[] = [];
+  const rules: ProfileRule[] = [];
+  const dropped: DroppedMergeRule[] = [];
 
-  for (const rules of groups.values()) {
-    consolidated.push(...(await consolidateOrigin({ ...options, rules })));
+  for (const group of groups.values()) {
+    const consolidated = await consolidateOrigin({ ...options, rules: group });
+
+    rules.push(...consolidated.rules);
+    dropped.push(...consolidated.dropped);
   }
 
-  return consolidated;
+  return { rules, dropped };
 }

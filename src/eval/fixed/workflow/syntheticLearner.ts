@@ -16,10 +16,10 @@ export function syntheticLearner(options: { prompts: string[] }): NativeEngineRu
       const data = learningSchema.parse(JSON.parse(run.prompt.split("\n\n").at(-1) ?? "null"));
       structured = { body: "", description: "", edits: [{ before: "", after: data.learnings.map(learning => learning.text).join("\n\n"), keys: data.learnings.map(learning => learning.key) }],
         outcomes: data.learnings.map(learning => ({ key: learning.key, disposition: "apply", reason: "Preserves the explicit correction" })) };
-    } else if (run.prompt.includes("Merge the duplicates into single, strong rules")) {
+    } else if (run.prompt.includes("Merge duplicates into one rule")) {
       structured = { rules: [...run.prompt.matchAll(/\[(\d+)\] Title: ([^\n]+)\nBody: ([^\n]+)\nSection: ([^\n]+)/g)].map(match => ({
         title: match[2], body: match[3], section: match[4], sources: [Number(match[1])],
-      })) };
+      })), dropped: [] };
     } else if (run.prompt.includes("Reconcile correction evidence")) {
       const evidence = run.prompt.split("Correction evidence\n").at(-1) ?? "";
       const blocks = evidence.split(/(?=evidence-\d+ \[)/);
