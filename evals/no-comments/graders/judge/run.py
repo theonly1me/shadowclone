@@ -12,16 +12,30 @@ PAIRING_SEED = 20261006
 write_lock = threading.Lock()
 
 
-def eligible_repetitions(*, runs_dir: Path, label: str, condition: str) -> list[int]:
-    folders = sorted((runs_dir / label / condition).glob("*/final"))
-    return [int(folder.parent.name) for folder in folders]
+BATCH_SIZE = 10
+
+
+def eligible_repetitions(*, runs_dir: Path, label: str, condition: str, batch: int) -> list[int]:
+    folders = sorted((runs_dir / label / condition).glob("*/result.json"))
+    repetitions = [int(folder.parent.name) for folder in folders]
+    return [rep for rep in repetitions if (rep - 1) // BATCH_SIZE + 1 == batch]
+
+
+def pairing_seed(*, label: str, batch: int) -> str:
+    suffix = "" if batch == 1 else f"-batch{batch}"
+    return f"{PAIRING_SEED}-{label}{suffix}"
 
 
 def build_pairs(*, runs_dir: Path, label: str) -> list[tuple[int, int]]:
-    a_reps = eligible_repetitions(runs_dir=runs_dir, label=label, condition="A")
-    b_reps = eligible_repetitions(runs_dir=runs_dir, label=label, condition="B")
-    shuffled = random.Random(f"{PAIRING_SEED}-{label}").sample(b_reps, len(b_reps))
-    return list(zip(a_reps, shuffled))
+    pairs = []
+    for batch in range(1, 100):
+        a_reps = eligible_repetitions(runs_dir=runs_dir, label=label, condition="A", batch=batch)
+        b_reps = eligible_repetitions(runs_dir=runs_dir, label=label, condition="B", batch=batch)
+        if not a_reps and not b_reps:
+            break
+        shuffled = random.Random(pairing_seed(label=label, batch=batch)).sample(b_reps, len(b_reps))
+        pairs.extend(zip(a_reps, shuffled))
+    return pairs
 
 
 def final_directory(*, runs_dir: Path, label: str, condition: str, repetition: int) -> Path:

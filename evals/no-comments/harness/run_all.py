@@ -13,10 +13,10 @@ SCHEDULE_SEED = 20261005
 print_lock = threading.Lock()
 
 
-def build_schedule(*, settings: list[Setting], repetitions: int) -> list[tuple[Setting, str, int]]:
+def build_schedule(*, settings: list[Setting], first_repetition: int, repetitions: int) -> list[tuple[Setting, str, int]]:
     cells = [
         (setting, condition, repetition)
-        for repetition in range(1, repetitions + 1)
+        for repetition in range(first_repetition, repetitions + 1)
         for setting in settings
         for condition in CONDITIONS
     ]
@@ -49,6 +49,7 @@ def report_progress(result: dict) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--first-repetition", type=int, default=1)
     parser.add_argument("--repetitions", type=int, required=True)
     parser.add_argument("--concurrency", type=int, default=3)
     parser.add_argument("--runs-dir", type=Path, default=RUNS_DIR)
@@ -56,7 +57,9 @@ def main() -> None:
     arguments = parser.parse_args()
 
     settings = [item for item in load_settings() if not arguments.labels or item.label in arguments.labels]
-    schedule = build_schedule(settings=settings, repetitions=arguments.repetitions)
+    schedule = build_schedule(
+        settings=settings, first_repetition=arguments.first_repetition, repetitions=arguments.repetitions
+    )
     arguments.runs_dir.mkdir(parents=True, exist_ok=True)
 
     def work(cell: tuple[Setting, str, int]) -> None:

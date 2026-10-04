@@ -49,6 +49,16 @@ The [agent invocation code](harness/agents.py) holds the exact commands. Both CL
 
 The primary outcome is the pooled win rate of B over A across all 40 pairs, with a 95% bootstrap interval (10,000 resamples) and a sign-flip permutation test against 50%. Per-setting results are descriptive. Metrics report the mean for A and B and the difference B minus A with a 95% bootstrap interval. All four settings are reported.
 
+### Extension plan, written before the second batch ran
+
+After the first batch of 40 pairs the pooled result was 59.4% (95% interval 47.5% to 71.3%, p = 0.164), which is not significant. A second batch of 10 runs per cell (repetitions 11 to 20, 80 more runs) is run to narrow the interval. These rules were fixed before any batch 2 run started:
+
+- The task, prompts, hidden tests, rubric, judges, and analysis code do not change. The runner only gains a start-repetition option, and pairing and analysis gain batches. Batch 1 pairs and numbers are unchanged.
+- Pairs are formed inside each batch, so batch 1 has 40 pairs, batch 2 has 40 pairs, and the combined study has 80 pairs.
+- Batch 1, batch 2, and the combined result are all reported.
+- The combined result is the headline. The extension followed a look at batch 1, so its p-value is somewhat optimistic. Batch 2 alone is a fresh check of the batch 1 trend.
+- There is no third batch, whatever the outcome.
+
 ## Results
 
 ### Blind judge

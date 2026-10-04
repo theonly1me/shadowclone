@@ -58,11 +58,15 @@ def compliance(results: list[dict], label: str) -> dict:
     return {"b_runs": len(banned), "compliant": sum(1 for r in banned if r["comment_compliant"])}
 
 
-def main() -> None:
-    runs_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else RUNS_DIR
-    results = load_results(runs_dir)
-    judgments = load_judgments(runs_dir)
-    report = {
+BATCH_SIZE = 10
+
+
+def batch_of(repetition: int) -> int:
+    return (repetition - 1) // BATCH_SIZE + 1
+
+
+def build_report(results: list[dict], judgments: list[dict]) -> dict:
+    return {
         "pooled_judge": judge_summary(judgments, None),
         "settings": {
             setting.label: {
@@ -74,6 +78,22 @@ def main() -> None:
             for setting in load_settings()
         },
     }
+
+
+def main() -> None:
+    runs_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else RUNS_DIR
+    results = load_results(runs_dir)
+    judgments = load_judgments(runs_dir)
+    report = build_report(results, judgments)
+    batches = sorted({batch_of(r["repetition"]) for r in results})
+    if len(batches) > 1:
+        report["batches"] = {
+            str(batch): build_report(
+                [r for r in results if batch_of(r["repetition"]) == batch],
+                [row for row in judgments if batch_of(row["a_rep"]) == batch],
+            )
+            for batch in batches
+        }
     (runs_dir / "analysis.json").write_text(json.dumps(report, indent=2))
     print(json.dumps(report["pooled_judge"], indent=2))
 
