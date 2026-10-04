@@ -19,6 +19,13 @@
       "58743b9347aebc84b9593e1b9df35f2d4edb2c081d957d17b30b093f244e21c1"
     ]
   },
+  "plan-with-review-page": {
+    "assets/review-page.html": ["8a587b325fc576a2eefb247baa2d3374ce1e5633f62fbe7987e2e65141292964"],
+    "scripts/validate-page.mjs": [
+      "b73ec4a524a8ba274087cd293061b3dda3658e63533e9c43b621ecf116018d3f"
+    ],
+    "SKILL.md": ["786f6b8ef45eeb97a483b9172d02595d84ce6f6c01f50439d6b9b5689551e4ea"]
+  },
   "prove-regression-tests": {
     "SKILL.md": [
       "4ca9c38fd94b9aad9ba18c44d220077caad268d8fb8578122f278a74c31a7b0e",
