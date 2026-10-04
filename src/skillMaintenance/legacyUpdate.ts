@@ -23,6 +23,7 @@ export type SkillUpdateSummary = {
   readonly verification: number;
   readonly synced: number;
   readonly conflicts: number;
+  readonly held?: number;
   readonly libraryReviewed?: number;
   readonly libraryDeferred?: number;
 };
