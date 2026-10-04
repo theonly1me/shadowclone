@@ -40,3 +40,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [030: shadowclone-work evaluation](030-shadowclone-work-eval.md)          | Ready-for-review workflow, reviewer comment rules, a fake-`gh` evaluation, and removal of the task harness |
 | [031: GitHub clones](031-github-clones.md)                                | Named personal Apps, reviewed cloud guidance, and guarded issue work                                       |
 | [032: Bundled skill quality](032-bundled-skill-quality.md)                | One checked quality bar, a consequence-first decision policy, voice, and the same delivery for every host  |
+| [033: Wizard map and voice](033-wizard-map-and-voice.md)                  | A fast model tier, a horizontal star map that shows every skill, random stars, build names, voice review   |
