@@ -23,7 +23,7 @@ type InstalledFile = {
   readonly text: string | null;
 };
 
-async function installedFiles(options: {
+export async function installedFiles(options: {
   readonly copies: readonly EnvironmentArtifact[];
   readonly resources: readonly EnvironmentArtifact[];
 }): Promise<readonly InstalledFile[]> {
@@ -52,7 +52,7 @@ async function installedFiles(options: {
   );
 }
 
-function changedOutsideBundle(options: {
+export function changedOutsideBundle(options: {
   readonly skill: string;
   readonly file: InstalledFile;
 }): boolean {

@@ -1,15 +1,40 @@
 import path from "node:path";
+import type { FileUpdate } from "../changes";
 import { readEffectiveConfig } from "../config";
 import { publishEnvironmentRevision } from "../environment/revision";
 import { environmentFile, readEnvironment, renderEnvironment } from "../environment/store";
+import type { EnvironmentState } from "../environment/types";
 import { readLocalText } from "../localFiles";
 import { acquireLocalLock } from "../localFiles/lock";
 import type { ProjectPaths } from "../paths";
-import { syncBuildSkills, type BuildSkillSyncReport } from "./sync";
+import { renderRetiredSkillChanges, type RetiredSkillChange } from "./retired";
+import { migrateRetiredSkills } from "./retiredMigration";
+import { renderBuildSkillSync, syncBuildSkills, type BuildSkillSyncReport } from "./sync";
 
-export async function updateBundledSkills(
-  paths: ProjectPaths,
-): Promise<BuildSkillSyncReport | null> {
+export type BundledSkillReport = BuildSkillSyncReport & {
+  readonly retired: readonly RetiredSkillChange[];
+  readonly warnings: readonly string[];
+};
+
+async function publishState(options: {
+  readonly paths: ProjectPaths;
+  readonly updates: readonly FileUpdate[];
+  readonly state: EnvironmentState;
+}): Promise<void> {
+  const filePath = environmentFile(options.paths);
+  const updates = [
+    ...options.updates,
+    {
+      filePath,
+      previous: await readLocalText(filePath),
+      next: renderEnvironment(options.state),
+    },
+  ].filter((update) => update.previous !== update.next);
+
+  await publishEnvironmentRevision({ paths: options.paths, updates });
+}
+
+export async function updateBundledSkills(paths: ProjectPaths): Promise<BundledSkillReport | null> {
   if ((await readEnvironment(paths))?.phase !== "active") {
     return null;
   }
@@ -38,23 +63,29 @@ export async function updateBundledSkills(
       return null;
     }
 
-    const synced = await syncBuildSkills({ state: current });
-    const filePath = environmentFile(paths);
+    const migrated = await migrateRetiredSkills({ paths, state: current });
 
-    await publishEnvironmentRevision({
-      paths,
-      updates: [
-        ...synced.updates,
-        {
-          filePath,
-          previous: await readLocalText(filePath),
-          next: renderEnvironment(synced.state),
-        },
-      ],
-    });
+    await publishState({ paths, updates: migrated.updates, state: migrated.state });
 
-    return { updated: synced.updated, kept: synced.kept };
+    const synced = await syncBuildSkills({ state: migrated.state });
+
+    await publishState({ paths, updates: synced.updates, state: synced.state });
+
+    return {
+      updated: synced.updated,
+      kept: synced.kept,
+      retired: migrated.changes,
+      warnings: migrated.warnings,
+    };
   } finally {
     lock.release();
   }
+}
+
+export function renderBundledSkillReport(report: BundledSkillReport): readonly string[] {
+  return [
+    ...renderRetiredSkillChanges(report.retired),
+    ...report.warnings,
+    ...renderBuildSkillSync(report),
+  ];
 }

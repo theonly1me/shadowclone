@@ -10,13 +10,11 @@ import { customDocument } from "./selection";
 import type { BuildContext, BuildItem, BuildScope } from "./types";
 import { skillClassification } from "./classification";
 
-export async function buildCatalog(
-  context: BuildContext & { readonly scope?: BuildScope },
-): Promise<readonly BuildItem[]> {
+export async function packagedBuildItems(): Promise<BuildItem[]> {
   const library = await loadSeedLibrary();
   const packaged = await seedSkillsDirectory();
 
-  const items: BuildItem[] = await Promise.all(
+  return Promise.all(
     library.guidance.map(async (entry) => ({
       id: entry.id,
       name: entry.id,
@@ -36,7 +34,12 @@ export async function buildCatalog(
       owner: "packaged",
     })),
   );
+}
 
+export async function buildCatalog(
+  context: BuildContext & { readonly scope?: BuildScope },
+): Promise<readonly BuildItem[]> {
+  const items = await packagedBuildItems();
   const environment = await readEnvironment(context.paths);
 
   const builds =

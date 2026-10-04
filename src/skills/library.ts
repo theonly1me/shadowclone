@@ -1,5 +1,6 @@
-import { readdir } from "node:fs/promises";
+import { readdir, stat } from "node:fs/promises";
 import path from "node:path";
+import { z } from "zod";
 import {
   parseSeedAgentSkillDocument,
   parseSeedPreferenceDocument,
@@ -17,15 +18,25 @@ type SeedDirectories = {
   readonly skills: string;
 };
 
-async function hasGuidance(rootDirectory: string): Promise<boolean> {
+const packageManifestSchema = z.object({ name: z.string() });
+
+async function isDirectory(directory: string): Promise<boolean> {
+  return stat(directory)
+    .then((metadata) => metadata.isDirectory())
+    .catch(() => false);
+}
+
+export async function isPackageRoot(rootDirectory: string): Promise<boolean> {
+  const manifest = Bun.file(path.join(rootDirectory, "package.json"));
+  const parsed = packageManifestSchema.safeParse(
+    (await manifest.exists()) ? await manifest.json().catch(() => null) : null,
+  );
+
   return (
-    (await Bun.file(path.join(rootDirectory, "package.json")).exists()) &&
-    (await Bun.file(
-      path.join(rootDirectory, "skills", "testing-first", "SKILL.md"),
-    ).exists()) &&
-    (await Bun.file(
-      path.join(rootDirectory, "preferences", "planning-first.md"),
-    ).exists())
+    parsed.success &&
+    parsed.data.name === "@shadowclone/cli" &&
+    (await isDirectory(path.join(rootDirectory, "skills"))) &&
+    (await isDirectory(path.join(rootDirectory, "preferences")))
   );
 }
 
@@ -36,7 +47,7 @@ async function resolveSeedDirectories(): Promise<SeedDirectories> {
   ];
 
   for (const packageRoot of packageRoots) {
-    if (await hasGuidance(packageRoot)) {
+    if (await isPackageRoot(packageRoot)) {
       return {
         preferences: path.join(packageRoot, "preferences"),
         skills: path.join(packageRoot, "skills"),
