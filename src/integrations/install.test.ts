@@ -10,8 +10,10 @@ test("preserves surrounding Codex instructions across refresh, repeat install an
   const destination = path.join(fixture.cwd, "AGENTS.md");
   const localDestination = path.join(fixture.cwd, "AGENTS.override.md");
   const original = "# Team guidance\n\nUse the existing service.";
+  const userOverride = "# My overrides\n\nPrefer small commits.\n";
 
   await Bun.write(destination, original);
+  await Bun.write(localDestination, userOverride);
 
   const first = await installIntegration({
     ...fixture,
@@ -20,6 +22,7 @@ test("preserves surrounding Codex instructions across refresh, repeat install an
   });
 
   expect(await Bun.file(destination).text()).toBe(original);
+  expect(await Bun.file(localDestination).text()).toStartWith(userOverride);
   expect(await Bun.file(localDestination).text()).toContain("A session hook loads");
   expect(
     await Bun.file(path.join(fixture.cwd, ".codex/hooks.json")).json(),
@@ -59,7 +62,7 @@ test("preserves surrounding Codex instructions across refresh, repeat install an
   await uninstallIntegration({ paths: fixture.paths, integration: installed });
 
   expect(await Bun.file(destination).text()).toBe(original);
-  expect(await Bun.file(localDestination).exists()).toBeFalse();
+  expect(await Bun.file(localDestination).text()).toBe(userOverride);
   expect(await readIntegrations(fixture.paths)).toEqual([]);
 });
 

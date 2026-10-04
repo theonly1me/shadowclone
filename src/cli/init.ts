@@ -17,7 +17,8 @@ import {
   printDetectionSummary,
 } from "./initDetection";
 import { createSetupEngine, runSetupLearning } from "./initLearning";
-import { describeSkippedAgent, installNativeCommand, type SkippedAgent } from "./native";
+import { installNativeCommand } from "./native";
+import { describeSkippedAgent, type SkippedAgent } from "./skippedAgents";
 import { readEnvironment } from "../environment/store";
 import { pendingLearningRecords } from "../environment/pending";
 import { maintainSkills } from "../learning/maintenance";

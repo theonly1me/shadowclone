@@ -4,7 +4,7 @@ import { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
 
 export { parseNativeOptions, type NativeInstallOptions } from "./nativeOptions";
 import { explainLearningEnvironment } from "../environment/diagnostics";
-import { UnsafeDestinationError } from "../localFiles";
+import { describeSkippedAgent, skippedAgentFrom, type SkippedAgent } from "./skippedAgents";
 import {
   compileContext,
   compileContextDetails,
@@ -25,21 +25,6 @@ import { explainContext, renderContextExplanation } from "./contextExplain";
 import { harnessSyncCommand } from "./harnessSync";
 import { nativeModelSchema } from "./automaticLearning";
 
-export type SkippedAgent = {
-  readonly agent: NativeInstallOptions["agents"][number];
-  readonly path: string;
-  readonly target: string | null;
-};
-
-export function describeSkippedAgent(skipped: SkippedAgent): string {
-  const reason =
-    skipped.target === null
-      ? `${skipped.path} is not a regular file`
-      : `${skipped.path} is a symbolic link to ${skipped.target}`;
-
-  return `Not installed for ${skipped.agent}: ${reason}. Shadowclone does not write through links, so ${skipped.agent} gets no Shadowclone guidance. Replace the link with a regular file, then run shadowclone install --agent ${skipped.agent}.`;
-}
-
 export async function installNativeCommand(
   options: NativeInstallOptions & {
     readonly skipUnsafeDestinations?: boolean;
@@ -56,11 +41,17 @@ export async function installNativeCommand(
       await (options.install ?? installIntegration)({ agent, scope: options.scope });
       console.log(`Installed ${agent} main-agent guidance (${options.scope}).`);
     } catch (error) {
-      if (!options.skipUnsafeDestinations || !(error instanceof UnsafeDestinationError)) {
+      const skip = skippedAgentFrom({
+        agent,
+        error,
+        skipUnsafeDestinations: options.skipUnsafeDestinations ?? false,
+      });
+
+      if (skip === null) {
         throw error;
       }
 
-      skipped.push({ agent, path: error.path, target: error.target });
+      skipped.push(skip);
     }
   }
 
@@ -122,7 +113,15 @@ export async function handleNativeCommand(options: {
     }
 
     if (options.command === "install") {
-      await installNativeCommand(parsed);
+      const { skipped } = await installNativeCommand(parsed);
+
+      for (const entry of skipped) {
+        console.log(describeSkippedAgent(entry));
+      }
+
+      if (skipped.length > 0) {
+        process.exitCode = 1;
+      }
     } else {
       await uninstallNativeCommand({
         ...parsed,

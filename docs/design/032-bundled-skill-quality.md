@@ -84,7 +84,7 @@ Skills that write pull requests, commit messages, comments, or documents for the
 - The package-root check reads the package name and stops depending on any one skill.
 - Routing lines become `- <moment>: <skill>`, built from `shadowclone-applies-when`. With all 13 skills, routing uses about 1.6 KiB. Each host still lists the full descriptions through its own skill catalog. Before this change, a build with every bundled skill and preference used 4091 of the 4096 routing bytes. The routing budget test now requires such a build to leave 1 KiB for the user's own rules and skills.
 - A delivery-matrix test installs every integration in a synthetic home. It checks that each host's skill folders hold byte-identical skills and that every host receives the same routing text. Known gaps are rows in the test's table, so closing a gap changes a reviewed row.
-- A Codex repository install stops before it writes an `AGENTS.override.md` next to a team `AGENTS.md`, and names both files.
+- A Codex repository install stops before it writes an `AGENTS.override.md` next to a team `AGENTS.md`, and names both files. It also reports an override that Shadowclone created before the team file existed. An override that the user made stays the user's choice. Other agents in the same command still install, and the command exits with status 1.
 
 ### Checks that replace rules
 
