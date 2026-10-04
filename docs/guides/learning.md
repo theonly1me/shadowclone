@@ -19,7 +19,7 @@ shadowclone skills pending
 shadowclone learning status
 ```
 
-`learning pending` brings learned proposals, scope blockers, publication work, and skill conflicts into one list. `learning show` displays the rule, its proposed replacement, scope, available redacted user excerpts, capture sources, and delivery state. Disabled-source excerpts are not opened. `learning status` reports the latest private attempt receipt with the outcome and next action. Start a new agent session after a rule becomes active. Publication confirms that guidance is installed; it does not prove that an agent followed it.
+`learning pending` brings learned proposals, scope blockers, publication work, and skill conflicts into one list. A learned rule whose text reads like instructions to an agent, for example "ignore all previous instructions" or a download piped into a shell, is held there with its reasons before any model sees it, and `learn` prints how many rules it held. Rewrite such a rule with `learning replace`, or remove it with `learning retire`. `learning show` displays the rule, its proposed replacement, scope, available redacted user excerpts, capture sources, and delivery state. Disabled-source excerpts are not opened. `learning status` reports the latest private attempt receipt with the outcome and next action. Start a new agent session after a rule becomes active. Publication confirms that guidance is installed; it does not prove that an agent followed it.
 
 Each invocation allows up to 20 model calls and five minutes. Run it again if the result says more history remains. The first pass during interactive setup is smaller, with up to 12 calls and 90 seconds.
 

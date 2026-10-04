@@ -40,6 +40,7 @@ export async function updateLearningEnvironment(options: {
     duplicates: 0,
     deferred: 0,
     verification: 0,
+    held: 0,
     synced: 0,
     conflicts: 0,
   };

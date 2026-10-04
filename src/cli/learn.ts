@@ -10,6 +10,7 @@ import { renderMirror } from "../profile";
 import { checkMarkerStaleness, deriveSignals } from "../signal";
 import type { LearnExecutionOptions } from "./learnOptions";
 import { maintainSkills } from "../learning/maintenance";
+import { writeSkillMaintenance } from "./learnSummary";
 import { registerWorkingRepository } from "../environment/registerRepository";
 import { runDeepLearning } from "./deepLearn";
 import { selectManualLearningWindow } from "./learningWindow";
@@ -189,9 +190,7 @@ export async function learn(options: LearnExecutionOptions = {}): Promise<void> 
           pendingCount += skills.pending + skills.deferred + skills.conflicts;
           publishedCount = skills.applied;
 
-          writeLine(
-            `Skill maintenance: ${skills.synced} synced, ${skills.applied} updated, ${skills.pending} pending, ${skills.deferred} deferred, ${skills.conflicts} conflicts.`,
-          );
+          writeSkillMaintenance({ skills, writeLine });
         }
 
         stage = "complete";

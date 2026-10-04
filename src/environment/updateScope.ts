@@ -12,6 +12,8 @@ import { belongsToScope, type LearningScope } from "./scope";
 import { readRedactedEnvironment, renderEnvironment } from "./store";
 import type { EnvironmentState } from "./types";
 import { retirementRequested } from "./draftSchema";
+import { heldLearningReason } from "./instructionScreen";
+import { pendingLearningState } from "./learningDisposition";
 
 export async function updateLearningScope(options: {
   readonly paths: ProjectPaths;
@@ -27,6 +29,7 @@ export async function updateLearningScope(options: {
     duplicates: number;
     assessed: number;
     applied: number;
+    held: number;
   };
 }): Promise<EnvironmentState> {
   const { scope, maintenance, filePath, summary } = options;
@@ -51,7 +54,7 @@ export async function updateLearningScope(options: {
     throw new Error("Learning environment cannot be resolved");
   }
 
-  const eligible = redacted.records.filter(
+  const candidates = redacted.records.filter(
     (record) =>
       (record.rule.status === "active" ||
         (retirementRequested(record) &&
@@ -70,6 +73,36 @@ export async function updateLearningScope(options: {
           entry.inputFingerprint === recordFingerprint(record),
       ),
   );
+  const held = candidates.flatMap((record) => {
+    const reason = heldLearningReason(record);
+
+    return reason === null ? [] : [{ key: record.rule.key, reason, record }];
+  });
+  const eligible = candidates.filter(
+    (record) => !held.some((entry) => entry.record === record),
+  );
+
+  if (held.length > 0) {
+    state = pendingLearningState({
+      state,
+      records: held.map(({ record }) => record),
+      keys: new Set(held.map(({ key }) => key)),
+      scope,
+      reasons: held,
+      destinations: [],
+    });
+    await publishEnvironmentRevision({
+      paths: options.paths,
+      updates: [
+        {
+          filePath,
+          previous: await readLocalText(filePath),
+          next: renderEnvironment(state),
+        },
+      ],
+    });
+    summary.held += held.length;
+  }
 
   for (
     let offset = 0;
