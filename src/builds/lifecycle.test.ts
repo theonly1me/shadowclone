@@ -32,7 +32,7 @@ test("preview is read-only and applying publishes preferences immediately", asyn
 
   expect(compilation?.markdown).toContain("shadowclone-build-preferences skill");
   expect(compilation?.markdown).toContain(
-    "- changing observable behavior with a test-first workflow: testing-first\n",
+    "- when adding, changing, or proving a test: tests-that-catch-bugs\n",
   );
   expect(compilation?.markdown).not.toContain(homeDirectory);
   expect(
@@ -56,7 +56,7 @@ test("undo restores an applied build and its native integrations", async () => {
     await Bun.file(
       path.join(
         path.dirname(context.paths.shadowcloneDirectory),
-        ".claude/skills/testing-first/SKILL.md",
+        ".claude/skills/tests-that-catch-bugs/SKILL.md",
       ),
     ).exists(),
   ).toBeFalse();
@@ -70,11 +70,11 @@ test("an intervening skill edit invalidates the preview without partial writes",
 
   const next = await previewBuild({
     ...context,
-    input: buildInput({ choices: { "testing-first": false } }),
+    input: buildInput({ choices: { "tests-that-catch-bugs": false } }),
   });
   const skillPath = path.join(
     path.dirname(context.paths.shadowcloneDirectory),
-    ".agents/skills/testing-first/SKILL.md",
+    ".agents/skills/tests-that-catch-bugs/SKILL.md",
   );
   const edited = `${await Bun.file(skillPath).text()}\nPreserve this edit.\n`;
 

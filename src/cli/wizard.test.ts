@@ -5,13 +5,13 @@ import path from "node:path";
 import { createProjectPaths } from "../paths";
 import { readProfileSnapshot } from "../profile";
 import { loadSeedLibrary, seedGuidanceProfileKey } from "../skills";
+import { wizardAnswers } from "./wizardFixtures";
 import {
   parseAxisChoice,
   parseOptionalSkillChoices,
   runWizard,
 } from "./wizard";
 
-const firstChoices = ["1", "1", "1", "1", "1", "none"];
 
 test("accepts only displayed axis and optional skill choices", async () => {
   const library = await loadSeedLibrary();
@@ -57,7 +57,7 @@ test("prints every selection and writes nothing when confirmation is declined", 
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
   const library = await loadSeedLibrary();
 
-  const answers = [...firstChoices];
+  const answers = [...wizardAnswers({ library, skill: "tests-that-catch-bugs" })];
   const output: string[] = [];
 
   const result = await runWizard({
@@ -90,7 +90,7 @@ test("writes stable declared rules on identical reruns", async () => {
   const library = await loadSeedLibrary();
 
   for (let runNumber = 0; runNumber < 2; runNumber += 1) {
-    const answers = [...firstChoices];
+    const answers = [...wizardAnswers({ library, skill: "tests-that-catch-bugs" })];
 
     await runWizard({
       paths,
@@ -104,14 +104,14 @@ test("writes stable declared rules on identical reruns", async () => {
   const rules = (await readProfileSnapshot(paths)).rules.map(
     ({ rule }) => rule,
   );
-  const testingFirst = rules.find(
-    (rule) => rule.key === seedGuidanceProfileKey("testing-first"),
+  const testingSkill = rules.find(
+    (rule) => rule.key === seedGuidanceProfileKey("tests-that-catch-bugs"),
   );
 
   expect(rules).toHaveLength(4);
   expect(rules.every((rule) => rule.source === "declared")).toBeTrue();
   expect(rules.every((rule) => rule.key.startsWith("seed:"))).toBeTrue();
-  expect(testingFirst).toBeUndefined();
+  expect(testingSkill).toBeUndefined();
 
   for (const root of [
     path.join(homeDirectory, ".agents/skills"),
@@ -119,16 +119,16 @@ test("writes stable declared rules on identical reruns", async () => {
     path.join(homeDirectory, ".gemini/config/skills"),
   ]) {
     const skill = await Bun.file(
-      path.join(root, "testing-first/SKILL.md"),
+      path.join(root, "tests-that-catch-bugs/SKILL.md"),
     ).text();
 
-    expect(skill).toContain("# Test First Through a Public Seam");
+    expect(skill).toContain("# Tests That Catch Bugs");
   }
 
   for (const redundantRoot of [".codex/skills", ".cursor/skills"]) {
     expect(
       await Bun.file(
-        path.join(homeDirectory, redundantRoot, "testing-first/SKILL.md"),
+        path.join(homeDirectory, redundantRoot, "tests-that-catch-bugs/SKILL.md"),
       ).exists(),
     ).toBeFalse();
   }

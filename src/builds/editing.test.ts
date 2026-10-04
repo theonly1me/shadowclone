@@ -79,20 +79,20 @@ test("reloading an external edit makes it the base for a reviewed change", async
 
   const filePath = path.join(
     path.dirname(context.paths.shadowcloneDirectory),
-    ".agents/skills/testing-first/SKILL.md",
+    ".agents/skills/tests-that-catch-bugs/SKILL.md",
   );
   const external = `${await Bun.file(filePath).text()}\nKeep the external correction.\n`;
 
   await Bun.write(filePath, external);
 
   const catalog = await buildCatalog({ ...context, scope: "global" });
-  const current = catalog.find((item) => item.id === "testing-first");
+  const current = catalog.find((item) => item.id === "tests-that-catch-bugs");
 
   expect(current?.text).toBe(external);
 
   const next = {
     ...input,
-    edits: { "testing-first": `${external}\nAdd a reviewed step.\n` },
+    edits: { "tests-that-catch-bugs": `${external}\nAdd a reviewed step.\n` },
   };
 
   await applyBuild({
@@ -100,7 +100,7 @@ test("reloading an external edit makes it the base for a reviewed change", async
     plan: await previewBuild({ ...context, input: next }),
   });
 
-  expect(await Bun.file(filePath).text()).toBe(next.edits["testing-first"]);
+  expect(await Bun.file(filePath).text()).toBe(next.edits["tests-that-catch-bugs"]);
 });
 
 test("changed source permissions invalidate a reviewed preview", async () => {

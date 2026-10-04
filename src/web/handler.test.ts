@@ -63,7 +63,7 @@ test("reviewed changes apply once and remain undoable after reopening the editor
   );
 
   expect(view.revisionId).toBe(applied.revisionId);
-  expect(view.input.choices["testing-first"]).toBe(true);
+  expect(view.input.choices["tests-that-catch-bugs"]).toBe(true);
 
   const undone = await reopened(
     fixture.request({

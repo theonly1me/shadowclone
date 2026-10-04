@@ -61,6 +61,9 @@
       "c0fb2fa19c506c507a99c19dcc203c6b84d8bf4b8835fc08b92625392452460d"
     ]
   },
+  "tests-that-catch-bugs": {
+    "SKILL.md": ["4034b8b61ef6116b6f1627b68607a0d96ba0203ce9218100a396effd89f70f5a"]
+  },
   "typescript-type-safety": {
     "SKILL.md": [
       "bf4bb366585fa3f7a1343d540d5d93615c496646d2bc1252475c0e2d721799d6",
