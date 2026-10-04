@@ -1,4 +1,4 @@
-import { fingerprint, readLocalText } from "../localFiles";
+import { fingerprint, readLocalFile } from "../localFiles";
 import type { EnvironmentState } from "../environment/types";
 import type { FileUpdate } from "../changes";
 import type { BuildDefinition } from "./types";
@@ -19,13 +19,14 @@ export async function retireBuildSkills(options: {
   for (const artifact of options.state.artifacts) {
     if (
       artifact.buildId !== options.build.id ||
-      artifact.kind !== "skill" ||
+      (artifact.kind !== "skill" && artifact.kind !== "resource") ||
       options.retained.has(artifact.buildEntryId ?? "")
     ) {
       continue;
     }
 
-    const previous = await readLocalText(artifact.filePath);
+    const encoding = artifact.kind === "resource" ? "base64" : "utf8";
+    const previous = await readLocalFile({ filePath: artifact.filePath, encoding });
 
     if (previous !== null && fingerprint(previous) !== artifact.fingerprint) {
       warnings.push(
@@ -39,6 +40,7 @@ export async function retireBuildSkills(options: {
       filePath: artifact.filePath,
       previous,
       next: artifact.original,
+      ...(artifact.kind === "resource" ? { encoding: "base64" as const } : {}),
     });
     removed.add(artifact.filePath);
   }
