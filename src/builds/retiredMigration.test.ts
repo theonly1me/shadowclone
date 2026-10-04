@@ -1,45 +1,67 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { publishEnvironmentRevision } from "../environment/revision";
+import { environmentFile, renderEnvironment } from "../environment/store";
+import type { EnvironmentArtifact } from "../environment/types";
+import { fingerprint } from "../localFiles";
+import { parseSkillDocument } from "../skillMaintenance/document";
 import { loadSeedLibrary, seedSkillsDirectory } from "../skills/library";
 import { renderRetiredSkillChanges } from "./retired";
 import { migrateRetiredSkills } from "./retiredMigration";
 import { installedBuild, skillRoots } from "./syncFixtures";
-import type { BuildInput } from "./types";
 
-const retired = new Map([
-  ["prove-regression-tests", { replacement: "design-deep-modules" }],
-  [
-    "testing-first",
-    {
-      replacement: "design-deep-modules",
-      defaultPreference: "Write the failing test before the production change.",
-    },
-  ],
-  ["testing-risk-based", { replacement: "design-deep-modules" }],
-]);
+const shippedText = (name: string) =>
+  Bun.file(path.join(import.meta.dir, `../skills/fixtures/${name}-0.0.17.md`)).text();
 
-async function packagedText(name: string): Promise<string> {
-  return Bun.file(path.join(await seedSkillsDirectory(), name, "SKILL.md")).text();
-}
-
-async function migratedBuild(options: {
-  readonly input: Partial<BuildInput>;
+async function olderInstall(options: {
+  readonly retired: Readonly<Record<string, boolean>>;
+  readonly edits?: Readonly<Record<string, string>>;
   readonly before?: (home: string) => Promise<void>;
 }) {
-  const setup = await installedBuild(options.input);
+  const setup = await installedBuild({ choices: { "verify-and-review": true } });
+  const artifacts: EnvironmentArtifact[] = [];
 
+  for (const [name, selected] of Object.entries(options.retired)) {
+    const text = await shippedText(name);
+
+    for (const root of selected ? skillRoots : []) {
+      const filePath = path.join(setup.home, root, name, "SKILL.md");
+
+      await Bun.write(filePath, text);
+      artifacts.push({
+        filePath,
+        original: null,
+        fingerprint: fingerprint(text),
+        kind: "skill",
+        scope: "global",
+        name,
+        description: parseSkillDocument(text).metadata.description,
+        learningKeys: [],
+        buildId: "global",
+        buildEntryId: name,
+      });
+    }
+  }
+
+  const state = {
+    ...setup.state,
+    builds: setup.state.builds.map((build) => ({
+      ...build,
+      choices: { ...build.choices, ...options.retired },
+      edits: { ...build.edits, ...options.edits },
+    })),
+    artifacts: [...setup.state.artifacts, ...artifacts],
+  };
+
+  await Bun.write(environmentFile(setup.paths), renderEnvironment(state));
   await options.before?.(setup.home);
 
-  const libraryIds = new Set(
-    (await loadSeedLibrary()).guidance.map((entry) => entry.id).filter((id) => !retired.has(id)),
-  );
-  const result = await migrateRetiredSkills({
-    paths: setup.paths,
-    state: setup.state,
-    retired,
-    libraryIds,
-  });
+  return { ...setup, state };
+}
+
+async function migratedInstall(options: Parameters<typeof olderInstall>[0]) {
+  const setup = await olderInstall(options);
+  const result = await migrateRetiredSkills({ paths: setup.paths, state: setup.state });
 
   await publishEnvironmentRevision({
     paths: setup.paths,
@@ -56,34 +78,36 @@ async function migratedBuild(options: {
 }
 
 test("retired skills are replaced in the build, and their copies go away", async () => {
-  const setup = await migratedBuild({
-    input: {
-      choices: { "testing-first": true, "prove-regression-tests": true, "verify-and-review": true },
-    },
+  const setup = await migratedInstall({
+    retired: { "testing-first": true, "prove-regression-tests": true },
   });
 
   expect(setup.result.state.builds.map((build) => build.choices)).toEqual([
-    { "verify-and-review": true, "design-deep-modules": true },
+    { "verify-and-review": true, "tests-that-catch-bugs": true },
   ]);
   expect(await setup.installed("testing-first")).toEqual([false, false, false]);
   expect(await setup.installed("prove-regression-tests")).toEqual([false, false, false]);
 
   for (const root of skillRoots) {
-    expect(await Bun.file(path.join(setup.home, root, "design-deep-modules/SKILL.md")).text()).toBe(
-      await packagedText("design-deep-modules"),
+    expect(
+      await Bun.file(path.join(setup.home, root, "tests-that-catch-bugs/SKILL.md")).text(),
+    ).toBe(
+      await Bun.file(
+        path.join(await seedSkillsDirectory(), "tests-that-catch-bugs/SKILL.md"),
+      ).text(),
     );
   }
 
   expect(renderRetiredSkillChanges(setup.result.changes)).toEqual([
-    "Replaced prove-regression-tests and testing-first with design-deep-modules in your global build.",
+    "Replaced prove-regression-tests and testing-first with tests-that-catch-bugs in your global build.",
     'To keep the testing-first default, run: shadowclone remember --global "Write the failing test before the production change."',
   ]);
 });
 
 test("an edited retired copy stays selected, and the other retired skill is still replaced", async () => {
   let edited = "";
-  const setup = await migratedBuild({
-    input: { choices: { "testing-first": true, "prove-regression-tests": true } },
+  const setup = await migratedInstall({
+    retired: { "testing-first": true, "prove-regression-tests": true },
     before: async (home) => {
       edited = path.join(home, ".claude/skills/testing-first/SKILL.md");
       await Bun.write(edited, `${await Bun.file(edited).text()}\nMy own rule.\n`);
@@ -91,68 +115,65 @@ test("an edited retired copy stays selected, and the other retired skill is stil
   });
 
   expect(setup.result.state.builds.map((build) => build.choices)).toEqual([
-    { "testing-first": true, "design-deep-modules": true },
+    { "verify-and-review": true, "testing-first": true, "tests-that-catch-bugs": true },
   ]);
   expect(await setup.installed("testing-first")).toEqual([true, true, true]);
   expect(await setup.installed("prove-regression-tests")).toEqual([false, false, false]);
   expect(renderRetiredSkillChanges(setup.result.changes)).toEqual([
-    `Kept your edited copy of testing-first at ${edited}. It is no longer bundled. To replace it with design-deep-modules, use shadowclone wizard.`,
-    "Replaced prove-regression-tests with design-deep-modules in your global build.",
+    `Kept your edited copy of testing-first at ${edited}. It is no longer bundled. To replace it with tests-that-catch-bugs, use shadowclone wizard.`,
+    "Replaced prove-regression-tests with tests-that-catch-bugs in your global build.",
   ]);
 });
 
 test("a retired skill changed in the build editor stays selected and is named", async () => {
-  const setup = await migratedBuild({
-    input: {
-      choices: { "testing-first": true },
-      edits: { "testing-first": `${await packagedText("testing-first")}\nBuild editor rule.\n` },
-    },
+  const setup = await migratedInstall({
+    retired: { "testing-first": true },
+    edits: { "testing-first": `${await shippedText("testing-first")}\nBuild editor rule.\n` },
   });
 
   expect(setup.result.updates).toEqual([]);
-  expect(setup.result.state.builds.map((build) => build.choices)).toEqual([
-    { "testing-first": true },
-  ]);
   expect(renderRetiredSkillChanges(setup.result.changes)).toEqual([
-    "Kept testing-first in your global build, because you changed it in the build editor. It is no longer bundled. To replace it with design-deep-modules, use shadowclone wizard.",
+    "Kept testing-first in your global build, because you changed it in the build editor. It is no longer bundled. To replace it with tests-that-catch-bugs, use shadowclone wizard.",
   ]);
 });
 
 test("a deselected retired skill leaves the build without adding its replacement", async () => {
-  const setup = await migratedBuild({
-    input: { choices: { "testing-first": false, "verify-and-review": true } },
-  });
+  const setup = await migratedInstall({ retired: { "testing-first": false } });
 
   expect(setup.result.state.builds.map((build) => build.choices)).toEqual([
     { "verify-and-review": true },
   ]);
-  expect(await setup.installed("design-deep-modules")).toEqual([false, false, false]);
+  expect(await setup.installed("tests-that-catch-bugs")).toEqual([false, false, false]);
   expect(setup.result.changes).toEqual([]);
 });
 
 test("a replacement that cannot be installed is reported and leaves the build unchanged", async () => {
-  const setup = await migratedBuild({
-    input: { choices: { "testing-first": true } },
+  const setup = await migratedInstall({
+    retired: { "testing-first": true },
     before: async (home) => {
       await Bun.write(
-        path.join(home, ".claude/skills/design-deep-modules/SKILL.md"),
-        "---\nname: design-deep-modules\ndescription: The user's own skill.\n---\n\nMine.\n",
+        path.join(home, ".claude/skills/tests-that-catch-bugs/SKILL.md"),
+        "---\nname: tests-that-catch-bugs\ndescription: The user's own skill.\n---\n\nMine.\n",
       );
     },
   });
 
   expect(setup.result.state.builds.map((build) => build.choices)).toEqual([
-    { "testing-first": true },
+    { "verify-and-review": true, "testing-first": true },
   ]);
   expect(await setup.installed("testing-first")).toEqual([true, true, true]);
   expect(renderRetiredSkillChanges(setup.result.changes)).toEqual([
-    "Could not replace testing-first with design-deep-modules in your global build: An existing skill occupies this destination; select that skill to edit it",
+    "Could not replace testing-first with tests-that-catch-bugs in your global build: An existing skill occupies this destination; select that skill to edit it",
   ]);
 });
 
-test("nothing migrates while the retired skills are still bundled", async () => {
-  const setup = await installedBuild({ choices: { "testing-first": true } });
-  const result = await migrateRetiredSkills({ paths: setup.paths, state: setup.state });
+test("nothing migrates while a retired skill is still in the bundled library", async () => {
+  const setup = await olderInstall({ retired: { "testing-first": true } });
+  const libraryIds = new Set([
+    ...(await loadSeedLibrary()).guidance.map((entry) => entry.id),
+    "testing-first",
+  ]);
+  const result = await migrateRetiredSkills({ paths: setup.paths, state: setup.state, libraryIds });
 
   expect(result.updates).toEqual([]);
   expect(result.changes).toEqual([]);

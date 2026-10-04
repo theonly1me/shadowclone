@@ -23,25 +23,15 @@ const presentations: Readonly<
     summary:
       "Trace the failure and establish its cause before changing code. Use evidence to choose the smallest useful fix.",
   },
-  "prove-regression-tests": {
-    title: "Test the failure",
+  "tests-that-catch-bugs": {
+    title: "Tests that catch bugs",
     summary:
-      "Prove a regression test detects the original bug. Restore the fix and check that the same test passes.",
+      "Write a few tests that each name the bug they catch, check what the user sees, and fail when the fix is removed.",
   },
   "verify-and-review": {
     title: "Verify the finish",
     summary:
       "Run the relevant checks, inspect the complete diff, and report what was verified before calling the task done.",
-  },
-  "testing-first": {
-    title: "Test first",
-    summary:
-      "Capture the expected behavior at a public boundary before implementing the change. Let the failing test guide the work.",
-  },
-  "testing-risk-based": {
-    title: "Test the risk",
-    summary:
-      "Spend testing effort where behavior can break. Choose checks that catch meaningful failures without mirroring the implementation.",
   },
   "research-primary-sources": {
     title: "Go to the source",
@@ -131,7 +121,7 @@ export const featuredSkills = [
   "typescript-type-safety",
   "refactor-preserve",
   "diagnose-before-editing",
-  "testing-first",
+  "tests-that-catch-bugs",
   "verify-and-review",
   "planning-first",
   "questions-autonomous",

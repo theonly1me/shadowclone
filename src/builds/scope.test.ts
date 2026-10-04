@@ -28,7 +28,7 @@ test("private builds inherit custom skills and leave the repository untouched", 
     ...context,
     input: buildInput({
       scope: "private",
-      choices: { "testing-first": false },
+      choices: { "tests-that-catch-bugs": false },
     }),
   });
 
@@ -47,7 +47,7 @@ test("private builds inherit custom skills and leave the repository untouched", 
   });
 
   expect(compilation?.markdown).toContain("Use the measure-first skill when relevant.");
-  expect(compilation?.markdown).not.toContain("testing-first/SKILL.md");
+  expect(compilation?.markdown).not.toContain("tests-that-catch-bugs/SKILL.md");
   expect(
     await Bun.file(path.join(context.cwd, "AGENTS.md")).exists(),
   ).toBeFalse();
@@ -57,21 +57,24 @@ test("shared builds use relative routing and reject contradictory personal choic
   const context = await buildFixture();
   const shared = await previewBuild({
     ...context,
-    input: buildInput({ scope: "shared", choices: { "testing-first": true } }),
+    input: buildInput({
+      scope: "shared",
+      choices: { "tests-that-catch-bugs": true, "planning-first": true },
+    }),
   });
 
   await applyBuild({ ...context, plan: shared });
 
   const native = await Bun.file(path.join(context.cwd, "AGENTS.md")).text();
 
-  expect(native).toContain("- changing observable behavior with a test-first workflow: testing-first\n");
+  expect(native).toContain("- when adding, changing, or proving a test: tests-that-catch-bugs\n");
   expect(native).not.toContain(
     path.dirname(context.paths.shadowcloneDirectory),
   );
 
   const conflictingChoices: readonly Record<string, boolean>[] = [
-    { "testing-first": false },
-    { "testing-risk-based": true },
+    { "tests-that-catch-bugs": false },
+    { "planning-when-costly": true },
   ];
 
   for (const choices of conflictingChoices) {
@@ -87,7 +90,7 @@ test("shared builds use relative routing and reject contradictory personal choic
 test("repository edits do not replace the global catalog", async () => {
   const context = await buildFixture();
   const catalog = await buildCatalog({ ...context, scope: "global" });
-  const testing = catalog.find((item) => item.id === "testing-first");
+  const testing = catalog.find((item) => item.id === "tests-that-catch-bugs");
 
   if (!testing) {
     throw new Error("Missing built-in testing skill");
@@ -96,7 +99,7 @@ test("repository edits do not replace the global catalog", async () => {
   const input = buildInput({
     scope: "private",
     edits: {
-      "testing-first": `${testing.text}\nOnly this repository uses this step.\n`,
+      "tests-that-catch-bugs": `${testing.text}\nOnly this repository uses this step.\n`,
     },
   });
 
@@ -107,7 +110,7 @@ test("repository edits do not replace the global catalog", async () => {
 
   const global = await buildCatalog({ ...context, scope: "global" });
 
-  expect(global.find((item) => item.id === "testing-first")?.text).toBe(
+  expect(global.find((item) => item.id === "tests-that-catch-bugs")?.text).toBe(
     testing.text,
   );
 });

@@ -21,7 +21,7 @@ export async function buildFixture(): Promise<BuildContext> {
 export function buildInput(overrides: Partial<BuildInput> = {}): BuildInput {
   return {
     scope: "global",
-    choices: { "planning-first": true, "testing-first": true },
+    choices: { "planning-first": true, "tests-that-catch-bugs": true },
     edits: {},
     custom: [],
     ...overrides,

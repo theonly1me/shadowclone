@@ -16,13 +16,11 @@ const preferenceIds = [
 const skillIds = [
   "design-deep-modules",
   "diagnose-before-editing",
-  "prove-regression-tests",
   "research-primary-sources",
   "resolve-conflicts-by-intent",
   "scope-confirmed-changes",
   "shadowclone-work",
-  "testing-first",
-  "testing-risk-based",
+  "tests-that-catch-bugs",
   "typescript-type-safety",
   "verify-and-review",
 ];
@@ -50,7 +48,7 @@ test("ships complete Agent Skills without the local comment rule", async () => {
     skillFiles.push(skillFile);
   }
 
-  expect(skillFiles.sort()).toHaveLength(11);
+  expect(skillFiles.sort()).toHaveLength(9);
   expect(
     await Bun.file(
       path.join(directories.preferencesDirectory, "comments-none.md"),
@@ -63,13 +61,12 @@ test("loads preferences and Agent Skills into honest groups", async () => {
 
   expect(library.preferences.map((entry) => entry.id)).toEqual(preferenceIds);
   expect(library.skills.map((entry) => entry.id)).toEqual(skillIds);
-  expect(library.guidance).toHaveLength(19);
+  expect(library.guidance).toHaveLength(17);
   expect(library.axes.map((axis) => [axis.id, axis.guidance.length])).toEqual([
     ["dependency-posture", 2],
     ["planning-threshold", 2],
     ["question-frequency", 2],
     ["refactor-tolerance", 2],
-    ["testing-approach", 2],
   ]);
   expect(library.independentSkills).toHaveLength(9);
   expect(
