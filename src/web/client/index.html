@@ -90,8 +90,6 @@
               <button id="retry-build" class="quiet-button" hidden>Retry loading skills</button>
             </div>
             <div class="constellation-controls" aria-label="Constellation controls">
-              <button id="fit-constellation" class="quiet-button">Fit</button>
-              <button id="reset-constellation" class="quiet-button">Reset</button>
               <button
                 id="toggle-constellation-view"
                 class="quiet-button"
@@ -105,17 +103,14 @@
             <svg
               id="constellation-map"
               class="constellation-map"
-              aria-label="Skills grouped into navigable hubs"
+              aria-label="Skills grouped by source and category"
             ></svg>
             <div id="constellation-list" class="constellation-list"></div>
-            <p class="tree-hint">
-              Select a category to expand it or a skill to inspect it. Drag to pan and scroll to
-              zoom.
-            </p>
+            <p class="tree-hint">Select a skill to equip it. Search highlights matches.</p>
           </section>
 
           <aside class="build-panel" aria-label="Your character build">
-            <section class="identity" aria-labelledby="identity-title">
+            <section id="identity" class="identity" aria-labelledby="identity-title" aria-live="polite">
               <div>
                 <p class="eyebrow">YOUR BUILD</p>
                 <h2 id="identity-title">An open canvas</h2>
@@ -123,9 +118,15 @@
                   Choose the instincts you want your agent to bring to work.
                 </p>
               </div>
-              <div id="traits" class="traits"></div>
-              <button id="describe" class="quiet-button">Describe my agent with my model</button>
-              <div id="model-description" class="requirements" aria-live="polite"></div>
+              <ul id="abilities" class="abilities"></ul>
+              <p id="tradeoff" class="tradeoff" hidden></p>
+              <div class="naming-controls">
+                <p id="naming-source" class="naming-source"></p>
+                <button id="retry-name" class="quiet-button" hidden>Retry</button>
+                <button id="toggle-naming" class="quiet-button" aria-pressed="true">
+                  Turn naming off
+                </button>
+              </div>
             </section>
             <section id="detail" class="detail" aria-label="Selected skill"></section>
           </aside>

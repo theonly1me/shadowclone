@@ -1,5 +1,5 @@
 import { customSkillSchema } from "../../builds/types";
-import { buildConstellation } from "../../builds/constellation";
+import { withCustomSkill } from "../../builds/constellation";
 import type { BrowserItem } from "../protocol";
 import { dialog, element, input, textarea } from "./dom";
 import { editor } from "./state";
@@ -47,7 +47,10 @@ export function saveCustomSkill(): void {
   });
 
   if (editor.view) {
-    editor.view.constellation = buildConstellation(editor.view.items);
+    editor.view.constellation = withCustomSkill({
+      constellation: editor.view.constellation,
+      item: { id, name: skill.name, title: skill.name.replaceAll("-", " "), description: skill.description, category: null },
+    });
   }
 
   dialog("custom-dialog").close();

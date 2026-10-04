@@ -29,7 +29,7 @@ The owner has about 70 local skills. The wizard must show all of them, not only 
 
 ### Grouping
 
-Skills group first by source: bundled skills, the skills of the user, and each plugin. Inside a source, skills group by their `shadowclone-category` metadata. A filler word is never a hub. A large group wraps in its row instead of splitting into numbered hubs.
+Skills group first by source: bundled skills, working preferences, custom skills, the skills of the user, and each plugin. Inside a source, skills group by their `shadowclone-category` metadata. A skill without that metadata gets a category from a fixed keyword list, or goes to "More skills". A filler word is never a hub. A large group wraps in its row instead of splitting into numbered hubs.
 
 ### Horizontal star map
 
@@ -49,7 +49,7 @@ A pure generator places stars with a minimum distance between them, from a new r
 
 ### Build name
 
-The default name is "An open canvas". Five seconds after the last equip change, the wizard asks the fast tier for a name, and the character sheet shows a loading state. The prompt asks for these parts:
+The default name is "An open canvas". Five seconds after the last equip change, the wizard asks the fast tier for a name, and the character sheet shows a loading state. A saved build that opens without a change shows a **Name my build** button, so opening the editor still makes no model request. The prompt asks for these parts:
 
 - a class title of 2 to 4 words, grounded in the equipped skills;
 - a profile of 2 sentences in the second person;

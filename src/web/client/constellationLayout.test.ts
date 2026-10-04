@@ -1,45 +1,100 @@
 import { expect, test } from "bun:test";
 import { buildConstellation } from "../../builds/constellation";
-import { constellationItems } from "./constellationFixtures";
-import { layoutConstellation } from "./constellationLayout";
-import { constellationFit, visibleConstellation } from "./constellationVisibility";
+import { syntheticLibrary } from "./constellationFixtures";
+import { layoutConstellation, mapMetrics, type PositionedConstellationNode } from "./constellationLayout";
 
-for (const count of [1, 20, 100, 500]) {
-  for (const singleCategory of [false, true]) {
-    test(`keeps ${count} ${singleCategory ? "single-category" : "distributed"} skills readable in a pannable world`, () => {
-      const width = 960;
-      const height = 720;
-      const layout = layoutConstellation({
-        constellation: buildConstellation(constellationItems({ count, singleCategory })),
-        width,
-        height,
-      });
+type Box = { readonly id: string; readonly left: number; readonly right: number; readonly top: number; readonly bottom: number };
 
-      expect(layout.nodes.filter((node) => node.kind === "skill")).toHaveLength(count);
-      expect(layout.nodes.every((node) => Number.isFinite(node.x) && Number.isFinite(node.y))).toBeTrue();
-      const overlaps: string[] = [];
-      for (const [index, left] of layout.nodes.entries()) {
-        for (const right of layout.nodes.slice(index + 1)) {
-          if (Math.abs(left.x - right.x) < 200 && Math.abs(left.y - right.y) < 88) overlaps.push(`${left.id}:${right.id}`);
-        }
+function boxes(node: PositionedConstellationNode): readonly Box[] {
+  const radius = node.kind === "skill" ? 26 : node.kind === "root" ? 26 : 23;
+  const labelTop = node.kind === "skill" ? 22 : 32;
+
+  return [
+    { id: `${node.id}:mark`, left: node.x - radius, right: node.x + radius, top: node.y - radius, bottom: node.y + radius },
+    {
+      id: `${node.id}:label`,
+      left: node.x - mapMetrics.labelWidth / 2,
+      right: node.x + mapMetrics.labelWidth / 2,
+      top: node.y + labelTop,
+      bottom: node.y + labelTop + 34,
+    },
+  ];
+}
+
+function overlapping(options: { readonly nodes: readonly PositionedConstellationNode[] }): readonly string[] {
+  const all = options.nodes.flatMap((node) => boxes(node).map((box) => ({ box, node: node.id })));
+  const overlaps: string[] = [];
+
+  for (const [index, left] of all.entries()) {
+    for (const right of all.slice(index + 1)) {
+      if (left.node === right.node) continue;
+
+      if (
+        left.box.left < right.box.right &&
+        right.box.left < left.box.right &&
+        left.box.top < right.box.bottom &&
+        right.box.top < left.box.bottom
+      ) {
+        overlaps.push(`${left.box.id} ${right.box.id}`);
       }
-      expect(overlaps).toEqual([]);
-      const fit = constellationFit({ nodes: layout.nodes, width, height });
-      expect(layout.nodes.every((node) => node.x * fit.scale + fit.x >= 20 &&
-        node.x * fit.scale + fit.x <= width - 20 && node.y * fit.scale + fit.y >= 40 &&
-        node.y * fit.scale + fit.y <= height - 40)).toBeTrue();
+    }
+  }
+
+  return overlaps;
+}
+
+for (const count of [20, 70, 500]) {
+  for (const width of [720, 1180, 1600]) {
+    test(`shows all ${count} skills at ${width} px without overlap, zoom, or a hub per filler word`, () => {
+      const library = syntheticLibrary({ count });
+      const constellation = buildConstellation(library);
+      const layout = layoutConstellation({ constellation, width });
+      const skills = layout.nodes.filter((node) => node.kind === "skill");
+
+      expect(skills).toHaveLength(constellation.leaves.length);
+      expect(new Set(skills.map((node) => node.id)).size).toBe(skills.length);
+      expect(overlapping({ nodes: layout.nodes })).toEqual([]);
+      expect(
+        layout.nodes.every(
+          (node) =>
+            node.x - mapMetrics.labelWidth / 2 >= 0 &&
+            node.x + mapMetrics.labelWidth / 2 <= width &&
+            node.y - 26 >= 0 &&
+            node.y + 66 <= layout.height,
+        ),
+      ).toBeTrue();
+      expect(
+        layout.nodes.filter((node) => node.kind === "category").map((node) => node.title),
+      ).not.toContainEqual(expect.stringMatching(/^(And|The|Of|To|With|For)\b|\s\d+$/));
+      expect(new Set(skills.map((node) => layout.links.some((link) => link.targetX === node.x && link.targetY === node.y))))
+        .toEqual(new Set([true]));
     });
   }
 }
 
-test("large-library overview wraps category hubs into readable rows", () => {
-  const constellation = visibleConstellation({
-    constellation: buildConstellation(constellationItems({ count: 500 })), expandedHubIds: new Set(),
-  });
-  const layout = layoutConstellation({ constellation, width: 960, height: 720 });
-  const hubs = layout.nodes.filter((node) => node.kind === "hub");
-  expect(new Set(hubs.map((node) => node.y)).size).toBe(3);
-  expect(new Set(hubs.map((node) => node.x)).size).toBeLessThanOrEqual(4);
-  const fit = constellationFit({ nodes: layout.nodes, width: 960, height: 720 });
-  expect(fit.scale).toBeGreaterThan(0.8);
+test("small categories share a row and a large category wraps inside its own block", () => {
+  const library = syntheticLibrary({ count: 70 });
+  const layout = layoutConstellation({ constellation: buildConstellation(library), width: 1180 });
+  const categories = layout.nodes.filter((node) => node.kind === "category");
+  const rows = new Set(categories.map((node) => node.y));
+
+  expect(rows.size).toBeLessThan(categories.length);
+  expect(layout.links.filter((link) => link.sibling)).toHaveLength(categories.length - rows.size);
+  expect(
+    layout.nodes
+      .filter((node) => node.kind === "skill")
+      .every((node) => {
+        const category = categories.find((candidate) => candidate.id === node.parentId);
+
+        return category !== undefined && node.x > category.x && node.y >= category.y - mapMetrics.jitterY;
+      }),
+  ).toBeTrue();
+});
+
+test("a wider map fits more skills on each line and needs less height", () => {
+  const constellation = buildConstellation(syntheticLibrary({ count: 70 }));
+  const narrow = layoutConstellation({ constellation, width: 900 });
+  const wide = layoutConstellation({ constellation, width: 1600 });
+
+  expect(wide.height).toBeLessThan(narrow.height);
 });

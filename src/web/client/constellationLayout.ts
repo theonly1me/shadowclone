@@ -1,16 +1,10 @@
-import { hierarchy, tree } from "d3-hierarchy";
 import type { Constellation } from "../../builds/constellationSchema";
 
-type LayoutDatum = {
+export type PositionedConstellationNode = {
   readonly id: string;
   readonly title: string;
   readonly itemIds: readonly string[];
-  readonly relatedHubIds: readonly string[];
-  readonly children: LayoutDatum[];
-  readonly kind: "root" | "hub" | "skill";
-};
-
-export type PositionedConstellationNode = Omit<LayoutDatum, "children"> & {
+  readonly kind: "root" | "source" | "category" | "skill";
   readonly parentId: string | null;
   readonly x: number;
   readonly y: number;
@@ -22,141 +16,189 @@ export type PositionedConstellationLink = {
   readonly sourceY: number;
   readonly targetX: number;
   readonly targetY: number;
-  readonly related: boolean;
+  readonly sibling: boolean;
 };
 
-function coordinate(value: number | undefined): number {
-  if (value === undefined) throw new Error("Constellation layout is incomplete");
+export const mapMetrics = {
+  padding: 32,
+  rootX: 56,
+  sourceX: 176,
+  categoryX: 296,
+  cellWidth: 120,
+  cellHeight: 96,
+  groupGap: 12,
+  sourceGap: 28,
+  labelWidth: 108,
+  jitterX: 4,
+  jitterY: 5,
+} as const;
 
-  return value;
+function jitter(options: { readonly key: string; readonly range: number }): number {
+  let hash = 2166136261;
+
+  for (const character of options.key) {
+    hash = Math.imul(hash ^ (character.codePointAt(0) ?? 0), 16777619);
+  }
+
+  return ((hash >>> 0) / 4294967295) * options.range * 2 - options.range;
 }
 
-function graphData(constellation: Constellation): LayoutDatum {
-  const hubs = new Map<string, LayoutDatum>();
+export function cellsPerRow(width: number): number {
+  const available = width - mapMetrics.categoryX - mapMetrics.padding + mapMetrics.cellWidth / 2;
 
-  for (const hub of constellation.hubs) {
-    hubs.set(hub.id, {
-      id: hub.id,
-      title: hub.title,
-      itemIds: [],
-      relatedHubIds: [],
-      children: [],
-      kind: "hub",
-    });
-  }
+  return Math.max(2, Math.floor(available / mapMetrics.cellWidth));
+}
 
-  const root: LayoutDatum = {
-    id: "constellation-root",
-    title: "Shadowclone",
-    itemIds: [],
-    relatedHubIds: [],
-    children: [],
-    kind: "root",
+function link(options: {
+  readonly from: PositionedConstellationNode;
+  readonly to: PositionedConstellationNode;
+  readonly sibling?: boolean;
+}): PositionedConstellationLink {
+  return {
+    id: `${options.from.id}:${options.to.id}`,
+    sourceX: options.from.x,
+    sourceY: options.from.y,
+    targetX: options.to.x,
+    targetY: options.to.y,
+    sibling: options.sibling ?? false,
   };
+}
 
-  for (const hub of constellation.hubs) {
-    const node = hubs.get(hub.id);
-    const parent = hub.parentId ? hubs.get(hub.parentId) : root;
+type Block = { readonly category: Constellation["hubs"][number]; readonly members: readonly Constellation["leaves"][number][]; readonly columns: number };
 
-    if (node && parent) parent.children.push(node);
+function packRows(options: { readonly blocks: readonly Block[]; readonly cells: number }): readonly (readonly Block[])[] {
+  const rows: Block[][] = [];
+  let used = options.cells;
+
+  for (const block of options.blocks) {
+    if (used + 1 + block.columns > options.cells) {
+      rows.push([]);
+      used = 0;
+    }
+
+    rows.at(-1)?.push(block);
+    used += 1 + block.columns;
   }
 
-  for (const leaf of constellation.leaves) {
-    hubs.get(leaf.parentId)?.children.push({
-      id: leaf.id,
-      title: "",
-      itemIds: leaf.itemIds,
-      relatedHubIds: leaf.relatedHubIds,
-      children: [],
-      kind: "skill",
-    });
-  }
-
-  const sortChildren = (node: LayoutDatum): void => {
-    node.children.sort((left, right) => left.id.localeCompare(right.id));
-    for (const child of node.children) sortChildren(child);
-  };
-
-  sortChildren(root);
-
-  return root;
+  return rows;
 }
 
 export function layoutConstellation(options: {
   readonly constellation: Constellation;
   readonly width: number;
-  readonly height: number;
 }): {
   readonly nodes: readonly PositionedConstellationNode[];
   readonly links: readonly PositionedConstellationLink[];
+  readonly height: number;
 } {
-  const data = graphData(options.constellation);
-  const root = hierarchy(data, (node) => node.children.filter((child) => child.kind !== "skill"));
+  const cells = cellsPerRow(options.width);
+  const { hubs, leaves } = options.constellation;
+  const nodes: PositionedConstellationNode[] = [];
+  const links: PositionedConstellationLink[] = [];
+  const sourceNodes: PositionedConstellationNode[] = [];
+  let cursor = mapMetrics.padding;
 
-  tree<LayoutDatum>().nodeSize([210, 160])(root);
+  for (const source of hubs.filter((hub) => hub.parentId === null)) {
+    const categoryNodes: PositionedConstellationNode[] = [];
+    const rowStarts: PositionedConstellationNode[] = [];
+    const blocks = hubs
+      .filter((hub) => hub.parentId === source.id)
+      .map((category) => {
+        const members = leaves.filter((leaf) => leaf.parentId === category.id);
 
-  let initialNodes = root.descendants().map((node) => ({
-    id: node.data.id,
-    title: node.data.title,
-    itemIds: node.data.itemIds,
-    relatedHubIds: node.data.relatedHubIds,
-    kind: node.data.kind,
-    parentId: node.parent?.data.id ?? null,
-    x: coordinate(node.x) + options.width / 2,
-    y: options.height - 92 - coordinate(node.y),
-  }));
-  if (options.constellation.leaves.length === 0 && root.height === 1) {
-    const hubs = initialNodes.filter((node) => node.kind === "hub");
-    const columns = Math.min(4, hubs.length);
-    const rows = Math.ceil(hubs.length / columns);
-    const indexes = new Map(hubs.map((hub, index) => [hub.id, index]));
-    initialNodes = initialNodes.map((node) => {
-      const index = indexes.get(node.id);
-      return index === undefined ? node : { ...node,
-        x: options.width / 2 + (index % columns - (columns - 1) / 2) * 210,
-        y: options.height - 92 - (rows - Math.floor(index / columns)) * 160 };
-    });
-  }
-  const nodes = [...initialNodes];
-  for (const hub of root.descendants()) {
-    const leaves = hub.data.children.filter((child) => child.kind === "skill");
-    for (const [index, leaf] of leaves.entries()) {
-      nodes.push({ ...leaf, parentId: hub.data.id, x: coordinate(hub.x) + options.width / 2,
-        y: options.height - 92 - root.height * 160 - 88 * (index + 1) });
-    }
-  }
-  const byId = new Map(nodes.map((node) => [node.id, node]));
-  const links: PositionedConstellationLink[] = nodes.flatMap((node) => {
-    const parent = node.parentId ? byId.get(node.parentId) : undefined;
+        return { category, members, columns: Math.max(1, Math.min(members.length, cells - 1)) };
+      });
 
-    return parent
-      ? [{
-          id: `${parent.id}:${node.id}`,
-          sourceX: parent.x,
-          sourceY: parent.y,
-          targetX: node.x,
-          targetY: node.y,
-          related: false,
-        }]
-      : [];
-  });
+    for (const row of packRows({ blocks, cells })) {
+      let cell = 0;
+      let lines = 1;
+      let previousHub: PositionedConstellationNode | null = null;
 
-  for (const node of nodes.filter((entry) => entry.kind === "skill")) {
-    for (const relatedHubId of node.relatedHubIds) {
-      const target = byId.get(relatedHubId);
+      for (const block of row) {
+        const x = mapMetrics.categoryX + cell * mapMetrics.cellWidth;
+        const categoryNode: PositionedConstellationNode = {
+          id: block.category.id,
+          title: block.category.title,
+          itemIds: [],
+          kind: "category",
+          parentId: source.id,
+          x,
+          y: cursor + mapMetrics.cellHeight / 2,
+        };
+        let previous = categoryNode;
 
-      if (target) {
-        links.push({
-          id: `${node.id}:${target.id}:related`,
-          sourceX: node.x,
-          sourceY: node.y,
-          targetX: target.x,
-          targetY: target.y,
-          related: true,
-        });
+        categoryNodes.push(categoryNode);
+
+        if (previousHub) links.push(link({ from: previousHub, to: categoryNode, sibling: true }));
+        else rowStarts.push(categoryNode);
+
+        for (const [index, leaf] of block.members.entries()) {
+          const column = index % block.columns;
+          const node: PositionedConstellationNode = {
+            id: leaf.id,
+            title: "",
+            itemIds: leaf.itemIds,
+            kind: "skill",
+            parentId: block.category.id,
+            x: x + (column + 1) * mapMetrics.cellWidth + jitter({ key: leaf.id, range: mapMetrics.jitterX }),
+            y:
+              cursor +
+              Math.floor(index / block.columns) * mapMetrics.cellHeight +
+              mapMetrics.cellHeight / 2 +
+              jitter({ key: `${leaf.id}:y`, range: mapMetrics.jitterY }),
+          };
+
+          links.push(link({ from: column === 0 ? categoryNode : previous, to: node }));
+          nodes.push(node);
+          previous = node;
+        }
+
+        lines = Math.max(lines, Math.ceil(block.members.length / block.columns));
+        cell += 1 + block.columns;
+        previousHub = categoryNode;
       }
+
+      cursor += lines * mapMetrics.cellHeight + mapMetrics.groupGap;
     }
+
+    const first = categoryNodes[0];
+    const last = categoryNodes.at(-1);
+    const sourceNode: PositionedConstellationNode = {
+      id: source.id,
+      title: source.title,
+      itemIds: [],
+      kind: "source",
+      parentId: "constellation-root",
+      x: mapMetrics.sourceX,
+      y: first && last ? (first.y + last.y) / 2 : cursor + mapMetrics.cellHeight / 2,
+    };
+
+    sourceNodes.push(sourceNode);
+    nodes.push(sourceNode, ...categoryNodes);
+    links.push(...rowStarts.map((node) => link({ from: sourceNode, to: node })));
+    cursor += mapMetrics.sourceGap;
   }
 
-  return { nodes, links };
+  const firstSource = sourceNodes[0];
+  const lastSource = sourceNodes.at(-1);
+  const root: PositionedConstellationNode = {
+    id: "constellation-root",
+    title: "Shadowclone",
+    itemIds: [],
+    kind: "root",
+    parentId: null,
+    x: mapMetrics.rootX,
+    y:
+      firstSource && lastSource
+        ? (firstSource.y + lastSource.y) / 2
+        : mapMetrics.padding + mapMetrics.cellHeight / 2,
+  };
+
+  links.push(...sourceNodes.map((node) => link({ from: root, to: node })));
+
+  return {
+    nodes: [root, ...nodes],
+    links,
+    height: Math.max(cursor + mapMetrics.padding, mapMetrics.cellHeight * 2),
+  };
 }

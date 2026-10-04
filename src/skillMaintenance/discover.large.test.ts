@@ -28,10 +28,9 @@ test("500 skills with native copies and overlapping roots remain discoverable in
     const constellation = view.constellation;
     expect(constellation.leaves.flatMap((leaf) => leaf.itemIds)).toEqual(expect.arrayContaining(
       catalog.filter((item) => item.name.startsWith("palette-")).map((item) => item.id)));
-    for (const hub of constellation.hubs) {
-      expect(constellation.hubs.filter((child) => child.parentId === hub.id).length +
-        constellation.leaves.filter((leaf) => leaf.parentId === hub.id).length).toBeLessThanOrEqual(10);
-    }
+    const hubs = new Map(constellation.hubs.map((hub) => [hub.id, hub]));
+    expect(constellation.leaves.every((leaf) =>
+      hubs.get(hubs.get(leaf.parentId)?.parentId ?? "")?.parentId === null)).toBeTrue();
   } finally {
     await rm(setup.home, { recursive: true, force: true });
   }

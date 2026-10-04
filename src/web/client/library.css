@@ -29,16 +29,6 @@
   font-size: 10px;
 }
 
-#describe {
-  margin-top: 14px;
-  padding: 11px 12px;
-  color: #b2a1d1;
-}
-
-#model-description:empty {
-  display: none;
-}
-
 @media (max-width: 720px) {
   .scope-meta {
     display: block;

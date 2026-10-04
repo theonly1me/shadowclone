@@ -101,12 +101,6 @@ form label {
     display: block;
   }
 
-  .traits {
-    justify-content: flex-start;
-    max-width: none;
-    margin-top: 18px;
-  }
-
   dialog {
     padding: 20px;
   }
