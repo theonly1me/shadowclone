@@ -202,6 +202,7 @@ export async function initialize(
       scope: "global",
       subagent: false,
       autoDelegate: false,
+      skipUnsafeDestinations: true,
     });
   }
 
