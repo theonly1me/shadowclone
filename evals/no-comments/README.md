@@ -6,7 +6,7 @@ We gave four model settings the same feature request in a small Python codebase,
 
 ## Headline
 
-**Short answer: a little. The judges preferred the comment-free code in about 6 of every 10 pairs, and a second batch of runs showed the same.**
+**Short answer: yes, in this test. The judges preferred the comment-free code in 62% of pairs, and a second batch of runs agreed. The Claude models showed it most clearly.**
 
 The comment-free code won **62% of 80 pairs** (95% interval 53% to 70%, p = 0.009). A coin flip would give 50%. The first batch of 40 pairs gave 59% (p = 0.16), which was not significant. We wrote down the rules for a second batch, committed them, and then ran it. That batch gave 64% on its own (p = 0.027).
 
@@ -31,7 +31,7 @@ The comment-free code won **62% of 80 pairs** (95% interval 53% to 70%, p = 0.00
 
 ## Limits
 
-- It is one task in one codebase, graded by language models. A 12 point lead over a coin flip is small.
+- It is one task in one codebase, graded by language models. The lead over a coin flip is 12 points, and the interval runs from 3 to 20 points.
 - We extended the study after seeing the first batch, so the combined p-value is somewhat optimistic. The second batch alone is the cleaner check.
 - Per-setting results are descriptive. With four settings and 20 pairs each, one setting looking good or bad is expected by chance.
 - The seed code has 3 comments, and Claude Code's own prompt tells the model to match the comments around it. Both may pull condition A toward more comments.
