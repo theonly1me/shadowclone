@@ -88,9 +88,11 @@ export function parseSkillDocument(text: string) {
 export async function validateSkillReferences(options: {
   readonly filePath: string;
   readonly text: string;
+  readonly mentionedFiles: "required" | "optional";
 }): Promise<void> {
   const directory = path.dirname(options.filePath);
   const references = new Set<string>();
+  const mentions = new Set<string>();
 
   for (const match of options.text.matchAll(/\]\(([^\s)#]+)(?:#[^)]*)?\)/g)) {
     const reference = match[1];
@@ -108,10 +110,10 @@ export async function validateSkillReferences(options: {
     /`((?:scripts|references|assets|agents)\/[a-zA-Z0-9_./-]+)`/g,
   ))
     if (match[1]) {
-      references.add(match[1]);
+      mentions.add(match[1]);
     }
 
-  for (const reference of references) {
+  for (const reference of new Set([...references, ...mentions])) {
     const target = path.resolve(directory, reference);
 
     if (!target.startsWith(`${directory}${path.sep}`)) {
@@ -125,7 +127,9 @@ export async function validateSkillReferences(options: {
         throw new Error("Not a file");
       }
     } catch {
-      throw new Error("Skill references an unavailable local file");
+      if (references.has(reference) || options.mentionedFiles === "required") {
+        throw new Error("Skill references an unavailable local file");
+      }
     }
   }
 }

@@ -16,6 +16,8 @@ Inspect resource structure without treating arbitrary resource contents as learn
 
 Publish revisions with fingerprints and backups. An intervening edit blocks replacement. Report skipped and pending work so a successful review is not mistaken for complete publication.
 
+A Markdown link to a local file must resolve inside the skill's folder. A path that a skill only names in backticks, such as `references/voice.md`, can belong to another skill. A user-authored skill stays valid when that file is missing, because the host loads the skill the same way, and the wizard then offers it. Text that a model proposes still needs every named supporting file, so a learned edit cannot point at a file that does not exist.
+
 ## Verification
 
 Exercise whole-library review, relevant and irrelevant matches, resource preservation, package companions, consent, conflicts, interrupted publication, and undo. See [the maintenance guide](../guides/skills.md) for current commands and permissions.

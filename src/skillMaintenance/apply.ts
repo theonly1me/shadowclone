@@ -111,7 +111,7 @@ export async function applySkillProposalUnlocked(
     throw new Error("Skill name differs from its destination");
   }
 
-  await validateSkillReferences({ filePath, text: parsed.body });
+  await validateSkillReferences({ filePath, text: parsed.body, mentionedFiles: "required" });
 
   const previousTracking = state.tracked.find(
     (entry) => entry.id === proposal.skillId,
