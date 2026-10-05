@@ -81,7 +81,7 @@ export async function exportGuidance(options: {
           text.includes(options.cwd)
         ) {
           throw new Error(
-            "Remove identifying local paths from the selected guidance before export.",
+            `Remove identifying local paths from ${name}/${relative.join("/")} before export.`,
           );
         }
 

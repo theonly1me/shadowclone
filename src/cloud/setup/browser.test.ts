@@ -1,4 +1,8 @@
 import { expect, test } from "bun:test";
+import path from "node:path";
+import { defaultConfig, writeConfig } from "../../config";
+import { readEnvironment, writeEnvironment } from "../../environment/store";
+import { writeMaintenanceState } from "../../skillMaintenance/state";
 import { createBotBrowser } from "./browser";
 import { guidanceFixture } from "../fixtures";
 import { setupRepository, syntheticApp } from "./fixtures";
@@ -144,6 +148,121 @@ test("an organization repository registers its private App under that organizati
     expect(view.action).toStartWith(
       "https://github.com/organizations/sample-org/settings/apps/new?state=",
     );
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test("setup starts from the personal build and leaves unequipped plugin skills out", async () => {
+  const fixture = await guidanceFixture();
+  const home = path.dirname(fixture.paths.shadowcloneDirectory);
+  const plugins = path.join(home, ".claude/plugins/cache");
+  const state = await readEnvironment(fixture.paths);
+
+  if (!state) throw new Error("The fixture environment is missing");
+
+  await writeConfig({
+    config: { ...defaultConfig, sources: { ...defaultConfig.sources, "skill-library": true } },
+    configPath: fixture.paths.configFile,
+  });
+  await Bun.write(
+    path.join(plugins, "vendor/skills/vendor-sdk/SKILL.md"),
+    "---\nname: vendor-sdk\ndescription: Use the vendor SDK.\n---\n\nCall the SDK.\n",
+  );
+  await writeMaintenanceState({
+    paths: fixture.paths,
+    state: {
+      version: 1,
+      roots: [
+        {
+          id: "0".repeat(64),
+          directory: plugins,
+          cwd: home,
+          scope: "global",
+          owner: "third-party",
+          destination: path.join(home, ".claude/skills"),
+          enabled: true,
+        },
+      ],
+      tracked: [],
+      assessed: {},
+      findings: {},
+      rejected: {},
+    },
+  });
+  await writeEnvironment({
+    paths: fixture.paths,
+    state: {
+      ...state,
+      builds: [
+        {
+          id: "global",
+          scope: "global",
+          directory: home,
+          choices: { "careful-review": true },
+          edits: {},
+          custom: [],
+        },
+      ],
+      artifacts: [
+        ...state.artifacts,
+        {
+          filePath: path.join(home, ".agents/skills/careful-review/SKILL.md"),
+          fingerprint: "synthetic",
+          original: null,
+          kind: "skill",
+          scope: "global",
+          name: "careful-review",
+          description: "Review a change before handoff.",
+          learningKeys: [],
+          buildId: "global",
+          buildEntryId: "careful-review",
+        },
+      ],
+    },
+  });
+
+  const bot = createBotBrowser({ ...fixture, origin: () => origin });
+
+  try {
+    expect(await (await bot(setupRequest({ path: "/api/bot/state" }))).json()).toMatchObject({
+      skills: ["careful-review", "shadowclone-work"],
+    });
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test("a failed preview names its reason", async () => {
+  const fixture = await guidanceFixture();
+  const preview = async (skills: readonly string[]) => {
+    const bot = createBotBrowser({
+      ...fixture,
+      origin: () => origin,
+      command: async ({ arguments: arguments_ }) =>
+        JSON.stringify(arguments_[1] === "user" ? { login: "sample" } : setupRepository),
+    });
+    const response = await bot(
+      setupRequest({
+        path: "/api/bot/preview",
+        body: { repository: "sample/project", name: "sample-clone", skills },
+      }),
+    );
+
+    return { status: response.status, body: await response.json() };
+  };
+
+  try {
+    expect(await preview(["shadowclone-work", "missing-skill"])).toEqual({
+      status: 400,
+      body: { error: "A selected skill is not available in this repository scope." },
+    });
+    expect(await preview([])).toEqual({
+      status: 400,
+      body: {
+        error: "Enter the repository as owner/repository, a clone name, and 1 to 40 skill names.",
+      },
+    });
   } finally {
     await fixture.cleanup();
   }

@@ -9,7 +9,7 @@ This first version supports GitHub.com and Claude subscriptions. Cloud skill del
 Install GitHub CLI and Claude Code. Sign in with `gh auth login`. Equip your maintained engineering skills and `shadowclone-work` with `shadowclone wizard`. Start in the repository checkout that the clone will use.
 
 1. Run `shadowclone bot setup`.
-2. Choose the clone name and review the selected skills.
+2. Choose the clone name and review the selected skills. The list starts with `shadowclone-work` and the skills equipped in your build.
 3. Preview every exported file and approve its cloud use.
 4. Register the App on GitHub.
 5. Install it with **Only select repositories** and include the reviewed repository.
