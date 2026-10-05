@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.21](https://github.com/theonly1me/shadowclone/compare/v0.0.20...v0.0.21) (2026-10-05)
+
+
+### Fixes
+
+* route personal skills by name so they fit the native budget ([#152](https://github.com/theonly1me/shadowclone/issues/152)) ([92b867a](https://github.com/theonly1me/shadowclone/commit/92b867a6ddbcdcc13b4c55b9c49b75c0baf236d6))
+
 ## [0.0.20](https://github.com/theonly1me/shadowclone/compare/v0.0.19...v0.0.20) (2026-10-05)
 
 
