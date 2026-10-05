@@ -219,14 +219,19 @@ export function createBotBrowser(
         "Complete the reviewed App registration and installation before uploading " +
           "credentials.",
       );
-    } catch {
+    } catch (error) {
       return browserJson({
         status: 400,
         body: {
           error:
-            "Setup could not complete. Verify the selected repository, portable " +
-            "guidance, App installation, and environment policy. No credentials appear " +
-            "in diagnostics.",
+            url.pathname !== "/api/bot/preview" || !(error instanceof Error)
+              ? "Setup could not complete. Verify the selected repository, portable " +
+                "guidance, App installation, and environment policy. No credentials appear " +
+                "in diagnostics."
+              : error instanceof z.ZodError
+                ? "Enter the repository as owner/repository, a clone name, and 1 to 40 " +
+                  "skill names."
+                : error.message,
         },
       });
     } finally {

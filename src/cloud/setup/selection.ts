@@ -1,11 +1,8 @@
 import path from "node:path";
 import type { BuildContext } from "../../builds/types";
-import { readEffectiveConfig } from "../../config";
 import { readRedactedEnvironment } from "../../environment/store";
 import { learningScopes } from "../../environment/scope";
 import { publishedSkills } from "../../environment/catalog";
-import { readMaintenanceState } from "../../skillMaintenance/state";
-import { discoverDeliverySkills } from "../../skillMaintenance/discover";
 import { resolveRepository, type GitRemoteReader } from "../../signal";
 
 export async function setupSelection(
@@ -35,22 +32,17 @@ export async function setupSelection(
         (context.cwd === scope.directory ||
           context.cwd.startsWith(`${scope.directory}${path.sep}`))),
   );
-  const { config } = await readEffectiveConfig({
-    configPath: context.paths.configFile,
-    managedConfigPath: context.paths.managedConfigFile,
-  });
-  const roots = (await readMaintenanceState(context.paths)).roots.filter(
-    (root) =>
-      config.sources["skill-library"] &&
-      root.enabled &&
-      (root.scope === "global" || scopes.some((scope) => scope.directory === root.cwd)),
+  const personalBuilds = new Set(
+    state.builds.filter((build) => build.scope === "global").map((build) => build.id),
   );
-  const library = await discoverDeliverySkills(roots);
   const names = new Set([
+    "shadowclone-work",
     ...publishedSkills({ state, scopes: new Set(scopes.map((scope) => scope.key)) }).map(
       (skill) => skill.name,
     ),
-    ...library.skills.map((skill) => skill.name),
+    ...state.artifacts
+      .filter((artifact) => artifact.kind === "skill" && personalBuilds.has(artifact.buildId ?? ""))
+      .map((artifact) => artifact.name),
   ]);
 
   return { repository: repositoryName, skills: [...names].sort() };

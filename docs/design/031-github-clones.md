@@ -32,7 +32,7 @@ The skill holds every pull request rule. The worker prompt adds only cloud facts
 
 A main-only environment secret holds the compressed plugin marketplace. The runner restores it outside the checkout and supplies it through `plugin_marketplaces` and `plugins`. Reject an oversized encoded bundle before upload. This option adds no private guidance repository or second repository token.
 
-The browser wizard previews the exact selected skill bodies, resources, and native rules before upload. The Claude token comes from `claude setup-token`, never an existing interactive credential. A native sign-in may require one secure paste into the local wizard. Credentials never enter MCP arguments or responses.
+The browser wizard previews the exact selected skill bodies, resources, and native rules before upload. The skill list starts with `shadowclone-work`, the skills equipped in the personal build, and learned skills. Other library and plugin skills stay out until the owner names them, because a list of every discovered skill exceeds the bundle limit. A failed preview shows its reason, such as the encoded size or the file that contains a local path. Later steps handle the Claude token, so their errors stay generic. The Claude token comes from `claude setup-token`, never an existing interactive credential. A native sign-in may require one secure paste into the local wizard. Credentials never enter MCP arguments or responses.
 
 ## Maintenance
 

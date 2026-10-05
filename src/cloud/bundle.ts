@@ -12,8 +12,12 @@ export function encodeBundle(files: readonly z.infer<typeof bundleFileSchema>[])
     "base64",
   );
 
-  if (Buffer.byteLength(encoded) > 48 * 1024) {
-    throw new Error("The encoded guidance exceeds 48 KB. Select fewer skills before uploading.");
+  const kilobytes = Math.ceil(Buffer.byteLength(encoded) / 1024);
+
+  if (kilobytes > 48) {
+    throw new Error(
+      `The encoded guidance uses ${kilobytes} KB of 48 KB. Select fewer skills before uploading.`,
+    );
   }
 
   return encoded;
