@@ -2,7 +2,7 @@
 
 Run `shadowclone --help` for the complete command shape.
 
-For contributor evaluations, use the source runner with `eval --protocol preference-respect-v3 --help`. The [evaluation guide](evaluations.md) explains five setups, private held-out tasks, preparation reuse, approved run scopes, and the separate routing comparison.
+For contributor evaluations, use the source runner with `bun run eval --protocol preference-respect-v3 --help`. The [evaluation guide](evaluations.md) explains five setups, private held-out tasks, preparation reuse, approved run scopes, and the separate routing comparison.
 
 ## Everyday commands
 

@@ -6,13 +6,16 @@
     "scripts/*.ts",
     "plugins/shadowclone/skills/*/scripts/*.mjs",
     "src/**/*.test.ts",
-    "src/eval/work/prepare.ts",
-    "src/eval/work/scaffold/cli.ts",
-    "src/eval/work/fakeGh/main.ts",
-    "src/eval/work/regrade.ts"
+    "evals/**/*.test.ts",
+    "evals/run.ts",
+    "evals/work/prepare.ts",
+    "evals/work/scaffold/cli.ts",
+    "evals/work/fakeGh/main.ts",
+    "evals/work/regrade.ts"
   ],
   "project": [
     "src/**/*.ts",
+    "evals/**/*.ts",
     "scripts/**/*.ts",
     "bin/*.mjs",
     "plugins/**/*.mjs"

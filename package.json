@@ -18,7 +18,8 @@
     "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run scripts/conventions.ts && bun run scripts/privacy.ts && bun run scripts/skills.ts && bun run scripts/skillVersions.ts",
     "lint:fix": "biome lint --write .",
     "knip": "knip",
-    "eval:work": "bun src/eval/work/run.ts",
+    "eval": "bun evals/run.ts",
+    "eval:work": "bun evals/work/run.ts",
     "build": "bun run scripts/build.ts",
     "prepack": "bun run build"
   },

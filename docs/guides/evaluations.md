@@ -14,7 +14,7 @@ This contributor benchmark measures learning fidelity and guidance delivery. The
 
 The handwritten reference and learned guidance use the same delivery path. Neither receives answers appended to task prompts. Saved receipts call them `told` and `deep`. Their difference measures fidelity to intended guidance. Comparing learned guidance with routing measures the effect of learning. Neither comparison alone proves production throughput.
 
-The [public cases](../../src/eval/fixed/reusable/cases/), [target specification](../../src/eval/fixed/reusable/oracle.ts), [manual guidance](../../src/eval/fixed/reusable/guidance.ts), and [correction corpus](../../src/eval/fixed/reusable/corpus.ts) are authored separately. Corrections include repeated examples, conditional defaults, a one-task waiver, replacement of an older instruction, and insufficient evidence. Tool-result decoys must not enter eligible learning text.
+The [public cases](../../evals/fixed/reusable/cases/), [target specification](../../evals/fixed/reusable/oracle.ts), [manual guidance](../../evals/fixed/reusable/guidance.ts), and [correction corpus](../../evals/fixed/reusable/corpus.ts) are authored separately. Corrections include repeated examples, conditional defaults, a one-task waiver, replacement of an older instruction, and insufficient evidence. Tool-result decoys must not enter eligible learning text.
 
 These synthetic fixtures are versioned source inputs. Each run materializes them into fresh disposable homes and repositories through the standard CLI. No custom sessions or handwritten setup scripts are needed. Credentials, held-out content, learned environments, and execution evidence remain in private storage.
 
@@ -29,16 +29,16 @@ These synthetic fixtures are versioned source inputs. Each run materializes them
 | PR structure        |                 2 |              1 |           12.5% |
 | Scope and lifecycle |                 2 |              1 |           12.5% |
 
-Eight held-out cases live in a private bundle outside every checkout. Only their [hashes and family coverage](../../src/eval/fixed/reusable/heldout-manifest.json) are public. Store the bundle in durable private storage and back it up independently; it cannot be reconstructed from hashes. Do not give it to an optimizer. Human reviewers inspect its case-and-verdict specification before freezing; candidates access its prompts only during qualification. Development uses the sixteen public cases.
+Eight held-out cases live in a private bundle outside every checkout. Only their [hashes and family coverage](../../evals/fixed/reusable/heldout-manifest.json) are public. Store the bundle in durable private storage and back it up independently; it cannot be reconstructed from hashes. Do not give it to an optimizer. Human reviewers inspect its case-and-verdict specification before freezing; candidates access its prompts only during qualification. Development uses the sixteen public cases.
 
-A separate [routing experiment](../../src/eval/fixed/reusable/routing.ts) compares the same 20 manual skills with and without routing on twelve public cases. Descriptions overlap, while task module names match the corresponding skill names. The completed contrast adds generic startup guidance, so it does not isolate explicit production skill routes. Selection requires reading the relevant skill without unrelated library reads. Compliance independently checks the generated implementation. Selection passes never turn a compliance failure into a pass. This experiment does not measure learning and does not consume learning calls.
+A separate [routing experiment](../../evals/fixed/reusable/routing.ts) compares the same 20 manual skills with and without routing on twelve public cases. Descriptions overlap, while task module names match the corresponding skill names. The completed contrast adds generic startup guidance, so it does not isolate explicit production skill routes. Selection requires reading the relevant skill without unrelated library reads. Compliance independently checks the generated implementation. Selection passes never turn a compliance failure into a pass. This experiment does not measure learning and does not consume learning calls.
 
 ## Review and offline preparation
 
 Use the source checkout and its pinned Bun version. All output paths below refer to new private directories outside repositories. These are contributor commands; packaged releases do not contain the source benchmark fixtures.
 
 ```bash
-bun run cli eval --protocol preference-respect-v3 --phase review \
+bun run eval --protocol preference-respect-v3 --phase review \
   --bundle-file "$PRIVATE_ROOT/heldout/bundle.json" \
   --review-file "$PRIVATE_ROOT/review.json"
 ```
@@ -46,10 +46,10 @@ bun run cli eval --protocol preference-respect-v3 --phase review \
 Read the private review artifact. It includes each case's expected verdict, check kinds, and calibration fingerprint. Approval is an explicit decision on the displayed fingerprint:
 
 ```bash
-bun run cli eval --protocol preference-respect-v3 --phase approve-review \
+bun run eval --protocol preference-respect-v3 --phase approve-review \
   --review-file "$PRIVATE_ROOT/review.json" --fingerprint "$REVIEW_FINGERPRINT"
 
-bun run cli eval --protocol preference-respect-v3 --phase prepare-environments \
+bun run eval --protocol preference-respect-v3 --phase prepare-environments \
   --bundle-file "$PRIVATE_ROOT/heldout/bundle.json" \
   --review-file "$PRIVATE_ROOT/review.json" \
   --model "$LEARNER_MODEL" --effort medium --maximum-calls 16 \
@@ -73,11 +73,11 @@ Before paying for learner preparations, prepare `--experiment learning --run-pha
 After the user approves the pinned learner and complete ceiling, create the exact scope and execute it:
 
 ```bash
-bun run cli eval --protocol preference-respect-v3 --phase approve-learning \
+bun run eval --protocol preference-respect-v3 --phase approve-learning \
   --preparation-file "$PRIVATE_ROOT/environments/preparation.json" \
   --fingerprint "$PREPARATION_FINGERPRINT"
 
-bun run cli eval --protocol preference-respect-v3 --phase learn \
+bun run eval --protocol preference-respect-v3 --phase learn \
   --preparation-file "$PRIVATE_ROOT/environments/preparation.json" \
   --scope-file "$PRIVATE_ROOT/environments/learning-scope.json" --yes
 ```
@@ -93,7 +93,7 @@ Run learning once per unchanged preparation set, then reuse its `environments.js
 For a new cohort after evaluator or documentation changes, materialize fresh environments with `prepare-environments`, then reuse the completed source:
 
 ```bash
-bun run cli eval --protocol preference-respect-v3 --phase reuse-learning \
+bun run eval --protocol preference-respect-v3 --phase reuse-learning \
   --source-file "$PRIVATE_ROOT/original-environments/learning-source.json" \
   --preparation-file "$PRIVATE_ROOT/new-environments/preparation.json"
 ```
@@ -105,7 +105,7 @@ Reuse requires the automatically sealed production learning code, fixture setup,
 Use the same three preparation outputs for every scored host/model. Deep repetition one uses preparation one, and so on. A host or model change requires its own qualification even if the product is unchanged.
 
 ```bash
-bun run cli eval --protocol preference-respect-v3 --phase prepare \
+bun run eval --protocol preference-respect-v3 --phase prepare \
   --preparation-file "$PRIVATE_ROOT/environments/preparation.json" \
   --environments-file "$PRIVATE_ROOT/environments/environments.json" \
   --experiment learning --run-phase development \
@@ -127,7 +127,7 @@ The preparation ceiling is paid once for a shared cohort, not once per scored ho
 ## Validate, approve, execute, and grade
 
 ```bash
-bun run cli eval --protocol preference-respect-v3 --phase validate \
+bun run eval --protocol preference-respect-v3 --phase validate \
   --suite-file "$PRIVATE_ROOT/development/suite.json"
 ```
 
@@ -136,14 +136,14 @@ Validation checks passing and failing grader outputs, boundaries and overrides, 
 After approving this host, model, effort, phase, and printed invocation ceiling:
 
 ```bash
-bun run cli eval --protocol preference-respect-v3 --phase approve-run \
+bun run eval --protocol preference-respect-v3 --phase approve-run \
   --suite-file "$PRIVATE_ROOT/development/suite.json" --fingerprint "$SUITE_FINGERPRINT"
 
-bun run cli eval --protocol preference-respect-v3 --phase run \
+bun run eval --protocol preference-respect-v3 --phase run \
   --suite-file "$PRIVATE_ROOT/development/suite.json" \
   --scope-file "$PRIVATE_ROOT/development/run-scope.json" --yes
 
-bun run cli eval --protocol preference-respect-v3 --phase report \
+bun run eval --protocol preference-respect-v3 --phase report \
   --suite-file "$PRIVATE_ROOT/development/suite.json"
 ```
 
