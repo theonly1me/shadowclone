@@ -4,7 +4,7 @@ Two judged pairs from the study, one where the ban looked like it helped and one
 
 ## How the pairs were chosen
 
-For each setting, the pair whose judge score is closest to that setting's average, ties broken by the lowest run number. The rule was applied after the results, to avoid picking a flattering pair by hand. A pair score is the share of its 4 judge verdicts that preferred the banned-comment code.
+For each setting, the pair whose judge score is closest to that setting's average, ties broken by the lowest run number. The rule was applied to the first batch of 40 pairs, after its results and before the second batch ran, to avoid picking a flattering pair by hand. The setting averages below are the batch 1 averages. A pair score is the share of its 4 judge verdicts that preferred the banned-comment code.
 
 | Setting | Setting average | Chosen pair | Pair score |
 | --- | ---: | --- | ---: |

@@ -6,7 +6,7 @@ It is not part of Shadowclone's preference benchmarks. No Shadowclone profile, s
 
 ## Design
 
-One task, four model settings, two conditions, ten runs per cell. That is 80 runs, 160 judge calls, and 40 judged pairs.
+One task, four model settings, two conditions, twenty runs per cell in two batches of ten. That is 160 runs, 320 judge calls, and 80 judged pairs.
 
 | Setting | Agent CLI | Model | Effort |
 | --- | --- | --- | --- |
@@ -20,7 +20,7 @@ One task, four model settings, two conditions, ten runs per cell. That is 80 run
 | A, comments allowed | The [task prompt](task/prompt_base.md). It never mentions comments. |
 | B, comments banned | The same prompt plus one sentence: "Do not write any comments in code. This includes # comments and docstrings." ([file](task/ban_suffix.md)) |
 
-Run order was shuffled with a fixed seed and interleaved across all cells, four runs at a time, between 2026-10-04 20:36 and 21:21 UTC. Mean run time was 65 seconds for Sonnet, 86 for Opus, 194 for Luna, and 212 for Sol.
+Run order was shuffled with a fixed seed within each batch and interleaved across all cells, four runs at a time. Batch 1 (repetitions 1 to 10) ran on 2026-10-04 between 20:36 and 21:21 UTC. Batch 2 (repetitions 11 to 20) started at 21:59 UTC and the last run started at 00:22 UTC on 2026-10-05, because the machine slept for part of it. In batch 1 the mean run time was 65 seconds for Sonnet, 86 for Opus, 194 for Luna, and 212 for Sol. Run times in batch 2 are not reliable for the reason given below.
 
 ### The task
 
@@ -43,15 +43,15 @@ The [agent invocation code](harness/agents.py) holds the exact commands. Both CL
 1. **Hidden tests.** 50 tests in [graders/hidden_tests](graders/hidden_tests). A reference solution passes all 50, and the unmodified seed fails them. The tests only use the public API stated in the prompt.
 2. **Comment count.** The [counter](graders/comments.py) uses Python's tokenizer for `#` comments and the parser for docstrings. It counts comments in changed or added files that were not in the baseline version of the same file. A B run with any new comment would count as non-compliant.
 3. **Static metrics.** The [measurements](graders/static_metrics.py) cover changed source files, with comments removed first: code lines, function count, mean and maximum function length, maximum cyclomatic complexity (radon), mean identifier length, maximum nesting depth, and ruff warnings.
-4. **Blind pairwise judge.** Within each setting, A run *i* is paired with a randomly chosen B run, using each run once, so there are 10 pairs per setting. The judge sees only the source files the agent changed, with all comments and docstrings stripped from both. It never learns which side is which. Each pair is judged in both orders by two judges: Opus 5.5 high through Claude Code and GPT 6.1 Sol high through Codex. That gives 4 verdicts per pair, averaged into one pair score, with a tie counting as half. The judge answers 10 true-or-false claims about each side ([rubric](graders/judge/rubric.md)) and then picks the side that is easier to read, understand, and change. It is told to ignore correctness.
+4. **Blind pairwise judge.** Within each setting and batch, A run *i* is paired with a randomly chosen B run from the same batch, using each run once, so there are 10 pairs per setting per batch and 20 per setting in total. The judge sees only the source files the agent changed, with all comments and docstrings stripped from both. It never learns which side is which. Each pair is judged in both orders by two judges: Opus 5.5 high through Claude Code and GPT 6.1 Sol high through Codex. That gives 4 verdicts per pair, averaged into one pair score, with a tie counting as half. The judge answers 10 true-or-false claims about each side ([rubric](graders/judge/rubric.md)) and then picks the side that is easier to read, understand, and change. It is told to ignore correctness.
 
 ### Analysis, fixed before the final runs
 
-The primary outcome is the pooled win rate of B over A across all 40 pairs, with a 95% bootstrap interval (10,000 resamples) and a sign-flip permutation test against 50%. Per-setting results are descriptive. Metrics report the mean for A and B and the difference B minus A with a 95% bootstrap interval. All four settings are reported.
+The first-batch plan was: the primary outcome is the pooled win rate of B over A across all pairs, with a 95% bootstrap interval (10,000 resamples) and a sign-flip permutation test against 50%. Per-setting results are descriptive. Metrics report the mean for A and B and the difference B minus A with a 95% bootstrap interval. All four settings are reported.
 
 ### Extension plan, written before the second batch ran
 
-After the first batch of 40 pairs the pooled result was 59.4% (95% interval 47.5% to 71.3%, p = 0.164), which is not significant. A second batch of 10 runs per cell (repetitions 11 to 20, 80 more runs) is run to narrow the interval. These rules were fixed before any batch 2 run started:
+After the first batch of 40 pairs the pooled result was 59% (95% interval 48% to 71%, p = 0.164), which is not significant. A second batch of 10 runs per cell (repetitions 11 to 20, 80 more runs) is run to narrow the interval. These rules were fixed before any batch 2 run started:
 
 - The task, prompts, hidden tests, rubric, judges, and analysis code do not change. The runner only gains a start-repetition option, and pairing and analysis gain batches. Batch 1 pairs and numbers are unchanged.
 - Pairs are formed inside each batch, so batch 1 has 40 pairs, batch 2 has 40 pairs, and the combined study has 80 pairs.
@@ -63,53 +63,61 @@ After the first batch of 40 pairs the pooled result was 59.4% (95% interval 47.5
 
 ### Blind judge
 
-| Setting | Pairs | B judged easier to read | 95% interval | p | Rubric claims true, A / B |
-| --- | ---: | ---: | --- | ---: | --- |
-| All four settings | 40 | **59.4%** | 47.5% to 71.3% | 0.164 | 31.9% / 36.8% |
-| Sonnet 5.5, high | 10 | 68% | 38% to 93% | 0.34 | 33% / 44% |
-| Opus 5.5, medium | 10 | 85% | 68% to 97% | 0.009 | 35% / 43% |
-| GPT 6 Luna, high | 10 | 45% | 25% to 65% | 0.82 | 24% / 25% |
-| GPT 6.1 Sol, medium | 10 | 40% | 20% to 62% | 0.52 | 36% / 35% |
+| Setting | Pairs | B judged easier to read | 95% interval | p | Batch 1 | Batch 2 | Rubric claims true, A / B |
+| --- | ---: | ---: | --- | ---: | ---: | ---: | --- |
+| **All four settings** | 80 | **61.9%** | 53% to 70% | 0.009 | 59% | 64% | 34% / 38% |
+| Sonnet 5.5, high | 20 | 69% | 51% to 85% | 0.069 | 68% | 70% | 35% / 44% |
+| Opus 5.5, medium | 20 | 75% | 59% to 89% | 0.010 | 85% | 65% | 40% / 44% |
+| GPT 6 Luna, high | 20 | 54% | 39% to 69% | 0.760 | 45% | 62% | 25% / 26% |
+| GPT 6.1 Sol, medium | 20 | 50% | 34% to 66% | 1.000 | 40% | 60% | 34% / 36% |
 
-By judge, pooled: Opus 5.5 as judge picked B 55% of the time (44% to 65%), and GPT 6.1 Sol as judge picked B 64% of the time (53% to 74%). The judges agreed on 60 of 80 pair-order verdicts. The same judge gave the same answer after the order was swapped in 64 of 80 cases. The first-shown side won 51% of the time, so there is no sign of a position bias.
+"B judged easier to read" is the share of pair-order-judge verdicts that preferred the comment-banned code, averaged per pair. 50% means no difference. The first row is the headline: 61.9% across all 80 pairs. The p-value is a sign-flip permutation test against 50%.
+
+- **Batch 1 alone:** 59% (48% to 71%, p = 0.164). **Batch 2 alone:** 64% (53% to 76%, p = 0.027). The second batch was planned before it ran and had not been seen, so it is a fresh check of the first. It points the same way.
+- **By judge, all pairs:** Opus 5.5 as judge picked B 58% of the time (51% to 66%), and GPT 6.1 Sol as judge picked B 66% of the time (58% to 73%).
+- **Judge reliability:** the two judges agreed on 119 of 160 pair-order verdicts (74%). The same judge gave the same answer after the order was swapped in 127 of 160 cases (79%). The first-shown side won 52% of the time, so there is no sign of a position bias. Two of 320 verdicts were ties.
+- **Per setting:** all four settings were above 50% in batch 2 (Sonnet 70%, Opus 65%, Luna 62%, Sol 60%). In batch 1 Luna and Sol were below 50% and Opus was at 85%, so the batch 1 differences between settings were partly noise. With 20 pairs per setting, the intervals stay wide, and the data cannot say whether Luna or Sol benefit.
 
 ### Comments written and correctness
 
 | Setting | New source comments, A | New source comments, B | New test comments, A | Hidden tests passed, A / B | Runs obeying the ban |
 | --- | ---: | ---: | ---: | --- | ---: |
-| Sonnet 5.5, high | 6.3 | 0 | 16.7 | 500/500 / 500/500 | 10 of 10 |
-| Opus 5.5, medium | 6.7 | 0 | 12.6 | 500/500 / 500/500 | 10 of 10 |
-| GPT 6 Luna, high | 1.9 | 0 | 0.0 | 499/500 / 498/500 | 10 of 10 |
-| GPT 6.1 Sol, medium | 1.0 | 0 | 0.9 | 500/500 / 500/500 | 10 of 10 |
+| Sonnet 5.5, high | 6.2 | 0 | 16.6 | 1000/1000 / 1000/1000 | 20 of 20 |
+| Opus 5.5, medium | 6.2 | 0 | 12.9 | 1000/1000 / 1000/1000 | 20 of 20 |
+| GPT 6 Luna, high | 2.0 | 0 | 0.2 | 997/1000 / 998/1000 | 20 of 20 |
+| GPT 6.1 Sol, medium | 1.3 | 0 | 1.2 | 1000/1000 / 1000/1000 | 20 of 20 |
 
-Comment columns are the mean per run. Three Luna runs, one in A and two in B, each missed one hidden test. All other runs passed all 50.
+Comment columns are the mean per run. Five Luna runs missed one hidden test each, three in A and two in B. All other runs passed all 50. Five of 20 Luna runs and 4 of 20 Sol runs in condition A wrote no new source comments.
 
 ### Code measurements
 
-Difference B minus A, mean with 95% interval. Of the 48 intervals computed for all measures, 6 exclude zero. Four of those are the comment count, which the ban removes by design. The other two are Luna's run time (B took about 38 seconds longer) and Sol's mean identifier length (+0.17 characters). Two out of 44 is what chance alone would give at 95%. The three measures below show the structure of the code.
+Difference B minus A over all 40 runs per setting, mean with 95% interval.
 
 | Setting | Max complexity | Max function length | Code lines |
 | --- | --- | --- | --- |
-| Sonnet 5.5, high | -1.1 (-3.0 to 1.0) | -3.4 (-7.9 to 1.2) | +3.2 (-15.9 to 23.3) |
-| Opus 5.5, medium | -1.5 (-3.2 to 0.2) | +0.8 (-2.9 to 4.3) | +4.2 (-7.0 to 14.9) |
-| GPT 6 Luna, high | +0.6 (-1.4 to 2.9) | +0.5 (-5.9 to 6.7) | -16.4 (-37.0 to 5.7) |
-| GPT 6.1 Sol, medium | +0.3 (-0.7 to 1.3) | +0.2 (-1.9 to 2.2) | +2.5 (-6.4 to 11.1) |
+| Sonnet 5.5, high | -1.7 (-2.8 to -0.5) | -4.5 (-7.8 to -1.3) | +3.6 (-7.1 to +14.7) |
+| Opus 5.5, medium | -1.0 (-2.2 to +0.2) | +1.2 (-1.1 to +3.5) | +4.2 (-4.0 to +12.5) |
+| GPT 6 Luna, high | +0.1 (-1.4 to +1.6) | +0.1 (-5.1 to +5.4) | -16.1 (-33.2 to +1.2) |
+| GPT 6.1 Sol, medium | +0.3 (-0.3 to +0.9) | -0.4 (-1.8 to +1.1) | +7.9 (+0.8 to +15.1) |
 
-All measures, including function count, identifier length, nesting depth, ruff warnings, and run time, are in [runs/analysis.json](runs/analysis.json).
+All measures are in [runs/analysis.json](runs/analysis.json), for all runs and for each batch. Of the 44 intervals for measures other than comment count, 7 exclude zero, where about 2 would by chance. For Sonnet, B had a lower maximum complexity and a shorter longest function. For Sol, B had 7.9 more code lines, slightly longer identifiers (+0.2 characters), and 0.35 fewer ruff warnings. For Luna, only run time excluded zero, and run time is not reliable (see below).
 
 ## How the study went
 
 - A pilot of 8 runs (one per cell) checked isolation and the harness. All 8 passed all hidden tests, so the task has no correctness headroom. We kept the task unchanged and relied on readability as the main outcome. The pilot runs are not part of the results.
-- All 80 final runs completed. There were no timeouts and no infrastructure failures, and no run was repeated.
-- One judge verdict could not be parsed. It was removed and that single call was run again.
-- While judging was still running, we looked at interim win rates. No decision changed because of that look. The analysis in this page was run once on the complete data.
-- The harness binary lookup and temporary directory were made portable after the runs. Behavior did not change, and rerunning the analysis on the published results reproduces every number.
+- Batch 1 completed with no timeouts and no infrastructure failures. One judge verdict could not be parsed, so it was removed and that single call was run again.
+- While batch 1 judging was still running, we looked at interim win rates. No decision changed because of that look.
+- After batch 1 the result was not significant, so we wrote the extension plan above, committed it, and only then started batch 2. The runner gained a start-repetition option, and pairing and analysis gained batches. Re-running the analysis after those edits reproduced every batch 1 number.
+- During batch 2 the laptop, on battery, went into repeated 15 minute sleep cycles overnight, and four Codex runs were stalled. A wake lock (`caffeinate -dimsu`) fixed it. Four runs (Sol A 20, Sol B 14, Sol B 15, Luna B 18) overlapped the sleep, finished normally, and were graded normally. None timed out. We kept them without a rerun. Their recorded run times are wrong, and the timer cannot be trusted for batch 2, so the run-time measure is not used in any claim.
+- Batch 2 had no timeouts and no infrastructure failures. One batch 2 judge verdict could not be parsed, so it was removed and that single call was run again.
+- The harness binary lookup and temporary directory were made portable after batch 1. Behavior did not change, and rerunning the analysis on the published results reproduces every number.
 - Codex printed a warning in some runs that an unauthenticated connector had quit. It had no effect on the work.
 
 ## Limits
 
-- One task, one codebase, ten runs per cell. The pooled interval spans 48% to 71%.
-- The judges are language models. Two judges from different families agreed on 75% of verdicts, not all.
+- One task, one codebase, twenty runs per cell. The pooled interval spans 53% to 70%, and the effect is about 12 points above a coin flip.
+- The combined p-value follows an extension decided after seeing batch 1, so it is somewhat optimistic. Batch 2 alone is the cleaner check.
+- The judges are language models. Two judges from different families agreed on 74% of verdicts, not all.
 - The seed code has 3 comments, and Claude Code's default prompt tells the model to match the comment density of the surrounding code. Both may pull condition A toward more comments.
 - Settings differ in reasoning effort, so compare A against B inside a setting, never across settings.
 - Condition B adds an instruction, so the study cannot separate the effect of banning comments from the effect of adding any extra instruction.
@@ -121,23 +129,24 @@ Install `requirements.txt` into a `.venv` in this folder, log in to the Claude C
 
 ```bash
 python -m harness.run_all --repetitions 10 --concurrency 4
+python -m harness.run_all --first-repetition 11 --repetitions 20 --concurrency 4
 python -m graders.judge.run --concurrency 4
 python -m analysis.analyze
 ```
 
-Set `EVAL_LEAK_MARKERS` to distinctive strings from your own instruction files and run `python -m harness.isolation_check <setting>` to check that none reach a run. The schedule, pairing, and bootstrap use fixed seeds. Model outputs vary between runs.
+Set `EVAL_LEAK_MARKERS` to distinctive strings from your own instruction files and run `python -m harness.isolation_check <setting>` to check that none reach a run. The schedule, pairing, and bootstrap use fixed seeds. Model outputs vary between runs. Keep the machine awake while it runs, for example with `caffeinate -dimsu`, or runs can stall.
 
 ## Files
 
 | Path | Contents |
 | --- | --- |
-| [EXAMPLES.md](EXAMPLES.md) | Two judged code pairs, side by side |
+| [EXAMPLES.md](EXAMPLES.md) | Two judged code pairs from batch 1, side by side |
 | [task](task) | Seed repo, task prompt, ban sentence |
 | [graders](graders) | Hidden tests, reference solution, comment counter, static metrics, judge |
 | [harness](harness) | Runner, scheduler, isolation check, and the four settings in `matrix.json` |
 | [analysis](analysis) | Statistics and tables |
 | [runs/analysis.json](runs/analysis.json) | All computed results |
-| [runs/judgments.jsonl](runs/judgments.jsonl) | All 160 judge verdicts |
+| [runs/judgments.jsonl](runs/judgments.jsonl) | All 320 judge verdicts |
 | `runs/<setting>/<A or B>/<run>/` | Per-run grades (`result.json`), the agent's diff, and the files it changed |
 
 Agent transcripts are not published. They contain local paths and session details. Per-run cost figures are removed.
