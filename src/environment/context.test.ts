@@ -64,5 +64,5 @@ test("routing overflow is explicit and never drops a fact", () => {
         ],
       },
     }),
-  ).toThrow("4 KiB");
+  ).toThrow("of 4096 bytes");
 });

@@ -62,10 +62,11 @@ export function renderSkillRouting(options: {
   ];
 
   const text = `${lines.join("\n")}\n`;
+  const bytes = Buffer.byteLength(text);
 
-  if (Buffer.byteLength(text) > 4096) {
+  if (bytes > 4096) {
     throw new Error(
-      "Native skill routing exceeds 4 KiB; shorten descriptions or narrow routes before publishing",
+      `Native skill routing uses ${bytes} of 4096 bytes; equip fewer skills before publishing`,
     );
   }
 
