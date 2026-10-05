@@ -31,4 +31,4 @@ We asked four model settings to add the same feature to a small Python codebase,
 - The per-setting results are descriptive. With four settings and 20 pairs each, one setting looking good or bad is expected by chance.
 - The model settings differ in reasoning effort, so compare the two conditions inside a setting, not settings against each other.
 
-See [code examples](EXAMPLES.md) for the same code written with and without comments. The full method, exact prompts, isolation steps, limits, and raw results are in the [README](README.md). This was run for fun on 2026-10-04 and 2026-10-05 (UTC).
+See the [code examples](https://github.com/theonly1me/shadowclone-no-comments-runs/blob/main/EXAMPLES.md) for the same code written with and without comments. The [README](README.md) explains how it worked, and the [results page](https://github.com/theonly1me/shadowclone-no-comments-runs/blob/main/RESULTS.md) has the full method and every table. The raw runs are in [shadowclone-no-comments-runs](https://github.com/theonly1me/shadowclone-no-comments-runs). This was run for fun on 2026-10-04 and 2026-10-05 (UTC).
