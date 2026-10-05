@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.20](https://github.com/theonly1me/shadowclone/compare/v0.0.19...v0.0.20) (2026-10-05)
+
+
+### Features
+
+* remove the eval command from the shipped cli and move the evaluations out of src ([#151](https://github.com/theonly1me/shadowclone/issues/151)) ([2f18eb4](https://github.com/theonly1me/shadowclone/commit/2f18eb4bcb239fad1ee68c140d05e2c73218c7ea))
+
+
+### Documentation
+
+* add the no-comments eval of code written with and without a comment ban ([#149](https://github.com/theonly1me/shadowclone/issues/149)) ([b1d38c2](https://github.com/theonly1me/shadowclone/commit/b1d38c282949c6c3ace49609d8a4308ac77fdd2a))
+
 ## [0.0.19](https://github.com/theonly1me/shadowclone/compare/v0.0.18...v0.0.19) (2026-10-04)
 
 
