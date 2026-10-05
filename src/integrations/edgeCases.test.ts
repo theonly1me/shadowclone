@@ -5,7 +5,7 @@ import { installIntegration } from "./install";
 import { integrationFixture } from "./fixtures";
 import { nativeSessionStart } from "./hooks";
 import { refreshIntegrations } from "./refresh";
-import { isolateNativeGuidance } from "../eval/shared/nativeIsolation";
+import { isolateNativeGuidance } from "../../evals/shared/nativeIsolation";
 import { managedStart, managedEnd } from "./markdown";
 
 test("uses the selected Codex home and existing override without losing personal skill discovery", async () => {

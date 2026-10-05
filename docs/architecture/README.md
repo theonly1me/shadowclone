@@ -105,7 +105,7 @@ flowchart LR
 | `src/integrations/`, `src/harness/`    | Install native guidance and repository instructions/checks                                               |
 | `src/engine/`                          | Invoke authenticated agent CLIs                                                                          |
 | `src/cloud/`                           | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows                  |
-| `src/eval/`, `src/changes/`            | Run reviewed learning and routing suites, record workflow outcomes, and retain reversible file revisions |
+| `evals/`, `src/changes/`               | Run reviewed learning and routing suites, record workflow outcomes, and retain reversible file revisions |
 | `src/profile/`                         | Legacy profile compatibility and the reconciliation boundary                                             |
 
 The learning service coordinates model execution, reconciliation, pending decisions, and persistence for both CLI and background paths. Its maintenance service selects the active environment or legacy fallback; the skill-maintenance package supplies library primitives and retains a compatibility entry point. The CLI owns prompts and presentation. Source authorization is checked at selection and again when a reference is resolved. Automatic skill writes require separate authorization. Reviewed build edits use the same publication and revision machinery as learning. Later corrections create review signals. An explicitly authorized probe sends redacted installed guidance into an isolated native session; its exact-response assertion does not establish hook delivery or future compliance.

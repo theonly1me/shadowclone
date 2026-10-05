@@ -50,7 +50,7 @@ One hillclimb round on the train cases found two gaps. Claude Code adds a `Co-Au
 
 ## Consequences
 
-Evaluation material in `src/eval/work/` is synthetic and stays out of the npm package. Builds, run results, transcripts, and costs stay outside the checkout.
+Evaluation material in `evals/work/` is synthetic and stays out of the npm package. Builds, run results, transcripts, and costs stay outside the checkout.
 
 The stand-in cannot reproduce every GitHub behavior. Calls it does not support fail with a logged error and are counted per run, so they show up as harness gaps rather than skill failures.
 
