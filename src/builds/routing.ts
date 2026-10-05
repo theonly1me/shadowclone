@@ -79,22 +79,31 @@ export function renderBuildRouting(options: {
     "Follow repository requirements. Repository build choices override personal global choices. Load each selected workflow skill at the moment listed for it. When a selected workflow skill conflicts with the user's own skills or learned baseline rules, follow the user's guidance.",
   ];
 
+  const routedByDescription: string[] = [];
+
   for (const artifact of artifacts.values()) {
+    if (artifact.buildEntryId === "build-preferences") {
+      lines.push(
+        "Follow the selected working preferences in the shadowclone-build-preferences skill when relevant.",
+      );
+    } else if (artifact.appliesWhen) {
+      lines.push(`- ${artifact.appliesWhen}: ${artifact.name}`);
+    } else {
+      routedByDescription.push(artifact.name);
+    }
+  }
+
+  if (routedByDescription.length > 0) {
     lines.push(
-      artifact.buildEntryId === "build-preferences"
-        ? "Follow the selected working preferences in the shadowclone-build-preferences skill when relevant."
-        : artifact.appliesWhen
-          ? `- ${artifact.appliesWhen}: ${artifact.name}`
-          : `- ${artifact.description} Use the ${artifact.name} skill when relevant.`,
+      `- when the task matches the skill's own description: ${routedByDescription.join(", ")}`,
     );
   }
 
   const text = `${lines.join("\n")}\n`;
+  const bytes = Buffer.byteLength(text);
 
-  if (Buffer.byteLength(text) > 4096) {
-    throw new Error(
-      "Build routing exceeds 4 KiB; shorten skill descriptions or equip fewer skills",
-    );
+  if (bytes > 4096) {
+    throw new Error(`Build routing uses ${bytes} of 4096 bytes; equip fewer skills`);
   }
 
   return text;

@@ -46,7 +46,9 @@ test("private builds inherit custom skills and leave the repository untouched", 
     repositoryName: null,
   });
 
-  expect(compilation?.markdown).toContain("Use the measure-first skill when relevant.");
+  expect(compilation?.markdown).toContain(
+    "- when the task matches the skill's own description: measure-first\n",
+  );
   expect(compilation?.markdown).not.toContain("tests-that-catch-bugs/SKILL.md");
   expect(
     await Bun.file(path.join(context.cwd, "AGENTS.md")).exists(),
