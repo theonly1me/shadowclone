@@ -128,7 +128,11 @@ async function inspectSkills(options: {
           throw new Error("Skill name does not match its directory");
         }
 
-        await validateSkillReferences({ filePath, text: document.body });
+        await validateSkillReferences({
+          filePath,
+          text: document.body,
+          mentionedFiles: "optional",
+        });
         skills.push({
           id: fingerprint(identity),
           root,

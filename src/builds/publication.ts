@@ -116,7 +116,11 @@ export async function publishBuildSkill(
         : null;
 
   if (resourceDirectory !== null) {
-    await validateSkillReferences({ filePath: path.join(resourceDirectory, "SKILL.md"), text });
+    await validateSkillReferences({
+      filePath: path.join(resourceDirectory, "SKILL.md"),
+      text,
+      mentionedFiles: source?.root.owner === "user" ? "optional" : "required",
+    });
 
     const resources = await publishSkillResources({
       source: resourceDirectory,

@@ -108,6 +108,7 @@ export async function skillPublication(options: {
           options.skill.relativePath,
         ),
         text: options.text,
+        mentionedFiles: "required",
       });
     } else if (
       /\]\((?!https?:|#)|`(?:scripts|references|assets)\//.test(options.text)

@@ -46,6 +46,17 @@ test("malformed skills and unavailable references are reported without mutation"
   );
 });
 
+test("a skill that names another skill's file in backticks stays valid", async () => {
+  const setup = await skillFixture();
+
+  await Bun.write(
+    setup.filePath,
+    `${setup.original}\nThe review skill keeps its tone in \`references/voice.md\`.\n`,
+  );
+
+  expect(await inspectSkillLibrary(setup)).toMatchObject({ invalid: 0 });
+});
+
 test("symlinked content is ignored and identical portable copies collapse", async () => {
   const setup = await skillFixture();
 
