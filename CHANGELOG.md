@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.22](https://github.com/theonly1me/shadowclone/compare/v0.0.21...v0.0.22) (2026-10-05)
+
+
+### Fixes
+
+* keep user skills that name another skill's file in backticks ([#154](https://github.com/theonly1me/shadowclone/issues/154)) ([cb3a944](https://github.com/theonly1me/shadowclone/commit/cb3a9447c8943e8b8592ac73b431f6893f1b6c38))
+* start clone setup from the equipped build and show why a preview fails ([#155](https://github.com/theonly1me/shadowclone/issues/155)) ([6cee926](https://github.com/theonly1me/shadowclone/commit/6cee9268d879343a626c7b99f4fc8664aaf58c8d))
+
 ## [0.0.21](https://github.com/theonly1me/shadowclone/compare/v0.0.20...v0.0.21) (2026-10-05)
 
 
