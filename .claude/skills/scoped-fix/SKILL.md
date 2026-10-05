@@ -25,4 +25,4 @@ For a new regression test, temporarily invert the smallest enforcing production 
 
 Follow the chosen direction after discussing a tradeoff; do not repeatedly propose a rejected alternative. In plan mode, wait for approval before editing.
 
-Before committing or pushing, ask the user to review the completed diff with a proposed single-line conventional commit message. Keep authorized review rounds in separate commits. Never force push, amend a pushed commit, or add a co-author trailer.
+Commit each round separately with a single-line conventional commit message, push, and open or update the draft pull request without stopping for a diff review. Never force push, amend a pushed commit, or add a co-author trailer.
