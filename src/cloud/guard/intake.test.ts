@@ -21,6 +21,28 @@ test("an owner issue survives the default-branch relay dispatch", async () => {
   expect(resolved?.actor).toBe("sample");
 });
 
+test("an owner issue survives a relay dispatch when GitHub leaves out the empty head input", async () => {
+  const { request } = githubFixture({ [issueRoute]: fixtureIssue });
+  const direct = await resolveTrigger({ clone: fixtureClone, context: eventContext(), request });
+  const dispatch = eventContext({
+    event: "workflow_dispatch",
+    actor: "github-actions[bot]",
+    payload: {
+      inputs: {
+        source: "issues",
+        action: "opened",
+        identifier: "1",
+        entity: "1",
+        branch: "shadowclone/issue-1",
+        key: direct?.key,
+      },
+    },
+  });
+
+  expect(direct?.head).toBe("");
+  expect(await resolveTrigger({ clone: fixtureClone, context: dispatch, request })).toEqual(direct);
+});
+
 test("outsider issues and relays with changed repository IDs fail closed", async () => {
   const { request } = githubFixture({
     [issueRoute]: { ...fixtureIssue, user: { login: "outside" } },

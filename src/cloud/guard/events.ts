@@ -244,7 +244,7 @@ export async function resolveTrigger(options: {
   if (
     dispatched &&
     (input.branch !== branch ||
-      input.head !== head ||
+      String(input.head ?? "") !== head ||
       input.key !== key ||
       positiveNumber(input.entity) !== entityNumber)
   ) {
