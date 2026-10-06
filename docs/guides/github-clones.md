@@ -26,7 +26,7 @@ Setup rejects an App installed on **All repositories**. It verifies the target r
 
 ## Work on issues and PRs
 
-Create an issue as the installing owner. Its stated scope authorizes a plan, changes, checks, commits, pushes, and a draft PR. Scope expansion still needs your decision.
+Create an issue as the installing owner. Its stated scope authorizes a plan, changes, checks, commits, pushes, and a PR. The clone opens the PR as a draft and marks it ready for review when its checks pass, it has no conflicts, and every review thread is handled. Scope expansion still needs your decision.
 
 Write `@shadowclone` followed by a request on an issue or a same-repository PR. You can also use the App slug, such as `@my-shadowclone`. External users, fork PRs, and the clone's own comments cannot start work.
 
