@@ -30,6 +30,8 @@ Create an issue as the installing owner. Its stated scope authorizes a plan, cha
 
 Write `@shadowclone` followed by a request on an issue or a same-repository PR. You can also use the App slug, such as `@my-shadowclone`. External users, fork PRs, and the clone's own comments cannot start work.
 
+When the worker accepts a request, it reacts with `eyes` as the clone. The reaction goes on the tagged comment, or on the issue for a new issue. A review body or a CI-started run has no reaction. A failed reaction logs a warning and the work continues.
+
 The clone follows the exported `shadowclone-work` skill and native engineering rules. It repairs checks, conflicts, and valid reviewer findings before it marks the PR ready. It reports a check that waits for a human and does not retrigger it. Each run has a 20-minute limit and 60 turns. Each branch has a daily limit of ten worker runs. A run can stop before the finish line; inspect its Actions result before requesting another attempt.
 
 When the last GitHub Actions run on a managed PR's head finishes, the clone resumes that PR once, also after its own pushes. Approved reviewer events can resume it too. The default reviewer bot list contains `coderabbitai[bot]` and `github-actions[bot]`. Review findings from repository writers also qualify. To change requesters, reviewers, or limits, review both workflow configurations in a PR.

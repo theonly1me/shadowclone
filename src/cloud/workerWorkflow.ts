@@ -99,6 +99,20 @@ jobs:
           permission-workflows: write
       - uses: ${pins.script}
         if: steps.validate.outputs.allowed == 'true'
+        with:
+          github-token: \${{ steps.app.outputs.token }}
+          script: |
+            const { reactToRequest } = require('./.github/shadowclone/react.cjs');
+            await reactToRequest({
+              repository: '${clone.repository}',
+              source: String('\${{ steps.validate.outputs.source }}'),
+              identifier: Number('\${{ steps.validate.outputs.identifier }}'),
+              entity: Number('\${{ steps.validate.outputs.entity }}'),
+              request: github.request.bind(github),
+              warn: core.warning,
+            });
+      - uses: ${pins.script}
+        if: steps.validate.outputs.allowed == 'true'
         env:
           GUIDANCE_BUNDLE: \${{ secrets.SHADOWCLONE_GUIDANCE }}
         with:
