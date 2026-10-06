@@ -92,3 +92,13 @@ test("setup stops when GitHub does not enforce the created ruleset", async () =>
     protectDefaultBranch({ repository: setupRepository, command: fixture.command }),
   ).rejects.toThrow("could not be verified");
 });
+
+test("setup accepts the created ruleset when GitHub leaves out the default update parameter", async () => {
+  const fixture = rulesetFixture({
+    stored: (created) => ({ ...created, rules: [{ type: "update" }, { type: "deletion" }] }),
+  });
+
+  await protectDefaultBranch({ repository: setupRepository, command: fixture.command });
+
+  expect(fixture.calls.at(-1)?.arguments).toEqual(["api", "repos/sample/project/rulesets/8"]);
+});

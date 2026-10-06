@@ -69,7 +69,7 @@ function isDefaultBranchRuleset(ruleset: Ruleset): boolean {
     sortedKeys(ruleset.conditions?.ref_name.include ?? []) === "~DEFAULT_BRANCH" &&
     (ruleset.conditions?.ref_name.exclude.length ?? 0) === 0 &&
     sortedKeys(ruleset.rules.map((rule) => rule.type)) === "deletion,update" &&
-    update?.parameters?.update_allows_fetch_and_merge === false &&
+    (update?.parameters?.update_allows_fetch_and_merge ?? false) === false &&
     sortedKeys(bypass) === sortedKeys(expectedBypass)
   );
 }
