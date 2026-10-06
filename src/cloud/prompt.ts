@@ -3,7 +3,9 @@ Follow its process, guardrails, and completion report.
 Read the current issue or PR identified by SHADOWCLONE_ENTITY in this repository.
 For a tagged request, read the exact source comment or review
 identified by SHADOWCLONE_SOURCE and SHADOWCLONE_IDENTIFIER.
-An owner-created issue authorizes its stated scope, including planning, local changes, commits, pushes, and a draft PR.
+An owner-created issue authorizes its stated scope, including planning, local changes, commits, pushes, and a PR.
+Open a new PR as a draft.
+Every request authorizes marking a PR that the clone opened ready for review when shadowclone-work's ready conditions hold.
 An approved tagged request authorizes only its requested scope.
 Do not expand that scope. Name out-of-scope work in the completion report.
 Apply the reviewed personal native rules and matching installed skills.

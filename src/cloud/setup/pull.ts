@@ -100,7 +100,7 @@ Owner issues and tagged requests need the reviewed personal engineering skills i
 
 1. Review both workflows and the guard helpers.
 2. Merge this setup PR when the configuration is correct.
-3. Create one small issue as ${clone.owner} and confirm the draft PR uses the App identity.
+3. Create one small issue as ${clone.owner} and confirm the PR uses the App identity and becomes ready for review when its checks pass.
 4. Add shadowclone:paused and confirm active work stops.
 
 The live issue flow still needs qualification.

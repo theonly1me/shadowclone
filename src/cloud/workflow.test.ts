@@ -67,3 +67,11 @@ test("generated CommonJS guards execute with the same owner issue policy", async
     await fixture.cleanup();
   }
 });
+
+test("the worker prompt authorizes the clone to mark its own PR ready for review", () => {
+  const worker = renderWorkflows(fixtureClone)[".github/workflows/shadowclone.yml"] ?? "";
+
+  expect(worker).toContain(
+    "Every request authorizes marking a PR that the clone opened ready for review",
+  );
+});
