@@ -4,7 +4,7 @@
 
 Each personal installation uses a named GitHub App owned by the user. Organization repositories register a private App under their organization because GitHub restricts private Apps to their owning account. The App operates only on explicitly selected repositories. Claude Code runs through the pinned upstream GitHub Action. Shadowclone supplies a reviewed skills bundle and repository workflows. It adds no coding runtime.
 
-The owner can start work with an issue or an `@shadowclone` request. The App slug is an alias. The issue grants plan approval within its stated scope. The clone opens a draft PR, maintains checks and reviewer findings, then marks it ready for owner review. The worker prompt grants the ready step by name, because the native rules say that skill guidance does not authorize additional actions. It never merges or force pushes.
+The owner can start work with an issue or an `@shadowclone` request. The App slug is an alias. The issue grants plan approval within its stated scope. The clone opens a draft PR, maintains checks and reviewer findings, then marks it ready for owner review. A CI result resumes the PR once, after the last workflow run on its head finishes. Runs that the clone's own push started count, because a CI result is not a request from the clone. The worker prompt grants the ready step by name, because the native rules say that skill guidance does not authorize additional actions. It never merges or force pushes.
 
 ## Boundaries
 

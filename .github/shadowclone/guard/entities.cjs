@@ -38,6 +38,13 @@ async function pausedEntity(options) {
   });
   return records(origin.labels).some((label) => label.name === "shadowclone:paused");
 }
+async function headStillRunning(options) {
+  const runs = records(record((await options.request(`GET /repos/${options.clone.repository}/actions/runs`, {
+    head_sha: options.head,
+    per_page: 100
+  })).data).workflow_runs);
+  return runs.some((run) => !String(run.path).includes("shadowclone") && ["queued", "in_progress", "requested", "pending"].includes(String(run.status)));
+}
 async function approvedReviewer(options) {
   if (options.actor === options.clone.botLogin) {
     return false;
@@ -55,4 +62,4 @@ async function approvedReviewer(options) {
   return ["admin", "maintain", "write"].includes(String(permission.permission));
 }
 
-module.exports = { managedPull, findPull, pausedEntity, approvedReviewer };
+module.exports = { managedPull, findPull, pausedEntity, headStillRunning, approvedReviewer };
