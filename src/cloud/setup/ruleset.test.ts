@@ -51,9 +51,9 @@ test("fresh setup lets only people with write access update or delete the defaul
   expect(payload.conditions.ref_name.include).toEqual(["~DEFAULT_BRANCH"]);
   expect(payload.rules.map((rule: { type: string }) => rule.type)).toEqual(["update", "deletion"]);
   expect(payload.bypass_actors).toEqual([
-    { actor_id: 5, actor_type: "RepositoryRole", bypass_mode: "always" },
-    { actor_id: 2, actor_type: "RepositoryRole", bypass_mode: "always" },
-    { actor_id: 4, actor_type: "RepositoryRole", bypass_mode: "always" },
+    { actor_id: 5, actor_type: "RepositoryRole", bypass_mode: "exempt" },
+    { actor_id: 2, actor_type: "RepositoryRole", bypass_mode: "exempt" },
+    { actor_id: 4, actor_type: "RepositoryRole", bypass_mode: "exempt" },
   ]);
   expect(fixture.calls.at(-1)?.arguments).toEqual(["api", "repos/sample/project/rulesets/8"]);
 });
