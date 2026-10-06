@@ -1,7 +1,13 @@
 import type { Clone, EventContext, GithubRequest } from "../types";
 import { readRequestComment } from "./comment";
 import { readGithub, readIssueEvents, record, positiveNumber } from "./records";
-import { findPull, managedPull, pausedEntity, approvedReviewer } from "./entities";
+import {
+  findPull,
+  headStillRunning,
+  managedPull,
+  pausedEntity,
+  approvedReviewer,
+} from "./entities";
 
 export type Trigger = {
   readonly source: string;
@@ -85,6 +91,10 @@ export async function resolveTrigger(options: {
 
     branch = String(run.head_branch);
     head = String(run.head_sha);
+
+    if (await headStillRunning({ clone, request, head })) {
+      return null;
+    }
 
     const pull = await findPull({ clone, request, branch });
 
@@ -174,7 +184,7 @@ export async function resolveTrigger(options: {
     return null;
   }
 
-  if (!entityNumber || actor === clone.botLogin) {
+  if (!entityNumber || (source !== "workflow_run" && actor === clone.botLogin)) {
     return null;
   }
 

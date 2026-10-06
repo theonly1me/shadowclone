@@ -32,7 +32,7 @@ Write `@shadowclone` followed by a request on an issue or a same-repository PR. 
 
 The clone follows the exported `shadowclone-work` skill and native engineering rules. It repairs checks, conflicts, and valid reviewer findings before it marks the PR ready. It reports a check that waits for a human and does not retrigger it. Each run has a 20-minute limit and 60 turns. Each branch has a daily limit of ten worker runs. A run can stop before the finish line; inspect its Actions result before requesting another attempt.
 
-GitHub Actions completion and approved reviewer events can resume a managed PR. The default reviewer bot list contains `coderabbitai[bot]` and `github-actions[bot]`. Review findings from repository writers also qualify. To change requesters, reviewers, or limits, review both workflow configurations in a PR.
+When the last GitHub Actions run on a managed PR's head finishes, the clone resumes that PR once, also after its own pushes. Approved reviewer events can resume it too. The default reviewer bot list contains `coderabbitai[bot]` and `github-actions[bot]`. Review findings from repository writers also qualify. To change requesters, reviewers, or limits, review both workflow configurations in a PR.
 
 A fixed finding gets a reply with only its commit hash. The clone resolves fixed bot threads and leaves fixed human threads open. A declined finding gets no reply and stays open. You merge the PR. The clone never merges, releases, or force pushes.
 
