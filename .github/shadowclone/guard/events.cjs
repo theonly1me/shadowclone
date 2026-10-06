@@ -1,6 +1,12 @@
 const { readRequestComment } = require("./comment.cjs");
 const { readGithub, readIssueEvents, record, positiveNumber } = require("./records.cjs");
-const { findPull, managedPull, pausedEntity, approvedReviewer } = require("./entities.cjs");
+const {
+  findPull,
+  headStillRunning,
+  managedPull,
+  pausedEntity,
+  approvedReviewer
+} = require("./entities.cjs");
 async function resolveTrigger(options) {
   const { clone, context, request } = options;
   if (`${context.repo.owner}/${context.repo.repo}` !== clone.repository) {
@@ -39,6 +45,9 @@ async function resolveTrigger(options) {
     }
     branch = String(run.head_branch);
     head = String(run.head_sha);
+    if (await headStillRunning({ clone, request, head })) {
+      return null;
+    }
     const pull = await findPull({ clone, request, branch });
     if (!pull) {
       return null;
@@ -102,7 +111,7 @@ async function resolveTrigger(options) {
   } else {
     return null;
   }
-  if (!entityNumber || actor === clone.botLogin) {
+  if (!entityNumber || source !== "workflow_run" && actor === clone.botLogin) {
     return null;
   }
   if (!dispatched && source !== "workflow_run" && actor !== context.actor) {
