@@ -10,6 +10,7 @@ import {
   githubFixture,
 } from "./fixtures";
 import { record } from "./guard/records";
+import { reactToRequest } from "./react";
 
 test(
   "rendered workflows pin actions and restrict credentials to a validated " + "repository worker",
@@ -74,4 +75,58 @@ test("the worker prompt authorizes the clone to mark its own PR ready for review
   expect(worker).toContain(
     "Every request authorizes marking a PR that the clone opened ready for review",
   );
+});
+
+test("the worker reacts to the request before it restores guidance", () => {
+  const worker = renderWorkflows(fixtureClone)[".github/workflows/shadowclone.yml"] ?? "";
+
+  expect(worker).toContain("reactToRequest");
+  expect(worker.indexOf("reactToRequest")).toBeLessThan(worker.indexOf("restoreGuidance"));
+});
+
+test("the clone reacts with eyes to the comment or issue that started the work", async () => {
+  const reactions = {
+    "POST /repos/sample/project/issues/1/reactions": {},
+    "POST /repos/sample/project/issues/comments/7/reactions": {},
+    "POST /repos/sample/project/pulls/comments/8/reactions": {},
+  };
+  const expected: Record<string, string | null> = {
+    issues: "POST /repos/sample/project/issues/1/reactions",
+    issue_comment: "POST /repos/sample/project/issues/comments/7/reactions",
+    pull_request_review_comment: "POST /repos/sample/project/pulls/comments/8/reactions",
+    pull_request_review: null,
+    workflow_run: null,
+  };
+
+  for (const [source, route] of Object.entries(expected)) {
+    const { request, calls } = githubFixture(reactions);
+    const identifier = source === "pull_request_review_comment" ? 8 : 7;
+
+    await reactToRequest({
+      repository: "sample/project",
+      source,
+      identifier,
+      entity: 1,
+      request,
+      warn: () => {},
+    });
+
+    expect(calls).toEqual(route ? [{ route, parameters: { content: "eyes" } }] : []);
+  }
+});
+
+test("a failed reaction warns and lets the work continue", async () => {
+  const { request } = githubFixture({});
+  const warnings: string[] = [];
+
+  await reactToRequest({
+    repository: "sample/project",
+    source: "issues",
+    identifier: 1,
+    entity: 1,
+    request,
+    warn: (message) => warnings.push(message),
+  });
+
+  expect(warnings).toHaveLength(1);
 });

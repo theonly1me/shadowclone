@@ -9,6 +9,7 @@ export function runtimeSources(): Record<string, string> {
     "guard/entities",
     "guard/events",
     "guard/policy",
+    "react",
     "restore",
   ];
   const entries = files.map((name) => {
