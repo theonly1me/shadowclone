@@ -70,7 +70,7 @@ export function drawGroupControls(options: {
   chevron.setAttribute("aria-expanded", String(expanded));
   chevron.setAttribute("aria-label", `${expanded ? "Collapse" : "Expand"} ${node.title}`);
   hit.setAttribute("r", "12");
-  mark.setAttribute("d", expanded ? "M-4 -2L0 2L4 -2" : "M-2 -4L2 0L-2 4");
+  mark.setAttribute("d", expanded ? "M2 -4L-2 0L2 4" : "M-2 -4L2 0L-2 4");
   chevron.append(hit, mark);
   onActivate({ target: chevron, action: () => options.toggle(node.id) });
   container.append(chevron);
