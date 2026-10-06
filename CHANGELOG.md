@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.0.23](https://github.com/theonly1me/shadowclone/compare/v0.0.22...v0.0.23) (2026-10-06)
+
+
+### Features
+
+* react to a request when the clone starts working on it ([#170](https://github.com/theonly1me/shadowclone/issues/170)) ([8e497ef](https://github.com/theonly1me/shadowclone/commit/8e497efbf64ec73c3093903fb23845f16bb976b3))
+
+
+### Fixes
+
+* accept an issue dispatch when github leaves out the empty head input ([#165](https://github.com/theonly1me/shadowclone/issues/165)) ([d751394](https://github.com/theonly1me/shadowclone/commit/d751394446e3d04fb4eb566e24f61de6dfd8644f))
+* accept the default branch ruleset when github omits its default update parameter ([#162](https://github.com/theonly1me/shadowclone/issues/162)) ([8f515f5](https://github.com/theonly1me/shadowclone/commit/8f515f5104dc05244fcedf5fff01ef29f620d0a3))
+* exempt people from the default branch ruleset so they merge without a bypass prompt ([#169](https://github.com/theonly1me/shadowclone/issues/169)) ([07d67fe](https://github.com/theonly1me/shadowclone/commit/07d67feee8f7dbef4815a0d5e95294b0b291d719))
+* let the clone mark its own pr ready for review ([#163](https://github.com/theonly1me/shadowclone/issues/163)) ([35f3ee2](https://github.com/theonly1me/shadowclone/commit/35f3ee21b2d49ef531e13384819af792cbb360d5))
+* point the skill map's collapse chevron left ([#166](https://github.com/theonly1me/shadowclone/issues/166)) ([52276d5](https://github.com/theonly1me/shadowclone/commit/52276d55c2d6bf9a86a767203c27b4555a81b650))
+* resume the clone's pr after the last ci run on its own push finishes ([#171](https://github.com/theonly1me/shadowclone/issues/171)) ([13ad35a](https://github.com/theonly1me/shadowclone/commit/13ad35a07aec8fc46fe23ef332190cee657f9c1f))
+
 ## [0.0.22](https://github.com/theonly1me/shadowclone/compare/v0.0.21...v0.0.22) (2026-10-05)
 
 
