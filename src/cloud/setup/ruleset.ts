@@ -16,7 +16,7 @@ export const defaultBranchRuleset = {
   bypass_actors: Object.values(repositoryRoleIds).map((roleId) => ({
     actor_id: roleId,
     actor_type: "RepositoryRole",
-    bypass_mode: "always",
+    bypass_mode: "exempt",
   })),
 } as const;
 
