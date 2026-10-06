@@ -150,7 +150,7 @@ async function resolveTrigger(options) {
     return null;
   }
   const key = `${source}:${identifier}:${version}`;
-  if (dispatched && (input.branch !== branch || input.head !== head || input.key !== key || positiveNumber(input.entity) !== entityNumber)) {
+  if (dispatched && (input.branch !== branch || String(input.head ?? "") !== head || input.key !== key || positiveNumber(input.entity) !== entityNumber)) {
     return null;
   }
   return {
