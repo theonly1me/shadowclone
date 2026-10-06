@@ -119,4 +119,4 @@ Tests use the same layout in a throwaway home: the preview, the apply, and the u
 Equipping a large library one skill at a time is slow, and a fully expanded map is long.
 
 - One click on a category equips every skill in it that the user can equip. If all of them are already equipped, the click unequips them. Plugin-managed and locked skills are left alone. When two skills in the category share an axis, only the first is equipped.
-- A chevron beside each category and source collapses or expands that group. A collapsed group shows how many skills it hides. Groups start expanded. The collapsed set is a per-browser convenience in `localStorage`, and the map works without it.
+- A chevron beside each category and source collapses or expands that group. A collapsed group shows how many skills it hides. An expanded group shows a left chevron because groups extend to the right and fold back toward the left; a collapsed group shows a right chevron. Groups start expanded. The collapsed set is a per-browser convenience in `localStorage`, and the map works without it.
