@@ -13,6 +13,7 @@ Start with the [README](../README.md) to install Shadowclone and choose your fir
 | [Repository setup](guides/repositories.md) | Share checks and skills with a repository                                   |
 | [Delegated work](guides/delegated-work.md) | Take a change or a PR to ready for review with the `shadowclone-work` skill |
 | [GitHub clones](guides/github-clones.md)   | Install a named personal App for selected repositories                      |
+| [Pull request reviews](guides/reviews.md)  | Review a pull request locally or with the GitHub clone                      |
 | [How it works](guides/how-it-works.md)     | Follow guidance from consented evidence to coding agents                    |
 | [Command reference](guides/commands.md)    | Find everyday and advanced commands                                         |
 | [Migration](migration.md)                  | Move an existing profile installation to skills                             |

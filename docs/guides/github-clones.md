@@ -38,6 +38,14 @@ When the last GitHub Actions run on a managed PR's head finishes, the clone resu
 
 A fixed finding gets a reply with only its commit hash. The clone resolves fixed bot threads and leaves fixed human threads open. A declined finding gets no reply and stays open. You merge the PR. The clone never merges, releases, or force pushes.
 
+## Review pull requests
+
+Comment `@shadowclone review` as the first line of a comment on a same-repository pull request, or run `shadowclone review <pr> --cloud`. A pull request that a requester opens or marks ready for review gets a review without a comment. The clone posts one review with event `COMMENT`. See [pull request reviews](reviews.md) for what it checks.
+
+A review runs in five jobs. Only the publish job holds the App token. The toolchain job runs the pull request's code with no secrets. The model job holds only the Claude token and never runs that code. `reviewModel` in both workflow configurations chooses the model, and it defaults to `claude-opus-5-5`. Reviews count toward the daily branch limit.
+
+A clone that was set up before reviews existed needs updated workflows. `shadowclone review <pr> --cloud` opens a draft pull request with them. Merge it before you ask for a review.
+
 ## Continue locally
 
 1. Add `shadowclone:paused` to the issue or PR.

@@ -48,6 +48,15 @@ flowchart LR
     Environment --> CloudWorker
     CloudWorker --> DraftPR[Draft PR, checks, and review fixes]
     DraftPR --> OwnerMerge[Owner review and merge]
+    ReviewRequest[shadowclone review or a review comment] --> ReviewCollect[Base-commit standards, diff, and history]
+    ReviewCollect --> ReviewRules[Built-in rules on added lines]
+    ReviewCollect --> ReviewToolchain[Repository toolchain without secrets]
+    ReviewRules --> ReviewSkill[shadowclone-review skill with refuter subagents, read-only]
+    ReviewToolchain --> ReviewSkill
+    ReviewSkill --> ReviewRank[Rank, cap, and redact]
+    ReviewRules --> ReviewRank
+    ReviewRank --> ReviewMarkdown[Local markdown file]
+    ReviewRank --> ReviewPost[COMMENT review posted by the publish job]
     Agents --> Sessions
     Learning --> PiBridge[Private Pi model bridge]
     PiBridge --> PiRegistry[Pi provider-neutral registry, empty tools]
@@ -105,6 +114,7 @@ flowchart LR
 | `src/integrations/`, `src/harness/`    | Install native guidance and repository instructions/checks                                               |
 | `src/engine/`                          | Invoke authenticated agent CLIs                                                                          |
 | `src/cloud/`                           | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows                  |
+| `src/review/`                          | Collect review context, run built-in rules and toolchain checks, run the review skill, and post results  |
 | `evals/`, `src/changes/`               | Run reviewed learning and routing suites, record workflow outcomes, and retain reversible file revisions |
 | `src/profile/`                         | Legacy profile compatibility and the reconciliation boundary                                             |
 
