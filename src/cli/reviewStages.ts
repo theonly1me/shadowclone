@@ -10,7 +10,7 @@ import { defaultReviewModel } from "./reviewArguments";
 const stageUsage = [
   "shadowclone review prepare --repo owner/repository --pr <number> --checkout <directory> --output <file> [--head <sha>]",
   "shadowclone review checks --packet <file> --checkout <directory> --output <file>",
-  "shadowclone review analyze --packet <file> [--checks <file>] --checkout <directory> --output <file> [--model <id>] [--effort <level>]",
+  "shadowclone review analyze --packet <file> [--checks <file>] --checkout <directory> --output <file> [--model <id>] [--effort <level>] [--network on|off]",
   "shadowclone review publish --input <file>",
 ].join("\n");
 
@@ -90,19 +90,25 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
     }
   },
   analyze: async (arguments_) => {
-    const flags = readFlags({ arguments: arguments_, allowed: ["--packet", "--checks", "--checkout", "--output", "--model", "--effort"] });
+    const flags = readFlags({ arguments: arguments_, allowed: ["--packet", "--checks", "--checkout", "--output", "--model", "--effort", "--network"] });
     const effort = flags.get("--effort") ?? "high";
     const checksFile = flags.get("--checks");
 
+    const network = flags.get("--network") ?? "on";
+
     if (!isReasoningEffort(effort)) {
       throw new Error(`Choose an effort from ${reasoningEfforts.join(", ")}.`);
+    }
+
+    if (network !== "on" && network !== "off") {
+      throw new Error(`Use:\n${stageUsage}`);
     }
 
     const result = await analyzeStage({
       packet: packetFileSchema.parse(await Bun.file(path.resolve(required({ flags, name: "--packet" }))).json()),
       checks: checksFile === undefined ? null : checksFileSchema.parse(await Bun.file(path.resolve(checksFile)).json()),
       checkout: path.resolve(required({ flags, name: "--checkout" })),
-      reviewModel: { runner: runClaudeCode, model: flags.get("--model") ?? defaultReviewModel, effort },
+      reviewModel: { runner: runClaudeCode, model: flags.get("--model") ?? defaultReviewModel, effort, network: network === "on" },
     });
 
     await writeJson({ file: required({ flags, name: "--output" }), value: result });

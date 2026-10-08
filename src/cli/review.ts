@@ -51,7 +51,7 @@ export async function reviewCommand(arguments_: readonly string[]): Promise<void
     repository,
     number: parsed.number,
     checkout,
-    reviewModel: { runner: runClaudeCode, model: parsed.model, effort: parsed.effort },
+    reviewModel: { runner: runClaudeCode, model: parsed.model, effort: parsed.effort, network: parsed.network },
     runChecks: parsed.runChecks,
     onProgress: (message) => console.error(message),
   });

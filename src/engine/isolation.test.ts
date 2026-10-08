@@ -62,5 +62,23 @@ test("a review run that asks for a command tool is refused", () => {
         permissionMode: "dontAsk",
       },
     }),
-  ).toThrow("Review runs allow only Read, Grep, Glob, and Agent");
+  ).toThrow("Review runs allow only Read, Grep, Glob, Agent");
+});
+
+test("a review run with the network on can search and fetch, but not reach cloud metadata hosts", () => {
+  const arguments_ = buildClaudeArguments({
+    sessionId: "00000000-0000-4000-8000-000000000000",
+    run: {
+      prompt: "review",
+      cwd: "/work/head",
+      execution: { purpose: "review", network: true },
+      allowedTools: ["Read", "Grep", "Glob", "Agent", "WebFetch", "WebSearch"],
+      permissionMode: "dontAsk",
+    },
+  });
+  const settings = JSON.parse(arguments_[arguments_.indexOf("--settings") + 1] ?? "{}");
+
+  expect(arguments_[arguments_.indexOf("--tools") + 1]).toBe("Read,Grep,Glob,Agent,WebFetch,WebSearch");
+  expect(settings.permissions.deny).toContain("WebFetch(domain:169.254.169.254)");
+  expect(settings.permissions.deny).not.toContain("WebFetch");
 });

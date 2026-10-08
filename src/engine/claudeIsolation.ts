@@ -15,8 +15,15 @@ const emptyMcpArguments = [
   '{"mcpServers":{}}',
 ] as const;
 
+const metadataHosts = [
+  "169.254.169.254",
+  "metadata.google.internal",
+  "metadata.azure.com",
+] as const;
+
 function reviewIsolationArguments(run: EngineRunOptions): readonly string[] {
   const tools = run.allowedTools ?? [];
+  const network = run.execution.purpose === "review" && run.execution.network === true;
   const settingsJson = JSON.stringify({
     disableAllHooks: true,
     autoMemoryEnabled: false,
@@ -27,9 +34,10 @@ function reviewIsolationArguments(run: EngineRunOptions): readonly string[] {
         "Edit",
         "Write",
         "NotebookEdit",
-        "WebFetch",
-        "WebSearch",
         "mcp__*",
+        ...(network
+          ? metadataHosts.map((host) => `WebFetch(domain:${host})`)
+          : ["WebFetch", "WebSearch"]),
       ],
     },
   });

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { z } from "zod";
-import { reviewTools } from "../engine/execution";
+import { reviewNetworkTools, reviewTools } from "../engine/execution";
 import type { EngineRunner, ReasoningEffort } from "../engine/types";
 import { redactSecrets } from "../redact";
 import { seedSkillsDirectory } from "../skills/library";
@@ -11,6 +11,7 @@ export type ReviewModel = {
   readonly runner: EngineRunner;
   readonly model: string;
   readonly effort: ReasoningEffort;
+  readonly network: boolean;
 };
 
 export type Analysis = {
@@ -38,8 +39,8 @@ export async function analyzeReview(options: {
   const run = await options.reviewModel.runner({
     prompt: reviewPrompt({ skill: options.skill, packet: options.packet }),
     cwd: options.checkout,
-    execution: { purpose: "review" },
-    allowedTools: reviewTools,
+    execution: { purpose: "review", network: options.reviewModel.network },
+    allowedTools: options.reviewModel.network ? [...reviewTools, ...reviewNetworkTools] : reviewTools,
     permissionMode: "dontAsk",
     model: options.reviewModel.model,
     reasoningEffort: options.reviewModel.effort,

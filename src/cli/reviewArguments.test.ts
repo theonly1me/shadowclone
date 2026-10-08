@@ -6,6 +6,7 @@ test("a pull request number alone runs a local review with checks", () => {
     number: 42,
     repository: null,
     runChecks: true,
+    network: true,
     cloud: false,
     output: null,
     model: "claude-opus-5-5",

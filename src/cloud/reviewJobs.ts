@@ -151,7 +151,7 @@ ${artifact({ pin: pins.downloadArtifact, name: "checks", upload: false, optional
         run: |
           checks=()
           if [ -f "$RUNNER_TEMP/checks.json" ]; then checks=(--checks "$RUNNER_TEMP/checks.json"); fi
-          ${shadowclone} analyze --packet "$RUNNER_TEMP/packet.json" "\${checks[@]}" --checkout "$GITHUB_WORKSPACE/pull-request" --model '${clone.reviewModel}' --output "$RUNNER_TEMP/result.json"
+          ${shadowclone} analyze --packet "$RUNNER_TEMP/packet.json" "\${checks[@]}" --checkout "$GITHUB_WORKSPACE/pull-request" --model '${clone.reviewModel}' --network ${clone.reviewNetwork ? "on" : "off"} --output "$RUNNER_TEMP/result.json"
 ${artifact({ pin: pins.uploadArtifact, name: "result", upload: true })}
   review-publish:
     needs: [guard, review-analyze]

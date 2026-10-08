@@ -89,7 +89,7 @@ export function reviewPrompt(options: { readonly skill: string; readonly packet:
   const signals = ruleHits.filter((hit) => hit.level === "signal");
   const notInDiff = [...diff.notIncluded, ...diff.generated.map((generatedPath) => `${generatedPath} (generated)`)];
 
-  return `Follow this review process. The working directory is the head of pull request #${facts.number} in ${facts.repository}. Your tools only read files in it, and you can start subagents.
+  return `Follow this review process. The working directory is the head of pull request #${facts.number} in ${facts.repository}. Your tools read files in it, start subagents, and, when the network is on, search the web and fetch pages.
 
 <process>
 ${options.skill}

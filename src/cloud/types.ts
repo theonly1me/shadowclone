@@ -22,6 +22,7 @@ export const cloneSchema = z.strictObject({
   reviewerBots: z.array(z.string().regex(/^[\w-]+\[bot\]$/)),
   maximumRuns: z.number().int().min(1).max(100).default(10),
   reviewModel: z.string().regex(/^[\w.-]+$/).default("claude-opus-5-5"),
+  reviewNetwork: z.boolean().default(true),
 });
 
 export type Clone = z.infer<typeof cloneSchema>;

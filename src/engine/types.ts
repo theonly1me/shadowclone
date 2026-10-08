@@ -46,7 +46,7 @@ export type EngineExecution =
       readonly blockedPaths?: readonly string[];
     }
   | { readonly purpose: "learning" }
-  | { readonly purpose: "review" };
+  | { readonly purpose: "review"; readonly network?: boolean };
 
 export type EngineRunOptions = {
   readonly prompt: string;

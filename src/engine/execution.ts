@@ -1,15 +1,16 @@
 import type { EngineRunOptions } from "./types";
 
 export const reviewTools = ["Read", "Grep", "Glob", "Agent"] as const;
+export const reviewNetworkTools = ["WebFetch", "WebSearch"] as const;
 
 function validateReviewExecution(options: EngineRunOptions): void {
   const allowedTools = options.allowedTools ?? [];
-  const onlyReadTools = allowedTools.every((tool) =>
-    reviewTools.some((reviewTool) => reviewTool === tool),
-  );
+  const network = options.execution.purpose === "review" && options.execution.network === true;
+  const permitted: readonly string[] = network ? [...reviewTools, ...reviewNetworkTools] : reviewTools;
+  const onlyPermittedTools = allowedTools.every((tool) => permitted.includes(tool));
 
-  if (allowedTools.length === 0 || !onlyReadTools) {
-    throw new Error("Review runs allow only Read, Grep, Glob, and Agent");
+  if (allowedTools.length === 0 || !onlyPermittedTools) {
+    throw new Error(`Review runs allow only ${permitted.join(", ")}`);
   }
 
   if (options.systemPromptFile !== undefined) {
