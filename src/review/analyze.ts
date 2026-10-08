@@ -9,7 +9,7 @@ import { type Analysis, analysisSchema } from "./types";
 export type ReviewModel = {
   readonly runner: EngineRunner;
   readonly model: string;
-  readonly effort: ReasoningEffort;
+  readonly effort: ReasoningEffort | null;
   readonly network: boolean;
 };
 
@@ -41,7 +41,7 @@ export async function analyzeReview(options: {
     allowedTools: options.reviewModel.network ? [...reviewTools, ...reviewNetworkTools] : reviewTools,
     permissionMode: "dontAsk",
     model: options.reviewModel.model,
-    reasoningEffort: options.reviewModel.effort,
+    ...(options.reviewModel.effort === null ? {} : { reasoningEffort: options.reviewModel.effort }),
     outputSchema: z.toJSONSchema(analysisSchema, { target: "draft-7" }),
   });
 

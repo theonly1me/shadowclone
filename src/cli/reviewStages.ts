@@ -93,12 +93,12 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
   },
   analyze: async (arguments_) => {
     const flags = readFlags({ arguments: arguments_, allowed: ["--packet", "--checks", "--checkout", "--output", "--model", "--effort", "--network"] });
-    const effort = flags.get("--effort") ?? "high";
+    const effort = flags.get("--effort") ?? null;
     const checksFile = flags.get("--checks");
 
     const network = flags.get("--network") ?? "on";
 
-    if (!isReasoningEffort(effort)) {
+    if (effort !== null && !isReasoningEffort(effort)) {
       throw new Error(`Choose an effort from ${reasoningEfforts.join(", ")}.`);
     }
 
