@@ -79,3 +79,23 @@ test("a failed review run fails the review instead of returning no findings", as
 test("the bundled skill body loads without its frontmatter", async () => {
   expect(await readReviewSkill()).toStartWith("# Review a Pull Request");
 });
+
+test("a review without a chosen effort runs at Claude Code's default effort", async () => {
+  const requests: EngineRunOptions[] = [];
+
+  await analyzeReview({
+    reviewModel: {
+      runner: async (run) => {
+        requests.push(run);
+        return engineRun({});
+      },
+      model: "claude-opus-5-5",
+      effort: null,
+      network: false,
+    },
+    checkout: "/work/head",
+    prompt: "review",
+  });
+
+  expect(requests[0] !== undefined && "reasoningEffort" in requests[0]).toBe(false);
+});

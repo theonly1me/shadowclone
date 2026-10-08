@@ -10,7 +10,7 @@ test("a pull request number alone runs a local review with checks", () => {
     cloud: false,
     output: null,
     model: "claude-opus-5-5",
-    effort: "high",
+    effort: null,
   });
 });
 

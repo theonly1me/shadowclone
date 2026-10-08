@@ -8,7 +8,7 @@ export type LocalReviewArguments = {
   readonly cloud: boolean;
   readonly output: string | null;
   readonly model: string;
-  readonly effort: ReasoningEffort;
+  readonly effort: ReasoningEffort | null;
 };
 
 export const defaultReviewModel = "claude-opus-5-5";
@@ -58,7 +58,7 @@ export function parseReviewArguments(arguments_: readonly string[]): LocalReview
   const [numberText, ...extra] = positionals;
   const number = Number(numberText);
   const repository = values.get("--repo") ?? null;
-  const effort = values.get("--effort") ?? "high";
+  const effort = values.get("--effort") ?? null;
 
   if (extra.length > 0 || !Number.isInteger(number) || number <= 0) {
     throw new Error(reviewUsage);
@@ -68,7 +68,7 @@ export function parseReviewArguments(arguments_: readonly string[]): LocalReview
     throw new Error(reviewUsage);
   }
 
-  if (!isReasoningEffort(effort)) {
+  if (effort !== null && !isReasoningEffort(effort)) {
     throw new Error(`Choose an effort from ${reasoningEfforts.join(", ")}.`);
   }
 

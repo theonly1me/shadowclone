@@ -12,7 +12,7 @@ shadowclone review 123
 
 The review takes about one minute for a small pull request. It writes a markdown file to `~/.shadowclone/reviews/<owner>-<repository>/` and prints its path. `--output review.md` chooses another file.
 
-You need GitHub CLI signed in with `gh auth login` and Claude Code signed in. The review uses your Claude subscription. `--model` and `--effort` choose the model, which defaults to `claude-opus-5-5` at high effort. The reviewer searches the web and fetches documentation when a claim depends on how a library behaves. `--offline` turns that off.
+You need GitHub CLI signed in with `gh auth login` and Claude Code signed in. The review uses your Claude subscription. `--model` chooses the model, which defaults to `claude-opus-5-5`. `--effort` sets the reasoning effort; without it, the review runs at Claude Code's default. The reviewer searches the web and fetches documentation when a claim depends on how a library behaves. `--offline` turns that off.
 
 The review checks out the pull request into temporary worktrees. It removes them when it finishes. Your checkout and its branch do not change.
 
