@@ -6,3 +6,10 @@ test("a copied description cannot notify or backlink the source repository", () 
 
   expect(sanitizeBody(body)).toBe("Fixes upstream issue 123 and (upstream reference removed), see (upstream link removed). Thanks someone");
 });
+
+test("a nested HTML comment cannot leave an opening marker that hides the rest of the description", () => {
+  const sanitized = sanitizeBody("Keep this. <!<!--- -->-- hidden? Still here.");
+
+  expect(sanitized).not.toContain("<!--");
+  expect(sanitized).toEndWith("Still here.");
+});

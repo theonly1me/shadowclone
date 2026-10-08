@@ -4,9 +4,20 @@ const issueReference = /(^|[^\w&/])#(\d+)\b/g;
 const mention = /(^|[^\w`])@([A-Za-z0-9][A-Za-z0-9-]*)/g;
 const htmlComment = /<!--[\s\S]*?-->/g;
 
+function withoutHtmlComments(text: string): string {
+  let current = text;
+  let previous = "";
+
+  while (current !== previous) {
+    previous = current;
+    current = current.replace(htmlComment, "");
+  }
+
+  return current.replaceAll("<!--", "").replaceAll("-->", "");
+}
+
 export function sanitizeBody(body: string): string {
-  return body
-    .replace(htmlComment, "")
+  return withoutHtmlComments(body)
     .replace(upstreamThreadLink, "(upstream link removed)")
     .replace(crossRepositoryReference, "(upstream reference removed)")
     .replace(issueReference, "$1upstream issue $2")
