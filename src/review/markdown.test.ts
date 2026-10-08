@@ -22,13 +22,16 @@ const result: ReviewResult = {
       rule: null,
       suggestion: null,
       refutation: "No other path applies the discount.",
+      candidates: [],
     },
   ],
   commentableLines: {},
   skippedPaths: [],
   toolchain: [],
   dropped: [{ title: "Cache never expires", path: "src/cache.ts", line: 4, reason: "the quoted code is not at `src/cache.ts:4`" }],
-  statistics: { modelFindings: 2, droppedForEvidence: 1, certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 40_000, costUsd: null },
+  candidates: { dropped: [{ id: "S1", title: "js-eval: Code built from a string at runtime", path: "src/a.ts", line: 3, reason: "The string is a constant." }], undecided: [] },
+  rejections: [],
+  statistics: { modelFindings: 2, droppedForEvidence: 1, correctionRound: "none", certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 40_000, costUsd: null },
 };
 
 test("evidence links in the local review keep the full head commit", () => {
@@ -37,4 +40,8 @@ test("evidence links in the local review keep the full head commit", () => {
 
 test("the local review lists each finding that failed the evidence check, with its reason", () => {
   expect(reviewMarkdown(result)).toContain("- Cache never expires (`src/cache.ts:4`): the quoted code is not at `src/cache.ts:4`");
+});
+
+test("the local review lists each signal that the reviewer checked and dropped, with its reason", () => {
+  expect(reviewMarkdown(result)).toContain("- S1 js-eval: Code built from a string at runtime (`src/a.ts:3`): The string is a constant.");
 });

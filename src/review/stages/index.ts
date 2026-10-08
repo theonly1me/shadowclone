@@ -1,12 +1,10 @@
-import { analyzeReview, readReviewSkill, type ReviewModel } from "../analyze";
 import { collectReview, readPullFacts } from "../collect";
-import { cachedFetch, gateFindings } from "../evidence";
-import { reviewResult } from "../result";
+import { checkDependencies } from "../dependencies";
 import { checkBuiltInRules } from "../rules";
 import { runToolchain } from "../toolchain";
-import type { ReviewResult } from "../types";
 import type { ChecksFile, PacketFile } from "./schemas";
 
+export { analyzeStage } from "./analyze";
 export { checksFileSchema, packetFileSchema, type ChecksFile, type PacketFile } from "./schemas";
 
 export async function prepareStage(options: {
@@ -14,13 +12,27 @@ export async function prepareStage(options: {
   readonly number: number;
   readonly checkout: string;
   readonly cwd: string;
+  readonly network: boolean;
   readonly head?: string;
 }): Promise<PacketFile> {
   const current = await readPullFacts({ repository: options.repository, number: options.number, cwd: options.cwd });
   const facts = options.head === undefined ? current : { ...current, headSha: options.head };
   const context = await collectReview({ checkout: options.checkout, facts });
 
-  return { version: 1, context, ruleHits: checkBuiltInRules(context.files) };
+  const dependencies = await checkDependencies({
+    checkout: options.checkout,
+    baseSha: facts.baseSha,
+    headSha: facts.headSha,
+    files: context.files,
+    network: options.network,
+  });
+
+  return {
+    version: 1,
+    context,
+    ruleHits: [...dependencies.hits, ...checkBuiltInRules(context.files)],
+    reports: dependencies.reports,
+  };
 }
 
 export async function checksStage(options: {
@@ -40,47 +52,4 @@ export async function checksStage(options: {
   });
 
   return { version: 1, headSha: facts.headSha, reports };
-}
-
-export async function analyzeStage(options: {
-  readonly packet: PacketFile;
-  readonly checks: ChecksFile | null;
-  readonly checkout: string;
-  readonly reviewModel: ReviewModel;
-  readonly fetchText?: (url: string) => Promise<string | null>;
-}): Promise<ReviewResult> {
-  const startedAt = Date.now();
-  const { packet, checks } = options;
-
-  if (checks !== null && checks.headSha !== packet.context.facts.headSha) {
-    throw new Error("The toolchain results belong to a different head commit.");
-  }
-
-  const reviewPacket = { context: packet.context, ruleHits: packet.ruleHits, toolchain: checks?.reports ?? [] };
-  const analysis = await analyzeReview({
-    reviewModel: options.reviewModel,
-    checkout: options.checkout,
-    packet: reviewPacket,
-    skill: await readReviewSkill(),
-  });
-
-  const gate = await gateFindings({
-    findings: analysis.findings,
-    sources: {
-      checkout: options.checkout,
-      files: packet.context.files,
-      ruleHits: packet.ruleHits,
-      toolchain: reviewPacket.toolchain,
-      fetchText: cachedFetch(options.fetchText),
-    },
-  });
-
-  return reviewResult({
-    packet: reviewPacket,
-    modelFindings: gate.kept,
-    dropped: gate.dropped,
-    model: options.reviewModel.model,
-    costUsd: analysis.costUsd,
-    startedAt,
-  });
 }

@@ -47,17 +47,34 @@ function modelFinding(line: number): Finding {
     rule: null,
     suggestion: null,
     refutation: "r",
+    candidates: [],
   };
 }
 
+
+function resultFor(options: { readonly hits: readonly RuleHit[]; readonly findings: readonly Finding[] }) {
+  return reviewResult({
+    packet: packet(options.hits),
+    analysis: { findings: [...options.findings], dropped: [] },
+    gate: { kept: options.findings, dropped: [] },
+    dispositions: { problems: [], dropped: [], undecided: [] },
+    candidates: [],
+    model: "m",
+    costUsd: null,
+    correctionRound: "none",
+    rejections: [],
+    startedAt: Date.now(),
+  });
+}
+
 test("a certain rule hit is reported even when the model returns nothing", () => {
-  const result = reviewResult({ packet: packet([certainHit]), modelFindings: [], dropped: [], model: "m", costUsd: null, startedAt: Date.now() });
+  const result = resultFor({ hits: [certainHit], findings: [] });
 
   expect(result.findings.map((finding) => [finding.source, finding.path, finding.line])).toEqual([["rule", "src/keys.ts", 2]]);
 });
 
 test("a signal rule hit is not reported without the model", () => {
-  const result = reviewResult({ packet: packet([{ ...certainHit, level: "signal" }]), modelFindings: [], dropped: [], model: "m", costUsd: null, startedAt: Date.now() });
+  const result = resultFor({ hits: [{ ...certainHit, level: "signal" }], findings: [] });
 
   expect(result.findings).toEqual([]);
   expect(result.statistics.signalRuleHits).toBe(1);
@@ -65,7 +82,7 @@ test("a signal rule hit is not reported without the model", () => {
 
 test("a certain finding survives the cap when the model returns many low findings", () => {
   const many = Array.from({ length: 15 }, (_, index) => modelFinding(index * 10 + 1));
-  const result = reviewResult({ packet: packet([certainHit]), modelFindings: many, dropped: [], model: "m", costUsd: null, startedAt: Date.now() });
+  const result = resultFor({ hits: [certainHit], findings: many });
 
   expect(result.findings).toHaveLength(10);
   expect(result.findings[0]?.source).toBe("rule");

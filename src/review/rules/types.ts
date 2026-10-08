@@ -23,6 +23,8 @@ export type RuleHit = {
   readonly failure: string;
   readonly path: string;
   readonly line: number;
+  readonly reference?: string;
+  readonly detail?: string;
 };
 
 export const javascriptFiles = /\.(?:[cm]?[jt]sx?|vue|svelte)$/;

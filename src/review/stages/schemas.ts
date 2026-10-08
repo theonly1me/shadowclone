@@ -26,6 +26,18 @@ const ruleHitSchema = z.object({
   failure: z.string().max(1000),
   path: pathSchema,
   line: lineSchema,
+  reference: z.url().max(500).optional(),
+  detail: z.string().max(300).optional(),
+});
+
+const reportSchema = z.object({
+  stack: z.string().max(50),
+  tool: z.string().max(50),
+  status: z.enum(["ran", "skipped", "failed", "timed-out"]),
+  detail: z.string().max(2_000),
+  diagnostics: z
+    .array(z.object({ tool: z.string().max(50), path: pathSchema, line: lineSchema, message: z.string().max(2_000) }))
+    .max(50),
 });
 
 export const packetFileSchema = z.object({
@@ -39,31 +51,21 @@ export const packetFileSchema = z.object({
     }),
     history: z.string().max(200_000),
   }),
-  ruleHits: z.array(ruleHitSchema).max(100),
+  ruleHits: z.array(ruleHitSchema).max(120),
+  reports: z.array(reportSchema).max(10),
 });
 
 export type PacketFile = {
   readonly version: 1;
   readonly context: ReviewContext;
   readonly ruleHits: readonly RuleHit[];
+  readonly reports: readonly CommandReport[];
 };
 
 export const checksFileSchema = z.object({
   version: z.literal(1),
   headSha: commitShaSchema,
-  reports: z
-    .array(
-      z.object({
-        stack: z.string().max(50),
-        tool: z.string().max(50),
-        status: z.enum(["ran", "skipped", "failed", "timed-out"]),
-        detail: z.string().max(2_000),
-        diagnostics: z
-          .array(z.object({ tool: z.string().max(50), path: pathSchema, line: lineSchema, message: z.string().max(2_000) }))
-          .max(50),
-      }),
-    )
-    .max(50),
+  reports: z.array(reportSchema).max(50),
 });
 
 export type ChecksFile = {

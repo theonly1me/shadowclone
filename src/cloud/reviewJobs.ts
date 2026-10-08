@@ -112,7 +112,7 @@ ${installSteps({ pins, versions, claude: false })}
           GH_TOKEN: \${{ github.token }}
 ${stageEnvironment}
         run: |
-          ${shadowclone} prepare --repo '${clone.repository}' --pr "$ENTITY" --head "$HEAD_SHA" --checkout "$GITHUB_WORKSPACE/pull-request" --output "$RUNNER_TEMP/packet.json"
+          ${shadowclone} prepare --repo '${clone.repository}' --pr "$ENTITY" --head "$HEAD_SHA" --network ${clone.reviewNetwork ? "on" : "off"} --checkout "$GITHUB_WORKSPACE/pull-request" --output "$RUNNER_TEMP/packet.json"
 ${artifact({ pin: pins.uploadArtifact, name: "packet", upload: true })}
   review-checks:
     needs: [guard, review-prepare]

@@ -4,8 +4,7 @@ import { reviewNetworkTools, reviewTools } from "../engine/execution";
 import type { EngineRunner, ReasoningEffort } from "../engine/types";
 import { redactSecrets } from "../redact";
 import { seedSkillsDirectory } from "../skills/library";
-import { reviewPrompt, type ReviewPacket } from "./packet";
-import { analysisSchema, type Finding } from "./types";
+import { type Analysis, analysisSchema } from "./types";
 
 export type ReviewModel = {
   readonly runner: EngineRunner;
@@ -14,8 +13,8 @@ export type ReviewModel = {
   readonly network: boolean;
 };
 
-export type Analysis = {
-  readonly findings: readonly Finding[];
+export type AnalysisRun = {
+  readonly output: Analysis;
   readonly costUsd: number | null;
 };
 
@@ -33,11 +32,10 @@ export async function readReviewSkill(): Promise<string> {
 export async function analyzeReview(options: {
   readonly reviewModel: ReviewModel;
   readonly checkout: string;
-  readonly packet: ReviewPacket;
-  readonly skill: string;
-}): Promise<Analysis> {
+  readonly prompt: string;
+}): Promise<AnalysisRun> {
   const run = await options.reviewModel.runner({
-    prompt: reviewPrompt({ skill: options.skill, packet: options.packet }),
+    prompt: options.prompt,
     cwd: options.checkout,
     execution: { purpose: "review", network: options.reviewModel.network },
     allowedTools: options.reviewModel.network ? [...reviewTools, ...reviewNetworkTools] : reviewTools,
@@ -54,7 +52,7 @@ export async function analyzeReview(options: {
   }
 
   return {
-    findings: analysisSchema.parse(run.structured ?? JSON.parse(run.text)).findings,
+    output: analysisSchema.parse(run.structured ?? JSON.parse(run.text)),
     costUsd: run.costUsd,
   };
 }

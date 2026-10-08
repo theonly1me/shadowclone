@@ -1,6 +1,7 @@
 import type { DiffFile, ReviewContext, Standards } from "./collect";
 import { isGeneratedPath } from "./generated";
 import type { RuleHit } from "./rules";
+import type { ReviewCandidate } from "./candidates";
 import type { CommandReport } from "./toolchain";
 
 export type ReviewPacket = {
@@ -19,6 +20,9 @@ const dataTags = [
   "document",
   "recent_history",
   "certain_findings",
+  "candidates",
+  "previous_answer",
+  "rejections",
   "signal_rule_hits",
   "toolchain",
   "diff",
@@ -27,7 +31,7 @@ const dataTags = [
 
 const dataClosingTag = new RegExp(`</(${dataTags.join("|")})>`, "gi");
 
-function escapeData(text: string): string {
+export function escapeData(text: string): string {
   return text.replace(dataClosingTag, "<\\/$1>");
 }
 
@@ -67,6 +71,10 @@ function hitsJson(hits: readonly RuleHit[]): string {
   );
 }
 
+function candidatesJson(candidates: readonly ReviewCandidate[]): string {
+  return JSON.stringify(candidates, null, 1);
+}
+
 function toolchainJson(reports: readonly CommandReport[]): string {
   return JSON.stringify(
     reports.map((report) => ({
@@ -81,7 +89,11 @@ function toolchainJson(reports: readonly CommandReport[]): string {
   );
 }
 
-export function reviewPrompt(options: { readonly skill: string; readonly packet: ReviewPacket }): string {
+export function reviewPrompt(options: {
+  readonly skill: string;
+  readonly packet: ReviewPacket;
+  readonly candidates: readonly ReviewCandidate[];
+}): string {
   const { context, ruleHits, toolchain } = options.packet;
   const { facts } = context;
   const diff = packetDiff(context.files);
@@ -108,6 +120,10 @@ ${escapeData(context.history)}
 <certain_findings>
 ${escapeData(hitsJson(certain))}
 </certain_findings>
+<candidates>
+Each candidate needs one decision: list its id in the candidates field of a finding, or put it in dropped with a reason.
+${escapeData(candidatesJson(options.candidates))}
+</candidates>
 <signal_rule_hits>
 ${escapeData(hitsJson(signals))}
 </signal_rule_hits>

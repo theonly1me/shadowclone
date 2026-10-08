@@ -34,6 +34,7 @@ The first `--cloud` run sets up what is missing. Without a clone, it opens the c
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Standards      | `AGENTS.md`, `CLAUDE.md`, `.claude/rules`, repository skills, `CONTRIBUTING.md`, Copilot and Cursor rules, and `.shadowclone/harness.json`, read from the base commit                                      |
 | Built-in rules | 67 rules and nine credential patterns on added lines, for credentials, conflict markers, injection, unsafe deserialization, disabled TLS checks, weak hashes, risky workflows, and infrastructure settings |
+| Dependencies   | Added or upgraded packages in a changed lockfile, checked against the OSV vulnerability database                                                                                                           |
 | Toolchain      | The repository's own type checks, compilers, and linters for JavaScript and TypeScript, Python, Go, Rust, Java, and .NET. Only diagnostics that the pull request adds are kept                             |
 | Judgment       | The `shadowclone-review` skill traces each change through its callers and tests, and a refuter subagent tries to disprove each finding                                                                     |
 
@@ -42,6 +43,8 @@ A certain rule, such as a committed credential, is reported without the model. O
 ## Evidence
 
 Each finding quotes its evidence: lines of code at the head, a line of the diff, a rule hit, a toolchain diagnostic, or a passage from a documentation page. After the review, code checks each quote against its source. A finding whose code quote does not match is left out, and the local review lists it under "Left out" with the reason. Each posted finding links to the exact lines at the reviewed commit.
+
+Each rule hit and each toolchain diagnostic that needs judgment gets an id, and the reviewer must raise it in a finding or drop it with a reason. The local review lists every dropped one with its reason. If a quote fails or an id has no decision, the reviewer gets one correction round before code drops anything.
 
 Findings use short, plain sentences: a title, what the change does wrong, the input that fails, the evidence, and the fix.
 

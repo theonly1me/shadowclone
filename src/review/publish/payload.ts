@@ -39,6 +39,14 @@ function summary(options: {
       : `Shadowclone reviewed ${head} and confirmed ${count} ${count === 1 ? "finding" : "findings"}, ${inlineCount} inline.`,
   ];
 
+  if (result.candidates.dropped.length > 0) {
+    lines.push(`${result.candidates.dropped.length} rule hits and toolchain diagnostics were checked and dropped with a reason.`);
+  }
+
+  if (result.candidates.undecided.length > 0) {
+    lines.push(`${result.candidates.undecided.length} rule hits or toolchain diagnostics got no decision: ${result.candidates.undecided.map((entry) => entry.id).join(", ")}.`);
+  }
+
   if (result.statistics.droppedForEvidence > 0) {
     lines.push(`${result.statistics.droppedForEvidence} candidate findings were left out because their evidence did not match the code.`);
   }
