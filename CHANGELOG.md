@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.25](https://github.com/theonly1me/shadowclone/compare/v0.0.24...v0.0.25) (2026-10-08)
+
+
+### Features
+
+* **review:** run at claude code's default effort unless --effort is set ([#175](https://github.com/theonly1me/shadowclone/issues/175)) ([7a44a38](https://github.com/theonly1me/shadowclone/commit/7a44a3868620b8b73df238a3780cd91a7c10bdfa))
+
 ## [0.0.24](https://github.com/theonly1me/shadowclone/compare/v0.0.23...v0.0.24) (2026-10-08)
 
 
