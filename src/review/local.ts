@@ -40,7 +40,14 @@ export async function reviewLocally(options: {
 
   try {
     const head = await addWorktree({ repository: checkout, sha: facts.headSha, directory: headDirectory });
-    const packet = await prepareStage({ repository: options.repository, number: options.number, checkout: head.root, cwd: checkout, head: facts.headSha });
+    const packet = await prepareStage({
+      repository: options.repository,
+      number: options.number,
+      checkout: head.root,
+      cwd: checkout,
+      network: options.reviewModel.network,
+      head: facts.headSha,
+    });
 
     onProgress(`Built-in rules matched ${packet.ruleHits.length} added lines`);
 

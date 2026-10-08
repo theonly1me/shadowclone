@@ -8,7 +8,7 @@ import { analyzeStage, checksFileSchema, checksStage, packetFileSchema, prepareS
 import { defaultReviewModel } from "./reviewArguments";
 
 const stageUsage = [
-  "shadowclone review prepare --repo owner/repository --pr <number> --checkout <directory> --output <file> [--head <sha>]",
+  "shadowclone review prepare --repo owner/repository --pr <number> --checkout <directory> --output <file> [--head <sha>] [--network on|off]",
   "shadowclone review checks --packet <file> --checkout <directory> --output <file>",
   "shadowclone review analyze --packet <file> [--checks <file>] --checkout <directory> --output <file> [--model <id>] [--effort <level>] [--network on|off]",
   "shadowclone review publish --input <file>",
@@ -51,11 +51,12 @@ async function writeJson(options: { readonly file: string; readonly value: unkno
 
 export const reviewStages: Readonly<Record<string, (arguments_: readonly string[]) => Promise<void>>> = {
   prepare: async (arguments_) => {
-    const flags = readFlags({ arguments: arguments_, allowed: ["--repo", "--pr", "--checkout", "--output", "--head"] });
+    const flags = readFlags({ arguments: arguments_, allowed: ["--repo", "--pr", "--checkout", "--output", "--head", "--network"] });
     const number = Number(required({ flags, name: "--pr" }));
     const head = flags.get("--head");
+    const network = flags.get("--network") ?? "on";
 
-    if (!Number.isInteger(number) || number <= 0 || (head !== undefined && !/^[a-f0-9]{40}$/.test(head))) {
+    if (!Number.isInteger(number) || number <= 0 || (head !== undefined && !/^[a-f0-9]{40}$/.test(head)) || (network !== "on" && network !== "off")) {
       throw new Error(`Use:\n${stageUsage}`);
     }
 
@@ -64,6 +65,7 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
       number,
       checkout: path.resolve(required({ flags, name: "--checkout" })),
       cwd: process.cwd(),
+      network: network === "on",
       ...(head === undefined ? {} : { head }),
     });
 
