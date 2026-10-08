@@ -54,7 +54,7 @@ A Codex repository install writes `AGENTS.override.md`, and Codex reads only one
 
 ## Pull request reviews
 
-`shadowclone review <pr>` accepts `--no-checks`, `--repo owner/repository`, `--output file.md`, `--model <id>`, and `--effort <level>`. The cloud workflow uses `review prepare`, `review checks`, `review analyze`, and `review publish`. See [pull request reviews](reviews.md).
+`shadowclone review <pr>` accepts `--no-checks`, `--repo owner/repository`, `--output file.md`, `--model <id>`, and `--effort <level>`. `--offline` turns off web search, page fetches, and the dependency check. The cloud workflow uses `review prepare`, `review checks`, `review analyze`, and `review publish`. See [pull request reviews](reviews.md).
 
 ## Delegated engineering work
 
