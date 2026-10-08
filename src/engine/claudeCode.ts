@@ -150,7 +150,7 @@ export async function runClaudeCode(
     cwd: options.cwd,
     environment: {
       ...runnerEnvironment({ engine: "claude-code" }),
-      ...(options.execution.purpose !== "learning"
+      ...(options.execution.purpose === "evaluation"
         ? {
             TMPDIR: temporaryDirectory,
             TMP: temporaryDirectory,
