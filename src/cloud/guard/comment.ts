@@ -46,6 +46,8 @@ export async function readRequestComment(options: {
   const tagged = new RegExp(`(^|\\s)@(shadowclone|${alias})(?=$|[\\s,:])`, "i").test(
     String(comment.body),
   );
+  const [firstLine = ""] = String(comment.body).split("\n");
+  const review = new RegExp(`^\\s*@(shadowclone|${alias})\\s+review\\s*$`, "i").test(firstLine);
 
   if (
     !entityNumber ||
@@ -59,6 +61,7 @@ export async function readRequestComment(options: {
     actorType,
     entityNumber,
     maintenance,
+    review: review && !maintenance,
     version: String(comment.updated_at ?? comment.submitted_at),
   };
 }

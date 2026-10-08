@@ -1,6 +1,7 @@
 import type { Clone, EventContext, GithubRequest } from "../types";
 import { readRequestComment } from "./comment";
 import { readGithub, readIssueEvents, record, positiveNumber } from "./records";
+import { isReviewOpenAction, readReviewablePull } from "./reviewRequest";
 import {
   findPull,
   headStillRunning,
@@ -16,7 +17,7 @@ export type Trigger = {
   readonly actor: string;
   readonly branch: string;
   readonly head: string;
-  readonly kind: "issue" | "pull" | "pause";
+  readonly kind: "issue" | "pull" | "pause" | "review";
   readonly key: string;
 };
 
@@ -72,6 +73,7 @@ export async function resolveTrigger(options: {
   let branch = "";
   let maintenance = false;
   let pause = false;
+  let review = false;
   let version = "";
 
   if (source === "workflow_run") {
@@ -126,7 +128,22 @@ export async function resolveTrigger(options: {
     actorType = comment.actorType;
     entityNumber = comment.entityNumber;
     maintenance = comment.maintenance;
+    review = comment.review;
     version = comment.version;
+  } else if (
+    source === "pull_request_target" &&
+    isReviewOpenAction(dispatched ? input.action : payload.action)
+  ) {
+    const pull = await readReviewablePull({ clone, request, number: identifier });
+
+    if (!pull) {
+      return null;
+    }
+
+    entityNumber = identifier;
+    actor = pull.actor;
+    version = pull.version;
+    review = true;
   } else if (source === "issues" || source === "pull_request_target") {
     entityNumber = identifier;
 
@@ -205,6 +222,10 @@ export async function resolveTrigger(options: {
 
   const isPull = maintenance || Object.keys(record(task.pull_request)).length > 0;
 
+  if (review && !isPull) {
+    return null;
+  }
+
   if (isPull) {
     task = await readGithub({
       request,
@@ -269,6 +290,6 @@ export async function resolveTrigger(options: {
     branch,
     head,
     key,
-    kind: pause ? "pause" : isPull ? "pull" : "issue",
+    kind: pause ? "pause" : review ? "review" : isPull ? "pull" : "issue",
   };
 }
