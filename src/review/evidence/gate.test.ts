@@ -30,6 +30,7 @@ function finding(evidence: readonly Evidence[], line = 3): Finding {
     rule: null,
     suggestion: null,
     refutation: "The refuter found no other discount path.",
+    candidates: [],
   };
 }
 

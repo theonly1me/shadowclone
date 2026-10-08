@@ -38,7 +38,27 @@ export function reviewMarkdown(result: ReviewResult): string {
     result.dropped.length > 0
       ? ["## Left out", "", ...result.dropped.map((entry) => `- ${neutralizeText(entry.title)} (\`${entry.path}:${entry.line}\`): ${neutralizeText(entry.reason)}`), ""]
       : [];
+  const correction = {
+    none: [],
+    ran: ["The first answer had problems, so one correction round ran:", ...result.rejections.map((rejection) => `- ${neutralizeText(rejection)}`)],
+    failed: ["The first answer had problems, and the correction round failed."],
+  }[statistics.correctionRound];
+  const droppedCandidates =
+    result.candidates.dropped.length > 0
+      ? [
+          "## Signals checked and dropped",
+          "",
+          ...result.candidates.dropped.map((entry) => `- ${entry.id} ${neutralizeText(entry.title)} (\`${entry.path}:${entry.line}\`): ${neutralizeText(entry.reason)}`),
+          "",
+        ]
+      : [];
+  const undecided =
+    result.candidates.undecided.length > 0
+      ? ["## Signals with no decision", "", ...result.candidates.undecided.map((entry) => `- ${entry.id} ${neutralizeText(entry.title)} (\`${entry.path}:${entry.line}\`)`), ""]
+      : [];
   const skipped = result.skippedPaths.length > 0 ? ["## Not reviewed", "", ...result.skippedPaths.map((skippedPath) => `- \`${skippedPath}\` (generated)`)] : [];
 
-  return `${[...header, "", ...findings.flatMap((section) => [section, ""]), ...dropped, "## Toolchain", "", toolchainTable(result), "", ...skipped].join("\n").trimEnd()}\n`;
+  const sections = [...header, ...(correction.length > 0 ? ["", ...correction] : []), "", ...findings.flatMap((section) => [section, ""]), ...dropped, ...droppedCandidates, ...undecided];
+
+  return `${[...sections, "## Toolchain", "", toolchainTable(result), "", ...skipped].join("\n").trimEnd()}\n`;
 }

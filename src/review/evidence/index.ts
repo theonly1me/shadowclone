@@ -10,6 +10,7 @@ export type DroppedFinding = {
   readonly path: string;
   readonly line: number;
   readonly reason: string;
+  readonly candidates: readonly string[];
 };
 
 export type EvidenceGate = {
@@ -37,7 +38,7 @@ export function cachedFetch(fetchText: (url: string) => Promise<string | null> =
 
 async function gateFinding(options: { readonly finding: Finding; readonly sources: EvidenceSources }): Promise<Finding | DroppedFinding> {
   const { finding, sources } = options;
-  const dropped = (reason: string): DroppedFinding => ({ title: finding.title, path: finding.path, line: finding.line, reason });
+  const dropped = (reason: string): DroppedFinding => ({ title: finding.title, path: finding.path, line: finding.line, reason, candidates: finding.candidates });
   const deletedFile = sources.files.some((file) => file.path === finding.path && file.deleted);
   const lines = await readHeadLines({ checkout: sources.checkout, relativePath: finding.path });
 
@@ -65,7 +66,7 @@ export async function gateFindings(options: { readonly findings: readonly Findin
   const outcomes = await Promise.all(options.findings.map((finding) => gateFinding({ finding, sources: options.sources })));
 
   return {
-    kept: outcomes.filter((outcome): outcome is Finding => "evidence" in outcome),
-    dropped: outcomes.filter((outcome): outcome is DroppedFinding => !("evidence" in outcome)),
+    kept: outcomes.filter((outcome): outcome is Finding => !("reason" in outcome)),
+    dropped: outcomes.filter((outcome): outcome is DroppedFinding => "reason" in outcome),
   };
 }

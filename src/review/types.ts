@@ -37,13 +37,17 @@ export const findingSchema = z.object({
   rule: z.string().max(300).nullable(),
   suggestion: z.string().max(300).nullable(),
   refutation: z.string().max(400),
+  candidates: z.array(z.string().regex(/^[ST]\d{1,4}$/)).max(10),
 });
 
 export type Finding = z.infer<typeof findingSchema>;
 
 export const analysisSchema = z.object({
   findings: z.array(findingSchema).max(20),
+  dropped: z.array(z.object({ id: z.string().regex(/^[ST]\d{1,4}$/), reason: z.string().min(1).max(300) })).max(220),
 });
+
+export type Analysis = z.infer<typeof analysisSchema>;
 
 export const pullFactsSchema = z.object({
   repository: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
@@ -83,9 +87,17 @@ export const reviewResultSchema = z.object({
   dropped: z
     .array(z.object({ title: z.string().max(100), path: z.string().max(500), line: z.number().int().positive(), reason: z.string().max(300) }))
     .max(20),
+  candidates: z.object({
+    dropped: z
+      .array(z.object({ id: z.string(), title: z.string().max(200), path: z.string().max(500), line: z.number().int().positive(), reason: z.string().max(300) }))
+      .max(220),
+    undecided: z.array(z.object({ id: z.string(), title: z.string().max(200), path: z.string().max(500), line: z.number().int().positive() })).max(220),
+  }),
+  rejections: z.array(z.string().max(600)).max(50),
   statistics: z.object({
     modelFindings: z.number().int().nonnegative(),
     droppedForEvidence: z.number().int().nonnegative(),
+    correctionRound: z.enum(["none", "ran", "failed"]),
     certainRuleHits: z.number().int().nonnegative(),
     signalRuleHits: z.number().int().nonnegative(),
     durationMilliseconds: z.number().int().nonnegative(),

@@ -16,6 +16,7 @@ function finding(overrides: Partial<Finding>): Finding {
     rule: null,
     suggestion: null,
     refutation: "The refuter found no other discount path.",
+    candidates: [],
     ...overrides,
   };
 }
@@ -30,7 +31,9 @@ function result(findings: readonly Finding[]): ReviewResult {
     skippedPaths: [],
     toolchain: [],
     dropped: [],
-    statistics: { modelFindings: findings.length, droppedForEvidence: 0, certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 1000, costUsd: null },
+    candidates: { dropped: [], undecided: [] },
+    rejections: [],
+    statistics: { modelFindings: findings.length, droppedForEvidence: 0, correctionRound: "none", certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 1000, costUsd: null },
   };
 }
 
