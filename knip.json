@@ -11,7 +11,9 @@
     "evals/work/prepare.ts",
     "evals/work/scaffold/cli.ts",
     "evals/work/fakeGh/main.ts",
-    "evals/work/regrade.ts"
+    "evals/work/regrade.ts",
+    "evals/pr-review/cli.ts",
+    "evals/pr-review/mine/index.ts"
   ],
   "project": [
     "src/**/*.ts",
