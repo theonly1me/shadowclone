@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.24](https://github.com/theonly1me/shadowclone/compare/v0.0.23...v0.0.24) (2026-10-08)
+
+
+### Features
+
+* check dependencies and account for every review candidate ([#174](https://github.com/theonly1me/shadowclone/issues/174)) ([517a416](https://github.com/theonly1me/shadowclone/commit/517a4163aa7c18eabce7dbe50ea5b8ede4060619))
+* review pull requests locally and from the github clone ([#172](https://github.com/theonly1me/shadowclone/issues/172)) ([96f95f3](https://github.com/theonly1me/shadowclone/commit/96f95f3377a848f5359829ab7b8b9eb5afa963fc))
+
 ## [0.0.23](https://github.com/theonly1me/shadowclone/compare/v0.0.22...v0.0.23) (2026-10-06)
 
 
