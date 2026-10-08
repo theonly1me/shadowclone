@@ -29,6 +29,8 @@ For contributor evaluations, use the source runner with `bun run eval --protocol
 | `shadowclone bot export --skill shadowclone-work --output <private-file>`              | Save selected guidance outside the checkout without uploading                                   |
 | `shadowclone bot status`                                                               | Show saved clone installation metadata and its setup PR                                         |
 | `shadowclone sync`                                                                     | Refresh maintained skills and native routing                                                    |
+| `shadowclone review <pr>`                                                              | Review a pull request on this machine and write a markdown file                                 |
+| `shadowclone review <pr> --cloud`                                                      | Ask the GitHub clone to review a pull request and post its review                               |
 
 ## Other commands
 
@@ -49,6 +51,10 @@ A repository install adds each file that it creates to `.git/info/exclude`, so t
 If an agent's instruction file is a link to a regular file in your home folder, for example `~/.codex/AGENTS.md` pointing to `~/.agents/AGENTS.md`, Shadowclone keeps the link and writes its block into that file. If `~/.claude/CLAUDE.md` imports the same file with `@`, Claude Code gets no second block. Shadowclone does not follow any other link. Setup skips that agent, installs the others, and ends with a line that names the link and the file it points to. `shadowclone install --agent <agent>` fails on such a link until it is replaced by a regular file.
 
 A Codex repository install writes `AGENTS.override.md`, and Codex reads only one instruction file in each folder. If the repository already has an `AGENTS.md`, the override would hide it, so the install skips Codex, names both files, and exits with status 1. Other agents still install. Use `shadowclone install --agent codex --global` for Codex in such a repository. If an earlier version created the override, the install says so and tells you how to remove it.
+
+## Pull request reviews
+
+`shadowclone review <pr>` accepts `--no-checks`, `--repo owner/repository`, `--output file.md`, `--model <id>`, and `--effort <level>`. The cloud workflow uses `review prepare`, `review checks`, `review analyze`, and `review publish`. See [pull request reviews](reviews.md).
 
 ## Delegated engineering work
 

@@ -17,6 +17,8 @@ export const fixtureClone: Clone = {
   requesters: ["sample"],
   reviewerBots: ["reviewer[bot]"],
   maximumRuns: 10,
+  reviewModel: "claude-opus-5-5",
+  reviewNetwork: true,
 };
 
 export function eventContext(

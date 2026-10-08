@@ -9,9 +9,60 @@ export function missingClaudeSandboxTools(options: {
     : [];
 }
 
+const emptyMcpArguments = [
+  "--strict-mcp-config",
+  "--mcp-config",
+  '{"mcpServers":{}}',
+] as const;
+
+const metadataHosts = [
+  "169.254.169.254",
+  "metadata.google.internal",
+  "metadata.azure.com",
+] as const;
+
+function reviewIsolationArguments(run: EngineRunOptions): readonly string[] {
+  const tools = run.allowedTools ?? [];
+  const network = run.execution.purpose === "review" && run.execution.network === true;
+  const settingsJson = JSON.stringify({
+    disableAllHooks: true,
+    autoMemoryEnabled: false,
+    permissions: {
+      allow: tools,
+      deny: [
+        "Bash",
+        "Edit",
+        "Write",
+        "NotebookEdit",
+        "mcp__*",
+        ...(network
+          ? metadataHosts.map((host) => `WebFetch(domain:${host})`)
+          : ["WebFetch", "WebSearch"]),
+      ],
+    },
+  });
+
+  return [
+    "--safe-mode",
+    "--restricted",
+    "--no-session-persistence",
+    ...emptyMcpArguments,
+    "--tools",
+    tools.join(","),
+    "--disallowedTools",
+    "mcp__*",
+    "--settings",
+    settingsJson,
+  ];
+}
+
 export function claudeIsolationArguments(
   run: EngineRunOptions,
 ): readonly string[] {
+  if (run.execution.purpose === "review") {
+    return reviewIsolationArguments(run);
+  }
+
   const noTools =
     run.execution.purpose === "learning" || run.allowedTools?.length === 0;
   const tools = noTools
@@ -55,9 +106,7 @@ export function claudeIsolationArguments(
   return [
     "--safe-mode",
     "--no-session-persistence",
-    "--strict-mcp-config",
-    "--mcp-config",
-    '{"mcpServers":{}}',
+    ...emptyMcpArguments,
     "--tools",
     tools,
     "--disallowedTools",

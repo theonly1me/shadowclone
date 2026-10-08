@@ -43,3 +43,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [033: Wizard map and voice](033-wizard-map-and-voice.md)                  | A fast model tier, a horizontal star map that shows every skill, random stars, build names, voice review   |
 | [034: Evaluations outside src](034-evals-outside-src.md)                  | Evaluation code moves to `evals/` and leaves the shipped CLI bundle, which shrinks from 4,683 KB to 747 KB |
 | [035: Acknowledge requests](035-acknowledge-requests.md)                  | An `eyes` reaction shows that the clone accepted a request                                                 |
+| [036: Pull request review](036-pull-request-review.md)                    | One review skill with refuters, deterministic rules and toolchain checks, and secret-separated cloud jobs  |

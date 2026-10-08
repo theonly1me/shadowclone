@@ -21,6 +21,7 @@ import { handleSkillMaintenance } from "./skillMaintenance";
 import { showHome } from "./home";
 import { redactSecrets } from "../redact";
 import { botCommand } from "./bot";
+import { reviewCommand } from "./review";
 
 const usage =
   "Usage: shadowclone <init [--advanced]|init --status [--json]|init (--learn|--no-learn) (--skill-maintenance|--no-skill-maintenance) (--background-learning|--no-background-learning)|init --repo [--personal|--no-personal] [--skill <name>] [--no-enforce]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate skills [--apply] [--automatic] [--memory] [--activate-only] [--repo <path>]|migrate claude-memory [--decisions <file>] [--apply]|install [--agent claude-code|codex|cursor|antigravity|pi|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|mcp|forget --all>";
@@ -39,6 +40,9 @@ function printUsage(): void {
   );
   console.log(
     "GitHub clone: bot setup [--repo owner/repository] [--no-open]; bot export; bot status",
+  );
+  console.log(
+    "Pull request review: review <pr-number> [--cloud] [--no-checks] [--repo owner/repository] [--output file.md] [--model <id>] [--effort <level>]; workflow stages: review prepare|checks|analyze|publish",
   );
   console.log(
     "Skill maintenance: skills configure [--repo|--global], skills list|update|pending, skills show|apply|reject <id>, skills manage <skill-id>, skills disable",
@@ -155,6 +159,12 @@ async function main(arguments_: readonly string[]): Promise<void> {
 
   if (command === "bot") {
     await botCommand(rest);
+
+    return;
+  }
+
+  if (command === "review") {
+    await reviewCommand(rest);
 
     return;
   }

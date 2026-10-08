@@ -1,14 +1,11 @@
+import { reviewJobs, type ReviewPins, type ReviewVersions } from "./reviewJobs";
 import type { Clone } from "./types";
 
 export function workerWorkflow(options: {
   readonly clone: Clone;
   readonly configured: string;
-  readonly pins: {
-    readonly checkout: string;
-    readonly script: string;
-    readonly appToken: string;
-    readonly claude: string;
-  };
+  readonly pins: ReviewPins & { readonly claude: string };
+  readonly versions: ReviewVersions;
   readonly prompt: string;
 }): string {
   const { clone, configured, pins } = options;
@@ -55,6 +52,11 @@ jobs:
     outputs:
       allowed: \${{ steps.validate.outputs.allowed }}
       branch: \${{ steps.validate.outputs.branch }}
+      kind: \${{ steps.validate.outputs.kind }}
+      source: \${{ steps.validate.outputs.source }}
+      identifier: \${{ steps.validate.outputs.identifier }}
+      entity: \${{ steps.validate.outputs.entity }}
+      head: \${{ steps.validate.outputs.head }}
     steps:
       - uses: ${pins.checkout}
         with:
@@ -66,7 +68,7 @@ jobs:
             ${guard}
   work:
     needs: guard
-    if: needs.guard.outputs.allowed == 'true'
+    if: needs.guard.outputs.allowed == 'true' && needs.guard.outputs.kind != 'review'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: shadowclone
@@ -155,5 +157,5 @@ ${options.prompt
   .join("\n")}
           display_report: false
           show_full_output: false
-`;
+${reviewJobs({ clone, pins, versions: options.versions })}`;
 }

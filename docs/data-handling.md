@@ -55,6 +55,7 @@ Pi capture retains parent links across session branches. Its system and custom i
 | Browser editor              | Opening the editor makes no model request; build naming sends redacted skill titles and summaries; voice capture and skill drafts need a user action |
 | Personal GitHub clone       | Reviewed exported guidance, the selected repository, and an authorized issue or PR task                                                              |
 | `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace; Shadowclone makes no model calls for it                                            |
+| Pull request review         | The PR title and description, diff, file history, standards from the base commit, rule hits, toolchain diagnostics, and files the reviewer reads     |
 | Evaluation                  | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction                            |
 
 First-time interactive `learn` can offer setup, which may make an authorized first learning pass. A deep dry run still calls a model.
@@ -101,7 +102,9 @@ Shared repository output is visible to anyone with repository access once commit
 
 ## Execution
 
-Outside personal GitHub clone setup, Shadowclone does not commit, push, or act on GitHub itself. The `shadowclone-work` skill acts through the host agent's own tools and permissions. A push sends Git objects, including repository code, without redacting them. Review comment text is untrusted data and is excluded from learning.
+Outside personal GitHub clone setup and pull request reviews, Shadowclone does not commit, push, or act on GitHub itself. The `shadowclone-work` skill acts through the host agent's own tools and permissions. A push sends Git objects, including repository code, without redacting them. Review comment text is untrusted data and is excluded from learning.
+
+A local pull request review fetches the PR refs, reads them in temporary worktrees, and removes the worktrees afterwards. Its toolchain checks run the PR's own configuration as you, with dependency install scripts off and only tool-related environment variables; `--no-checks` skips them. The review model can only read files inside the head worktree. Unless `--offline` is set, it can search the web and fetch pages with GET requests, and the skill tells it to put only public names, such as a package and a version, in searches and URLs. After the run, Shadowclone fetches each cited documentation URL itself to check the quote, with GET only and private, loopback, and metadata addresses refused. The result stays in `~/.shadowclone/reviews/`. `--cloud` posts one `@shadowclone review` comment as you, and the clone posts the review. Cloud review results pass between jobs as artifacts that expire after one day. Posted text is redacted, and mentions and cross-repository links are wrapped in code spans. Review output never becomes learning input.
 
 Evaluation confines candidate writes to disposable workspaces. Verification runs separately without provider credentials or network access and does not send verifier stdout to judges. These controls depend on the supported provider and operating-system sandbox. [Execution](architecture/04-acting.md) and [evaluation](architecture/09-evaluation.md) describe their contracts.
 
