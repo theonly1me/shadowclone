@@ -12,7 +12,7 @@ shadowclone review 123
 
 The review takes about one minute for a small pull request. It writes a markdown file to `~/.shadowclone/reviews/<owner>-<repository>/` and prints its path. `--output review.md` chooses another file.
 
-You need GitHub CLI signed in with `gh auth login` and Claude Code signed in. The review uses your Claude subscription. `--model` and `--effort` choose the model, which defaults to `claude-opus-5-5` at high effort.
+You need GitHub CLI signed in with `gh auth login` and Claude Code signed in. The review uses your Claude subscription. `--model` and `--effort` choose the model, which defaults to `claude-opus-5-5` at high effort. The reviewer searches the web and fetches documentation when a claim depends on how a library behaves. `--offline` turns that off.
 
 The review checks out the pull request into temporary worktrees. It removes them when it finishes. Your checkout and its branch do not change.
 
@@ -38,6 +38,12 @@ The first `--cloud` run sets up what is missing. Without a clone, it opens the c
 | Judgment       | The `shadowclone-review` skill traces each change through its callers and tests, and a refuter subagent tries to disprove each finding                                                                     |
 
 A certain rule, such as a committed credential, is reported without the model. Other rule hits and toolchain diagnostics reach the review only when the skill confirms a real failure. A review reports at most ten findings, highest severity first.
+
+## Evidence
+
+Each finding quotes its evidence: lines of code at the head, a line of the diff, a rule hit, a toolchain diagnostic, or a passage from a documentation page. After the review, code checks each quote against its source. A finding whose code quote does not match is left out, and the local review lists it under "Left out" with the reason. Each posted finding links to the exact lines at the reviewed commit.
+
+Findings use short, plain sentences: a title, what the change does wrong, the input that fails, the evidence, and the fix.
 
 ## Untrusted pull requests
 

@@ -15,9 +15,11 @@ The GitHub clone works on issues and pull requests, but it cannot review one. A 
 3. **Toolchain.** A table of stacks covers JavaScript and TypeScript (`typecheck` script or `tsc`, ESLint, Biome), Python (Ruff, mypy, Pyright), Go (`go vet`, `gofmt`), Rust (Clippy), Java (Maven, Gradle), and .NET. Installs run with scripts off. Type and build checks run at the head, and again at the base when the head has diagnostics, so only new diagnostics remain. Lint checks keep diagnostics on added lines. Each command reports ran, skipped, failed, or timed out.
 4. **Rank and output.** Certain rule hits and the skill's findings are sorted by severity, deduplicated, and capped at ten. Text is redacted. A posted review wraps mentions, cross-repository references, and issue links in code spans, so nobody gets a notification.
 
-**Judgment.** One Claude run follows the skill body, which the CLI passes in the prompt because `--safe-mode` skips installed skills. The run investigates the packet and the code at the head. It sends each candidate to a fresh refuter subagent, and it returns only the findings that survive, with the refuter's reason.
+**Judgment.** One Claude run follows the skill body, which the CLI passes in the prompt because `--safe-mode` skips installed skills. The skill asks for a strict staff-level review for correctness, security, performance, reliability, compatibility, and the standards. It sends each candidate to a fresh refuter subagent, and it returns only the findings that survive, with the refuter's reason. Findings are short sentences in Simplified Technical English, and the output schema caps each field.
 
-**Isolation.** The run uses a `review` execution purpose with `Read`, `Grep`, `Glob`, and `Agent`. `--restricted` confines file tools to the checkout. `--safe-mode` skips the checkout's `CLAUDE.md`, skills, hooks, and settings. MCP is off. The run cannot write, run commands, or use the network.
+**Evidence gate.** Each finding cites evidence as a source, a location, and an exact quote. After the run, code checks every quote: code quotes against the cited lines at the head, diff quotes against the diff, rule and toolchain quotes against the packet, and doc quotes against a page that code fetches itself. A finding with a code, diff, rule, or toolchain quote that does not match is dropped, with its reason. A doc quote that does not match is removed. A finding needs at least one verified quote from the code or the diff. Posted evidence links to the exact lines at the head commit.
+
+**Isolation.** The run uses a `review` execution purpose with `Read`, `Grep`, `Glob`, `Agent`, `WebSearch`, and `WebFetch`. Network access lets the reviewer read documentation instead of relying on memory. `--offline` removes the two network tools. `--restricted` confines file tools to the checkout. `--safe-mode` skips the checkout's `CLAUDE.md`, skills, hooks, and settings. MCP is off, and cloud metadata hosts are denied. The run cannot write or run commands. `WebFetch` sends only GET requests, so the run cannot upload local files. The code that checks doc quotes fetches with GET only, follows at most five redirects, and refuses private, loopback, link-local, and metadata addresses.
 
 **Cloud jobs.** A first-line `@shadowclone review` from a requester starts a review. A requester's PR starts one when it opens or becomes ready for review. The guard routes every other tagged request to `shadowclone-work`. The worker runs five jobs, each on its own runner:
 
@@ -36,6 +38,8 @@ The CLI runs from the runner's temporary directory, so the PR's `bunfig.toml` an
 ## Consequences
 
 - A review uses the owner's Claude subscription for one run, with refuter subagents inside it.
+- `WebFetch` returns a summary from a small model, so a doc quote can fail the check even when the page supports the claim. The finding then keeps only its code evidence.
+- A web search can find the fixed version of an old pull request. The evaluation gives every arm the same tools and records the fetched URLs.
 - A local review runs the PR's toolchain on this machine with install scripts off. `--no-checks` skips it for an untrusted PR.
 - Standards that exist only in local learning state are not used.
 - Stack detection reads the repository root, so a monorepo without root manifests gets no toolchain checks.
@@ -44,11 +48,13 @@ The CLI runs from the runner's temporary directory, so the PR's `bunfig.toml` an
 
 ## Data handling
 
-A review sends the PR text, the diff, the standards, the history, rule hits, toolchain diagnostics, and the files that the agent reads to Anthropic under the owner's subscription. A local result stays in `~/.shadowclone/reviews/`. A cloud result passes between jobs as a workflow artifact that expires after one day, and its findings are posted to the PR. Nothing from a review becomes learning input.
+A review sends the PR text, the diff, the standards, the history, rule hits, toolchain diagnostics, and the files that the agent reads to Anthropic under the owner's subscription. Its web searches and the pages that it fetches go to the public web, and the skill tells it to use only public names, such as a package and a version, in them. A local result stays in `~/.shadowclone/reviews/`. A cloud result passes between jobs as a workflow artifact that expires after one day, and its findings are posted to the PR. Nothing from a review becomes learning input.
 
 ## Verification
 
 - Tests cover these areas:
+  - the evidence gate for matched, moved, out-of-checkout, and doc-only quotes
+  - the address table for the doc fetch
   - each rule's examples, and rule hits on added lines only
   - credential levels
   - diff ranges and head line numbers
@@ -61,5 +67,5 @@ A review sends the PR text, the diff, the standards, the history, rule hits, too
   - the credentials of each rendered job
 - `actionlint` accepts the rendered workflows.
 - A local run on a merged PR finished in 52 seconds with a clean worktree list.
-- A planted-bug fixture produced the expected finding and dropped a constant `innerHTML` signal.
+- A planted-bug fixture produced the expected finding and dropped a constant `innerHTML` signal. With the network on, its four quotes passed the evidence gate.
 - A live cloud run needs a released CLI.
