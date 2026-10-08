@@ -1,5 +1,6 @@
 import { analyzeReview, readReviewSkill, type ReviewModel } from "../analyze";
 import { collectReview, readPullFacts } from "../collect";
+import { cachedFetch, gateFindings } from "../evidence";
 import { reviewResult } from "../result";
 import { checkBuiltInRules } from "../rules";
 import { runToolchain } from "../toolchain";
@@ -46,6 +47,7 @@ export async function analyzeStage(options: {
   readonly checks: ChecksFile | null;
   readonly checkout: string;
   readonly reviewModel: ReviewModel;
+  readonly fetchText?: (url: string) => Promise<string | null>;
 }): Promise<ReviewResult> {
   const startedAt = Date.now();
   const { packet, checks } = options;
@@ -62,9 +64,21 @@ export async function analyzeStage(options: {
     skill: await readReviewSkill(),
   });
 
+  const gate = await gateFindings({
+    findings: analysis.findings,
+    sources: {
+      checkout: options.checkout,
+      files: packet.context.files,
+      ruleHits: packet.ruleHits,
+      toolchain: reviewPacket.toolchain,
+      fetchText: cachedFetch(options.fetchText),
+    },
+  });
+
   return reviewResult({
     packet: reviewPacket,
-    modelFindings: analysis.findings,
+    modelFindings: gate.kept,
+    dropped: gate.dropped,
     model: options.reviewModel.model,
     costUsd: analysis.costUsd,
     startedAt,

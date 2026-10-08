@@ -43,7 +43,7 @@ function modelFinding(line: number): Finding {
     title: `Finding ${line}`,
     explanation: "e",
     failureScenario: "f",
-    evidence: [],
+    evidence: [{ source: "code", location: `src/other.ts:${line}`, quote: "x" }],
     rule: null,
     suggestion: null,
     refutation: "r",
@@ -51,13 +51,13 @@ function modelFinding(line: number): Finding {
 }
 
 test("a certain rule hit is reported even when the model returns nothing", () => {
-  const result = reviewResult({ packet: packet([certainHit]), modelFindings: [], model: "m", costUsd: null, startedAt: Date.now() });
+  const result = reviewResult({ packet: packet([certainHit]), modelFindings: [], dropped: [], model: "m", costUsd: null, startedAt: Date.now() });
 
   expect(result.findings.map((finding) => [finding.source, finding.path, finding.line])).toEqual([["rule", "src/keys.ts", 2]]);
 });
 
 test("a signal rule hit is not reported without the model", () => {
-  const result = reviewResult({ packet: packet([{ ...certainHit, level: "signal" }]), modelFindings: [], model: "m", costUsd: null, startedAt: Date.now() });
+  const result = reviewResult({ packet: packet([{ ...certainHit, level: "signal" }]), modelFindings: [], dropped: [], model: "m", costUsd: null, startedAt: Date.now() });
 
   expect(result.findings).toEqual([]);
   expect(result.statistics.signalRuleHits).toBe(1);
@@ -65,7 +65,7 @@ test("a signal rule hit is not reported without the model", () => {
 
 test("a certain finding survives the cap when the model returns many low findings", () => {
   const many = Array.from({ length: 15 }, (_, index) => modelFinding(index * 10 + 1));
-  const result = reviewResult({ packet: packet([certainHit]), modelFindings: many, model: "m", costUsd: null, startedAt: Date.now() });
+  const result = reviewResult({ packet: packet([certainHit]), modelFindings: many, dropped: [], model: "m", costUsd: null, startedAt: Date.now() });
 
   expect(result.findings).toHaveLength(10);
   expect(result.findings[0]?.source).toBe("rule");

@@ -1,3 +1,4 @@
+import type { DroppedFinding } from "./evidence";
 import { packetDiff, type ReviewPacket } from "./packet";
 import { rankFindings } from "./rank";
 import type { RuleHit } from "./rules";
@@ -13,7 +14,7 @@ function certainFinding(hit: RuleHit): Finding {
     title: hit.title,
     explanation: `The built-in rule \`${hit.ruleId}\` matched an added line.`,
     failureScenario: hit.failure,
-    evidence: [`${hit.path}:${hit.line}`],
+    evidence: [{ source: "rule", location: `${hit.path}:${hit.line}`, quote: hit.ruleId }],
     rule: null,
     suggestion: null,
     refutation: "A certain built-in rule. It is reported without model judgment.",
@@ -23,6 +24,7 @@ function certainFinding(hit: RuleHit): Finding {
 export function reviewResult(options: {
   readonly packet: ReviewPacket;
   readonly modelFindings: readonly Finding[];
+  readonly dropped: readonly DroppedFinding[];
   readonly model: string;
   readonly costUsd: number | null;
   readonly startedAt: number;
@@ -44,8 +46,10 @@ export function reviewResult(options: {
       detail: report.detail.slice(0, 1000),
       newDiagnostics: report.diagnostics.length,
     })),
+    dropped: options.dropped.slice(0, 20),
     statistics: {
-      modelFindings: options.modelFindings.length,
+      modelFindings: options.modelFindings.length + options.dropped.length,
+      droppedForEvidence: options.dropped.length,
       certainRuleHits: certainHits.length,
       signalRuleHits: packet.ruleHits.length - certainHits.length,
       durationMilliseconds: Date.now() - options.startedAt,

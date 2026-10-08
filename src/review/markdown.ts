@@ -1,24 +1,9 @@
-import { redactSecrets } from "../redact";
-import type { Finding, ReviewResult } from "./types";
+import { findingBody } from "./publish/format";
+import { neutralizeText } from "./publish/neutralize";
+import type { ReviewResult } from "./types";
 
-function findingSection(options: { readonly finding: Finding; readonly position: number }): string {
-  const { finding } = options;
-  const lines = [
-    `## ${options.position}. ${finding.severity} ${finding.category}: ${finding.title}`,
-    "",
-    `\`${finding.path}:${finding.line}\` · source: ${finding.source}`,
-    "",
-    finding.explanation,
-    "",
-    `**Failure:** ${finding.failureScenario}`,
-    ...(finding.rule ? ["", `**Rule:** ${finding.rule}`] : []),
-    ...(finding.suggestion ? ["", `**Suggestion:** ${finding.suggestion}`] : []),
-    "",
-    `**Refuter:** ${finding.refutation}`,
-    ...(finding.evidence.length > 0 ? ["", "**Evidence:**", ...finding.evidence.map((entry) => `- ${entry}`)] : []),
-  ];
-
-  return lines.join("\n");
+function plural(options: { readonly count: number; readonly word: string }): string {
+  return `${options.count} ${options.word}${options.count === 1 ? "" : "s"}`;
 }
 
 function toolchainTable(result: ReviewResult): string {
@@ -35,18 +20,25 @@ function toolchainTable(result: ReviewResult): string {
 
 export function reviewMarkdown(result: ReviewResult): string {
   const { pull, statistics } = result;
-  const count = result.findings.length;
+  const target = { repository: pull.repository, headSha: pull.headSha };
   const header = [
     `# Review of ${pull.repository}#${pull.number}`,
     "",
-    `Head \`${pull.headSha.slice(0, 7)}\` against \`${pull.baseRefName}\` (\`${pull.baseSha.slice(0, 7)}\`). Model ${result.model}. ${count} ${count === 1 ? "finding" : "findings"}.`,
+    `Head \`${pull.headSha.slice(0, 7)}\` against \`${pull.baseRefName}\` (\`${pull.baseSha.slice(0, 7)}\`). Model ${result.model}. ${plural({ count: result.findings.length, word: "finding" })}.`,
     "",
-    `The model kept ${statistics.modelFindings} ${statistics.modelFindings === 1 ? "finding" : "findings"} after refutation. Built-in rules matched ${statistics.certainRuleHits} certain and ${statistics.signalRuleHits} signal lines. The review took ${Math.round(statistics.durationMilliseconds / 1000)} seconds.`,
+    `The model returned ${plural({ count: statistics.modelFindings, word: "finding" })}, and ${statistics.droppedForEvidence} failed the evidence check. Built-in rules matched ${statistics.certainRuleHits} certain and ${statistics.signalRuleHits} signal lines. The review took ${Math.round(statistics.durationMilliseconds / 1000)} seconds.`,
   ];
-  const findings = count === 0 ? ["No defect survived its refuter."] : result.findings.map((finding, index) => findingSection({ finding, position: index + 1 }));
+  const findings =
+    result.findings.length === 0
+      ? ["No defect survived its refuter and the evidence check."]
+      : result.findings.map(
+          (finding, index) => `## ${index + 1}. \`${finding.path}:${finding.line}\`\n\n${findingBody({ finding, target, refutation: true })}`,
+        );
+  const dropped =
+    result.dropped.length > 0
+      ? ["## Left out", "", ...result.dropped.map((entry) => `- ${neutralizeText(entry.title)} (\`${entry.path}:${entry.line}\`): ${neutralizeText(entry.reason)}`), ""]
+      : [];
   const skipped = result.skippedPaths.length > 0 ? ["## Not reviewed", "", ...result.skippedPaths.map((skippedPath) => `- \`${skippedPath}\` (generated)`)] : [];
 
-  return redactSecrets({
-    text: [...header, "", ...findings.flatMap((section) => [section, ""]), "## Toolchain", "", toolchainTable(result), "", ...skipped].join("\n").trimEnd() + "\n",
-  });
+  return `${[...header, "", ...findings.flatMap((section) => [section, ""]), ...dropped, "## Toolchain", "", toolchainTable(result), "", ...skipped].join("\n").trimEnd()}\n`;
 }

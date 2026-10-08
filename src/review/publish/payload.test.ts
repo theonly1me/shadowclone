@@ -12,7 +12,7 @@ function finding(overrides: Partial<Finding>): Finding {
     title: "Total ignores discounts",
     explanation: "The new total skips the discount step.",
     failureScenario: "An order with a 10% discount is charged the full price.",
-    evidence: ["src/order.ts:12"],
+    evidence: [{ source: "code", location: "src/order.ts:12", quote: "return subtotal;" }],
     rule: null,
     suggestion: null,
     refutation: "The refuter found no other discount path.",
@@ -29,7 +29,8 @@ function result(findings: readonly Finding[]): ReviewResult {
     commentableLines: { "src/order.ts": [[10, 14]] },
     skippedPaths: [],
     toolchain: [],
-    statistics: { modelFindings: findings.length, certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 1000, costUsd: null },
+    dropped: [],
+    statistics: { modelFindings: findings.length, droppedForEvidence: 0, certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 1000, costUsd: null },
   };
 }
 
@@ -64,4 +65,26 @@ test("a review with no findings still says what it reviewed", () => {
 
   expect(payload.body).toStartWith("Shadowclone reviewed bbbbbbb and found no defect that it could confirm.");
   expect(payload.body).toEndWith(reviewMarker);
+});
+
+test("code evidence links to the exact line at the reviewed head", () => {
+  const payload = reviewPayload(result([finding({})]));
+  const [comment] = payload.comments;
+
+  expect(comment?.body).toContain(`[\`src/order.ts:12\`](https://github.com/example/project/blob/${"b".repeat(40)}/src/order.ts#L12): \`return subtotal;\``);
+});
+
+test("a documentation link to a GitHub issue is not a clickable cross-reference", () => {
+  const payload = reviewPayload(
+    result([
+      finding({
+        evidence: [
+          { source: "code", location: "src/order.ts:12", quote: "return subtotal;" },
+          { source: "doc", location: "https://github.com/other/library/issues/9", quote: "the cache is not cleared" },
+        ],
+      }),
+    ]),
+  );
+
+  expect(payload.comments[0]?.body).toContain("- `https://github.com/other/library/issues/9`: \"the cache is not cleared\"");
 });

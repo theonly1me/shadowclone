@@ -14,19 +14,29 @@ export const findingSources = ["investigation", "rule", "toolchain"] as const;
 
 const commitShaSchema = z.string().regex(/^[a-f0-9]{40}$/);
 
+export const evidenceSources = ["code", "diff", "doc", "rule", "toolchain"] as const;
+
+export const evidenceSchema = z.object({
+  source: z.enum(evidenceSources),
+  location: z.string().min(1).max(500),
+  quote: z.string().min(1).max(300),
+});
+
+export type Evidence = z.infer<typeof evidenceSchema>;
+
 export const findingSchema = z.object({
   path: z.string().min(1).max(500),
   line: z.number().int().positive(),
   severity: z.enum(severities),
   category: z.enum(categories),
   source: z.enum(findingSources),
-  title: z.string().min(1).max(160),
-  explanation: z.string().min(1).max(2000),
-  failureScenario: z.string().min(1).max(1000),
-  evidence: z.array(z.string().max(300)).max(8),
-  rule: z.string().max(500).nullable(),
-  suggestion: z.string().max(2000).nullable(),
-  refutation: z.string().max(1000),
+  title: z.string().min(1).max(100),
+  explanation: z.string().min(1).max(400),
+  failureScenario: z.string().min(1).max(300),
+  evidence: z.array(evidenceSchema).min(1).max(6),
+  rule: z.string().max(300).nullable(),
+  suggestion: z.string().max(300).nullable(),
+  refutation: z.string().max(400),
 });
 
 export type Finding = z.infer<typeof findingSchema>;
@@ -70,8 +80,12 @@ export const reviewResultSchema = z.object({
   commentableLines: z.record(z.string(), z.array(lineRangeSchema)),
   skippedPaths: z.array(z.string().max(500)),
   toolchain: z.array(toolchainSummarySchema),
+  dropped: z
+    .array(z.object({ title: z.string().max(100), path: z.string().max(500), line: z.number().int().positive(), reason: z.string().max(300) }))
+    .max(20),
   statistics: z.object({
     modelFindings: z.number().int().nonnegative(),
+    droppedForEvidence: z.number().int().nonnegative(),
     certainRuleHits: z.number().int().nonnegative(),
     signalRuleHits: z.number().int().nonnegative(),
     durationMilliseconds: z.number().int().nonnegative(),

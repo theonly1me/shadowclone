@@ -1,4 +1,5 @@
-import type { Finding, LineRange, ReviewResult } from "../types";
+import type { LineRange, ReviewResult } from "../types";
+import { findingBody } from "./format";
 import { neutralizeText } from "./neutralize";
 
 export type ReviewComment = {
@@ -24,17 +25,6 @@ function isCommentable(options: {
   return (options.ranges ?? []).some(([start, end]) => options.line >= start && options.line <= end);
 }
 
-function findingText(finding: Finding): string {
-  const sections = [
-    `**${finding.severity} ${finding.category}: ${finding.title}**`,
-    finding.explanation,
-    `**Failure:** ${finding.failureScenario}`,
-    ...(finding.rule ? [`**Rule:** ${finding.rule}`] : []),
-    ...(finding.suggestion ? [`**Suggestion:** ${finding.suggestion}`] : []),
-  ];
-
-  return neutralizeText(sections.join("\n\n"));
-}
 
 function summary(options: {
   readonly result: ReviewResult;
@@ -48,6 +38,10 @@ function summary(options: {
       ? `Shadowclone reviewed ${head} and found no defect that it could confirm.`
       : `Shadowclone reviewed ${head} and confirmed ${count} ${count === 1 ? "finding" : "findings"}, ${inlineCount} inline.`,
   ];
+
+  if (result.statistics.droppedForEvidence > 0) {
+    lines.push(`${result.statistics.droppedForEvidence} candidate findings were left out because their evidence did not match the code.`);
+  }
 
   if (result.skippedPaths.length > 0) {
     lines.push(`Not reviewed: ${result.skippedPaths.map((skippedPath) => `\`${skippedPath}\``).join(", ")}.`);
@@ -67,8 +61,9 @@ export function reviewPayload(result: ReviewResult): ReviewPayload {
     isCommentable({ ranges: result.commentableLines[finding.path], line: finding.line }),
   );
   const outside = result.findings.filter((finding) => !inline.includes(finding));
+  const target = { repository: result.pull.repository, headSha: result.pull.headSha };
   const outsideText = outside.map(
-    (finding) => `\`${neutralizeText(finding.path)}:${finding.line}\`\n\n${findingText(finding)}`,
+    (finding) => `\`${neutralizeText(finding.path)}:${finding.line}\`\n\n${findingBody({ finding, target, refutation: false })}`,
   );
 
   return {
@@ -79,7 +74,7 @@ export function reviewPayload(result: ReviewResult): ReviewPayload {
       path: finding.path,
       line: finding.line,
       side: "RIGHT",
-      body: findingText(finding),
+      body: findingBody({ finding, target, refutation: false }),
     })),
   };
 }
