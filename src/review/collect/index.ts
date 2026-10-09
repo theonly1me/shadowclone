@@ -10,6 +10,7 @@ export { readPullFacts } from "./facts";
 
 export type ReviewContext = {
   readonly facts: PullFacts;
+  readonly mergeBaseSha: string;
   readonly files: readonly DiffFile[];
   readonly standards: Standards;
   readonly history: string;
@@ -47,6 +48,8 @@ export async function collectReview(options: {
 
   await assertCheckoutAtHead({ checkout, facts });
 
+  const mergeBaseSha = (await readGit({ checkout, arguments: ["merge-base", facts.baseSha, facts.headSha] })).trim();
+
   const files = parseDiff(
     await readGit({
       checkout,
@@ -72,5 +75,5 @@ export async function collectReview(options: {
     paths: files.filter((file) => !file.deleted).map((file) => file.path),
   });
 
-  return { facts, files, standards, history };
+  return { facts, mergeBaseSha, files, standards, history };
 }

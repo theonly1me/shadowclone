@@ -12,8 +12,8 @@ The GitHub clone works on issues and pull requests, but it cannot review one. A 
 
 1. **Collect.** It reads the PR facts, the diff from the base to the head, and the recent history of each changed file. Standards come from the base commit: `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` at the root and in each directory that the PR touches, `.claude/rules`, repository skills, `CONTRIBUTING.md`, `.github/copilot-instructions.md`, `.github/instructions`, `.cursor/rules`, `.cursorrules`, and `.shadowclone/harness.json`. A PR cannot change the rules that it is reviewed against. Personal global skills are excluded, because the owner's taste is not a rule of another repository.
 2. **Built-in rules.** A table of 67 rules and nine credential patterns runs on added lines only. It covers credentials (reusing the redaction patterns), conflict markers, and dangerous calls in JavaScript, TypeScript, Python, Go, Rust, Java, Kotlin, C#, GitHub Actions, shell, Docker, Terraform, and SQL migrations. Each rule has a hit example and a miss example that a test checks. A **certain** rule (credentials, private keys, conflict markers, focused tests) is reported without the model. A **signal** rule goes to the skill for verification.
-3. **Toolchain.** A table of stacks covers JavaScript and TypeScript (`typecheck` script or `tsc`, ESLint, Biome), Python (Ruff, mypy, Pyright), Go (`go vet`, `gofmt`), Rust (Clippy), Java (Maven, Gradle), and .NET. Installs run with scripts off. Type and build checks run at the head, and again at the base when the head has diagnostics, so only new diagnostics remain. Lint checks keep diagnostics on added lines. Each command reports ran, skipped, failed, or timed out.
-4. **Dependencies.** For each lockfile that the PR changes, code parses the base and the head and sends only added or upgraded packages, as names and versions, to the OSV API. It reads npm, Bun, Yarn, pnpm, pip requirements, Poetry, uv, Cargo, Go modules, Bundler, Composer, and NuGet lockfiles. Each package with advisories becomes one certain finding on its lockfile line, with the worst severity and every advisory id. The check runs in the prepare stage and follows the network setting.
+3. **Toolchain.** A table of stacks covers JavaScript and TypeScript (`typecheck` script or `tsc`, ESLint, Biome), Python (Ruff, mypy, Pyright), Go (`go vet`, `gofmt`), Rust (Clippy), Java (Maven, Gradle), and .NET. Installs run with scripts off. Type and build checks run at the head, and again at the merge base when the head has diagnostics, so only new diagnostics remain. Lint checks keep diagnostics on added lines. Each command reports ran, skipped, failed, or timed out.
+4. **Dependencies.** For each lockfile that the PR changes, code parses the merge base and the head and sends only added or upgraded packages, as names and versions, to the OSV API. It reads npm, Bun, Yarn, pnpm, pip requirements, Poetry, uv, Cargo, Go modules, Bundler, Composer, and NuGet lockfiles. Each package with advisories becomes one certain finding on its lockfile line, with the worst severity and every advisory id. The check runs in the prepare stage and follows the network setting.
 5. **Rank and output.** Certain rule hits and the skill's findings are sorted by severity, deduplicated, and capped at ten. Text is redacted. A posted review wraps mentions, cross-repository references, and issue links in code spans, so nobody gets a notification.
 
 **Judgment.** One Claude run follows the skill body, which the CLI passes in the prompt because `--safe-mode` skips installed skills. The skill asks for a strict staff-level review for correctness, security, performance, reliability, compatibility, and the standards. It sends each candidate to a fresh refuter subagent, and it returns only the findings that survive, with the refuter's reason. Findings are short sentences in Simplified Technical English, and the output schema caps each field.
@@ -42,6 +42,8 @@ The CLI runs from the runner's temporary directory, so the PR's `bunfig.toml` an
 
 ## Consequences
 
+- The dependency check and the toolchain's base run use the merge base of the base branch and the head. The base branch tip can hold upgrades that landed after the PR branched, and a merge keeps those upgrades, so a comparison with the tip reported old versions as added. The evaluation found this on a vite PR: main moved `launch-editor` to a fixed version, and the review reported the older version as a new vulnerability.
+
 - A review uses the owner's Claude subscription for one run, with refuter subagents inside it.
 - `WebFetch` returns a summary from a small model, so a doc quote can fail the check even when the page supports the claim. The finding then keeps only its code evidence.
 - A web search can find the fixed version of an old pull request. The evaluation gives every arm the same tools and records the fetched URLs.
@@ -58,6 +60,7 @@ A review sends the PR text, the diff, the standards, the history, rule hits, too
 ## Verification
 
 - Tests cover these areas:
+  - a dependency that the base branch upgraded after the PR branched, which the check does not count as added
   - the evidence gate for matched, moved, out-of-checkout, and doc-only quotes
   - the address table for the doc fetch
   - each rule's examples, and rule hits on added lines only
