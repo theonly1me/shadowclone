@@ -3,11 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
 import { readEnvironment } from "../environment/store";
-import { seedSkillsDirectory } from "../skills/library";
 import { applyBuild } from "./apply";
 import { buildFixture, buildInput } from "./fixtures";
 import { previewBuild } from "./plan";
 import type { BuildInput } from "./types";
+import { seedSkillsDirectory } from "../distribution";
 
 export const skillRoots = [".agents/skills", ".claude/skills", ".gemini/config/skills"];
 export const addedLine = "\nRun the command the user runs and read every output line.\n";

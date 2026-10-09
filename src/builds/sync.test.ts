@@ -4,12 +4,12 @@ import os from "node:os";
 import path from "node:path";
 import { publishEnvironmentRevision } from "../environment/revision";
 import { readEnvironment } from "../environment/store";
-import { seedSkillsDirectory } from "../skills/library";
 import { applyBuild } from "./apply";
 import { buildInput } from "./fixtures";
 import { previewBuild } from "./plan";
 import { renderBuildSkillSync, syncBuildSkills } from "./sync";
 import { addedLine, copyPath, installedBuild, newerPackage, skillRoots } from "./syncFixtures";
+import { seedSkillsDirectory } from "../distribution";
 
 test("an unedited installed skill takes the newer bundled version in every copy", async () => {
   const setup = await installedBuild();

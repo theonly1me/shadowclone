@@ -1,4 +1,4 @@
-import { runHostCommand } from "../io/hostCommand";
+import { runHostCommand } from "../../io/hostCommand";
 import { lstat, realpath } from "node:fs/promises";
 import path from "node:path";
 

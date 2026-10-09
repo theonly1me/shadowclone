@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import { Database } from "bun:sqlite";
-import { createSchema } from "../../index/schema";
-import { EventIndex } from "../../index/store";
-import type { IndexedEvent } from "../../index";
+import { createSchema } from "../../eventIndex/schema";
+import { EventIndex } from "../../eventIndex/store";
+import type { IndexedEvent } from "../../eventIndex";
 import { eventOriginKey, resolveEventRepositories } from "./resolve";
 
 function event(cwd: string): IndexedEvent {

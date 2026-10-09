@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { BuildContext } from "../builds/types";
-import type { HostRunner } from "../voice/collect";
-import { createVoiceCapture } from "../voice/capture";
+import type { HostRunner } from "./voice/collect";
+import { createVoiceCapture } from "./voice/capture";
 import { createBuildNames } from "./buildNames";
 import type { GenerationEngine } from "./generationEngine";
 import { browserJson } from "./security";

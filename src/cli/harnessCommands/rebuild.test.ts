@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { harnessInitCommand } from "../cli/harness";
-import type { FixtureRepository } from "./fixtures/materialize";
-import { acceptAll, harnessTestSetup } from "./testFixture";
+import { harnessInitCommand } from "../harness";
+import type { FixtureRepository } from "../../harness/fixtures/materialize";
+import { acceptAll, harnessTestSetup } from "../../harness/testFixture";
 
-const repositoryRoot = path.resolve(import.meta.dir, "../..");
+const repositoryRoot = path.resolve(import.meta.dir, "../../..");
 const personalSkills = ["scope-confirmed-changes", "tests-that-catch-bugs"] as const;
 const tasteRules = [
   "## File size\n\nKeep every file under 200 lines, tests included.\n",

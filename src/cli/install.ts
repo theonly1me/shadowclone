@@ -1,8 +1,8 @@
-import { resolveInstallTarget } from "./installTarget";
+import { resolveInstallTarget } from "../integrations/installation/installTarget";
 import {
   checkArtifactWrite,
   writeInstalledArtifact,
-} from "./artifactOwnership";
+} from "../integrations/installation/artifactOwnership";
 import { readEffectiveConfig } from "../config";
 import { canonicalPath, projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
@@ -19,14 +19,14 @@ import {
   addGitExcludes,
   artifactExcludePatterns,
   artifactRelativePaths,
-} from "./installArtifacts";
+} from "../integrations/installation/installArtifacts";
 import {
   mergeInstallation,
   findInstallation,
   readInstallations,
   writeInstallations,
   type InstalledArtifact,
-} from "./installState";
+} from "../integrations/installation/installState";
 
 export async function installLiveClone(
   options: {

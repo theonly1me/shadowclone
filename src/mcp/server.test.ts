@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import packageManifest from "../../package.json";
+import product from "../product.json";
 import { handleMcpRequest } from "./server";
 import { preferenceTools } from "./preferences";
 import { referenceTools } from "./references";
@@ -17,7 +17,7 @@ test("responds to initialize with protocol version and serverInfo", () => {
     result: {
       protocolVersion: "2024-11-05",
       capabilities: { tools: {} },
-      serverInfo: { name: "shadowclone", version: packageManifest.version },
+      serverInfo: { name: "shadowclone", version: product.version },
     },
   });
 });

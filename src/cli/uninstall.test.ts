@@ -6,7 +6,7 @@ import { defaultConfig, writeConfig } from "../config";
 import { createProjectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import { installLiveClone } from "./install";
-import { readInstallations } from "./installState";
+import { readInstallations } from "../integrations/installation/installState";
 import { uninstallLiveClone } from "./uninstall";
 
 const agentRelativePath = path.join(".claude", "agents", "shadowclone.md");

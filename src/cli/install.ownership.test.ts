@@ -7,7 +7,7 @@ import { defaultConfig, writeConfig } from "../config";
 import { createProjectPaths } from "../paths";
 import { installLiveClone } from "./install";
 import { uninstallLiveClone } from "./uninstall";
-import { artifactRelativePaths, removeArtifacts } from "./installArtifacts";
+import { artifactRelativePaths, removeArtifacts } from "../integrations/installation/installArtifacts";
 
 test("uninstall preserves user edits and a manifest cannot authorize an unrelated file", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "shadowclone-ownership-"));

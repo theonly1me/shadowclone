@@ -1,6 +1,6 @@
 import path from "node:path";
-import { harnessInitCommand } from "../cli/harness";
-import { acceptAll, type HarnessTestSetup } from "./testFixture";
+import { harnessInitCommand } from "../harness";
+import { acceptAll, type HarnessTestSetup } from "../../harness/testFixture";
 
 export const rules =
   "## Small files\n\nKeep every file under 200 lines, tests included.\n\n## Bun tests\n\nRun `bun test` before presenting.\n";

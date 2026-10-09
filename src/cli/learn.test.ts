@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
 import type { EngineRunner } from "../engine";
-import { openEventIndex } from "../index";
+import { openEventIndex } from "../eventIndex";
 import { createProjectPaths } from "../paths";
 import { learn } from "./learn";
 

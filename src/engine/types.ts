@@ -1,11 +1,6 @@
-export type EngineId =
-  | "claude-code"
-  | "codex"
-  | "cursor-agent"
-  | "pi"
-  | "antigravity"
-  | "anthropic-api"
-  | "openai-compatible";
+import type { EngineId } from "../config/engineId";
+
+export type { EngineId };
 
 export type PermissionMode =
   | "acceptEdits"

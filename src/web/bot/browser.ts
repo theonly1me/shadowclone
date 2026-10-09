@@ -1,17 +1,17 @@
 import { z } from "zod";
 import type { BuildContext } from "../../builds/types";
 import { resolveRepository, type GitRemoteReader } from "../../signal";
-import { setupSelection } from "./selection";
-import { browserJson } from "../../web/security";
-import { exportGuidance } from "../export";
-import { repositorySchema, type Clone } from "../types";
-import { setupPreviewInput, previewApprovalSchema } from "../browserProtocol";
-import { appManifest, createManifestCallback, type App } from "./app";
-import { githubApi, runGh, type GithubApi, type GhCommand } from "./github";
-import { activateClone, type ReviewedSetup } from "./activate";
+import { setupSelection } from "../../cloud/setup/selection";
+import { browserJson } from "../security";
+import { exportGuidance } from "../../cloud/export";
+import { repositorySchema, type Clone } from "../../cloud/types";
+import { setupPreviewInput, previewApprovalSchema } from "../../cloud/browserProtocol";
+import { appManifest, createManifestCallback, type App } from "../../cloud/setup/app";
+import { githubApi, runGh, type GithubApi, type GhCommand } from "../../cloud/setup/github";
+import { activateClone, type ReviewedSetup } from "../../cloud/setup/activate";
 import { handleAccountSetup } from "./browserAccount";
-import { readCloudChecklist } from "./checklist";
-import { ghApiCall, type GhApiCall } from "./ghApi";
+import { readCloudChecklist } from "../../cloud/setup/checklist";
+import { ghApiCall, type GhApiCall } from "../../cloud/setup/ghApi";
 
 export function createBotBrowser(
   context: BuildContext & {

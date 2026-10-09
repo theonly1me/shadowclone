@@ -1,4 +1,4 @@
-import packageManifest from "../../package.json";
+import product from "../product.json";
 import { runtimeSources } from "./guardSource" with { type: "macro" };
 import { cloneSchema, type Clone } from "./types";
 import { cloudPrompt } from "./prompt";
@@ -15,7 +15,7 @@ export const actionPins = {
 } as const;
 
 export const reviewVersions = {
-  shadowclone: packageManifest.version,
+  shadowclone: product.version,
   claudeCode: "2.1.286",
   codex: "0.159.0",
   bun: "1.4.2",

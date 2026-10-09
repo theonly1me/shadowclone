@@ -1,4 +1,4 @@
-import type { CorpusSummary, IndexedEvent } from "../index";
+import type { CorpusSummary, IndexedEvent } from "../eventIndex";
 import { mineCorrections } from "./corrections";
 import { mineSteeringEpisodes } from "./episodes";
 import { isOriginBlocked } from "./blockedOrigin";

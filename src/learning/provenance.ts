@@ -1,5 +1,5 @@
 import type { SourceId } from "../config";
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import { textRefKey } from "../observe";
 import { parseProfileEvidenceId, type ProfileRule } from "../profile";
 import type { CorrectionSignal } from "../signal";

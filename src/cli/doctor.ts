@@ -1,6 +1,6 @@
 import { detectEngine, type CommandProbe, type EngineId } from "../engine";
 import { readManagedPolicy, type DistillationPolicy } from "../config";
-import { openEventIndex } from "../index";
+import { openEventIndex } from "../eventIndex";
 import {
   compileContextDetails,
   integrationHealth,

@@ -1,12 +1,12 @@
 import { symlink } from "node:fs/promises";
 import path from "node:path";
-import { harnessInitCommand } from "../../cli/harness";
-import { bunTaskList } from "../fixtures/bunTaskList";
+import { harnessInitCommand } from "../../harness";
+import { bunTaskList } from "../../../harness/fixtures/bunTaskList";
 import {
   acceptAll,
   harnessTestSetup,
   type HarnessTestSetup,
-} from "../testFixture";
+} from "../../../harness/testFixture";
 
 export const checkedRules = [
   "## File size\n\nKeep every file under 200 lines.\n",
@@ -68,7 +68,7 @@ export async function checkedRepository(
   });
   await Bun.write(path.join(setup.root, ".gitignore"), "node_modules\n");
   await symlink(
-    path.resolve(import.meta.dir, "../../../node_modules"),
+    path.resolve(import.meta.dir, "../../../../node_modules"),
     path.join(setup.root, "node_modules"),
   );
   git({ root: setup.root, arguments: ["init", "-q"] });

@@ -5,7 +5,7 @@ import {
   type LearningExecutionLimits,
   type LearningExecution,
 } from "../engine";
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import type { ProfileRule, ProfileSnapshot } from "../profile";
 import type { CorrectionSignal } from "../signal";
 import type { SeedLibrary } from "../skills";

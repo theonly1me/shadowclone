@@ -31,6 +31,9 @@ export {
   textRefKey,
 } from "./types";
 
+export { resolveRedacted } from "./redacted";
+export { captureRoots } from "./roots";
+
 export {
   parseAntigravityWorkspaceHistory,
   readAntigravityWorkspaceHistory,

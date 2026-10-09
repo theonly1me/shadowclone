@@ -4,10 +4,10 @@ import { defaultConfig, writeConfig } from "../../config";
 import { readEnvironment, writeEnvironment } from "../../environment/store";
 import { writeMaintenanceState } from "../../skillMaintenance/state";
 import { createBotBrowser } from "./browser";
-import { guidanceFixture } from "../fixtures";
-import { setupRepository, syntheticApp } from "./fixtures";
-import { setupPreviewSchema, manifestViewSchema } from "../browserProtocol";
-import { createBrowserHandler } from "../../web/handler";
+import { guidanceFixture } from "../../cloud/fixtures";
+import { setupRepository, syntheticApp } from "../../cloud/setup/fixtures";
+import { setupPreviewSchema, manifestViewSchema } from "../../cloud/browserProtocol";
+import { createBrowserHandler } from "../handler";
 
 const origin = "http://127.0.0.1:12345";
 

@@ -3,7 +3,7 @@ import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
-import { openEventIndex } from "../index";
+import { openEventIndex } from "../eventIndex";
 import { createProjectPaths } from "../paths";
 import { profileRulePath, writeProfile, type ProfileRule } from "../profile";
 import { resolveCwdOrigin } from "../signal";

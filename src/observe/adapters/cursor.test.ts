@@ -4,9 +4,9 @@ import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultConfig } from "../../config";
-import { openEventIndex } from "../../index";
+import { openEventIndex } from "../../eventIndex";
 import { createProjectPaths } from "../../paths";
-import { resolveRedacted } from "../../redact";
+import { resolveRedacted } from "../redacted";
 import { observeAll } from "../index";
 import type { ObservationBatch } from "../types";
 

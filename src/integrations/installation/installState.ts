@@ -1,7 +1,7 @@
 import path from "node:path";
-import { readBoundedFile } from "../io/files";
+import { readBoundedFile } from "../../io/files";
 import { z } from "zod";
-import { ownedWrite } from "../storage";
+import { ownedWrite } from "../../storage";
 
 export type InstalledArtifact = "agent" | "delegation-skill";
 

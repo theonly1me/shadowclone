@@ -6,7 +6,7 @@ import { defaultConfig, writeConfig } from "../config";
 import { canonicalPath, createProjectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import { installLiveClone } from "./install";
-import { readInstallations } from "./installState";
+import { readInstallations } from "../integrations/installation/installState";
 
 async function repository(): Promise<{
   readonly targetDirectory: string;

@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
-import { harnessInitCommand } from "../cli/harness";
-import { emptyEnvironment } from "../environment/types";
-import { writeEnvironment } from "../environment/store";
-import { bunTaskList } from "./fixtures/bunTaskList";
-import { readHarnessManifest } from "./manifest";
-import { harnessTestSetup } from "./testFixture";
+import { harnessInitCommand } from "../harness";
+import { emptyEnvironment } from "../../environment/types";
+import { writeEnvironment } from "../../environment/store";
+import { bunTaskList } from "../../harness/fixtures/bunTaskList";
+import { readHarnessManifest } from "../../harness/manifest";
+import { harnessTestSetup } from "../../harness/testFixture";
 
 test("refreshing after skills activation preserves explicit repository checks", async () => {
   const setup = await harnessTestSetup({

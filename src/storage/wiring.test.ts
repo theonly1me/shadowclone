@@ -3,7 +3,7 @@ import { chmod, mkdir, mkdtemp, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
-import { openEventIndex } from "../index";
+import { openEventIndex } from "../eventIndex";
 import { createProjectPaths } from "../paths";
 import { profileRulePath, writeProfile, type ProfileRule } from "../profile";
 import { doctor } from "../cli/doctor";

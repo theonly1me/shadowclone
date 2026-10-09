@@ -1,6 +1,6 @@
-import { readdir, stat } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { z } from "zod";
+import { resolveSeedDirectories } from "../distribution";
 import {
   parseSeedAgentSkillDocument,
   parseSeedPreferenceDocument,
@@ -12,55 +12,6 @@ import type {
   SeedLibrary,
   SeedPreference,
 } from "./schema";
-
-type SeedDirectories = {
-  readonly preferences: string;
-  readonly skills: string;
-};
-
-const packageManifestSchema = z.object({ name: z.string() });
-
-async function isDirectory(directory: string): Promise<boolean> {
-  return stat(directory)
-    .then((metadata) => metadata.isDirectory())
-    .catch(() => false);
-}
-
-export async function isPackageRoot(rootDirectory: string): Promise<boolean> {
-  const manifest = Bun.file(path.join(rootDirectory, "package.json"));
-  const parsed = packageManifestSchema.safeParse(
-    (await manifest.exists()) ? await manifest.json().catch(() => null) : null,
-  );
-
-  return (
-    parsed.success &&
-    parsed.data.name === "@shadowclone/cli" &&
-    (await isDirectory(path.join(rootDirectory, "skills"))) &&
-    (await isDirectory(path.join(rootDirectory, "preferences")))
-  );
-}
-
-async function resolveSeedDirectories(): Promise<SeedDirectories> {
-  const packageRoots = [
-    path.resolve(import.meta.dir, "../.."),
-    path.resolve(import.meta.dir, ".."),
-  ];
-
-  for (const packageRoot of packageRoots) {
-    if (await isPackageRoot(packageRoot)) {
-      return {
-        preferences: path.join(packageRoot, "preferences"),
-        skills: path.join(packageRoot, "skills"),
-      };
-    }
-  }
-
-  throw new Error("The packaged seed guidance directories are missing");
-}
-
-export async function seedSkillsDirectory(): Promise<string> {
-  return (await resolveSeedDirectories()).skills;
-}
 
 async function loadPreferences(
   directory: string,

@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import path from "node:path";
-import { renderCheckReport, runHarnessCheck } from "./index";
+import { renderCheckReport, runHarnessCheck } from "../../../harness/check/index";
 import { checkedRepository, git } from "./testRepository";
 
 const emDash = String.fromCharCode(0x2014);

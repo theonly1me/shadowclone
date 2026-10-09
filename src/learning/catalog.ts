@@ -4,11 +4,12 @@ import { authorizedLearningEvents, currentEvidenceAuthorization } from "../disti
 import { materializeEvidence } from "../distill/excerpts";
 import { readEnvironment, readRedactedEnvironment } from "../environment/store";
 import { pendingLearningRecords } from "../environment/pending";
-import { openEventIndex } from "../index";
+import { openEventIndex } from "../eventIndex";
 import { textRefKey } from "../observe";
 import type { ProjectPaths } from "../paths";
 import { parseProfileEvidenceId, type ProfileRule } from "../profile";
-import { captureRoots, redactSecrets } from "../redact";
+import { redactSecrets } from "../redact";
+import { captureRoots } from "../observe";
 import { deriveSignals } from "../signal";
 import { listSkillProposals } from "../skillMaintenance";
 import { readPendingLearning } from "./pending";

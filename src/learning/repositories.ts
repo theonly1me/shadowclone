@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fingerprint } from "../localFiles";
-import type { EventIndex, IndexedEvent } from "../index";
+import type { EventIndex, IndexedEvent } from "../eventIndex";
 import { isOriginBlocked, normalizeRemoteRepository, readGitRemote } from "../signal";
 import type { GitRemoteReader, RepositoryIdentity } from "../signal";
 import { deriveSignals } from "../signal";

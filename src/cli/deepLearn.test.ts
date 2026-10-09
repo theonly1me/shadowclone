@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { defaultConfig, defaultManagedPolicy, writeConfig } from "../config";
 import type { EngineRunOptions, EngineRunner } from "../engine";
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import { createProjectPaths } from "../paths";
 import type { CorrectionSignal, OriginScope } from "../signal";
 import { runDeepLearning } from "./deepLearn";

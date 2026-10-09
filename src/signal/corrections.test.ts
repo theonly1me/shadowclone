@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import type { FileTextRef } from "../observe";
 import { mineCorrections } from "./corrections";
 

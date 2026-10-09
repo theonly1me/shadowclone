@@ -8,7 +8,7 @@ import {
   readConfig,
   setSourceEnabled,
 } from "../config";
-import { ingestSources, openEventIndex } from "../index";
+import { ingestSources, openEventIndex } from "../eventIndex";
 import { createProjectPaths } from "../paths";
 import { initialize } from "./init";
 

@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
-import { openEventIndex } from "../index";
+import { openEventIndex } from "../eventIndex";
 import { renderProfileRule, type ProfileRule } from "../profile";
 import { referenceRelativePath, renderReference } from "../references";
 import { integrationFixture } from "./fixtures";

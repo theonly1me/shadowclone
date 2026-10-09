@@ -1,6 +1,6 @@
 import { readBoundedFile } from "../io/files";
 import { maximumProfileBytes } from "../io/limits";
-import { resolveRedacted } from "../redact";
+import { resolveRedacted } from "../observe";
 import { parseProfileRejectionText, type ProfileRejection } from "./state";
 
 export type MaterializedProfileRejection = {

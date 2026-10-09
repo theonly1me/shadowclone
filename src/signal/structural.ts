@@ -1,4 +1,4 @@
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import type { CountedCategory, StructuralSummary } from "./types";
 
 function countCategories(

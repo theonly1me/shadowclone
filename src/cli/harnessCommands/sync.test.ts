@@ -1,16 +1,16 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { harnessInitCommand } from "../cli/harness";
-import { harnessSyncCommand } from "../cli/harnessSync";
-import { compileContextDetails, sessionStartProjection } from "../integrations";
-import { claudeMemoryDirectory } from "../migrate/claudeMemory";
-import { writeProfile, type ProfileRule } from "../profile";
-import { bunTaskList } from "./fixtures/bunTaskList";
+import { harnessInitCommand } from "../harness";
+import { harnessSyncCommand } from "../harnessSync";
+import { compileContextDetails, sessionStartProjection } from "../../integrations";
+import { claudeMemoryDirectory } from "../../migrate/claudeMemory";
+import { writeProfile, type ProfileRule } from "../../profile";
+import { bunTaskList } from "../../harness/fixtures/bunTaskList";
 import {
   acceptAll,
   harnessTestSetup,
   type HarnessTestSetup,
-} from "./testFixture";
+} from "../../harness/testFixture";
 
 function note(options: {
   readonly name: string;

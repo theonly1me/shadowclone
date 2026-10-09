@@ -3,7 +3,7 @@ import { normalizeRemoteOrigin } from "./remote";
 import { resolveEventRepositories } from "./resolve";
 import type { RepositoryIdentity } from "../types";
 import type { OriginBindingStore } from "./resolve";
-import type { IndexedEvent } from "../../index";
+import type { IndexedEvent } from "../../eventIndex";
 
 const event: IndexedEvent = {
   id: 1,

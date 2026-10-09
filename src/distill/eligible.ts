@@ -1,5 +1,5 @@
 import { readEffectiveConfig, type ShadowcloneConfig } from "../config";
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import { textRefKey } from "../observe";
 import type { ProjectPaths } from "../paths";
 import type { CorrectionSignal } from "../signal";

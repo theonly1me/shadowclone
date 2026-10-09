@@ -13,7 +13,7 @@ import {
   type EngineRunner,
   type LearningExecution,
 } from "../engine";
-import { ingestSources, openEventIndex } from "../index";
+import { ingestSources, openEventIndex } from "../eventIndex";
 import {
   episodeId,
   readLearningState,

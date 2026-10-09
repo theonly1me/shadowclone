@@ -2,13 +2,14 @@ import path from "node:path";
 import { canonicalPath } from "../paths";
 import { readEffectiveConfig } from "../config";
 import { readEnvironment } from "../environment/store";
-import { loadSeedLibrary, seedSkillsDirectory } from "../skills/library";
+import { loadSeedLibrary } from "../skills/library";
 import { discoverDeliverySkills } from "../skillMaintenance/discover";
 import { readMaintenanceState } from "../skillMaintenance/state";
 import { installedBuildItem } from "./installed";
 import { customDocument } from "./selection";
 import type { BuildContext, BuildItem, BuildScope } from "./types";
 import { skillClassification } from "./classification";
+import { seedSkillsDirectory } from "../distribution";
 
 export async function packagedBuildItems(): Promise<BuildItem[]> {
   const library = await loadSeedLibrary();

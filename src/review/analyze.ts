@@ -3,8 +3,8 @@ import { z } from "zod";
 import { reviewNetworkTools, reviewTools } from "../engine/execution";
 import type { EngineRunner, ReasoningEffort } from "../engine/types";
 import { redactSecrets } from "../redact";
-import { seedSkillsDirectory } from "../skills/library";
 import { type Analysis, analysisSchema } from "./types";
+import { seedSkillsDirectory } from "../distribution";
 
 export const defaultCodexReviewModel = "gpt-6.1-sol";
 

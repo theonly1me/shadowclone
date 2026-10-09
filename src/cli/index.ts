@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { handleSkillsMigration } from "./migrateSkills";
 
-import packageManifest from "../../package.json";
+import product from "../product.json";
 import { serveMcp } from "../mcp";
 import { doctor } from "./doctor";
 import { forgetAll } from "./forget";
@@ -50,7 +50,7 @@ function printUsage(): void {
 }
 
 function printVersion(): void {
-  console.log(packageManifest.version);
+  console.log(product.version);
 }
 
 async function main(arguments_: readonly string[]): Promise<void> {

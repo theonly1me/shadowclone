@@ -6,7 +6,7 @@ import { readEffectiveConfig } from "../config";
 import { authorizedLearningEvents, currentEvidenceAuthorization } from "../distill";
 import { runLearningService } from "./service";
 import type { EngineId, EngineRunner, LearningExecution } from "../engine";
-import { ingestSources, openEventIndex } from "../index";
+import { ingestSources, openEventIndex } from "../eventIndex";
 import { acquireLocalLock } from "../localFiles/lock";
 import { projectPaths, type ProjectPaths } from "../paths";
 import { deriveSignals, type GitRemoteReader } from "../signal";

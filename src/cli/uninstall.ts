@@ -1,14 +1,14 @@
-import { resolveInstallTarget } from "./installTarget";
+import { resolveInstallTarget } from "../integrations/installation/installTarget";
 import { canonicalPath, projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
-import { removeArtifacts, removeGitExcludes } from "./installArtifacts";
+import { removeArtifacts, removeGitExcludes } from "../integrations/installation/installArtifacts";
 import {
   findInstallation,
   readInstallations,
   removeInstallation,
   writeInstallations,
   type InstalledArtifact,
-} from "./installState";
+} from "../integrations/installation/installState";
 
 const knownArtifacts: readonly InstalledArtifact[] = [
   "agent",

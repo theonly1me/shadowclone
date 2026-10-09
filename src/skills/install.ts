@@ -11,8 +11,8 @@ import {
   readMaintenanceState,
   writeMaintenanceState,
 } from "../skillMaintenance/state";
-import { seedSkillsDirectory } from "./library";
 import type { SeedAgentSkill } from "./schema";
+import { seedSkillsDirectory } from "../distribution";
 
 export type SeedSkillInstallResult = {
   readonly installed: number;

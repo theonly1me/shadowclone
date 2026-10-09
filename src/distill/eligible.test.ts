@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import { defaultConfig } from "../config";
 import type { CorrectionSignal } from "../signal";
 import {

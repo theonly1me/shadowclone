@@ -3,7 +3,7 @@ import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { EngineRunner } from "../engine";
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import type { CorrectionSignal } from "../signal";
 import { distillConcurrency, distillSignals } from "./index";
 

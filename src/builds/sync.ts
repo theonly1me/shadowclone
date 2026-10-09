@@ -6,7 +6,8 @@ import { fingerprint, readLocalFile } from "../localFiles";
 import { parseSkillDocument } from "../skillMaintenance/document";
 import { skillClassification } from "./classification";
 import { isBundledVersion } from "../skills/bundledVersions";
-import { loadSeedLibrary, seedSkillsDirectory } from "../skills/library";
+import { loadSeedLibrary } from "../skills/library";
+import { seedSkillsDirectory } from "../distribution";
 
 export type BuildSkillSyncReport = {
   readonly updated: readonly { readonly name: string; readonly copies: number }[];

@@ -1,6 +1,6 @@
 import { readEffectiveConfig } from "../config";
 import { authorizedLearningEvents } from "../distill";
-import { openEventIndex } from "../index";
+import { openEventIndex } from "../eventIndex";
 import { bindHistoricalRepository, listHistoricalRepositories } from "../learning/repositories";
 import { projectPaths } from "../paths";
 import path from "node:path";

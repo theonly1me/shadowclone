@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { BuildContext } from "../builds/types";
-import { readConfig, readEffectiveConfig, setSourceEnabled, writeConfig } from "../config";
-import { generationEngine, type GenerationEngine } from "../web/generationEngine";
-import { generationDestination, structuredCall } from "../web/structuredCall";
+import type { BuildContext } from "../../builds/types";
+import { readConfig, readEffectiveConfig, setSourceEnabled, writeConfig } from "../../config";
+import { generationEngine, type GenerationEngine } from "../generationEngine";
+import { generationDestination, structuredCall } from "../structuredCall";
 import { collectWriting, type HostRunner, type Writing } from "./collect";
 import { voiceFileState, writeVoiceFile } from "./file";
 import {

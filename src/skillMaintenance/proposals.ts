@@ -3,7 +3,7 @@ import path from "node:path";
 import { z } from "zod";
 import { readLocalText, replaceLocalText } from "../localFiles";
 import type { ProjectPaths } from "../paths";
-import { resolveRedacted } from "../redact";
+import { resolveRedacted } from "../observe";
 import { proposalSchema, type SkillProposal } from "./types";
 
 export function proposalPath(options: {

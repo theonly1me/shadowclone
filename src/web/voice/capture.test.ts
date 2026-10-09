@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
-import { buildFixture } from "../builds/fixtures";
-import { defaultConfig, readConfig, writeConfig } from "../config";
-import type { EngineRunOptions } from "../engine/types";
-import { generationResult } from "../web/fixtures";
+import { buildFixture } from "../../builds/fixtures";
+import { defaultConfig, readConfig, writeConfig } from "../../config";
+import type { EngineRunOptions } from "../../engine/types";
+import { generationResult } from "../fixtures";
 import { createVoiceCapture } from "./capture";
 import { voiceFilePath } from "./file";
 import { fakeGitHub, invented, keptPullRequest, syntheticToken } from "./fixtures";

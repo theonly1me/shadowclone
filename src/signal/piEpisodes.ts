@@ -1,4 +1,4 @@
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import { getEventRepository } from "./origin";
 import type { CorrectionSignal, RepositoryIdentity } from "./types";
 

@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { lstat, mkdir, readlink, stat, symlink } from "node:fs/promises";
 import path from "node:path";
-import { buildFixture } from "../builds/fixtures";
+import { buildFixture } from "../../builds/fixtures";
 import { voiceFilePath, voiceFileState, writeVoiceFile } from "./file";
 
 async function home() {

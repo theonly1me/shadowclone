@@ -3,7 +3,7 @@ import {
   authorizedLearningEvents,
   currentEvidenceAuthorization,
 } from "../distill";
-import { ingestSources, openEventIndex } from "../index";
+import { ingestSources, openEventIndex } from "../eventIndex";
 import { episodeId, readLearningState, writeLearningState } from "../learning";
 import { projectPaths } from "../paths";
 import { renderMirror } from "../profile";

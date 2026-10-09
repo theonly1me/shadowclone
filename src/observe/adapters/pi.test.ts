@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { defaultConfig } from "../../config";
 import { materializeEvidence } from "../../distill/excerpts";
-import { ingestSources, openEventIndex } from "../../index";
+import { ingestSources, openEventIndex } from "../../eventIndex";
 import { createProjectPaths } from "../../paths";
 import { deriveSignals } from "../../signal";
 import { observePiFile } from "./pi";

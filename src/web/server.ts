@@ -2,7 +2,7 @@ import page from "./client/index.html";
 import type { BuildContext, BuildScope } from "../builds/types";
 import { createBrowserHandler } from "./handler";
 import { browserAssetRoutes } from "./assets";
-import { createBotBrowser } from "../cloud/setup/browser";
+import { createBotBrowser } from "./bot/browser";
 
 export function serveBuildWizard(
   options: BuildContext & {

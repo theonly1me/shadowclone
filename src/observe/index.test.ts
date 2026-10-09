@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { defaultConfig } from "../config";
 import { createProjectPaths, type ProjectPaths } from "../paths";
-import { resolveRedacted } from "../redact";
+import { resolveRedacted } from "./redacted";
 import { observeAll } from "./index";
 import type { AgentEvent } from "./types";
 

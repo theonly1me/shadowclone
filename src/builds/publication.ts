@@ -7,11 +7,11 @@ import {
   validateSkillReferences,
 } from "../skillMaintenance/document";
 import { publishSkillResources } from "../environment/resources";
-import { seedSkillsDirectory } from "../skills/library";
 import { skillClassification } from "./classification";
 import { buildDirectories } from "./selection";
 import { skillDestinationsWithoutLinks } from "./linkedDestinations";
 import type { BuildContext, BuildDefinition, BuildItem } from "./types";
+import { seedSkillsDirectory } from "../distribution";
 
 export async function publishBuildSkill(
   options: BuildContext & {

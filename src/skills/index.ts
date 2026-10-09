@@ -1,6 +1,6 @@
 export { seedGuidanceProfileKey } from "./key";
 
-export { loadSeedLibrary, seedSkillsDirectory } from "./library";
+export { loadSeedLibrary } from "./library";
 
 export { installSeedSkills } from "./install";
 

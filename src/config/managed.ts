@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { EngineId } from "../engine";
+import type { EngineId } from "./engineId";
 import { readRootOwnedFile } from "./managedFile";
 import {
   isSourceId,

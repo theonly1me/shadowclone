@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { harnessInitCommand } from "../../cli/harness";
-import { harnessCheckCommand } from "../../cli/harnessCheck";
-import { acceptAll } from "../testFixture";
-import { stopHookCommand } from "../render/claudeSettings";
+import { harnessInitCommand } from "../../harness";
+import { harnessCheckCommand } from "../../harnessCheck";
+import { acceptAll } from "../../../harness/testFixture";
+import { stopHookCommand } from "../../../harness/render/claudeSettings";
 import { checkedRepository } from "./testRepository";
 
 function stopInput(options: {

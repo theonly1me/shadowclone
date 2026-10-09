@@ -1,5 +1,5 @@
-import type { VoiceDraft, VoiceProfile } from "../../voice/profile";
-import { voiceResultSchema, voiceSavedSchema, voiceStatusSchema, type VoiceStatus } from "../../voice/protocol";
+import type { VoiceDraft, VoiceProfile } from "../voice/profile";
+import { voiceResultSchema, voiceSavedSchema, voiceStatusSchema, type VoiceStatus } from "../voice/protocol";
 import { request } from "./api";
 import { create, reportError } from "./dom";
 

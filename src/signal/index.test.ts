@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { CorpusSummary, IndexedEvent } from "../index";
+import type { CorpusSummary, IndexedEvent } from "../eventIndex";
 import { renderMirror } from "../profile";
 import { deriveSignals, normalizeRemoteOrigin } from "./index";
 

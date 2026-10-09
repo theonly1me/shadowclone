@@ -4,7 +4,7 @@ import { lstat } from "node:fs/promises";
 import type { ProjectPaths } from "../paths";
 import { createProfileRuleKey, writeProfile } from "../profile";
 import type { ProfileRule, ProfileRuleReference } from "../profile";
-import { resolveRedacted } from "../redact";
+import { resolveRedacted } from "../observe";
 import {
   isOriginBlocked,
   resolveRepository,

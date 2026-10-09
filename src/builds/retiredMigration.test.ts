@@ -5,10 +5,11 @@ import { environmentFile, renderEnvironment } from "../environment/store";
 import type { EnvironmentArtifact } from "../environment/types";
 import { fingerprint } from "../localFiles";
 import { parseSkillDocument } from "../skillMaintenance/document";
-import { loadSeedLibrary, seedSkillsDirectory } from "../skills/library";
+import { loadSeedLibrary } from "../skills/library";
 import { renderRetiredSkillChanges } from "./retired";
 import { migrateRetiredSkills } from "./retiredMigration";
 import { installedBuild, skillRoots } from "./syncFixtures";
+import { seedSkillsDirectory } from "../distribution";
 
 const shippedText = (name: string) =>
   Bun.file(path.join(import.meta.dir, `../skills/fixtures/${name}-0.0.17.md`)).text();

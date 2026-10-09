@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
 import { forgetAll } from "./forget";
-import { writeInstallations } from "./installState";
+import { writeInstallations } from "../integrations/installation/installState";
 
 async function scratch(prefix: string): Promise<string> {
   return mkdtemp(path.join(os.tmpdir(), `shadowclone-${prefix}-`));

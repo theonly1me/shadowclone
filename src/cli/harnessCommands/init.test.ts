@@ -1,12 +1,12 @@
 import { expect, test } from "bun:test";
 import { lstat, symlink } from "node:fs/promises";
 import path from "node:path";
-import { readConfig } from "../config";
-import { undoRevision } from "../changes";
-import { bunTaskList } from "./fixtures/bunTaskList";
-import { pythonConfig } from "./fixtures/pythonConfig";
-import { readHarnessRoots } from "./state";
-import { harnessTestSetup } from "./testFixture";
+import { readConfig } from "../../config";
+import { undoRevision } from "../../changes";
+import { bunTaskList } from "../../harness/fixtures/bunTaskList";
+import { pythonConfig } from "../../harness/fixtures/pythonConfig";
+import { readHarnessRoots } from "../../harness/state";
+import { harnessTestSetup } from "../../harness/testFixture";
 import { init, read, rules } from "./initFixture";
 
 test("init writes the harness once and then finds it up to date", async () => {

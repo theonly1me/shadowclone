@@ -6,10 +6,11 @@ import { skillClassification } from "../builds/classification";
 import { previewBuild } from "../builds/plan";
 import type { BuildContext } from "../builds/types";
 import { defaultConfig, writeConfig } from "../config";
-import { loadSeedLibrary, seedSkillsDirectory } from "../skills";
+import { loadSeedLibrary } from "../skills";
 import { hostDiscovery, knownDeliveryGaps } from "./discovery";
 import { nativeSessionStart } from "./hooks";
 import { installIntegration } from "./install";
+import { seedSkillsDirectory } from "../distribution";
 
 type DeliveredHome = BuildContext & {
   readonly home: string;

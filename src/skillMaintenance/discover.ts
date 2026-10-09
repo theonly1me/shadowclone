@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fingerprint, readLocalText } from "../localFiles";
 import { canonicalPath } from "../paths";
-import { resolveRedacted } from "../redact";
+import { resolveRedacted } from "../observe";
 import { parseSkillDocument, validateSkillReferences } from "./document";
 import { skillTarget } from "./state";
 import type { DiscoveredSkill, SkillRoot } from "./types";

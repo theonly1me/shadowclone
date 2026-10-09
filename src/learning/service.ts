@@ -1,4 +1,4 @@
-import { captureRoots } from "../redact";
+import { captureRoots } from "../observe";
 import { normalizeExplicitCandidates } from "./candidates";
 import type { ManagedPolicy } from "../config";
 import { readConfig } from "../config";
@@ -15,7 +15,7 @@ import {
   type LearningExecutionLimits,
   type ReasoningEffort,
 } from "../engine";
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import type { ProjectPaths } from "../paths";
 import { getProviderByEngine } from "../provider";
 import { readLearningSnapshot, persistLearningRules } from "./storage";

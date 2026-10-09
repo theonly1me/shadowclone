@@ -3,9 +3,9 @@ import path from "node:path";
 import { environmentFile, readEnvironment, renderEnvironment } from "../environment/store";
 import { syncLearningEnvironment } from "../environment/sync";
 import { fingerprint } from "../localFiles";
-import { seedSkillsDirectory } from "../skills/library";
 import { updateBundledSkills } from "./bundledUpdate";
 import { copyPath, installedBuild, skillRoots } from "./syncFixtures";
+import { seedSkillsDirectory } from "../distribution";
 
 const olderRelease = path.join(import.meta.dir, "../skills/fixtures/verify-and-review-0.0.16.md");
 

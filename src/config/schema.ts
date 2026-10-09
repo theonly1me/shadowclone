@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { EngineId } from "../engine/types";
+import type { EngineId } from "./engineId";
 
 export const sourceIds = [
   "agent-context",

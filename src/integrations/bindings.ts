@@ -1,6 +1,6 @@
 import type { SourceId } from "../config";
 import { readEffectiveConfig } from "../config";
-import { openEventIndex } from "../index";
+import { openEventIndex } from "../eventIndex";
 import { resolveRepository } from "../signal";
 import type { Integration, IntegrationOptions } from "./types";
 

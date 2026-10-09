@@ -1,7 +1,7 @@
 import { extractPromptText } from "./promptText";
 import { stripManagedGuidance } from "../integrations";
 import { textRefKey } from "../observe";
-import { resolveRedacted } from "../redact";
+import { resolveRedacted } from "../observe";
 import { hasDurableSteeringCue, type CorrectionSignal } from "../signal";
 
 export const internalLearningMarker = "SHADOWCLONE_INTERNAL_LEARNING";

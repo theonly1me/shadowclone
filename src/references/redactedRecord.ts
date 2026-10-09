@@ -1,4 +1,4 @@
-import { resolveRedacted } from "../redact";
+import { resolveRedacted } from "../observe";
 import { parseReference, renderReference } from "./format";
 import type { ReferenceRecord } from "./types";
 

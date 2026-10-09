@@ -1,4 +1,4 @@
-import packageManifest from "../../package.json";
+import product from "../product.json";
 import { preferenceTools } from "./preferences";
 import { referenceTools } from "./references";
 import { botTools } from "./bot";
@@ -38,7 +38,7 @@ export function handleMcpRequest(options: {
       result: {
         protocolVersion: "2024-11-05",
         capabilities: { tools: {} },
-        serverInfo: { name: "shadowclone", version: packageManifest.version },
+        serverInfo: { name: "shadowclone", version: product.version },
       },
     };
   }

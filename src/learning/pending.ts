@@ -6,7 +6,7 @@ import type { ProjectPaths } from "../paths";
 import type { ProfileRule } from "../profile";
 import { learningRuleSchema } from "../environment/types";
 import { sourceIds } from "../config";
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import type { CorrectionSignal } from "../signal";
 import { learningRuleProvenance } from "./provenance";
 

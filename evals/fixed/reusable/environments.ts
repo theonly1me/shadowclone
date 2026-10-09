@@ -16,7 +16,7 @@ import { correctionSessions, excludedCorpusDecoy } from "./corpus";
 import { existingManualSkill, intendedAtlasSkill, intendedGlobalSkill } from "./guidance";
 import { routingLibrary, routingSkill } from "./routing";
 import { parseSkillDocument } from "../../../src/skillMaintenance/document";
-import { openEventIndex } from "../../../src/index";
+import { openEventIndex } from "../../../src/eventIndex";
 import { correctionRepositoryHistory } from "./corpus";
 import { verifiedCorpusRepository } from "./corpusScope";
 

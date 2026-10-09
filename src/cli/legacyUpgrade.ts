@@ -3,12 +3,12 @@ import path from "node:path";
 import { compileContext } from "../integrations";
 import { canonicalPath, projectPaths, type ProjectPaths } from "../paths";
 import { renderAgent } from "../profile";
-import { artifactRelativePaths, removeGitExcludes } from "./installArtifacts";
+import { artifactRelativePaths, removeGitExcludes } from "../integrations/installation/installArtifacts";
 import {
   findInstallation,
   readInstallations,
   writeInstallations,
-} from "./installState";
+} from "../integrations/installation/installState";
 
 export async function removeUneditedLegacySubagent(
   options: { readonly cwd?: string; readonly paths?: ProjectPaths } = {},

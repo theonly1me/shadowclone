@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { readEffectiveConfig } from "../config";
-import { runHostCommand } from "../io/hostCommand";
-import type { ProjectPaths } from "../paths";
-import { redactSecrets } from "../redact";
+import { readEffectiveConfig } from "../../config";
+import { runHostCommand } from "../../io/hostCommand";
+import type { ProjectPaths } from "../../paths";
+import { redactSecrets } from "../../redact";
 
 export type WritingKind = "pull-request" | "review" | "commit";
 export type Writing = { readonly kind: WritingKind; readonly text: string };

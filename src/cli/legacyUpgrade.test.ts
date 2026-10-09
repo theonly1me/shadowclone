@@ -3,8 +3,8 @@ import path from "node:path";
 import { integrationFixture } from "../integrations/fixtures";
 import { compileContext } from "../integrations";
 import { renderAgent } from "../profile";
-import { artifactRelativePaths } from "./installArtifacts";
-import { readInstallations, writeInstallations } from "./installState";
+import { artifactRelativePaths } from "../integrations/installation/installArtifacts";
+import { readInstallations, writeInstallations } from "../integrations/installation/installState";
 import { removeUneditedLegacySubagent } from "./legacyUpgrade";
 
 async function legacyFixture() {

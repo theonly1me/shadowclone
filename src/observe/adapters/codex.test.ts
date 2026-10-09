@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { resolveRedacted } from "../../redact";
+import { resolveRedacted } from "../redacted";
 import { discoverCodexFiles, observeCodexFile } from "./codex";
 
 const plantedSecret = ["sk", "proj", "codex123DEF456ghi789"].join("-");

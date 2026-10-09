@@ -3,7 +3,7 @@ import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
-import type { IndexedEvent } from "../index";
+import type { IndexedEvent } from "../eventIndex";
 import { createProjectPaths } from "../paths";
 import { explicitProfileEvidence, profileEvidenceId, type ProfileRule } from "../profile";
 import type { CorrectionSignal } from "../signal";

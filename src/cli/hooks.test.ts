@@ -3,7 +3,7 @@ import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
-import { openEventIndex } from "../index";
+import { openEventIndex } from "../eventIndex";
 import { installIntegration } from "../integrations";
 import { integrationFixture } from "../integrations/fixtures";
 import { createProjectPaths } from "../paths";

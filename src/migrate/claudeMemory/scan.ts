@@ -3,7 +3,7 @@ import { lstat, readdir } from "node:fs/promises";
 import path from "node:path";
 import { readBoundedFile } from "../../io/files";
 import { canonicalPath, type ProjectPaths } from "../../paths";
-import { resolveRedacted } from "../../redact";
+import { resolveRedacted } from "../../observe";
 import { assertRegularDestination } from "../../localFiles";
 import type { ClaudeMemoryFile } from "./types";
 

@@ -1,5 +1,5 @@
 import { artifactIsOwned } from "./artifactOwnership";
-import { runHostCommand } from "../io/hostCommand";
+import { runHostCommand } from "../../io/hostCommand";
 import type { Installation } from "./installState";
 import { mkdir, rm, rmdir } from "node:fs/promises";
 import path from "node:path";
@@ -8,8 +8,8 @@ import type { InstalledArtifact } from "./installState";
 
 export { artifactRelativePaths, artifactExcludePatterns } from "./installPaths";
 import { artifactRelativePaths, artifactExcludePatterns } from "./installPaths";
-import { integrationTargets } from "../integrations/targets";
-import { integrationAgentSchema } from "../integrations/types";
+import { integrationTargets } from "../targets";
+import { integrationAgentSchema } from "../types";
 
 export function integrationExcludePattern(relativePath: string): string {
   return `/${relativePath}`;

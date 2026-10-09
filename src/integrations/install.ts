@@ -3,7 +3,7 @@ import {
   addGitExcludes,
   integrationExcludePattern,
   removeGitExcludes,
-} from "../cli/installArtifacts";
+} from "./installation/installArtifacts";
 import { canonicalPath, projectPaths } from "../paths";
 import { compileContext } from "./compile";
 import { applyIntegrationFiles, prepareIntegrationFiles, savedRecords } from "./files";

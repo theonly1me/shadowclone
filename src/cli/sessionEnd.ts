@@ -1,7 +1,7 @@
 import { realpath } from "node:fs/promises";
 import path from "node:path";
 import { readEffectiveConfig } from "../config";
-import { ingestClaudeTranscript, openEventIndex } from "../index";
+import { ingestClaudeTranscript, openEventIndex } from "../eventIndex";
 import { projectPaths } from "../paths";
 import type { ProjectPaths } from "../paths";
 import type { GitRemoteReader } from "../signal";

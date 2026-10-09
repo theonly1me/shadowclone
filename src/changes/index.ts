@@ -1,6 +1,6 @@
 import path from "node:path";
 import { canonicalPath, type ProjectPaths } from "../paths";
-import { resolveRedacted } from "../redact";
+import { resolveRedacted } from "../observe";
 import { readLocalFile } from "../localFiles";
 import { acquireLocalLock } from "../localFiles/lock";
 import { commitLocalChanges, revisionTarget } from "./apply";

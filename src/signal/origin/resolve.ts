@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { IndexedEvent } from "../../index";
+import type { IndexedEvent } from "../../eventIndex";
 import type { OriginScope, RepositoryIdentity } from "../types";
 import {
   isolatedOrigin,

@@ -3,9 +3,9 @@ import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultConfig } from "../../config";
-import { ingestSources, openEventIndex } from "../../index";
+import { ingestSources, openEventIndex } from "../../eventIndex";
 import { createProjectPaths } from "../../paths";
-import { resolveRedacted } from "../../redact";
+import { resolveRedacted } from "../redacted";
 import { discoverAntigravityFiles } from "./antigravity";
 
 const plantedSecret = ["sk", "proj", "antigravity123DEF456ghi789"].join("-");
