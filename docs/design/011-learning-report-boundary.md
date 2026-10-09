@@ -6,12 +6,12 @@ Command counts and other structural signals describe a session but do not establ
 
 ## Decision
 
-Keep structural observations in a local learning report. Normal ingestion and signal derivation require no model call and do not create semantic rules through heuristics.
+Keep structural observations in a local learning report. Normal ingestion and signal derivation need no model call. They do not create semantic rules through heuristics.
 
-Deep learning interprets bounded, redacted evidence through the selected engine. Its output must pass reconciliation and activation rules before publication. Evaluation must use the same semantic path; it cannot substitute heuristics when a model call fails.
+Deep learning interprets bounded, redacted evidence through the selected engine. Its output must pass reconciliation and activation rules before publication. Evaluation must use the same semantic path. It cannot substitute heuristics when a model call fails.
 
-This distinction concerns the learning stages. Initial setup can explicitly authorize a bounded first model pass, as described in [launch readiness](019-launch-readiness.md).
+This distinction applies to the learning stages. Initial setup can explicitly authorize a bounded first model pass, as [launch readiness](019-launch-readiness.md) describes.
 
 ## Verification
 
-Check that ordinary ingestion produces reports without model calls or new mined guidance. A failed semantic call must leave a failure or pending result, never a fabricated rule. Reports must remain useful without exposing captured text in logs.
+Check that ordinary ingestion produces reports without model calls or new mined guidance. A failed semantic call must leave a failure or pending result, never a fabricated rule. Reports must stay useful without exposing captured text in logs.

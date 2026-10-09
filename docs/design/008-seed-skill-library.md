@@ -2,22 +2,22 @@
 
 ## Problem
 
-A short preference and a task workflow serve different purposes. Treating every preference as a skill creates thin, repetitive files; putting complete workflows in a profile makes startup guidance too large.
+A short preference and a task workflow have different purposes. If every preference becomes a skill, the files are thin and repetitive. If a profile holds complete workflows, the startup guidance is too large.
 
 ## Decision
 
 Ship two package-owned libraries that work without model calls:
 
-- Eight preferences across four mutually exclusive axes, each expressing a concise choice.
-- Ten task skills, including two alternative testing workflows and eight independent workflows.
+- Eight preferences across four mutually exclusive axes. Each preference is a concise choice.
+- Ten task skills: two alternative testing workflows and eight independent workflows.
 
-Preferences use stable identifiers and axis membership so a declared choice can replace its sibling. Skills contain enough instruction to perform a task and remain readable as ordinary files. The library avoids imposing this repository's own comment policy on every user.
+Each preference has a stable identifier and belongs to an axis, so a declared choice can replace its sibling. Skills hold enough instruction to do a task, and they stay readable as ordinary files. The library does not force the comment policy of this repository on every user.
 
-Validate metadata and reject unknown frontmatter fields. Each skill must have exactly one non-empty `Use when`, `Process`, `Guardrails`, and `Completion` section. Keep identifiers independent of display names so edits to prose do not change installed identity.
+Validate metadata and reject unknown frontmatter fields. Each skill must have exactly one non-empty `Use when`, `Process`, `Guardrails`, and `Completion` section. Keep identifiers independent of display names, so edits to the prose do not change the installed identity.
 
 ## Consequences
 
-Bundled guidance is a starting point. Users can select, edit, or replace it. Packaging owns the seed files; installed user copies need ownership and conflict checks before updates.
+Bundled guidance is a starting point. Users can select, edit, or replace it. Packaging owns the seed files. Installed user copies need ownership and conflict checks before updates.
 
 ## Verification
 

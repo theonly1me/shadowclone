@@ -1,6 +1,6 @@
 # Importing repository guidance
 
-The original importer produced profile rules. [Skills delivery](023-skills-as-delivery.md) retains imported guidance as evidence and avoids republishing instructions already supplied by the repository.
+The original importer produced profile rules. [Skills delivery](023-skills-as-delivery.md) keeps imported guidance as evidence. It does not republish instructions that the repository already supplies.
 
 ## Problem
 
@@ -8,14 +8,14 @@ Users had already written useful instructions in native agent files. Ignoring th
 
 ## Decision
 
-Add a separate, default-off `declared-rules` source. Read only supported root instruction files and directly supported skill locations. Do not recursively search the repository or follow symbolic links. Bound a read to 256 files and 2 MiB.
+Add a separate `declared-rules` source, off by default. Read only supported root instruction files and directly supported skill locations. Do not search the repository recursively or follow symbolic links. Limit a read to 256 files and 2 MiB.
 
-Resolve text through the learning redaction boundary. Preserve exact repository scope and derive stable identities from the source path and heading so repeated imports update the same records. Git metadata still requires separate consent; importing instructions does not authorize remote discovery.
+Resolve text through the learning redaction boundary. Keep the exact repository scope. Derive stable identities from the source path and heading, so repeated imports update the same records. Git metadata still needs separate consent. Importing instructions does not authorize remote discovery.
 
-Imported instructions have user-owned authority. Preserve manual edits, source removals, and rejected records. Disagreement from mined evidence becomes a proposal and cannot silently replace an explicit instruction.
+Imported instructions have user-owned authority. Preserve manual edits, source removals, and rejected records. Disagreement from mined evidence becomes a proposal. It cannot silently replace an explicit instruction.
 
 ## Tradeoffs and verification
 
-A closed path set misses unconventional instruction locations but makes consent predictable. Adding a location widens the source and needs a documented decision.
+A closed set of paths misses unconventional instruction locations, but it makes consent predictable. Adding a location widens the source and needs a documented decision.
 
-Use fixtures for supported paths, symlinks, limits, redaction, repeated imports, moved or deleted sections, manual edits, and scope isolation. Current source locations are listed in [data handling](../data-handling.md).
+Use fixtures for supported paths, symlinks, limits, redaction, repeated imports, moved or deleted sections, manual edits, and scope isolation. [Data handling](../data-handling.md) lists the current source locations.

@@ -1,18 +1,18 @@
 # Design history
 
-These records explain decisions and tradeoffs. Later records can replace earlier designs; use the [architecture](../architecture/README.md) and [user guide](../../README.md#get-started) for current behavior.
+These records explain decisions and tradeoffs. Later records can replace earlier designs. For current behavior, use the [architecture](../architecture/README.md) and the [user guide](../../README.md).
 
-The main delivery changes were transcript learning, native main-agent context, and then portable skills. Designs 006 through 019 include profile-era decisions that remain relevant to migration. Designs 022 through 024 describe repository setup and the skills environment, and design 027 describes the preference study.
+The main delivery changes were transcript learning, then native main-agent context, then portable skills. Designs 006 to 019 include profile-era decisions that still matter for migration. Designs 022 to 024 describe repository setup and the skills environment. Design 027 describes the preference study.
 
-Start a new decision with the [template](template.md), or extend the relevant record. Include only sections needed to understand and verify the change. Keep implementation-session logs out of these pages.
+Start a new decision with the [template](template.md), or extend the relevant record. Include only the sections that people need to understand and verify the change. Keep implementation-session logs out of these pages.
 
 | Record                                                                         | Decision                                                                                                   |
 | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
 | [001: Transcript learning](001-agent-transcript-pivot.md)                      | Sessions and authenticated CLIs replace shell-only learning                                                |
-| [002: CI and release checks](002-ci-and-release.md)                            | A shared gate and verified releases; archive publishing later replaced by npm                              |
+| [002: CI and release checks](002-ci-and-release.md)                            | A shared gate and verified releases. npm publishing later replaced archive publishing                      |
 | [003: Provider qualification](003-provider-expansion.md)                       | Qualify capture, model execution, actions, and native delivery separately                                  |
-| [004: Safety fixes](004-confirmed-safety-fixes.md)                             | Correct scope, redaction, probes, installation, and clean-exit policy                                      |
-| [005: Consent and capability claims](005-capture-and-capability-truth.md)      | Bound pre-consent checks and distinguish implementation from qualification                                 |
+| [004: Safety fixes](004-confirmed-safety-fixes.md)                             | Fix scope, redaction, probes, installation, and clean-exit policy                                          |
+| [005: Consent and capability claims](005-capture-and-capability-truth.md)      | Limit checks before consent. Tell implementation apart from qualification                                  |
 | [006: Profile lifecycle](006-profile-record-lifecycle.md)                      | Stable identities, user edits, rejections, and activation state                                            |
 | [007: Learning limits](007-bounded-learning-execution.md)                      | Shared budgets, isolation, and reusable checkpoints                                                        |
 | [008: Bundled guidance](008-seed-skill-library.md)                             | Separate concise preferences from complete workflows                                                       |
@@ -21,7 +21,7 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [011: Reports and learning](011-learning-report-boundary.md)                   | Keep structural observations separate from semantic guidance                                               |
 | [012: Reconciliation](012-deep-learning-reconciliation.md)                     | Interpret evidence against existing guidance and user decisions                                            |
 | [013: Legacy compilation](013-deterministic-profile-compiler.md)               | One bounded profile representation and reversible installation                                             |
-| [014: Isolation proposal](014-execution-and-storage-boundaries.md)             | Execution and storage controls completed in remediation                                                    |
+| [014: Isolation proposal](014-execution-and-storage-boundaries.md)             | Execution and storage controls that remediation completed                                                  |
 | [015: Automatic learning](015-automatic-preference-learning.md)                | Durable steering, separate consent, bounded background work                                                |
 | [016: Original skill maintenance](016-skill-maintenance.md)                    | Amend relevant workflows while preserving ownership                                                        |
 | [017: Portable environment](017-self-improving-agent-environment.md)           | Live context, useful-session attribution, skill sync, and fresh-task evaluation                            |
@@ -30,7 +30,7 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [020: Main-agent delivery](020-main-agent-delivery.md)                         | Managed native instructions and hooks beyond optional subagents                                            |
 | [021: Isolation remediation](021-remediation-completion.md)                    | OS enforcement, consistent snapshots, private storage, and reports                                         |
 | [022: Repository setup](022-repository-harness.md)                             | Preview shared instructions and configure executable checks                                                |
-| [023: Skills delivery](023-skills-as-delivery.md)                              | Maintain workflows directly and migrate with original baselines intact                                     |
+| [023: Skills delivery](023-skills-as-delivery.md)                              | Maintain workflows directly and migrate with the original baselines unchanged                              |
 | [024: Agent builds](024-agent-builds.md)                                       | Browser and terminal editing over shared publication, with budget and check fixes                          |
 | [025: Documentation](025-documentation.md)                                     | Short entry points, task guides, current architecture, and concise design history                          |
 | [026: Synthetic secret fixtures](026-synthetic-secret-fixtures.md)             | Keep credential-shaped test inputs reproducible and identifiable as synthetic                              |
