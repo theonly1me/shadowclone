@@ -94,3 +94,22 @@ test("a value that is not a remote is refused", () => {
   expect(normalizeRemoteOrigin("not a remote")).toBeNull();
   expect(normalizeRemoteOrigin("")).toBeNull();
 });
+
+test("a repository file name drops dots, dashes, and underscores at both ends", () => {
+  expect(
+    normalizeRemoteRepository("https://github.com/acme/-_.My-Repo._-")?.profileFileName,
+  ).toMatch(/^my-repo--[0-9a-f]{16}$/);
+  expect(
+    normalizeRemoteRepository("https://github.com/acme/._-")?.profileFileName,
+  ).toMatch(/^repository--[0-9a-f]{16}$/);
+});
+
+test("a repository name with a long run of dashes gets its file name in linear time", () => {
+  const started = performance.now();
+  const repository = normalizeRemoteRepository(
+    `https://github.com/acme/a${"-".repeat(100_000)}b`,
+  );
+
+  expect(performance.now() - started).toBeLessThan(1_000);
+  expect(repository?.profileFileName).toStartWith(`a${"-".repeat(63)}--`);
+});

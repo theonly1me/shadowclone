@@ -4,6 +4,23 @@ import type { OriginScope, RepositoryIdentity } from "../types";
 
 export type GitRemoteReader = (cwd: string) => Promise<string | null>;
 
+const edgeSeparators = "._-";
+
+function withoutEdgeSeparators(value: string): string {
+  let start = 0;
+  let end = value.length;
+
+  while (start < end && edgeSeparators.includes(value.charAt(start))) {
+    start += 1;
+  }
+
+  while (end > start && edgeSeparators.includes(value.charAt(end - 1))) {
+    end -= 1;
+  }
+
+  return value.slice(start, end);
+}
+
 export function isolatedOrigin(key: string): OriginScope {
   const digest = new Bun.CryptoHasher("sha256")
     .update(key)
@@ -49,10 +66,7 @@ export function normalizeRemoteRepository(
     : parts.repository;
   const id = `${origin.id}/${name}`;
   const safeName =
-    name
-      .replace(/[^a-z0-9._-]+/g, "--")
-      .replace(/^[._-]+|[._-]+$/g, "")
-      .slice(0, 64) || "repository";
+    withoutEdgeSeparators(name.replace(/[^a-z0-9._-]+/g, "--")).slice(0, 64) || "repository";
   const digest = new Bun.CryptoHasher("sha256")
     .update(id)
     .digest("hex")

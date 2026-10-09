@@ -2,6 +2,7 @@ import path from "node:path";
 import { lstat } from "node:fs/promises";
 import { z } from "zod";
 import { assertRegularDestination } from "@shadowclone/core";
+import { markdownLinkTargets } from "./linkTargets";
 
 const metadataSchema = z
   .object({
@@ -94,11 +95,8 @@ export async function validateSkillReferences(options: {
   const references = new Set<string>();
   const mentions = new Set<string>();
 
-  for (const match of options.text.matchAll(/\]\(([^\s)#]+)(?:#[^)]*)?\)/g)) {
-    const reference = match[1];
-
+  for (const reference of markdownLinkTargets(options.text)) {
     if (
-      reference &&
       !/^[a-z][a-z0-9+.-]*:/i.test(reference) &&
       !reference.startsWith("#")
     ) {

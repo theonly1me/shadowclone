@@ -15,7 +15,9 @@ export function inlineCode(text: string): string {
   const fence = "`".repeat(longestRun + 1);
   const padded = text.startsWith("`") || text.endsWith("`") ? ` ${text} ` : text;
 
-  return `${fence}${padded.replace(/\s*\n\s*/g, " ")}${fence}`;
+  const joined = padded.replace(/\s+/g, (whitespace) => (whitespace.includes("\n") ? " " : whitespace));
+
+  return `${fence}${joined}${fence}`;
 }
 
 function codeLink(options: { readonly location: string; readonly target: LinkTarget | null }): string {
