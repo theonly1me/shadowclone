@@ -4,8 +4,6 @@
 
 [![npm](https://img.shields.io/npm/v/@shadowclone/cli)](https://www.npmjs.com/package/@shadowclone/cli)
 [![CI](https://img.shields.io/github/actions/workflow/status/theonly1me/shadowclone/ci.yml?branch=main&label=CI)](https://github.com/theonly1me/shadowclone/actions/workflows/ci.yml)
-[![release](https://img.shields.io/github/v/release/theonly1me/shadowclone)](https://github.com/theonly1me/shadowclone/releases)
-[![downloads](https://img.shields.io/npm/dm/@shadowclone/cli)](https://www.npmjs.com/package/@shadowclone/cli)
 [![license](https://img.shields.io/github/license/theonly1me/shadowclone)](LICENSE)
 [![HOL Guard](https://img.shields.io/endpoint?url=https%3A%2F%2Fhol.org%2Fapi%2Fregistry%2Fbadges%2Fplugin%3Fslug%3Dtheonly1me%252Fshadowclone%26metric%3Dtrust)](https://hol.org/registry/plugins/theonly1me%2Fshadowclone)
 
