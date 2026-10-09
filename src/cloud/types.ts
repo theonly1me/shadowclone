@@ -10,20 +10,35 @@ export const repositorySchema = z.object({
 
 export type Repository = z.infer<typeof repositorySchema>;
 
-export const cloneSchema = z.strictObject({
-  repositoryId: z.number().int().positive(),
-  repository: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
-  defaultBranch: z.string().min(1),
-  owner: z.string().regex(/^[\w-]+$/),
-  appId: z.number().int().positive(),
-  botId: z.number().int().positive(),
-  botLogin: z.string().regex(/^[\w-]+\[bot\]$/),
-  requesters: z.array(z.string().regex(/^[\w-]+$/)).min(1),
-  reviewerBots: z.array(z.string().regex(/^[\w-]+\[bot\]$/)),
-  maximumRuns: z.number().int().min(1).max(100).default(10),
-  reviewModel: z.string().regex(/^[\w.-]+$/).default("claude-opus-5-5"),
-  reviewNetwork: z.boolean().default(true),
-});
+export const identitySchema = z.discriminatedUnion("kind", [
+  z.strictObject({ kind: z.literal("app"), appId: z.number().int().positive() }),
+  z.strictObject({ kind: z.literal("account") }),
+]);
+
+export type Identity = z.infer<typeof identitySchema>;
+
+export const accountLoginPattern = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
+
+export const cloneSchema = z
+  .strictObject({
+    repositoryId: z.number().int().positive(),
+    repository: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
+    defaultBranch: z.string().min(1),
+    owner: z.string().regex(/^[\w-]+$/),
+    identity: identitySchema,
+    botId: z.number().int().positive(),
+    botLogin: z.string().regex(/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})(?:\[bot\])?$/),
+    skillsRepository: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
+    requesters: z.array(z.string().regex(/^[\w-]+$/)).min(1),
+    reviewerBots: z.array(z.string().regex(/^[\w-]+\[bot\]$/)),
+    maximumRuns: z.number().int().min(1).max(100).default(10),
+    reviewModel: z.string().regex(/^[\w.-]+$/).default("claude-opus-5-5"),
+    reviewNetwork: z.boolean().default(true),
+  })
+  .refine((clone) => (clone.identity.kind === "app") === clone.botLogin.endsWith("[bot]"), {
+    message: "An App bot login ends with [bot], and a machine account login does not.",
+    path: ["botLogin"],
+  });
 
 export type Clone = z.infer<typeof cloneSchema>;
 
@@ -41,7 +56,6 @@ export type EventContext = {
 };
 
 export type Delivery = {
-  readonly encoded: string;
   readonly fingerprint: string;
   readonly native: string;
   readonly files: readonly {

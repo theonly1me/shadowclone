@@ -20,17 +20,18 @@ export function showBotPreview(options: {
       text:
         `Repository: ${preview.repository} (ID ${preview.repositoryId}). ` +
         `App owner: ${preview.appOwner}. Requester: ${preview.owner}. ` +
-        `Guidance: ${preview.bytes} encoded bytes.`,
+        `Skills and rules: ${preview.bytes} bytes.`,
     }),
   );
   container.append(
     create({
       tag: "p",
       text:
-        "Review every file below. Approval uploads this exact bundle to a GitHub " +
-        "environment for Claude subscription runs. It also adds a ruleset so only " +
-        "people with write access can update the default branch. The default-branch " +
-        "workflow and code executed with credentials remain trusted.",
+        "Review every file below. Approval pushes these files to your private " +
+        "shadowclone-skills repository, which the bot reads with a read-only key. It " +
+        "also adds a ruleset so only people with write access can update the default " +
+        "branch. You add the Claude token on GitHub later. The default-branch workflow " +
+        "and code executed with credentials remain trusted.",
     }),
   );
 
@@ -83,7 +84,6 @@ export function showBotPreview(options: {
         manifest.value = view.manifest;
         form.append(manifest);
         container.append(form);
-        sessionStorage.setItem("shadowclone-bot-preview", preview.id);
         form.submit();
       },
     }),

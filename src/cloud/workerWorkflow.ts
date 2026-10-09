@@ -1,3 +1,5 @@
+import { mentionNames } from "./guard/comment";
+import { botToken, botTokenSteps, skillsSteps } from "./identitySteps";
 import { reviewJobs, type ReviewPins, type ReviewVersions } from "./reviewJobs";
 import type { Clone } from "./types";
 
@@ -9,6 +11,8 @@ export function workerWorkflow(options: {
   readonly prompt: string;
 }): string {
   const { clone, configured, pins } = options;
+  const allowed = "steps.validate.outputs.allowed == 'true'";
+  const token = botToken(clone);
   const guard = `${configured}
             const { resolveTrigger } = require('./.github/shadowclone/guard/events.cjs');
             const { allowWorker } = require('./.github/shadowclone/guard/policy.cjs');
@@ -85,24 +89,16 @@ jobs:
         with:
           script: |
             ${guard}
-      - uses: ${pins.appToken}
-        id: app
-        if: steps.validate.outputs.allowed == 'true'
-        with:
-          app-id: '${clone.appId}'
-          private-key: \${{ secrets.SHADOWCLONE_APP_PRIVATE_KEY }}
-          owner: '${clone.repository.split("/")[0]}'
-          repositories: '${clone.repository.split("/")[1]}'
-          permission-contents: write
-          permission-issues: write
-          permission-pull-requests: write
-          permission-actions: write
-          permission-checks: read
-          permission-workflows: write
+${botTokenSteps({
+  clone,
+  pins,
+  permissions: ["contents: write", "issues: write", "pull-requests: write", "actions: write", "checks: read", "workflows: write"],
+  when: allowed,
+})}
       - uses: ${pins.script}
-        if: steps.validate.outputs.allowed == 'true'
+        if: ${allowed}
         with:
-          github-token: \${{ steps.app.outputs.token }}
+          github-token: ${token}
           script: |
             const { reactToRequest } = require('./.github/shadowclone/react.cjs');
             await reactToRequest({
@@ -113,19 +109,12 @@ jobs:
               request: github.request.bind(github),
               warn: core.warning,
             });
+${skillsSteps({ clone, pins, when: allowed })}
       - uses: ${pins.script}
-        if: steps.validate.outputs.allowed == 'true'
-        env:
-          GUIDANCE_BUNDLE: \${{ secrets.SHADOWCLONE_GUIDANCE }}
+        if: ${allowed}
         with:
-          github-token: \${{ steps.app.outputs.token }}
+          github-token: ${token}
           script: |
-            const { restoreGuidance } = require('./.github/shadowclone/restore.cjs');
-            const path = require('node:path');
-            const directory = path.join(process.env.RUNNER_TEMP, 'shadowclone-guidance');
-            await restoreGuidance({ encoded: process.env.GUIDANCE_BUNDLE, destination: directory });
-            core.exportVariable('SHADOWCLONE_GUIDANCE_DIRECTORY', directory);
-
             if (String('\${{ steps.validate.outputs.kind }}') === 'pull') {
               await github.rest.issues.addLabels({
                 ...context.repo,
@@ -134,19 +123,19 @@ jobs:
               });
             }
       - uses: ${pins.claude}
-        if: steps.validate.outputs.allowed == 'true'
+        if: ${allowed}
         env:
           SHADOWCLONE_ENTITY: \${{ steps.validate.outputs.entity }}
           SHADOWCLONE_BRANCH: \${{ steps.validate.outputs.branch }}
           SHADOWCLONE_SOURCE: \${{ steps.validate.outputs.source }}
           SHADOWCLONE_IDENTIFIER: \${{ steps.validate.outputs.identifier }}
         with:
-          github_token: \${{ steps.app.outputs.token }}
+          github_token: ${token}
           claude_code_oauth_token: \${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           bot_id: '${clone.botId}'
           bot_name: '${clone.botLogin}'
-          allowed_bots: '${[...new Set([...clone.reviewerBots, clone.botLogin, "github-actions[bot]"])].join(",")}'
-          trigger_phrase: '@shadowclone'
+          allowed_bots: '${[...new Set([...clone.reviewerBots, ...(clone.identity.kind === "app" ? [clone.botLogin] : []), "github-actions[bot]"])].join(",")}'
+          trigger_phrase: '@${mentionNames(clone)[0]}'
           plugin_marketplaces: \${{ env.SHADOWCLONE_GUIDANCE_DIRECTORY }}
           plugins: shadowclone-personal@shadowclone-personal
           claude_args: '--max-turns 60 --permission-mode acceptEdits --allowedTools Bash,Skill --append-system-prompt-file \${{ env.SHADOWCLONE_GUIDANCE_DIRECTORY }}/native.md'

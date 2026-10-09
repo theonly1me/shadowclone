@@ -1,92 +1,120 @@
 import path from "node:path";
 import { canonicalPath, projectPaths } from "../paths";
-import { ownedWrite } from "../storage";
 import { exportGuidance } from "../cloud/export";
-import { cloneStatus } from "../cloud/status";
+import { writeDeliveryFiles } from "../cloud/deliveryFiles";
+import { readCloudChecklist } from "../cloud/setup/checklist";
+import { checklistText } from "../cloud/setup/checklistText";
+import { ghApiCall } from "../cloud/setup/ghApi";
+import { cloneStatus, readInstallation } from "../cloud/status";
+import { setUpBotInTerminal } from "./botSetup";
 import { runWebWizard } from "./webWizard";
 
-export async function botCommand(arguments_: readonly string[]): Promise<void> {
-  const [operation, ...rest] = arguments_;
+const setupUsage = "Use shadowclone bot setup [--bot login] [--app] [--repo owner/repository] [--yes] [--no-open].";
 
-  if (operation === "status" && rest.length === 0) {
+function flagValue(options: { readonly arguments: readonly string[]; readonly flag: string }): string | null {
+  const index = options.arguments.indexOf(options.flag);
+
+  return index < 0 ? null : (options.arguments[index + 1] ?? "");
+}
+
+async function setup(arguments_: readonly string[]): Promise<void> {
+  const repository = flagValue({ arguments: arguments_, flag: "--repo" });
+  const botLogin = flagValue({ arguments: arguments_, flag: "--bot" });
+  const known = new Set(["--app", "--yes", "--no-open", "--repo", "--bot"]);
+  const values = new Set([repository, botLogin]);
+
+  if (
+    (repository !== null && !/^[\w.-]+\/[\w.-]+$/.test(repository)) ||
+    (botLogin !== null && !/^[A-Za-z0-9-]{1,39}$/.test(botLogin)) ||
+    (botLogin !== null && arguments_.includes("--app")) ||
+    arguments_.some((argument) => !known.has(argument) && !values.has(argument))
+  ) {
+    throw new Error(setupUsage);
+  }
+
+  if (botLogin !== null) {
+    await setUpBotInTerminal({ repository, botLogin, yes: arguments_.includes("--yes"), open: !arguments_.includes("--no-open") });
+    return;
+  }
+
+  await runWebWizard({ bot: true, targetRepository: repository ?? undefined, open: !arguments_.includes("--no-open") });
+}
+
+async function status(arguments_: readonly string[]): Promise<void> {
+  const repository = flagValue({ arguments: arguments_, flag: "--repo" });
+
+  if (repository === null) {
     console.log(JSON.stringify(await cloneStatus(projectPaths), null, 2));
     return;
   }
 
-  if (operation === "setup") {
-    const targetIndex = rest.indexOf("--repo");
-    const target = targetIndex < 0 ? undefined : rest[targetIndex + 1];
-    const valid =
-      targetIndex < 0
-        ? rest
-        : rest.filter((_, index) => index !== targetIndex && index !== targetIndex + 1);
+  const installation = await readInstallation({ paths: projectPaths, repository });
 
-    if (
-      (targetIndex >= 0 && !target?.match(/^[\w.-]+\/[\w.-]+$/)) ||
-      valid.some((value) => value !== "--no-open")
-    ) {
-      throw new Error("Use shadowclone bot setup [--repo owner/repository] [--no-open].");
+  if (installation === null) {
+    throw new Error(`No cloud bot setup is saved for ${repository}. Run shadowclone bot setup first.`);
+  }
+
+  console.log(checklistText(await readCloudChecklist({ call: ghApiCall, clone: installation.clone, pullUrl: installation.pullUrl })));
+}
+
+async function exportSkills(arguments_: readonly string[]): Promise<void> {
+  const skills: string[] = [];
+  let destination: string | null = null;
+
+  for (let position = 0; position < arguments_.length; position += 2) {
+    const flag = arguments_[position];
+    const value = arguments_[position + 1];
+
+    if (!value || !["--skill", "--output"].includes(flag ?? "")) {
+      throw new Error("Use shadowclone bot export --skill shadowclone-work [--skill name] --output folder.");
     }
 
-    await runWebWizard({ bot: true, targetRepository: target, open: !rest.includes("--no-open") });
+    if (flag === "--skill") {
+      skills.push(value);
+    }
+
+    if (flag === "--output") {
+      destination = value;
+    }
+  }
+
+  if (!destination) {
+    throw new Error("Choose a private output folder outside the repository checkout.");
+  }
+
+  const cwd = canonicalPath(process.cwd());
+  const output = canonicalPath(destination);
+  const relative = path.relative(cwd, output);
+
+  if (!relative || (!relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative))) {
+    throw new Error("The guidance output must stay outside the repository checkout.");
+  }
+
+  const delivery = await exportGuidance({ paths: projectPaths, cwd, skills });
+
+  await writeDeliveryFiles({ files: delivery.files, destination: output });
+  console.log(JSON.stringify({ output, skills: delivery.skills, files: delivery.files.length, fingerprint: delivery.fingerprint }, null, 2));
+}
+
+export async function botCommand(arguments_: readonly string[]): Promise<void> {
+  const [operation, ...rest] = arguments_;
+
+  if (operation === "setup") {
+    await setup(rest);
+    return;
+  }
+
+  if (operation === "status") {
+    await status(rest);
     return;
   }
 
   if (operation === "export") {
-    const skills: string[] = [];
-    let destination: string | null = null;
-
-    for (let position = 0; position < rest.length; position += 2) {
-      const flag = rest[position];
-      const value = rest[position + 1];
-
-      if (!value || !["--skill", "--output"].includes(flag ?? "")) {
-        throw new Error(
-          "Use shadowclone bot export --skill shadowclone-work [--skill name] --output " + "file.",
-        );
-      }
-
-      if (flag === "--skill") {
-        skills.push(value);
-      }
-
-      if (flag === "--output") {
-        destination = value;
-      }
-    }
-
-    if (!destination) {
-      throw new Error("Choose a private output file outside the repository checkout.");
-    }
-
-    const cwd = canonicalPath(process.cwd());
-    const output = canonicalPath(destination);
-    const relative = path.relative(cwd, output);
-
-    if (!relative || (!relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative))) {
-      throw new Error("The guidance output must stay outside the repository checkout.");
-    }
-
-    const delivery = await exportGuidance({ paths: projectPaths, cwd, skills });
-    await ownedWrite({ path: output, content: delivery.encoded });
-    console.log(
-      JSON.stringify(
-        {
-          output,
-          skills: delivery.skills,
-          bytes: Buffer.byteLength(delivery.encoded),
-          fingerprint: delivery.fingerprint,
-        },
-        null,
-        2,
-      ),
-    );
+    await exportSkills(rest);
     return;
   }
 
-  console.log("shadowclone bot setup [--repo owner/repository] [--no-open]");
-  console.log(
-    "shadowclone bot export --skill shadowclone-work [--skill name] --output " + "private-file",
-  );
-  console.log("shadowclone bot status");
+  console.log("shadowclone bot setup [--bot login] [--app] [--repo owner/repository] [--yes] [--no-open]");
+  console.log("shadowclone bot export --skill shadowclone-work [--skill name] --output folder");
+  console.log("shadowclone bot status [--repo owner/repository]");
 }

@@ -1,13 +1,15 @@
 import { setupPreviewSchema, setupStateSchema } from "../../cloud/browserProtocol";
 import { request } from "./api";
 import { create } from "./dom";
+import { showAccountSetup } from "./botAccount";
+import { renderChecklist } from "./botChecklist";
 import { botButton, botField } from "./botControls";
 import { showBotPreview } from "./botPreview";
 
 export function initializeBotSetup(): void {
   const dialog = create({ tag: "dialog" });
   dialog.className = "bot-dialog";
-  const title = create({ tag: "h2", text: "Your personal GitHub clone" });
+  const title = create({ tag: "h2", text: "Your Shadowclone cloud bot" });
   const content = create({ tag: "div" });
   const status = create({ tag: "p" });
   const close = create({ tag: "button", className: "quiet-button", text: "Close" });
@@ -19,42 +21,26 @@ export function initializeBotSetup(): void {
   dialog.append(title, content, status, close);
   document.body.append(dialog);
 
+  let showAccount = true;
+
   async function load(): Promise<void> {
     const state = await request({ path: "/api/bot/state", schema: setupStateSchema });
 
     content.replaceChildren();
 
-    if (state.pullUrl) {
-      const link = create({ tag: "a", text: "Review the setup PR" });
-
-      link.href = state.pullUrl;
-      link.target = "_blank";
-      link.rel = "noreferrer";
-      content.append(link);
-      status.textContent =
-        "The clone starts after you merge its setup PR. Create one small issue to " +
-        "verify the installation.";
+    if (state.checklist) {
+      renderChecklist({ container: content, checklist: state.checklist });
+      status.textContent = "Add the Claude token on GitHub, then merge the setup pull request.";
       return;
     }
 
     if (state.app) {
       const install = create({ tag: "a", text: `Install ${state.app.name} on GitHub` });
-      const token = botField({ label: "Claude subscription token", type: "password" });
-      const approve = create({ tag: "input" });
-      const consent = create({ tag: "label", className: "bot-consent" });
+      const previewId = state.previewId;
 
       install.href = state.app.installUrl;
       install.target = "_blank";
       install.rel = "noreferrer";
-      token.input.autocomplete = "off";
-      approve.type = "checkbox";
-      consent.append(
-        approve,
-        document.createTextNode(
-          "I authorize this repository to use my Claude subscription and the reviewed " +
-            "guidance.",
-        ),
-      );
       content.append(
         install,
         create({
@@ -65,30 +51,17 @@ export function initializeBotSetup(): void {
         }),
         create({
           tag: "p",
-          text:
-            "Run claude setup-token in your terminal. Use Safari for your personal " +
-            "Claude sign-in. Paste the resulting token below.",
+          text: "After the setup, you add the Claude token on the environment page that the checklist links to.",
         }),
-        token.label,
-        consent,
         botButton({
           text: "Verify installation and create the setup PR",
           status,
           action: async () => {
-            const previewId = sessionStorage.getItem("shadowclone-bot-preview");
-
-            if (!previewId || !approve.checked) {
-              throw new Error("Approve subscription use after reviewing the guidance.");
+            if (!previewId) {
+              throw new Error("Start a fresh setup and review the guidance again.");
             }
 
-            const credential = token.input.value.trim();
-
-            token.input.value = "";
-            await request({
-              path: "/api/bot/activate",
-              body: { previewId, token: credential },
-              schema: setupStateSchema,
-            });
+            await request({ path: "/api/bot/activate", body: { previewId }, schema: setupStateSchema });
             await load();
           },
         }),
@@ -97,9 +70,27 @@ export function initializeBotSetup(): void {
       return;
     }
 
+    const initialRepository = new URLSearchParams(location.search).get("repository") ?? state.repository ?? "";
+
+    if (showAccount) {
+      showAccountSetup({
+        container: content,
+        status,
+        repository: initialRepository,
+        onApp: () => {
+          showAccount = false;
+          load().catch((error: unknown) => {
+            status.textContent = error instanceof Error ? error.message : "Setup failed.";
+          });
+        },
+      });
+      status.textContent = "Start in this repository checkout with gh auth login and an active Shadowclone skills environment.";
+      return;
+    }
+
     const repository = botField({
       label: "Repository (owner/repository)",
-      value: new URLSearchParams(location.search).get("repository") ?? state.repository ?? "",
+      value: initialRepository,
     });
     const name = botField({ label: "Clone name", value: "my-shadowclone" });
     const skills = botField({

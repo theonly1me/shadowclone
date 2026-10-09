@@ -11,14 +11,22 @@ export const fixtureClone: Clone = {
   repository: "sample/project",
   defaultBranch: "main",
   owner: "sample",
-  appId: 20,
+  identity: { kind: "app", appId: 20 },
   botId: 30,
   botLogin: "sample-clone[bot]",
+  skillsRepository: "sample/shadowclone-skills",
   requesters: ["sample"],
   reviewerBots: ["reviewer[bot]"],
   maximumRuns: 10,
   reviewModel: "claude-opus-5-5",
   reviewNetwork: true,
+};
+
+export const fixtureAccountClone: Clone = {
+  ...fixtureClone,
+  identity: { kind: "account" },
+  botId: 31,
+  botLogin: "sample-shadow",
 };
 
 export function eventContext(

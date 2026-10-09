@@ -1,28 +1,81 @@
 import { z } from "zod";
 import type { BuildContext } from "../builds/types";
 import { serveBuildWizard } from "../web";
-import { cloneStatus } from "../cloud/status";
+import { setUpAccountClone, type AccountSetupOutcome } from "../cloud/setup/accountSetup";
+import { readCloudChecklist } from "../cloud/setup/checklist";
+import { checklistText } from "../cloud/setup/checklistText";
+import { ghApiCall, type GhApiCall } from "../cloud/setup/ghApi";
+import { runGh, type GhCommand } from "../cloud/setup/github";
+import { openPage, pendingPages } from "../cloud/setup/openPage";
+import { cloneStatus, readInstallation } from "../cloud/status";
 import { isRecord } from "./protocol";
 
 export const botTools = [
   {
     name: "shadowclone_bot",
     description:
-      "Start the personal GitHub clone setup in the local browser, or read " +
-      "installation status. The owner must approve registration, repository " +
-      "access, guidance upload, and subscription use in the browser.",
+      "Set up the Shadowclone cloud bot for a GitHub repository, or read its setup status. " +
+      "With bot, setup uses a machine account with that login: it invites the bot, protects " +
+      "the default branch, pushes the owner's skills to a private repository, and opens the " +
+      "setup pull request. The owner enters every token on GitHub, never here. The first " +
+      "setup call returns the skill files; show them to the owner and call again with " +
+      "approveSkills true only after the owner agrees. Without bot, setup opens the local " +
+      "wizard, which also offers a GitHub App.",
     inputSchema: {
       type: "object",
-      properties: { operation: { type: "string", enum: ["setup", "status"] } },
+      properties: {
+        operation: { type: "string", enum: ["setup", "status"] },
+        repository: { type: "string", description: "owner/repository" },
+        bot: { type: "string", description: "GitHub login of the bot's machine account" },
+        approveSkills: { type: "boolean", description: "true only after the owner approved the listed skill files" },
+      },
       required: ["operation"],
       additionalProperties: false,
     },
   },
 ];
 
-const inputSchema = z.strictObject({ operation: z.enum(["setup", "status"]) });
+const inputSchema = z.strictObject({
+  operation: z.enum(["setup", "status"]),
+  repository: z
+    .string()
+    .regex(/^[\w.-]+\/[\w.-]+$/)
+    .optional(),
+  bot: z
+    .string()
+    .regex(/^[A-Za-z0-9-]{1,39}$/)
+    .optional(),
+  approveSkills: z.boolean().optional(),
+});
 
-export function createBotTool(context: BuildContext) {
+function text(options: { readonly value: string; readonly isError?: boolean }) {
+  return { content: [{ type: "text", text: options.value }], isError: options.isError ?? false };
+}
+
+async function outcomeText(outcome: AccountSetupOutcome): Promise<string> {
+  if (outcome.kind === "needs-account") {
+    await openPage(outcome.signupUrl);
+    return `The GitHub account ${outcome.login} does not exist. The signup page is open. Ask the owner to create it, then call setup again.`;
+  }
+
+  if (outcome.kind === "needs-approval") {
+    return [
+      `Setup pushes these ${outcome.files.length} files to the private repository ${outcome.skillsRepository}:`,
+      ...outcome.files.map((file) => `- ${file.path} (${file.bytes} bytes)`),
+      "Show this list to the owner. Call setup again with approveSkills true only after the owner agrees.",
+    ].join("\n");
+  }
+
+  for (const url of pendingPages(outcome.checklist)) {
+    await openPage(url);
+  }
+
+  return `${checklistText(outcome.checklist)}\n\nThe pages for the open steps are open in the browser. Call status to check progress.`;
+}
+
+export function createBotTool(context: BuildContext & { readonly call?: GhApiCall; readonly command?: GhCommand }) {
+  const call = context.call ?? ghApiCall;
+  const command = context.command ?? runGh;
   let wizard: ReturnType<typeof serveBuildWizard> | null = null;
 
   return {
@@ -35,37 +88,45 @@ export function createBotTool(context: BuildContext) {
       const input = inputSchema.safeParse(params.arguments);
 
       if (!input.success) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: "Use operation setup or status. Activation requires the owner in the browser.",
-            },
-          ],
+        return text({
+          value: "Use operation setup or status, with optional repository, bot, and approveSkills. Tokens go on GitHub, never here.",
           isError: true,
-        };
+        });
       }
 
-      if (input.data.operation === "status") {
-        return {
-          content: [{ type: "text", text: JSON.stringify(await cloneStatus(context.paths)) }],
-          isError: false,
-        };
-      }
+      const { operation, repository, bot } = input.data;
 
-      wizard ??= serveBuildWizard({ ...context, bot: true });
-      return {
-        content: [
-          {
-            type: "text",
-            text:
-              `Open ${wizard.url}. Review the exact guidance and complete GitHub ` +
-              "registration, selected repository installation, and subscription " +
-              "authorization yourself. Keep this MCP connection open until setup finishes.",
-          },
-        ],
-        isError: false,
-      };
+      try {
+        if (operation === "status") {
+          const installation = repository ? await readInstallation({ paths: context.paths, repository }) : null;
+
+          return text({
+            value: installation
+              ? checklistText(await readCloudChecklist({ call, clone: installation.clone, pullUrl: installation.pullUrl }))
+              : JSON.stringify(await cloneStatus(context.paths)),
+          });
+        }
+
+        if (bot === undefined || repository === undefined) {
+          if (bot !== undefined) {
+            return text({ value: "Name the repository as owner/repository to set up a machine account bot.", isError: true });
+          }
+
+          wizard ??= serveBuildWizard({ ...context, bot: true });
+
+          return text({
+            value: `Open ${wizard.url}. Choose a machine account or a GitHub App there. Keep this MCP connection open until setup finishes.`,
+          });
+        }
+
+        return text({
+          value: await outcomeText(
+            await setUpAccountClone({ ...context, repository, botLogin: bot, approveSkills: input.data.approveSkills === true, call, command }),
+          ),
+        });
+      } catch (error) {
+        return text({ value: error instanceof Error ? error.message : "Setup could not complete.", isError: true });
+      }
     },
   };
 }

@@ -1,13 +1,16 @@
 import { z } from "zod";
 import type { BuildContext } from "../../builds/types";
-import { readEffectiveConfig } from "../../config";
 import { exportGuidance } from "../export";
-import { cloneSchema, type Delivery, type Repository } from "../types";
+import { cloneSchema, type Clone, type Delivery, type Repository } from "../types";
 import { saveInstallation } from "../status";
 import { verifyInstallation } from "./installation";
 import { configureEnvironment } from "./environment";
 import { protectDefaultBranch } from "./ruleset";
-import { createSetupPull } from "./pull";
+import { openWorkflowChange } from "./pull";
+import { readCloudChecklist, type ChecklistItem } from "./checklist";
+import type { GhApiCall } from "./ghApi";
+import { assertCloudPolicy } from "./managedPolicy";
+import { addSkillsDeployKey, ensureSkillsRepository, pushSkills } from "./skillsRepository";
 import type { App } from "./app";
 import type { GhCommand, GithubApi } from "./github";
 
@@ -24,24 +27,14 @@ export async function activateClone(
   options: BuildContext & {
     readonly preview: ReviewedSetup;
     readonly app: App;
-    readonly token: string;
     readonly command: GhCommand;
     readonly api: GithubApi;
+    readonly call: GhApiCall;
   },
-): Promise<string> {
-  const { preview, app, command, api } = options;
-  const { policy } = await readEffectiveConfig({
-    configPath: options.paths.configFile,
-    managedConfigPath: options.paths.managedConfigFile,
-  });
+): Promise<{ readonly clone: Clone; readonly pullUrl: string | null; readonly checklist: readonly ChecklistItem[] }> {
+  const { preview, app, command, api, call } = options;
 
-  if (
-    !policy.enabled ||
-    !policy.allowedEngines.includes("claude-code") ||
-    policy.maxActionTier !== "act"
-  ) {
-    throw new Error("Managed policy does not permit a Claude cloud clone with repository writes.");
-  }
+  await assertCloudPolicy(options.paths);
 
   const current = await exportGuidance({ ...options, skills: preview.skills });
 
@@ -66,36 +59,35 @@ export async function activateClone(
         token: installation.token,
       }),
     );
-  const clone = cloneSchema.parse({
-    repositoryId: preview.repository.id,
-    repository: preview.repository.full_name,
-    defaultBranch: preview.repository.default_branch,
-    owner: preview.owner,
-    appId: app.id,
-    botId: bot.id,
-    botLogin: bot.login,
-    requesters: [preview.owner],
-    reviewerBots: ["coderabbitai[bot]", "github-actions[bot]"],
-    maximumRuns: 10,
-  });
 
-  await protectDefaultBranch({ repository: preview.repository, command });
+  await protectDefaultBranch({ repository: preview.repository, identity: "app", command });
 
+  const skillsRepository = await ensureSkillsRepository({ call, owner: preview.owner });
+
+  await pushSkills({ call, repository: skillsRepository, files: current.files });
   await configureEnvironment({
     repository: preview.repository,
     command,
     secrets: {
       SHADOWCLONE_APP_PRIVATE_KEY: app.pem,
-      CLAUDE_CODE_OAUTH_TOKEN: options.token,
-      SHADOWCLONE_GUIDANCE: current.encoded,
+      SHADOWCLONE_SKILLS_KEY: await addSkillsDeployKey({ call, skillsRepository, target: preview.repository.full_name }),
     },
   });
 
-  const pullUrl = await createSetupPull({
-    clone,
-    token: installation.token,
-    api,
+  const clone = cloneSchema.parse({
+    repositoryId: preview.repository.id,
+    repository: preview.repository.full_name,
+    defaultBranch: preview.repository.default_branch,
+    owner: preview.owner,
+    identity: { kind: "app", appId: app.id },
+    botId: bot.id,
+    botLogin: bot.login,
+    skillsRepository,
+    requesters: [preview.owner],
+    reviewerBots: ["coderabbitai[bot]", "github-actions[bot]"],
+    maximumRuns: 10,
   });
+  const pullUrl = await openWorkflowChange({ clone, api, token: installation.token });
 
   await saveInstallation({
     paths: options.paths,
@@ -107,5 +99,5 @@ export async function activateClone(
     },
   });
 
-  return pullUrl;
+  return { clone, pullUrl, checklist: await readCloudChecklist({ call, clone, pullUrl }) };
 }

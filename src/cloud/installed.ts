@@ -51,7 +51,13 @@ export function cloneFromRelay(relay: string): Clone {
     throw new Error("The clone relay workflow has no configuration block.");
   }
 
-  return cloneSchema.parse(JSON.parse(configured));
+  const parsed = cloneSchema.safeParse(JSON.parse(configured));
+
+  if (!parsed.success) {
+    throw new Error("This bot was set up with an earlier Shadowclone version. Run shadowclone bot setup again to update it.");
+  }
+
+  return parsed.data;
 }
 
 export async function readInstalledClone(options: {

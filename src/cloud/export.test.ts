@@ -1,10 +1,8 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { chmod, lstat, symlink } from "node:fs/promises";
-import { gzipSync } from "node:zlib";
 import { exportGuidance } from "./export";
-import { decodeBundle, encodeBundle } from "./bundle";
-import { restoreGuidance } from "./restore";
+import { deliveryFingerprint, writeDeliveryFiles } from "./deliveryFiles";
 import { guidanceFixture } from "./fixtures";
 
 const selection = ["shadowclone-work"];
@@ -19,13 +17,13 @@ test("an export preserves only selected skills and their redacted resources", as
     await chmod(script, 0o700);
 
     const delivery = await exportGuidance({ ...fixture, skills: selection });
-    const files = decodeBundle(delivery.encoded);
+    const { files } = delivery;
     const restored = path.join(fixture.root, "cloud-guidance");
 
-    await restoreGuidance({ encoded: delivery.encoded, destination: restored });
+    await writeDeliveryFiles({ files, destination: restored });
 
     expect(delivery.skills).toEqual(selection);
-    expect(files).toEqual([...delivery.files]);
+    expect(delivery.fingerprint).toBe(deliveryFingerprint([...files].reverse()));
     expect(files.some((file) => file.path.endsWith("scripts/check.sh"))).toBeTrue();
     expect(
       files.map((file) => Buffer.from(file.content, "base64").toString()).join("\n"),
@@ -72,20 +70,33 @@ test("a missing selection, identifying path, or symlink prevents export", async 
   }
 });
 
-test("secret size limits and traversal are enforced before cloud restoration", async () => {
-  expect(() => encodeBundle([{ path: "../outside", content: "", mode: 0o600 }])).toThrow();
-  expect(() => decodeBundle("a".repeat(48 * 1024 + 1))).toThrow("limit");
-
+test("guidance larger than the old 48 KB secret limit exports in full", async () => {
   const fixture = await guidanceFixture();
 
   try {
-    const encoded = gzipSync(
-      JSON.stringify([
-        { path: "plugins/shadowclone-personal/../../../outside", content: "", mode: 0o600 },
-      ]),
-    ).toString("base64");
+    await Bun.write(
+      path.join(fixture.directory, "reference.md"),
+      Array.from({ length: 2_000 }, (_, index) => `Rule ${index}: use full names and one options object.`).join("\n"),
+    );
+
+    const delivery = await exportGuidance({ ...fixture, skills: selection });
+    const reference = delivery.files.find((file) => file.path.endsWith("shadowclone-work/reference.md"));
+
+    expect(Buffer.from(reference?.content ?? "", "base64").length).toBeGreaterThan(48 * 1024);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test("a delivery path that leaves its folder is refused before any file is written", async () => {
+  const fixture = await guidanceFixture();
+
+  try {
     await expect(
-      restoreGuidance({ encoded, destination: path.join(fixture.root, "restore") }),
+      writeDeliveryFiles({
+        files: [{ path: "plugins/shadowclone-personal/../../../outside", content: "", mode: 0o600 }],
+        destination: path.join(fixture.root, "restore"),
+      }),
     ).rejects.toThrow();
   } finally {
     await fixture.cleanup();

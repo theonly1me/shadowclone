@@ -1,6 +1,12 @@
 import type { Clone, GithubRequest } from "../types";
 import { positiveNumber, readGithub, record } from "./records";
 
+export function mentionNames(clone: Clone): readonly string[] {
+  const login = clone.botLogin.replace(/\[bot\]$/, "");
+
+  return clone.identity.kind === "app" ? ["shadowclone", login] : [login];
+}
+
 export async function readRequestComment(options: {
   readonly clone: Clone;
   readonly request: GithubRequest;
@@ -42,12 +48,10 @@ export async function readRequestComment(options: {
   }
 
   const entityNumber = positiveNumber(entityUrl.slice(prefix.length));
-  const alias = clone.botLogin.replace(/\[bot\]$/, "");
-  const tagged = new RegExp(`(^|\\s)@(shadowclone|${alias})(?=$|[\\s,:])`, "i").test(
-    String(comment.body),
-  );
+  const names = mentionNames(clone).join("|");
+  const tagged = new RegExp(`(^|\\s)@(${names})(?=$|[\\s,:])`, "i").test(String(comment.body));
   const [firstLine = ""] = String(comment.body).split("\n");
-  const review = new RegExp(`^\\s*@(shadowclone|${alias})\\s+review\\s*$`, "i").test(firstLine);
+  const review = new RegExp(`^\\s*@(${names})\\s+review\\s*$`, "i").test(firstLine);
 
   if (
     !entityNumber ||
