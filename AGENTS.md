@@ -46,3 +46,24 @@ Keep the README a short path to a working setup: a quick start with time estimat
 ## Handoff and Git
 
 Explain what changed, how it was verified, and any remaining limitation. Commit, push, and open a draft pull request without stopping for a diff review. Check `gh pr view --json state` before you push to a branch that has a pull request. Commit messages use a single lowercase conventional-commit subject with no body or co-author trailer. Pull request titles use the same format, such as `fix: keep cursors after a failed index`. Squash merges use the title as the commit subject on `main`, and Release Please creates releases only from conventional commits. Never force push or amend a pushed commit.
+
+
+<shadowclone-guidance>
+## Your agent build
+
+Follow repository requirements. Repository build choices override personal global choices. Load each selected workflow skill at the moment listed for it. When a selected workflow skill conflicts with the user's own skills or learned baseline rules, follow the user's guidance.
+- when a change adds a skip, block, fallback, default, or retry: choose-by-consequence
+- when designing or reshaping a module or subsystem: design-deep-modules
+- when behavior is wrong or slow and the cause is not known: diagnose-before-editing
+- before a change that has many steps or open design choices: plan-with-review-page
+- when a decision depends on facts outside the repository: research-primary-sources
+- while a merge, rebase, or cherry-pick has conflicts: resolve-conflicts-by-intent
+- when fixing a bug, a regression, or a confirmed review finding: scope-confirmed-changes
+- when a pull request needs a review: shadowclone-review
+- when taking a change or a pull request to ready for review: shadowclone-work
+- when adding, changing, or proving a test: tests-that-catch-bugs
+- when changing TypeScript types or input that enters typed code: typescript-type-safety
+- before you say that work is done or ready for review: verify-and-review
+- before you write any text that a person reads: write-plain-english
+Follow the selected working preferences in the shadowclone-build-preferences skill when relevant.
+</shadowclone-guidance>
