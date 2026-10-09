@@ -1,3 +1,4 @@
+import { botToken, botTokenSteps } from "./identitySteps";
 import type { Clone } from "./types";
 
 export type ReviewPins = {
@@ -58,18 +59,10 @@ export function reviewJobs(options: {
   readonly versions: ReviewVersions;
 }): string {
   const { clone, pins, versions } = options;
-  const [owner = "", repository = ""] = clone.repository.split("/");
   const shadowclone = '"$RUNNER_TEMP/shadowclone/bin/shadowclone" review';
   const stageEnvironment = `          ENTITY: \${{ needs.guard.outputs.entity }}
           HEAD_SHA: \${{ needs.guard.outputs.head }}`;
-  const appToken = (permissions: string) => `      - uses: ${pins.appToken}
-        id: app
-        with:
-          app-id: '${clone.appId}'
-          private-key: \${{ secrets.SHADOWCLONE_APP_PRIVATE_KEY }}
-          owner: '${owner}'
-          repositories: '${repository}'
-${permissions}`;
+  const tokenSteps = (permissions: readonly string[]) => botTokenSteps({ clone, pins, permissions, when: null });
 
   return `  review-acknowledge:
     needs: guard
@@ -81,10 +74,10 @@ ${permissions}`;
       - uses: ${pins.checkout}
         with:
           persist-credentials: false
-${appToken("          permission-issues: write\n          permission-pull-requests: write")}
+${tokenSteps(["issues: write", "pull-requests: write"])}
       - uses: ${pins.script}
         with:
-          github-token: \${{ steps.app.outputs.token }}
+          github-token: ${botToken(clone)}
           script: |
             const { reactToRequest } = require('./.github/shadowclone/react.cjs');
             await reactToRequest({
@@ -164,11 +157,11 @@ ${artifact({ pin: pins.uploadArtifact, name: "result", upload: true })}
     steps:
 ${installSteps({ pins, versions, claude: false })}
 ${artifact({ pin: pins.downloadArtifact, name: "result", upload: false })}
-${appToken("          permission-pull-requests: write")}
+${tokenSteps(["pull-requests: write"])}
       - name: Post the review as the clone
         working-directory: \${{ runner.temp }}
         env:
-          GH_TOKEN: \${{ steps.app.outputs.token }}
+          GH_TOKEN: ${botToken(clone)}
         run: |
           ${shadowclone} publish --input "$RUNNER_TEMP/result.json"
 `;

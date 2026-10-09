@@ -4,11 +4,14 @@ import { resolveRepository, type GitRemoteReader } from "../../signal";
 import { setupSelection } from "./selection";
 import { browserJson } from "../../web/security";
 import { exportGuidance } from "../export";
-import { repositorySchema } from "../types";
-import { setupPreviewInput, previewApprovalSchema, activationInput } from "../browserProtocol";
+import { repositorySchema, type Clone } from "../types";
+import { setupPreviewInput, previewApprovalSchema } from "../browserProtocol";
 import { appManifest, createManifestCallback, type App } from "./app";
 import { githubApi, runGh, type GithubApi, type GhCommand } from "./github";
 import { activateClone, type ReviewedSetup } from "./activate";
+import { handleAccountSetup } from "./browserAccount";
+import { readCloudChecklist } from "./checklist";
+import { ghApiCall, type GhApiCall } from "./ghApi";
 
 export function createBotBrowser(
   context: BuildContext & {
@@ -16,14 +19,17 @@ export function createBotBrowser(
     readonly command?: GhCommand;
     readonly api?: GithubApi;
     readonly readRemote?: GitRemoteReader;
+    readonly call?: GhApiCall;
   },
 ) {
   const command = context.command ?? runGh;
   const api = context.api ?? githubApi;
+  const call = context.call ?? ghApiCall;
   let preview: ReviewedSetup | null = null;
   let app: App | null = null;
   let callback: ReturnType<typeof createManifestCallback> | null = null;
   let pullUrl: string | null = null;
+  let activated: Clone | null = null;
   let busy = false;
   const expires = Date.now() + 3_600_000;
 
@@ -53,6 +59,8 @@ export function createBotBrowser(
         body: {
           repository: preview?.repository.full_name ?? selection.repository,
           skills: selection.skills,
+          previewId: app ? (preview?.id ?? null) : null,
+          checklist: activated ? await readCloudChecklist({ call, clone: activated, pullUrl }) : null,
           app: app
             ? {
                 name: app.slug,
@@ -71,7 +79,11 @@ export function createBotBrowser(
       });
     }
 
-    if (busy || pullUrl) {
+    if (url.pathname === "/api/bot/account") {
+      return handleAccountSetup({ ...context, request, call, command });
+    }
+
+    if (busy || activated) {
       return browserJson({
         status: 409,
         body: { error: "The setup is already running or complete." },
@@ -143,7 +155,7 @@ export function createBotBrowser(
             owner,
             appOwner: repository.owner.login,
             fingerprint: delivery.fingerprint,
-            bytes: Buffer.byteLength(delivery.encoded),
+            bytes: delivery.files.reduce((total, file) => total + Buffer.from(file.content, "base64").length, 0),
             files: delivery.files.map((file) => ({
               path: file.path,
               content: file.content,
@@ -153,12 +165,7 @@ export function createBotBrowser(
       }
 
       const approval = previewApprovalSchema.safeParse(body);
-      const activation = activationInput.safeParse(body);
-      const previewId = approval.success
-        ? approval.data.previewId
-        : activation.success
-          ? activation.data.previewId
-          : null;
+      const previewId = approval.success ? approval.data.previewId : null;
 
       if (!preview || previewId !== preview.id) {
         throw new Error("Review and approve the exact guidance preview before setup.");
@@ -194,16 +201,11 @@ export function createBotBrowser(
         });
       }
 
-      if (url.pathname === "/api/bot/activate" && activation.success && app) {
-        pullUrl = await activateClone({
-          ...context,
-          preview,
-          app,
-          token: activation.data.token,
-          command,
-          api,
-        });
+      if (url.pathname === "/api/bot/activate" && app) {
+        const result = await activateClone({ ...context, preview, app, command, api, call });
 
+        pullUrl = result.pullUrl;
+        activated = result.clone;
         app = null;
 
         return browserJson({
@@ -211,6 +213,7 @@ export function createBotBrowser(
             repository: preview.repository.full_name,
             app: null,
             pullUrl,
+            checklist: result.checklist,
           },
         });
       }

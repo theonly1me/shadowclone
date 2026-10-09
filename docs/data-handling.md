@@ -53,7 +53,7 @@ Pi capture retains parent links across session branches. Its system and custom i
 | Deep or background learning | Selected redacted steering, supporting context, and guidance needed for reconciliation                                                               |
 | Skill maintenance           | Redacted catalogs and full instructions for overlapping workflows, plus evidence for proposed updates; supporting resources are checked locally      |
 | Browser editor              | Opening the editor makes no model request; build naming sends redacted skill titles and summaries; voice capture and skill drafts need a user action |
-| Personal GitHub clone       | Reviewed exported guidance, the selected repository, and an authorized issue or PR task                                                              |
+| Cloud bot                   | Reviewed skills from your private skills repository, the selected repository, and an authorized issue or PR task                                     |
 | `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace; Shadowclone makes no model calls for it                                            |
 | Pull request review         | The PR title and description, diff, file history, standards from the base commit, rule hits, toolchain diagnostics, and files the reviewer reads     |
 | Evaluation                  | Synthetic task workspaces and the tested setup's skills and instructions; judges receive generated code without redaction                            |

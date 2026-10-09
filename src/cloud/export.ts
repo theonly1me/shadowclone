@@ -6,7 +6,7 @@ import type { ProjectPaths } from "../paths";
 import { resolveRepository, isOriginBlocked, type GitRemoteReader } from "../signal";
 import { readEffectiveConfig } from "../config";
 import { ownedDirectory } from "../storage";
-import { encodeBundle } from "./bundle";
+import { deliveryFingerprint } from "./deliveryFiles";
 import type { Delivery } from "./types";
 
 export async function exportGuidance(options: {
@@ -154,14 +154,11 @@ export async function exportGuidance(options: {
 
     addText({ path: "native.md", content: native });
 
-    const encoded = encodeBundle(files);
-
     return {
-      encoded,
       native,
       files,
       skills: [...found],
-      fingerprint: new Bun.CryptoHasher("sha256").update(encoded).digest("hex"),
+      fingerprint: deliveryFingerprint(files),
     };
   } finally {
     await rm(temporary, { recursive: true, force: true });

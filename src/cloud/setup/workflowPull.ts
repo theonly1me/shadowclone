@@ -26,7 +26,7 @@ export async function readDefaultTree(options: {
     await api({ route: `GET ${base}/git/commits/${reference.object.sha}`, token }),
   );
   const tree = z
-    .object({ truncated: z.boolean(), tree: z.array(z.object({ path: z.string() })) })
+    .object({ truncated: z.boolean(), tree: z.array(z.object({ path: z.string(), sha: z.string().optional() })) })
     .parse(await api({ route: `GET ${base}/git/trees/${commit.tree.sha}?recursive=1`, token }));
 
   return { headSha: reference.object.sha, treeSha: commit.tree.sha, tree };

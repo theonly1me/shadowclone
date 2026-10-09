@@ -7,7 +7,7 @@ import { cloneSchema } from "./types";
 
 const installationSchema = z.strictObject({
   clone: cloneSchema,
-  pullUrl: z.url(),
+  pullUrl: z.url().nullable(),
   guidanceFingerprint: z.string().regex(/^[a-f0-9]{64}$/),
   installedAt: z.iso.datetime(),
 });
@@ -34,7 +34,7 @@ export async function cloneStatus(paths: ProjectPaths) {
   const statuses: {
     repository: string;
     bot: string;
-    pullUrl: string;
+    pullUrl: string | null;
     installedAt: string;
     guidanceFingerprint: string;
   }[] = [];
@@ -64,4 +64,26 @@ export async function cloneStatus(paths: ProjectPaths) {
   }
 
   return statuses;
+}
+
+export async function readInstallation(options: {
+  readonly paths: ProjectPaths;
+  readonly repository: string;
+}): Promise<z.infer<typeof installationSchema> | null> {
+  const directory = path.join(options.paths.shadowcloneDirectory, "cloud", "installations");
+  const stats = await lstat(directory).catch(() => null);
+
+  if (!stats?.isDirectory() || stats.isSymbolicLink()) {
+    return null;
+  }
+
+  for await (const file of new Bun.Glob("*.json").scan({ cwd: directory, absolute: true })) {
+    const parsed = installationSchema.safeParse(await Bun.file(file).json());
+
+    if (parsed.success && parsed.data.clone.repository.toLowerCase() === options.repository.toLowerCase()) {
+      return parsed.data;
+    }
+  }
+
+  return null;
 }

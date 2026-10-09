@@ -1,3 +1,4 @@
+import { mentionNames } from "../guard/comment";
 import { reviewVersions } from "../workflow";
 import type { Clone } from "../types";
 import type { GithubApi } from "./github";
@@ -9,6 +10,7 @@ export async function createReviewUpdatePull(options: {
   readonly api: GithubApi;
 }): Promise<string> {
   const { clone, token, api } = options;
+  const [mention = "shadowclone"] = mentionNames(clone);
   const current = await readDefaultTree({ clone, token, api });
 
   if (current.tree.truncated) {
@@ -18,7 +20,7 @@ export async function createReviewUpdatePull(options: {
   const body = `## What changed
 
 - [x] Render the clone workflows with Shadowclone ${reviewVersions.shadowclone}.
-- [x] Add pull request reviews. A requester asks with \`@shadowclone review\` on a pull request, and a requester's pull request gets one when it opens or becomes ready for review.
+- [x] Add pull request reviews. A requester asks with \`@${mention} review\` on a pull request, and a requester's pull request gets one when it opens or becomes ready for review.
 
 ## Why
 
@@ -28,7 +30,7 @@ The clone reviews pull requests with this repository's standards, built-in rules
 
 1. Review the rendered workflows and guard helpers.
 2. Merge this PR.
-3. Comment \`@shadowclone review\` on a pull request and confirm one review from ${clone.botLogin}.
+3. Comment \`@${mention} review\` on a pull request and confirm one review from ${clone.botLogin}.
 
 ## Data handling
 

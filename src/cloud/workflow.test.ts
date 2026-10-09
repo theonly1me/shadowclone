@@ -77,11 +77,11 @@ test("the worker prompt authorizes the clone to mark its own PR ready for review
   );
 });
 
-test("the worker reacts to the request before it restores guidance", () => {
+test("the worker reacts to the request before it checks out the skills", () => {
   const worker = renderWorkflows(fixtureClone)[".github/workflows/shadowclone.yml"] ?? "";
 
   expect(worker).toContain("reactToRequest");
-  expect(worker.indexOf("reactToRequest")).toBeLessThan(worker.indexOf("restoreGuidance"));
+  expect(worker.indexOf("reactToRequest")).toBeLessThan(worker.indexOf("SHADOWCLONE_SKILLS_KEY"));
 });
 
 test("the clone reacts with eyes to the comment or issue that started the work", async () => {

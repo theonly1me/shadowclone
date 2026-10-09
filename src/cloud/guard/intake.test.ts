@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { resolveTrigger } from "./events";
-import { eventContext, fixtureClone, fixtureIssue, fixturePull, githubFixture } from "../fixtures";
+import { eventContext, fixtureAccountClone, fixtureClone, fixtureIssue, fixturePull, githubFixture } from "../fixtures";
 
 const issueRoute = "GET /repos/sample/project/issues/1";
 
@@ -77,6 +77,27 @@ test("an owner can tag the default alias or the named clone", async () => {
       "issue_comment:4:synthetic-version",
     );
   }
+});
+
+test("a machine account bot answers to its own login and not to the shadowclone alias", async () => {
+  const keys: (string | null)[] = [];
+
+  for (const body of ["@sample-shadow update the parser", "@shadowclone update the parser"]) {
+    const { request } = githubFixture({
+      [issueRoute]: fixtureIssue,
+      "GET /repos/sample/project/issues/comments/4": {
+        user: { login: "sample", type: "User" },
+        body,
+        issue_url: "https://api.github.com/repos/sample/project/issues/1",
+        updated_at: "synthetic-version",
+      },
+    });
+    const context = eventContext({ event: "issue_comment", payload: { comment: { id: 4 } } });
+
+    keys.push((await resolveTrigger({ clone: fixtureAccountClone, context, request }))?.key ?? null);
+  }
+
+  expect(keys).toEqual(["issue_comment:4:synthetic-version", null]);
 });
 
 test("tag requests reject foreign authors, the clone itself, and forks", async () => {

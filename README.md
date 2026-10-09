@@ -51,7 +51,7 @@ Run `shadowclone` to see the current result and next action. Use `shadowclone wi
 
 **Delegate a pull request.** The optional `shadowclone-work` skill takes a request, an issue, or an existing PR to ready for review: green checks, conflicts resolved, and review comments fixed or left for you. It replies to fixed comments with commit SHAs only and never merges. [Use delegated work](docs/guides/delegated-work.md).
 
-**Use a personal GitHub clone.** Run `shadowclone bot setup` from a repository checkout. Name your App, select its repositories, and review the exact guidance before connecting your Claude subscription. The clone handles owner issues and tagged PR requests. Live installation qualification is pending. [Set up a GitHub clone](docs/guides/github-clones.md).
+**Run a cloud bot.** Ask your agent to set up Shadowclone cloud, or run `shadowclone bot setup --bot <login>` in a repository checkout. The bot is a GitHub account that you name. You add its token and your Claude token on GitHub, and it reads your skills from a private repository. It works on issues, answers mentions, and reviews pull requests. Live installation qualification is pending. [Set up a cloud bot](docs/guides/github-clones.md).
 
 ## Evaluations
 
