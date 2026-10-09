@@ -1,11 +1,11 @@
 import path from "node:path";
 import { format } from "prettier";
-import { fingerprint, readLocalFile } from "../src/localFiles";
+import { fingerprint, readLocalFile } from "../../src/localFiles";
 import {
   bundledVersionIndex,
   bundledVersionsSchema,
   type BundledVersions,
-} from "../src/skills/bundledVersions";
+} from "../../src/skills/bundledVersions";
 
 type SkillFileVersion = {
   readonly skill: string;
@@ -96,7 +96,7 @@ if (import.meta.main) {
 
     for (const version of missing) {
       console.log(
-        `skills/${version.skill}/${version.file} is not recorded in ${versionsFile}. Run bun run scripts/skillVersions.ts --record.`,
+        `skills/${version.skill}/${version.file} is not recorded in ${versionsFile}. Run bun run tooling/src/skillVersions.ts --record.`,
       );
     }
 

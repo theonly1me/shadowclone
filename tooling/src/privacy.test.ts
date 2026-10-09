@@ -19,7 +19,7 @@ function described(findings: readonly { file: string; line: number; rule: string
 }
 
 test("the repository's shipped guidance has no private material", async () => {
-  const report = await findPrivacyFindings({ rootDirectory: path.resolve(import.meta.dir, "..") });
+  const report = await findPrivacyFindings({ rootDirectory: path.resolve(import.meta.dir, "../..") });
 
   expect(report.findings).toEqual([]);
   expect(report.checkedFileCount).toBeGreaterThan(0);

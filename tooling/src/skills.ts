@@ -1,9 +1,9 @@
 import path from "node:path";
 import { readdir } from "node:fs/promises";
-import { skillQualityFindings, type SkillFinding, type SkillRule } from "../src/skills/quality";
-import { readSkillDocument } from "../src/skills/qualityDocument";
-import { pendingSkillNames, permanentRuleExemptions } from "../src/skills/qualityExceptions";
-import { voiceBlock } from "../src/skills/voiceBlock";
+import { skillQualityFindings, type SkillFinding, type SkillRule } from "../../src/skills/quality";
+import { readSkillDocument } from "../../src/skills/qualityDocument";
+import { pendingSkillNames, permanentRuleExemptions } from "../../src/skills/qualityExceptions";
+import { voiceBlock } from "../../src/skills/voiceBlock";
 
 export type SkillQualityReport = {
   readonly checkedSkillCount: number;
@@ -20,7 +20,7 @@ type BundledSkill = {
 const minimumSharedSentenceWords = 8;
 const plainEnglishChecker = path.resolve(
   import.meta.dir,
-  "../skills/write-plain-english/scripts/check-ste.mjs",
+  "../../skills/write-plain-english/scripts/check-ste.mjs",
 );
 
 async function listSkillFiles(directory: string): Promise<readonly string[]> {

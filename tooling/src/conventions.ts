@@ -30,6 +30,7 @@ const skippedDirectories = [
   "dist",
   "out",
   "coverage",
+  ".turbo",
 ] as const;
 
 export type Violation = {

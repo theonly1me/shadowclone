@@ -113,7 +113,7 @@ function lineFindings(options: {
       findings.push({
         ...at,
         rule: "url",
-        message: `${url} is not on the allowlist in scripts/privacy.ts`,
+        message: `${url} is not on the allowlist in tooling/src/privacy.ts`,
       });
     }
   }

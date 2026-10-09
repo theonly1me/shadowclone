@@ -1,0 +1,14 @@
+{
+  "name": "@shadowclone/evals",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "typescript": "~5.9",
+    "zod": "^4.5.4"
+  }
+}

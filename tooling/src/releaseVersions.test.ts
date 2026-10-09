@@ -34,7 +34,9 @@ function releaseConfig(paths: readonly string[]) {
 }
 
 test("the product identity and every manifest that Release Please bumps agree with package.json", async () => {
-  const versions = await readReleaseVersions({ rootDirectory: process.cwd() });
+  const versions = await readReleaseVersions({
+    rootDirectory: path.resolve(import.meta.dir, "../.."),
+  });
 
   expect(findVersionMismatches(versions)).toEqual([]);
   expect(versions.product).not.toBeNull();

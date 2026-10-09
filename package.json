@@ -4,18 +4,24 @@
   "module": "src/cli/index.ts",
   "type": "module",
   "packageManager": "bun@1.4.2",
+  "workspaces": [
+    "packages/*",
+    "evals",
+    "tooling"
+  ],
   "bin": {
     "shadowclone": "bin/shadowclone.mjs"
   },
   "scripts": {
     "start": "bun run src/cli/index.ts",
     "cli": "bun run src/cli/index.ts",
-    "check": "bun run typecheck && bun run lint && bun run knip && bun test",
+    "check": "bun run typecheck && bun run lint && bun run knip && bun run test",
     "test": "bun test",
-    "typecheck": "tsc --noEmit",
+    "test:workspaces": "turbo run test",
+    "typecheck": "tsc --noEmit && turbo run typecheck",
     "format": "prettier --write",
     "format:check": "prettier --check",
-    "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run scripts/conventions.ts && bun run scripts/boundaries.ts && bun run scripts/privacy.ts && bun run scripts/skills.ts && bun run scripts/skillVersions.ts",
+    "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run tooling/src/conventions.ts && bun run tooling/src/boundaries.ts && bun run tooling/src/privacy.ts && bun run tooling/src/skills.ts && bun run tooling/src/skillVersions.ts",
     "lint:fix": "biome lint --write .",
     "knip": "knip",
     "eval": "bun evals/run.ts",
@@ -28,6 +34,7 @@
     "@types/bun": "latest",
     "knip": "6.39.0",
     "prettier": "3.9.9",
+    "turbo": "2.11.7",
     "typescript": "~5.9"
   },
   "description": "Turns how you work into a portable, tested environment for the coding agents you already use.",

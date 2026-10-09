@@ -2,8 +2,8 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { sampleSkillText } from "../src/skills/qualityFixtures";
-import { voiceBlock } from "../src/skills/voiceBlock";
+import { sampleSkillText } from "../../src/skills/qualityFixtures";
+import { voiceBlock } from "../../src/skills/voiceBlock";
 import { findSkillQualityViolations } from "./skills";
 
 const sharedSentence =
@@ -37,7 +37,7 @@ function skill(options: { readonly name: string; readonly alternative: string })
 
 test("the repository's bundled skills pass, with pending skills skipped", async () => {
   const report = await findSkillQualityViolations({
-    rootDirectory: path.resolve(import.meta.dir, ".."),
+    rootDirectory: path.resolve(import.meta.dir, "../.."),
   });
 
   expect(report.findings).toEqual([]);

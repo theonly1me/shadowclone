@@ -1,24 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "lib": [
-      "ESNext",
-      "DOM",
-      "DOM.Iterable",
-      "DOM.AsyncIterable"
-    ],
-    "types": [
-      "bun"
-    ],
-    "strict": true,
-    "noEmit": true,
-    "noUncheckedIndexedAccess": true,
-    "verbatimModuleSyntax": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
-  }
+  "extends": "./tsconfig.base.json",
+  "include": ["src", "scripts"]
 }

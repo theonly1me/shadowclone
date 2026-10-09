@@ -3,7 +3,7 @@ import { mkdtemp, realpath } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { format } from "prettier";
-import { fingerprint } from "../src/localFiles";
+import { fingerprint } from "../../src/localFiles";
 import { recordSkillVersions, unrecordedSkillVersions } from "./skillVersions";
 
 const versionsFile = "src/skills/bundledVersions.json";
@@ -21,7 +21,7 @@ async function treeWith(files: Record<string, string>): Promise<string> {
 }
 
 test("every bundled skill file in the repository has its version recorded", async () => {
-  expect(await unrecordedSkillVersions(path.resolve(import.meta.dir, ".."))).toEqual([]);
+  expect(await unrecordedSkillVersions(path.resolve(import.meta.dir, "../.."))).toEqual([]);
 });
 
 test("a changed skill file is reported, and recording keeps every earlier version", async () => {

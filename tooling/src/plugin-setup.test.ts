@@ -8,7 +8,10 @@ const resultSchema = z.object({
   version: z.string().nullable(), minimumVersion: z.literal("0.0.13"),
   status: z.enum(["ready", "outdated", "unavailable"]),
 });
-const helper = path.resolve("plugins/shadowclone/skills/setup-shadowclone/scripts/check-cli.mjs");
+const helper = path.resolve(
+  import.meta.dir,
+  "../../plugins/shadowclone/skills/setup-shadowclone/scripts/check-cli.mjs",
+);
 const node = Bun.which("node");
 if (!node) throw new Error("Node is required to verify the plugin setup helper");
 
