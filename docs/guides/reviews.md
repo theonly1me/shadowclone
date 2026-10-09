@@ -52,7 +52,7 @@ Findings use short, plain sentences: a title, what the change does wrong, the in
 
 The toolchain runs the pull request's own configuration, for example an ESLint config file, with dependency install scripts turned off. A local review runs it as you, on this machine. For a pull request from someone you do not trust, add `--no-checks`. The built-in rules and the skill still run, because they only read the code.
 
-In the cloud, the toolchain runs in a job with no secrets. The model job holds only the Claude token and never runs the pull request's code. Only the publish job holds the App token.
+In the cloud, the toolchain runs in a job with no secrets. The model job holds only the Claude token or the Codex login and never runs the pull request's code. Only the acknowledge and publish jobs hold the bot token or the App token.
 
 ## Limits
 
