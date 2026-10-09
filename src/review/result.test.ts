@@ -13,6 +13,7 @@ function packet(ruleHits: readonly RuleHit[]): ReviewPacket {
   return {
     context: {
       facts: { repository: "example/project", number: 3, title: "t", body: "", baseRefName: "main", baseSha: "a".repeat(40), headSha: "b".repeat(40) },
+      mergeBaseSha: "a".repeat(40),
       files,
       standards: { documents: [], omitted: [] },
       history: "",

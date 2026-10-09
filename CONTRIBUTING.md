@@ -34,12 +34,13 @@ This runs typecheck, lint, the knip unused-file check, and tests. CI also runs t
 - Avoid `any`, non-null assertions, type assertions other than `as const`, and unhandled or voided promises.
 - Write code without comments. Express intent in names, types, functions, and tests. Leave unrelated existing comments alone.
 - Fix lint findings without suppressing rules.
+- Format changed files with `bun run format <files>`, and check them with `bun run format:check <files>`.
 - Use plain prose and ordinary punctuation. Do not use em or en dashes.
 - Keep each bundled skill in `skills/` at the quality bar in [design record 032](docs/design/032-bundled-skill-quality.md). `bun run lint` checks it with `scripts/skills.ts`.
 - Each finished skill must pass `node skills/write-plain-english/scripts/check-ste.mjs`, which `bun run lint` runs for you. A skill that writes for the user sets `shadowclone-voice: "true"` and contains the voice block from `src/skills/voiceBlock.ts`.
 - After you change a file in `skills/`, run `bun run scripts/skillVersions.ts --record`. `shadowclone sync` replaces an installed copy only when its text matches a recorded version, and the lint fails until the new version is recorded.
 
-The repository [clean-code skill](.claude/skills/clean-code/SKILL.md) gives the full conventions. [AGENTS.md](AGENTS.md) is the entry point for coding assistants.
+[AGENTS.md](AGENTS.md) is the entry point for coding assistants.
 
 ## Documentation
 

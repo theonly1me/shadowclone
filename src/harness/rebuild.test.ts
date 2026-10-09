@@ -5,6 +5,7 @@ import type { FixtureRepository } from "./fixtures/materialize";
 import { acceptAll, harnessTestSetup } from "./testFixture";
 
 const repositoryRoot = path.resolve(import.meta.dir, "../..");
+const personalSkills = ["scope-confirmed-changes", "tests-that-catch-bugs"] as const;
 const tasteRules = [
   "## File size\n\nKeep every file under 200 lines, tests included.\n",
   "## Comments\n\nWrite zero comments in TypeScript files.\n",
@@ -44,17 +45,17 @@ test("harness init rebuilds this repository's harness from its manifests and the
     sources: { "skill-library": true },
   });
 
-  for (const skill of ["clean-code", "scoped-fix"]) {
+  for (const skill of personalSkills) {
     await Bun.write(
       path.join(setup.home, ".agents/skills", skill, "SKILL.md"),
-      await repositoryText(`.claude/skills/${skill}/SKILL.md`),
+      await repositoryText(`skills/${skill}/SKILL.md`),
     );
   }
 
   await harnessInitCommand({
     apply: true,
     personal: true,
-    skills: ["clean-code", "scoped-fix"],
+    skills: [...personalSkills],
     enforceClaude: false,
     cwd: setup.root,
     paths: setup.paths,
@@ -79,13 +80,13 @@ test("harness init rebuilds this repository's harness from its manifests and the
 
   const agents = await read("AGENTS.md");
 
-  for (const skill of ["clean-code", "scoped-fix"]) {
-    const original = await repositoryText(`.claude/skills/${skill}/SKILL.md`);
+  for (const skill of personalSkills) {
+    const original = await repositoryText(`skills/${skill}/SKILL.md`);
 
     expect(await read(`.claude/skills/${skill}/SKILL.md`)).toBe(original);
     expect(await read(`.agents/skills/${skill}/SKILL.md`)).toBe(original);
     expect(agents).toContain(
-      `- \`${skill}\`: ${original.match(/^description: (.+)$/m)?.[1]}`,
+      `- \`${skill}\`: ${original.match(/^description: '(.+)'$/m)?.[1]?.replaceAll("''", "'")}`,
     );
   }
 

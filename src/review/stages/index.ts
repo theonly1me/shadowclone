@@ -32,7 +32,7 @@ export async function preparePacket(options: {
 
   const dependencies = await checkDependencies({
     checkout: options.checkout,
-    baseSha: facts.baseSha,
+    baseSha: context.mergeBaseSha,
     headSha: facts.headSha,
     files: context.files,
     network: options.network,
@@ -52,10 +52,10 @@ export async function checksStage(options: {
   readonly workDirectory: string;
   readonly onProgress: (message: string) => void;
 }): Promise<ChecksFile> {
-  const { facts, files } = options.packet.context;
+  const { facts, files, mergeBaseSha } = options.packet.context;
   const reports = await runToolchain({
     repository: options.repository,
-    baseSha: facts.baseSha,
+    baseSha: mergeBaseSha,
     headSha: facts.headSha,
     files,
     workDirectory: options.workDirectory,
