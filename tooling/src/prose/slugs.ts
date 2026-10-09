@@ -5,8 +5,7 @@ const headingPattern = /^ {0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/;
 function headingText(raw: string): string {
   return raw
     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/<[^>]+>/g, "")
-    .replace(/[<>`*]/g, "");
+    .replace(/[`*]/g, "");
 }
 
 function slugOf(heading: string): string {
