@@ -1,26 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { runProcess } from "../../../src/io/process";
-
-async function git(options: {
-  readonly clone: string;
-  readonly arguments: readonly string[];
-  readonly environment?: Readonly<Record<string, string>>;
-}): Promise<string> {
-  const result = await runProcess({
-    arguments: ["git", ...options.arguments],
-    cwd: options.clone,
-    environment: { ...process.env, ...options.environment },
-    timeoutMilliseconds: 600_000,
-  });
-
-  if (result.exitCode !== 0) {
-    throw new Error(`git ${options.arguments[0] ?? ""} failed: ${result.stderr.trim().slice(0, 300)}`);
-  }
-
-  return result.stdout.trim();
-}
+import { git } from "../git";
 
 async function treeWithoutWorkflows(options: { readonly clone: string; readonly commit: string }): Promise<string> {
   const directory = mkdtempSync(path.join(os.tmpdir(), "pr-review-index-"));

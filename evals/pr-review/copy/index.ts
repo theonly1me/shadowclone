@@ -3,11 +3,11 @@ import path from "node:path";
 import { z } from "zod";
 import { ghJson } from "../github";
 import { upstreamPullSchema } from "../mine/pulls";
-import { type SelectedCase, selectedCaseSchema } from "../sample";
+import { evalCaseSchema, type SelectedCase, selectedCaseSchema } from "../sample";
 import { caseCommits, pushCase } from "./branches";
 import { sanitizeBody } from "./sanitize";
 
-export const copiedCaseSchema = selectedCaseSchema.extend({ number: z.number().int().positive(), baseSha: z.string(), headSha: z.string() });
+export const copiedCaseSchema = evalCaseSchema.extend({ number: z.number().int().positive() });
 
 export type CopiedCase = z.infer<typeof copiedCaseSchema>;
 

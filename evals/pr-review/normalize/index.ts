@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { reviewResultSchema } from "../../../src/review";
 import { activitySchema } from "./github";
 import { type NormalizedFinding, plainText } from "./text";
 
@@ -51,14 +52,24 @@ const openqodexFindingSchema = z.object({
 
 const openqodexReportSchema = z.object({ findings: z.array(openqodexFindingSchema), outside_change: z.array(openqodexFindingSchema) });
 
-export function openqodexFindings(options: { readonly caseId: string; readonly raw: unknown }): readonly NormalizedFinding[] {
+export function openqodexFindings(options: { readonly arm: string; readonly caseId: string; readonly raw: unknown }): readonly NormalizedFinding[] {
   const report = openqodexReportSchema.parse(options.raw);
 
   return [...report.findings, ...report.outside_change].map((finding) => ({
-    arm: "openqodex",
+    arm: options.arm,
     caseId: options.caseId,
     path: finding.file_path,
     line: finding.line_number,
     text: plainText([finding.title, finding.problem ?? finding.description, finding.consequence ?? "", finding.fix ?? finding.suggested_change ?? ""].join(" ")),
+  }));
+}
+
+export function localShadowcloneFindings(options: { readonly arm: string; readonly caseId: string; readonly raw: unknown }): readonly NormalizedFinding[] {
+  return reviewResultSchema.parse(options.raw).findings.map((finding) => ({
+    arm: options.arm,
+    caseId: options.caseId,
+    path: finding.path,
+    line: finding.line,
+    text: plainText([finding.title, finding.explanation, finding.failureScenario, finding.suggestion ?? ""].join(" ")),
   }));
 }
