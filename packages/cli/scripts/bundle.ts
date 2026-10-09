@@ -1,6 +1,8 @@
 import os from "node:os";
 import path from "node:path";
 
+const workspaceRoot = path.resolve(import.meta.dir, "../../..");
+
 const runtimeModulePaths: Bun.BunPlugin = {
   name: "runtime-module-paths",
   setup(build) {
@@ -34,6 +36,7 @@ export async function buildRuntimeArtifacts(
 
   const privateRoots = [
     process.cwd(),
+    workspaceRoot,
     os.homedir(),
     path.dirname(path.resolve(entryPoint)),
   ];
@@ -59,4 +62,26 @@ export async function buildRuntimeBundle(
   }
 
   return bundle;
+}
+
+export async function writeRuntimeArtifacts(options: {
+  readonly artifacts: readonly Bun.BuildArtifact[];
+  readonly distDirectory: string;
+}): Promise<string> {
+  const bundleFile = path.join(options.distDirectory, "shadowclone.js");
+
+  for (const [index, artifact] of options.artifacts.entries()) {
+    const relativePath = path.relative(process.cwd(), artifact.path);
+
+    if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+      throw new Error("Build output escapes its destination");
+    }
+
+    const destination =
+      index === 0 ? bundleFile : path.join(options.distDirectory, relativePath);
+
+    await Bun.write(destination, artifact);
+  }
+
+  return bundleFile;
 }

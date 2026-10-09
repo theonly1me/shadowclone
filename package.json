@@ -1,33 +1,28 @@
 {
-  "name": "@shadowclone/cli",
+  "name": "shadowclone",
+  "private": true,
   "version": "0.0.25",
-  "module": "packages/cli/src/main.ts",
-  "type": "module",
   "packageManager": "bun@1.4.2",
   "workspaces": [
     "packages/*",
     "evals",
     "tooling"
   ],
-  "bin": {
-    "shadowclone": "bin/shadowclone.mjs"
-  },
   "scripts": {
     "start": "bun run packages/cli/src/main.ts",
     "cli": "bun run packages/cli/src/main.ts",
     "check": "bun run typecheck && bun run lint && bun run knip && bun run test",
-    "test": "bun test",
-    "test:workspaces": "turbo run test",
-    "typecheck": "tsc --noEmit && turbo run typecheck",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "build": "turbo run build",
+    "stage": "turbo run stage",
     "format": "prettier --write",
     "format:check": "prettier --check",
     "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run tooling/src/conventions.ts && bun run tooling/src/boundaries.ts && bun run tooling/src/privacy.ts && bun run tooling/src/skills.ts && bun run tooling/src/skillVersions.ts",
     "lint:fix": "biome lint --write .",
     "knip": "knip",
     "eval": "bun evals/run.ts",
-    "eval:work": "bun evals/work/run.ts",
-    "build": "bun run scripts/build.ts",
-    "prepack": "bun run build"
+    "eval:work": "bun evals/work/run.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
@@ -36,41 +31,5 @@
     "prettier": "3.9.9",
     "turbo": "2.11.7",
     "typescript": "~5.9"
-  },
-  "description": "Turns how you work into a portable, tested environment for the coding agents you already use.",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/theonly1me/shadowclone.git"
-  },
-  "homepage": "https://shadowclone.co",
-  "bugs": {
-    "url": "https://github.com/theonly1me/shadowclone/issues"
-  },
-  "keywords": [
-    "claude-code",
-    "codex",
-    "cursor",
-    "agent",
-    "subagent",
-    "local-first"
-  ],
-  "files": [
-    "bin",
-    "dist",
-    "preferences",
-    "skills",
-    "plugins",
-    ".claude-plugin",
-    "README.md",
-    "PRIVACY.md",
-    "evals.md",
-    "LICENSE"
-  ],
-  "dependencies": {
-    "bun": "^1.4.2",
-    "commander": "^15.0.0",
-    "smol-toml": "^1.8.0",
-    "zod": "^4.5.4"
   }
 }

@@ -23,6 +23,10 @@ const manifestSchema = z.object({
   version: z.string(),
 });
 
+const publishedManifestFile = "packages/cli/package.json";
+
+const publishedManifestSchema = z.object({ name: z.string() });
+
 export type VersionSource = {
   readonly file: string;
   readonly name: string | null;
@@ -31,6 +35,7 @@ export type VersionSource = {
 
 export type ReleaseVersions = {
   readonly packageManifest: VersionSource;
+  readonly publishedName: string;
   readonly product: VersionSource | null;
   readonly bumped: readonly VersionSource[];
 };
@@ -67,11 +72,16 @@ export async function readReleaseVersions(options: {
     ),
   );
 
+  const published = publishedManifestSchema.parse(
+    await Bun.file(path.join(options.rootDirectory, publishedManifestFile)).json(),
+  );
+
   return {
     packageManifest: await readSource({
       rootDirectory: options.rootDirectory,
       file: "package.json",
     }),
+    publishedName: published.name,
     product:
       sources.find(
         (source) => path.basename(source.file) === productFileName,
@@ -96,10 +106,10 @@ export function findVersionMismatches(
         `${source.file} has version ${source.version}, but ${packageManifest.file} has ${packageManifest.version}`,
     );
 
-  return product.name === packageManifest.name
+  return product.name === versions.publishedName
     ? mismatches
     : [
         ...mismatches,
-        `${product.file} has name ${product.name}, but ${packageManifest.file} has ${packageManifest.name}`,
+        `${product.file} has name ${product.name}, but ${publishedManifestFile} has ${versions.publishedName}`,
       ];
 }

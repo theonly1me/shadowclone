@@ -45,25 +45,27 @@ test("the product identity and every manifest that Release Please bumps agree wi
 
 test("a product version that differs from package.json is reported", async () => {
   const rootDirectory = await treeWith({
-    "package.json": { name: "@shadowclone/cli", version: "1.2.3" },
-    "src/product.json": { name: "@shadowclone/cli", version: "1.2.2" },
-    ".github/release-please-config.json": releaseConfig(["src/product.json"]),
+    "package.json": { name: "shadowclone", version: "1.2.3" },
+    "packages/cli/package.json": { name: "@shadowclone/cli" },
+    "packages/core/src/product.json": { name: "@shadowclone/cli", version: "1.2.2" },
+    ".github/release-please-config.json": releaseConfig(["packages/core/src/product.json"]),
   });
 
   expect(
     findVersionMismatches(await readReleaseVersions({ rootDirectory })),
   ).toEqual([
-    "src/product.json has version 1.2.2, but package.json has 1.2.3",
+    "packages/core/src/product.json has version 1.2.2, but package.json has 1.2.3",
   ]);
 });
 
 test("a plugin manifest version and a product name that differ are both reported", async () => {
   const rootDirectory = await treeWith({
-    "package.json": { name: "@shadowclone/cli", version: "1.2.3" },
-    "src/product.json": { name: "shadowclone", version: "1.2.3" },
+    "package.json": { name: "shadowclone", version: "1.2.3" },
+    "packages/cli/package.json": { name: "@shadowclone/cli" },
+    "packages/core/src/product.json": { name: "shadowclone", version: "1.2.3" },
     "plugins/plugin.json": { name: "plugin", version: "1.2.0" },
     ".github/release-please-config.json": releaseConfig([
-      "src/product.json",
+      "packages/core/src/product.json",
       "plugins/plugin.json",
     ]),
   });
@@ -72,13 +74,14 @@ test("a plugin manifest version and a product name that differ are both reported
     findVersionMismatches(await readReleaseVersions({ rootDirectory })),
   ).toEqual([
     "plugins/plugin.json has version 1.2.0, but package.json has 1.2.3",
-    "src/product.json has name shadowclone, but package.json has @shadowclone/cli",
+    "packages/core/src/product.json has name shadowclone, but packages/cli/package.json has @shadowclone/cli",
   ]);
 });
 
 test("a product file that Release Please does not bump is reported", async () => {
   const rootDirectory = await treeWith({
-    "package.json": { name: "@shadowclone/cli", version: "1.2.3" },
+    "package.json": { name: "shadowclone", version: "1.2.3" },
+    "packages/cli/package.json": { name: "@shadowclone/cli" },
     ".github/release-please-config.json": releaseConfig([]),
   });
 

@@ -22,7 +22,7 @@ async function strippedShadowclone(): Promise<FixtureRepository> {
 
   for (const relativePath of [
     "package.json",
-    "tsconfig.json",
+    "tsconfig.base.json",
     "biome.json",
     ".github/workflows/ci.yml",
   ]) {

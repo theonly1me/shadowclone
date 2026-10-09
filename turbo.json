@@ -34,6 +34,15 @@
         "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/.github/release-please-config.json"
       ]
+    },
+    "build": {
+      "dependsOn": ["transit"],
+      "outputs": ["dist/**"]
+    },
+    "stage": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "outputs": ["out/**"]
     }
   }
 }

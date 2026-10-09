@@ -14,18 +14,10 @@
   "workspaces": {
     ".": {
       "entry": [
-        "scripts/*.ts",
         "plugins/shadowclone/skills/*/scripts/*.mjs"
       ],
       "project": [
-        "scripts/**/*.ts",
-        "bin/*.mjs",
         "plugins/**/*.mjs"
-      ],
-      "ignoreDependencies": [
-        "commander",
-        "smol-toml",
-        "zod"
       ]
     },
     "packages/*": {
@@ -34,6 +26,22 @@
       ],
       "project": [
         "src/**/*.ts"
+      ]
+    },
+    "packages/cli": {
+      "entry": [
+        "scripts/*.ts",
+        "src/**/*.test.ts",
+        "scripts/**/*.test.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "scripts/**/*.ts",
+        "bin/*.mjs"
+      ],
+      "ignoreDependencies": [
+        "commander",
+        "smol-toml"
       ]
     },
     "packages/mcp": {
@@ -66,8 +74,6 @@
     "evals": {
       "entry": [
         "**/*.test.ts",
-        "run.ts",
-        "work/run.ts",
         "work/prepare.ts",
         "work/scaffold/cli.ts",
         "work/fakeGh/main.ts",

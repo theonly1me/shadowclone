@@ -4,12 +4,6 @@
   "workspaces": {
     "": {
       "name": "shadowclone",
-      "dependencies": {
-        "bun": "^1.4.2",
-        "commander": "^15.0.0",
-        "smol-toml": "^1.8.0",
-        "zod": "^4.5.4",
-      },
       "devDependencies": {
         "@biomejs/biome": "2.5.15",
         "@types/bun": "latest",
@@ -65,6 +59,9 @@
     },
     "packages/cli": {
       "name": "@shadowclone/cli",
+      "bin": {
+        "shadowclone": "bin/shadowclone.mjs",
+      },
       "dependencies": {
         "@shadowclone/agents": "workspace:*",
         "@shadowclone/builds": "workspace:*",
@@ -81,6 +78,9 @@
         "@shadowclone/sessions": "workspace:*",
         "@shadowclone/skills": "workspace:*",
         "@shadowclone/web": "workspace:*",
+        "bun": "^1.4.2",
+        "commander": "^15.0.0",
+        "smol-toml": "^1.8.0",
         "zod": "^4.5.4",
       },
     },
