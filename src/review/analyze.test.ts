@@ -99,3 +99,25 @@ test("a review without a chosen effort runs at Claude Code's default effort", as
 
   expect(requests[0] !== undefined && "reasoningEffort" in requests[0]).toBe(false);
 });
+
+test("a Codex review sends no Claude tool allowlist, because the Codex sandbox enforces read-only access", async () => {
+  const runs: unknown[] = [];
+
+  await analyzeReview({
+    reviewModel: {
+      runner: async (run) => {
+        runs.push(run);
+        return engineRun({ structured: { findings: [], dropped: [] } });
+      },
+      engine: "codex",
+      model: "gpt-6.1-sol",
+      effort: null,
+      network: true,
+    },
+    checkout: "/checkout",
+    prompt: "review",
+  });
+
+  expect(runs).toEqual([expect.not.objectContaining({ allowedTools: expect.anything() })]);
+  expect(runs).toEqual([expect.objectContaining({ execution: { purpose: "review", network: true } })]);
+});

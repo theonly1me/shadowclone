@@ -28,7 +28,9 @@ test(
     expect(worker.indexOf("allowWorker")).toBeLessThan(
       worker.indexOf("secrets.SHADOWCLONE_APP_PRIVATE_KEY"),
     );
-    expect(worker).toContain("timeout-minutes: 20");
+    expect(worker).toContain("timeout-minutes: 180");
+    expect(worker).toContain("timeout-minutes: 170");
+    expect(worker).not.toContain("--max-turns");
     expect(worker).toContain("show_full_output: false");
     expect(worker).toContain("--permission-mode acceptEdits --allowedTools Bash,Skill");
     expect(worker).toContain("Never push to the default branch.");

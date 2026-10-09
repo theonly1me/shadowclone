@@ -16,6 +16,22 @@ export function showAccountSetup(options: {
     value: options.repository,
   });
   const bot = botField({ label: "Bot's GitHub login, such as octo-shadow", value: "" });
+  const agentLabel = create({ tag: "label", className: "field" });
+  const agent = create({ tag: "select" });
+  const agents = [
+    { value: "claude/api-key", text: "Claude, with your Claude subscription token" },
+    { value: "codex/api-key", text: "Codex, with an OpenAI API key" },
+    { value: "codex/plan", text: "Codex, with your ChatGPT plan login (experimental)" },
+  ];
+
+  for (const choice of agents) {
+    const option = create({ tag: "option", text: choice.text });
+
+    option.value = choice.value;
+    agent.append(option);
+  }
+
+  agentLabel.append(create({ tag: "span", text: "Agent" }), agent);
   const result = create({ tag: "div" });
   const app = create({
     tag: "button",
@@ -33,6 +49,8 @@ export function showAccountSetup(options: {
         repository: repository.input.value.trim(),
         botLogin: bot.input.value.trim(),
         approveSkills,
+        engine: agent.value.startsWith("codex") ? "codex" : "claude",
+        codexAuth: agent.value.endsWith("plan") ? "plan" : "api-key",
       },
       schema: accountOutcomeSchema,
     });
@@ -82,10 +100,11 @@ export function showAccountSetup(options: {
       tag: "p",
       text:
         "Your bot is a GitHub account that you create and name. It gets its own profile and " +
-        "contributions. You add its token and your Claude token on GitHub; Shadowclone never sees them.",
+        "contributions. You add its token and your agent's token on GitHub; Shadowclone never sees them.",
     }),
     repository.label,
     bot.label,
+    agentLabel,
     botButton({ text: "Continue", status, action: () => submit(false) }),
     result,
     app,

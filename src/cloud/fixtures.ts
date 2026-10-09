@@ -20,6 +20,8 @@ export const fixtureClone: Clone = {
   maximumRuns: 10,
   reviewModel: "claude-opus-5-5",
   reviewNetwork: true,
+  engine: "claude",
+  codexAuth: "api-key",
 };
 
 export const fixtureAccountClone: Clone = {

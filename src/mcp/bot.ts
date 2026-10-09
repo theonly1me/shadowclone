@@ -28,6 +28,8 @@ export const botTools = [
         repository: { type: "string", description: "owner/repository" },
         bot: { type: "string", description: "GitHub login of the bot's machine account" },
         approveSkills: { type: "boolean", description: "true only after the owner approved the listed skill files" },
+        engine: { type: "string", enum: ["claude", "codex"], description: "the agent that works and reviews; defaults to claude" },
+        codexAuth: { type: "string", enum: ["api-key", "plan"], description: "Codex sign-in; plan is experimental" },
       },
       required: ["operation"],
       additionalProperties: false,
@@ -46,6 +48,8 @@ const inputSchema = z.strictObject({
     .regex(/^[A-Za-z0-9-]{1,39}$/)
     .optional(),
   approveSkills: z.boolean().optional(),
+  engine: z.enum(["claude", "codex"]).default("claude"),
+  codexAuth: z.enum(["api-key", "plan"]).default("api-key"),
 });
 
 function text(options: { readonly value: string; readonly isError?: boolean }) {
@@ -121,7 +125,16 @@ export function createBotTool(context: BuildContext & { readonly call?: GhApiCal
 
         return text({
           value: await outcomeText(
-            await setUpAccountClone({ ...context, repository, botLogin: bot, approveSkills: input.data.approveSkills === true, call, command }),
+            await setUpAccountClone({
+              ...context,
+              repository,
+              botLogin: bot,
+              approveSkills: input.data.approveSkills === true,
+              engine: input.data.engine,
+              codexAuth: input.data.codexAuth,
+              call,
+              command,
+            }),
           ),
         });
       } catch (error) {

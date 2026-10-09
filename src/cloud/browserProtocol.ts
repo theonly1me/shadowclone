@@ -39,6 +39,8 @@ export const accountSetupInput = z.strictObject({
   repository: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
   botLogin: z.string().regex(/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/),
   approveSkills: z.boolean(),
+  engine: z.enum(["claude", "codex"]).default("claude"),
+  codexAuth: z.enum(["api-key", "plan"]).default("api-key"),
 });
 export const accountOutcomeSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("needs-account"), login: z.string(), signupUrl: z.url() }),

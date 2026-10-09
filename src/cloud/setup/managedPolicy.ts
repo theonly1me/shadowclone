@@ -1,17 +1,19 @@
 import type { ProjectPaths } from "../../paths";
 import { readEffectiveConfig } from "../../config";
 
-export async function assertCloudPolicy(paths: ProjectPaths): Promise<void> {
+export async function assertCloudPolicy(options: {
+  readonly paths: ProjectPaths;
+  readonly engine: "claude" | "codex";
+}): Promise<void> {
   const { policy } = await readEffectiveConfig({
-    configPath: paths.configFile,
-    managedConfigPath: paths.managedConfigFile,
+    configPath: options.paths.configFile,
+    managedConfigPath: options.paths.managedConfigFile,
   });
+  const engine = options.engine === "codex" ? "codex" : "claude-code";
 
-  if (
-    !policy.enabled ||
-    !policy.allowedEngines.includes("claude-code") ||
-    policy.maxActionTier !== "act"
-  ) {
-    throw new Error("Managed policy does not permit a Claude cloud clone with repository writes.");
+  if (!policy.enabled || !policy.allowedEngines.includes(engine) || policy.maxActionTier !== "act") {
+    throw new Error(
+      `Managed policy does not permit a ${options.engine === "codex" ? "Codex" : "Claude"} cloud bot with repository writes.`,
+    );
   }
 }

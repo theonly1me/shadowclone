@@ -1,3 +1,4 @@
+import { codexInstallStep, codexLoginReturnStep, codexLoginStep } from "./agentSteps";
 import { botToken, botTokenSteps } from "./identitySteps";
 import type { Clone } from "./types";
 
@@ -13,6 +14,7 @@ export type ReviewPins = {
 export type ReviewVersions = {
   readonly shadowclone: string;
   readonly claudeCode: string;
+  readonly codex: string;
   readonly bun: string;
 };
 
@@ -63,6 +65,11 @@ export function reviewJobs(options: {
   const stageEnvironment = `          ENTITY: \${{ needs.guard.outputs.entity }}
           HEAD_SHA: \${{ needs.guard.outputs.head }}`;
   const tokenSteps = (permissions: readonly string[]) => botTokenSteps({ clone, pins, permissions, when: null });
+  const codex = clone.engine === "codex";
+  const planConcurrency =
+    codex && clone.codexAuth === "plan"
+      ? `\n    concurrency:\n      group: shadowclone-${clone.repositoryId}-codex-login\n      cancel-in-progress: false`
+      : "";
 
   return `  review-acknowledge:
     needs: guard
@@ -129,22 +136,22 @@ ${artifact({ pin: pins.uploadArtifact, name: "checks", upload: true })}
     if: \${{ !cancelled() && ${reviewCondition} && needs.review-prepare.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: shadowclone
+    environment: shadowclone${planConcurrency}
     permissions:
       contents: read
     steps:
 ${pullCheckout({ pins, fullHistory: false })}
-${installSteps({ pins, versions, claude: true })}
-${artifact({ pin: pins.downloadArtifact, name: "packet", upload: false })}
+${installSteps({ pins, versions, claude: clone.engine === "claude" })}
+${codex ? `${codexInstallStep({ version: versions.codex, when: "success()" })}\n${codexLoginStep({ clone, when: "success()" })}\n` : ""}${artifact({ pin: pins.downloadArtifact, name: "packet", upload: false })}
 ${artifact({ pin: pins.downloadArtifact, name: "checks", upload: false, optional: true })}
       - name: Review with the shadowclone-review skill
         working-directory: \${{ runner.temp }}
         env:
-          CLAUDE_CODE_OAUTH_TOKEN: \${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+${codex ? `          CODEX_HOME: \${{ runner.temp }}/codex-home` : `          CLAUDE_CODE_OAUTH_TOKEN: \${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`}
         run: |
           checks=()
           if [ -f "$RUNNER_TEMP/checks.json" ]; then checks=(--checks "$RUNNER_TEMP/checks.json"); fi
-          ${shadowclone} analyze --packet "$RUNNER_TEMP/packet.json" "\${checks[@]}" --checkout "$GITHUB_WORKSPACE/pull-request" --model '${clone.reviewModel}' --network ${clone.reviewNetwork ? "on" : "off"} --output "$RUNNER_TEMP/result.json"
+          ${shadowclone} analyze --packet "$RUNNER_TEMP/packet.json" "\${checks[@]}" --checkout "$GITHUB_WORKSPACE/pull-request" --engine ${clone.engine} --model '${clone.reviewModel}' --network ${clone.reviewNetwork ? "on" : "off"} --output "$RUNNER_TEMP/result.json"${codexLoginReturnStep({ clone, token: botToken(clone), when: "success()" })}
 ${artifact({ pin: pins.uploadArtifact, name: "result", upload: true })}
   review-publish:
     needs: [guard, review-analyze]

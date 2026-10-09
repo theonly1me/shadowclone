@@ -1,5 +1,14 @@
-export const cloudPrompt = `Invoke the Skill tool with shadowclone-personal:shadowclone-work.
-Follow its process, guardrails, and completion report.
+const skillInstruction = {
+  claude: "Invoke the Skill tool with shadowclone-personal:shadowclone-work.",
+  codex: "Use the shadowclone-work skill from your skills.",
+} as const;
+
+export function cloudPrompt(engine: keyof typeof skillInstruction): string {
+  return `${skillInstruction[engine]}
+${cloudTask}`;
+}
+
+const cloudTask = `Follow its process, guardrails, and completion report.
 Read the current issue or PR identified by SHADOWCLONE_ENTITY in this repository.
 For a tagged request, read the exact source comment or review
 identified by SHADOWCLONE_SOURCE and SHADOWCLONE_IDENTIFIER.
