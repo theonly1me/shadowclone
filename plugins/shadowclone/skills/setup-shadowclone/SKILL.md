@@ -1,54 +1,65 @@
 ---
 name: setup-shadowclone
-description: Install and configure Shadowclone. Use it when the user asks to "set up", configure, initialize, or start Shadowclone with Claude Code, Codex, Cursor, Pi, Antigravity, or another coding agent.
+description: Install and configure Shadowclone for the user from start to finish. Use it when the user asks to "set up", install, configure, or start Shadowclone with Claude Code, Codex, Cursor, Pi, Antigravity, or another coding agent.
 license: MIT
 ---
 
 # Set Up Shadowclone
 
-Finish the local setup. Let the user make each data choice.
+Do the whole setup for the user. The user only answers questions in chat and picks skills in the browser. Finish in less than 5 minutes.
 
-## Detect
+Do the steps in order. Run long commands in the background, and do the next step while they run. Do not explain a step that works.
 
-1. Run `node <this-skill-directory>/scripts/check-cli.mjs` from the real directory of this skill. The helper runs only `shadowclone --version`. It reads no configuration and no user data. It needs a stable CLI version 0.0.13 or newer.
-2. If the status is `outdated`, show the installed version and the minimum version, and ask the user if you may upgrade the CLI. If the status is `unavailable`, explain that no usable CLI exists, and ask the user if you may install it. Stop if the user says no.
-3. After the user approves, run `npm install -g @shadowclone/cli@latest`. Never use `sudo`. If npm cannot write to its global directory, explain the exact failure. Help the user choose a user-owned npm prefix, then try again.
-4. Run the helper again after the install or upgrade. Continue only when the status is `ready`. If the status is still `outdated`, the release that you need may not exist yet. The installed package may be new enough while the helper still sees an older command. Then run `command -v shadowclone` and `npm prefix -g` to find a stale executable or a missing prefix on `PATH`. Help the user fix it. Do not delete unrelated installations.
-5. Run `shadowclone init --status --json`. Only `{"initialized":true}` means that setup exists. Keep a compatible existing installation and its consent settings.
+## 1. Check the CLI (10 seconds)
 
-This skill runs without MCP. MCP can stay disconnected until you install the CLI. That does not block these shell commands or the consent questions.
+1. If this skill is on disk, run `node <this-skill-directory>/scripts/check-cli.mjs`. It runs only `shadowclone --version` and prints a status.
+2. If this skill is not on disk, run `shadowclone --version`. Version 0.0.13 or newer is `ready`. A missing command is `unavailable`.
+3. If the status is `ready`, run `shadowclone init --status --json`. If it prints `{"initialized":true}`, setup exists. Keep its consent choices, and go to step 4.
+4. If the status is `unavailable` or `outdated`, tell the user that you will install the Shadowclone CLI. Start `npm install -g @shadowclone/cli@latest` in the background. Never use `sudo`.
+5. If npm cannot write to its global folder, show the exact error. Help the user choose a user-owned npm prefix, and run the install again.
 
-## Ask for consent
+## 2. Ask three questions (30 seconds)
 
-If setup does not exist yet, ask these three questions one at a time. Record an explicit yes or no for each one.
+Ask these questions in one message while the install runs. Use your question tool if you have one. Record an explicit yes or no for each answer.
 
-1. May Shadowclone learn working preferences from detected coding-agent sessions?
-2. May Shadowclone keep portable skills in sync and maintain them across detected agents?
-3. May Shadowclone continue consented learning in the background?
+1. **Learn from past sessions?** Shadowclone reads the coding-agent sessions on this machine, redacts them, and learns your rules with your own agent CLI. The first pass takes up to 2 minutes.
+2. **Keep skills in sync?** Shadowclone keeps your skills up to date across your agents.
+3. **Keep learning in the background?** This needs a yes to question 1.
 
-Explain that background learning needs session learning. If the first answer is no, the third answer must be no. Do not infer an answer from the plugin install, from the use of an agent, or from another answer.
+If the answer to question 1 is no, the answer to question 3 is no. Do not infer an answer from the install, from the use of an agent, or from another answer.
 
-Run one non-interactive initialization command. Pass exactly one flag from each pair:
+## 3. Install and initialize (in the background)
 
-- `--learn` or `--no-learn`
-- `--skill-maintenance` or `--no-skill-maintenance`
-- `--background-learning` or `--no-background-learning`
+1. Wait for the CLI install, and check the CLI again as in step 1.
+2. Install the plugin for the agent that you run in, if it is not installed. The plugin adds this skill and the Shadowclone MCP server.
+   - Claude Code: `claude plugin install shadowclone --marketplace theonly1me/shadowclone`
+   - Codex: `codex plugin marketplace add theonly1me/shadowclone`, then `codex plugin add shadowclone@shadowclone`
+   - Cursor, Pi, and Antigravity have no plugin step.
+3. If a plugin command asks for input or fails, give the user the command, and continue the setup.
+4. Start one `shadowclone init` command in the background. Pass exactly one flag from each pair, from the answers:
+   - `--learn` or `--no-learn`
+   - `--skill-maintenance` or `--no-skill-maintenance`
+   - `--background-learning` or `--no-background-learning`
 
-The initialization detects the installed Claude Code, Codex, Cursor, Pi, and Antigravity environments. It installs native guidance for those agents. Keep an existing configuration. Do not replace its consent choices.
+The command detects Claude Code, Codex, Cursor, Pi, and Antigravity, and installs their native guidance. With `--learn`, it also runs the first learning pass.
 
-## Build
+## 4. Open the skill wizard (while init runs)
 
-1. Start `shadowclone wizard --no-open` as a bounded background process. Capture the loopback URL that it prints.
-2. Give the URL to the user. Keep the process running while the user chooses skills, reads instructions, and applies the build.
-3. Do not operate the browser for the user. Wait until the user says that they applied the build.
+1. Start `shadowclone wizard` as a background process. It opens the skill wizard in the browser and prints a loopback URL.
+2. Give the user the URL. Tell the user to pick skills, select **Equip**, and tell you when it is done.
+3. Do not operate the browser for the user.
+4. If the wizard says that another update is running, tell the user to wait a few seconds and equip again.
 
-## Verify
+## 5. Verify and report (30 seconds)
 
-After the user applies the build, follow these steps:
+When the user equipped a build and `init` is done:
 
-1. Run `shadowclone sync`.
-2. Run `shadowclone doctor`. Fix each local failure that you can act on.
-3. Run `shadowclone context --explain` in the current repository. Summarize which guidance is active. Do not copy private content.
-4. Tell the user to restart each open coding-agent session. This loads the native integration and the MCP server again.
+1. Stop the wizard process.
+2. Run `shadowclone sync`.
+3. Run `shadowclone doctor`. Fix each local failure that you can act on.
+4. Run `shadowclone context --explain` in the current repository.
+5. Tell the user the number of rules learned, the skills that are active, and each step that failed or that you skipped.
+6. If learning stopped at its setup budget and background learning is off, tell the user that `shadowclone learn --deep` continues it for up to 5 minutes.
+7. Tell the user to restart each open coding-agent session. This loads the plugin, the MCP server, and the native guidance.
 
 Do not turn on a source, call a model, read sessions, or publish files without the matching consent. Keep command output that holds local paths or user content out of shared artifacts.

@@ -15,30 +15,31 @@
 
 ## Quick start
 
-Setup takes about 2 to 3 minutes. Each learning run takes up to 5 minutes.
-
-**Claude Code.** Add the plugin and tell the agent: "Set up Shadowclone."
+Paste this into Claude Code, Codex, Cursor, Pi, or Antigravity:
 
 ```text
-/plugin marketplace add theonly1me/shadowclone
-/plugin install shadowclone@shadowclone
+Set up Shadowclone: https://raw.githubusercontent.com/theonly1me/shadowclone/main/plugins/shadowclone/skills/setup-shadowclone/SKILL.md
 ```
 
-**Codex.** Add the plugin and give the same instruction.
+The agent does the setup in about 5 minutes:
 
-```bash
-codex plugin marketplace add theonly1me/shadowclone
-codex plugin add shadowclone@shadowclone
-```
+1. It installs the CLI, and the plugin in Claude Code or Codex.
+2. It asks if Shadowclone can learn from your past sessions, keep skills in sync, and keep learning in the background.
+3. It opens the skill wizard, where you pick skills and select **Equip**.
+4. It learns from your past sessions while you pick skills, if you agreed.
 
-**Any agent.** Install the CLI and open the build wizard. To learn from past sessions, run `shadowclone init` and then `shadowclone learn --deep`. The wizard alone reads no sessions and sends no model request.
+<details>
+<summary>Install by hand</summary>
 
 ```bash
 npm install -g @shadowclone/cli
+shadowclone init
 shadowclone wizard
 ```
 
-Cursor, Antigravity, and Pi use the portable [`setup-shadowclone` skill](plugins/shadowclone/skills/setup-shadowclone/SKILL.md).
+To add the plugin, run `/plugin install shadowclone@shadowclone` after `/plugin marketplace add theonly1me/shadowclone` in Claude Code. In Codex, run `codex plugin marketplace add theonly1me/shadowclone` and then `codex plugin add shadowclone@shadowclone`.
+
+</details>
 
 ## What you get
 
