@@ -8,7 +8,7 @@ Learning records retain guidance, scope, observations, source hashes, rejection 
 
 Reconciliation uses redacted user steering as evidence and bounded agent text as labeled context. Context alone never supports a rule. Indexed events are filtered by current source consent, and each reference is checked again before resolution. The prompt builder cannot reopen an unmaterialized reference. Explicit durable guidance can activate after one session; inferred behavior needs three independent sessions. Questions, silence, temporary exceptions, and interruptions alone do not establish a preference. Contradictory evidence creates a review decision instead of silently replacing an explicit instruction.
 
-Plain `learn` reports structural evidence. Manual deep learning and separately consented background learning call the service in `learning/service.ts`. `learning/storage.ts` selects environment persistence and keeps legacy-profile fallback at one compatibility boundary. A declined manual proposal is stored with source provenance in `learning-pending.json`. Approval checks current consent and publishes only selected keys, without enabling automatic maintenance or repeating extraction. Publication may call the model. Each setup, manual, and background attempt writes a private outcome receipt. `remember` stores a direct preference without inference. `learning pending`, `learning show`, and `context --explain` expose review and delivery state.
+Plain `learn` reports structural evidence. Manual deep learning and separately consented background learning call the service in `packages/learning/src/learning/service.ts`. `packages/learning/src/learning/storage.ts` selects environment persistence and keeps legacy-profile fallback at one compatibility boundary. A declined manual proposal is stored with source provenance in `learning-pending.json`. Approval checks current consent and publishes only selected keys, without enabling automatic maintenance or repeating extraction. Publication may call the model. Each setup, manual, and background attempt writes a private outcome receipt. `remember` stores a direct preference without inference. `learning pending`, `learning show`, and `context --explain` expose review and delivery state.
 
 ## Publication
 
@@ -42,6 +42,6 @@ Recurring Claude memory extraction requires the named source and a registered, m
 
 ## Compatibility
 
-Migration freezes original skills and native instructions, retains legacy learning, and publishes in bounded batches. Delivery switches only after coverage and file validation. Legacy profile files remain recovery artifacts; unmigrated installations continue using their compiler. See [migration](../migration.md).
+Migration freezes original skills and native instructions, retains legacy learning, and publishes in bounded batches. Delivery switches only after coverage and file validation. Legacy profile files remain recovery artifacts; unmigrated installations continue using their compiler. See [migration](../guides/migration.md).
 
-Hooks, optional subagents, and MCP use the active delivery path. `shadowclone_context` returns scoped routing; `shadowclone_profile` remains a deprecated alias. The [preference study](09-evaluation.md) compares original and maintained libraries in separate arms.
+Hooks, optional subagents, and MCP use the active delivery path. `shadowclone_context` returns scoped routing; `shadowclone_profile` remains a deprecated alias. The [preference study](../../evals/README.md) compares original and maintained libraries in separate arms.

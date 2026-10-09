@@ -1,10 +1,10 @@
 # Agent execution
 
-`src/engine/` is the model-process boundary shared by learning and evaluation. It invokes an installed, authenticated agent CLI. Shadowclone does not require its own model account or API key.
+`packages/agents/src/engine/` is the model-process boundary shared by learning and evaluation. It invokes an installed, authenticated agent CLI. Shadowclone does not require its own model account or API key.
 
 ## Provider selection
 
-The registry in `src/provider/` records capabilities independently from installation and authentication. Selection first checks the execution purpose, then chooses an eligible installed engine. `shadowclone doctor` reports availability.
+The registry in `packages/agents/src/provider/` records capabilities independently from installation and authentication. Selection first checks the execution purpose, then chooses an eligible installed engine. `shadowclone doctor` reports availability.
 
 | Engine | Learning runner | Relevant controls |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ Learning selection follows explicit command options, a triggering session's harn
 - **Learning:** no provider tools or ambient instructions; only the prepared model input is available.
 - **Evaluation:** read or write access to an isolated snapshot, with live personal context blocked as required by the protocol.
 
-The types in `src/engine/types.ts` define the request and result contract. Results include usage, model/session identity where available, structured output, errors, and observed actions. Callers must handle unknown cost and unsupported controls explicitly.
+The types in `packages/agents/src/engine/types.ts` define the request and result contract. Results include usage, model/session identity where available, structured output, errors, and observed actions. Callers must handle unknown cost and unsupported controls explicitly.
 
 ## Learning limits
 
@@ -46,4 +46,4 @@ Evaluation uses purpose-specific filesystem and process restrictions. Verificati
 
 Unit tests use synthetic provider streams and check arguments, output parsing, timeouts, cancellation, and boundaries. Installed-CLI contract tests use isolated local mocks. Authenticated model runs are separate verification with an explicit scope and budget.
 
-See [acting](04-acting.md), [evaluation](09-evaluation.md), and [data handling](../data-handling.md#what-reaches-a-model) for their caller contracts.
+See [delegated work](README.md#delegated-work), [evaluations](../../evals/README.md), and [data handling](../data-handling.md#what-reaches-a-model) for their caller contracts.

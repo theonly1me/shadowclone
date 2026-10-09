@@ -1,6 +1,6 @@
 # Execution and storage remediation
 
-This completes the boundaries that [execution and storage boundaries](014-execution-and-storage-boundaries.md) proposed. [Privacy architecture](../architecture/05-privacy.md) summarizes current behavior.
+This completes the boundaries that [execution and storage boundaries](014-execution-and-storage-boundaries.md) proposed. The privacy architecture page (`docs/architecture/05-privacy.md`) summarized current behavior. Its content now lives in [data handling](../data-handling.md).
 
 ## Process isolation
 

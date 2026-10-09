@@ -22,16 +22,23 @@ Start with the [README](../README.md) to install Shadowclone and pick your first
 ## Privacy and results
 
 - [Privacy](../PRIVACY.md): what Shadowclone reads, sends, and removes.
-- [Data handling](data-handling.md): sources, provider requests, local files, and deletion.
+- [Data handling](data-handling.md): sources, provider requests, local files, deletion, and the boundaries that a change must keep.
 - [Security](../SECURITY.md): how to report a vulnerability.
 - [Evaluation results](../evals.md): preference adherence for five setups and four models.
 
 ## Understand and contribute
 
-- [Motivation](motivation.md): why the project exists.
-- [Architecture](architecture/README.md): the current system and its boundaries.
+- [Motivation](motivation.md): why the project exists, and how it relates to other approaches.
+- [Architecture](architecture/README.md): the packages, their dependencies, the data flow, and the trust boundaries.
 - [Design history](design/README.md): decisions, and the designs that replaced them.
-- [Running evaluations](guides/evaluations.md): validate frozen tasks and authorize exact run scopes.
-- [Contributing](../CONTRIBUTING.md): setup, checks, and pull requests.
+- [Evaluations](../evals/README.md): the suites, what they measure, and how to authorize paid runs.
+- [Contributing](../CONTRIBUTING.md): setup, checks, how to add a package, and pull requests.
 
-Coding assistants start with [AGENTS.md](../AGENTS.md).
+Coding assistants start with [AGENTS.md](../AGENTS.md). Each package also has an `AGENTS.md` with its purpose and rules.
+
+## Open work
+
+- Test setup, migration, conflict recovery, and removal on real installations with explicit source consent.
+- Measure whether maintained guidance reduces the effort of repeated tasks. Preference scores do not measure productivity.
+- Add a model runner for Antigravity, which has capture and native guidance only. No API or local-endpoint engine exists.
+- Merge outcomes, issue-tracker intake, and coordination between concurrent clones are outside the learning workflow. Each needs its own evidence and action boundaries first.

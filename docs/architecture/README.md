@@ -1,135 +1,128 @@
 # Architecture
 
-Shadowclone turns durable guidance from consented sessions into skills used by existing coding agents. Evidence, scope, publication decisions, and revisions stay in local records. Native instructions route tasks to the relevant skills.
+Shadowclone turns durable guidance from consented sessions into skills that existing coding agents use. Local records keep evidence, scope, publication decisions, and revisions. Native instructions route tasks to the right skills.
+
+## Packages
+
+The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has an `AGENTS.md` with its rules.
+
+| Package                                               | Purpose                                                                                   |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [`core`](../../packages/core/AGENTS.md)               | Files, processes, ownership, configuration, and product identity                          |
+| [`redact`](../../packages/redact/AGENTS.md)           | Secret scrubbing                                                                          |
+| [`agents`](../../packages/agents/AGENTS.md)           | Run `claude`, `codex`, `cursor-agent`, and `pi` without a terminal                        |
+| [`sessions`](../../packages/sessions/AGENTS.md)       | Read transcripts, index events, derive signals, and resolve redacted text                 |
+| [`review`](../../packages/review/AGENTS.md)           | Pull request review engine                                                                |
+| [`changes`](../../packages/changes/AGENTS.md)         | Reversible local writes, stored as revisions                                              |
+| [`skills`](../../packages/skills/AGENTS.md)           | Skill files without model calls: library, quality rules, discovery, and proposals         |
+| [`profile`](../../packages/profile/AGENTS.md)         | Learned rule model, legacy profile, references, and Claude memory migration               |
+| [`environment`](../../packages/environment/AGENTS.md) | What agents receive: environment records, publication, native sections, install, and undo |
+| [`builds`](../../packages/builds/AGENTS.md)           | Agent builds: catalog, plan, apply, sync, and retire                                      |
+| [`learning`](../../packages/learning/AGENTS.md)       | Evidence to guidance: distillation, reconciliation, workers, probes, and `remember`       |
+| [`harness`](../../packages/harness/AGENTS.md)         | Repository harness for `init --repo` and `check`                                          |
+| [`cloud`](../../packages/cloud/AGENTS.md)             | GitHub bot setup, workflows, export, and status                                           |
+| [`web`](../../packages/web/AGENTS.md)                 | Wizard server and client, voice capture, and browser setup for the cloud bot              |
+| [`mcp`](../../packages/mcp/AGENTS.md)                 | MCP server                                                                                |
+| [`cli`](../../packages/cli/AGENTS.md)                 | Commands, the `bin` entry, build, stage, and publish                                      |
+| [`evals`](../../evals/AGENTS.md)                      | Private evaluation suites                                                                 |
+| [`tooling`](../../tooling/AGENTS.md)                  | Repository checks that `bun run lint` runs                                                |
+
+`skills/`, `preferences/`, and `plugins/` stay at the repository root, because people and skill installers look for them there. Only `@shadowclone/cli` goes to npm. Its build bundles the other packages.
+
+## Dependencies
+
+An arrow points from a package to a package that it imports. The graph omits an arrow when another path already implies it. For example, `cli` also declares `review`, but `mcp`, `web`, and `cloud` already lead to it.
+
+```mermaid
+graph BT
+  redact --> core
+  agents --> redact
+  sessions --> redact
+  changes --> sessions
+  skills --> changes
+  profile --> skills
+  environment --> profile
+  environment --> agents
+  builds --> environment
+  learning --> environment
+  harness --> environment
+  review --> agents
+  cloud --> environment
+  cloud --> review
+  web --> builds
+  web --> cloud
+  web --> learning
+  mcp --> web
+  cli --> mcp
+  cli --> harness
+```
+
+The full list of allowed imports for each package is in `tooling/src/boundaries/packages.ts`. `bun run lint` checks every import against it and fails on a cycle. A package exposes `.` and, where needed, `./testing` for fixtures and `./browser` for modules that the web client loads. See [design record 038](../design/038-packages-and-plain-english.md) for the reasons.
 
 ## Data flow
 
+Data stays on your machine except for the model requests and GitHub actions that you authorize.
+
 ```mermaid
 flowchart LR
-    Sessions[Consented sessions] --> Index[Event and pointer index]
-    Index --> Consent[Current source authorization]
-    Consent --> Redaction[Eligible redacted excerpts]
-    Memory[Consented memory] --> Redaction
-    Redaction --> Learning[Reconcile durable guidance]
-    Learning --> Decision[Apply, pending review, or reject]
-    Decision --> Records[Scoped evidence records]
-    Decision --> Pending[Changes needing review]
-    Learning --> Receipt[Private attempt receipt]
-    Learning --> Feedback[Later correction review signal]
-    Records --> Planner[Plan skill changes]
-    Library[Consented skill library] --> SkillText[Redacted skill documents]
-    SkillText --> Planner
-    SkillText --> Review[Review overlapping workflows]
-    Review --> Pending
-    Planner --> Pending
-    Planner --> Publish[Reversible publication]
-    Build[Reviewed terminal or browser choices] --> Publish
-    GitHubWriting[Consented own GitHub writing through gh] --> VoiceFilter[Agent text filtered and redacted]
-    VoiceFilter --> VoiceModel[Voice description and invented examples]
-    VoiceModel --> VoiceFile[Reviewed ~/.agents/voice.md, never overwritten]
-    Publish --> Skills[Baseline and workflow skills]
-    Publish --> Routing[Short native rules and skill routing]
-    Routing --> Claude[Claude Code, Codex, and Pi native files]
-    Routing --> ScopedHook[Repository scoped session context]
-    Skills --> Agents[Coding agents]
-    Claude --> Agents
-    Claude --> Probe[Reviewed frozen guidance probe]
-    Probe --> ProbeReceipt[Private response assertion receipt]
-    ScopedHook --> Agents
-    Agents --> GitHub[Pull requests through git and gh in the agent session]
-    CloudApproval[Owner reviews cloud guidance and subscription use] --> CloudSetup[Named App and selected repository]
-    Skills --> CloudApproval
-    CloudSetup --> Environment[Default-branch environment secrets]
-    CloudSetup --> Ruleset[Default-branch ruleset without App bypass]
-    Ruleset --> DraftPR
-    GitHubEvents[Owner requests and validated maintenance events] --> Relay[Secret-free event relay]
-    Relay --> Guard[Live entity, head, pause, and budget validation]
-    Guard --> CloudWorker[Pinned Claude Code Action]
-    Environment --> CloudWorker
-    CloudWorker --> DraftPR[Draft PR, checks, and review fixes]
-    DraftPR --> OwnerMerge[Owner review and merge]
-    ReviewRequest[shadowclone review or a review comment] --> ReviewCollect[Base-commit standards, diff, and history]
-    ReviewCollect --> ReviewRules[Built-in rules on added lines]
-    ReviewCollect --> ReviewToolchain[Repository toolchain without secrets]
-    ReviewRules --> ReviewSkill[shadowclone-review skill with refuter subagents, read-only]
-    ReviewToolchain --> ReviewSkill
-    ReviewSkill --> ReviewRank[Rank, cap, and redact]
-    ReviewRules --> ReviewRank
-    ReviewRank --> ReviewMarkdown[Local markdown file]
-    ReviewRank --> ReviewPost[COMMENT review posted by the publish job]
-    Agents --> Sessions
-    Learning --> PiBridge[Private Pi model bridge]
-    PiBridge --> PiRegistry[Pi provider-neutral registry, empty tools]
-    PiRegistry --> Models[Model configured in Pi]
-    Skills --> Eval[Preference study]
-    Original[Original library and instructions] --> Eval
-    FixedFixtures[Reviewed fixed synthetic cases and independent target] --> FixedEval[Five-setup preference evaluation]
-    Heldout[Private held-out cases and public seals] --> Qualification[Separately authorized qualification]
-    Qualification --> FixedEval
-    Told[Independent handwritten intended skills] --> FixtureRouting
-    RoutingLibrary[20 synthetic skills and 12 cases] --> RoutingEval[Separate routing experiment]
-    RoutingEval --> Workspaces
-    SyntheticSkills[Unchanged synthetic skill library] --> FixtureRouting[Initialization with learning disabled]
-    SyntheticSkills --> FixedEval
-    FixtureRouting --> FixedEval
-    SyntheticCorrections[Fixed synthetic corrections] --> FixtureConsent[Private source consent and managed policy]
-    FixtureConsent --> Redaction
-    FixtureGrant[Explicit bounded learning scope] --> Learning
-    Skills --> FixtureFreeze[Three private preparation freezes shared by both hosts]
-    FixtureFreeze --> FixedEval
-    FixedEval --> Workspaces
-    FixedEval --> Homes
-    Eval --> Workspaces[Disposable synthetic workspace or read-only advice mount]
-    Eval --> Homes[Disposable agent home per condition]
-    Workspaces --> Candidates[Native coding-agent runs]
-    Homes --> Candidates
-    EvalGrant[Explicit evaluation call scope] --> Candidates
-    FixedEval --> NativeQualification[Model-free Codex filesystem qualification]
-    NativeQualification --> Candidates
-    Candidates --> Checks[Local acceptance checks without credentials or network]
-    Candidates --> FixedGrades[Fixed deterministic preference graders]
-    Candidates --> Judges[Blinded provider judgments of private evidence]
-    Checks --> Receipts[Private receipts and bounded reports]
-    Judges --> Receipts
-    FixedGrades --> Receipts
-    Candidates --> Diagnostics[Private stage failures and charged attempt ledger]
-    Candidates --> Transport[Private native transport for observation audits]
-    Transport --> Receipts
-    Diagnostics --> QuotaPause[Confirmed provider refusal pauses further dispatch]
-    Diagnostics --> Receipts
+  subgraph Machine["Your machine"]
+    Sources["Consented sessions and memory"] --> Index["sessions: event index with pointers"]
+    Index --> Redaction["resolveRedacted: user text only, redacted"]
+    Redaction --> Learning["learning: reconcile durable guidance"]
+    Learning --> Review["Apply or hold for review"]
+    Review --> Revision["changes: one reversible revision"]
+    Revision --> Delivery["environment: skills and native sections"]
+    Delivery --> Agents["Coding agents"]
+    Agents --> Sources
+    Diff["Pull request diff and base standards"] --> Judge["review: rules, checks, read-only model"]
+  end
+  Learning -- "redacted excerpts, no tools" --> Provider["Model provider through your agent CLI"]
+  Judge -- "diff and read-only file access" --> Provider
+  Delivery -- "reviewed skills" --> Bot["cloud: GitHub bot"]
+  subgraph GitHub["GitHub"]
+    Bot --> Pulls["Draft pull requests and review comments"]
+  end
+  Judge -- "redacted COMMENT review" --> Pulls
+  Pulls --> Owner["Owner review and merge"]
 ```
 
-## Components
+## Trust boundaries
 
-| Component                              | Responsibility                                                                                           |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `src/config/`                          | Source consent and managed policy                                                                        |
-| `src/observe/`, `src/index/`           | Incremental transcript parsing and a rebuildable pointer index                                           |
-| `src/redact/`, `src/signal/`           | Materialize eligible excerpts and identify learning evidence                                             |
-| `src/distill/`, `src/learning/`        | Reconcile guidance within shared call, time, and supported cost limits                                   |
-| `src/environment/`                     | Store evidence, publish skills, migrate installations, and preserve originals                            |
-| `src/skillMaintenance/`, `src/skills/` | Discover consented libraries, preserve ownership, and provide starter workflows                          |
-| `src/builds/`, `src/web/`              | Apply reviewed skill selections through terminal and browser interfaces                                  |
-| `src/voice/`                           | Read consented own GitHub writing and save a reviewed voice description                                  |
-| `src/integrations/`, `src/harness/`    | Install native guidance and repository instructions/checks                                               |
-| `src/engine/`                          | Invoke authenticated agent CLIs                                                                          |
-| `src/cloud/`                           | Export reviewed guidance, register personal Apps, and generate guarded GitHub workflows                  |
-| `src/review/`                          | Collect review context, run built-in rules and toolchain checks, run the review skill, and post results  |
-| `evals/`, `src/changes/`               | Run reviewed learning and routing suites, record workflow outcomes, and retain reversible file revisions |
-| `src/profile/`                         | Legacy profile compatibility and the reconciliation boundary                                             |
+| Boundary                | What crosses it                                    | Control                                                                         |
+| ----------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Source files to index   | Pointers and event metadata, never transcript text | One default-off consent flag for each source. Managed policy can only narrow it |
+| Index to model          | Redacted user text, with labeled agent context     | `resolveRedacted`, then a learning run with no tools and fixed limits           |
+| Model output to files   | Proposed edits to skills and native sections       | Reversible revisions, ownership fingerprints, and kept manual edits             |
+| Browser to local server | Wizard actions                                     | Loopback address, ephemeral token, and origin check                             |
+| Machine to GitHub       | Reviewed skills, secrets, and review text          | Owner approval of an exact preview. Secrets go through standard input           |
+| Evaluation              | Synthetic tasks, receipts, and held-out cases      | Private storage outside every checkout, and an approved scope for each paid run |
 
-The learning service coordinates model execution, reconciliation, pending decisions, and persistence for both CLI and background paths. Its maintenance service selects the active environment or legacy fallback; the skill-maintenance package supplies library primitives and retains a compatibility entry point. The CLI owns prompts and presentation. Source authorization is checked at selection and again when a reference is resolved. Automatic skill writes require separate authorization. Reviewed build edits use the same publication and revision machinery as learning. Later corrections create review signals. An explicitly authorized probe sends redacted installed guidance into an isolated native session; its exact-response assertion does not establish hook delivery or future compliance.
+[Data handling](../data-handling.md) lists every source, local file, and model request.
+
+## How the packages work together
+
+`sessions` indexes events and gives `learning` only the text that the current consent allows. `learning` reconciles that text with the existing guidance and calls the model through `agents`. It holds a proposal for review when the evidence is weak, in conflict, or out of scope.
+
+`environment` publishes accepted guidance as skills and short native sections. It writes through `changes`, so each publication is one revision that `undo` can reverse. `builds` and `harness` use the same publication path for terminal and browser choices and for repository setup. The CLI owns prompts and output.
+
+The code checks source authorization when it selects an event and again when it resolves the reference of the event. Automatic skill writes need a separate authorization. A later correction creates a review signal. An authorized probe sends redacted guidance to an isolated native session. Its exact-response check does not prove hook delivery or future compliance.
+
+## Delegated work
+
+Outside the cloud bot, Shadowclone does not commit, push, or act on GitHub itself. Delegated work is the `shadowclone-work` skill. It runs in your agent session and acts through the tools and permissions of that session. See [delegated work](../guides/delegated-work.md). The optional Claude subagent runs in the same way.
+
+The cloud bot is a separate contract. The owner reviews a frozen skills bundle and chooses the repositories. GitHub Actions run the same skill, and the owner merges. See [cloud bot](../guides/cloud-bot.md) and [data handling](../data-handling.md#personal-github-clones).
+
+Earlier versions had a task harness and a headless `run` command. [Design record 029](../design/029-narrow-the-surface.md) explains the `run` removal. [Design record 030](../design/030-shadowclone-work-eval.md) explains the harness removal.
+
+Provider transcripts stay where the provider keeps them. Later learning still needs source consent and durable user guidance. A review comment, a merge, a deletion, or a successful agent result does not establish a preference.
 
 ## Read by topic
 
 - [Capture](01-capture.md): source adapters, eligible content, and incremental indexing.
 - [Learning and skill delivery](02-profile.md): evidence, publication, scope, and migration.
 - [Engine](03-engine.md): provider capabilities and execution limits.
-- [Acting](04-acting.md): how delegated work acts through the host agent.
-- [Privacy boundaries](05-privacy.md): redaction, ownership, and execution isolation.
-- [Development priorities](06-roadmap.md): remaining qualification and research work.
-- [Organization boundaries](07-enterprise.md): scope and managed policy.
-- [Related approaches](08-landscape.md): how skills, memory, and transcript learning fit together.
-- [Evaluation](09-evaluation.md): reviewed learning and routing suites, private execution, and family-weighted results.
-
-The [data-handling guide](../data-handling.md) owns the source and storage inventory. [Design records](../design/README.md) explain historical decisions; their original implementation details may have been superseded.
+- [Evaluations](../../evals/README.md): the suites, what they measure, and how to authorize paid runs.
+- [Data handling](../data-handling.md): sources, storage, model requests, removal, and the rules that a change must keep.
+- [Enterprise controls](../guides/enterprise.md): scope and managed policy.
+- [Design records](../design/README.md): historical decisions. Later records can replace earlier designs.

@@ -33,3 +33,21 @@ The project succeeds if it reduces the work of keeping an agent environment usef
 ## Keeping control
 
 Coding sessions can hold sensitive material. Source access is opt-in, guidance stays editable, and changes are reversible. Model work uses the agent provider that you select, so local storage does not mean that the analysis stays offline. [Data handling](data-handling.md) explains that boundary.
+
+## Related approaches
+
+Shadowclone maintains guidance that existing coding agents use. Instruction files, skills, and memory stay part of that setup.
+
+| Approach                | Useful for                                | Maintenance concern                                              |
+| ----------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
+| Repository instructions | Explicit project conventions              | Keeping them current and readable by the chosen agents           |
+| Personal skills         | Reusable task workflows                   | Routing, ownership, supporting resources, and conflicting copies |
+| Native memory           | Context carried between sessions          | Scope, accuracy, retention, and correction                       |
+| Transcript analysis     | Finding repeated steering and corrections | Consent and whether evidence justifies durable guidance          |
+| Evaluation              | Checking behavior under stated guidance   | Fair baselines, judge errors, and correctness                    |
+
+Shadowclone reads enabled sessions and memory, reconciles durable guidance, and updates the relevant skills. It keeps evidence and revisions on your machine, so you can inspect or reverse a change. Native instructions route agents to the right workflows.
+
+The installed agent CLI avoids a separate credential setup. Requests follow the limits of the provider, and they send authorized input to that provider. [Data handling](data-handling.md) describes these boundaries.
+
+Well-maintained instructions may already give you what you need. The useful comparison is the effort and the quality of keeping that setup current. More guidance can help, change nothing, or cause a conflict.

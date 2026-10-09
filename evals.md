@@ -149,4 +149,9 @@ The design applies fixed inputs, programmatic checks, isolated execution, and he
 
 It does not show full conformity. Production representativeness, independent expert agreement, and model-effort scaling stay unproven. No autonomous hillclimbing ran.
 
-The [contributor guide](docs/guides/evaluations.md) explains the frozen inputs, the private artifact boundaries, offline validation, preparation reuse, and the approved execution scopes. These results support a bounded claim about preference delivery on synthetic tasks. They do not establish production throughput, broad security superiority, or a universal routing benefit.
+The [evaluations guide](evals/README.md) explains the frozen inputs, the private artifact boundaries, offline validation, preparation reuse, and the approved execution scopes. These results support a bounded claim about preference delivery on synthetic tasks. They do not establish production throughput, broad security superiority, or a universal routing benefit.
+
+## Other evaluations
+
+- [Pull request review](evals/pr-review/README.md): precision of reviewers on merged pull requests.
+- [No-comments](evals/no-comments/README.md): code readability with and without a comment ban.

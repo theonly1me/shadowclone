@@ -1,6 +1,6 @@
 # Capture and indexing
 
-Capture reads enabled sources and normalizes them into events. The [source inventory](../data-handling.md#sources) lists locations and consent settings. Definitions live in `src/config/schema.ts`; adapters live in `src/observe/`.
+Capture reads enabled sources and normalizes them into events. The [source inventory](../data-handling.md#sources) lists locations and consent settings. Definitions live in `packages/core/src/config/schema.ts`. Adapters live in `packages/sessions/src/observe/adapters/`.
 
 ## Consent and discovery
 
@@ -12,7 +12,7 @@ A new source, a wider slice of a file, or reading contents where only names were
 
 ## Events and text references
 
-`AgentEvent` records source, session and event identity, ordering, timestamp, working directory, kind, tool metadata, and an optional `TextRef`. See `src/observe/types.ts` for the types.
+`AgentEvent` records source, session and event identity, ordering, timestamp, working directory, kind, tool metadata, and an optional `TextRef`. See `packages/sessions/src/observe/types.ts` for the types.
 
 The event index does not contain transcript text. A file reference selects a bounded byte range. A Cursor reference selects a text field in a content-addressed SQLite blob. `resolveRedacted` checks the reference and redacts the selected text before it becomes learning input.
 

@@ -10,7 +10,7 @@ The documentation was long, and parts of it were out of date. Agent lists left o
 
 **Bun workspaces and Turborepo.** The repository is a Bun workspace with the isolated linker, so a package can import only the dependencies that it declares. Turborepo runs typecheck, lint, test, and build for each package and caches the results. Bun alone runs scripts in dependency order, but it has no task cache.
 
-**Packages.** Code moves to `packages/<name>`. Each package is `@shadowclone/<name>`, is private, and exports its public surface from `src/index.ts`. Packages import each other only by name, plus a `/testing` subpath for fixtures and a `/browser` subpath for modules that the web client can load.
+**Packages.** Code moves to `packages/<name>`. Each package is `@shadowclone/<name>`, is private, and exports its public surface from `src/index.ts`. Packages import each other only by name, plus a `/testing` subpath for fixtures and a `/browser` subpath for modules that the web client can load. The packages with a `/browser` subpath are `builds`, `cloud`, `environment`, and `learning`.
 
 | Package       | Purpose                                                                                     |
 | ------------- | ------------------------------------------------------------------------------------------- |
@@ -58,9 +58,13 @@ graph BT
 
 **One published package.** Only `@shadowclone/cli` goes to npm. Its build bundles the workspace packages, and a stage step writes the published manifest from an allowlist. The tarball keeps the same files, `bin`, and dependencies. Release Please keeps the root component, and it bumps the version in `core/product.json`. Workspace manifests have no version, so a release PR does not change `bun.lock`.
 
+**Package guides.** Every workspace has an `AGENTS.md` and a `CLAUDE.md`. This covers the 16 packages, `evals`, and `tooling`. `CLAUDE.md` holds only `@AGENTS.md`, because Codex reads `AGENTS.md` files and Claude Code loads a nested `CLAUDE.md` when it reads a file in that folder. A guide states the purpose of the package and the modules that it owns. It also lists the rules that a change must keep and how to run the tests.
+
+A generated facts block in each guide lists the package name, the dependencies, and the export subpaths. `bun run guides` writes the block from `package.json`. Lint fails when a guide is missing, when `CLAUDE.md` differs, or when the block is out of date. An agent that changes the purpose, the public exports, the dependencies, or a rule updates the guide in the same commit. The root `AGENTS.md` states this rule.
+
 **Plain English is always on.** The bundled skill `write-plain-english` gets the metadata `shadowclone-always-on: "true"`. Selection and routing include it whatever the build choices are, and both wizards show it as locked on. `shadowclone sync` adds it to existing builds. Its routing line is "before you write any text that a person reads".
 
-**Documentation.** Every Markdown file except `CHANGELOG.md` uses ASD-STE100 Simplified Technical English at about 80% strictness. The lint step runs `check-ste` and a relative link check on all Markdown. The README leads with what Shadowclone does, then a quick start, the bundled skills, results, privacy, and links to guides.
+**Documentation.** Every Markdown file except `CHANGELOG.md` uses ASD-STE100 Simplified Technical English at about 80% strictness. The lint step runs `check-ste` and a relative link check on all Markdown (`tooling/src/prose.ts`). The bundled skills, the preferences, and test fixtures have their own checks. The README leads with what Shadowclone does, then a quick start, the bundled skills, results, privacy, and links to guides.
 
 **Tests stay only when they add value.** The cleanup removes a test that repeats another test or checks only a constant, a copied string, or mock calls. It also removes a test of an inner step that a higher test covers. Tests on privacy, consent, redaction, file ownership, migration, cloud secrets, and CLI output stay. The line coverage of each source file must not drop without a stated reason.
 
@@ -77,3 +81,4 @@ The source checkout locates `skills/` and `preferences/` from the workspace root
 - The staged tarball has the same file list as before, except the bundled HTML path.
 - The installed tarball runs `--help`, `--version`, `skills`, `init --status --json`, MCP `tools/list`, and the wizard on a synthetic home folder with the same output as before.
 - `tooling/src/boundaries.ts` reports no import that leaves its package or breaks the graph.
+- `bun run guides` makes no change, and `bun run lint` reports no prose error, no broken link, and no stale guide.

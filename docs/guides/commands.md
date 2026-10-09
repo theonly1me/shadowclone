@@ -117,4 +117,4 @@ Each flag has a `--no-` form. If you pass one consent flag, you must pass all th
 
 ## Contributor commands
 
-The [evaluation guide](evaluations.md) explains the contributor benchmark.
+The [evaluation guide](../../evals/README.md) explains the contributor benchmark.

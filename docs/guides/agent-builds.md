@@ -47,8 +47,9 @@ A private build cannot weaken a shared requirement. A shared skill cannot contai
 
 The character sheet names your build. It shows a short profile, three abilities tied to your equipped skills, and one tradeoff. Five seconds after your last equip change, the wizard asks your fast model for a new name.
 
-- On Claude Code, the fast model is Haiku at low effort with thinking off.
-- On Codex, the fast model is `gpt-6-luna` at low effort.
+- On Claude, the fast model is the `haiku` model alias at low reasoning effort. Shadowclone asks for thinking off. Some Haiku models always think, so that request can have no effect.
+- On Codex, the fast model is a fixed small model preset at low reasoning effort. Shadowclone sends no thinking setting.
+- Pi uses your saved Pi model. Other engines use their own default model.
 - The sheet names the engine and the model that wrote the name.
 
 A saved build that you open without a change shows **Name my build**, so opening the wizard makes no model request. If naming fails, the sheet shows the error and a **Retry** button. **Turn naming off** stops all naming requests in this browser.
