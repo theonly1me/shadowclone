@@ -38,6 +38,8 @@ The GitHub clone works on issues and pull requests, but it cannot review one. A 
 
 The CLI runs from the runner's temporary directory, so the PR's `bunfig.toml` and package files never load. The review jobs pin `@shadowclone/cli` to the rendering version, Claude Code 2.1.286, and Bun 1.4.2. `reviewModel` in the clone configuration defaults to `claude-opus-5-5`.
 
+**Branch review.** `shadowclone review --base <ref>` reviews the committed head of the current branch without a pull request. The base is the merge base of the head and `<ref>`. Without `--base`, the base is the merge base with `origin/HEAD`. The commit messages give the title and the description: one commit gives its subject and its body, and more commits give the latest subject and every message. The repository name comes from a GitHub `origin` remote, or it is `local/<folder>`. Evidence shows plain `path:line` locations, because the head commit may not be on GitHub. The review leaves out uncommitted changes and says so. A branch review needs no GitHub access, so an evaluation can run on cases that exist only on one machine. `--cloud` needs a pull request number.
+
 **Setup.** `--cloud` reads the clone configuration from the installed relay workflow. Without a clone, it starts the bot wizard. With a clone that cannot review, it opens a draft update PR that renders the workflows again.
 
 ## Consequences
@@ -69,6 +71,7 @@ A review sends the PR text, the diff, the standards, the history, rule hits, too
   - redaction and mention neutralization
   - the review isolation arguments
   - guard routing
+  - branch facts: the merge base, the commit messages, an unknown base, and a branch with no commits
   - the credentials of each rendered job
 - `actionlint` accepts the rendered workflows.
 - A local run on a merged PR finished in 52 seconds with a clean worktree list.
