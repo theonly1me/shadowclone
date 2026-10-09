@@ -28,6 +28,8 @@ export async function handleAccountSetup(
       repository: input.repository,
       botLogin: input.botLogin,
       approveSkills: input.approveSkills,
+      engine: input.engine,
+      codexAuth: input.codexAuth,
     });
 
     return browserJson({

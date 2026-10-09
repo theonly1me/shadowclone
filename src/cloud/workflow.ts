@@ -17,6 +17,7 @@ export const actionPins = {
 export const reviewVersions = {
   shadowclone: packageManifest.version,
   claudeCode: "2.1.286",
+  codex: "0.159.0",
   bun: "1.4.2",
 } as const;
 
@@ -28,7 +29,7 @@ export function renderWorkflows(input: Clone): Record<string, string> {
     configured,
     pins: actionPins,
     versions: reviewVersions,
-    prompt: cloudPrompt,
+    prompt: cloudPrompt(clone.engine),
   });
   const relay = `name: Shadowclone relay
 on:

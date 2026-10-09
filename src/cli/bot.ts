@@ -9,7 +9,8 @@ import { cloneStatus, readInstallation } from "../cloud/status";
 import { setUpBotInTerminal } from "./botSetup";
 import { runWebWizard } from "./webWizard";
 
-const setupUsage = "Use shadowclone bot setup [--bot login] [--app] [--repo owner/repository] [--yes] [--no-open].";
+const setupUsage =
+  "Use shadowclone bot setup [--bot login] [--engine claude|codex] [--codex-auth api-key|plan] [--app] [--repo owner/repository] [--yes] [--no-open].";
 
 function flagValue(options: { readonly arguments: readonly string[]; readonly flag: string }): string | null {
   const index = options.arguments.indexOf(options.flag);
@@ -20,20 +21,31 @@ function flagValue(options: { readonly arguments: readonly string[]; readonly fl
 async function setup(arguments_: readonly string[]): Promise<void> {
   const repository = flagValue({ arguments: arguments_, flag: "--repo" });
   const botLogin = flagValue({ arguments: arguments_, flag: "--bot" });
-  const known = new Set(["--app", "--yes", "--no-open", "--repo", "--bot"]);
-  const values = new Set([repository, botLogin]);
+  const engine = flagValue({ arguments: arguments_, flag: "--engine" }) ?? "claude";
+  const codexAuth = flagValue({ arguments: arguments_, flag: "--codex-auth" }) ?? "api-key";
+  const known = new Set(["--app", "--yes", "--no-open", "--repo", "--bot", "--engine", "--codex-auth"]);
+  const values = new Set([repository, botLogin, engine, codexAuth]);
 
   if (
     (repository !== null && !/^[\w.-]+\/[\w.-]+$/.test(repository)) ||
     (botLogin !== null && !/^[A-Za-z0-9-]{1,39}$/.test(botLogin)) ||
     (botLogin !== null && arguments_.includes("--app")) ||
+    (engine !== "claude" && engine !== "codex") ||
+    (codexAuth !== "api-key" && codexAuth !== "plan") ||
     arguments_.some((argument) => !known.has(argument) && !values.has(argument))
   ) {
     throw new Error(setupUsage);
   }
 
   if (botLogin !== null) {
-    await setUpBotInTerminal({ repository, botLogin, yes: arguments_.includes("--yes"), open: !arguments_.includes("--no-open") });
+    await setUpBotInTerminal({
+      repository,
+      botLogin,
+      engine,
+      codexAuth,
+      yes: arguments_.includes("--yes"),
+      open: !arguments_.includes("--no-open"),
+    });
     return;
   }
 
@@ -114,7 +126,7 @@ export async function botCommand(arguments_: readonly string[]): Promise<void> {
     return;
   }
 
-  console.log("shadowclone bot setup [--bot login] [--app] [--repo owner/repository] [--yes] [--no-open]");
+  console.log("shadowclone bot setup [--bot login] [--engine claude|codex] [--codex-auth api-key|plan] [--app] [--repo owner/repository] [--yes] [--no-open]");
   console.log("shadowclone bot export --skill shadowclone-work [--skill name] --output folder");
   console.log("shadowclone bot status [--repo owner/repository]");
 }

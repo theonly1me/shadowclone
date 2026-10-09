@@ -41,12 +41,28 @@ For each step that needs the owner, setup opens one GitHub page:
 
 **The default branch stays protected.** The `shadowclone default branch` ruleset restricts updates and deletion of the default branch. In App mode, it exempts the admin, maintain, and write roles, as before. In account mode, the bot has the write role, so the ruleset exempts only the admin and maintain roles. In a personal repository, only the owner can update the default branch. In an organization repository, write-role members need an admin or a maintainer to merge, and setup says so.
 
+**Long runs keep their work.** The work job stops at 180 minutes, and the agent step stops at 170 minutes. There is no turn cap. A last step runs even after a timeout or a failure. When the checkout is on the work branch, which is never the default branch, and the request is not paused, the step commits the remaining changes as the bot and pushes them.
+
+**Codex is the second agent.** With `--engine codex`, the worker runs a pinned Codex CLI with the skills in its home and the native rules as its `AGENTS.md`. An OpenAI API key signs in through `codex login --with-api-key`.
+
+A ChatGPT plan login is experimental, and it needs a machine account:
+
+- The job restores `auth.json` from `CODEX_AUTH_JSON`.
+- It runs one job at a time for each repository.
+- It writes the refreshed file back with the bot token, because Codex rotates the refresh token. If GitHub refuses the write, the job warns.
+
+The Codex runner also returns a refreshed login to the user's Codex home after a local run, unless that home changed meanwhile.
+
+A Codex review runs under its own permission profile. The shell can read only the checkout and the minimal system paths. It cannot read the Codex home or the run's temporary folder, and it has no network. Variables that hold keys, secrets, or tokens are removed from its environment. Web search is live only when the review network is on.
+
 ## Consequences
 
 - The owner creates a second GitHub account once, with its own email. GitHub can ask for 2FA. A paid organization charges a seat for it.
 - The bot token reaches every repository that the bot is invited to. Setup invites it only to the target repository.
 - An installation from an earlier version has no skills repository. Its `--cloud` request asks the owner to run setup again.
 - The 48 KB limit and the guidance secret are removed.
+- A run that hits the time limit leaves a commit named `chore: save unfinished shadowclone work`, which a squash merge removes.
+- An OpenAI API key bills per token. A plan login can stop working when another machine rotates its token, and then the owner adds a fresh `auth.json`.
 
 ## Verification
 
@@ -57,6 +73,7 @@ For each step that needs the owner, setup opens one GitHub page:
   - the skills push and the deploy key, with a fake `gh`
   - an export larger than 48 KB
 - `actionlint` accepts the rendered workflows.
+- Codex's own sandbox command confirmed on macOS that the review profile reads the checkout, refuses the Codex home, the temporary folder, and other home files, and refuses writes.
 - A live setup with a machine account on a private repository: the owner adds the tokens on GitHub, merges the setup PR, and `@<bot>` on an issue opens a PR with commits by the bot.
 
 ## Data handling

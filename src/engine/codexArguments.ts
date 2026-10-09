@@ -1,13 +1,40 @@
 import path from "node:path";
 import { canonicalPath } from "../paths";
 import { evaluationCommand } from "./evaluationIsolation";
+import { userCodexHome } from "./codexHome";
 import { validateEngineExecution } from "./execution";
 import type { EngineRunOptions, PermissionMode } from "./types";
 
 const evaluationProfileName = "shadowclone-evaluation";
+const reviewProfileName = "shadowclone-review";
+
+function reviewPermissionValue(options: { readonly cwd: string; readonly hiddenPaths: readonly string[] }): string {
+  const filesystem = [
+    `${JSON.stringify(":root")}="deny"`,
+    `${JSON.stringify(":minimal")}="read"`,
+    `${JSON.stringify(canonicalPath(options.cwd))}="read"`,
+    ...options.hiddenPaths.map((hiddenPath) => `${JSON.stringify(canonicalPath(hiddenPath))}="deny"`),
+  ];
+
+  return `{extends=":read-only",filesystem={${filesystem.join(",")}},network={enabled=false}}`;
+}
+
+function validateCodexReview(options: EngineRunOptions): void {
+  if (options.systemPromptFile !== undefined) {
+    throw new Error("Review cannot load a system prompt file");
+  }
+
+  if (options.permissionMode !== "dontAsk") {
+    throw new Error("Review requires the dontAsk permission mode");
+  }
+}
 
 export function validateCodexOptions(options: EngineRunOptions): void {
-  validateEngineExecution(options);
+  if (options.execution.purpose === "review") {
+    validateCodexReview(options);
+  } else {
+    validateEngineExecution(options);
+  }
 
   if (options.sessionId !== undefined) {
     throw new Error("Codex cannot set a caller-provided session id");
@@ -115,6 +142,18 @@ export function buildCodexArguments(options: {
       "-c",
       `shell_environment_policy=${shellEnvironmentValue(options.temporaryDirectory)}`,
     );
+  } else if (options.run.execution.purpose === "review") {
+    arguments_.push(
+      "-c",
+      `default_permissions=${JSON.stringify(reviewProfileName)}`,
+      "-c",
+      `permissions.${reviewProfileName}=${reviewPermissionValue({
+        cwd: options.run.cwd,
+        hiddenPaths: [userCodexHome(), ...(options.temporaryDirectory ? [options.temporaryDirectory] : [])],
+      })}`,
+      "-c",
+      'shell_environment_policy={inherit="core",ignore_default_excludes=false}',
+    );
   } else {
     arguments_.push("--sandbox", "read-only");
   }
@@ -146,7 +185,7 @@ export function buildCodexArguments(options: {
     "-c",
     "features.multi_agent_v2=false",
     "-c",
-    'web_search="disabled"',
+    `web_search="${options.run.execution.purpose === "review" && options.run.execution.network === true ? "live" : "disabled"}"`,
   );
 
   if (

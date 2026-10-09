@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { isolatedCodexHome, userCodexHome } from "./codexHome";
+import { isolatedCodexHome, returnRefreshedLogin, userCodexHome } from "./codexHome";
 
 test("an isolated codex home carries authentication and no personal guidance", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "codex-home-"));
@@ -51,4 +51,29 @@ test("the user codex home is used when no isolation directory is given", () => {
   expect(userCodexHome({ environment: { CODEX_HOME: "/custom" } })).toBe(
     "/custom",
   );
+});
+
+test("a login that Codex refreshed during a run goes back to the user's home, unless the home changed meanwhile", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "codex-login-"));
+  const sourceHome = path.join(root, "source");
+  const isolatedHome = path.join(root, "isolated");
+
+  await mkdir(sourceHome, { recursive: true });
+  await mkdir(isolatedHome, { recursive: true });
+
+  try {
+    await Bun.write(path.join(sourceHome, "auth.json"), '{"refresh":"first"}');
+    await Bun.write(path.join(isolatedHome, "auth.json"), '{"refresh":"second"}');
+    await returnRefreshedLogin({ isolatedHome, sourceHome, original: '{"refresh":"first"}' });
+
+    expect(await Bun.file(path.join(sourceHome, "auth.json")).text()).toBe('{"refresh":"second"}');
+
+    await Bun.write(path.join(sourceHome, "auth.json"), '{"refresh":"from another login"}');
+    await Bun.write(path.join(isolatedHome, "auth.json"), '{"refresh":"third"}');
+    await returnRefreshedLogin({ isolatedHome, sourceHome, original: '{"refresh":"second"}' });
+
+    expect(await Bun.file(path.join(sourceHome, "auth.json")).text()).toBe('{"refresh":"from another login"}');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

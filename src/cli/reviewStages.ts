@@ -2,15 +2,17 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { runClaudeCode } from "../engine/claudeCode";
+import { runCodex } from "../engine/codex";
 import { reasoningEfforts, type ReasoningEffort } from "../engine/types";
 import { publishReview, reviewResultSchema } from "../review";
+import { defaultCodexReviewModel } from "../review/analyze";
 import { analyzeStage, checksFileSchema, checksStage, packetFileSchema, prepareStage } from "../review/stages";
 import { defaultReviewModel } from "./reviewArguments";
 
 const stageUsage = [
   "shadowclone review prepare --repo owner/repository --pr <number> --checkout <directory> --output <file> [--head <sha>] [--network on|off]",
   "shadowclone review checks --packet <file> --checkout <directory> --output <file>",
-  "shadowclone review analyze --packet <file> [--checks <file>] --checkout <directory> --output <file> [--model <id>] [--effort <level>] [--network on|off]",
+  "shadowclone review analyze --packet <file> [--checks <file>] --checkout <directory> --output <file> [--engine claude|codex] [--model <id>] [--effort <level>] [--network on|off]",
   "shadowclone review publish --input <file>",
 ].join("\n");
 
@@ -92,7 +94,8 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
     }
   },
   analyze: async (arguments_) => {
-    const flags = readFlags({ arguments: arguments_, allowed: ["--packet", "--checks", "--checkout", "--output", "--model", "--effort", "--network"] });
+    const flags = readFlags({ arguments: arguments_, allowed: ["--packet", "--checks", "--checkout", "--output", "--engine", "--model", "--effort", "--network"] });
+    const engine = flags.get("--engine") ?? "claude";
     const effort = flags.get("--effort") ?? null;
     const checksFile = flags.get("--checks");
 
@@ -100,6 +103,10 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
 
     if (effort !== null && !isReasoningEffort(effort)) {
       throw new Error(`Choose an effort from ${reasoningEfforts.join(", ")}.`);
+    }
+
+    if (engine !== "claude" && engine !== "codex") {
+      throw new Error("Choose --engine claude or --engine codex.");
     }
 
     if (network !== "on" && network !== "off") {
@@ -110,7 +117,13 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
       packet: packetFileSchema.parse(await Bun.file(path.resolve(required({ flags, name: "--packet" }))).json()),
       checks: checksFile === undefined ? null : checksFileSchema.parse(await Bun.file(path.resolve(checksFile)).json()),
       checkout: path.resolve(required({ flags, name: "--checkout" })),
-      reviewModel: { runner: runClaudeCode, model: flags.get("--model") ?? defaultReviewModel, effort, network: network === "on" },
+      reviewModel: {
+        runner: engine === "codex" ? runCodex : runClaudeCode,
+        engine,
+        model: flags.get("--model") ?? (engine === "codex" ? defaultCodexReviewModel : defaultReviewModel),
+        effort,
+        network: network === "on",
+      },
     });
 
     await writeJson({ file: required({ flags, name: "--output" }), value: result });

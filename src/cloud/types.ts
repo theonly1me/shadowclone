@@ -34,10 +34,16 @@ export const cloneSchema = z
     maximumRuns: z.number().int().min(1).max(100).default(10),
     reviewModel: z.string().regex(/^[\w.-]+$/).default("claude-opus-5-5"),
     reviewNetwork: z.boolean().default(true),
+    engine: z.enum(["claude", "codex"]).default("claude"),
+    codexAuth: z.enum(["api-key", "plan"]).default("api-key"),
   })
   .refine((clone) => (clone.identity.kind === "app") === clone.botLogin.endsWith("[bot]"), {
     message: "An App bot login ends with [bot], and a machine account login does not.",
     path: ["botLogin"],
+  })
+  .refine((clone) => clone.codexAuth === "api-key" || (clone.engine === "codex" && clone.identity.kind === "account"), {
+    message: "A ChatGPT plan login needs Codex and a machine account bot.",
+    path: ["codexAuth"],
   });
 
 export type Clone = z.infer<typeof cloneSchema>;

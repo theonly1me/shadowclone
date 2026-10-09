@@ -2,6 +2,7 @@ import type { BuildContext } from "../../builds/types";
 import type { GitRemoteReader } from "../../signal";
 import { exportGuidance } from "../export";
 import { saveInstallation } from "../status";
+import { defaultCodexReviewModel } from "../../review/analyze";
 import { cloneSchema, type Clone } from "../types";
 import { inviteBot, readBotAccess, readBotAccount } from "./account";
 import { readCloudChecklist, type ChecklistItem } from "./checklist";
@@ -43,6 +44,8 @@ export async function setUpAccountClone(
     readonly repository: string;
     readonly botLogin: string;
     readonly approveSkills: boolean;
+    readonly engine: "claude" | "codex";
+    readonly codexAuth: "api-key" | "plan";
     readonly call: GhApiCall;
     readonly command: GhCommand;
     readonly readRemote?: GitRemoteReader;
@@ -50,7 +53,11 @@ export async function setUpAccountClone(
 ): Promise<AccountSetupOutcome> {
   const { call, command } = options;
 
-  await assertCloudPolicy(options.paths);
+  await assertCloudPolicy({ paths: options.paths, engine: options.engine });
+
+  if (options.codexAuth === "plan" && options.engine !== "codex") {
+    throw new Error("A ChatGPT plan login works only with the Codex engine.");
+  }
 
   const { owner, repository } = await readSetupTarget(options);
   const bot = await readBotAccount({ call, login: options.botLogin });
@@ -121,6 +128,9 @@ export async function setUpAccountClone(
     requesters: [owner],
     reviewerBots: ["coderabbitai[bot]", "github-actions[bot]"],
     maximumRuns: 10,
+    engine: options.engine,
+    codexAuth: options.codexAuth,
+    reviewModel: options.engine === "codex" ? defaultCodexReviewModel : "claude-opus-5-5",
   });
   const pullUrl = await openWorkflowChange({ clone, api: githubApiThroughGh(call) });
 

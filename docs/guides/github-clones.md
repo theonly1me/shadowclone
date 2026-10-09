@@ -28,6 +28,14 @@ Shadowclone never reads your tokens. You enter them on GitHub. `shadowclone bot 
 
 To update your skills later, run setup again. It pushes only changed files and replaces the deploy key.
 
+## Use Codex
+
+Add `--engine codex` to the setup, or choose Codex in the browser. The bot then works and reviews with Codex, and the checklist asks for `OPENAI_API_KEY`. An API key bills per token.
+
+`--codex-auth plan` uses your ChatGPT plan instead. It is experimental and needs a machine account bot. Run `codex login` on your machine, and add the content of `~/.codex/auth.json` as `CODEX_AUTH_JSON`. Each run stores the refreshed login back in that secret, and runs on the repository wait for each other. If you use the same login on another machine, add a fresh `auth.json` when the bot can no longer sign in.
+
+A Codex review can read only the pull request checkout. It cannot read its own login or the environment's secrets.
+
 ## Set up a GitHub App bot
 
 Run `shadowclone bot setup` without `--bot`, and choose **Use a GitHub App instead** in the browser. Review the skill files, register and name the App, and install it with **Only select repositories**. Setup uploads the App key, which it created, and opens the setup pull request. Add `CLAUDE_CODE_OAUTH_TOKEN` on the environment page, then merge the pull request.
@@ -42,7 +50,7 @@ Mention the bot with a request on an issue or a same-repository PR: `@octo-shado
 
 When the worker accepts a request, it reacts with `eyes` as the clone. The reaction goes on the tagged comment, or on the issue for a new issue. A review body or a CI-started run has no reaction. A failed reaction logs a warning and the work continues.
 
-The clone follows the exported `shadowclone-work` skill and native engineering rules. It repairs checks, conflicts, and valid reviewer findings before it marks the PR ready. It reports a check that waits for a human and does not retrigger it. Each run has a 20-minute limit and 60 turns. Each branch has a daily limit of ten worker runs. A run can stop before the finish line; inspect its Actions result before requesting another attempt.
+The clone follows the exported `shadowclone-work` skill and native engineering rules. It repairs checks, conflicts, and valid reviewer findings before it marks the PR ready. It reports a check that waits for a human and does not retrigger it. Each run can work for up to 3 hours. When a run stops, for example at the time limit, its last step commits the remaining changes as the bot and pushes them to the work branch, unless the request is paused. Each branch has a daily limit of ten worker runs. A run can stop before the finish line; inspect its Actions result before requesting another attempt.
 
 When the last GitHub Actions run on a managed PR's head finishes, the clone resumes that PR once, also after its own pushes. Approved reviewer events can resume it too. The default reviewer bot list contains `coderabbitai[bot]` and `github-actions[bot]`. Review findings from repository writers also qualify. To change requesters, reviewers, or limits, review both workflow configurations in a PR.
 
@@ -52,7 +60,7 @@ A fixed finding gets a reply with only its commit hash. The clone resolves fixed
 
 Comment `@<bot> review` as the first line of a comment on a same-repository pull request, or run `shadowclone review <pr> --cloud`. A pull request that a requester opens or marks ready for review gets a review without a comment. The clone posts one review with event `COMMENT`. See [pull request reviews](reviews.md) for what it checks.
 
-A review runs in five jobs. Only the publish job holds the App token. The toolchain job runs the pull request's code with no secrets. The model job holds only the Claude token and never runs that code. `reviewModel` in both workflow configurations chooses the model, and it defaults to `claude-opus-5-5`. `reviewNetwork` set to `false` turns off web search and page fetches for reviews. Reviews count toward the daily branch limit.
+A review runs in five jobs. Only the acknowledge and publish jobs hold the bot token or the App token. The toolchain job runs the pull request's code with no secrets. The model job holds only the Claude token or the Codex login and never runs that code. With a Codex plan login, only its last step gets the bot token, to store the refreshed login. `reviewModel` in both workflow configurations chooses the model. It defaults to `claude-opus-5-5` for Claude and `gpt-6.1-sol` for Codex. `reviewNetwork` set to `false` turns off web search and page fetches for reviews. Reviews count toward the daily branch limit.
 
 A clone that was set up before reviews existed needs updated workflows. `shadowclone review <pr> --cloud` opens a draft pull request with them. Merge it before you ask for a review.
 

@@ -128,6 +128,8 @@ test("setup opens the signup page when the bot account does not exist, and chang
       repository: "sample/project",
       botLogin: "sample-shadow",
       approveSkills: true,
+      engine: "claude",
+      codexAuth: "api-key",
       ...github,
     });
 
@@ -152,6 +154,8 @@ test("setup lists the skill files and waits for approval before it writes anythi
       repository: "sample/project",
       botLogin: "sample-shadow",
       approveSkills: false,
+      engine: "claude",
+      codexAuth: "api-key",
       ...github,
     });
 
@@ -175,6 +179,8 @@ test("an approved setup protects the branch first, keeps tokens off Shadowclone,
       repository: "sample/project",
       botLogin: "sample-shadow",
       approveSkills: true,
+      engine: "claude",
+      codexAuth: "api-key",
       ...github,
     });
 
@@ -207,6 +213,8 @@ test("a machine account setup in an organization repository warns that write-rol
       repository: "sample/project",
       botLogin: "sample-shadow",
       approveSkills: true,
+      engine: "claude",
+      codexAuth: "api-key",
       ...github,
     });
 

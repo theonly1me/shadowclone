@@ -34,7 +34,7 @@ export async function activateClone(
 ): Promise<{ readonly clone: Clone; readonly pullUrl: string | null; readonly checklist: readonly ChecklistItem[] }> {
   const { preview, app, command, api, call } = options;
 
-  await assertCloudPolicy(options.paths);
+  await assertCloudPolicy({ paths: options.paths, engine: "claude" });
 
   const current = await exportGuidance({ ...options, skills: preview.skills });
 

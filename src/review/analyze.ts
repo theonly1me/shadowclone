@@ -6,8 +6,11 @@ import { redactSecrets } from "../redact";
 import { seedSkillsDirectory } from "../skills/library";
 import { type Analysis, analysisSchema } from "./types";
 
+export const defaultCodexReviewModel = "gpt-6.1-sol";
+
 export type ReviewModel = {
   readonly runner: EngineRunner;
+  readonly engine?: "claude" | "codex";
   readonly model: string;
   readonly effort: ReasoningEffort | null;
   readonly network: boolean;
@@ -38,7 +41,9 @@ export async function analyzeReview(options: {
     prompt: options.prompt,
     cwd: options.checkout,
     execution: { purpose: "review", network: options.reviewModel.network },
-    allowedTools: options.reviewModel.network ? [...reviewTools, ...reviewNetworkTools] : reviewTools,
+    ...(options.reviewModel.engine === "codex"
+      ? {}
+      : { allowedTools: options.reviewModel.network ? [...reviewTools, ...reviewNetworkTools] : reviewTools }),
     permissionMode: "dontAsk",
     model: options.reviewModel.model,
     ...(options.reviewModel.effort === null ? {} : { reasoningEffort: options.reviewModel.effort }),

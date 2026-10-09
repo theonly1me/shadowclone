@@ -1,4 +1,4 @@
-import { mentionNames } from "./guard/comment";
+import { claudeWorkStep, codexWorkSteps, jobMinutes, saveWorkStep } from "./agentSteps";
 import { botToken, botTokenSteps, skillsSteps } from "./identitySteps";
 import { reviewJobs, type ReviewPins, type ReviewVersions } from "./reviewJobs";
 import type { Clone } from "./types";
@@ -13,6 +13,20 @@ export function workerWorkflow(options: {
   const { clone, configured, pins } = options;
   const allowed = "steps.validate.outputs.allowed == 'true'";
   const token = botToken(clone);
+  const environment = [
+    `          SHADOWCLONE_ENTITY: \${{ steps.validate.outputs.entity }}`,
+    `          SHADOWCLONE_BRANCH: \${{ steps.validate.outputs.branch }}`,
+    `          SHADOWCLONE_SOURCE: \${{ steps.validate.outputs.source }}`,
+    `          SHADOWCLONE_IDENTIFIER: \${{ steps.validate.outputs.identifier }}`,
+  ].join("\n");
+  const agent =
+    clone.engine === "codex"
+      ? codexWorkSteps({ clone, token, when: allowed, version: options.versions.codex, prompt: options.prompt, environment })
+      : claudeWorkStep({ clone, token, when: allowed, pin: pins.claude, prompt: options.prompt, environment });
+  const concurrencyGroup =
+    clone.engine === "codex" && clone.codexAuth === "plan"
+      ? `shadowclone-${clone.repositoryId}-codex-login`
+      : `shadowclone-${clone.repositoryId}-\${{ needs.guard.outputs.branch }}`;
   const guard = `${configured}
             const { resolveTrigger } = require('./.github/shadowclone/guard/events.cjs');
             const { allowWorker } = require('./.github/shadowclone/guard/policy.cjs');
@@ -74,10 +88,10 @@ jobs:
     needs: guard
     if: needs.guard.outputs.allowed == 'true' && needs.guard.outputs.kind != 'review'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: ${jobMinutes}
     environment: shadowclone
     concurrency:
-      group: shadowclone-${clone.repositoryId}-\${{ needs.guard.outputs.branch }}
+      group: ${concurrencyGroup}
       cancel-in-progress: false
     steps:
       - uses: ${pins.checkout}
@@ -122,29 +136,7 @@ ${skillsSteps({ clone, pins, when: allowed })}
                 labels: ['shadowclone:managed'],
               });
             }
-      - uses: ${pins.claude}
-        if: ${allowed}
-        env:
-          SHADOWCLONE_ENTITY: \${{ steps.validate.outputs.entity }}
-          SHADOWCLONE_BRANCH: \${{ steps.validate.outputs.branch }}
-          SHADOWCLONE_SOURCE: \${{ steps.validate.outputs.source }}
-          SHADOWCLONE_IDENTIFIER: \${{ steps.validate.outputs.identifier }}
-        with:
-          github_token: ${token}
-          claude_code_oauth_token: \${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          bot_id: '${clone.botId}'
-          bot_name: '${clone.botLogin}'
-          allowed_bots: '${[...new Set([...clone.reviewerBots, ...(clone.identity.kind === "app" ? [clone.botLogin] : []), "github-actions[bot]"])].join(",")}'
-          trigger_phrase: '@${mentionNames(clone)[0]}'
-          plugin_marketplaces: \${{ env.SHADOWCLONE_GUIDANCE_DIRECTORY }}
-          plugins: shadowclone-personal@shadowclone-personal
-          claude_args: '--max-turns 60 --permission-mode acceptEdits --allowedTools Bash,Skill --append-system-prompt-file \${{ env.SHADOWCLONE_GUIDANCE_DIRECTORY }}/native.md'
-          prompt: |
-${options.prompt
-  .split("\n")
-  .map((line) => `            ${line}`)
-  .join("\n")}
-          display_report: false
-          show_full_output: false
+${agent}
+${saveWorkStep({ clone, token, when: allowed })}
 ${reviewJobs({ clone, pins, versions: options.versions })}`;
 }

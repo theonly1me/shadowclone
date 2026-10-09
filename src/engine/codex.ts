@@ -4,7 +4,7 @@ import path from "node:path";
 import { redactSecrets } from "../redact";
 import { runProcess } from "../io/process";
 import { runnerEnvironment } from "./environment";
-import { isolatedCodexHome, userCodexHome } from "./codexHome";
+import { isolatedCodexHome, readCodexLogin, returnRefreshedLogin, userCodexHome } from "./codexHome";
 import {
   buildCodexArguments,
   codexProcessArguments,
@@ -59,10 +59,11 @@ async function runCodexProcess(options: {
     ),
   );
 
+  const sourceHome = userCodexHome();
+  const originalLogin = await readCodexLogin(sourceHome);
+  const codexHome = await isolatedCodexHome({ temporaryDirectory });
+
   try {
-    const codexHome = temporaryDirectory
-      ? await isolatedCodexHome({ temporaryDirectory })
-      : undefined;
     const {
       exitCode,
       stdout: stream,
@@ -79,10 +80,7 @@ async function runCodexProcess(options: {
       cwd: options.run.cwd,
       input: prompt,
       signal: options.run.signal,
-      environment: codexProcessEnvironment({
-        temporaryDirectory,
-        ...(codexHome ? { codexHome } : {}),
-      }),
+      environment: codexProcessEnvironment({ temporaryDirectory, codexHome }),
     });
 
     const run = parseCodexStream({
@@ -106,9 +104,8 @@ async function runCodexProcess(options: {
 
     return run;
   } finally {
-    if (temporaryDirectory) {
-      await rm(temporaryDirectory, { recursive: true, force: true });
-    }
+    await returnRefreshedLogin({ isolatedHome: codexHome, sourceHome, original: originalLogin });
+    await rm(temporaryDirectory, { recursive: true, force: true });
   }
 }
 

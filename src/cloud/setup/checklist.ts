@@ -54,6 +54,28 @@ async function environmentState(options: {
   };
 }
 
+function modelToken(clone: Clone): { readonly secret: string; readonly title: string; readonly action: string } {
+  if (clone.engine === "claude") {
+    return {
+      secret: "CLAUDE_CODE_OAUTH_TOKEN",
+      title: "Claude token",
+      action: "Run claude setup-token in a terminal, and add the token to the environment as CLAUDE_CODE_OAUTH_TOKEN.",
+    };
+  }
+
+  return clone.codexAuth === "plan"
+    ? {
+        secret: "CODEX_AUTH_JSON",
+        title: "Codex login (experimental)",
+        action: "Run codex login on your machine, and add the content of ~/.codex/auth.json to the environment as CODEX_AUTH_JSON.",
+      }
+    : {
+        secret: "OPENAI_API_KEY",
+        title: "OpenAI API key",
+        action: "Create an API key in the OpenAI platform, and add it to the environment as OPENAI_API_KEY.",
+      };
+}
+
 export async function readCloudChecklist(options: {
   readonly call: GhApiCall;
   readonly clone: Clone;
@@ -84,14 +106,14 @@ export async function readCloudChecklist(options: {
           action: "Run shadowclone bot setup --app again to upload the App key.",
           links: [environmentLink],
         };
+  const model = modelToken(clone);
   const items: ChecklistItem[] = [
     identity,
     {
       key: "model-token",
-      done: environment.secrets.has("CLAUDE_CODE_OAUTH_TOKEN"),
-      title: "Claude token",
-      action:
-        "Run claude setup-token in a terminal, and add the token to the environment as CLAUDE_CODE_OAUTH_TOKEN.",
+      done: environment.secrets.has(model.secret),
+      title: model.title,
+      action: model.action,
       links: [environmentLink],
     },
     {

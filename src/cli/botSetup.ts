@@ -29,6 +29,8 @@ async function currentRepository(cwd: string): Promise<string> {
 export async function setUpBotInTerminal(options: {
   readonly repository: string | null;
   readonly botLogin: string;
+  readonly engine: "claude" | "codex";
+  readonly codexAuth: "api-key" | "plan";
   readonly yes: boolean;
   readonly open: boolean;
 }): Promise<void> {
@@ -41,6 +43,8 @@ export async function setUpBotInTerminal(options: {
       repository,
       botLogin: options.botLogin,
       approveSkills,
+      engine: options.engine,
+      codexAuth: options.codexAuth,
       call: ghApiCall,
       command: runGh,
     });
