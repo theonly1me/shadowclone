@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -37,4 +37,25 @@ export async function isolatedCodexHome(options: {
   }
 
   return target;
+}
+
+export async function readCodexLogin(home: string): Promise<string | null> {
+  const file = Bun.file(path.join(home, "auth.json"));
+
+  return (await file.exists()) ? file.text() : null;
+}
+
+export async function returnRefreshedLogin(options: {
+  readonly isolatedHome: string;
+  readonly sourceHome: string;
+  readonly original: string | null;
+}): Promise<void> {
+  const refreshed = await readCodexLogin(options.isolatedHome);
+  const current = await readCodexLogin(options.sourceHome);
+
+  if (options.original === null || refreshed === null || refreshed === options.original || current !== options.original) {
+    return;
+  }
+
+  await writeFile(path.join(options.sourceHome, "auth.json"), refreshed, { mode: 0o600 });
 }
