@@ -1,25 +1,26 @@
 # Privacy
 
-Shadowclone runs on your machine. It does not operate a collection service and does not add telemetry.
+Shadowclone runs on your machine. It has no collection service and no telemetry.
 
-## What it reads
-
-Each session, memory, repository, and skill source is disabled until you consent to that source. Setup asks separately about session learning, skill maintenance, and background learning. You can use the browser build editor without enabling learning.
-
-Shadowclone excludes tool results, tool-returned file contents, thinking blocks, and data-access results from learning. It resolves eligible text through its redaction boundary before model work. Redaction reduces exposure but does not guarantee anonymity, so use only material you are authorized to send.
+Each session, memory, repository, and skill source is off until you consent to it. Setup asks three separate questions: session learning, skill maintenance, and background learning. Learning excludes tool results, tool-returned file contents, thinking blocks, and data-access results. Shadowclone redacts eligible text before any model work. Redaction does not guarantee anonymity, so send only material that you may send.
 
 ## What leaves your machine
 
-Opening the browser editor and using the local MCP server do not send data to Shadowclone. Optional learning, skill drafting, and build descriptions use an agent CLI you choose. Consented, redacted inputs go directly through that provider and are governed by its terms.
+The wizard and the local MCP server send nothing to Shadowclone. These features send data to the provider that you choose:
 
-The build description action sends selected skill titles and redacted summaries. It does not send skill bodies, file paths, repository names, or ownership metadata.
+- **Learning, skill maintenance, and build naming:** selected redacted text, or skill titles and redacted summaries.
+- **Voice capture:** your redacted GitHub writing, after you turn on `github-writing`.
+- **Pull request review:** the pull request, its diff, and related files. `--offline` stops web search and the OSV lookup of lockfile package names.
+- **Cloud bot:** your reviewed skills, the repository, and the task. You enter tokens on GitHub, and Shadowclone never reads them.
 
-## Local storage and removal
+The provider and GitHub govern retention of what they receive. [Data handling](docs/data-handling.md) lists every source, request, and file.
 
-Configuration, evidence, revisions, generated skills, and installation records stay in Shadowclone's local state directory or in files you review before applying. Disable background learning with `shadowclone learning disable`, stop automatic skill edits with `shadowclone skills automatic off`, or remove recorded state with `shadowclone forget --all`.
+## Removal
 
-Uninstalling the plugin removes its packaged setup workflow. Use the CLI removal commands for locally installed guidance and state.
+- `shadowclone learning disable` stops background learning.
+- `shadowclone skills automatic off` stops automatic skill edits.
+- `shadowclone forget --all` removes the recorded state.
 
-## Questions and reports
+Local state stays in the state folder. Uninstalling the plugin removes only its setup workflow.
 
-Use [GitHub issues](https://github.com/theonly1me/shadowclone/issues) for privacy questions that contain no sensitive data. Follow [the security policy](SECURITY.md) when a report needs private material.
+Ask privacy questions that hold no sensitive data in [GitHub issues](https://github.com/theonly1me/shadowclone/issues). Report private material under the [security policy](SECURITY.md).

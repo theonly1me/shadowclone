@@ -32,8 +32,8 @@ jobs:
       - name: Find an unpublished release at this commit
         id: pending
         run: |
-          name="$(node -p 'require("./package.json").name')"
-          version="$(node -p 'require("./package.json").version')"
+          name="$(node -p 'require("./packages/core/src/product.json").name')"
+          version="$(node -p 'require("./packages/core/src/product.json").version')"
           tag="v$version"
           if ! git fetch --no-tags --depth=1 origin "refs/tags/$tag:refs/tags/$tag"; then
             echo "$tag does not exist yet"
@@ -56,6 +56,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: npm
+    env:
+      TURBO_FORCE: true
+      TURBO_TELEMETRY_DISABLED: 1
     permissions:
       contents: read
       id-token: write
@@ -68,16 +71,17 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - run: bun install --frozen-lockfile
-      - run: bun run build
+      - run: bun run stage
 
       - name: Match the tag to the package version
         run: |
-          version="$(bun --print 'require("./package.json").version')"
+          version="$(bun --print 'require("./packages/core/src/product.json").version')"
+          staged="$(bun --print 'require("./packages/cli/out/package/package.json").version')"
           tag="${{ needs.prepare.outputs.tag }}"
-          if [ "${tag#v}" != "$version" ]; then
-            echo "tag $tag does not match package.json version $version" >&2
+          if [ "${tag#v}" != "$version" ] || [ "$staged" != "$version" ]; then
+            echo "tag $tag, product.json version $version, and staged version $staged must match" >&2
             exit 1
           fi
 
       - name: Publish to npm
-        run: npm publish --access public --provenance
+        run: npm publish ./packages/cli/out/package --access public --provenance

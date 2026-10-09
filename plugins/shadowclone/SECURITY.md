@@ -1,5 +1,5 @@
 # Security
 
-Report vulnerabilities through [GitHub's private vulnerability reporting](https://github.com/theonly1me/shadowclone/security/advisories/new). Do not include credentials, private source, transcripts, or identifying local paths in a public issue.
+Report vulnerabilities through [private vulnerability reporting on GitHub](https://github.com/theonly1me/shadowclone/security/advisories/new). Never put credentials, private source, transcripts, or identifying paths in a public issue.
 
-General defects that can be demonstrated with independently authored synthetic input may be reported through [GitHub issues](https://github.com/theonly1me/shadowclone/issues).
+Report a general defect in [GitHub issues](https://github.com/theonly1me/shadowclone/issues) with input that you wrote and that holds no private data.

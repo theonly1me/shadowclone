@@ -1,8 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { readManagedPolicy } from "../../src/config";
-import { projectPaths } from "../../src/paths";
-import { ownedWrite } from "../../src/storage";
+import { readManagedPolicy, projectPaths, ownedWrite } from "@shadowclone/core";
 import { requirePrivateDirectory, treeFingerprint } from "../native/files";
 import { matrixReceiptSchema } from "../native/study/matrix";
 import { runStudy } from "../native/study/phases";
@@ -12,8 +10,8 @@ import { validateFixedGraders } from "./calibration";
 import { readFixedSuite } from "./freeze";
 import { fixedProductIdentity } from "./identity";
 import { fixedReport, fixedReportSchema, compareFixedReports } from "./report";
-import type { NativeEngine, NativeEngineRunner } from "../../src/engine/native";
-import type { ManagedPolicy } from "../../src/config";
+import type { NativeEngine, NativeEngineRunner } from "@shadowclone/agents";
+import type { ManagedPolicy } from "@shadowclone/core";
 
 export { prepareFixedSuite } from "./freeze";
 

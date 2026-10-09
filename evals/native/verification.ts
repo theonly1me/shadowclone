@@ -1,7 +1,7 @@
 import { mkdir, realpath } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { runProcess } from "../../src/io/process";
+import { runProcess } from "@shadowclone/core";
 import { writeFrozenFile } from "./files";
 import type { AcceptanceCheck } from "./schema";
 import type { NativeDiagnostic } from "./diagnostics";

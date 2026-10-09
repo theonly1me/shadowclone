@@ -2,16 +2,19 @@ import { Database, constants } from "bun:sqlite";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
-import { readConfig } from "../../../src/config";
-import { allowlistedSignals } from "../../../src/distill/eligible";
-import { readEnvironment } from "../../../src/environment/store";
-import { EventIndex, type IndexedEvent } from "../../../src/index";
-import { observeClaudeCodeFile } from "../../../src/observe/adapters/claudeCode";
-import { canonicalPath } from "../../../src/paths";
-import { resolveRedacted } from "../../../src/redact";
-import { resolveRepository } from "../../../src/signal";
-import { mineSteeringEpisodes } from "../../../src/signal/episodes";
-import { eventOriginKey, resolveEventRepositories } from "../../../src/signal/origin/resolve";
+import { readConfig, canonicalPath } from "@shadowclone/core";
+import { allowlistedSignals } from "@shadowclone/learning";
+import { readEnvironment } from "@shadowclone/environment";
+import {
+  EventIndex,
+  type IndexedEvent,
+  observeClaudeCodeFile,
+  resolveRedacted,
+  resolveRepository,
+  mineSteeringEpisodes,
+  eventOriginKey,
+  resolveEventRepositories,
+} from "@shadowclone/sessions";
 import { correctionSessions } from "./corpus";
 import { reusableLayout } from "./environments";
 

@@ -9,7 +9,7 @@ import { syntheticLearner } from "./syntheticLearner";
 import { prepareWorkflowSuite } from "./freeze";
 import { runWorkflowSuite } from "./index";
 import { workflowDefinition } from "./definition";
-import type { NativeEngineRunner } from "../../../src/engine/native";
+import type { NativeEngineRunner } from "@shadowclone/agents";
 
 test.skipIf(process.platform !== "darwin")("four-setup execution preserves all cells, resumes two-turn tasks, and never reruns completed sessions", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "four-setup-execution-"));

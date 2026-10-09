@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { NativeEngineOptions, NativeEngineRun } from "../../../src/engine/native";
+import type { NativeEngineOptions, NativeEngineRun } from "@shadowclone/agents";
 import { fingerprint } from "../../shared/structured";
 import type { StudySuite, StudyTask } from "./schema";
 

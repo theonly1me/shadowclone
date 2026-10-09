@@ -1,7 +1,7 @@
 import path from "node:path";
-import type { NativeEngine } from "../../../src/engine/native";
+import type { NativeEngine } from "@shadowclone/agents";
 import { captureArm } from "../../native/study/prepare/freeze";
-import { createProjectPaths } from "../../../src/paths";
+import { createProjectPaths } from "@shadowclone/core";
 
 export function workflowLayout(directory: string) {
   const home = (arm: string) => path.join(directory, "homes", arm);

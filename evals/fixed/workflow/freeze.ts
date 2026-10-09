@@ -1,7 +1,7 @@
 import { mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
-import { ownedWrite } from "../../../src/storage";
+import { ownedWrite } from "@shadowclone/core";
 import { requirePrivateDirectory, treeFingerprint } from "../../native/files";
 import { studySuiteSchema } from "../../native/study/schema";
 import { fingerprint } from "../../shared/structured";
@@ -10,7 +10,7 @@ import { workflowDefinition, workflowInternalArms } from "./definition";
 import { preparedEnvironmentsSchema } from "./schema";
 import { readPreparedEnvironments } from "./learning";
 import { readFrozenArtifact, writeFrozenArtifact, requireWorkflowDefinition, requireWorkflowProduct } from "./preparation";
-import type { NativeEngine } from "../../../src/engine/native";
+import type { NativeEngine } from "@shadowclone/agents";
 
 export const workflowSuiteSchema = z.strictObject({ protocol: z.literal("preference-respect-v2"), version: z.literal(2),
   environments: preparedEnvironmentsSchema, suite: studySuiteSchema });

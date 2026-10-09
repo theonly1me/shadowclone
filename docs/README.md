@@ -1,33 +1,40 @@
 # Documentation
 
-Start with the [README](../README.md) to install Shadowclone and choose your first skills.
+Start with the [README](../README.md) to install Shadowclone and pick your first skills.
 
-## Using Shadowclone
+## Guides
 
-| Guide                                      | Use it to                                                                   |
-| ------------------------------------------ | --------------------------------------------------------------------------- |
-| [Agent builds](guides/agent-builds.md)     | Choose, create, and equip skills                                            |
-| [Learning](guides/learning.md)             | Run deep learning, background learning, or record a preference              |
-| [Pi setup](guides/pi.md)                   | Use Pi's models, skills, and consented sessions                             |
-| [Skill maintenance](guides/skills.md)      | Review updates, conflicts, history, and undo                                |
-| [Repository setup](guides/repositories.md) | Share checks and skills with a repository                                   |
-| [Delegated work](guides/delegated-work.md) | Take a change or a PR to ready for review with the `shadowclone-work` skill |
-| [Cloud bots](guides/github-clones.md)      | Set up a named bot account that works and reviews in GitHub Actions         |
-| [Pull request reviews](guides/reviews.md)  | Review a pull request locally or with the GitHub clone                      |
-| [How it works](guides/how-it-works.md)     | Follow guidance from consented evidence to coding agents                    |
-| [Command reference](guides/commands.md)    | Find everyday and advanced commands                                         |
-| [Migration](migration.md)                  | Move an existing profile installation to skills                             |
-| [Data handling](data-handling.md)          | Understand sources, provider requests, local files, and deletion            |
-| [Evaluation results](../evals.md)          | Compare preference adherence across five setups and four models             |
+- [Agent builds](guides/agent-builds.md): pick skills and a build scope.
+- [Learning](guides/learning.md): run deep or background learning, or record a rule.
+- [Skill maintenance](guides/skills.md): review updates and conflicts, and undo a change.
+- [Repository setup](guides/repositories.md): share checks and skills with a repository.
+- [Pi setup](guides/pi.md): use Pi models, including local models.
+- [Delegated work](guides/delegated-work.md): take a change to ready for review.
+- [Cloud bot](guides/cloud-bot.md): set up a GitHub bot.
+- [Reviews](guides/reviews.md): review a pull request on your machine or in the cloud.
+- [MCP server](guides/mcp.md): give a connected agent the Shadowclone tools.
+- [Command reference](guides/commands.md): find every command.
+- [Migration](guides/migration.md): move a profile installation to skills.
+- [Enterprise controls](guides/enterprise.md): set scope and managed policy.
 
-## Understanding and contributing
+## Privacy and results
 
-- [Motivation](motivation.md): the problem behind the project.
-- [Architecture](architecture/README.md): the current system and its boundaries.
-- [Enterprise controls](architecture/07-enterprise.md): scope, managed policy, and deployment review.
-- [Design history](design/README.md): decisions and the designs that superseded them.
-- [Contributing](../CONTRIBUTING.md): development setup, checks, and pull requests.
-- [Running evaluations](guides/evaluations.md): validate frozen tasks, reuse learning preparations, and authorize exact execution scopes.
-- [Security](../SECURITY.md): reporting vulnerabilities.
+- [Privacy](../PRIVACY.md), [data handling](data-handling.md), and [security](../SECURITY.md): what Shadowclone reads, sends, stores, and removes, and how to report a vulnerability.
+- [Evaluation results](../evals.md): preference adherence for five setups and four models.
 
-Coding assistants start with [AGENTS.md](../AGENTS.md).
+## Understand and contribute
+
+- [Motivation](motivation.md): why the project exists.
+- [Architecture](architecture/README.md): packages, dependencies, data flow, and trust boundaries.
+- [Design history](design/README.md): decisions, and the designs that replaced them.
+- [Evaluations](../evals/README.md): the suites and paid runs.
+- [Contributing](../CONTRIBUTING.md): setup, checks, new packages, and pull requests.
+
+Coding assistants start with [AGENTS.md](../AGENTS.md). Each package also has an `AGENTS.md`.
+
+## Open work
+
+- Test setup, migration, conflict recovery, and removal on real installations with explicit source consent.
+- Measure whether maintained guidance reduces the effort of repeated tasks. Preference scores do not measure productivity.
+- Add a model runner for Antigravity, which has capture and native guidance only. No API or local-endpoint engine exists.
+- Define evidence and action boundaries for merge outcomes, issue-tracker intake, and concurrent clones. The learning workflow excludes them.

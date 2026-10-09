@@ -1,4 +1,4 @@
-import { runProcess } from "../../../src/io/process";
+import { runProcess } from "@shadowclone/core";
 
 const ignoredPaths = /(^|\/)(docs|playground|__tests__|test|tests|fixtures)\/|\.(test|spec)\.[cm]?[jt]sx?$|\.md$|CHANGELOG|(^|\/)(pnpm-lock\.yaml|package-lock\.json|yarn\.lock|bun\.lockb?)$/;
 

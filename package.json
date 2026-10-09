@@ -1,69 +1,36 @@
 {
-  "name": "@shadowclone/cli",
+  "name": "shadowclone",
+  "private": true,
   "version": "0.0.25",
-  "module": "src/cli/index.ts",
-  "type": "module",
   "packageManager": "bun@1.4.2",
-  "bin": {
-    "shadowclone": "bin/shadowclone.mjs"
-  },
+  "workspaces": [
+    "packages/*",
+    "evals",
+    "tooling"
+  ],
   "scripts": {
-    "start": "bun run src/cli/index.ts",
-    "cli": "bun run src/cli/index.ts",
-    "check": "bun run typecheck && bun run lint && bun run knip && bun test",
-    "test": "bun test",
-    "typecheck": "tsc --noEmit",
+    "start": "bun run packages/cli/src/main.ts",
+    "cli": "bun run packages/cli/src/main.ts",
+    "check": "bun run typecheck && bun run lint && bun run knip && bun run test",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "build": "turbo run build",
+    "stage": "turbo run stage",
     "format": "prettier --write",
     "format:check": "prettier --check",
-    "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run scripts/conventions.ts && bun run scripts/privacy.ts && bun run scripts/skills.ts && bun run scripts/skillVersions.ts",
+    "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run tooling/src/conventions.ts && bun run tooling/src/boundaries.ts && bun run tooling/src/privacy.ts && bun run tooling/src/skills.ts && bun run tooling/src/skillVersions.ts && bun run tooling/src/prose.ts && bun run tooling/src/packageGuides.ts",
     "lint:fix": "biome lint --write .",
+    "guides": "bun run tooling/src/packageGuides.ts --write",
     "knip": "knip",
     "eval": "bun evals/run.ts",
-    "eval:work": "bun evals/work/run.ts",
-    "build": "bun run scripts/build.ts",
-    "prepack": "bun run build"
+    "eval:work": "bun evals/work/run.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@types/bun": "latest",
     "knip": "6.39.0",
     "prettier": "3.9.9",
+    "turbo": "2.11.7",
     "typescript": "~5.9"
-  },
-  "description": "Turns how you work into a portable, tested environment for the coding agents you already use.",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/theonly1me/shadowclone.git"
-  },
-  "homepage": "https://shadowclone.co",
-  "bugs": {
-    "url": "https://github.com/theonly1me/shadowclone/issues"
-  },
-  "keywords": [
-    "claude-code",
-    "codex",
-    "cursor",
-    "agent",
-    "subagent",
-    "local-first"
-  ],
-  "files": [
-    "bin",
-    "dist",
-    "preferences",
-    "skills",
-    "plugins",
-    ".claude-plugin",
-    "README.md",
-    "PRIVACY.md",
-    "evals.md",
-    "LICENSE"
-  ],
-  "dependencies": {
-    "bun": "^1.4.2",
-    "commander": "^15.0.0",
-    "smol-toml": "^1.8.0",
-    "zod": "^4.5.4"
   }
 }

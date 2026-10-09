@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readBoundedFile } from "../../../src/io/files";
+import { readBoundedFile } from "@shadowclone/core";
 import { treeManifest } from "../files";
 import type { ChangedFile } from "../receipt";
 

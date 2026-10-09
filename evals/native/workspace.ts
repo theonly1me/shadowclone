@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { runProcess } from "../../src/io/process";
+import { runProcess } from "@shadowclone/core";
 import type { NativeFile } from "./schema";
 
 export function validateNativeFile(file: NativeFile): void {

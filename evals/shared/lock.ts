@@ -1,6 +1,6 @@
 import { open, rm } from "node:fs/promises";
 import path from "node:path";
-import { ownedDirectory } from "../../src/storage";
+import { ownedDirectory } from "@shadowclone/core";
 
 export async function lockEvaluation(
   directory: string,

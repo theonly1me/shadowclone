@@ -1,7 +1,6 @@
-import { syncLearningEnvironment } from "../../../../src/environment/sync";
-import { installIntegration } from "../../../../src/integrations";
-import { runProcess } from "../../../../src/io/process";
-import type { ProjectPaths } from "../../../../src/paths";
+import { installIntegration, syncLearningEnvironment } from "@shadowclone/environment";
+import { runProcess } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 
 async function configureRemote(options: { readonly workspace: string; readonly remote: string }): Promise<void> {
   const environment = { PATH: process.env.PATH };

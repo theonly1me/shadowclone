@@ -1,6 +1,6 @@
 import { lstat, mkdir, realpath, readlink, readdir } from "node:fs/promises";
 import path from "node:path";
-import { canonicalPath } from "../../src/paths";
+import { canonicalPath } from "@shadowclone/core";
 import { fingerprint } from "../shared/structured";
 import { relativePathSchema, type FrozenFile } from "./schema";
 

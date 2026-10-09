@@ -87,7 +87,7 @@ test("offline routed and told environments preserve manual bytes and repository 
 
 test("private bundle access rejects checkout storage and mismatching seals", async () => {
   await expect(
-    readHeldout(path.join(process.cwd(), "evals/fixed/reusable/heldout-manifest.json")),
+    readHeldout(path.join(import.meta.dir, "heldout-manifest.json")),
   ).rejects.toThrow("inside a repository");
   const directory = await mkdtemp(path.join(os.tmpdir(), "v3-seal-"));
   try {

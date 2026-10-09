@@ -1,6 +1,6 @@
 import { mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
-import { ownedWrite } from "../../../src/storage";
+import { ownedWrite } from "@shadowclone/core";
 import { requirePrivateDirectory, treeFingerprint } from "../../native/files";
 import { fingerprint } from "../../shared/structured";
 import { fixedCliVersion, fixedProductIdentity, fixedRuntime } from "../identity";

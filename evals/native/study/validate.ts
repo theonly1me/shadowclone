@@ -1,4 +1,4 @@
-import type { NativeEngineRunner } from "../../../src/engine/native";
+import type { NativeEngineRunner } from "@shadowclone/agents";
 import type { EvaluationBudget } from "../../shared/accounting";
 import { writeFrozenFile } from "../files";
 import { verifyNativeCandidate } from "../verification";

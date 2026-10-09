@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { reviewResultSchema } from "../../../src/review";
+import { reviewResultSchema } from "@shadowclone/review";
 import { activitySchema } from "./github";
 import { type NormalizedFinding, plainText } from "./text";
 

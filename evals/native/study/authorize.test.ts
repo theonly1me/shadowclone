@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, setSourceEnabled, writeConfig } from "../../../src/config";
+import { defaultConfig, setSourceEnabled, writeConfig } from "@shadowclone/core";
 import { authorizeStudy } from "./authorize";
 
 test("the study needs consent for the skill library, agent context, sessions, and deep learning", async () => {

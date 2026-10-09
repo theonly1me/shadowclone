@@ -1,33 +1,33 @@
 # Why I built Shadowclone
 
-I want to trust coding agents with substantial work in large repositories. I also want the result to follow my engineering standards. How much to change at once. How code should be organized. When to plan, test, or stop for review. Getting code written quickly is useful only if I can stay in control of those decisions.
+I want to trust coding agents with large changes in large repositories, and I want the result to follow my engineering standards. These standards cover how much to change at once, how to organize code, and when to plan, test, or stop. Fast code helps only if I control those decisions.
 
-I kept repeating the same preferences. The agent could often do the task, but I still had to explain how I wanted it done. More sessions and more agents meant more opportunities for those instructions to drift.
+I kept repeating the same preferences. The agent could often do the task, but I had to explain how I wanted it done. Instruction files and skills helped, but keeping them current was the hard part. Some described preferences that I had changed. Others missed guidance that came up only when I corrected an agent. Each new tool meant another copy to maintain.
 
-Instruction files and skills helped. Keeping them current was the harder part. Some described preferences I had changed. Others missed guidance that only came up when I corrected an agent. Switching tools meant maintaining another copy.
-
-Shadowclone maintains that setup across the coding agents I use. It learns from the sessions I enable, updates the relevant skills, and carries them between agents. I can choose workflows, write preferences directly, and configure repository checks. The resulting skills and instructions remain files I can read and change.
-
-The goal is to use agents confidently at scale while keeping my engineering preferences and guardrails intact. Changing agents should not mean starting that work over. Corrections should help future sessions, and I should decide what becomes a lasting rule.
+Shadowclone maintains that setup across the agents that I use. It learns from the sessions that I enable, updates the relevant skills, and carries them between agents. Evidence and revisions stay on my machine. The same skills drive a cloud bot on GitHub. The skills and instructions stay as files that I can read and change. A change of agent should not restart that work. I decide what becomes a lasting rule.
 
 ## Built entirely with agents
 
-I built Shadowclone without writing code by hand. Agents are better than me at producing code quickly. I set the requirements and guardrails, decide how the system should behave, and direct the agents toward those standards.
+I built Shadowclone without writing code by hand. Agents write code faster than I do. I set the requirements and guardrails and direct the agents to those standards.
 
-I do not consider that vibe coding. I care about the architecture, types, module boundaries, and tests, even when an agent writes every line. My responsibility for the result stays the same. Shadowclone exists because maintaining that control becomes harder as the work grows.
-
-The repository has more than 800 source and test files. You can inspect it yourself or ask your coding agent to review it. Ask whether the design is coherent, whether the tests catch meaningful failures, and whether the code follows its own engineering rules. If you think it looks vibe coded, point to the code that led you there. The quality of the result is open to inspection.
+I do not call that vibe coding. I care about the architecture, types, module boundaries, and tests, even when an agent writes every line. My responsibility for the result stays the same. The repository has more than 800 source and test files. Inspect it, or ask your coding agent to review it. Ask whether the design is coherent, whether the tests catch real failures, and whether the code follows its own engineering rules. If it looks vibe coded to you, point to the code that says so.
 
 ## What matters to me
 
-A correction should improve the next session without turning every interaction into a rule. A temporary exception should stay temporary. A preference from one project should stay in that project unless I explicitly make it global.
+A correction should improve the next session without turning every interaction into a rule. A temporary exception should stay temporary. A preference from one project should stay in that project unless I make it global on purpose. I want to see why guidance exists and undo a change that I disagree with.
 
-I want to see why guidance exists and undo a change I disagree with. Existing skills and memory should remain useful, and edits should preserve the work already in them.
+Learning needs evidence. The [evaluations](../evals.md) show that setups differ in how well an agent follows preferences. They use 24 fixed synthetic tasks, so they do not show that maintained skills improve every task or save a set amount of time. A first run also exposed product defects that later runs fixed. Guardrails cannot promise perfect adherence. An honest measurement reports when extra guidance makes no difference or makes an agent worse.
 
-Learning also needs evidence. The [evaluations](../README.md#evaluations) found that setups differ in how well an agent follows preferences, and that a first run exposed product defects that later runs fixed. The samples are small and cover one anonymized participant's preferences. They do not establish that maintained skills improve every task or save a particular amount of time. Guardrails help direct and check an agent's work; they cannot promise perfect adherence.
+Coding sessions can hold sensitive material. Source access is opt-in, and changes are reversible. Model work uses the agent provider that you select, so local storage does not mean that the analysis stays offline. [Data handling](data-handling.md) explains that boundary.
 
-The project succeeds if it reduces the work of keeping an agent environment useful. Measuring that honestly includes reporting when extra guidance makes no difference or makes an agent worse.
+## Related approaches
 
-## Keeping control
+Instruction files, skills, and memory stay part of the setup that Shadowclone maintains:
 
-Coding sessions can contain sensitive material. Source access is opt-in, guidance stays editable, and changes are reversible. Model work uses the selected agent provider, so local storage does not mean the analysis stays offline. [Data handling](data-handling.md) explains that boundary.
+- **Repository instructions** hold explicit project conventions. Keep them current and readable by the chosen agents.
+- **Personal skills** hold reusable task workflows. Watch routing, ownership, supporting resources, and conflicting copies.
+- **Native memory** carries context between sessions. Watch scope, accuracy, retention, and correction.
+- **Transcript analysis** finds repeated steering. It needs consent and evidence that justifies durable guidance.
+- **Evaluation** checks behavior under stated guidance. It needs fair baselines and correctness checks.
+
+Well-maintained instructions may already give you what you need. The useful comparison is the effort and quality of keeping that setup current. More guidance can help, change nothing, or cause a conflict.

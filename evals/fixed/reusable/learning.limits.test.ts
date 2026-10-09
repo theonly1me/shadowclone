@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { learn } from "../../../src/cli/learn";
+import { learn } from "@shadowclone/cli";
 
 test("programmatic limits cannot bypass the declared call ceiling or non-deep mode", async () => {
   await expect(

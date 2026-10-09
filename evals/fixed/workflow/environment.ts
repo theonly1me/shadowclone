@@ -1,11 +1,10 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { initialize } from "../../../src/cli/init";
-import { installIntegration } from "../../../src/integrations";
-import { syncLearningEnvironment } from "../../../src/environment/sync";
-import { ownedWrite } from "../../../src/storage";
+import { initialize } from "@shadowclone/cli";
+import { installIntegration, syncLearningEnvironment } from "@shadowclone/environment";
+import { ownedWrite } from "@shadowclone/core";
 import { fingerprint } from "../../shared/structured";
-import type { NativeEngine } from "../../../src/engine/native";
+import type { NativeEngine } from "@shadowclone/agents";
 import type { ArmEnvironment } from "../../native/study/schema";
 import { existingSkill, workflowDefinition } from "./definition";
 import { workflowLayout, captureWorkflowArm } from "./layout";

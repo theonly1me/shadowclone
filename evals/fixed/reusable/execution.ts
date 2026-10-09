@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { runNativeEngine, type NativeEngineRunner } from "../../../src/engine/native";
+import { runNativeEngine, type NativeEngineRunner } from "@shadowclone/agents";
 import { nativeFailure } from "../../native/diagnostics";
 import { runStudySession } from "../../native/study/session";
 import { pendingRun } from "../../native/study/record";

@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
-import { runProcess } from "../../src/io/process";
+import { runProcess } from "@shadowclone/core";
 import { inBatches } from "./github";
 import { askJudges } from "./judges";
 import { upstreamPullSchema } from "./mine/pulls";

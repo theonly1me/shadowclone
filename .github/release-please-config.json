@@ -32,6 +32,11 @@
           "type": "json",
           "path": "plugins/shadowclone/.claude-plugin/plugin.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "packages/core/src/product.json",
+          "jsonpath": "$.version"
         }
       ]
     }

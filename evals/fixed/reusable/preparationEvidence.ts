@@ -1,6 +1,6 @@
-import { readEnvironment } from "../../../src/environment/store";
-import { readPendingLearning } from "../../../src/learning/pending";
-import { listSkillProposals } from "../../../src/skillMaintenance";
+import { readEnvironment } from "@shadowclone/environment";
+import { readPendingLearning } from "@shadowclone/learning";
+import { listSkillProposals } from "@shadowclone/skills";
 import type { LearningCall } from "../workflow/schema";
 import { reusableLayout } from "./environments";
 import { expectedGuidance } from "./oracle";

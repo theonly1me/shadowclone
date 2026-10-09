@@ -5,7 +5,7 @@ import path from "node:path";
 import { prepareFixedSuite, readFixedSuite } from "./freeze";
 import { fixedDefinition } from "./definition";
 import { validateFixedGraders } from "./calibration";
-import { defaultManagedPolicy } from "../../src/config";
+import { defaultManagedPolicy } from "@shadowclone/core";
 import { requireFixedPolicy } from ".";
 
 test("handwritten guidance uses maintained skills for both hosts without learning or existing private data", async () => {

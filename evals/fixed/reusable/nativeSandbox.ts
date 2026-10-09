@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import path from "node:path";
-import { nativeCodexArguments } from "../../../src/engine/native/codexArguments";
-import { runProcess } from "../../../src/io/process";
+import { nativeCodexArguments } from "@shadowclone/agents";
+import { runProcess } from "@shadowclone/core";
 import { requirePrivateDirectory } from "../../native/files";
 import { writeFrozenArtifact } from "../workflow/preparation";
 

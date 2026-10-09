@@ -1,61 +1,41 @@
 # Skill maintenance
 
-Skills are ordinary files you can inspect and edit. Shadowclone reviews the consented library, updates a relevant workflow, or creates a skill when one is missing. It preserves supporting files, unrelated instructions, and invocation settings.
+Skills are ordinary files that you can inspect and edit. Shadowclone reviews the consented library, updates a relevant workflow, or creates a skill when none exists. It keeps supporting files, unrelated instructions, and invocation settings. Run `shadowclone skills list`, `update`, or `pending`.
 
-```bash
-shadowclone skills list
-shadowclone skills update
-shadowclone skills pending
-```
-
-Reading a library and allowing automatic edits are separate choices. Supported changes to authorized user skills can apply automatically. Third-party packages stay unchanged and receive local companion skills. Conflicts and uncertain changes remain pending for review.
-
-With maintenance enabled, an update reviews the selected agent's applicable skill library, including installed third-party skills, even when no new learning is waiting.
+Reading a library and allowing automatic edits are separate choices. Supported changes to authorized skills apply automatically. Conflicts and uncertain changes stay pending. Third-party packages stay unchanged and get local companions. With maintenance on, an update reviews the library of the selected agent, even without new learning.
 
 ## Review pending work
 
-`skills pending` distinguishes candidate evidence, missing repository scope, conflicting evidence, and publication backlog. Each decision belongs to its own rule and scope. Organization guidance waits for a matching registered repository and is never promoted to global guidance to finish publication.
+`skills pending` separates candidate evidence, missing repository scope, conflicting evidence, and publication backlog. Organization guidance waits for a matching registered repository and never becomes global guidance to finish publication. Setup and `learn --deep` register the repository where they run if you gave Git-metadata consent and turned on skill maintenance.
 
-With Git-metadata consent and skill maintenance enabled, setup and `learn --deep` register the repository where they run. Blocked or unknown origins stay unregistered.
+A conflict proposal holds the supporting passages and the decision it needs. It cannot apply edits or choose precedence. Inspect it with `shadowclone skills show <proposal-id>`, resolve the owning instructions, and update again. To dismiss an unsupported finding, run `shadowclone skills reject <proposal-id>`. A stale status alone does not authorize removal of an instruction.
 
-A conflict proposal contains the supporting passages and the decision needed. Inspect it with `shadowclone skills show <proposal-id>`. Resolve the owning instructions and run an update again, or dismiss an unsupported finding with `shadowclone skills reject <proposal-id>`.
+## Skill locations and routing
 
-Conflict proposals cannot apply edits or choose precedence. Stale status alone does not authorize removing an instruction.
+Personal skills live in `~/.agents/skills`. Claude and Antigravity get copies. Codex, Cursor, and Pi read that folder, and Cursor also reads `~/.claude/skills`. Repository skills live under `.agents/skills` and `.claude/skills`.
 
-## Skill locations and synchronization
+Native routing lists each equipped skill as `- <moment>: <skill>`, with the moment from the `shadowclone-applies-when` metadata of the skill. Skills with no such metadata share one line: `- when the task matches the skill's own description: <skill>, <skill>`.
 
-Personal skills use `~/.agents/skills` as their canonical directory. Claude and Antigravity receive copies; Codex, Cursor, and Pi discover that directory. Cursor also reads `~/.claude/skills`, so it sees the Claude copies as well. Repository skills live under `.agents/skills` and `.claude/skills`.
+## Sync
 
-Native routing lists each equipped skill as `- <moment>: <skill>`, using its `shadowclone-applies-when` metadata. The host reads the full description from its own skill list. Skills without that metadata, such as your own skills, share one line: `- when the task matches the skill's own description: <skill>, <skill>`.
+`shadowclone sync` copies a changed maintained skill to its other locations, refreshes native routing, and keeps conflicting edits for your review. Only `sync` updates bundled skills, so run it after you upgrade.
 
-`shadowclone sync` propagates a changed maintained copy, refreshes native routing from its validated description, and preserves conflicting edits for review. For skills equipped from Shadowclone's bundled library, `sync` replaces a copy only when its text matches a version that Shadowclone shipped, and prints one line per updated skill. A copy with any other text stays as it is, including an edit that the wizard copied to every location when you applied a build. `sync` names each such path so you can review it in `shadowclone wizard`. A skill you changed in the build editor is never replaced. Only `shadowclone sync` updates bundled skills. Background learning, `learn`, and `init` leave them unchanged, so run `shadowclone sync` after you upgrade Shadowclone. If routing exceeds 4 KiB, `sync` reports the overflow and leaves existing native instructions intact. If an agent's instruction file links to a regular file in your home folder, such as `~/.codex/AGENTS.md` pointing to `~/.agents/AGENTS.md`, `sync` updates the routing in that file and keeps the link. If an instruction file links anywhere else, `sync` updates every other agent, names the link, and exits with status 1. That agent keeps its old routing until you replace the link with a regular file.
+For bundled skills that you equipped, `sync` replaces a copy only if its text matches a version that Shadowclone shipped. It keeps and names any other copy, so you can review it in `shadowclone wizard`. It never replaces a skill that you changed in the build editor. If routing grows past the 4 KiB native limit, `sync` reports the overflow and keeps the existing instructions.
 
-When a release retires a bundled skill, `sync` replaces it with its successor in each build that selected it, and prints one line per build. A retired skill whose copy you edited, or that you changed in the build editor, stays selected, and `sync` names it so you can replace it in `shadowclone wizard`. If the successor cannot be installed, `sync` names the build and the reason, changes nothing in that build, and exits with status 1.
+If an agent's instruction file links to a regular file in your home folder, `sync` updates that file and keeps the link. For example, `~/.codex/AGENTS.md` can point to `~/.agents/AGENTS.md`. If the file links anywhere else, `sync` updates every other agent, names the link, and exits with status 1. That agent keeps its old routing until you replace the link with a regular file.
 
-When Shadowclone removes the last file of a skill, it also removes the empty skill folder. Folders that still hold your own files stay.
+When a release retires a bundled skill, `sync` replaces it with its successor in each build that selected it. If you edited the retired skill, it stays selected and `sync` names it. If `sync` cannot install the successor, it names the build and the reason, changes nothing in that build, and exits with status 1.
 
 ## History and undo
 
-Every publication has a revision covering its skills, resources, native instructions, and learning decisions:
-
-```bash
-shadowclone history
-shadowclone history <revision>
-shadowclone undo <revision>
-```
-
-Undo refuses to overwrite later edits. Existing profile-based installations first need [skills migration](../migration.md).
+Each publication has a revision. Run `shadowclone history`, `shadowclone history <revision>`, or `shadowclone undo <revision>`. Undo refuses to overwrite later edits. An installation that uses a profile needs [migration](migration.md) first.
 
 ## Controls
 
-| Command | What it does |
-| --- | --- |
-| `shadowclone skills configure --global` / `--repo` | Configure personal or repository skill roots |
-| `shadowclone skills automatic on` / `off` | Allow or stop automatic edits without deleting published files |
-| `shadowclone skills disable` | Stop library access |
-| `shadowclone skills retry <learning-key>` | Queue a record again after resolving its conflict |
-| `shadowclone skills exclude <learning-key> "This was a temporary exception."` | Record why guidance should stay unpublished |
+- `shadowclone skills configure --global` or `--repo` chooses the skill roots to maintain. `--root <directory>` adds a custom root, and `--third-party` adds a package that you do not own.
+- `shadowclone skills automatic on` or `off` allows or stops automatic edits and keeps the published files.
+- `shadowclone skills disable` stops access to the skill library.
+- `shadowclone skills retry <learning-key>` queues a record again after you resolve its conflict. Then run `shadowclone skills update`.
+- `shadowclone skills exclude <learning-key> "This was a temporary exception."` records why guidance stays unpublished.
 
-Configuration accepts `--root <directory>` for a custom root and `--third-party` for a package you do not own. Model-assisted updates also require deep-learning consent. After retrying a record, run `shadowclone skills update`.
-
-Updates share the learning call and time limits. Completed catalog batches and document comparisons are cached. A nonzero `libraryDeferred` count means review remains, including invalid documents that need repair. Run another update to continue.
+Updates with a model need deep-learning consent and share the call and time limits of learning. A `libraryDeferred` count above zero means that review remains, including invalid documents to repair. Run another update.

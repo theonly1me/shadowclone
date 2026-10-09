@@ -1,28 +1,26 @@
 # Repository setup
 
-Set up shared instructions, skills, and checks for the current repository:
+Use `shadowclone init --repo` to share instructions, skills, and checks with everyone who works in a repository.
+
+## Set up the repository
 
 ```bash
 shadowclone init --repo
 ```
 
-Setup asks to read project manifests, detects checks, and previews shared instructions and workflow skills. It asks separately before including personal preferences in files teammates may see. Review and commit the files you want to share.
+Setup asks to read the project manifests, finds the checks, and previews the shared instructions and workflow skills. It asks again before it adds personal preferences to shared files. Commit the files that you want to share.
 
-| File | Purpose |
-| --- | --- |
-| `AGENTS.md` | Shared instructions, selected skills, and verification commands |
-| `CLAUDE.md` | Import of the shared instructions |
-| `.agents/skills/` and `.claude/skills/` | Repository workflows and selected personal skills |
-| `.shadowclone/harness.json` | Configured checks, conventions, and file fingerprints |
+- `AGENTS.md` holds shared instructions, selected skills, and verification commands.
+- `CLAUDE.md` imports the shared instructions.
+- `.agents/skills/` and `.claude/skills/` hold repository workflows and selected personal skills.
+- `.shadowclone/harness.json` holds configured checks, conventions, and file fingerprints.
 
-## Check and refresh the setup
+`--personal` or `--no-personal` includes or excludes your applicable personal guidance. Repeat `--skill <name>` to copy selected personal skills with their resources. `--no-enforce` skips the Claude Stop hook.
 
-Run `shadowclone check --changed` to check uncommitted work, or `shadowclone check` for the repository. A local Claude Stop hook runs these checks before the agent finishes. Other agents receive the checks through repository instructions.
+For a shared skill build, use the **Shared · this repository** scope ([Agent builds](agent-builds.md#choose-a-build-scope)).
 
-Run `shadowclone sync` to refresh the setup while preserving conflicting edits. Text outside managed sections stays yours, and edited managed sections are preserved for review.
+## Check and refresh
 
-## Setup options
+Run `shadowclone check --changed` to check your uncommitted work, or `shadowclone check` for the whole repository. A local Claude Stop hook runs these checks before the agent finishes. Other agents get the checks through the repository instructions.
 
-Use `--personal` or `--no-personal` to include or exclude applicable personal guidance. Repeat `--skill <name>` to copy selected personal skills with their resources. Use `--no-enforce` to skip the Claude Stop hook.
-
-Private builds cannot weaken shared repository requirements. A skill omitted from Shadowclone's routing may still be discovered through the host agent's global configuration.
+`shadowclone sync` refreshes the setup. Your text outside the managed sections stays yours, and Shadowclone keeps an edited managed section for your review. A skill left out of the routing can still reach an agent through its global configuration.

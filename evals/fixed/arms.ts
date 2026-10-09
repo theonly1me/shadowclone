@@ -1,15 +1,12 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { createProjectPaths } from "../../src/paths";
-import { emptyEnvironment } from "../../src/environment/types";
-import { skillPublication } from "../../src/environment/publication";
-import { renderSkillRouting } from "../../src/environment/context";
-import { ownedWrite } from "../../src/storage";
+import { createProjectPaths, ownedWrite } from "@shadowclone/core";
+import { emptyEnvironment, renderSkillRouting, skillPublication } from "@shadowclone/environment";
 import { nativeFileSchema } from "../native/schema";
 import { captureArm } from "../native/study/prepare/freeze";
 import { fingerprint } from "../shared/structured";
 import { profileText } from "./fixtures/profile";
-import type { NativeEngine } from "../../src/engine/native";
+import type { NativeEngine } from "@shadowclone/agents";
 
 export async function fixedArmEnvironments(options: { directory: string; engine: NativeEngine }) {
   const home = path.join(options.directory, "publication-home");

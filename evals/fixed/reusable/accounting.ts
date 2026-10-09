@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import path from "node:path";
-import { readBoundedFile } from "../../../src/io/files";
+import { readBoundedFile } from "@shadowclone/core";
 import { budgetSchema } from "../../shared/accounting";
 import type { FrozenSuite, Receipt } from "./schema";
 

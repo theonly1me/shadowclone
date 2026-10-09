@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { readConfig } from "../../../src/config";
+import { readConfig } from "@shadowclone/core";
 import { prepareWorkflowEnvironments, readWorkflowPreparation, requirePreparationInputs } from "./preparation";
 import { existingSkill, workflowDefinition } from "./definition";
 import { captureWorkflowArm, workflowLayout } from "./layout";

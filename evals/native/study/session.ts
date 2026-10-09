@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { NativeEngineRunner } from "../../../src/engine/native";
+import type { NativeEngineRunner } from "@shadowclone/agents";
 import type { EvaluationBudget } from "../../shared/accounting";
 import { claudeSkillReads, observedSkillReads } from "./skillReads";
 import { verifyNativeCandidate } from "../verification";

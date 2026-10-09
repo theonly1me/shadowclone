@@ -1,18 +1,18 @@
 # Stable profile records
 
-This defines the legacy profile lifecycle. Active environments now publish [skills](023-skills-as-delivery.md), while migration still needs to interpret these records.
+This defines the legacy profile lifecycle. Active environments now publish [skills](023-skills-as-delivery.md), but migration still needs to interpret these records.
 
 ## Problem
 
-Content-derived identities changed whenever a rule was reworded. Learning could duplicate an edited rule or restore one the user had deleted. Confidence values also mixed evidence strength with whether guidance should be delivered.
+Content-derived identities changed each time someone reworded a rule. Learning could duplicate an edited rule or restore one that the user had deleted. Confidence values also mixed the strength of the evidence with the decision to deliver the guidance.
 
 ## Decision
 
-Give generated rules a stable key independent of their wording. Store source, evidence, scope, conditions, and lifecycle state explicitly. Compilation consumes the lifecycle decision instead of inferring activation from confidence.
+Give generated rules a stable key that does not depend on their wording. Store source, evidence, scope, conditions, and lifecycle state explicitly. Compilation uses the lifecycle decision. It does not infer activation from confidence.
 
-Maintain a ledger of the last generated text. Comparing that text with the current file distinguishes an untouched rule, a user edit, and a deletion. Preserve edited rules as user-owned guidance. Retain rejection or retirement records so a later learning pass cannot silently recreate deleted guidance.
+Keep a ledger of the last generated text. Compare that text with the current file to tell an untouched rule, a user edit, and a deletion apart. Preserve edited rules as user-owned guidance. Keep rejection or retirement records, so a later learning pass cannot silently recreate deleted guidance.
 
-Keep a published rule active while contradictory evidence is reviewed. A proposal is separate from the user's current instruction. Historical activation thresholds were later refined by [automatic preference learning](015-automatic-preference-learning.md): explicit durable steering can qualify from one session; inferred behavior needs independent support.
+Keep a published rule active during review of contradictory evidence. A proposal is separate from the user's current instruction. [Automatic preference learning](015-automatic-preference-learning.md) later refined the historical activation thresholds. Explicit durable steering can qualify from one session. Inferred behavior needs independent support.
 
 ## Compatibility and verification
 
