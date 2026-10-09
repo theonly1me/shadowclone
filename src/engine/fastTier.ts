@@ -14,14 +14,14 @@ export const fastSystemPrompt =
 const fastTiers: Readonly<Partial<Record<EngineId, FastTier>>> = {
   "claude-code": {
     model: "haiku",
-    reasoningEffort: "low",
+    reasoningEffort: "high",
     thinking: "off",
     systemPrompt: fastSystemPrompt,
-    source: "the Claude Code model alias for the current Haiku model",
+    source: "the Claude Code alias for the current Haiku model, Haiku 5.5 on the Anthropic API",
   },
   codex: {
     model: "gpt-6-luna",
-    reasoningEffort: "low",
+    reasoningEffort: "high",
     source: "a model preset in codex-cli 0.159.0",
   },
 };

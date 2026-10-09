@@ -42,7 +42,7 @@ async function namer(options: { readonly engine?: EngineId; readonly structured?
 
 const input = buildInput({ choices: { "tests-that-catch-bugs": true } });
 
-test("Claude Code names the build with haiku at low effort, thinking off, and a short system prompt under the fast limits", async () => {
+test("Claude Code names the build with haiku at high effort, thinking off, and a short system prompt under the fast limits", async () => {
   const { runs, names } = await namer();
   const result = await names({ input });
   const [run] = runs;
@@ -51,14 +51,14 @@ test("Claude Code names the build with haiku at low effort, thinking off, and a 
 
   const arguments_ = buildClaudeArguments({ sessionId: "00000000-0000-4000-8000-000000000000", run });
 
-  expect(arguments_.join(" ")).toContain("--model haiku --effort low");
+  expect(arguments_.join(" ")).toContain("--model haiku --effort high");
   expect(arguments_.join(" ")).toContain("--max-budget-usd 0.05");
   expect(arguments_.join(" ")).toContain('"env":{"MAX_THINKING_TOKENS":"0"}');
   expect(arguments_[arguments_.indexOf("--system-prompt") + 1]).toBe(fastSystemPrompt);
   expect(result.destination).toBe("claude-code using haiku");
 });
 
-test("Codex names the build with gpt-6-luna at low effort", async () => {
+test("Codex names the build with gpt-6-luna at high effort", async () => {
   const { runs, names } = await namer({ engine: "codex" });
 
   await names({ input });
@@ -70,7 +70,7 @@ test("Codex names the build with gpt-6-luna at low effort", async () => {
   const arguments_ = buildCodexArguments({ run }).join(" ");
 
   expect(arguments_).toContain("--model gpt-6-luna");
-  expect(arguments_).toContain('model_reasoning_effort="low"');
+  expect(arguments_).toContain('model_reasoning_effort="high"');
 });
 
 test("the saved tier keeps the saved model, sets no effort, and keeps thinking and the default system prompt", async () => {

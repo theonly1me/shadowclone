@@ -18,7 +18,7 @@ The map shows every local skill at once. Skills group by source first: bundled s
 
 ## Your build name
 
-The character sheet names your build, with a short profile, three abilities tied to your equipped skills, and one tradeoff. Five seconds after your last equip change, the wizard asks your fast model for a new name. On Claude Code that is Haiku at low effort with thinking off, which usually answers in about 6 seconds. On Codex it is `gpt-6-luna` at low effort. The sheet says which engine and model wrote the name. A saved build that you open without a change shows **Name my build** instead, so opening the wizard makes no model request. If naming fails, the sheet shows the error and a **Retry** button. **Turn naming off** stops all naming requests in this browser.
+The character sheet names your build, with a short profile, three abilities tied to your equipped skills, and one tradeoff. Five seconds after your last equip change, the wizard asks your fast model for a new name. On Claude Code that is the `haiku` alias at high effort. The alias means Haiku 5.5 on the Anthropic API, and Haiku 4.5 on Amazon Bedrock, Google Cloud, Microsoft Foundry, and Claude Platform on AWS. On Codex it is `gpt-6-luna` at high effort. The sheet says which engine and model wrote the name. A saved build that you open without a change shows **Name my build** instead, so opening the wizard makes no model request. If naming fails, the sheet shows the error and a **Retry** button. **Turn naming off** stops all naming requests in this browser.
 
 ## Your writing voice
 

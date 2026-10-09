@@ -77,7 +77,7 @@ test("a sample rewrite after an edit uses the fast model and sends no source tex
   const rewritten = await voice.rewrite({ profile: edited }, new AbortController().signal);
 
   expect(rewritten).toEqual({ draft: { profile: edited, samples: invented.samples }, destination: "claude-code using haiku" });
-  expect([runs[1]?.model, runs[1]?.reasoningEffort]).toEqual(["haiku", "low"]);
+  expect([runs[1]?.model, runs[1]?.reasoningEffort]).toEqual(["haiku", "high"]);
   expect(runs[1]?.prompt).toContain("Asks one question at a time");
   expect(runs[1]?.prompt).not.toContain("cursor");
 });
