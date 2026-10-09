@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { managedEnd, managedStart } from "../../src/integrations/markdown";
+import { managedEnd, managedStart } from "@shadowclone/environment";
 import { integrationFixture } from "@shadowclone/core/testing";
 import { isolateNativeGuidance } from "./nativeIsolation";
 

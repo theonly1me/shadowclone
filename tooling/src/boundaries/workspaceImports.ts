@@ -1,4 +1,5 @@
 import type { ImportEdge } from "./imports";
+import { browserSubpath } from "./browser";
 import { packageOfFile, workspaceKeyOfFile } from "./layout";
 import type { ManifestIndex } from "./manifests";
 import { packageLayout, packageNames, type PackageLayout } from "./packages";
@@ -13,6 +14,7 @@ export type WorkspaceImportViolation = {
 export function workspaceImportViolations(options: {
   readonly edge: ImportEdge;
   readonly manifests: ManifestIndex;
+  readonly isBrowserFile: boolean;
   readonly layout?: PackageLayout;
 }): readonly WorkspaceImportViolation[] {
   const layout = options.layout ?? packageLayout;
@@ -42,6 +44,13 @@ export function workspaceImportViolations(options: {
     });
   }
 
+  if (options.isBrowserFile && !edge.typeOnly && parsed.subpath !== browserSubpath) {
+    violations.push({
+      ...position,
+      message: `"${edge.specifier}" is not a ${browserSubpath} subpath, and the web client must not load node code`,
+    });
+  }
+
   if (!declared.includes(workspaceNameOf(imported))) {
     violations.push({
       ...position,
@@ -53,7 +62,7 @@ export function workspaceImportViolations(options: {
     return violations;
   }
 
-  const importer = packageOfFile({ file: edge.file, layout });
+  const importer = packageOfFile(edge.file);
 
   if (importer === null) {
     violations.push({ ...position, message: "file belongs to no package" });

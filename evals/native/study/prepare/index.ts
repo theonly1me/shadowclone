@@ -2,7 +2,7 @@ import { lstat, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import type { NativeEngineRunner } from "@shadowclone/agents";
-import { readEnvironment } from "../../../../src/environment/store";
+import { readEnvironment } from "@shadowclone/environment";
 import { createProjectPaths, type ProjectPaths, ownedWrite } from "@shadowclone/core";
 import { readGitRemote } from "@shadowclone/sessions";
 import { evaluationBudget } from "../../../shared/accounting";

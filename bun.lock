@@ -12,14 +12,6 @@
       },
       "devDependencies": {
         "@biomejs/biome": "2.5.15",
-        "@shadowclone/agents": "workspace:*",
-        "@shadowclone/changes": "workspace:*",
-        "@shadowclone/core": "workspace:*",
-        "@shadowclone/profile": "workspace:*",
-        "@shadowclone/redact": "workspace:*",
-        "@shadowclone/review": "workspace:*",
-        "@shadowclone/sessions": "workspace:*",
-        "@shadowclone/skills": "workspace:*",
         "@types/bun": "latest",
         "knip": "6.39.0",
         "prettier": "3.9.9",
@@ -31,7 +23,10 @@
       "name": "@shadowclone/evals",
       "dependencies": {
         "@shadowclone/agents": "workspace:*",
+        "@shadowclone/cli": "workspace:*",
         "@shadowclone/core": "workspace:*",
+        "@shadowclone/environment": "workspace:*",
+        "@shadowclone/learning": "workspace:*",
         "@shadowclone/redact": "workspace:*",
         "@shadowclone/review": "workspace:*",
         "@shadowclone/sessions": "workspace:*",
@@ -49,6 +44,17 @@
         "zod": "^4.5.4",
       },
     },
+    "packages/builds": {
+      "name": "@shadowclone/builds",
+      "dependencies": {
+        "@shadowclone/changes": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/environment": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
+        "zod": "^4.5.4",
+      },
+    },
     "packages/changes": {
       "name": "@shadowclone/changes",
       "dependencies": {
@@ -57,10 +63,97 @@
         "zod": "^4.5.4",
       },
     },
+    "packages/cli": {
+      "name": "@shadowclone/cli",
+      "dependencies": {
+        "@shadowclone/agents": "workspace:*",
+        "@shadowclone/builds": "workspace:*",
+        "@shadowclone/changes": "workspace:*",
+        "@shadowclone/cloud": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/environment": "workspace:*",
+        "@shadowclone/harness": "workspace:*",
+        "@shadowclone/learning": "workspace:*",
+        "@shadowclone/mcp": "workspace:*",
+        "@shadowclone/profile": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "@shadowclone/review": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
+        "@shadowclone/web": "workspace:*",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/cloud": {
+      "name": "@shadowclone/cloud",
+      "dependencies": {
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/environment": "workspace:*",
+        "@shadowclone/review": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "zod": "^4.5.4",
+      },
+    },
     "packages/core": {
       "name": "@shadowclone/core",
       "dependencies": {
         "smol-toml": "^1.8.0",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/environment": {
+      "name": "@shadowclone/environment",
+      "dependencies": {
+        "@shadowclone/agents": "workspace:*",
+        "@shadowclone/changes": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/profile": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/harness": {
+      "name": "@shadowclone/harness",
+      "dependencies": {
+        "@shadowclone/changes": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/environment": "workspace:*",
+        "@shadowclone/profile": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
+        "smol-toml": "^1.8.0",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/learning": {
+      "name": "@shadowclone/learning",
+      "dependencies": {
+        "@shadowclone/agents": "workspace:*",
+        "@shadowclone/changes": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/environment": "workspace:*",
+        "@shadowclone/profile": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/mcp": {
+      "name": "@shadowclone/mcp",
+      "dependencies": {
+        "@shadowclone/changes": "workspace:*",
+        "@shadowclone/cloud": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/environment": "workspace:*",
+        "@shadowclone/learning": "workspace:*",
+        "@shadowclone/profile": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
+        "@shadowclone/web": "workspace:*",
         "zod": "^4.5.4",
       },
     },
@@ -104,6 +197,21 @@
         "@shadowclone/changes": "workspace:*",
         "@shadowclone/core": "workspace:*",
         "@shadowclone/sessions": "workspace:*",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/web": {
+      "name": "@shadowclone/web",
+      "dependencies": {
+        "@shadowclone/agents": "workspace:*",
+        "@shadowclone/builds": "workspace:*",
+        "@shadowclone/cloud": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/environment": "workspace:*",
+        "@shadowclone/learning": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
         "zod": "^4.5.4",
       },
     },
@@ -249,11 +357,25 @@
 
     "@shadowclone/agents": ["@shadowclone/agents@workspace:packages/agents"],
 
+    "@shadowclone/builds": ["@shadowclone/builds@workspace:packages/builds"],
+
     "@shadowclone/changes": ["@shadowclone/changes@workspace:packages/changes"],
+
+    "@shadowclone/cli": ["@shadowclone/cli@workspace:packages/cli"],
+
+    "@shadowclone/cloud": ["@shadowclone/cloud@workspace:packages/cloud"],
 
     "@shadowclone/core": ["@shadowclone/core@workspace:packages/core"],
 
+    "@shadowclone/environment": ["@shadowclone/environment@workspace:packages/environment"],
+
     "@shadowclone/evals": ["@shadowclone/evals@workspace:evals"],
+
+    "@shadowclone/harness": ["@shadowclone/harness@workspace:packages/harness"],
+
+    "@shadowclone/learning": ["@shadowclone/learning@workspace:packages/learning"],
+
+    "@shadowclone/mcp": ["@shadowclone/mcp@workspace:packages/mcp"],
 
     "@shadowclone/profile": ["@shadowclone/profile@workspace:packages/profile"],
 
@@ -266,6 +388,8 @@
     "@shadowclone/skills": ["@shadowclone/skills@workspace:packages/skills"],
 
     "@shadowclone/tooling": ["@shadowclone/tooling@workspace:tooling"],
+
+    "@shadowclone/web": ["@shadowclone/web@workspace:packages/web"],
 
     "@turbo/darwin-64": ["@turbo/darwin-64@2.11.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-Z2LFOxwbiJueD1miByXJS/BrW21vv6YaQXZustty5jEX4vQYw6zyh101Sz1QO7WG0mqBzKagZ/DoAeeujI0/Sw=="],
 

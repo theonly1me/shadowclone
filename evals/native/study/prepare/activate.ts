@@ -1,8 +1,12 @@
-import { activateEnvironment } from "../../../../src/environment/activate";
-import { reviewLearning } from "../../../../src/environment/controls";
-import { recordFingerprint } from "../../../../src/environment/records";
-import { belongsToScope, learningScopes } from "../../../../src/environment/scope";
-import { readEnvironment, readRedactedEnvironment } from "../../../../src/environment/store";
+import {
+  activateEnvironment,
+  belongsToScope,
+  learningScopes,
+  readEnvironment,
+  readRedactedEnvironment,
+  recordFingerprint,
+  reviewLearning,
+} from "@shadowclone/environment";
 import type { ProjectPaths } from "@shadowclone/core";
 
 const reason = "Left unpublished by the study's resolution rule because it conflicts with another source or the evaluation policy.";

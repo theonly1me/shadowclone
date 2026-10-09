@@ -2,7 +2,7 @@ import { rm } from "node:fs/promises";
 import path from "node:path";
 import { buildRuntimeArtifacts } from "./bundle";
 
-const entryPoint = "src/cli/index.ts";
+const entryPoint = "packages/cli/src/main.ts";
 const outputFile = "dist/shadowclone.js";
 
 if (!(await Bun.file(entryPoint).exists())) {

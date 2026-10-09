@@ -4,7 +4,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { readConfig } from "@shadowclone/core";
-import { allowlistedSignals, authorizedLearningEvents } from "../../../src/distill/eligible";
+import { allowlistedSignals, authorizedLearningEvents } from "@shadowclone/learning";
 import {
   EventIndex,
   ingestSources,

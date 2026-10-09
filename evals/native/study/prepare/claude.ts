@@ -1,5 +1,4 @@
-import { syncLearningEnvironment } from "../../../../src/environment/sync";
-import { installIntegration } from "../../../../src/integrations";
+import { installIntegration, syncLearningEnvironment } from "@shadowclone/environment";
 import { runProcess } from "@shadowclone/core";
 import type { ProjectPaths } from "@shadowclone/core";
 

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { stripManagedGuidance } from "../../src/integrations";
+import { stripManagedGuidance } from "@shadowclone/environment";
 import { companionPrefix, restoreOriginalSkill } from "@shadowclone/skills";
 
 export async function isolateNativeGuidance(directory: string): Promise<void> {

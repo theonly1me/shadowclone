@@ -8,7 +8,10 @@
   },
   "dependencies": {
     "@shadowclone/agents": "workspace:*",
+    "@shadowclone/cli": "workspace:*",
     "@shadowclone/core": "workspace:*",
+    "@shadowclone/environment": "workspace:*",
+    "@shadowclone/learning": "workspace:*",
     "@shadowclone/redact": "workspace:*",
     "@shadowclone/review": "workspace:*",
     "@shadowclone/sessions": "workspace:*",

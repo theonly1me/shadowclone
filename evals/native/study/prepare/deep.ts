@@ -1,4 +1,4 @@
-import { learn } from "../../../../src/cli/learn";
+import { learn } from "@shadowclone/cli";
 import type { EngineRunner } from "@shadowclone/agents";
 import type { ProjectPaths } from "@shadowclone/core";
 import type { GitRemoteReader } from "@shadowclone/sessions";

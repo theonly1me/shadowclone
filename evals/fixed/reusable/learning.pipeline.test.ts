@@ -3,7 +3,7 @@ import { mkdtemp, rm, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
-import { learn } from "../../../src/cli/learn";
+import { learn } from "@shadowclone/cli";
 import { readConfig, writeConfig } from "@shadowclone/core";
 import { evaluationBudget } from "../../shared/accounting";
 import { workflowLearningRunner } from "../workflow/learner";

@@ -2,9 +2,8 @@ import { cp, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { createLearningExecution } from "@shadowclone/agents";
 import type { EngineRunner } from "@shadowclone/agents";
-import { activateEnvironment } from "../../../../src/environment/activate";
-import { prepareEnvironmentMigration } from "../../../../src/environment/migrate";
-import { updateLearningEnvironment } from "../../../../src/learning/environmentUpdate/update";
+import { activateEnvironment, prepareEnvironmentMigration } from "@shadowclone/environment";
+import { updateLearningEnvironment } from "@shadowclone/learning";
 import type { ProjectPaths } from "@shadowclone/core";
 import type { GitRemoteReader } from "@shadowclone/sessions";
 

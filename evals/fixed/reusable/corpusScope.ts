@@ -3,8 +3,8 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
 import { readConfig, canonicalPath } from "@shadowclone/core";
-import { allowlistedSignals } from "../../../src/distill/eligible";
-import { readEnvironment } from "../../../src/environment/store";
+import { allowlistedSignals } from "@shadowclone/learning";
+import { readEnvironment } from "@shadowclone/environment";
 import {
   EventIndex,
   type IndexedEvent,

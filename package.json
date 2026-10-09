@@ -1,7 +1,7 @@
 {
   "name": "@shadowclone/cli",
   "version": "0.0.25",
-  "module": "src/cli/index.ts",
+  "module": "packages/cli/src/main.ts",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "workspaces": [
@@ -13,8 +13,8 @@
     "shadowclone": "bin/shadowclone.mjs"
   },
   "scripts": {
-    "start": "bun run src/cli/index.ts",
-    "cli": "bun run src/cli/index.ts",
+    "start": "bun run packages/cli/src/main.ts",
+    "cli": "bun run packages/cli/src/main.ts",
     "check": "bun run typecheck && bun run lint && bun run knip && bun run test",
     "test": "bun test",
     "test:workspaces": "turbo run test",
@@ -31,14 +31,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
-    "@shadowclone/agents": "workspace:*",
-    "@shadowclone/changes": "workspace:*",
-    "@shadowclone/core": "workspace:*",
-    "@shadowclone/profile": "workspace:*",
-    "@shadowclone/redact": "workspace:*",
-    "@shadowclone/review": "workspace:*",
-    "@shadowclone/sessions": "workspace:*",
-    "@shadowclone/skills": "workspace:*",
     "@types/bun": "latest",
     "knip": "6.39.0",
     "prettier": "3.9.9",

@@ -1,10 +1,9 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { readConfig, writeConfig, readManagedPolicy, projectPaths } from "@shadowclone/core";
-import { learn } from "../../../src/cli/learn";
-import { readEnvironment } from "../../../src/environment/store";
-import { readLearningState } from "../../../src/learning";
-import { readPendingLearning } from "../../../src/learning/pending";
+import { learn } from "@shadowclone/cli";
+import { readEnvironment } from "@shadowclone/environment";
+import { readLearningState, readPendingLearning } from "@shadowclone/learning";
 import { listSkillProposals } from "@shadowclone/skills";
 import { evaluationBudget } from "../../shared/accounting";
 import { lockEvaluation } from "../../shared/lock";

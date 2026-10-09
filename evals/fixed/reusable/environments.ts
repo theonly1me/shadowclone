@@ -1,10 +1,12 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { initialize } from "../../../src/cli/init";
+import { initialize } from "@shadowclone/cli";
 import { readConfig, writeConfig, createProjectPaths, ownedWrite } from "@shadowclone/core";
-import { syncLearningEnvironment } from "../../../src/environment/sync";
-import { registerWorkingRepository } from "../../../src/environment/registerRepository";
-import { installIntegration } from "../../../src/integrations";
+import {
+  installIntegration,
+  registerWorkingRepository,
+  syncLearningEnvironment,
+} from "@shadowclone/environment";
 import { captureArm } from "../../native/study/prepare/freeze";
 import { git } from "../../native/study/git";
 import type { ArmEnvironment } from "../../native/study/schema";

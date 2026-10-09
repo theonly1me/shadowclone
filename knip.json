@@ -14,24 +14,40 @@
   "workspaces": {
     ".": {
       "entry": [
-        "src/mcp/server.ts",
-        "src/web/client/main.ts",
         "scripts/*.ts",
-        "plugins/shadowclone/skills/*/scripts/*.mjs",
-        "src/**/*.test.ts"
+        "plugins/shadowclone/skills/*/scripts/*.mjs"
       ],
       "project": [
-        "src/**/*.ts",
         "scripts/**/*.ts",
         "bin/*.mjs",
         "plugins/**/*.mjs"
       ],
       "ignoreDependencies": [
-        "commander"
+        "commander",
+        "smol-toml",
+        "zod"
       ]
     },
     "packages/*": {
       "entry": [
+        "src/**/*.test.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
+    },
+    "packages/mcp": {
+      "entry": [
+        "src/server.ts",
+        "src/**/*.test.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
+    },
+    "packages/web": {
+      "entry": [
+        "src/client/main.ts",
         "src/**/*.test.ts"
       ],
       "project": [

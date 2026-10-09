@@ -16,12 +16,7 @@ export type BoundaryReport = {
   readonly observedCycle: readonly string[] | null;
 };
 
-const scannedPatterns = [
-  "src/**/*.ts",
-  "packages/*/src/**/*.ts",
-  "evals/**/*.ts",
-  "tooling/src/**/*.ts",
-] as const;
+const scannedPatterns = ["packages/*/src/**/*.ts", "evals/**/*.ts", "tooling/src/**/*.ts"] as const;
 
 async function listScannedFiles(rootDirectory: string): Promise<readonly string[]> {
   const files: string[] = [];

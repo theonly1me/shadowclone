@@ -1,39 +1,15 @@
 import { expect, test } from "bun:test";
-import { mkdtemp } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import { checkBoundaries } from "./boundaries";
 import { findCycle, findViolations, observedGraph } from "./boundaries/check";
-import { readImports } from "./boundaries/imports";
-import type { ManifestIndex, WorkspaceKey, WorkspaceManifest } from "./boundaries/manifests";
-
-function edgesOf(files: Record<string, string>) {
-  return Object.entries(files).flatMap(([file, text]) => readImports({ file, text }));
-}
-
-function manifestOf(options: {
-  readonly key: WorkspaceKey;
-  readonly exportedSubpaths?: readonly string[];
-  readonly workspaceDependencies?: readonly string[];
-}): [WorkspaceKey, WorkspaceManifest] {
-  return [
-    options.key,
-    {
-      file: `${options.key}/package.json`,
-      name: `@shadowclone/${options.key}`,
-      version: null,
-      isPrivate: true,
-      exportedSubpaths: options.exportedSubpaths ?? ["."],
-      workspaceDependencies: options.workspaceDependencies ?? [],
-    },
-  ];
-}
+import type { ManifestIndex } from "./boundaries/manifests";
+import { edgesOf, manifestOf, treeWith } from "./boundaries/testing";
 
 const manifests: ManifestIndex = new Map([
   manifestOf({ key: "core", exportedSubpaths: [".", "./testing"] }),
   manifestOf({ key: "redact", workspaceDependencies: ["@shadowclone/core"] }),
   manifestOf({ key: "agents" }),
-  manifestOf({ key: "root", workspaceDependencies: ["@shadowclone/core", "@shadowclone/redact"] }),
+  manifestOf({ key: "web", workspaceDependencies: ["@shadowclone/builds"] }),
+  manifestOf({ key: "builds", exportedSubpaths: [".", "./browser"] }),
   manifestOf({ key: "evals", workspaceDependencies: ["@shadowclone/core"] }),
 ]);
 
@@ -41,12 +17,11 @@ function messagesFor(files: Record<string, string>) {
   return findViolations({ edges: edgesOf(files), manifests }).map((violation) => violation.message);
 }
 
-test("a declared, exported, allowed package import passes in a package, a root module, and evals", () => {
+test("a declared, exported, allowed package import passes in a package and in evals", () => {
   expect(
     messagesFor({
       "packages/redact/src/a.ts": 'import { x } from "@shadowclone/core";',
       "packages/redact/src/b.test.ts": 'import { y } from "@shadowclone/core/testing";',
-      "src/cli/a.ts": 'import { z } from "@shadowclone/redact";',
       "evals/fixed/a.ts": 'import { x } from "@shadowclone/core";',
     }),
   ).toEqual([]);
@@ -54,9 +29,9 @@ test("a declared, exported, allowed package import passes in a package, a root m
 
 test("a subpath that the target does not export is reported", () => {
   expect(
-    messagesFor({ "src/cli/a.ts": 'import { x } from "@shadowclone/redact/internal/rules";' }),
+    messagesFor({ "evals/fixed/a.ts": 'import { x } from "@shadowclone/core/internal/rules";' }),
   ).toEqual([
-    '"@shadowclone/redact/internal/rules" is not listed in the exports of @shadowclone/redact',
+    '"@shadowclone/core/internal/rules" is not listed in the exports of @shadowclone/core',
   ]);
 });
 
@@ -89,25 +64,48 @@ test("a relative import that leaves its package folder is reported, and one that
   expect(
     messagesFor({
       "packages/redact/src/a.ts": 'import { x } from "../../core/src/paths";',
-      "packages/redact/src/b.ts": 'import { y } from "../../../src/cli/doctor";',
+      "packages/redact/src/b.ts": 'import { y } from "../../../scripts/build";',
       "packages/redact/src/c.ts": 'import { z } from "./rules";',
     }),
   ).toEqual([
     '"../../core/src/paths" leaves its package',
-    '"../../../src/cli/doctor" leaves its package',
+    '"../../../scripts/build" leaves its package',
   ]);
 });
 
-test("a root module and evals cannot reach into a package folder by a relative path", () => {
+test("a package and evals cannot reach into another package folder by a relative path", () => {
   expect(
     messagesFor({
-      "src/cli/a.ts": 'import { x } from "../../packages/core/src/paths";',
+      "packages/cli/src/a.ts": 'import { x } from "../../core/src/paths";',
       "evals/fixed/a.ts": 'import { y } from "../../packages/core/src/paths";',
-      "evals/fixed/b.ts": 'import { z } from "../../src/cli/doctor";',
+      "evals/fixed/b.ts": 'import { z } from "../shared/helper";',
     }),
   ).toEqual([
-    '"../../packages/core/src/paths" reaches into core, import the package by name',
+    '"../../core/src/paths" leaves its package',
     '"../../packages/core/src/paths" leaves its package',
+  ]);
+});
+
+test("the web client and the files that it loads import another package only through its browser subpath", () => {
+  const violations = findViolations({
+    edges: edgesOf({
+      "packages/web/src/client/a.ts": [
+        'import { x } from "@shadowclone/builds/browser";',
+        'import { p } from "../protocol";',
+        'import type { N } from "../typesOnly";',
+      ].join("\n"),
+      "packages/web/src/protocol.ts": 'import { z } from "@shadowclone/builds";',
+      "packages/web/src/typesOnly.ts": 'import { y } from "@shadowclone/builds";',
+      "packages/web/src/server.ts": 'import { y } from "@shadowclone/builds";',
+    }),
+    manifests,
+  });
+
+  expect(violations.map((violation) => [violation.file, violation.message])).toEqual([
+    [
+      "packages/web/src/protocol.ts",
+      '"@shadowclone/builds" is not a ./browser subpath, and the web client must not load node code',
+    ],
   ]);
 });
 
@@ -120,20 +118,10 @@ test("the observed graph counts a package import by name and reports the cycle t
   expect(findCycle(observedGraph({ edges }))).toEqual(["core", "redact", "core"]);
 });
 
-async function treeWith(files: Record<string, string>): Promise<string> {
-  const rootDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-boundaries-"));
-
-  for (const [file, text] of Object.entries(files)) {
-    await Bun.write(path.join(rootDirectory, file), text);
-  }
-
-  return rootDirectory;
-}
-
 test("the checker reports a package.json that breaks the rules", async () => {
   const rootDirectory = await treeWith({
     "package.json": JSON.stringify({
-      name: "@shadowclone/cli",
+      name: "shadowclone",
       devDependencies: { "@shadowclone/nope": "workspace:*" },
     }),
     "packages/redact/package.json": JSON.stringify({

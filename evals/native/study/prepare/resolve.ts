@@ -2,7 +2,7 @@ import path from "node:path";
 import type { ProjectPaths } from "@shadowclone/core";
 import { ownedWrite } from "@shadowclone/core";
 import { listSkillProposals, rejectSkillProposal, readSkillProposal } from "@shadowclone/skills";
-import { applySkillProposal } from "../../../../src/learning/skillMaintenance/apply";
+import { applySkillProposal } from "@shadowclone/learning";
 
 export type Resolution = {
   readonly applied: readonly string[];

@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
-import { learn } from "../../../src/cli/learn";
+import { learn } from "@shadowclone/cli";
 import { readConfig, writeConfig, readManagedPolicy, projectPaths } from "@shadowclone/core";
 import type { NativeEngineRunner } from "@shadowclone/agents";
 import { evaluationBudget } from "../../shared/accounting";

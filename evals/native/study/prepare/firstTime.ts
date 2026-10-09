@@ -1,7 +1,6 @@
-import { initialize } from "../../../../src/cli/init";
-import { runWizard } from "../../../../src/cli/wizard";
+import { initialize, runWizard } from "@shadowclone/cli";
 import type { EngineRunner } from "@shadowclone/agents";
-import { installIntegration } from "../../../../src/integrations";
+import { installIntegration } from "@shadowclone/environment";
 import type { ProjectPaths } from "@shadowclone/core";
 import type { GitRemoteReader } from "@shadowclone/sessions";
 import { loadSeedLibrary } from "@shadowclone/skills";

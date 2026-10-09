@@ -15,7 +15,7 @@ test("a relocated package initializes a fresh home and hooks work without shadow
     for (const name of ["package.json", "preferences", "skills"]) {
       await cp(path.resolve(name), path.join(packageDirectory, name), { recursive: true });
     }
-    const artifacts = await buildRuntimeArtifacts(path.resolve("src/cli/index.ts"));
+    const artifacts = await buildRuntimeArtifacts(path.resolve("packages/cli/src/main.ts"));
     for (const [index, artifact] of artifacts.entries()) {
       const relativePath = path.relative(process.cwd(), artifact.path);
       if (relativePath.startsWith("..")) throw new Error("Unexpected build output");

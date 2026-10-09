@@ -1,9 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { createProjectPaths, ownedWrite } from "@shadowclone/core";
-import { emptyEnvironment } from "../../src/environment/types";
-import { skillPublication } from "../../src/environment/publication";
-import { renderSkillRouting } from "../../src/environment/context";
+import { emptyEnvironment, renderSkillRouting, skillPublication } from "@shadowclone/environment";
 import { nativeFileSchema } from "../native/schema";
 import { captureArm } from "../native/study/prepare/freeze";
 import { fingerprint } from "../shared/structured";

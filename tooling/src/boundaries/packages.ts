@@ -20,23 +20,10 @@ export const packageNames = [
 export type PackageName = (typeof packageNames)[number];
 
 export type PackageLayout = {
-  readonly sourceRoot: string;
-  readonly rootModules: Readonly<Partial<Record<PackageName, readonly string[]>>>;
   readonly allowedDependencies: Readonly<Record<PackageName, readonly PackageName[]>>;
 };
 
 export const packageLayout: PackageLayout = {
-  sourceRoot: "src",
-  rootModules: {
-    environment: ["environment", "integrations"],
-    builds: ["builds"],
-    learning: ["learning", "distill", "preferences", "importRules"],
-    harness: ["harness"],
-    cloud: ["cloud"],
-    web: ["web"],
-    mcp: ["mcp"],
-    cli: ["cli"],
-  },
   allowedDependencies: {
     core: [],
     redact: ["core"],
