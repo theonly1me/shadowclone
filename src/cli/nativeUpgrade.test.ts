@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { offerNativeUpgrade } from "./nativeUpgrade";
 
 test("offers a missing native setup once", async () => {

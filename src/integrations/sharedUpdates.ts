@@ -1,4 +1,4 @@
-import type { FileUpdate } from "../changes";
+import type { FileUpdate } from "@shadowclone/changes";
 
 export function sharedIntegrationUpdates(updates: readonly FileUpdate[]): readonly FileUpdate[] {
   const shared = new Map<string, FileUpdate>();

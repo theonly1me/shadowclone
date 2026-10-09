@@ -1,4 +1,4 @@
-import type { ProjectPaths } from "../../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import type { LearningRoute } from "./planner";
 import { recordFingerprint } from "../../environment/records";
 import { validateRouting } from "../../environment/routingValidation";

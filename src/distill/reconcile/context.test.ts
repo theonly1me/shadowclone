@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
-import type { ProfileRule, ProfileSnapshotRule } from "../../profile";
-import type { CorrectionSignal, OriginScope } from "../../signal";
-import type { SeedLibrary } from "../../skills";
+import type { ProfileRule, ProfileSnapshotRule } from "@shadowclone/profile";
+import type { CorrectionSignal, OriginScope } from "@shadowclone/sessions";
+import type { SeedLibrary } from "@shadowclone/skills";
 import type { DistillBatch } from "../batch";
 import { createReconciliationContext } from "./context";
 

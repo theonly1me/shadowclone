@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { ownedWrite } from "../../../src/storage";
+import { ownedWrite } from "@shadowclone/core";
 import { requirePrivateDirectory, treeFingerprint } from "../../native/files";
 import { matrixReceiptSchema } from "../../native/study/matrix";
 import { runStudy } from "../../native/study/phases";
@@ -11,7 +11,7 @@ import { readWorkflowSuite } from "./freeze";
 import { requireWorkflowProduct } from "./preparation";
 import { workflowInternalArms } from "./definition";
 import { workflowReport, workflowReportSchema, compareWorkflowReports } from "./report";
-import type { NativeEngineRunner } from "../../../src/engine/native";
+import type { NativeEngineRunner } from "@shadowclone/agents";
 
 export { prepareWorkflowEnvironments } from "./preparation";
 export { learnWorkflowEnvironments } from "./learning";

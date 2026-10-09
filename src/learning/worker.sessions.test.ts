@@ -1,6 +1,6 @@
 import { now, emptyRunner, fixture } from "./worker.fixtures";
 import { expect, test } from "bun:test";
-import type { EngineRunner } from "../engine";
+import type { EngineRunner } from "@shadowclone/agents";
 import { runAutomaticLearning, scheduleLearning } from "./index";
 import { readLearningState } from "./state";
 import { learningSessionKey } from "../integrations/sessionKey";

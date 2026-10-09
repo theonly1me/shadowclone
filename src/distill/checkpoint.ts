@@ -1,5 +1,5 @@
 import path from "node:path";
-import { ownedWrite } from "../storage";
+import { ownedWrite } from "@shadowclone/core";
 import {
   parseReconciliationOutput,
   reconciliationOutputSchema,

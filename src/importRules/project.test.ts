@@ -2,9 +2,9 @@ import { expect, test } from "bun:test";
 import { mkdtemp, rename } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createProjectPaths } from "../paths";
-import { compileProfile, readGeneratedProfileState } from "../profile";
-import { normalizeRemoteRepository } from "../signal";
+import { createProjectPaths } from "@shadowclone/core";
+import { compileProfile, readGeneratedProfileState } from "@shadowclone/profile";
+import { normalizeRemoteRepository } from "@shadowclone/sessions";
 import { maximumGuidanceBytes } from "./discovery";
 import { importRepositoryGuidance } from "./importRepositoryGuidance";
 

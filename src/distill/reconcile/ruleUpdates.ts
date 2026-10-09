@@ -2,7 +2,7 @@ import {
   isExplicitProfileEvidence,
   profileEvidenceStatistics,
   type ProfileRule,
-} from "../../profile";
+} from "@shadowclone/profile";
 import { materializeEvidenceIds, unionEvidence } from "./evidence";
 import { reconciliationProposal } from "./proposal";
 import { learnedRuleLocation, promoteGlobalRule } from "./scope";

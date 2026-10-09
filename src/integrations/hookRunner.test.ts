@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createProjectPaths } from "../paths";
+import { createProjectPaths } from "@shadowclone/core";
 import { ensureHookRunner } from "./hookRunner";
 
 test("private hook launcher runs without shadowclone on PATH and preserves edits", async () => {

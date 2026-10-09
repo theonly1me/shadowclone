@@ -1,12 +1,10 @@
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import { readEnvironment, renderEnvironment, environmentFile } from "./store";
-import { readLocalText } from "../localFiles";
+import { readLocalText, acquireLocalLock, readEffectiveConfig } from "@shadowclone/core";
 import { publishEnvironmentRevision } from "./revision";
-import { acquireLocalLock } from "../localFiles/lock";
 import path from "node:path";
 import { recordFingerprint } from "./records";
 import { belongsToScope, learningScopes } from "./scope";
-import { readEffectiveConfig } from "../config";
 
 export async function setAutomaticMaintenance(options: {
   readonly paths: ProjectPaths;

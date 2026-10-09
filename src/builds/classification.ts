@@ -1,4 +1,4 @@
-import { parseSkillDocument } from "../skillMaintenance/document";
+import { parseSkillDocument } from "@shadowclone/skills";
 import { z } from "zod";
 
 type SkillClassification = {

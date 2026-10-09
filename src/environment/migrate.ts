@@ -1,10 +1,9 @@
 import { migrationRepositories } from "./migrationRepositories";
-import { renderProfileRejections } from "../profile/stateRender";
-import { readEffectiveConfig } from "../config";
-import type { ProjectPaths } from "../paths";
-import { readLegacyProfileSnapshot } from "../profile/snapshot";
-import type { GitRemoteReader } from "../signal";
-import { configureSkillMaintenance } from "../skillMaintenance/configure";
+import { renderProfileRejections, readLegacyProfileSnapshot } from "@shadowclone/profile";
+import { readEffectiveConfig, acquireLocalLock, readLocalText } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
+import { configureSkillMaintenance } from "@shadowclone/skills";
 import { readEnvironment, environmentFile, renderEnvironment } from "./store";
 import {
   emptyEnvironment,
@@ -13,9 +12,7 @@ import {
   type LearningRecord,
 } from "./types";
 import { freezeOriginalEnvironment } from "./freeze";
-import { acquireLocalLock } from "../localFiles/lock";
 import path from "node:path";
-import { readLocalText } from "../localFiles";
 import { publishEnvironmentRevision } from "./revision";
 import { ensureBaselineSkill } from "./initialize";
 import { legacyManualLearning } from "./legacy";

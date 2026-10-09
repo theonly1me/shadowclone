@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { createLearningExecution } from "../../engine";
-import { fingerprint } from "../../localFiles";
+import { createLearningExecution } from "@shadowclone/agents";
+import { fingerprint } from "@shadowclone/core";
 import { skillEngineRun, skillFixture } from "../../environment/testing";
 import { learningRecord } from "../../environment/fixtures";
 import { pendingLearningRecords } from "../../environment/pending";

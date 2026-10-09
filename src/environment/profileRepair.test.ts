@@ -1,11 +1,11 @@
-import { legacy, canonical, rule, fixture } from "../profile/testing";
+import { legacy, canonical, rule, fixture } from "@shadowclone/profile/testing";
 import { expect, test } from "bun:test";
 import {
   parseProfileRules,
   readGeneratedProfileState,
   renderProfileRule,
-} from "../profile/index";
-import { applyProfileRepair, createProfileRepairPlan } from "../profile/repair/index";
+} from "@shadowclone/profile";
+import { applyProfileRepair, createProfileRepairPlan } from "@shadowclone/profile";
 import { undoRevision } from "./undo";
 
 test("repair merges distinct keys and undo restores both locations", async () => {

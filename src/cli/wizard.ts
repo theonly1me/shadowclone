@@ -1,8 +1,8 @@
-import type { ProjectPaths } from "../paths";
-import { projectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
+import { projectPaths } from "@shadowclone/core";
 import { applyWizardSelection } from "./wizardApply";
-import type { SeedAgentSkill, SeedGuidance, SeedLibrary } from "../skills";
-import { loadSeedLibrary } from "../skills";
+import type { SeedAgentSkill, SeedGuidance, SeedLibrary } from "@shadowclone/skills";
+import { loadSeedLibrary } from "@shadowclone/skills";
 import { type ConfirmPrompt, promptConfirmation } from "./confirm";
 
 import {

@@ -1,7 +1,7 @@
-import { projectPaths } from "../paths";
+import { projectPaths } from "@shadowclone/core";
 import { readRedactedEnvironment } from "../environment/store";
 import { pendingLearningRecords } from "../environment/pending";
-import { listSkillProposals } from "../skillMaintenance/proposals";
+import { listSkillProposals } from "@shadowclone/skills";
 import {
   reviewLearning,
   setAutomaticMaintenance,

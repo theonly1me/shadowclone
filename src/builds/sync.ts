@@ -1,13 +1,10 @@
 import path from "node:path";
-import type { FileUpdate } from "../changes";
+import type { FileUpdate } from "@shadowclone/changes";
 import { publishSkillResources } from "../environment/resources";
 import type { EnvironmentArtifact, EnvironmentState } from "../environment/types";
-import { fingerprint, readLocalFile } from "../localFiles";
-import { parseSkillDocument } from "../skillMaintenance/document";
+import { fingerprint, readLocalFile, seedSkillsDirectory } from "@shadowclone/core";
+import { parseSkillDocument, isBundledVersion, loadSeedLibrary } from "@shadowclone/skills";
 import { skillClassification } from "./classification";
-import { isBundledVersion } from "../skills/bundledVersions";
-import { loadSeedLibrary } from "../skills/library";
-import { seedSkillsDirectory } from "../distribution";
 
 export type BuildSkillSyncReport = {
   readonly updated: readonly { readonly name: string; readonly copies: number }[];

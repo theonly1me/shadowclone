@@ -1,7 +1,7 @@
-import type { LearningExecution } from "../../../engine";
-import type { ProjectPaths } from "../../../paths";
-import { writeMaintenanceState } from "../../../skillMaintenance/state";
-import type { DiscoveredSkill, MaintenanceState } from "../../../skillMaintenance/types";
+import type { LearningExecution } from "@shadowclone/agents";
+import type { ProjectPaths } from "@shadowclone/core";
+import { writeMaintenanceState } from "@shadowclone/skills";
+import type { DiscoveredSkill, MaintenanceState } from "@shadowclone/skills";
 import { assessCatalogOverlap, assessSkillConflict } from "./assess";
 import { comparisonFingerprint, libraryCatalogBatches, type SkillPair } from "./catalog";
 import { currentConflictProposals, saveConflictProposal } from "./proposals";

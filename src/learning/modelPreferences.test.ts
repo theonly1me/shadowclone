@@ -1,7 +1,6 @@
 import { expect, test } from "bun:test";
 import { selectLearningPreferences } from "./modelPreferences";
-import { detectEngine } from "../engine";
-import { getProviderSupport, getProviderByEngine } from "../provider";
+import { detectEngine, getProviderSupport, getProviderByEngine } from "@shadowclone/agents";
 
 test("explicit selection precedes session model and saved preferences without crossing harnesses", () => {
   const saved = { engine: "codex" as const, model: "saved-model" };

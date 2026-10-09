@@ -1,6 +1,6 @@
 import path from "node:path";
-import type { ProjectPaths } from "../paths";
-import { readLocalText } from "../localFiles";
+import type { ProjectPaths } from "@shadowclone/core";
+import { readLocalText } from "@shadowclone/core";
 import {
   readEnvironment,
   writeEnvironment,

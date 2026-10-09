@@ -4,7 +4,7 @@ import {
   type EngineId,
   type EngineRunner,
   type LearningExecution,
-} from "../engine";
+} from "@shadowclone/agents";
 
 export async function resolveLearningExecution(options: {
   readonly runner?: EngineRunner;

@@ -1,8 +1,8 @@
 import { lstat } from "node:fs/promises";
 import path from "node:path";
 import { harnessMarkers, markedSection } from "../../integrations";
-import { fingerprint, readLocalText } from "../../localFiles";
-import { parseSkillDocument } from "../../skillMaintenance/document";
+import { fingerprint, readLocalText } from "@shadowclone/core";
+import { parseSkillDocument } from "@shadowclone/skills";
 import type { HarnessManifest } from "../../environment/harness/manifest";
 import { repositorySkillRoots } from "../plan/skills";
 import type { HarnessFinding } from "./types";

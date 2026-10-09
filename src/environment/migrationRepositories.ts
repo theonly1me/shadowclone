@@ -1,10 +1,10 @@
-import { canonicalPath, type ProjectPaths } from "../paths";
-import { readScopedReferences } from "../references";
+import { canonicalPath, type ProjectPaths } from "@shadowclone/core";
+import { readScopedReferences } from "@shadowclone/profile";
 import {
   isOriginBlocked,
   resolveRepository,
   type GitRemoteReader,
-} from "../signal";
+} from "@shadowclone/sessions";
 import {
   learningRuleSchema,
   type EnvironmentState,

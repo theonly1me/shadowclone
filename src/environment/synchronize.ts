@@ -1,12 +1,12 @@
 import path from "node:path";
-import { fingerprint, readLocalText } from "../localFiles";
-import type { FileUpdate } from "../changes";
-import type { ProjectPaths } from "../paths";
+import { fingerprint, readLocalText } from "@shadowclone/core";
+import type { FileUpdate } from "@shadowclone/changes";
+import type { ProjectPaths } from "@shadowclone/core";
 import type { EnvironmentState } from "./types";
 import { learningScopes } from "./scope";
 import { skillPublication } from "./publication";
-import { materializeSnapshot } from "../redact";
-import { parseSkillDocument } from "../skillMaintenance/document";
+import { materializeSnapshot } from "@shadowclone/redact";
+import { parseSkillDocument } from "@shadowclone/skills";
 import { validateRouting } from "./routingValidation";
 import { pendingLearningState } from "./learningDisposition";
 

@@ -1,4 +1,4 @@
-import { fingerprint } from "../localFiles";
+import { fingerprint } from "@shadowclone/core";
 
 export function learningSessionKey(options: {
   readonly agent: string;

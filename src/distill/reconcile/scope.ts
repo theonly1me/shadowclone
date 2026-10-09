@@ -1,4 +1,4 @@
-import { explicitProfileEvidence, type ProfileRule } from "../../profile";
+import { explicitProfileEvidence, type ProfileRule } from "@shadowclone/profile";
 import type { PromptRule, ReconciliationContext } from "./types";
 
 type RuleLocation =

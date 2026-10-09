@@ -1,8 +1,14 @@
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig, type ShadowcloneConfig } from "../config";
-import { canonicalPath, createProjectPaths, type ProjectPaths } from "../paths";
+import {
+  defaultConfig,
+  writeConfig,
+  type ShadowcloneConfig,
+  canonicalPath,
+  createProjectPaths,
+  type ProjectPaths,
+} from "@shadowclone/core";
 import {
   materializeFixture,
   type FixtureRepository,

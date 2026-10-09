@@ -1,5 +1,5 @@
 import { learningModelCatalog, type LearningModelChoice } from "../learning/modelCatalog";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import type { WizardAnswerPrompt } from "./wizard";
 
 export async function chooseLearningModel(options: {

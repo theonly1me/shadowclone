@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { mkdir } from "node:fs/promises";
-import { createLearningExecution } from "../../engine";
-import { readConfig, writeConfig } from "../../config";
-import { normalizeRemoteRepository } from "../../signal/origin/remote";
+import { createLearningExecution } from "@shadowclone/agents";
+import { readConfig, writeConfig } from "@shadowclone/core";
+import { normalizeRemoteRepository } from "@shadowclone/sessions";
 import { skillFixture, skillEngineRun } from "../../environment/testing";
-import { configureSkillMaintenance } from "../../skillMaintenance/configure";
+import { configureSkillMaintenance } from "@shadowclone/skills";
 import { learningRecord } from "../../environment/fixtures";
 import { emptyEnvironment, learningRuleSchema } from "../../environment/types";
 import { readEnvironment, writeEnvironment } from "../../environment/store";

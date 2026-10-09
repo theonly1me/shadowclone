@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { GitRemoteReader } from "../../signal";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import { browserJson } from "../security";
 import { accountSetupInput } from "../../cloud/browserProtocol";
 import { setUpAccountClone } from "../../cloud/setup/accountSetup";

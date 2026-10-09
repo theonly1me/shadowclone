@@ -3,11 +3,11 @@ import {
   authorizedLearningEvents,
   currentEvidenceAuthorization,
 } from "../distill";
-import { ingestSources, openEventIndex } from "../eventIndex";
+import { ingestSources, openEventIndex } from "@shadowclone/sessions";
+import { checkMarkerStaleness, deriveSignals } from "@shadowclone/sessions";
 import { episodeId, readLearningState, writeLearningState } from "../learning";
-import { projectPaths } from "../paths";
-import { renderMirror } from "../profile";
-import { checkMarkerStaleness, deriveSignals } from "../signal";
+import { projectPaths, acquireLocalLock } from "@shadowclone/core";
+import { renderMirror } from "@shadowclone/profile";
 import type { LearnExecutionOptions } from "./learnOptions";
 import { maintainSkills } from "../learning/maintenance";
 import { writeSkillMaintenance } from "./learnSummary";
@@ -17,9 +17,8 @@ import { selectManualLearningWindow } from "./learningWindow";
 import { prepareManualLearning } from "./learnPreparation";
 import { writeLearningReceipt } from "../learning/receipt";
 import path from "node:path";
-import { acquireLocalLock } from "../localFiles/lock";
 import { selectLearningPreferences } from "../learning/modelPreferences";
-import { validateLimits } from "../engine/learningLimits";
+import { validateLimits } from "@shadowclone/agents";
 
 export async function learn(options: LearnExecutionOptions = {}): Promise<void> {
   if (options.limits) {

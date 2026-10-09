@@ -1,6 +1,6 @@
 import { origin, storedRule, contextWithRule } from "./assessments.fixtures";
 import { expect, test } from "bun:test";
-import { explicitProfileEvidence, profileEvidenceId } from "../../profile";
+import { explicitProfileEvidence, profileEvidenceId } from "@shadowclone/profile";
 import { applyReconciliation } from "./apply";
 
 test("explicit global guidance promotes an existing mined repository rule", () => {

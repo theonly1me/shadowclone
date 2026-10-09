@@ -2,9 +2,8 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { EngineRunner } from "../engine";
-import type { IndexedEvent } from "../eventIndex";
-import type { CorrectionSignal, OriginScope } from "../signal";
+import type { EngineRunner } from "@shadowclone/agents";
+import type { IndexedEvent, CorrectionSignal, OriginScope } from "@shadowclone/sessions";
 import { distillSignals } from "./index";
 
 const evidenceText = "The user asked for the smaller change.";

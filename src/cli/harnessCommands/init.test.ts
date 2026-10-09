@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { lstat, symlink } from "node:fs/promises";
 import path from "node:path";
-import { readConfig } from "../../config";
+import { readConfig } from "@shadowclone/core";
 import { bunTaskList } from "../../harness/fixtures/bunTaskList";
 import { pythonConfig } from "../../harness/fixtures/pythonConfig";
 import { readHarnessRoots } from "../../harness/state";

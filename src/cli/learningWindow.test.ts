@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { CorrectionSignal } from "../signal";
+import type { CorrectionSignal } from "@shadowclone/sessions";
 import { episodeId, type LearningState } from "../learning";
 import { selectManualLearningWindow } from "./learningWindow";
 

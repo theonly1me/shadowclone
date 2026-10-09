@@ -4,8 +4,8 @@ import {
   type ProfileSnapshot,
   type ProfileWriteOptions,
   type ProfileWriteResult,
-} from "../profile";
-import type { ProjectPaths } from "../paths";
+} from "@shadowclone/profile";
+import type { ProjectPaths } from "@shadowclone/core";
 import { learningSnapshot, storeLearningRules } from "./records";
 
 export async function writeProfile(

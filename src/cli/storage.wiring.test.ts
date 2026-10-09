@@ -2,10 +2,9 @@ import { expect, test } from "bun:test";
 import { chmod, mkdir, mkdtemp, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
-import { openEventIndex } from "../eventIndex";
-import { createProjectPaths } from "../paths";
-import { profileRulePath, type ProfileRule } from "../profile";
+import { defaultConfig, writeConfig, createProjectPaths } from "@shadowclone/core";
+import { openEventIndex } from "@shadowclone/sessions";
+import { profileRulePath, type ProfileRule } from "@shadowclone/profile";
 import { doctor } from "./doctor";
 import { writeProfile } from "../environment/profileRecords";
 

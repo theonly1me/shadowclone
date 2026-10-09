@@ -1,6 +1,6 @@
 import path from "node:path";
-import type { ProjectPaths } from "../paths";
-import type { ProfileCompilation } from "../profile/compiler/types";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { ProfileCompilation } from "@shadowclone/profile";
 import { belongsToScope, learningScopes, type LearningScope } from "./scope";
 import { readRedactedEnvironment } from "./store";
 import type { EnvironmentState } from "./types";

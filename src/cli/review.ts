@@ -1,10 +1,8 @@
 import path from "node:path";
-import { runClaudeCode } from "../engine/claudeCode";
-import { runHostCommand } from "../io/hostCommand";
-import { projectPaths } from "../paths";
-import { reviewBranch, reviewLocally, reviewMarkdown, type ReviewResult } from "../review";
-import { branchRepositoryName } from "../review/collect";
-import { ownedWrite } from "../storage";
+import { runClaudeCode } from "@shadowclone/agents";
+import { runHostCommand, projectPaths, ownedWrite } from "@shadowclone/core";
+import { reviewBranch, reviewLocally, reviewMarkdown, type ReviewResult } from "@shadowclone/review";
+import { branchRepositoryName } from "@shadowclone/review";
 import { parseReviewArguments } from "./reviewArguments";
 import { requestCloudReview } from "./reviewCloud";
 import { reviewStages } from "./reviewStages";

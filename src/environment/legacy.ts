@@ -1,10 +1,10 @@
 import path from "node:path";
-import type { ProjectPaths } from "../paths";
-import { materializeSnapshot } from "../redact";
-import { fingerprint } from "../localFiles";
-import { parseProfileBlocks } from "../profile/parse";
-import { splitProfileBlocks } from "../profile/blocks";
-import { profileVisibleParts, stripProfileMetadata } from "../profile/visible";
+import type { ProjectPaths } from "@shadowclone/core";
+import { materializeSnapshot } from "@shadowclone/redact";
+import { fingerprint } from "@shadowclone/core";
+import { parseProfileBlocks } from "@shadowclone/profile";
+import { splitProfileBlocks } from "@shadowclone/profile";
+import { profileVisibleParts, stripProfileMetadata } from "@shadowclone/profile";
 import { learningRuleSchema, type LearningRecord } from "./types";
 
 export async function legacyManualLearning(

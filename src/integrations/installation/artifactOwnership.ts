@@ -1,7 +1,5 @@
 import path from "node:path";
-import { readBoundedFile } from "../../io/files";
-import { maximumProfileBytes } from "../../io/limits";
-import { ownedWrite } from "../../storage";
+import { readBoundedFile, maximumProfileBytes, ownedWrite } from "@shadowclone/core";
 import { artifactRelativePaths } from "./installPaths";
 import { resolveArtifactPath } from "./installTarget";
 import type { Installation, InstalledArtifact } from "./installState";

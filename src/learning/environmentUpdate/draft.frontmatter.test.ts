@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { parseSkillDocument } from "../../skillMaintenance/document";
+import { parseSkillDocument } from "@shadowclone/skills";
 import { applySkillDraft } from "./draft";
 import { learningRecord } from "../../environment/fixtures";
 

@@ -3,16 +3,14 @@ import path from "node:path";
 import { publishEnvironmentRevision } from "../environment/revision";
 import { environmentFile, renderEnvironment } from "../environment/store";
 import type { EnvironmentArtifact } from "../environment/types";
-import { fingerprint } from "../localFiles";
-import { parseSkillDocument } from "../skillMaintenance/document";
-import { loadSeedLibrary } from "../skills/library";
+import { fingerprint, seedSkillsDirectory } from "@shadowclone/core";
+import { parseSkillDocument, loadSeedLibrary } from "@shadowclone/skills";
 import { renderRetiredSkillChanges } from "./retired";
 import { migrateRetiredSkills } from "./retiredMigration";
 import { installedBuild, skillRoots } from "./syncFixtures";
-import { seedSkillsDirectory } from "../distribution";
 
 const shippedText = (name: string) =>
-  Bun.file(path.join(import.meta.dir, `../skills/fixtures/${name}-0.0.17.md`)).text();
+  Bun.file(path.join(import.meta.dir, `fixtures/${name}-0.0.17.md`)).text();
 
 async function olderInstall(options: {
   readonly retired: Readonly<Record<string, boolean>>;

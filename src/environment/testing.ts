@@ -1,13 +1,13 @@
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import {
   createLearningExecution,
   type EngineRun,
   type EngineRunner,
-} from "../engine";
-import { integrationFixture } from "../testing";
-import { fixtureSkill } from "../skills/testing";
-import { configureSkillMaintenance } from "../skillMaintenance/configure";
+} from "@shadowclone/agents";
+import { integrationFixture } from "@shadowclone/core/testing";
+import { fixtureSkill } from "@shadowclone/skills/testing";
+import { configureSkillMaintenance } from "@shadowclone/skills";
 
 export async function skillFixture(
   options: {

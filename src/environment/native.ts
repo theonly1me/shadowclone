@@ -1,19 +1,23 @@
 import path from "node:path";
-import type { FileUpdate } from "../changes";
-import { readLocalText, fingerprint, UnsafeDestinationError } from "../localFiles";
-import type { ProjectPaths } from "../paths";
+import type { FileUpdate } from "@shadowclone/changes";
+import {
+  readLocalText,
+  fingerprint,
+  UnsafeDestinationError,
+  readEffectiveConfig,
+} from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import { prepareIntegrationFiles, savedRecords } from "../integrations/files";
 import { readIntegrations } from "../integrations/state";
 import { sharedIntegrationUpdates } from "../integrations/sharedUpdates";
 import { learningScopes } from "./scope";
 import { renderSkillRouting } from "./context";
 import type { EnvironmentState } from "./types";
-import { readEffectiveConfig } from "../config";
 import {
   isOriginBlocked,
   resolveRepository,
   type GitRemoteReader,
-} from "../signal";
+} from "@shadowclone/sessions";
 
 export type SkippedRouting = { readonly agent: string; readonly path: string; readonly target: string | null };
 

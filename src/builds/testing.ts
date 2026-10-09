@@ -1,7 +1,7 @@
 import { mkdtemp, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { canonicalPath, createProjectPaths } from "../paths";
+import { canonicalPath, createProjectPaths } from "@shadowclone/core";
 import type { BuildContext, BuildInput } from "../environment/builds/definition";
 
 export async function buildFixture(): Promise<BuildContext> {

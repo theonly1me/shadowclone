@@ -1,11 +1,11 @@
 import path from "node:path";
 import { format } from "prettier";
-import { fingerprint, readLocalFile } from "../../src/localFiles";
+import { fingerprint, readLocalFile } from "@shadowclone/core";
 import {
   bundledVersionIndex,
   bundledVersionsSchema,
   type BundledVersions,
-} from "../../src/skills/bundledVersions";
+} from "@shadowclone/skills";
 
 type SkillFileVersion = {
   readonly skill: string;
@@ -13,7 +13,7 @@ type SkillFileVersion = {
   readonly fingerprint: string;
 };
 
-const versionsFile = path.join("src", "skills", "bundledVersions.json");
+const versionsFile = path.join("packages", "skills", "src", "skills", "bundledVersions.json");
 
 async function currentVersions(rootDirectory: string): Promise<readonly SkillFileVersion[]> {
   const versions: SkillFileVersion[] = [];

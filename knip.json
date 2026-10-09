@@ -30,6 +30,14 @@
         "commander"
       ]
     },
+    "packages/*": {
+      "entry": [
+        "src/**/*.test.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
+    },
     "tooling": {
       "entry": [
         "src/*.ts",

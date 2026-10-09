@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { LearningExecution } from "../../../engine";
+import type { LearningExecution } from "@shadowclone/agents";
 import { internalLearningMarker } from "../../../distill/excerpts";
 import { catalogEntry, resolveCatalogPair, type CatalogBatch, type SkillPair } from "./catalog";
 

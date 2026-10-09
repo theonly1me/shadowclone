@@ -1,13 +1,13 @@
 import { expect, test } from "bun:test";
-import path from "node:path";
-import { loadSeedLibrary } from "../skills";
+import { resolveSeedDirectories } from "@shadowclone/core";
+import { loadSeedLibrary } from "@shadowclone/skills";
 import { renderSeedLibrary } from "./skills";
 
 test("lists every preference and Agent Skill exactly once", async () => {
-  const packageRoot = path.resolve(import.meta.dir, "../..");
+  const seeds = await resolveSeedDirectories();
   const library = await loadSeedLibrary({
-    preferencesDirectory: path.join(packageRoot, "preferences"),
-    skillsDirectory: path.join(packageRoot, "skills"),
+    preferencesDirectory: seeds.preferences,
+    skillsDirectory: seeds.skills,
   });
   const lines = renderSeedLibrary(library);
 

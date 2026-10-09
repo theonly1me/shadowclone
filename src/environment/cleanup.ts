@@ -1,6 +1,6 @@
-import { fingerprint, readLocalText, readLocalFile } from "../localFiles";
+import { fingerprint, readLocalText, readLocalFile } from "@shadowclone/core";
 import { managedSection } from "../integrations/markdown";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import { readEnvironment, environmentFile } from "./store";
 import { publishEnvironmentRevision } from "./revision";
 

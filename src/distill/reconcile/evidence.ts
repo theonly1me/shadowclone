@@ -1,4 +1,4 @@
-import { explicitProfileEvidence } from "../../profile";
+import { explicitProfileEvidence } from "@shadowclone/profile";
 import type { ReconciliationContext } from "./types";
 
 export function unionEvidence(

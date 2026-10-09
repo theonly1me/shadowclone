@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { resolveRepository } from "../signal";
+import { resolveRepository } from "@shadowclone/sessions";
 import { installIntegration } from "./install";
 import { nativeSessionStart } from "./hooks";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { integrationHealth } from "./refresh";
 
 test("global pointer stays stable while its hook injects combined guidance", async () => {

@@ -2,13 +2,12 @@ import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
-import { defaultConfig, writeConfig } from "../config";
-import { createLearningExecution } from "../engine";
+import { defaultConfig, writeConfig, createProjectPaths } from "@shadowclone/core";
+import { createLearningExecution } from "@shadowclone/agents";
 import { learningRecord } from "../environment/fixtures";
 import { emptyEnvironment } from "../environment/types";
 import { writeEnvironment } from "../environment/store";
-import { createProjectPaths } from "../paths";
-import { normalizeRemoteRepository } from "../signal";
+import { normalizeRemoteRepository } from "@shadowclone/sessions";
 import { skillEngineRun, skillFixture } from "../environment/testing";
 
 export const requiredTable = "Include a dependency table in release notes.";

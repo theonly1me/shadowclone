@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { ProjectPaths } from "../paths";
-import type { GitRemoteReader } from "../signal";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 
 export const integrationAgentSchema = z.enum([
   "claude-code",

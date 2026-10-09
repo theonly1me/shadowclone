@@ -1,6 +1,6 @@
-import { fingerprint } from "../../localFiles";
-import { scanClaudeMemory } from "../../migrate/claudeMemory/scan";
-import type { ProjectPaths } from "../../paths";
+import { fingerprint } from "@shadowclone/core";
+import { scanClaudeMemory } from "@shadowclone/profile";
+import type { ProjectPaths } from "@shadowclone/core";
 import type { EnvironmentState, LearningRecord } from "../../environment/types";
 
 export async function extractMemoryRecords(options: {

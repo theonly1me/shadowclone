@@ -1,4 +1,4 @@
-import { reasoningEfforts, type ReasoningEffort } from "../engine/types";
+import { reasoningEfforts, type ReasoningEffort } from "@shadowclone/agents";
 
 export type ReviewTarget =
   | { readonly kind: "pull"; readonly number: number }

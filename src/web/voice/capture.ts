@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { readConfig, readEffectiveConfig, setSourceEnabled, writeConfig } from "../../config";
+import { readConfig, readEffectiveConfig, setSourceEnabled, writeConfig } from "@shadowclone/core";
 import { generationEngine, type GenerationEngine } from "../generationEngine";
 import { generationDestination, structuredCall } from "../structuredCall";
 import { collectWriting, type HostRunner, type Writing } from "./collect";

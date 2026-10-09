@@ -2,12 +2,9 @@ import { expect, test } from "bun:test";
 import { mkdtemp, symlink, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig } from "../config";
+import { defaultConfig, createProjectPaths } from "@shadowclone/core";
 import { materializeEvidence } from "../distill/excerpts";
-import { ingestSources, openEventIndex } from "../eventIndex";
-import { createProjectPaths } from "../paths";
-import { deriveSignals } from "../signal";
-import { observePiFile } from "../observe/adapters/pi";
+import { ingestSources, openEventIndex, deriveSignals, observePiFile } from "@shadowclone/sessions";
 
 const secret = ["sk", "proj", "synthetic123DEF456ghi789JKL"].join("-");
 function entry(options: { readonly id: string; readonly parentId: string | null; readonly role?: string; readonly content?: unknown; readonly type?: string }) {

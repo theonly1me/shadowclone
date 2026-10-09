@@ -1,8 +1,8 @@
 import { learningSnapshot, storeLearningRules } from "../environment";
-import type { ProjectPaths } from "../paths";
-import { readLegacyProfileSnapshot, type ProfileSnapshot } from "../profile/snapshot";
-import { writeLegacyProfile } from "../profile/write";
-import type { ProfileRule, ProfileRuleReference, ProfileWriteResult } from "../profile";
+import type { ProjectPaths } from "@shadowclone/core";
+import { readLegacyProfileSnapshot, type ProfileSnapshot } from "@shadowclone/profile";
+import { writeLegacyProfile } from "@shadowclone/profile";
+import type { ProfileRule, ProfileRuleReference, ProfileWriteResult } from "@shadowclone/profile";
 import type { LearningProvenance } from "./provenance";
 
 export async function readLearningSnapshot(paths: ProjectPaths): Promise<ProfileSnapshot> {

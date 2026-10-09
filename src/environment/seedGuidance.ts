@@ -1,15 +1,15 @@
 import path from "node:path";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import type {
   ExistingProfileRule,
   ProfileRule,
   ProfileRuleReference,
   ProfileWriteResult,
-} from "../profile";
-import { parseProfileRules, readGeneratedProfileState, profileRulePath } from "../profile";
+} from "@shadowclone/profile";
+import { parseProfileRules, readGeneratedProfileState, profileRulePath } from "@shadowclone/profile";
 import { readEnvironment } from "./store";
-import { seedGuidanceProfileKey } from "../skills/key";
-import type { SeedGuidance, SeedLibrary } from "../skills/schema";
+import { seedGuidanceProfileKey } from "@shadowclone/skills";
+import type { SeedGuidance, SeedLibrary } from "@shadowclone/skills";
 import { writeProfile } from "./profileRecords";
 
 function profileBodyFromSeedGuidance(guidance: SeedGuidance): string {

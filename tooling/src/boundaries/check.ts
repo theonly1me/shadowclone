@@ -1,6 +1,11 @@
-import path from "node:path";
 import { resolveRelativeImport, type ImportEdge } from "./imports";
-import { packageLayout, packageNames, type PackageLayout, type PackageName } from "./packages";
+import { packageFolderOf, packageOfFile, workspaceKeyOfFile } from "./layout";
+import type { ManifestIndex } from "./manifests";
+import { packageLayout, packageNames, type PackageLayout } from "./packages";
+import { parseWorkspaceSpecifier } from "./specifiers";
+import { workspaceImportViolations } from "./workspaceImports";
+
+export { packageOfFile } from "./layout";
 
 export type BoundaryViolation = {
   readonly file: string;
@@ -10,65 +15,87 @@ export type BoundaryViolation = {
 
 export type PackageGraph = ReadonlyMap<string, ReadonlySet<string>>;
 
-function ownersOf(layout: PackageLayout): ReadonlyMap<string, PackageName> {
-  const owners = new Map<string, PackageName>();
+function consumerViolations(options: {
+  readonly edge: ImportEdge;
+  readonly target: string;
+  readonly workspace: string;
+}): readonly BoundaryViolation[] {
+  const { edge, target, workspace } = options;
+  const staysInside = target.startsWith(`${workspace}/`) || target.startsWith("src/");
 
-  for (const name of packageNames) {
-    for (const moduleName of layout.modules[name]) {
-      owners.set(moduleName, name);
-    }
-  }
-
-  return owners;
+  return staysInside
+    ? []
+    : [{ file: edge.file, line: edge.line, message: `"${edge.specifier}" leaves its package` }];
 }
 
-export function packageOfFile(options: {
-  file: string;
-  layout?: PackageLayout;
-}): PackageName | null {
-  const layout = options.layout ?? packageLayout;
-  const relative = path.posix.relative(layout.sourceRoot, options.file);
+function relativeViolations(options: {
+  readonly edge: ImportEdge;
+  readonly target: string;
+  readonly layout: PackageLayout;
+}): readonly BoundaryViolation[] {
+  const { edge, target, layout } = options;
+  const position = { file: edge.file, line: edge.line };
+  const workspace = workspaceKeyOfFile(edge.file);
 
-  if (relative.startsWith("..")) {
-    return null;
+  if (workspace === "evals" || workspace === "tooling") {
+    return consumerViolations({ edge, target, workspace });
   }
 
-  const [segment] = relative.split("/");
-  const [stem] = (segment ?? "").split(".");
+  const importer = packageOfFile({ file: edge.file, layout });
+  const imported = packageOfFile({ file: target, layout });
 
-  return ownersOf(layout).get(stem ?? "") ?? null;
+  if (importer === null) {
+    return [{ ...position, message: "file belongs to no package" }];
+  }
+
+  if (packageFolderOf(edge.file) !== null) {
+    return packageFolderOf(target) === importer
+      ? []
+      : [{ ...position, message: `"${edge.specifier}" leaves its package` }];
+  }
+
+  if (packageFolderOf(target) !== null) {
+    return [
+      {
+        ...position,
+        message: `"${edge.specifier}" reaches into ${imported}, import the package by name`,
+      },
+    ];
+  }
+
+  if (imported === null) {
+    return [
+      {
+        ...position,
+        message: `"${edge.specifier}" resolves to ${target}, which belongs to no package`,
+      },
+    ];
+  }
+
+  return importer !== imported && !layout.allowedDependencies[importer].includes(imported)
+    ? [{ ...position, message: `"${edge.specifier}" makes ${importer} depend on ${imported}` }]
+    : [];
 }
 
 export function findViolations(options: {
   edges: readonly ImportEdge[];
   layout?: PackageLayout;
+  manifests?: ManifestIndex;
 }): readonly BoundaryViolation[] {
   const layout = options.layout ?? packageLayout;
+  const manifests = options.manifests ?? new Map();
   const violations: BoundaryViolation[] = [];
 
   for (const edge of options.edges) {
-    const target = resolveRelativeImport(edge);
-
-    if (target === null) {
+    if (parseWorkspaceSpecifier(edge.specifier) !== null) {
+      violations.push(...workspaceImportViolations({ edge, manifests, layout }));
       continue;
     }
 
-    const importer = packageOfFile({ file: edge.file, layout });
-    const imported = packageOfFile({ file: target, layout });
-    const position = { file: edge.file, line: edge.line };
+    const target = resolveRelativeImport(edge);
 
-    if (importer === null) {
-      violations.push({ ...position, message: "file belongs to no package" });
-    } else if (imported === null) {
-      violations.push({
-        ...position,
-        message: `"${edge.specifier}" resolves to ${target}, which belongs to no package`,
-      });
-    } else if (importer !== imported && !layout.allowedDependencies[importer].includes(imported)) {
-      violations.push({
-        ...position,
-        message: `"${edge.specifier}" makes ${importer} depend on ${imported}`,
-      });
+    if (target !== null) {
+      violations.push(...relativeViolations({ edge, target, layout }));
     }
   }
 
@@ -83,9 +110,15 @@ export function observedGraph(options: {
   const graph = new Map<string, Set<string>>();
 
   for (const edge of options.edges) {
+    const workspace = parseWorkspaceSpecifier(edge.specifier);
     const target = resolveRelativeImport(edge);
     const importer = packageOfFile({ file: edge.file, layout });
-    const imported = target === null ? null : packageOfFile({ file: target, layout });
+    const imported =
+      workspace !== null
+        ? (packageNames.find((name) => name === workspace.packageName) ?? null)
+        : target === null
+          ? null
+          : packageOfFile({ file: target, layout });
 
     if (importer === null || imported === null || importer === imported) {
       continue;

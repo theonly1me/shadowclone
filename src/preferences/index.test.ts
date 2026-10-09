@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
-import { listRevisions } from "../changes";
+import { listRevisions } from "@shadowclone/changes";
 import { compileContext } from "../integrations";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { rememberPreference } from "./index";
 
 test("explicit preferences are active, scoped and reversible without inference", async () => {

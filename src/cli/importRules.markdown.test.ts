@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { parseProfileBlocks } from "../profile";
+import { parseProfileBlocks } from "@shadowclone/profile";
 import { renderFeatureWorkflowSkill } from "../harness/render/skills";
 import type { RepositoryGuidanceSource } from "../importRules/discovery";
 import { nestMarkdownHeadings, transformRepositoryGuidance } from "../importRules/markdown";

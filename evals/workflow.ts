@@ -1,7 +1,6 @@
 import path from "node:path";
 import { z } from "zod";
-import { ownedWrite } from "../src/storage";
-import { readLocalText } from "../src/localFiles";
+import { ownedWrite, readLocalText } from "@shadowclone/core";
 import { requirePrivateDirectory } from "./native/files";
 import { fingerprint } from "./shared/structured";
 import { lockEvaluation } from "./shared/lock";

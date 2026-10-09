@@ -2,11 +2,9 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
-import type { IndexedEvent } from "../eventIndex";
-import { createProjectPaths } from "../paths";
-import { explicitProfileEvidence, profileEvidenceId, type ProfileRule } from "../profile";
-import type { CorrectionSignal } from "../signal";
+import { defaultConfig, writeConfig, createProjectPaths } from "@shadowclone/core";
+import type { IndexedEvent, CorrectionSignal } from "@shadowclone/sessions";
+import { explicitProfileEvidence, profileEvidenceId, type ProfileRule } from "@shadowclone/profile";
 import { queuePendingLearning, readPendingLearning, updatePendingLearning } from "./pending";
 import { decidePendingLearning } from "./review";
 

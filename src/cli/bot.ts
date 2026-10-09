@@ -1,5 +1,5 @@
 import path from "node:path";
-import { canonicalPath, projectPaths } from "../paths";
+import { canonicalPath, projectPaths } from "@shadowclone/core";
 import { exportGuidance } from "../cloud/export";
 import { writeDeliveryFiles } from "../cloud/deliveryFiles";
 import { readCloudChecklist } from "../cloud/setup/checklist";

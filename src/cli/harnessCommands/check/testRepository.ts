@@ -1,5 +1,6 @@
 import { symlink } from "node:fs/promises";
 import path from "node:path";
+import { checkoutRoot } from "@shadowclone/core/testing";
 import { harnessInitCommand } from "../../harness";
 import { bunTaskList } from "../../../harness/fixtures/bunTaskList";
 import {
@@ -68,7 +69,7 @@ export async function checkedRepository(
   });
   await Bun.write(path.join(setup.root, ".gitignore"), "node_modules\n");
   await symlink(
-    path.resolve(import.meta.dir, "../../../../node_modules"),
+    path.join(await checkoutRoot(), "node_modules"),
     path.join(setup.root, "node_modules"),
   );
   git({ root: setup.root, arguments: ["init", "-q"] });

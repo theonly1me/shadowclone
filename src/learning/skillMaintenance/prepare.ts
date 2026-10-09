@@ -1,16 +1,16 @@
-import { fingerprint, readLocalText } from "../../localFiles";
-import type { ProjectPaths } from "../../paths";
+import { fingerprint, readLocalText } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import { readEnvironment } from "../../environment/store";
-import { parseSkillDocument } from "../../skillMaintenance/document";
-import type { SkillAssessment } from "./assess";
 import {
+  parseSkillDocument,
   companionPrefix,
   renderCompanionSkill,
   renderMaintainedSkill,
-} from "../../skillMaintenance/render";
-import { restoreOriginalSkill } from "../../skillMaintenance/render";
-import { skillTarget } from "../../skillMaintenance/state";
-import type { DiscoveredSkill, MaintenanceState, SkillChangeProposal } from "../../skillMaintenance/types";
+  restoreOriginalSkill,
+  skillTarget,
+} from "@shadowclone/skills";
+import type { SkillAssessment } from "./assess";
+import type { DiscoveredSkill, MaintenanceState, SkillChangeProposal } from "@shadowclone/skills";
 
 export function assessmentFingerprint(options: {
   readonly skill: DiscoveredSkill;

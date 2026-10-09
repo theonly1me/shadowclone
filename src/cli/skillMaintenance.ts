@@ -3,9 +3,9 @@ import {
   readEffectiveConfig,
   setSourceEnabled,
   writeConfig,
-} from "../config";
+  projectPaths,
+} from "@shadowclone/core";
 import { runLearningMaintenance } from "../learning";
-import { projectPaths } from "../paths";
 import { handleEnvironmentSkills } from "./environmentSkills";
 import {
   configureSkillMaintenance,
@@ -15,7 +15,7 @@ import {
   rejectSkillProposal,
   showSkillProposal,
   showSkillRoots,
-} from "../skillMaintenance";
+} from "@shadowclone/skills";
 import { adoptSkill, inspectSkillLibrary } from "../learning/skillMaintenance/lifecycle";
 import { applySkillProposal } from "../learning/skillMaintenance/apply";
 

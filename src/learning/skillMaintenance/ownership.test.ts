@@ -2,11 +2,11 @@ import { expect, test } from "bun:test";
 import path from "node:path";
 import { applySkillProposal } from "./apply";
 import { skillExecution, skillFixture } from "../../environment/testing";
-import { listSkillProposals } from "../../skillMaintenance/proposals";
-import { readMaintenanceState } from "../../skillMaintenance/state";
+import { listSkillProposals } from "@shadowclone/skills";
+import { readMaintenanceState } from "@shadowclone/skills";
 import { updateSkillLibrary } from "./update";
 import { undoRevision } from "../../environment/undo";
-import { removeSkillMaintenance, skillRevisionRoots } from "../../skillMaintenance/remove";
+import { removeSkillMaintenance, skillRevisionRoots } from "@shadowclone/skills";
 
 test("third-party packages stay unchanged while approved companions are local and reversible", async () => {
   const setup = await skillFixture({ thirdParty: true });

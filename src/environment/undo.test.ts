@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { commitLocalChanges, listRevisions } from "../changes";
-import { integrationFixture } from "../testing";
+import { commitLocalChanges, listRevisions } from "@shadowclone/changes";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { undoRevision } from "./undo";
 
 test("revision history restores exact prior content and preserves later manual changes", async () => {

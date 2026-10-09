@@ -1,7 +1,6 @@
 import { lstat } from "node:fs/promises";
 import path from "node:path";
-import { runCommand, type CommandRunner } from "../../io/command";
-import { canonicalPath } from "../../paths";
+import { runCommand, type CommandRunner, canonicalPath } from "@shadowclone/core";
 import { readHarnessManifest } from "../../environment/harness/manifest";
 import { loadRepositoryCommentReader } from "./comments";
 import { conventionFindings, fileExtension } from "./conventions";

@@ -1,9 +1,7 @@
-import { readEffectiveConfig } from "../config";
-import { detectEngine } from "../engine";
-import type { EngineId, EngineRunner } from "../engine/types";
-import { getProviderByEngine } from "../provider";
+import { readEffectiveConfig } from "@shadowclone/core";
+import { detectEngine, getProviderByEngine, fastTier } from "@shadowclone/agents";
+import type { EngineId, EngineRunner } from "@shadowclone/agents";
 import { selectLearningPreferences } from "../learning/modelPreferences";
-import { fastTier } from "../engine/fastTier";
 import type { BuildContext } from "../environment/builds/definition";
 
 export type GenerationEngine = {

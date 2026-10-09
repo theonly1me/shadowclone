@@ -3,9 +3,9 @@ import {
   profileEvidenceId,
   type ProfileRule,
   type ProfileSnapshot,
-} from "../../profile";
-import type { CorrectionSignal, OriginScope } from "../../signal";
-import type { SeedLibrary } from "../../skills";
+} from "@shadowclone/profile";
+import type { CorrectionSignal, OriginScope } from "@shadowclone/sessions";
+import type { SeedLibrary } from "@shadowclone/skills";
 import type { DistillBatch } from "../batch";
 import { applyReconciliation } from "./apply";
 import { createReconciliationContext } from "./context";

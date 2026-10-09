@@ -1,9 +1,9 @@
 import { opendir } from "node:fs/promises";
 import path from "node:path";
-import { detectEngine } from "../engine";
+import { detectEngine } from "@shadowclone/agents";
 import { integrationAgentSchema } from "../integrations";
 import type { IntegrationAgent } from "../integrations";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import type {
   OnboardingCaptureSourceId,
   OnboardingPresence,

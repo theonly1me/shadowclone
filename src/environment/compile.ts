@@ -1,6 +1,6 @@
-import type { ProjectPaths } from "../paths";
-import { compileProfile, type ProfileCompilation } from "../profile";
-import type { RepositoryIdentity } from "../signal";
+import type { ProjectPaths } from "@shadowclone/core";
+import { compileProfile, type ProfileCompilation } from "@shadowclone/profile";
+import type { RepositoryIdentity } from "@shadowclone/sessions";
 import { environmentCompilation } from "./context";
 
 export async function compileAgentDelivery(options: {

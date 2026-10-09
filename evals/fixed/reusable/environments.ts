@@ -1,12 +1,10 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { initialize } from "../../../src/cli/init";
-import { readConfig, writeConfig } from "../../../src/config";
+import { readConfig, writeConfig, createProjectPaths, ownedWrite } from "@shadowclone/core";
 import { syncLearningEnvironment } from "../../../src/environment/sync";
 import { registerWorkingRepository } from "../../../src/environment/registerRepository";
 import { installIntegration } from "../../../src/integrations";
-import { createProjectPaths } from "../../../src/paths";
-import { ownedWrite } from "../../../src/storage";
 import { captureArm } from "../../native/study/prepare/freeze";
 import { git } from "../../native/study/git";
 import type { ArmEnvironment } from "../../native/study/schema";
@@ -15,8 +13,8 @@ import { repositoryInstructions } from "./definition";
 import { correctionSessions, excludedCorpusDecoy } from "./corpus";
 import { existingManualSkill, intendedAtlasSkill, intendedGlobalSkill } from "./guidance";
 import { routingLibrary, routingSkill } from "./routing";
-import { parseSkillDocument } from "../../../src/skillMaintenance/document";
-import { openEventIndex } from "../../../src/eventIndex";
+import { parseSkillDocument } from "@shadowclone/skills";
+import { openEventIndex } from "@shadowclone/sessions";
 import { correctionRepositoryHistory } from "./corpus";
 import { verifiedCorpusRepository } from "./corpusScope";
 

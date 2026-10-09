@@ -1,15 +1,15 @@
 import { guidanceImportState } from "./learningState";
-import { canonicalPath } from "../paths";
+import { canonicalPath } from "@shadowclone/core";
 import { lstat } from "node:fs/promises";
-import type { ProjectPaths } from "../paths";
-import { createProfileRuleKey } from "../profile";
-import type { ProfileRule, ProfileRuleReference } from "../profile";
-import { resolveRedacted } from "../observe";
+import type { ProjectPaths } from "@shadowclone/core";
+import { createProfileRuleKey } from "@shadowclone/profile";
+import type { ProfileRule, ProfileRuleReference } from "@shadowclone/profile";
 import {
+  resolveRedacted,
   isOriginBlocked,
   resolveRepository,
   type GitRemoteReader,
-} from "../signal";
+} from "@shadowclone/sessions";
 import { discoverRepositoryGuidance } from "./discovery";
 import type { RepositoryGuidanceSource } from "./discovery";
 import {

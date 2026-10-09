@@ -4,7 +4,7 @@ import {
   runHarnessCheck,
   type CheckFormat,
 } from "../harness/check";
-import { canonicalPath } from "../paths";
+import { canonicalPath } from "@shadowclone/core";
 import { parseHookInput, readHookString } from "./hookInput";
 
 export type HarnessCheckOptions = {

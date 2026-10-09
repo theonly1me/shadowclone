@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { integrationFixture } from "../testing";
-import type { CorrectionSignal } from "../signal";
+import { integrationFixture } from "@shadowclone/core/testing";
+import type { CorrectionSignal } from "@shadowclone/sessions";
 import { materializeEvidence } from "./excerpts";
 
 test("user steering crosses the pointer redaction gate and excludes generated learning input", async () => {

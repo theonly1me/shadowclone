@@ -1,6 +1,6 @@
-import { fingerprint, readLocalFile } from "../localFiles";
+import { fingerprint, readLocalFile } from "@shadowclone/core";
 import type { EnvironmentState } from "../environment/types";
-import type { FileUpdate } from "../changes";
+import type { FileUpdate } from "@shadowclone/changes";
 import type { BuildDefinition } from "../environment/builds/definition";
 
 export async function retireBuildSkills(options: {

@@ -1,9 +1,8 @@
 import path from "node:path";
 import { compileContextDetails } from "../../integrations";
-import { readLocalText } from "../../localFiles";
-import { canonicalPath, projectPaths, type ProjectPaths } from "../../paths";
-import type { ProfileCompilation } from "../../profile";
-import type { GitRemoteReader } from "../../signal";
+import { readLocalText, canonicalPath, projectPaths, type ProjectPaths } from "@shadowclone/core";
+import type { ProfileCompilation } from "@shadowclone/profile";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import { deriveConventions, sourceExtensions } from "../conventions";
 import { detectRepository } from "../detect";
 import { chooseGate, harnessCommands } from "../gate";

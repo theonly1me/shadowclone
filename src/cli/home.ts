@@ -1,9 +1,8 @@
-import { readEffectiveConfig } from "../config";
+import { readEffectiveConfig, projectPaths, type ProjectPaths } from "@shadowclone/core";
 import { pendingLearningRecords } from "../environment/pending";
 import { readRedactedEnvironment } from "../environment/store";
 import { readIntegrations } from "../integrations/state";
 import { readPendingLearning } from "../learning/pending";
-import { projectPaths, type ProjectPaths } from "../paths";
 import { recordFingerprint } from "../environment/records";
 
 export async function showHome(options: {

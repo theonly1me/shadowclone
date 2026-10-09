@@ -1,7 +1,7 @@
 import { learn } from "../../../../src/cli/learn";
-import type { EngineRunner } from "../../../../src/engine/types";
-import type { ProjectPaths } from "../../../../src/paths";
-import type { GitRemoteReader } from "../../../../src/signal";
+import type { EngineRunner } from "@shadowclone/agents";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 
 export type DeepPass = {
   readonly pass: number;

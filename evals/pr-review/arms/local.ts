@@ -1,8 +1,8 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import { runClaudeCode } from "../../../src/engine/claudeCode";
-import { reviewBranch, reviewLocally, reviewMarkdown, type ReviewResult } from "../../../src/review";
-import { branchRepositoryName } from "../../../src/review/collect";
+import { runClaudeCode } from "@shadowclone/agents";
+import { reviewBranch, reviewLocally, reviewMarkdown, type ReviewResult } from "@shadowclone/review";
+import { branchRepositoryName } from "@shadowclone/review";
 import { openqodexReview } from "./openqodex";
 import type { ArmName, LocalArmName, LocalArmRunner } from "./types";
 

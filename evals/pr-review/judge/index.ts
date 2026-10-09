@@ -1,6 +1,6 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { runProcess } from "../../../src/io/process";
+import { runProcess } from "@shadowclone/core";
 import { inBatches } from "../github";
 import { askJudges } from "../judges";
 import type { NormalizedFinding } from "../normalize";

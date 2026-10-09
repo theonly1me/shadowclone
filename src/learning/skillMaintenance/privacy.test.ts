@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { writeConfig, defaultConfig } from "../../config";
+import { writeConfig, defaultConfig } from "@shadowclone/core";
 import { rememberPreference } from "../../preferences";
-import { configureSkillMaintenance } from "../../skillMaintenance/configure";
+import { configureSkillMaintenance } from "@shadowclone/skills";
 import { skillExecution, skillFixture } from "../../environment/testing";
 import { updateSkillLibrary } from "./update";
-import { fixtureSkill } from "../../skills/testing";
+import { fixtureSkill } from "@shadowclone/skills/testing";
 
 test("skill contents cross the redaction gate before an assessment prompt", async () => {
   const setup = await skillFixture();

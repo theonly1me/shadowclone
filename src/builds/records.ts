@@ -2,7 +2,7 @@ import {
   learningRecordSchema,
   type EnvironmentState,
 } from "../environment/types";
-import { loadSeedLibrary } from "../skills/library";
+import { loadSeedLibrary } from "@shadowclone/skills";
 import { profileRuleFromSeedGuidance } from "../environment/seedGuidance";
 import type { BuildDefinition } from "../environment/builds/definition";
 

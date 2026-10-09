@@ -1,5 +1,5 @@
 import path from "node:path";
-import { runProcess } from "../../../src/io/process";
+import { runProcess } from "@shadowclone/core";
 import { writeFrozenFile } from "../files";
 import type { GitHistory } from "./schema";
 

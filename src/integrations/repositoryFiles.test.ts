@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { runHostCommand } from "../io/hostCommand";
-import { integrationFixture } from "../testing";
+import { runHostCommand } from "@shadowclone/core";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { installIntegration, uninstallIntegration } from "./install";
 import { renderInstructionPointer, updateManagedSection } from "./markdown";
 import { readIntegrations, saveIntegration } from "./state";

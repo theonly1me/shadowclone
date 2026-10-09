@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { NativeEngineRunner } from "../../../src/engine/native";
+import type { NativeEngineRunner } from "@shadowclone/agents";
 import { corrections } from "./fixtures";
 
 const learningSchema = z.object({ learnings: z.array(z.object({ key: z.string(), text: z.string() })) });

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { compileContext } from "../integrations";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { runPreferenceTool } from "./preferences";
 
 test("MCP requires explicit scope and records redacted preferences", async () => {

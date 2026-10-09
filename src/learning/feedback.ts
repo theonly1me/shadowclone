@@ -1,13 +1,18 @@
 import path from "node:path";
 import { z } from "zod";
-import { readEffectiveConfig, sourceIds } from "../config";
+import {
+  readEffectiveConfig,
+  sourceIds,
+  acquireLocalLock,
+  fingerprint,
+  readLocalText,
+  replaceLocalText,
+} from "@shadowclone/core";
 import type { AssessedCorrection } from "../distill/feedback";
 import { recordFingerprint } from "../environment/records";
 import type { EnvironmentState } from "../environment/types";
 import { readEnvironment } from "../environment/store";
-import { acquireLocalLock } from "../localFiles/lock";
-import { fingerprint, readLocalText, replaceLocalText } from "../localFiles";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 
 const feedbackSchema = z.array(z.strictObject({
   key: z.string(),

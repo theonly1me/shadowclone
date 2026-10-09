@@ -1,7 +1,7 @@
 import path from "node:path";
-import { fingerprint, readLocalText } from "../localFiles";
-import { redactSecrets } from "../redact";
-import { parseSkillDocument } from "../skillMaintenance/document";
+import { fingerprint, readLocalText } from "@shadowclone/core";
+import { redactSecrets } from "@shadowclone/redact";
+import { parseSkillDocument } from "@shadowclone/skills";
 import type { EnvironmentArtifact } from "../environment/types";
 import type { BuildItem } from "./types";
 import { skillClassification } from "./classification";

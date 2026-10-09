@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createProjectPaths } from "../paths";
+import { createProjectPaths } from "@shadowclone/core";
 import { forgetAll } from "./forget";
 
 test("forget all removes only the shadowclone directory", async () => {

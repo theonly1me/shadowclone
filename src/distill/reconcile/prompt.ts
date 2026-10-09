@@ -1,4 +1,4 @@
-import { textRefKey } from "../../observe";
+import { textRefKey } from "@shadowclone/sessions";
 import { internalLearningMarker } from "../excerpts";
 import type {
   PromptEvidence,

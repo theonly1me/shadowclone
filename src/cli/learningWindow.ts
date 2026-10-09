@@ -4,7 +4,7 @@ import {
   type DistillBatch,
 } from "../distill";
 import { selectLearningEpisodes, type LearningState } from "../learning";
-import type { CorrectionSignal } from "../signal";
+import type { CorrectionSignal } from "@shadowclone/sessions";
 
 const manualBatchLimit = 10;
 

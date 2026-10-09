@@ -2,10 +2,10 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createProjectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
-import { parseProfileRules, profileFingerprint } from "../profile/index";
-import { readGeneratedProfileState } from "../profile/state";
+import { createProjectPaths } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import { parseProfileRules, profileFingerprint } from "@shadowclone/profile";
+import { readGeneratedProfileState } from "@shadowclone/profile";
 import { writeProfile } from "./profileRecords";
 
 async function createTestPaths(): Promise<ProjectPaths> {

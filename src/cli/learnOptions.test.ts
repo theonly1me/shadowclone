@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import {
   defaultLearningExecutionLimits,
   learningExecutionLimitsForCalls,
-} from "../engine";
+} from "@shadowclone/agents";
 import { parseLearnOptions } from "./learnOptions";
 
 test("parses deep review modes", () => {

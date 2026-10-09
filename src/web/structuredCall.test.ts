@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { z } from "zod";
-import type { EngineRun } from "../engine/types";
+import type { EngineRun } from "@shadowclone/agents";
 import { generationResult } from "./fixtures";
 import { structuredCall } from "./structuredCall";
 

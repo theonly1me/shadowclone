@@ -1,4 +1,4 @@
-import { fingerprint } from "../localFiles";
+import { fingerprint } from "@shadowclone/core";
 
 export type SectionMarkers = { readonly start: string; readonly end: string };
 

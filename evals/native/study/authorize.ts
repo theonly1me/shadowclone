@@ -1,5 +1,4 @@
-import { readEffectiveConfig } from "../../../src/config";
-import { projectPaths } from "../../../src/paths";
+import { readEffectiveConfig, projectPaths } from "@shadowclone/core";
 
 export async function authorizeStudy(options: { readonly configPath?: string; readonly managedConfigPath?: string | null } = {}): Promise<void> {
   const { config, policy } = await readEffectiveConfig({

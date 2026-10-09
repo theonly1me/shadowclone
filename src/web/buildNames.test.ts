@@ -1,10 +1,8 @@
 import { expect, test } from "bun:test";
 import { buildFixture, buildInput } from "../builds/testing";
-import { defaultConfig, writeConfig } from "../config";
-import { buildClaudeArguments } from "../engine/claudeCode";
-import { buildCodexArguments } from "../engine/codex";
-import { fastSystemPrompt } from "../engine/fastTier";
-import type { EngineId, EngineRunOptions } from "../engine/types";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
+import { buildClaudeArguments, buildCodexArguments, fastSystemPrompt } from "@shadowclone/agents";
+import type { EngineId, EngineRunOptions } from "@shadowclone/agents";
 import { createBuildNames } from "./buildNames";
 import { generationResult } from "./fixtures";
 import { generationEngine } from "./generationEngine";

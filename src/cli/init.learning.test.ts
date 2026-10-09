@@ -2,9 +2,9 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { EngineRunner } from "../engine";
+import type { EngineRunner } from "@shadowclone/agents";
 import { readLearningState } from "../learning";
-import { createProjectPaths } from "../paths";
+import { createProjectPaths } from "@shadowclone/core";
 import { initialize } from "./init";
 
 test("default setup processes recent steering before the next agent session", async () => {

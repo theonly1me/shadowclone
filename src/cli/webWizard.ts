@@ -1,4 +1,4 @@
-import { canonicalPath, projectPaths } from "../paths";
+import { canonicalPath, projectPaths } from "@shadowclone/core";
 import { serveBuildWizard } from "../web";
 
 export async function runWebWizard(

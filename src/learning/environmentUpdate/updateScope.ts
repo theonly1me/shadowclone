@@ -1,9 +1,9 @@
-import type { LearningExecution } from "../../engine";
-import { readLocalText } from "../../localFiles";
-import type { ProjectPaths } from "../../paths";
-import type { GitRemoteReader } from "../../signal";
-import { discoverDeliverySkills } from "../../skillMaintenance/discover";
-import type { MaintenanceState } from "../../skillMaintenance/types";
+import type { LearningExecution } from "@shadowclone/agents";
+import { readLocalText } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
+import { discoverDeliverySkills } from "@shadowclone/skills";
+import type { MaintenanceState } from "@shadowclone/skills";
 import { nativePublication } from "../../environment/native";
 import { reconcileLearningBatch } from "./reconcile";
 import { recordFingerprint } from "../../environment/records";

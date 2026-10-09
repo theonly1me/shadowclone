@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
-import { openEventIndex } from "../eventIndex";
-import { renderProfileRule, type ProfileRule } from "../profile";
-import { referenceRelativePath, renderReference } from "../references";
-import { integrationFixture } from "../testing";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
+import { openEventIndex } from "@shadowclone/sessions";
+import { renderProfileRule, type ProfileRule } from "@shadowclone/profile";
+import { referenceRelativePath, renderReference } from "@shadowclone/profile";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { nativeSessionStart } from "./hooks";
 import { installIntegration } from "./install";
 

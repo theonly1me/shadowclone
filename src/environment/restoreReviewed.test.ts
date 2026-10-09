@@ -2,11 +2,11 @@ import { expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createProjectPaths } from "../paths";
-import { renderProfileRule } from "../profile/render";
-import { renderProfileRejections } from "../profile/stateRender";
-import type { ProfileRule } from "../profile/types";
-import { restoreReviewedMemoryRules } from "../migrate/claudeMemory/restoreReviewed";
+import { createProjectPaths } from "@shadowclone/core";
+import { renderProfileRule } from "@shadowclone/profile";
+import { renderProfileRejections } from "@shadowclone/profile";
+import type { ProfileRule } from "@shadowclone/profile";
+import { restoreReviewedMemoryRules } from "@shadowclone/profile";
 import { undoRevision } from "./undo";
 
 test("reviewed routing restoration preserves manual text and is reversible", async () => {

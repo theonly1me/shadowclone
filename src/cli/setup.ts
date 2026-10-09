@@ -1,4 +1,4 @@
-import { projectPaths } from "../paths";
+import { projectPaths } from "@shadowclone/core";
 import { harnessInitCommand, parseRepositoryInit } from "./harness";
 import { initialize } from "./init";
 import { parsePersonalInit } from "./initOptions";

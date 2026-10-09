@@ -1,10 +1,10 @@
-import type { EngineRunner } from "../engine";
+import type { EngineRunner } from "@shadowclone/agents";
 import {
   isExplicitProfileEvidence,
   profileEvidenceStatistics,
   type ProfileEvidence,
   type ProfileRule,
-} from "../profile";
+} from "@shadowclone/profile";
 import { mergeDistilledRules } from "./merge";
 
 export type DroppedMergeRule = {

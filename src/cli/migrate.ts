@@ -1,12 +1,11 @@
 import path from "node:path";
-import { readLocalText } from "../localFiles";
+import { readLocalText, projectPaths } from "@shadowclone/core";
 import {
   migrateClaudeMemory,
   parseClaudeMemoryDecisions,
   type ClaudeMemoryDecisions,
   type ClaudeMemoryMigrationResult,
-} from "../migrate";
-import { projectPaths } from "../paths";
+} from "@shadowclone/profile";
 import { readEnvironment } from "../environment/store";
 
 type MigrationOptions = {

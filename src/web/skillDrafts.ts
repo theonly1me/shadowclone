@@ -1,4 +1,4 @@
-import { redactSecrets } from "../redact";
+import { redactSecrets } from "@shadowclone/redact";
 import type { GenerationEngine } from "./generationEngine";
 import { createReviewedGeneration } from "./reviewedGeneration";
 import { skillBriefSchema } from "./skillDraftProtocol";

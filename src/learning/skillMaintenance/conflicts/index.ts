@@ -1,9 +1,8 @@
 import path from "node:path";
-import type { LearningExecution } from "../../../engine";
-import { acquireLocalLock } from "../../../localFiles/lock";
-import type { ProjectPaths } from "../../../paths";
-import { discoverDeliverySkills } from "../../../skillMaintenance/discover";
-import { readMaintenanceState } from "../../../skillMaintenance/state";
+import type { LearningExecution } from "@shadowclone/agents";
+import { acquireLocalLock } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import { discoverDeliverySkills, readMaintenanceState } from "@shadowclone/skills";
 import { reviewDiscoveredSkills } from "./review";
 
 export async function reviewSkillConflicts(options: {

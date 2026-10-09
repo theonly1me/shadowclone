@@ -1,7 +1,6 @@
 import path from "node:path";
-import { readBoundedFile } from "../../io/files";
+import { readBoundedFile, ownedWrite } from "@shadowclone/core";
 import { z } from "zod";
-import { ownedWrite } from "../../storage";
 
 export type InstalledArtifact = "agent" | "delegation-skill";
 

@@ -1,8 +1,7 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import { updateLearningEnvironment } from "../../environmentUpdate/update";
-import { listSkillProposals, readSkillProposal } from "../../../skillMaintenance/proposals";
-import { rejectSkillProposal } from "../../../skillMaintenance/reject";
+import { listSkillProposals, readSkillProposal, rejectSkillProposal } from "@shadowclone/skills";
 import { conflictExecution, conflictFixture } from "../../testing";
 
 test("a bounded review resumes the full-document comparison from the cached catalog", async () => {

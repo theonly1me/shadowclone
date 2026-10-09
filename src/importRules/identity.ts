@@ -1,7 +1,7 @@
-import { canonicalPath } from "../paths";
-import type { ProfileImportReference } from "../profile";
-import { mergeProfileImportReference } from "../profile/importReference";
-import type { RepositoryIdentity } from "../signal";
+import { canonicalPath } from "@shadowclone/core";
+import type { ProfileImportReference } from "@shadowclone/profile";
+import { mergeProfileImportReference } from "@shadowclone/profile";
+import type { RepositoryIdentity } from "@shadowclone/sessions";
 
 function opaqueHash(value: string): string {
   return new Bun.CryptoHasher("sha256").update(value).digest("hex");

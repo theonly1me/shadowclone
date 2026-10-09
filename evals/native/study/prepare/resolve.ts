@@ -1,8 +1,7 @@
 import path from "node:path";
-import type { ProjectPaths } from "../../../../src/paths";
-import { ownedWrite } from "../../../../src/storage";
-import { listSkillProposals, rejectSkillProposal } from "../../../../src/skillMaintenance";
-import { readSkillProposal } from "../../../../src/skillMaintenance/proposals";
+import type { ProjectPaths } from "@shadowclone/core";
+import { ownedWrite } from "@shadowclone/core";
+import { listSkillProposals, rejectSkillProposal, readSkillProposal } from "@shadowclone/skills";
 import { applySkillProposal } from "../../../../src/learning/skillMaintenance/apply";
 
 export type Resolution = {

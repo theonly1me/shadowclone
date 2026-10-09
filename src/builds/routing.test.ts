@@ -1,9 +1,8 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import { environmentCompilation } from "../environment/context";
-import { writeMaintenanceState } from "../skillMaintenance/state";
-import { loadSeedLibrary } from "../skills/library";
+import { writeMaintenanceState, loadSeedLibrary } from "@shadowclone/skills";
 import { applyBuild } from "./apply";
 import { buildCatalog } from "./catalog";
 import { buildFixture, buildInput } from "./testing";

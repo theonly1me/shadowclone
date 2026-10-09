@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ProfileSection } from "../profile";
+import type { ProfileSection } from "@shadowclone/profile";
 
 export type DistilledRule = {
   readonly title: string;

@@ -1,10 +1,8 @@
 import { expect, test } from "bun:test";
-import { runHostCommand } from "../io/hostCommand";
+import { runHostCommand, defaultConfig, writeConfig, createProjectPaths } from "@shadowclone/core";
 import { mkdir, mkdtemp, rm, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
-import { createProjectPaths } from "../paths";
 import { installLiveClone } from "./install";
 import { uninstallLiveClone } from "./uninstall";
 import { artifactRelativePaths, removeArtifacts } from "../integrations/installation/installArtifacts";

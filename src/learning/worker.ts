@@ -2,14 +2,21 @@ import { resolveLearningExecution } from "./execution";
 import { selectLearningPreferences } from "./modelPreferences";
 import { writeLearningReceipt, type LearningReceipt } from "./receipt";
 import path from "node:path";
-import { readEffectiveConfig } from "../config";
+import {
+  readEffectiveConfig,
+  acquireLocalLock,
+  projectPaths,
+  type ProjectPaths,
+} from "@shadowclone/core";
 import { authorizedLearningEvents, currentEvidenceAuthorization } from "../distill";
 import { runLearningService } from "./service";
-import type { EngineId, EngineRunner, LearningExecution } from "../engine";
-import { ingestSources, openEventIndex } from "../eventIndex";
-import { acquireLocalLock } from "../localFiles/lock";
-import { projectPaths, type ProjectPaths } from "../paths";
-import { deriveSignals, type GitRemoteReader } from "../signal";
+import type { EngineId, EngineRunner, LearningExecution } from "@shadowclone/agents";
+import {
+  ingestSources,
+  openEventIndex,
+  deriveSignals,
+  type GitRemoteReader,
+} from "@shadowclone/sessions";
 import type { SkillUpdateSummary } from "./skillMaintenance/legacyUpdate";
 import { maintainSkills } from "./maintenance";
 import {

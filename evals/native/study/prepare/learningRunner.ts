@@ -1,8 +1,8 @@
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import path from "node:path";
-import { runNativeEngine, type NativeEngineRunner } from "../../../../src/engine/native";
-import type { EngineRunner } from "../../../../src/engine/types";
-import { ownedWrite } from "../../../../src/storage";
+import { runNativeEngine, type NativeEngineRunner } from "@shadowclone/agents";
+import type { EngineRunner } from "@shadowclone/agents";
+import { ownedWrite } from "@shadowclone/core";
 import type { EvaluationBudget } from "../../../shared/accounting";
 
 export function createLearningRunner(options: {

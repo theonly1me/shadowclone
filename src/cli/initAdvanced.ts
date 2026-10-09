@@ -4,13 +4,14 @@ import {
   setDeepEnabled,
   setSourceEnabled,
   writeConfig,
-} from "../config";
-import type { ManagedPolicy } from "../config";
+  type ProjectPaths,
+  projectPaths,
+  repairOwnedTree,
+} from "@shadowclone/core";
+import type { ManagedPolicy } from "@shadowclone/core";
 import { importRepositoryGuidance } from "../importRules";
-import { type ProjectPaths, projectPaths } from "../paths";
-import type { GitRemoteReader } from "../signal";
-import type { SeedLibrary } from "../skills";
-import { repairOwnedTree } from "../storage/repair";
+import type { GitRemoteReader } from "@shadowclone/sessions";
+import type { SeedLibrary } from "@shadowclone/skills";
 import {
   detectOnboardingPresence,
   type OnboardingCaptureSourceId,

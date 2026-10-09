@@ -1,6 +1,6 @@
-import type { LearningExecution } from "../engine";
-import type { ProjectPaths } from "../paths";
-import { readEffectiveConfig } from "../config";
+import type { LearningExecution } from "@shadowclone/agents";
+import type { ProjectPaths } from "@shadowclone/core";
+import { readEffectiveConfig } from "@shadowclone/core";
 import { persistLearningRules } from "./storage";
 import { updatePendingLearning } from "./pending";
 import { publishReviewedLearning } from "./publication";

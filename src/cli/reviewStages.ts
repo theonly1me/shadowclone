@@ -1,12 +1,15 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { runClaudeCode } from "../engine/claudeCode";
-import { runCodex } from "../engine/codex";
-import { reasoningEfforts, type ReasoningEffort } from "../engine/types";
-import { publishReview, reviewResultSchema } from "../review";
-import { defaultCodexReviewModel } from "../review/analyze";
-import { analyzeStage, checksFileSchema, checksStage, packetFileSchema, prepareStage } from "../review/stages";
+import {
+  runClaudeCode,
+  runCodex,
+  reasoningEfforts,
+  type ReasoningEffort,
+} from "@shadowclone/agents";
+import { publishReview, reviewResultSchema } from "@shadowclone/review";
+import { defaultCodexReviewModel } from "@shadowclone/review";
+import { analyzeStage, checksFileSchema, checksStage, packetFileSchema, prepareStage } from "@shadowclone/review";
 import { defaultReviewModel } from "./reviewArguments";
 
 const stageUsage = [

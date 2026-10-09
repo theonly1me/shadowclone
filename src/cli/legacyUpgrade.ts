@@ -1,8 +1,8 @@
 import { rm } from "node:fs/promises";
 import path from "node:path";
 import { compileContext } from "../integrations";
-import { canonicalPath, projectPaths, type ProjectPaths } from "../paths";
-import { renderAgent } from "../profile";
+import { canonicalPath, projectPaths, type ProjectPaths } from "@shadowclone/core";
+import { renderAgent } from "@shadowclone/profile";
 import { artifactRelativePaths, removeGitExcludes } from "../integrations/installation/installArtifacts";
 import {
   findInstallation,

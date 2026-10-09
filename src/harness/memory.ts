@@ -1,13 +1,13 @@
 import path from "node:path";
 import { z } from "zod";
-import { fingerprint, readLocalText, replaceLocalText } from "../localFiles";
+import { fingerprint, readLocalText, replaceLocalText } from "@shadowclone/core";
 import {
   scanClaudeMemory,
   type ClaudeMemoryFile,
-} from "../migrate/claudeMemory";
-import type { ProjectPaths } from "../paths";
-import type { ProfileRule } from "../profile";
-import type { RepositoryIdentity } from "../signal";
+} from "@shadowclone/profile";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { ProfileRule } from "@shadowclone/profile";
+import type { RepositoryIdentity } from "@shadowclone/sessions";
 import { writeProfile } from "../environment/profileRecords";
 
 const ledgerSchema = z.strictObject({

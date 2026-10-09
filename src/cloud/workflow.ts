@@ -1,4 +1,4 @@
-import product from "../product.json";
+import product from "@shadowclone/core/product.json";
 import { runtimeSources } from "./guardSource" with { type: "macro" };
 import { cloneSchema, type Clone } from "./types";
 import { cloudPrompt } from "./prompt";

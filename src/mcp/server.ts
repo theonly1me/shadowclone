@@ -3,9 +3,9 @@ import { runPreferenceTool } from "./preferences";
 import { runReferenceTool } from "./references";
 import { createBotTool } from "./bot";
 import { compileContext } from "../integrations";
-import { projectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
-import type { GitRemoteReader } from "../signal";
+import { projectPaths } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 
 async function activeProfile(options: {
   readonly cwd: string;

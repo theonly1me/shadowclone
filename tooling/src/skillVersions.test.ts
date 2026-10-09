@@ -3,10 +3,10 @@ import { mkdtemp, realpath } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { format } from "prettier";
-import { fingerprint } from "../../src/localFiles";
+import { fingerprint } from "@shadowclone/core";
 import { recordSkillVersions, unrecordedSkillVersions } from "./skillVersions";
 
-const versionsFile = "src/skills/bundledVersions.json";
+const versionsFile = "packages/skills/src/skills/bundledVersions.json";
 
 async function treeWith(files: Record<string, string>): Promise<string> {
   const rootDirectory = await realpath(

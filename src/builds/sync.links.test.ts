@@ -6,7 +6,7 @@ import { installedBuild } from "./syncFixtures";
 import { installIntegration } from "../integrations/install";
 import { updateManagedSection } from "../integrations/markdown";
 import { readIntegrations, saveIntegration } from "../integrations/state";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import { syncLearningEnvironment } from "../environment/sync";
 
 const olderBody = "# Shadowclone guidance\n\n- when testing: an-old-skill\n";

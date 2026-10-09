@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { buildFixture } from "../../builds/testing";
-import { defaultConfig, readConfig, writeConfig } from "../../config";
-import type { EngineRunOptions } from "../../engine/types";
+import { defaultConfig, readConfig, writeConfig } from "@shadowclone/core";
+import type { EngineRunOptions } from "@shadowclone/agents";
 import { generationResult } from "../fixtures";
 import { createVoiceCapture } from "./capture";
 import { voiceFilePath } from "./file";

@@ -9,7 +9,7 @@ import { buildInput } from "./testing";
 import { previewBuild } from "./plan";
 import { renderBuildSkillSync, syncBuildSkills } from "./sync";
 import { addedLine, copyPath, installedBuild, newerPackage, skillRoots } from "./syncFixtures";
-import { seedSkillsDirectory } from "../distribution";
+import { seedSkillsDirectory } from "@shadowclone/core";
 
 test("an unedited installed skill takes the newer bundled version in every copy", async () => {
   const setup = await installedBuild();

@@ -1,8 +1,8 @@
 import path from "node:path";
 import { z } from "zod";
-import { commitLocalChanges } from "../changes";
-import { fingerprint, readLocalText } from "../localFiles";
-import type { ProjectPaths } from "../paths";
+import { commitLocalChanges } from "@shadowclone/changes";
+import { fingerprint, readLocalText } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 
 const ownerSchema = z.strictObject({ fingerprint: z.string() });
 

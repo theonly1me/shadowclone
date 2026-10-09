@@ -1,13 +1,13 @@
 import { readEnvironment } from "../environment";
-import type { ProjectPaths } from "../paths";
-import { canonicalPath } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
+import { canonicalPath } from "@shadowclone/core";
 import {
   readGeneratedProfileState,
   readProfileRejections,
   parseProfileRejectionText,
   profileRulePath,
-} from "../profile";
-import type { GeneratedProfileStateEntry } from "../profile/state";
+} from "@shadowclone/profile";
+import type { GeneratedProfileStateEntry } from "@shadowclone/profile";
 
 export async function guidanceImportState(paths: ProjectPaths) {
   const state = await readEnvironment(paths);

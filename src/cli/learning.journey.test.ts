@@ -3,15 +3,14 @@ import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
-import { readConfig, writeConfig } from "../config";
-import { createLearningExecution, type EngineRunner } from "../engine";
+import { readConfig, writeConfig, canonicalPath, createProjectPaths } from "@shadowclone/core";
+import { createLearningExecution, type EngineRunner } from "@shadowclone/agents";
 import { readEnvironment } from "../environment/store";
 import { installIntegration } from "../integrations";
 import { readPendingLearning } from "../learning/pending";
 import { decidePendingLearning } from "../learning/review";
 import { readLatestLearningReceipt } from "../learning/receipt";
 import { freezeProbeGuidance } from "../learning/probeSnapshot";
-import { canonicalPath, createProjectPaths } from "../paths";
 import { initialize } from "./init";
 import { learn } from "./learn";
 

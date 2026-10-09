@@ -35,7 +35,7 @@
         },
         {
           "type": "json",
-          "path": "src/product.json",
+          "path": "packages/core/src/product.json",
           "jsonpath": "$.version"
         }
       ]

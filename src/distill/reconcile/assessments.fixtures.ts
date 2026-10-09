@@ -1,4 +1,4 @@
-import type { ProfileRule } from "../../profile";
+import type { ProfileRule } from "@shadowclone/profile";
 import { createReconciliationContext } from "./context";
 import type { ReconciliationOutput } from "./types";
 

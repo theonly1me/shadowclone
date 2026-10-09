@@ -1,5 +1,5 @@
-import type { ProjectPaths } from "../../paths";
-import { readEffectiveConfig } from "../../config";
+import type { ProjectPaths } from "@shadowclone/core";
+import { readEffectiveConfig } from "@shadowclone/core";
 
 export async function assertCloudPolicy(options: {
   readonly paths: ProjectPaths;

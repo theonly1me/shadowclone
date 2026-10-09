@@ -1,12 +1,10 @@
 import path from "node:path";
-import type { FileUpdate } from "../changes";
-import { readEffectiveConfig } from "../config";
+import type { FileUpdate } from "@shadowclone/changes";
+import { readEffectiveConfig, readLocalText, acquireLocalLock } from "@shadowclone/core";
 import { publishEnvironmentRevision } from "../environment/revision";
 import { environmentFile, readEnvironment, renderEnvironment } from "../environment/store";
 import type { EnvironmentState } from "../environment/types";
-import { readLocalText } from "../localFiles";
-import { acquireLocalLock } from "../localFiles/lock";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import {
   migrateAlwaysOnSkills,
   renderAlwaysOnChanges,

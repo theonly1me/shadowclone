@@ -1,4 +1,4 @@
-import { isRecord } from "../observe/record";
+import { isRecord } from "@shadowclone/sessions";
 
 type TextContentBlock = {
   readonly type: string;

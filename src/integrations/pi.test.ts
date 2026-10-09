@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { rm } from "node:fs/promises";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { installIntegration, uninstallIntegration } from "./install";
 import { refreshIntegrations, integrationHealth } from "./refresh";
 import { nativeSessionEnd } from "./hooks";
-import { defaultConfig, writeConfig } from "../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import { emptyEnvironment } from "../environment/types";
 import { writeEnvironment } from "../environment/store";
 import { readIntegrations } from "./state";

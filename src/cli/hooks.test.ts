@@ -2,12 +2,15 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
-import { openEventIndex } from "../eventIndex";
+import {
+  defaultConfig,
+  setSourceEnabled,
+  writeConfig,
+  createProjectPaths,
+} from "@shadowclone/core";
+import { openEventIndex, resolveCwdOrigin } from "@shadowclone/sessions";
 import { installIntegration } from "../integrations";
-import { integrationFixture } from "../testing";
-import { createProjectPaths } from "../paths";
-import { resolveCwdOrigin } from "../signal";
+import { checkoutRoot, integrationFixture } from "@shadowclone/core/testing";
 import { getSessionStartContext, runSessionEndHook } from "./hooks";
 import { writeProfile } from "../environment/profileRecords";
 
@@ -136,15 +139,14 @@ test("the session context keeps learned boundaries advisory", async () => {
 });
 
 test("the plugin registers no tool-family blocking hook", async () => {
+  const root = await checkoutRoot();
   const hookFiles = [
-    new URL("../../.claude-plugin/hooks/hooks.json", import.meta.url),
-    new URL("../../plugins/shadowclone/hooks/hooks.json", import.meta.url),
+    path.join(root, ".claude-plugin/hooks/hooks.json"),
+    path.join(root, "plugins/shadowclone/hooks/hooks.json"),
   ];
 
   expect(
-    await Bun.file(
-      new URL("../../plugins/shadowclone/plugin.json", import.meta.url),
-    ).exists(),
+    await Bun.file(path.join(root, "plugins/shadowclone/plugin.json")).exists(),
   ).toBeTrue();
 
   for (const hookFile of hookFiles) {

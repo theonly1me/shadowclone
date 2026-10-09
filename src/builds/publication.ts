@@ -1,16 +1,15 @@
 import path from "node:path";
-import { fingerprint, readLocalText } from "../localFiles";
+import { fingerprint, readLocalText, seedSkillsDirectory } from "@shadowclone/core";
 import type { EnvironmentState } from "../environment/types";
-import type { FileUpdate } from "../changes";
+import type { FileUpdate } from "@shadowclone/changes";
 import {
   parseSkillDocument,
   validateSkillReferences,
-} from "../skillMaintenance/document";
+} from "@shadowclone/skills";
 import { publishSkillResources } from "../environment/resources";
 import { skillClassification } from "./classification";
 import { skillDestinationsWithoutLinks } from "./linkedDestinations";
 import type { BuildItem } from "./types";
-import { seedSkillsDirectory } from "../distribution";
 import type { BuildContext, BuildDefinition } from "../environment/builds/definition";
 import { buildDirectories } from "../environment/builds/directories";
 

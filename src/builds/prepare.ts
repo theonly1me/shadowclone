@@ -1,4 +1,4 @@
-import { readEffectiveConfig } from "../config";
+import { readEffectiveConfig } from "@shadowclone/core";
 import { readEnvironment } from "../environment/store";
 import { emptyEnvironment, type EnvironmentState } from "../environment/types";
 import type { BuildContext } from "../environment/builds/definition";

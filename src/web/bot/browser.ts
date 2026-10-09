@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { resolveRepository, type GitRemoteReader } from "../../signal";
+import { resolveRepository, type GitRemoteReader } from "@shadowclone/sessions";
 import { setupSelection } from "../../cloud/setup/selection";
 import { browserJson } from "../security";
 import { exportGuidance } from "../../cloud/export";

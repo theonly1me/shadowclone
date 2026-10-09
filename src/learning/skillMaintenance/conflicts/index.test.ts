@@ -2,8 +2,8 @@ import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import { updateLearningEnvironment } from "../../environmentUpdate/update";
 import { applySkillProposal } from "../apply";
-import { readMaintenanceState } from "../../../skillMaintenance/state";
-import { listSkillProposals, readSkillProposal, showSkillProposal } from "../../../skillMaintenance/proposals";
+import { readMaintenanceState } from "@shadowclone/skills";
+import { listSkillProposals, readSkillProposal, showSkillProposal } from "@shadowclone/skills";
 import { conflictExecution, conflictFixture, forbiddenTable, requiredTable, syntheticSecret } from "../../testing";
 
 test("active updates review the whole library without new learning and queue a supported conflict", async () => {

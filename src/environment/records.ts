@@ -1,25 +1,22 @@
-import { parseProfileRejectionText } from "../profile/state";
-import { commitLocalChanges } from "../changes";
-import { fingerprint, readLocalText } from "../localFiles";
-import { acquireLocalLock } from "../localFiles/lock";
+import { parseProfileRejectionText, profileRulePath } from "@shadowclone/profile";
+import { commitLocalChanges } from "@shadowclone/changes";
+import { fingerprint, readLocalText, acquireLocalLock } from "@shadowclone/core";
 import path from "node:path";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths, SourceId } from "@shadowclone/core";
 import type {
   ProfileRule,
   ProfileRuleReference,
   ProfileWriteResult,
-} from "../profile/types";
-import type { ProfileSnapshot } from "../profile/snapshot";
-import { profileRulePath } from "../profile/render";
+  ProfileSnapshot,
+} from "@shadowclone/profile";
 import {
   environmentFile,
   readEnvironment,
   readRedactedEnvironment,
   renderEnvironment,
 } from "./store";
-import { redactSecrets } from "../redact";
+import { redactSecrets } from "@shadowclone/redact";
 import { learningRuleSchema, type LearningRecord } from "./types";
-import type { SourceId } from "../config";
 
 export function recordFingerprint(record: LearningRecord): string {
   return fingerprint(JSON.stringify({

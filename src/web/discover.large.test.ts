@@ -2,10 +2,9 @@ import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import path from "node:path";
 import { buildView } from "./view";
-import { discoverDeliverySkills } from "../skillMaintenance/discover";
+import { discoverDeliverySkills, readMaintenanceState } from "@shadowclone/skills";
 import { skillFixture } from "../environment/testing";
-import { readMaintenanceState } from "../skillMaintenance/state";
-import { fixtureSkill } from "../skills/testing";
+import { fixtureSkill } from "@shadowclone/skills/testing";
 
 test("500 skills with native copies and overlapping roots remain discoverable in the browser catalog", async () => {
   const setup = await skillFixture();

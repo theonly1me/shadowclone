@@ -1,12 +1,12 @@
 import { expect, test } from "bun:test";
 import { symlink } from "node:fs/promises";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import { skillExecution, skillFixture } from "../../environment/testing";
 import { inspectSkillLibrary } from "./lifecycle";
-import { readMaintenanceState } from "../../skillMaintenance/state";
+import { readMaintenanceState } from "@shadowclone/skills";
 import { updateSkillLibrary } from "./update";
-import { fixtureSkill } from "../../skills/testing";
+import { fixtureSkill } from "@shadowclone/skills/testing";
 
 test("disabled consent prevents library reads and model calls", async () => {
   const setup = await skillFixture();

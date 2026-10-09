@@ -1,19 +1,23 @@
 import path from "node:path";
-import { readEffectiveConfig, type SourceId } from "../config";
-import type { LearningExecution } from "../engine";
+import {
+  readEffectiveConfig,
+  type SourceId,
+  fingerprint,
+  readLocalText,
+  acquireLocalLock,
+} from "@shadowclone/core";
+import type { LearningExecution } from "@shadowclone/agents";
 import { environmentFile, readEnvironment, renderEnvironment } from "../environment/store";
 import { recordFingerprint } from "../environment/records";
 import { publishEnvironmentRevision } from "../environment/revision";
 import type { EnvironmentState, LearningRecord } from "../environment/types";
-import { fingerprint, readLocalText } from "../localFiles";
-import { acquireLocalLock } from "../localFiles/lock";
-import type { ProjectPaths } from "../paths";
-import { redactSecrets } from "../redact";
-import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "../signal";
+import type { ProjectPaths } from "@shadowclone/core";
+import { redactSecrets } from "@shadowclone/redact";
+import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "@shadowclone/sessions";
 import { publishReviewedLearning } from "./publication";
-import { profileRulePath } from "../profile";
-import { parseProfileRejectionText } from "../profile/state";
-import { renderProfileRejections } from "../profile/stateRender";
+import { profileRulePath } from "@shadowclone/profile";
+import { parseProfileRejectionText } from "@shadowclone/profile";
+import { renderProfileRejections } from "@shadowclone/profile";
 import { pendingLearningFile, readPendingLearning } from "./pending";
 
 export type PreferenceEdit = {

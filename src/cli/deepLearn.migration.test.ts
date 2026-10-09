@@ -2,10 +2,9 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultManagedPolicy } from "../config";
-import type { EngineRunner } from "../engine";
-import { createProjectPaths } from "../paths";
-import { explicitProfileEvidence, profileEvidenceId, type ProfileRule } from "../profile";
+import { defaultManagedPolicy, createProjectPaths } from "@shadowclone/core";
+import type { EngineRunner } from "@shadowclone/agents";
+import { explicitProfileEvidence, profileEvidenceId, type ProfileRule } from "@shadowclone/profile";
 import { runDeepLearning } from "./deepLearn";
 import { readProfileSnapshot, writeProfile } from "../environment/profileRecords";
 

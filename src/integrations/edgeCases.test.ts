@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { createProjectPaths } from "../paths";
+import { createProjectPaths } from "@shadowclone/core";
 import { installIntegration } from "./install";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { nativeSessionStart } from "./hooks";
 import { refreshIntegrations } from "./refresh";
 

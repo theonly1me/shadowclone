@@ -2,9 +2,13 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
-import type { EngineRunner } from "../engine";
-import { createProjectPaths } from "../paths";
+import {
+  defaultConfig,
+  setSourceEnabled,
+  writeConfig,
+  createProjectPaths,
+} from "@shadowclone/core";
+import type { EngineRunner } from "@shadowclone/agents";
 import { learn } from "./learn";
 
 test("deep learn does not substitute structural rules for an empty result", async () => {

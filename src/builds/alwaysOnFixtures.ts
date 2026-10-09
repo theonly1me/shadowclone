@@ -3,7 +3,7 @@ import path from "node:path";
 import { z } from "zod";
 import { environmentFile, renderEnvironment } from "../environment/store";
 import type { EnvironmentState } from "../environment/types";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import { skillRoots } from "./syncFixtures";
 import { buildScopeSchema, customSkillSchema } from "../environment/builds/definition";
 

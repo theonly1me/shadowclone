@@ -1,4 +1,4 @@
-import type { EngineId } from "../engine/types";
+import type { EngineId } from "@shadowclone/agents";
 
 export type LearningPreferences = {
   readonly engine?: EngineId;

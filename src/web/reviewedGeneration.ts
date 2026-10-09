@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { createLearningExecution } from "../engine";
-import { fingerprint } from "../localFiles";
-import { redactSecrets } from "../redact";
+import { createLearningExecution } from "@shadowclone/agents";
+import { fingerprint } from "@shadowclone/core";
+import { redactSecrets } from "@shadowclone/redact";
 import {
   allowedGenerationEngines,
   generationEngine,

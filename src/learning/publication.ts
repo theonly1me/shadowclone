@@ -1,10 +1,10 @@
-import { readEffectiveConfig } from "../config";
-import type { LearningExecution } from "../engine";
+import { readEffectiveConfig } from "@shadowclone/core";
+import type { LearningExecution } from "@shadowclone/agents";
 import { readEnvironment } from "../environment";
 import { updateLearningEnvironment } from "./environmentUpdate/update";
 import { refreshIntegrations } from "../integrations";
-import type { ProjectPaths } from "../paths";
-import type { GitRemoteReader } from "../signal";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import { resolveLearningExecution } from "./execution";
 
 export async function publishReviewedLearning(options: {

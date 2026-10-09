@@ -2,11 +2,14 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, defaultManagedPolicy, writeConfig } from "../config";
-import type { EngineRunOptions, EngineRunner } from "../engine";
-import type { IndexedEvent } from "../eventIndex";
-import { createProjectPaths } from "../paths";
-import type { CorrectionSignal, OriginScope } from "../signal";
+import {
+  defaultConfig,
+  defaultManagedPolicy,
+  writeConfig,
+  createProjectPaths,
+} from "@shadowclone/core";
+import type { EngineRunOptions, EngineRunner } from "@shadowclone/agents";
+import type { IndexedEvent, CorrectionSignal, OriginScope } from "@shadowclone/sessions";
 import { runDeepLearning } from "./deepLearn";
 import { readPendingLearning } from "../learning/pending";
 import { decidePendingLearning } from "../learning/review";

@@ -2,10 +2,9 @@ import path from "node:path";
 import { lstat, mkdtemp, rm } from "node:fs/promises";
 import { materializeSkillDelivery } from "../environment/delivery";
 import { environmentCompilation } from "../environment/context";
-import type { ProjectPaths } from "../paths";
-import { resolveRepository, isOriginBlocked, type GitRemoteReader } from "../signal";
-import { readEffectiveConfig } from "../config";
-import { ownedDirectory } from "../storage";
+import type { ProjectPaths } from "@shadowclone/core";
+import { resolveRepository, isOriginBlocked, type GitRemoteReader } from "@shadowclone/sessions";
+import { readEffectiveConfig, ownedDirectory } from "@shadowclone/core";
 import { deliveryFingerprint } from "./deliveryFiles";
 import type { Delivery } from "./types";
 

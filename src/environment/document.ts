@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parseSkillDocument } from "../skillMaintenance/document";
+import { parseSkillDocument } from "@shadowclone/skills";
 
 export function editableSkillDocument(options: {
   readonly text: string;

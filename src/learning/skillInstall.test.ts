@@ -2,11 +2,9 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
-import { canonicalPath, createProjectPaths } from "../paths";
+import { defaultConfig, writeConfig, canonicalPath, createProjectPaths } from "@shadowclone/core";
 import { skillExecution } from "../environment/testing";
-import { installSeedSkills } from "../skills/install";
-import { loadSeedLibrary } from "../skills/library";
+import { installSeedSkills, loadSeedLibrary } from "@shadowclone/skills";
 import { updateSkillLibrary } from "./skillMaintenance/update";
 
 test("starter skills wait for review instead of amending automatically", async () => {

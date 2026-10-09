@@ -1,15 +1,14 @@
 import path from "node:path";
 import { mkdir, lstat } from "node:fs/promises";
-import type { ProjectPaths } from "../paths";
-import { materializeSnapshot } from "../redact";
+import type { ProjectPaths } from "@shadowclone/core";
+import { materializeSnapshot } from "@shadowclone/redact";
 import { readRedactedEnvironment } from "./store";
 import { learningScopes } from "./scope";
 import { renderSkillRouting } from "./context";
 import { publishedSkills } from "./catalog";
-import { assertRegularDestination } from "../localFiles";
-import { discoverDeliverySkills } from "../skillMaintenance/discover";
-import { readMaintenanceState } from "../skillMaintenance/state";
-import type { RepositoryIdentity } from "../signal";
+import { assertRegularDestination } from "@shadowclone/core";
+import { discoverDeliverySkills, readMaintenanceState } from "@shadowclone/skills";
+import type { RepositoryIdentity } from "@shadowclone/sessions";
 
 export async function materializeSkillDelivery(options: {
   readonly paths: ProjectPaths;

@@ -4,7 +4,7 @@ import path from "node:path";
 import { updateLearningEnvironment } from "../learning/environmentUpdate/update";
 import { readEnvironment, writeEnvironment } from "../environment/store";
 import { learningRecord } from "../environment/fixtures";
-import { listSkillProposals } from "../skillMaintenance/proposals";
+import { listSkillProposals } from "@shadowclone/skills";
 import { conflictExecution, conflictFixture } from "../learning/testing";
 
 test("the CLI lists scoped learning and conflict proposals together and shows the supporting decision", async () => {
@@ -24,7 +24,7 @@ test("the CLI lists scoped learning and conflict proposals together and shows th
 
     const scriptPath = path.join(setup.home, "isolated-cli.ts");
     await Bun.write(scriptPath, [
-      `import { createProjectPaths, projectPaths } from ${JSON.stringify(path.join(import.meta.dir, "../paths.ts"))};`,
+      `import { createProjectPaths, projectPaths } from ${JSON.stringify(Bun.resolveSync("@shadowclone/core", import.meta.dir))};`,
       `Object.assign(projectPaths, createProjectPaths({ homeDirectory: ${JSON.stringify(setup.home)}, platform: process.platform }));`,
       `await import(${JSON.stringify(path.join(import.meta.dir, "index.ts"))});`,
     ].join("\n"));

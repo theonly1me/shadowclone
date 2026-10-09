@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { EngineRun, LearningExecution } from "../../engine";
+import type { EngineRun, LearningExecution } from "@shadowclone/agents";
 import { internalLearningMarker } from "../../distill/excerpts";
-import type { DiscoveredSkill } from "../../skillMaintenance/types";
-import { restoreOriginalSkill } from "../../skillMaintenance/render";
+import type { DiscoveredSkill } from "@shadowclone/skills";
+import { restoreOriginalSkill } from "@shadowclone/skills";
 
 const decisionValues = ["keep", "update", "needs-verification"] as const;
 

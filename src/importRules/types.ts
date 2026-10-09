@@ -1,5 +1,5 @@
-import type { FileTextRef } from "../observe";
-import type { ProfileImportReference } from "../profile";
+import type { FileTextRef } from "@shadowclone/sessions";
+import type { ProfileImportReference } from "@shadowclone/profile";
 
 export type ImportIdentity = {
   readonly key: string;

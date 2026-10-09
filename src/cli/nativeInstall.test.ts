@@ -1,5 +1,5 @@
 import { expect, spyOn, test } from "bun:test";
-import { UnsafeDestinationError } from "../localFiles";
+import { UnsafeDestinationError } from "@shadowclone/core";
 import { HiddenInstructionsError } from "../integrations/hiddenInstructions";
 import { installNativeCommand } from "./native";
 import { describeSkippedAgent } from "./skippedAgents";

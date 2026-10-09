@@ -3,7 +3,10 @@ import {
   readManagedPolicy,
   setSourceEnabled,
   writeConfig,
-} from "../config";
+  canonicalPath,
+  projectPaths,
+  type ProjectPaths,
+} from "@shadowclone/core";
 import {
   applyHarness,
   planHarness,
@@ -11,8 +14,7 @@ import {
   renderHarnessOutcome,
   renderHarnessPreview,
 } from "../harness";
-import { canonicalPath, projectPaths, type ProjectPaths } from "../paths";
-import type { GitRemoteReader } from "../signal";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import { promptConfirmation, type ConfirmPrompt } from "./confirm";
 
 export type RepositoryInitOptions = {

@@ -1,6 +1,6 @@
 import path from "node:path";
-import type { EngineRunner } from "../engine";
-import { ownedWrite } from "../storage";
+import type { EngineRunner } from "@shadowclone/agents";
+import { ownedWrite } from "@shadowclone/core";
 import {
   distillationMergeOutputSchema,
   parseDistilledRules,

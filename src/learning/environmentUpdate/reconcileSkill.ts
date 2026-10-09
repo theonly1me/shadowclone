@@ -1,7 +1,7 @@
-import type { FileUpdate } from "../../changes";
-import type { LearningExecution } from "../../engine";
-import type { ProjectPaths } from "../../paths";
-import type { DiscoveredSkill } from "../../skillMaintenance/types";
+import type { FileUpdate } from "@shadowclone/changes";
+import type { LearningExecution } from "@shadowclone/agents";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { DiscoveredSkill } from "@shadowclone/skills";
 import { draftSkill, applySkillDraft } from "./draft";
 import { pendingDraftReasons } from "./draftReview";
 import { generatedSkillBody } from "../../environment/generatedBody";

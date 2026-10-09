@@ -2,8 +2,8 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { sampleSkillText } from "../../src/skills/qualityFixtures";
-import { voiceBlock } from "../../src/skills/voiceBlock";
+import { sampleSkillText } from "@shadowclone/skills/testing";
+import { voiceBlock } from "@shadowclone/skills";
 import { findSkillQualityViolations } from "./skills";
 
 const sharedSentence =
@@ -130,7 +130,7 @@ test("a bundled script needs only node modules and its own test", async () => {
       ...files,
       "skills/check-real-output/scripts/check.mjs":
         'import { readFile } from "node:fs/promises";\n',
-      "src/skills/scripts/check-real-output.check.test.ts": "export {};\n",
+      "packages/skills/src/skills/scripts/check-real-output.check.test.ts": "export {};\n",
     }),
     pending: new Set(),
     exemptions: new Map(),
@@ -138,7 +138,7 @@ test("a bundled script needs only node modules and its own test", async () => {
 
   expect(failing.findings.map((finding) => finding.message)).toEqual([
     "scripts/check.mjs imports chalk, use only node: modules",
-    "scripts/check.mjs needs a test at src/skills/scripts/check-real-output.check.test.ts",
+    "scripts/check.mjs needs a test at packages/skills/src/skills/scripts/check-real-output.check.test.ts",
   ]);
   expect(passing.findings).toEqual([]);
 });

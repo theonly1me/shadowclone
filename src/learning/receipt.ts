@@ -1,7 +1,7 @@
 import path from "node:path";
 import { z } from "zod";
-import { readLocalText, replaceLocalText } from "../localFiles";
-import type { ProjectPaths } from "../paths";
+import { readLocalText, replaceLocalText } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 
 const receiptSchema = z.strictObject({
   id: z.uuid(),

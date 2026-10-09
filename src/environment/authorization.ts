@@ -1,12 +1,12 @@
 import path from "node:path";
-import type { ProjectPaths } from "../paths";
-import { canonicalPath } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
+import { canonicalPath } from "@shadowclone/core";
 import { readIntegrations } from "../integrations/state";
 import {
   integrationFilePath,
   integrationTargets,
 } from "../integrations/targets";
-import { readMaintenanceState } from "../skillMaintenance/state";
+import { readMaintenanceState } from "@shadowclone/skills";
 import { readEnvironment, environmentFile } from "./store";
 import { learningScopes, skillDirectories } from "./scope";
 import type { EnvironmentState } from "./types";

@@ -1,7 +1,7 @@
-import type { GitRemoteReader } from "../../signal";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import { exportGuidance } from "../export";
 import { saveInstallation } from "../status";
-import { defaultCodexReviewModel } from "../../review/analyze";
+import { defaultCodexReviewModel } from "@shadowclone/review";
 import { cloneSchema, type Clone } from "../types";
 import { inviteBot, readBotAccess, readBotAccount } from "./account";
 import { readCloudChecklist, type ChecklistItem } from "./checklist";

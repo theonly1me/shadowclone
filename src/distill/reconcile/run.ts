@@ -1,5 +1,5 @@
-import { redactSecrets } from "../../redact";
-import type { EngineRunner } from "../../engine";
+import { redactSecrets } from "@shadowclone/redact";
+import type { EngineRunner } from "@shadowclone/agents";
 import { readCheckpoint, writeCheckpoint } from "../checkpoint";
 import {
   parseReconciliationOutput,

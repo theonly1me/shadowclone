@@ -1,12 +1,12 @@
 import { cp, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { createLearningExecution } from "../../../../src/engine";
-import type { EngineRunner } from "../../../../src/engine/types";
+import { createLearningExecution } from "@shadowclone/agents";
+import type { EngineRunner } from "@shadowclone/agents";
 import { activateEnvironment } from "../../../../src/environment/activate";
 import { prepareEnvironmentMigration } from "../../../../src/environment/migrate";
 import { updateLearningEnvironment } from "../../../../src/learning/environmentUpdate/update";
-import type { ProjectPaths } from "../../../../src/paths";
-import type { GitRemoteReader } from "../../../../src/signal";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 
 export async function migrateLegacyProfile(options: {
   readonly paths: ProjectPaths;

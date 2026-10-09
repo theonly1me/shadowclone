@@ -3,7 +3,7 @@ import { buildCatalog } from "../builds/catalog";
 import { buildDefinition, selectedItems } from "../builds/selection";
 import { readEnvironment } from "../environment/store";
 import { emptyEnvironment } from "../environment/types";
-import { redactSecrets } from "../redact";
+import { redactSecrets } from "@shadowclone/redact";
 import { skillPresentations } from "./skillPresentations";
 import { buildInputSchema } from "../environment/builds/definition";
 import type { BuildContext } from "../environment/builds/definition";

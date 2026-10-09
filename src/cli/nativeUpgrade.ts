@@ -1,7 +1,7 @@
 import path from "node:path";
 import { readIntegrations } from "../integrations";
-import { readLocalText, replaceLocalText } from "../localFiles";
-import type { ProjectPaths } from "../paths";
+import { readLocalText, replaceLocalText } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import { promptConfirmation, type ConfirmPrompt } from "./confirm";
 import { detectedIntegrationAgents } from "./initDetection";
 import { installNativeCommand } from "./native";

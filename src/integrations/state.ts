@@ -1,7 +1,7 @@
 import path from "node:path";
 import { z } from "zod";
-import { fingerprint, readLocalText, replaceLocalText } from "../localFiles";
-import type { ProjectPaths } from "../paths";
+import { fingerprint, readLocalText, replaceLocalText } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import { integrationSchema, type Integration } from "./types";
 import { integrationFilePath } from "./targets";
 

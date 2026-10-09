@@ -7,9 +7,9 @@ import {
   defaultManagedPolicy,
   readConfig,
   setSourceEnabled,
-} from "../config";
-import { ingestSources, openEventIndex } from "../eventIndex";
-import { createProjectPaths } from "../paths";
+  createProjectPaths,
+} from "@shadowclone/core";
+import { ingestSources, openEventIndex } from "@shadowclone/sessions";
 import { initialize } from "./init";
 
 test("first setup learning obeys managed source restrictions", async () => {

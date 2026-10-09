@@ -1,9 +1,8 @@
 import { lstat, readdir } from "node:fs/promises";
 import path from "node:path";
-import type { ProjectPaths } from "../paths";
-import { materializeSnapshot } from "../redact";
-import { parseSkillDocument } from "../skillMaintenance/document";
-import { portableSkillNameSchema } from "../skillMaintenance/portableFiles";
+import type { ProjectPaths } from "@shadowclone/core";
+import { materializeSnapshot } from "@shadowclone/redact";
+import { parseSkillDocument, portableSkillNameSchema } from "@shadowclone/skills";
 
 export type PersonalSkill = {
   readonly name: string;

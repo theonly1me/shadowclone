@@ -8,7 +8,7 @@ import { writeEnvironment, readEnvironment } from "../environment/store";
 import { updateLearningEnvironment } from "./environmentUpdate/update";
 import { installIntegration } from "../integrations/install";
 import { nativeSessionStart } from "../integrations/hooks";
-import { fingerprint } from "../localFiles";
+import { fingerprint } from "@shadowclone/core";
 import { skillFixture, skillEngineRun } from "../environment/testing";
 
 test("Pi learning publishes shared skills and native routing for the next session", async () => {

@@ -1,10 +1,15 @@
-import { readConfig, readEffectiveConfig, setSourceEnabled, writeConfig } from "../config";
+import {
+  readConfig,
+  readEffectiveConfig,
+  setSourceEnabled,
+  writeConfig,
+  projectPaths,
+} from "@shadowclone/core";
 import {
   createLearningExecution,
   detectEngine,
   type EngineId,
-} from "../engine";
-import { projectPaths } from "../paths";
+} from "@shadowclone/agents";
 import { prepareEnvironmentMigration } from "../environment/migrate";
 import { updateLearningEnvironment } from "../learning/environmentUpdate/update";
 import { activateEnvironment } from "../environment/activate";

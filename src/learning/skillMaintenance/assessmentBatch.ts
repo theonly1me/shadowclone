@@ -1,11 +1,11 @@
-import type { ProjectPaths } from "../../paths";
-import type { GitRemoteReader } from "../../signal";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import type { SkillAssessment } from "./assess";
 import { applySkillProposalUnlocked } from "./apply";
 import { assessmentFingerprint, prepareSkillProposal } from "./prepare";
-import { saveSkillProposal } from "../../skillMaintenance/proposals";
-import { readMaintenanceState, writeMaintenanceState } from "../../skillMaintenance/state";
-import type { DiscoveredSkill, MaintenanceState } from "../../skillMaintenance/types";
+import { saveSkillProposal } from "@shadowclone/skills";
+import { readMaintenanceState, writeMaintenanceState } from "@shadowclone/skills";
+import type { DiscoveredSkill, MaintenanceState } from "@shadowclone/skills";
 
 export function nextSkillBatch(
   skills: readonly DiscoveredSkill[],

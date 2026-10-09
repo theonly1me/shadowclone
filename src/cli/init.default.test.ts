@@ -2,12 +2,11 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { readConfig } from "../config";
-import { createProjectPaths } from "../paths";
-import { readMaintenanceState } from "../skillMaintenance";
+import { readConfig, createProjectPaths } from "@shadowclone/core";
+import { readMaintenanceState } from "@shadowclone/skills";
 import { answerIsYes, initialize } from "./init";
 import { readProfileSnapshot } from "../environment/profileRecords";
-import { fixtureSkill } from "../skills/testing";
+import { fixtureSkill } from "@shadowclone/skills/testing";
 
 test("default yes prompt treats an explicit no as declined consent", () => {
   expect(answerIsYes("")).toBeTrue();

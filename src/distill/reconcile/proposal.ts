@@ -1,4 +1,4 @@
-import type { ProfileProposal } from "../../profile";
+import type { ProfileProposal } from "@shadowclone/profile";
 import type { PromptRule, ReconciliationExistingRule } from "./types";
 
 export function reconciliationProposal(options: {

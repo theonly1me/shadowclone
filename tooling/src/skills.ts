@@ -1,9 +1,9 @@
 import path from "node:path";
 import { readdir } from "node:fs/promises";
-import { skillQualityFindings, type SkillFinding, type SkillRule } from "../../src/skills/quality";
-import { readSkillDocument } from "../../src/skills/qualityDocument";
-import { pendingSkillNames, permanentRuleExemptions } from "../../src/skills/qualityExceptions";
-import { voiceBlock } from "../../src/skills/voiceBlock";
+import { skillQualityFindings, type SkillFinding, type SkillRule } from "@shadowclone/skills";
+import { readSkillDocument } from "@shadowclone/skills";
+import { pendingSkillNames, permanentRuleExemptions } from "@shadowclone/skills";
+import { voiceBlock } from "@shadowclone/skills";
 
 export type SkillQualityReport = {
   readonly checkedSkillCount: number;
@@ -17,6 +17,7 @@ type BundledSkill = {
   readonly files: readonly string[];
 };
 
+const scriptTestDirectory = path.join("packages", "skills", "src", "skills", "scripts");
 const minimumSharedSentenceWords = 8;
 const plainEnglishChecker = path.resolve(
   import.meta.dir,
@@ -156,7 +157,7 @@ async function scriptFindings(options: {
       (match) => match[1] ?? "",
     );
     const external = imported.filter((specifier) => !/^(?:node:|\.\.?\/)/.test(specifier));
-    const testFile = path.join("src", "skills", "scripts", `${options.skill.name}.${stem}.test.ts`);
+    const testFile = path.join(scriptTestDirectory, `${options.skill.name}.${stem}.test.ts`);
     const at = { skill: options.skill.name, line: 1, rule: "script" } as const;
 
     if (external.length > 0) {

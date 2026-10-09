@@ -3,7 +3,7 @@ import {
   isExplicitProfileEvidence,
   type ProfileEvidence,
   type ProfileRule,
-} from "../profile";
+} from "@shadowclone/profile";
 import type { ReconciliationChange } from "./reconcile";
 
 function union(

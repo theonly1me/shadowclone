@@ -1,5 +1,4 @@
-import { readEffectiveConfig } from "../config";
-import { projectPaths } from "../paths";
+import { readEffectiveConfig, projectPaths } from "@shadowclone/core";
 import {
   compileProfile,
   profileScopePaths,
@@ -9,9 +8,9 @@ import {
   type ProfileCompilationFormat,
   type ProfileDiagnostics,
   type RepositoryApplicability,
-} from "../profile";
-import { referenceScopeRoots } from "../references";
-import { isOriginBlocked, resolveRepository } from "../signal";
+  referenceScopeRoots,
+} from "@shadowclone/profile";
+import { isOriginBlocked, resolveRepository } from "@shadowclone/sessions";
 import { committedHarnessRuleKeys } from "./harnessRules";
 import { readClaudeRules } from "./claudeRules";
 import { readNativeGuidance } from "./nativeGuidance";

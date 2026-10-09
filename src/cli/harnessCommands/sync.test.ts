@@ -3,8 +3,8 @@ import path from "node:path";
 import { harnessInitCommand } from "../harness";
 import { harnessSyncCommand } from "../harnessSync";
 import { compileContextDetails, sessionStartProjection } from "../../integrations";
-import { claudeMemoryDirectory } from "../../migrate/claudeMemory";
-import type { ProfileRule } from "../../profile";
+import { claudeMemoryDirectory } from "@shadowclone/profile";
+import type { ProfileRule } from "@shadowclone/profile";
 import { bunTaskList } from "../../harness/fixtures/bunTaskList";
 import {
   acceptAll,

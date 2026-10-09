@@ -1,6 +1,6 @@
 import path from "node:path";
 import { stripManagedGuidance } from "../../src/integrations";
-import { companionPrefix, restoreOriginalSkill } from "../../src/skillMaintenance";
+import { companionPrefix, restoreOriginalSkill } from "@shadowclone/skills";
 
 export async function isolateNativeGuidance(directory: string): Promise<void> {
   for await (const relative of new Bun.Glob("**/SKILL.md").scan({

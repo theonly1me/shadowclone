@@ -1,6 +1,6 @@
 import path from "node:path";
-import { readLocalText } from "../../localFiles";
-import { parseSkillDocument } from "../../skillMaintenance/document";
+import { readLocalText } from "@shadowclone/core";
+import { parseSkillDocument } from "@shadowclone/skills";
 import type { PersonalSkill } from "../personalSkills";
 import type { AuthoredSkill } from "../render/skills";
 import type { ReadFirstSkill } from "../render/agents";

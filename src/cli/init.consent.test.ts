@@ -2,9 +2,8 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { readConfig } from "../config";
+import { readConfig, createProjectPaths } from "@shadowclone/core";
 import { readEnvironment } from "../environment";
-import { createProjectPaths } from "../paths";
 import { initialize } from "./init";
 
 test("explicit consent skips interactive questions", async () => {

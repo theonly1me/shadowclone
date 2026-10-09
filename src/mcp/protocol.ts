@@ -1,4 +1,4 @@
-import product from "../product.json";
+import product from "@shadowclone/core/product.json";
 import { preferenceTools } from "./preferences";
 import { referenceTools } from "./references";
 import { botTools } from "./bot";

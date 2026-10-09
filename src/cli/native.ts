@@ -17,7 +17,7 @@ import {
   sessionStartProjection,
   uninstallIntegration,
 } from "../integrations";
-import { canonicalPath, projectPaths } from "../paths";
+import { canonicalPath, projectPaths } from "@shadowclone/core";
 import { installLiveClone } from "./install";
 import { uninstallLiveClone } from "./uninstall";
 import { removeUneditedLegacySubagent } from "./legacyUpgrade";

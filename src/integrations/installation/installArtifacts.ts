@@ -1,5 +1,5 @@
 import { artifactIsOwned } from "./artifactOwnership";
-import { runHostCommand } from "../../io/hostCommand";
+import { runHostCommand } from "@shadowclone/core";
 import type { Installation } from "./installState";
 import { mkdir, rm, rmdir } from "node:fs/promises";
 import path from "node:path";

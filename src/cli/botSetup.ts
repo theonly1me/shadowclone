@@ -1,4 +1,4 @@
-import { projectPaths } from "../paths";
+import { projectPaths } from "@shadowclone/core";
 import { setUpAccountClone } from "../cloud/setup/accountSetup";
 import { readCloudChecklist } from "../cloud/setup/checklist";
 import { checklistText, remainingSteps } from "../cloud/setup/checklistText";

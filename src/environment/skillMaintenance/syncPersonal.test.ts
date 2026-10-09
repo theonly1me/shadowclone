@@ -2,10 +2,9 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createProjectPaths } from "../../paths";
-import { configureSkillMaintenance } from "../../skillMaintenance/configure";
-import { syncPersonalSkills } from "../../skillMaintenance/syncPersonal";
-import { fixtureSkill } from "../../skills/testing";
+import { createProjectPaths } from "@shadowclone/core";
+import { configureSkillMaintenance, syncPersonalSkills } from "@shadowclone/skills";
+import { fixtureSkill } from "@shadowclone/skills/testing";
 
 test("personal skill sync preserves conflicting user copies for review", async () => {
   const homeDirectory = await mkdtemp(

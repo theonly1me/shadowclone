@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { createProjectPaths } from "../paths";
+import { createProjectPaths } from "@shadowclone/core";
 import { learningRecord } from "./fixtures";
 import { pendingLearningRecords } from "./pending";
 import { recordFingerprint } from "./records";

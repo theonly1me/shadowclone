@@ -1,5 +1,5 @@
 import { HiddenInstructionsError } from "../integrations/hiddenInstructions";
-import { UnsafeDestinationError } from "../localFiles";
+import { UnsafeDestinationError } from "@shadowclone/core";
 import type { NativeInstallOptions } from "./nativeOptions";
 
 type Agent = NativeInstallOptions["agents"][number];

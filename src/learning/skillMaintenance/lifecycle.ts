@@ -1,18 +1,21 @@
 import path from "node:path";
-import { readEffectiveConfig } from "../../config";
-import { compileContext } from "../../integrations";
-import { fingerprint, readLocalText } from "../../localFiles";
-import { acquireLocalLock } from "../../localFiles/lock";
-import type { ProjectPaths } from "../../paths";
-import type { GitRemoteReader } from "../../signal";
-import { discoverSkills } from "../../skillMaintenance/discover";
-import { registerPortableSkill } from "../../skillMaintenance/portable";
 import {
+  readEffectiveConfig,
+  fingerprint,
+  readLocalText,
+  acquireLocalLock,
+} from "@shadowclone/core";
+import { compileContext } from "../../integrations";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
+import {
+  discoverSkills,
+  registerPortableSkill,
   isPluginCache,
   readMaintenanceState,
   skillTarget,
   writeMaintenanceState,
-} from "../../skillMaintenance/state";
+} from "@shadowclone/skills";
 
 export async function inspectSkillLibrary(options: {
   readonly paths: ProjectPaths;

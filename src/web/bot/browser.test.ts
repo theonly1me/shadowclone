@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import { readEnvironment, writeEnvironment } from "../../environment/store";
-import { writeMaintenanceState } from "../../skillMaintenance/state";
+import { writeMaintenanceState } from "@shadowclone/skills";
 import { createBotBrowser } from "./browser";
 import { guidanceFixture } from "../../cloud/fixtures";
 import { setupRepository, syntheticApp } from "../../cloud/setup/fixtures";

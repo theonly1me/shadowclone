@@ -1,12 +1,11 @@
 import { cp, mkdtemp, realpath } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
+import { defaultConfig, writeConfig, seedSkillsDirectory } from "@shadowclone/core";
 import { readEnvironment } from "../environment/store";
 import { applyBuild } from "./apply";
 import { buildFixture, buildInput } from "./testing";
 import { previewBuild } from "./plan";
-import { seedSkillsDirectory } from "../distribution";
 import type { BuildInput } from "../environment/builds/definition";
 
 export const skillRoots = [".agents/skills", ".claude/skills", ".gemini/config/skills"];

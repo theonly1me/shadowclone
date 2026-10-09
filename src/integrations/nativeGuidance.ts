@@ -1,6 +1,6 @@
 import path from "node:path";
-import { maximumProfileBytes } from "../io/limits";
-import { materializeSnapshot } from "../redact";
+import { maximumProfileBytes } from "@shadowclone/core";
+import { materializeSnapshot } from "@shadowclone/redact";
 import { stripHarnessSection, stripManagedGuidance } from "./markdown";
 
 const nativeGuidanceFiles = ["CLAUDE.md", "AGENTS.md"] as const;

@@ -1,11 +1,19 @@
 import path from "node:path";
-import { fingerprint } from "../localFiles";
-import type { EventIndex, IndexedEvent } from "../eventIndex";
-import { isOriginBlocked, normalizeRemoteRepository, readGitRemote } from "../signal";
-import type { GitRemoteReader, RepositoryIdentity } from "../signal";
-import { deriveSignals } from "../signal";
-import { eventOriginKey } from "../signal/origin/resolve";
-import type { ProjectPaths } from "../paths";
+import { fingerprint } from "@shadowclone/core";
+import type {
+  EventIndex,
+  IndexedEvent,
+  GitRemoteReader,
+  RepositoryIdentity,
+} from "@shadowclone/sessions";
+import {
+  isOriginBlocked,
+  normalizeRemoteRepository,
+  readGitRemote,
+  deriveSignals,
+  eventOriginKey,
+} from "@shadowclone/sessions";
+import type { ProjectPaths } from "@shadowclone/core";
 import { episodeId, readLearningState, writeLearningState } from "./state";
 
 export type HistoricalRepositoryCandidate = {

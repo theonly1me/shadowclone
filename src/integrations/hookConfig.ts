@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fingerprint } from "../localFiles";
+import { fingerprint } from "@shadowclone/core";
 import type { Integration } from "./types";
 
 const documentSchema = z

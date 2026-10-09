@@ -1,12 +1,11 @@
 import path from "node:path";
 import { z } from "zod";
-import { canonicalPath, projectPaths } from "../paths";
+import { canonicalPath, projectPaths, readEffectiveConfig } from "@shadowclone/core";
 import { compileContext, sessionStartProjection } from "./compile";
 import { readIntegrations, saveIntegration } from "./state";
 import type { Integration, IntegrationOptions } from "./types";
 import { bindNativeSessionOrigin, nativeBindingTimestamp } from "./bindings";
 import { readEnvironment } from "../environment/store";
-import { readEffectiveConfig } from "../config";
 import { learningSessionKey } from "./sessionKey";
 
 const inputSchema = z

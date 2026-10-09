@@ -1,8 +1,7 @@
-import { readEffectiveConfig, type ShadowcloneConfig } from "../config";
-import type { IndexedEvent } from "../eventIndex";
-import { textRefKey } from "../observe";
-import type { ProjectPaths } from "../paths";
-import type { CorrectionSignal } from "../signal";
+import { readEffectiveConfig, type ShadowcloneConfig } from "@shadowclone/core";
+import type { IndexedEvent, CorrectionSignal } from "@shadowclone/sessions";
+import { textRefKey } from "@shadowclone/sessions";
+import type { ProjectPaths } from "@shadowclone/core";
 
 const agentContextKinds = new Set<IndexedEvent["kind"]>([
   "assistant-text",

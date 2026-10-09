@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { buildFixture } from "../builds/testing";
-import { defaultConfig, writeConfig } from "../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import { generationResult, syntheticBrief, syntheticSkill } from "./fixtures";
 import { createSkillDrafts } from "./skillDrafts";
 

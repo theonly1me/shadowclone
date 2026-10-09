@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { projectPaths } from "../paths";
+import { projectPaths } from "@shadowclone/core";
 import { readLatestProbe, runLearningProbe } from "../learning/probe";
 
 export async function handleLearningProbe(arguments_: readonly string[]): Promise<boolean> {

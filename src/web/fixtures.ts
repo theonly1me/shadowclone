@@ -1,5 +1,5 @@
 import { buildFixture } from "../builds/testing";
-import type { EngineRun, EngineRunOptions } from "../engine/types";
+import type { EngineRun, EngineRunOptions } from "@shadowclone/agents";
 import { createBrowserHandler } from "./handler";
 
 export const syntheticSkill = {

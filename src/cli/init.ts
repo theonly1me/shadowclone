@@ -1,10 +1,15 @@
 import { initialConfiguration } from "./initConfiguration";
 import { prepareInitialEnvironment } from "./initEnvironment";
-import { applyManagedPolicy, readManagedPolicy, writeConfig } from "../config";
-import type { ManagedPolicy } from "../config";
-import type { EngineId, EngineRunner } from "../engine";
+import {
+  applyManagedPolicy,
+  readManagedPolicy,
+  writeConfig,
+  projectPaths,
+  type ProjectPaths,
+} from "@shadowclone/core";
+import type { ManagedPolicy } from "@shadowclone/core";
+import type { EngineId, EngineRunner } from "@shadowclone/agents";
 import type { IntegrationAgent } from "../integrations";
-import { projectPaths, type ProjectPaths } from "../paths";
 import {
   initializeAdvanced,
   type ConsentPrompt,

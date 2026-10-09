@@ -3,10 +3,8 @@ import path from "node:path";
 import { applySkillProposal } from "./apply";
 import { skillExecution, skillFixture } from "../../environment/testing";
 import { adoptSkill, inspectSkillLibrary } from "./lifecycle";
-import { listSkillProposals } from "../../skillMaintenance/proposals";
-import { restoreOriginalSkill } from "../../skillMaintenance/render";
+import { listSkillProposals, restoreOriginalSkill, rejectSkillProposal } from "@shadowclone/skills";
 import { updateSkillLibrary } from "./update";
-import { rejectSkillProposal } from "../../skillMaintenance/reject";
 
 test("user-owned changes stay pending until a specific proposal is approved", async () => {
   const setup = await skillFixture();

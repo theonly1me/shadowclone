@@ -1,4 +1,4 @@
-import type { SeedLibrary } from "../skills";
+import type { SeedLibrary } from "@shadowclone/skills";
 import { optionalSkills } from "./wizardChoices";
 
 export function wizardAnswers(options: {

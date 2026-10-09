@@ -51,19 +51,21 @@ test("reads value, type, dynamic, re-export, and side-effect imports with their 
 });
 
 test("a file belongs to the package that owns its top-level module", () => {
-  expect(packageOfFile({ file: "src/paths.test.ts" })).toBe("core");
-  expect(packageOfFile({ file: "src/product.json" })).toBe("core");
-  expect(packageOfFile({ file: "src/eventIndex/store.ts" })).toBe("sessions");
-  expect(packageOfFile({ file: "src/skillMaintenance/state.ts" })).toBe("skills");
+  expect(packageOfFile({ file: "packages/core/src/paths.test.ts" })).toBe("core");
+  expect(packageOfFile({ file: "packages/core/src/product.json" })).toBe("core");
+  expect(packageOfFile({ file: "packages/skills/src/skillMaintenance/state.ts" })).toBe("skills");
+  expect(packageOfFile({ file: "src/integrations/hooks.test.ts" })).toBe("environment");
+  expect(packageOfFile({ file: "src/distill/reconcile/run.ts" })).toBe("learning");
   expect(packageOfFile({ file: "src/cli/harnessCommands/init.test.ts" })).toBe("cli");
+  expect(packageOfFile({ file: "src/paths.ts" })).toBeNull();
   expect(packageOfFile({ file: "src/unlisted/a.ts" })).toBeNull();
   expect(packageOfFile({ file: "evals/shared/a.ts" })).toBeNull();
 });
 
 test("an import inside a package and an import of an allowed package pass", () => {
   const edges = edgesOf({
-    "src/cli/a.ts": 'import { x } from "../config";\nimport { y } from "./b";',
-    "src/skills/a.ts": 'import type { z } from "../changes";',
+    "src/cli/a.ts": 'import { x } from "../environment";\nimport { y } from "./b";',
+    "src/learning/a.ts": 'import type { z } from "../environment/types";',
     "src/builds/a.test.ts": 'import { z } from "../environment/store";',
   });
 
@@ -72,26 +74,26 @@ test("an import inside a package and an import of an allowed package pass", () =
 
 test("a value import, a type import, and a test import that break the table are reported with their position", () => {
   const edges = edgesOf({
-    "src/config/a.ts": '\nimport { x } from "../cli/doctor";',
-    "src/redact/b.ts": 'import type { Y } from "../observe";',
-    "src/skills/c.test.ts": 'const a = 1;\nimport { z } from "../learning/state";',
+    "src/environment/a.ts": '\nimport { x } from "../cli/doctor";',
+    "src/builds/b.ts": 'import type { Y } from "../learning";',
+    "src/harness/c.test.ts": 'const a = 1;\nimport { z } from "../web/server";',
   });
 
   expect(findViolations({ edges })).toEqual([
     {
-      file: "src/config/a.ts",
+      file: "src/environment/a.ts",
       line: 2,
-      message: '"../cli/doctor" makes core depend on cli',
+      message: '"../cli/doctor" makes environment depend on cli',
     },
     {
-      file: "src/redact/b.ts",
+      file: "src/builds/b.ts",
       line: 1,
-      message: '"../observe" makes redact depend on sessions',
+      message: '"../learning" makes builds depend on learning',
     },
     {
-      file: "src/skills/c.test.ts",
+      file: "src/harness/c.test.ts",
       line: 2,
-      message: '"../learning/state" makes skills depend on learning',
+      message: '"../web/server" makes harness depend on web',
     },
   ]);
 });
@@ -134,7 +136,7 @@ test("the declared dependency table and an import graph that follows it have no 
   const edges = edgesOf({
     "src/cli/a.ts": 'import { x } from "../mcp";',
     "src/mcp/a.ts": 'import { x } from "../environment";',
-    "src/environment/a.ts": 'import { x } from "../config";',
+    "src/environment/a.ts": 'import { x } from "@shadowclone/core";',
   });
 
   expect(findCycle(declaredGraph())).toBeNull();
@@ -143,16 +145,16 @@ test("the declared dependency table and an import graph that follows it have no 
 
 test("the observed graph reports a cycle that the import edges form", () => {
   const edges = edgesOf({
-    "src/config/a.ts": 'import { x } from "../redact";',
-    "src/redact/a.ts": 'import { x } from "../config";',
+    "src/environment/a.ts": 'import { x } from "../builds";',
+    "src/builds/a.ts": 'import { x } from "../environment";',
   });
 
-  expect(findCycle(observedGraph({ edges }))).toEqual(["core", "redact", "core"]);
+  expect(findCycle(observedGraph({ edges }))).toEqual(["environment", "builds", "environment"]);
 });
 
 test("the checker reads every source file under src and counts the files it read", async () => {
   const rootDirectory = await treeWith({
-    "src/config/a.ts": 'import { x } from "../cli/doctor";\n',
+    "src/environment/a.ts": 'import { x } from "../cli/doctor";\n',
     "src/cli/doctor.ts": "export const x = 1;\n",
     "docs/ignored.ts": 'import { x } from "../src/cli/doctor";\n',
   });
@@ -162,9 +164,9 @@ test("the checker reads every source file under src and counts the files it read
   expect(report.fileCount).toBe(2);
   expect(report.violations).toEqual([
     {
-      file: "src/config/a.ts",
+      file: "src/environment/a.ts",
       line: 1,
-      message: '"../cli/doctor" makes core depend on cli',
+      message: '"../cli/doctor" makes environment depend on cli',
     },
   ]);
   expect(report.observedCycle).toBeNull();

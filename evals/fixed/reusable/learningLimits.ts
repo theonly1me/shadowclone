@@ -1,4 +1,4 @@
-import { learningExecutionLimitsForCalls } from "../../../src/engine";
+import { learningExecutionLimitsForCalls } from "@shadowclone/agents";
 import type { LearnerConfiguration } from "../workflow/schema";
 
 export function preparationLearningLimits(learner: LearnerConfiguration) {

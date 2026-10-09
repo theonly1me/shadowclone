@@ -1,5 +1,5 @@
 import path from "node:path";
-import { firstLink, realPathOrNull, resolvedPath } from "../localFiles/links";
+import { firstLink, realPathOrNull, resolvedPath } from "@shadowclone/core";
 
 export function skillDestinationsWithoutLinks(options: {
   readonly destinations: readonly string[];

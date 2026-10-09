@@ -1,7 +1,7 @@
-import { captureRoots } from "../observe";
+import { captureRoots } from "@shadowclone/sessions";
 import { normalizeExplicitCandidates } from "./candidates";
-import type { ManagedPolicy } from "../config";
-import { readConfig } from "../config";
+import type { ManagedPolicy, ProjectPaths } from "@shadowclone/core";
+import { readConfig } from "@shadowclone/core";
 import { selectLearningPreferences } from "./modelPreferences";
 import { distillSignals, renderReconciliationChanges } from "../distill";
 import {
@@ -14,14 +14,12 @@ import {
   type LearningExecution,
   type LearningExecutionLimits,
   type ReasoningEffort,
-} from "../engine";
-import type { IndexedEvent } from "../eventIndex";
-import type { ProjectPaths } from "../paths";
-import { getProviderByEngine } from "../provider";
+  getProviderByEngine,
+} from "@shadowclone/agents";
+import type { IndexedEvent, CorrectionSignal } from "@shadowclone/sessions";
 import { readLearningSnapshot, persistLearningRules } from "./storage";
 import { learningRuleProvenance } from "./provenance";
-import type { CorrectionSignal } from "../signal";
-import { loadSeedLibrary } from "../skills";
+import { loadSeedLibrary } from "@shadowclone/skills";
 import { refreshIntegrations } from "../integrations";
 import { queuePendingLearning, readPendingLearning, updatePendingLearning } from "./pending";
 import { readEnvironment } from "../environment/store";

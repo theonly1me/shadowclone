@@ -1,10 +1,10 @@
 import { readdir, rm } from "node:fs/promises";
-import { projectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
+import { projectPaths } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import { removeArtifacts, removeGitExcludes } from "../integrations/installation/installArtifacts";
 import { readInstallations } from "../integrations/installation/installState";
 import { readIntegrations, uninstallIntegration } from "../integrations";
-import { removeSkillMaintenance } from "../skillMaintenance";
+import { removeSkillMaintenance } from "@shadowclone/skills";
 import { removeLearningEnvironment } from "../environment/cleanup";
 
 export async function forgetAll(

@@ -2,10 +2,10 @@ import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
-import { runNativeEngine, type NativeEngine, type NativeEngineRunner } from "../engine/native";
-import { fingerprint, readLocalText, replaceLocalText } from "../localFiles";
-import type { ProjectPaths } from "../paths";
-import { redactSecrets } from "../redact";
+import { runNativeEngine, type NativeEngine, type NativeEngineRunner } from "@shadowclone/agents";
+import { fingerprint, readLocalText, replaceLocalText } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import { redactSecrets } from "@shadowclone/redact";
 import { freezeProbeGuidance } from "./probeSnapshot";
 
 const probeReceiptSchema = z.strictObject({

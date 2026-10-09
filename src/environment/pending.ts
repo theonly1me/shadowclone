@@ -1,4 +1,4 @@
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import { retirementRequested } from "./draftSchema";
 import { recordFingerprint } from "./records";
 import { belongsToScope, learningScopes } from "./scope";

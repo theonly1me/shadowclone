@@ -21,21 +21,13 @@ export type PackageName = (typeof packageNames)[number];
 
 export type PackageLayout = {
   readonly sourceRoot: string;
-  readonly modules: Readonly<Record<PackageName, readonly string[]>>;
+  readonly rootModules: Readonly<Partial<Record<PackageName, readonly string[]>>>;
   readonly allowedDependencies: Readonly<Record<PackageName, readonly PackageName[]>>;
 };
 
 export const packageLayout: PackageLayout = {
   sourceRoot: "src",
-  modules: {
-    core: ["paths", "distribution", "testing", "product", "io", "storage", "localFiles", "config"],
-    redact: ["redact"],
-    agents: ["engine", "provider"],
-    sessions: ["observe", "eventIndex", "signal"],
-    review: ["review"],
-    changes: ["changes"],
-    skills: ["skills", "skillMaintenance"],
-    profile: ["profile", "references", "migrate"],
+  rootModules: {
     environment: ["environment", "integrations"],
     builds: ["builds"],
     learning: ["learning", "distill", "preferences", "importRules"],

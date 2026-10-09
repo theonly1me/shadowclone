@@ -1,7 +1,7 @@
 import path from "node:path";
 import os from "node:os";
 import { mkdtemp, mkdir, rm } from "node:fs/promises";
-import { canonicalPath, createProjectPaths } from "../paths";
+import { canonicalPath, createProjectPaths } from "@shadowclone/core";
 import { emptyEnvironment } from "../environment/types";
 import { writeEnvironment } from "../environment/store";
 import type { Clone, EventContext, GithubRequest } from "./types";

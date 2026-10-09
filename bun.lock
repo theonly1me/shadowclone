@@ -12,6 +12,14 @@
       },
       "devDependencies": {
         "@biomejs/biome": "2.5.15",
+        "@shadowclone/agents": "workspace:*",
+        "@shadowclone/changes": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/profile": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "@shadowclone/review": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
         "@types/bun": "latest",
         "knip": "6.39.0",
         "prettier": "3.9.9",
@@ -22,14 +30,88 @@
     "evals": {
       "name": "@shadowclone/evals",
       "dependencies": {
+        "@shadowclone/agents": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "@shadowclone/review": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
         "commander": "^15.0.0",
         "typescript": "~5.9",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/agents": {
+      "name": "@shadowclone/agents",
+      "dependencies": {
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/changes": {
+      "name": "@shadowclone/changes",
+      "dependencies": {
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/core": {
+      "name": "@shadowclone/core",
+      "dependencies": {
+        "smol-toml": "^1.8.0",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/profile": {
+      "name": "@shadowclone/profile",
+      "dependencies": {
+        "@shadowclone/changes": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/redact": {
+      "name": "@shadowclone/redact",
+      "dependencies": {
+        "@shadowclone/core": "workspace:*",
+      },
+    },
+    "packages/review": {
+      "name": "@shadowclone/review",
+      "dependencies": {
+        "@shadowclone/agents": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "smol-toml": "^1.8.0",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/sessions": {
+      "name": "@shadowclone/sessions",
+      "dependencies": {
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+      },
+    },
+    "packages/skills": {
+      "name": "@shadowclone/skills",
+      "dependencies": {
+        "@shadowclone/changes": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
         "zod": "^4.5.4",
       },
     },
     "tooling": {
       "name": "@shadowclone/tooling",
       "dependencies": {
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/skills": "workspace:*",
         "prettier": "3.9.9",
         "typescript": "~5.9",
         "zod": "^4.5.4",
@@ -165,7 +247,23 @@
 
     "@oxc-resolver/binding-win32-x64-msvc": ["@oxc-resolver/binding-win32-x64-msvc@11.24.2", "", { "os": "win32", "cpu": "x64" }, "sha512-UqGPmo56KDfLlfXFAFIrNflHT8tFxWGEivWg3Zeyp4Uy2NlKN1FGPr6/BxcLGG3+kZ6Wp14g5Uj+n71boqZfiw=="],
 
+    "@shadowclone/agents": ["@shadowclone/agents@workspace:packages/agents"],
+
+    "@shadowclone/changes": ["@shadowclone/changes@workspace:packages/changes"],
+
+    "@shadowclone/core": ["@shadowclone/core@workspace:packages/core"],
+
     "@shadowclone/evals": ["@shadowclone/evals@workspace:evals"],
+
+    "@shadowclone/profile": ["@shadowclone/profile@workspace:packages/profile"],
+
+    "@shadowclone/redact": ["@shadowclone/redact@workspace:packages/redact"],
+
+    "@shadowclone/review": ["@shadowclone/review@workspace:packages/review"],
+
+    "@shadowclone/sessions": ["@shadowclone/sessions@workspace:packages/sessions"],
+
+    "@shadowclone/skills": ["@shadowclone/skills@workspace:packages/skills"],
 
     "@shadowclone/tooling": ["@shadowclone/tooling@workspace:tooling"],
 

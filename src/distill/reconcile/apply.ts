@@ -1,5 +1,5 @@
 import { applyExisting, emptyMinedRule } from "./ruleUpdates";
-import type { ProfileRule } from "../../profile";
+import type { ProfileRule } from "@shadowclone/profile";
 import {
   assessedContext,
   explicitEvidenceTokens,

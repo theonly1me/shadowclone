@@ -1,6 +1,6 @@
-import type { ProjectPaths } from "../../../paths";
-import { listSkillProposals, readSkillProposal, saveSkillProposal } from "../../../skillMaintenance/proposals";
-import type { DiscoveredSkill, SkillConflictProposal } from "../../../skillMaintenance/types";
+import type { ProjectPaths } from "@shadowclone/core";
+import { listSkillProposals, readSkillProposal, saveSkillProposal } from "@shadowclone/skills";
+import type { DiscoveredSkill, SkillConflictProposal } from "@shadowclone/skills";
 import { shareSkillScope, type SkillPair } from "./catalog";
 import type { assessSkillConflict } from "./assess";
 

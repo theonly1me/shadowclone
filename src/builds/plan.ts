@@ -1,7 +1,7 @@
 import path from "node:path";
-import type { FileUpdate } from "../changes";
+import type { FileUpdate } from "@shadowclone/changes";
 import { environmentFile, renderEnvironment } from "../environment/store";
-import { fingerprint, readLocalText } from "../localFiles";
+import { fingerprint, readLocalText } from "@shadowclone/core";
 import { authoredBuildSkills } from "./authored";
 import { buildCatalog } from "./catalog";
 import { planBuildRouting } from "./native";

@@ -1,19 +1,30 @@
-import { detectEngine, type CommandProbe, type EngineId } from "../engine";
-import { readManagedPolicy, type DistillationPolicy } from "../config";
-import { openEventIndex } from "../eventIndex";
+import {
+  detectEngine,
+  type CommandProbe,
+  type EngineId,
+  getProviderSupport,
+  providerDefinitions,
+} from "@shadowclone/agents";
+import {
+  readManagedPolicy,
+  type DistillationPolicy,
+  projectPaths,
+  repairOwnedTree,
+  readEffectiveConfig,
+} from "@shadowclone/core";
+import {
+  openEventIndex,
+  computeSourceHealth,
+  type SourceMarkerHealth,
+} from "@shadowclone/sessions";
 import {
   compileContextDetails,
   integrationHealth,
   sessionStartProjection,
 } from "../integrations";
-import { projectPaths } from "../paths";
-import { repairOwnedTree } from "../storage";
 import { readLearningState } from "../learning";
-import { readEffectiveConfig } from "../config";
-import { listSkillProposals, readMaintenanceState } from "../skillMaintenance";
-import { getProviderSupport, providerDefinitions } from "../provider";
-import { computeSourceHealth, type SourceMarkerHealth } from "../signal";
-import { createProfileRepairPlan } from "../profile";
+import { listSkillProposals, readMaintenanceState } from "@shadowclone/skills";
+import { createProfileRepairPlan } from "@shadowclone/profile";
 import { renderStartupContextSummary } from "./contextExplain";
 import { environmentStatus } from "../environment/status";
 

@@ -1,7 +1,11 @@
 import path from "node:path";
 import { z } from "zod";
-import { readLocalText, replaceLocalText } from "../localFiles";
-import { canonicalPath, type ProjectPaths } from "../paths";
+import {
+  readLocalText,
+  replaceLocalText,
+  canonicalPath,
+  type ProjectPaths,
+} from "@shadowclone/core";
 
 const rootsSchema = z.strictObject({
   version: z.literal(1),

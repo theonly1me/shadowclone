@@ -2,9 +2,8 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultManagedPolicy, readConfig } from "../config";
-import { createProjectPaths } from "../paths";
-import { readGeneratedProfileState } from "../profile";
+import { defaultManagedPolicy, readConfig, createProjectPaths } from "@shadowclone/core";
+import { readGeneratedProfileState } from "@shadowclone/profile";
 import { importRepositoryGuidanceCommand } from "./import";
 
 async function testContext(): Promise<{

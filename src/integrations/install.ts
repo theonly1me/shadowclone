@@ -4,7 +4,7 @@ import {
   integrationExcludePattern,
   removeGitExcludes,
 } from "./installation/installArtifacts";
-import { canonicalPath, projectPaths } from "../paths";
+import { canonicalPath, projectPaths } from "@shadowclone/core";
 import { compileContext } from "./compile";
 import { applyIntegrationFiles, prepareIntegrationFiles, savedRecords } from "./files";
 import { readIntegrations, saveIntegration } from "./state";

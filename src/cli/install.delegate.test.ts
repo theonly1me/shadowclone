@@ -2,9 +2,8 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
-import { canonicalPath, createProjectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
+import { defaultConfig, writeConfig, canonicalPath, createProjectPaths } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import { installLiveClone } from "./install";
 import { readInstallations } from "../integrations/installation/installState";
 

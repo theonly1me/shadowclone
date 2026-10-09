@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { EngineRunner } from "../engine";
+import type { EngineRunner } from "@shadowclone/agents";
 import { mergeDistilledRules } from "./merge";
 import type { DistilledRule } from "./schema";
 

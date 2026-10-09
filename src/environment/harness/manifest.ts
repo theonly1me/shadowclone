@@ -1,6 +1,6 @@
 import path from "node:path";
 import { z } from "zod";
-import { readLocalText } from "../../localFiles";
+import { readLocalText } from "@shadowclone/core";
 import { verificationRecipeSchema } from "./recipes";
 import { conventionSchema } from "./conventionSchema";
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { NativeEngineRunner } from "../../../src/engine/native";
-import { redactSecrets } from "../../../src/redact";
-import { ownedWrite } from "../../../src/storage";
+import type { NativeEngineRunner } from "@shadowclone/agents";
+import { redactSecrets } from "@shadowclone/redact";
+import { ownedWrite } from "@shadowclone/core";
 import type { EvaluationBudget } from "../../shared/accounting";
 import type { StudyCheckResult } from "./checkSchema";
 import { deterministicChecks } from "./checks";

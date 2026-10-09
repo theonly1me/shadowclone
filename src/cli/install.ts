@@ -3,17 +3,16 @@ import {
   checkArtifactWrite,
   writeInstalledArtifact,
 } from "../integrations/installation/artifactOwnership";
-import { readEffectiveConfig } from "../config";
-import { canonicalPath, projectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
-import { renderAgent } from "../profile";
+import { readEffectiveConfig, canonicalPath, projectPaths } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import { renderAgent } from "@shadowclone/profile";
 import { compileAgentDelivery } from "../environment/compile";
 import { readEnvironment } from "../environment";
 import {
   isOriginBlocked,
   resolveRepository,
   type GitRemoteReader,
-} from "../signal";
+} from "@shadowclone/sessions";
 import { renderDelegationSkill } from "./delegationSkill";
 import {
   addGitExcludes,

@@ -1,12 +1,11 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { readConfig, writeConfig, readManagedPolicy } from "../../../src/config";
-import { projectPaths } from "../../../src/paths";
+import { readConfig, writeConfig, readManagedPolicy, projectPaths } from "@shadowclone/core";
 import { learn } from "../../../src/cli/learn";
 import { readEnvironment } from "../../../src/environment/store";
 import { readLearningState } from "../../../src/learning";
 import { readPendingLearning } from "../../../src/learning/pending";
-import { listSkillProposals } from "../../../src/skillMaintenance";
+import { listSkillProposals } from "@shadowclone/skills";
 import { evaluationBudget } from "../../shared/accounting";
 import { lockEvaluation } from "../../shared/lock";
 import { fingerprint } from "../../shared/structured";
@@ -15,7 +14,7 @@ import { workflowLearningRunner } from "./learner";
 import { workflowLayout, captureWorkflowArm } from "./layout";
 import { readWorkflowPreparation, requireWorkflowProduct, requirePreparationInputs, writeFrozenArtifact, readFrozenArtifact, requireWorkflowDefinition } from "./preparation";
 import { preparedEnvironmentsSchema, type LearningCall } from "./schema";
-import type { NativeEngineRunner } from "../../../src/engine/native";
+import type { NativeEngineRunner } from "@shadowclone/agents";
 
 export async function learnWorkflowEnvironments(options: { preparationFile: string; runner?: NativeEngineRunner; managedConfigPath?: string | null }) {
   const preparation = await readWorkflowPreparation(options.preparationFile);

@@ -3,11 +3,10 @@ import { buildCatalog } from "../builds/catalog";
 import { buildConstellation } from "../builds/constellation";
 import { buildIdentity, customDocument } from "../builds/selection";
 import { sharedRequirements } from "../builds/requirements";
-import { readEffectiveConfig } from "../config";
+import { readEffectiveConfig, canonicalPath } from "@shadowclone/core";
 import { readEnvironment } from "../environment/store";
 import { readHarnessManifest } from "../environment/harness/manifest";
-import { canonicalPath } from "../paths";
-import { loadSeedLibrary } from "../skills/library";
+import { loadSeedLibrary } from "@shadowclone/skills";
 import { buildViewSchema, type BuildView } from "./protocol";
 import type { BuildContext, BuildScope } from "../environment/builds/definition";
 

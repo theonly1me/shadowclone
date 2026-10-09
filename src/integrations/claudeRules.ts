@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
 import { lstat, readdir } from "node:fs/promises";
 import path from "node:path";
-import { maximumProfileBytes } from "../io/limits";
-import { materializeSnapshot } from "../redact";
+import { maximumProfileBytes } from "@shadowclone/core";
+import { materializeSnapshot } from "@shadowclone/redact";
 
 const maximumRuleFiles = 128;
 const maximumRuleBytes = 2_000_000;

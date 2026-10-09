@@ -1,4 +1,4 @@
-import { runProcess } from "../../src/io/process";
+import { runProcess } from "@shadowclone/core";
 
 export async function ghJson(arguments_: readonly string[]): Promise<unknown> {
   const result = await runProcess({

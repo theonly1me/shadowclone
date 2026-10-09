@@ -1,16 +1,16 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import {
   createLearningExecution,
   type EngineRun,
   type EngineRunner,
-} from "../../engine";
+} from "@shadowclone/agents";
 import { runLearningMaintenance } from "..";
 import { skillEngineRun, skillExecution, skillFixture } from "../../environment/testing";
-import { readMaintenanceState } from "../../skillMaintenance/state";
+import { readMaintenanceState } from "@shadowclone/skills";
 import { updateSkillLibrary, type SkillUpdateSummary } from "./update";
-import { fixtureSkill } from "../../skills/testing";
+import { fixtureSkill } from "@shadowclone/skills/testing";
 
 function failedSkillRun(): EngineRun {
   return {

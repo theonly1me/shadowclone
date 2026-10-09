@@ -2,8 +2,8 @@ import {
   readEffectiveConfig,
   type ManagedPolicy,
   type ShadowcloneConfig,
-} from "../config";
-import type { ProjectPaths } from "../paths";
+} from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import { initialize } from "./init";
 import { offerNativeUpgrade } from "./nativeUpgrade";
 

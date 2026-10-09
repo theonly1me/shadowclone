@@ -1,6 +1,5 @@
 import path from "node:path";
-import { readLocalText } from "../localFiles";
-import { projectPaths, type ProjectPaths } from "../paths";
+import { readLocalText, projectPaths, type ProjectPaths } from "@shadowclone/core";
 import { readEnvironment } from "../environment/store";
 import {
   applyProfileCuration,
@@ -10,7 +9,7 @@ import {
   parseProfileCurationDecisions,
   type ProfileCurationPlan,
   type ProfileRepairPlan,
-} from "../profile";
+} from "@shadowclone/profile";
 
 type ProfileRepairOptions = {
   readonly apply: boolean;

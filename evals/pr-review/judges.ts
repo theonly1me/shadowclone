@@ -1,7 +1,6 @@
 import { z } from "zod";
-import { runClaudeCode } from "../../src/engine/claudeCode";
-import { runCodex } from "../../src/engine/codex";
-import type { EngineRun } from "../../src/engine/types";
+import { runClaudeCode, runCodex } from "@shadowclone/agents";
+import type { EngineRun } from "@shadowclone/agents";
 
 export const judgeNames = ["opus", "sol"] as const;
 

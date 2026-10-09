@@ -1,4 +1,4 @@
-import type { ManagedPolicy, ShadowcloneConfig } from "../config";
+import type { ManagedPolicy, ShadowcloneConfig, ProjectPaths } from "@shadowclone/core";
 import {
   allowlistedSignals,
   authorizedLearningEvents,
@@ -12,21 +12,24 @@ import {
   type EngineId,
   type EngineRunner,
   type LearningExecution,
-} from "../engine";
-import { ingestSources, openEventIndex } from "../eventIndex";
+} from "@shadowclone/agents";
+import {
+  ingestSources,
+  openEventIndex,
+  deriveSignals,
+  type GitRemoteReader,
+} from "@shadowclone/sessions";
 import {
   episodeId,
   readLearningState,
   selectNewestLearningEpisodes,
   writeLearningState,
 } from "../learning";
-import type { ProjectPaths } from "../paths";
-import { deriveSignals, type GitRemoteReader } from "../signal";
 import { runDeepLearning } from "./deepLearn";
 import { bindHistoricalRepository, listHistoricalRepositories } from "../learning/repositories";
 import { writeLearningReceipt } from "../learning/receipt";
 import path from "node:path";
-import { acquireLocalLock } from "../localFiles/lock";
+import { acquireLocalLock } from "@shadowclone/core";
 import { selectLearningPreferences, type LearningPreferences } from "../learning/modelPreferences";
 
 export type SetupEngine = {

@@ -1,8 +1,8 @@
 import { previewBuild, applyBuild } from "../builds";
 import { readEnvironment } from "../environment/store";
 import { initializeSkillEnvironment } from "../environment/initialize";
-import { installSeedSkills, type SeedGuidance, type SeedLibrary } from "../skills";
-import type { ProjectPaths } from "../paths";
+import { installSeedSkills, type SeedGuidance, type SeedLibrary } from "@shadowclone/skills";
+import type { ProjectPaths } from "@shadowclone/core";
 import { refreshIntegrations } from "../integrations";
 import { writeSeedGuidanceSelection } from "../environment/seedGuidance";
 

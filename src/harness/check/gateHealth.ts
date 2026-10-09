@@ -1,6 +1,6 @@
 import path from "node:path";
 import { z } from "zod";
-import { readLocalText } from "../../localFiles";
+import { readLocalText } from "@shadowclone/core";
 import type { HarnessManifest } from "../../environment/harness/manifest";
 import type { HarnessFinding } from "./types";
 import { error, warning, refresh } from "./healthFinding";

@@ -1,20 +1,23 @@
 import path from "node:path";
-import { commitLocalChanges } from "../../changes";
-import { readEffectiveConfig } from "../../config";
+import { commitLocalChanges } from "@shadowclone/changes";
+import {
+  readEffectiveConfig,
+  fingerprint,
+  readLocalText,
+  acquireLocalLock,
+} from "@shadowclone/core";
 import { compileContext } from "../../integrations";
-import type { GitRemoteReader } from "../../signal";
-import { fingerprint, readLocalText } from "../../localFiles";
-import { acquireLocalLock } from "../../localFiles/lock";
-import type { ProjectPaths } from "../../paths";
-import { parseSkillDocument, validateSkillReferences } from "../../skillMaintenance/document";
-import { readSkillProposal, saveSkillProposal } from "../../skillMaintenance/proposals";
-import { companionPrefix } from "../../skillMaintenance/render";
+import type { GitRemoteReader } from "@shadowclone/sessions";
+import type { ProjectPaths } from "@shadowclone/core";
+import { parseSkillDocument, validateSkillReferences } from "@shadowclone/skills";
+import { readSkillProposal, saveSkillProposal } from "@shadowclone/skills";
+import { companionPrefix } from "@shadowclone/skills";
 import {
   isPluginCache,
   readMaintenanceState,
   skillTarget,
   writeMaintenanceState,
-} from "../../skillMaintenance/state";
+} from "@shadowclone/skills";
 
 type ApplyOptions = {
   readonly paths: ProjectPaths;

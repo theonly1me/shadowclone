@@ -1,6 +1,5 @@
-import type { ProjectPaths } from "../paths";
-import { readLocalText, readLocalFile, fingerprint } from "../localFiles";
-import { acquireLocalLock } from "../localFiles/lock";
+import type { ProjectPaths } from "@shadowclone/core";
+import { readLocalText, readLocalFile, fingerprint, acquireLocalLock } from "@shadowclone/core";
 import path from "node:path";
 import {
   environmentFile,

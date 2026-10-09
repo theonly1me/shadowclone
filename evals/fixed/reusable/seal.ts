@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readBoundedFile } from "../../../src/io/files";
+import { readBoundedFile } from "@shadowclone/core";
 import { requirePrivateDirectory } from "../../native/files";
 import { fingerprint } from "../../shared/structured";
 import { readFrozenArtifact, writeFrozenArtifact } from "../workflow/preparation";

@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { rm } from "node:fs/promises";
-import { readConfig, writeConfig } from "../config";
-import { normalizeRemoteRepository } from "../signal/origin/remote";
+import { readConfig, writeConfig } from "@shadowclone/core";
+import { normalizeRemoteRepository } from "@shadowclone/sessions";
 import { skillFixture } from "./testing";
 import { explainLearningEnvironment } from "./diagnostics";
 import { learningRecord } from "./fixtures";

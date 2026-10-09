@@ -1,4 +1,4 @@
-import type { CorrectionSignal, OriginScope } from "../signal";
+import type { CorrectionSignal, OriginScope } from "@shadowclone/sessions";
 
 export type DistillBatch = {
   readonly origin: OriginScope;

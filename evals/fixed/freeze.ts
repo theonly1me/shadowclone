@@ -1,14 +1,14 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
-import { ownedWrite } from "../../src/storage";
+import { ownedWrite } from "@shadowclone/core";
 import { requirePrivateDirectory, treeFingerprint } from "../native/files";
 import { studySuiteSchema } from "../native/study/schema";
 import { fixedDefinition, benchmarkFingerprint, internalArms } from "./definition";
 import { fixedArmEnvironments } from "./arms";
 import { fixedCliVersion, fixedGraderFingerprint, fixedProductIdentity, fixedRuntime } from "./identity";
 import { fingerprint } from "../shared/structured";
-import type { NativeEngine } from "../../src/engine/native";
+import type { NativeEngine } from "@shadowclone/agents";
 
 export const fixedSuiteSchema = z.strictObject({
   protocol: z.literal("preference-respect-v1"),

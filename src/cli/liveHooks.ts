@@ -4,9 +4,9 @@ import {
   readIntegrations,
   sessionStartProjection,
 } from "../integrations";
-import { canonicalPath, projectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
-import type { GitRemoteReader } from "../signal";
+import { canonicalPath, projectPaths } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import { parseHookInput, readHookString } from "./hookInput";
 
 type LiveHookOptions = {

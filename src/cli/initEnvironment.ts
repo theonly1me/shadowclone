@@ -1,11 +1,10 @@
-import type { ManagedPolicy } from "../config";
+import type { ManagedPolicy, ProjectPaths } from "@shadowclone/core";
 import { initializeSkillEnvironment } from "../environment/initialize";
 import { registerWorkingRepository } from "../environment/registerRepository";
 import { importRepositoryGuidance } from "../importRules";
-import type { ProjectPaths } from "../paths";
 import {
   configureSkillMaintenance,
-} from "../skillMaintenance";
+} from "@shadowclone/skills";
 import { maintainSkills } from "../learning/maintenance";
 import type { InitializeOptions } from "./init";
 import type { OnboardingPresence } from "./onboardingPresence";

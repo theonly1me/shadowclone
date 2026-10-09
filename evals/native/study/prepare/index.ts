@@ -1,11 +1,10 @@
 import { lstat, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
-import type { NativeEngineRunner } from "../../../../src/engine/native";
+import type { NativeEngineRunner } from "@shadowclone/agents";
 import { readEnvironment } from "../../../../src/environment/store";
-import { createProjectPaths, type ProjectPaths } from "../../../../src/paths";
-import { readGitRemote } from "../../../../src/signal";
-import { ownedWrite } from "../../../../src/storage";
+import { createProjectPaths, type ProjectPaths, ownedWrite } from "@shadowclone/core";
+import { readGitRemote } from "@shadowclone/sessions";
 import { evaluationBudget } from "../../../shared/accounting";
 import { lockEvaluation } from "../../../shared/lock";
 import { requirePrivateDirectory } from "../../files";

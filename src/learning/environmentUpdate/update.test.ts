@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { createLearningExecution } from "../../engine";
-import { fingerprint } from "../../localFiles";
-import { listRevisions } from "../../changes";
+import { createLearningExecution } from "@shadowclone/agents";
+import { fingerprint } from "@shadowclone/core";
+import { listRevisions } from "@shadowclone/changes";
 import { skillFixture, skillEngineRun } from "../../environment/testing";
 import { emptyEnvironment } from "../../environment/types";
 import { readEnvironment, writeEnvironment } from "../../environment/store";

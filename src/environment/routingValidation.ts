@@ -1,4 +1,4 @@
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import { renderSkillRouting } from "./context";
 import { learningScopes } from "./scope";
 import type { EnvironmentState } from "./types";

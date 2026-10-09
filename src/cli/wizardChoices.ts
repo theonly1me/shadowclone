@@ -1,4 +1,4 @@
-import type { SeedAgentSkill, SeedGuidance, SeedLibrary } from "../skills";
+import type { SeedAgentSkill, SeedGuidance, SeedLibrary } from "@shadowclone/skills";
 
 export function optionalSkills(library: SeedLibrary): readonly SeedAgentSkill[] {
   return library.independentSkills.filter((skill) => !skill.alwaysOn);

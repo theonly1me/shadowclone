@@ -1,7 +1,7 @@
-import type { LearningExecution } from "../engine";
+import type { LearningExecution } from "@shadowclone/agents";
 import { updateLearningEnvironment } from "./environmentUpdate/update";
-import type { ProjectPaths } from "../paths";
-import type { GitRemoteReader } from "../signal";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import { updateLegacySkillLibrary, type SkillUpdateSummary } from "./skillMaintenance/legacyUpdate";
 
 export async function maintainSkills(options: {

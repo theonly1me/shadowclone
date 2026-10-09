@@ -7,7 +7,7 @@ import {
   type BoundaryViolation,
 } from "./boundaries/check";
 import { readImports, type ImportEdge } from "./boundaries/imports";
-import { packageLayout } from "./boundaries/packages";
+import { manifestViolations, readManifests } from "./boundaries/manifests";
 
 export type BoundaryReport = {
   readonly fileCount: number;
@@ -16,21 +16,41 @@ export type BoundaryReport = {
   readonly observedCycle: readonly string[] | null;
 };
 
-export async function checkBoundaries(options: { rootDirectory: string }): Promise<BoundaryReport> {
-  const glob = new Bun.Glob(`${packageLayout.sourceRoot}/**/*.ts`);
-  const edges: ImportEdge[] = [];
-  let fileCount = 0;
+const scannedPatterns = [
+  "src/**/*.ts",
+  "packages/*/src/**/*.ts",
+  "evals/**/*.ts",
+  "tooling/src/**/*.ts",
+] as const;
 
-  for await (const file of glob.scan({ cwd: options.rootDirectory })) {
+async function listScannedFiles(rootDirectory: string): Promise<readonly string[]> {
+  const files: string[] = [];
+
+  for (const pattern of scannedPatterns) {
+    for await (const file of new Bun.Glob(pattern).scan({ cwd: rootDirectory })) {
+      if (!file.split("/").includes("node_modules")) {
+        files.push(file);
+      }
+    }
+  }
+
+  return files;
+}
+
+export async function checkBoundaries(options: { rootDirectory: string }): Promise<BoundaryReport> {
+  const edges: ImportEdge[] = [];
+  const files = await listScannedFiles(options.rootDirectory);
+  const manifests = await readManifests(options.rootDirectory);
+
+  for (const file of files) {
     const text = await Bun.file(path.join(options.rootDirectory, file)).text();
 
-    fileCount += 1;
     edges.push(...readImports({ file, text }));
   }
 
   return {
-    fileCount,
-    violations: findViolations({ edges }),
+    fileCount: files.length,
+    violations: [...findViolations({ edges, manifests }), ...manifestViolations({ manifests })],
     declaredCycle: findCycle(declaredGraph()),
     observedCycle: findCycle(observedGraph({ edges })),
   };

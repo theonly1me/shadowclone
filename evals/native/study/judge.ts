@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
-import type { NativeEngineRunner } from "../../../src/engine/native";
+import type { NativeEngineRunner } from "@shadowclone/agents";
 import type { EvaluationBudget } from "../../shared/accounting";
 import { structuredValue } from "../../shared/structured";
 import { nativeOutputSchema } from "../outputSchema";

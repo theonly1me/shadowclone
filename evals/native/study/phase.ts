@@ -1,7 +1,7 @@
 import path from "node:path";
 import { z } from "zod";
-import { runNativeEngine, type NativeEngineRunner } from "../../../src/engine/native";
-import { ownedWrite } from "../../../src/storage";
+import { runNativeEngine, type NativeEngineRunner } from "@shadowclone/agents";
+import { ownedWrite } from "@shadowclone/core";
 import { evaluationBudget } from "../../shared/accounting";
 import { lockEvaluation } from "../../shared/lock";
 import { requirePrivateDirectory } from "../files";

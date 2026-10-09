@@ -1,7 +1,6 @@
-import type { SourceId } from "../config";
-import { readEffectiveConfig } from "../config";
-import { openEventIndex } from "../eventIndex";
-import { resolveRepository } from "../signal";
+import type { SourceId } from "@shadowclone/core";
+import { readEffectiveConfig } from "@shadowclone/core";
+import { openEventIndex, resolveRepository } from "@shadowclone/sessions";
 import type { Integration, IntegrationOptions } from "./types";
 
 const sourceByAgent: Readonly<Record<Integration["agent"], SourceId>> = {

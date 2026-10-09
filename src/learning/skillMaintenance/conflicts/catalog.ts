@@ -1,5 +1,5 @@
-import { fingerprint } from "../../../localFiles";
-import type { DiscoveredSkill } from "../../../skillMaintenance/types";
+import { fingerprint } from "@shadowclone/core";
+import type { DiscoveredSkill } from "@shadowclone/skills";
 
 export type SkillPair = readonly [DiscoveredSkill, DiscoveredSkill];
 

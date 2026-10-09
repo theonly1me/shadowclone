@@ -1,5 +1,4 @@
-import type { ManagedPolicy } from "../config";
-import type { ProjectPaths } from "../paths";
+import type { ManagedPolicy, ProjectPaths } from "@shadowclone/core";
 import type { InitializeAdvancedOptions, ConsentPrompt } from "./initAdvanced";
 import type { OnboardingPresence } from "./onboardingPresence";
 import { runWizard } from "./wizard";

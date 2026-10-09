@@ -1,6 +1,6 @@
-import type { EngineId, EngineRunner, LearningExecutionLimits, ReasoningEffort } from "../engine";
-import type { ProjectPaths } from "../paths";
-import type { GitRemoteReader } from "../signal";
+import type { EngineId, EngineRunner, LearningExecutionLimits, ReasoningEffort } from "@shadowclone/agents";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import type { ConfirmPrompt } from "./confirm";
 
 export type LearnCommandOptions = {

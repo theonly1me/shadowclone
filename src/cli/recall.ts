@@ -1,5 +1,5 @@
-import { projectPaths } from "../paths";
-import { recallReferences } from "../references";
+import { projectPaths } from "@shadowclone/core";
+import { recallReferences } from "@shadowclone/profile";
 
 export type RecallOptions = {
   readonly query: string;

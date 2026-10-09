@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { applySkillDraft } from "./draft";
 import { learningRecord } from "../../environment/fixtures";
-import { fixtureSkill } from "../../skills/testing";
+import { fixtureSkill } from "@shadowclone/skills/testing";
 
 const record = learningRecord();
 

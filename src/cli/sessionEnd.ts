@@ -1,10 +1,9 @@
 import { realpath } from "node:fs/promises";
 import path from "node:path";
-import { readEffectiveConfig } from "../config";
-import { ingestClaudeTranscript, openEventIndex } from "../eventIndex";
-import { projectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
-import type { GitRemoteReader } from "../signal";
+import { readEffectiveConfig, projectPaths } from "@shadowclone/core";
+import { ingestClaudeTranscript, openEventIndex } from "@shadowclone/sessions";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import { parseHookInput, readHookString } from "./hookInput";
 import { refreshOfflineProfile } from "./profile";
 

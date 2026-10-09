@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { readEnvironment, writeEnvironment } from "../environment/store";
-import { normalizeRemoteRepository } from "../signal";
+import { normalizeRemoteRepository } from "@shadowclone/sessions";
 import { exportGuidance } from "./export";
 import { guidanceFixture } from "./fixtures";
 

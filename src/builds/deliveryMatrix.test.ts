@@ -4,12 +4,11 @@ import { applyBuild } from "./apply";
 import { buildFixture, buildInput } from "./testing";
 import { skillClassification } from "./classification";
 import { previewBuild } from "./plan";
-import { defaultConfig, writeConfig } from "../config";
-import { loadSeedLibrary } from "../skills";
+import { defaultConfig, writeConfig, seedSkillsDirectory } from "@shadowclone/core";
+import { loadSeedLibrary } from "@shadowclone/skills";
 import { hostDiscovery, knownDeliveryGaps } from "../integrations/discovery";
 import { nativeSessionStart } from "../integrations/hooks";
 import { installIntegration } from "../integrations/install";
-import { seedSkillsDirectory } from "../distribution";
 import type { BuildContext } from "../environment/builds/definition";
 
 type DeliveredHome = BuildContext & {

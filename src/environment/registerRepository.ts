@@ -1,9 +1,12 @@
 import path from "node:path";
-import { readLocalText } from "../localFiles";
-import { acquireLocalLock } from "../localFiles/lock";
-import { canonicalPath, type ProjectPaths } from "../paths";
-import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "../signal";
-import { configureSkillMaintenance } from "../skillMaintenance/configure";
+import {
+  readLocalText,
+  acquireLocalLock,
+  canonicalPath,
+  type ProjectPaths,
+} from "@shadowclone/core";
+import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "@shadowclone/sessions";
+import { configureSkillMaintenance } from "@shadowclone/skills";
 import { publishEnvironmentRevision } from "./revision";
 import { environmentFile, readEnvironment, renderEnvironment } from "./store";
 import type { EnvironmentRepository } from "./types";

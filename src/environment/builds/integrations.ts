@@ -1,6 +1,5 @@
 import path from "node:path";
-import { canonicalPath } from "../../paths";
-import { readLocalText } from "../../localFiles";
+import { canonicalPath, readLocalText } from "@shadowclone/core";
 import { readIntegrations } from "../../integrations/state";
 import { prepareIntegrationFiles, savedRecords } from "../../integrations/files";
 import type { Integration } from "../../integrations/types";

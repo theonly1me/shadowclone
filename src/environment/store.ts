@@ -1,7 +1,7 @@
 import path from "node:path";
-import { readLocalText, replaceLocalText } from "../localFiles";
-import type { ProjectPaths } from "../paths";
-import { materializeSnapshot } from "../redact";
+import { readLocalText, replaceLocalText } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import { materializeSnapshot } from "@shadowclone/redact";
 import { environmentSchema, type EnvironmentState } from "./types";
 
 export function environmentFile(paths: ProjectPaths): string {

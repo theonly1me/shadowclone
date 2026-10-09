@@ -1,7 +1,7 @@
 import path from "node:path";
-import { listRevisions, readRevision } from "../changes";
+import { listRevisions, readRevision } from "@shadowclone/changes";
 import { environmentFile, readEnvironment } from "../environment/store";
-import { readLocalText } from "../localFiles";
+import { readLocalText } from "@shadowclone/core";
 import { buildIdentity } from "./selection";
 import type { BuildContext, BuildScope } from "../environment/builds/definition";
 

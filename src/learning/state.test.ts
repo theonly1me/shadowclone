@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { fingerprint } from "../localFiles";
-import type { CorrectionSignal } from "../signal";
+import { fingerprint } from "@shadowclone/core";
+import type { CorrectionSignal } from "@shadowclone/sessions";
 import {
   episodeId,
   selectLearningEpisodes,

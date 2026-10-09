@@ -4,11 +4,10 @@ import {
   type EngineRunner,
   type LearningExecutionLimits,
   type LearningExecution,
-} from "../engine";
-import type { IndexedEvent } from "../eventIndex";
-import type { ProfileRule, ProfileSnapshot } from "../profile";
-import type { CorrectionSignal } from "../signal";
-import type { SeedLibrary } from "../skills";
+} from "@shadowclone/agents";
+import type { IndexedEvent, CorrectionSignal } from "@shadowclone/sessions";
+import type { ProfileRule, ProfileSnapshot } from "@shadowclone/profile";
+import type { SeedLibrary } from "@shadowclone/skills";
 import {
   finalizeReconciliationChanges,
   mergeProfileRuleUpdates,

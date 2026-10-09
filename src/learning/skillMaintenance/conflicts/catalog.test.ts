@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { DiscoveredSkill } from "../../../skillMaintenance/types";
+import type { DiscoveredSkill } from "@shadowclone/skills";
 import { libraryCatalogBatches, resolveCatalogPair, shareSkillScope } from "./catalog";
 
 function skill(options: { readonly name: string; readonly repository?: string }): DiscoveredSkill {

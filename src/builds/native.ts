@@ -1,9 +1,9 @@
 import path from "node:path";
-import type { FileUpdate } from "../changes";
+import type { FileUpdate } from "@shadowclone/changes";
 import { renderSkillRouting } from "../environment/context";
 import type { EnvironmentState } from "../environment/types";
 import { updateManagedSection } from "../integrations/markdown";
-import { readLocalText } from "../localFiles";
+import { readLocalText } from "@shadowclone/core";
 import { planBuildIntegrations } from "../environment/builds/integrations";
 import { renderBuildRouting } from "../environment/builds/routing";
 import type { BuildContext, BuildDefinition } from "../environment/builds/definition";

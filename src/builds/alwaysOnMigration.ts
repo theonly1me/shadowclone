@@ -1,6 +1,6 @@
-import type { FileUpdate } from "../changes";
+import type { FileUpdate } from "@shadowclone/changes";
 import type { EnvironmentState } from "../environment/types";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import { packagedBuildItems } from "./catalog";
 import { planBuildRouting } from "./native";
 import { publishBuildSkill } from "./publication";

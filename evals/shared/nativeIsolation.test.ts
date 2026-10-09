@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { managedEnd, managedStart } from "../../src/integrations/markdown";
-import { integrationFixture } from "../../src/testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { isolateNativeGuidance } from "./nativeIsolation";
 
 test("isolates generated sections from nested evaluation instructions before either arm runs", async () => {

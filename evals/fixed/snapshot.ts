@@ -1,8 +1,6 @@
 import path from "node:path";
 import { lstat, readlink } from "node:fs/promises";
-import { runCommand } from "../../src/io/command";
-import { fingerprint } from "../../src/localFiles";
-import { canonicalPath } from "../../src/paths";
+import { runCommand, fingerprint, canonicalPath } from "@shadowclone/core";
 
 export type WorkspaceSnapshot = {
   readonly head: string;

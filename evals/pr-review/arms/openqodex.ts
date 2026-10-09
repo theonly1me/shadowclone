@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { runProcess } from "../../../src/io/process";
+import { runProcess } from "@shadowclone/core";
 import type { ArmName, ArmRun, ArmRunner } from "./types";
 
 export const openqodexVersion = "0.10.0";

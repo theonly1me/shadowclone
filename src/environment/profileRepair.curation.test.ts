@@ -2,16 +2,16 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createProjectPaths } from "../paths";
-import { parseReference } from "../references";
-import { parseProfileRules } from "../profile/parse";
-import { renderProfileRule } from "../profile/render";
-import { readGeneratedProfileState, readProfileRejections } from "../profile/state";
-import { renderGeneratedProfileState } from "../profile/stateRender";
-import type { ProfileRule } from "../profile/types";
-import { applyProfileCuration } from "../profile/repair/curation";
-import { createProfileCurationPlan } from "../profile/repair/curationPlan";
-import { parseProfileCurationDecisions } from "../profile/repair/decisions";
+import { createProjectPaths } from "@shadowclone/core";
+import { parseReference } from "@shadowclone/profile";
+import { parseProfileRules } from "@shadowclone/profile";
+import { renderProfileRule } from "@shadowclone/profile";
+import { readGeneratedProfileState, readProfileRejections } from "@shadowclone/profile";
+import { renderGeneratedProfileState } from "@shadowclone/profile";
+import type { ProfileRule } from "@shadowclone/profile";
+import { applyProfileCuration } from "@shadowclone/profile";
+import { createProfileCurationPlan } from "@shadowclone/profile";
+import { parseProfileCurationDecisions } from "@shadowclone/profile";
 import { undoRevision } from "./undo";
 
 function rule(options: {

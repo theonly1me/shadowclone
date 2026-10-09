@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { handleSkillsMigration } from "./migrateSkills";
 
-import product from "../product.json";
+import product from "@shadowclone/core/product.json";
 import { serveMcp } from "../mcp";
 import { doctor } from "./doctor";
 import { forgetAll } from "./forget";
@@ -19,7 +19,7 @@ import { harnessCheckCommand, parseHarnessCheck } from "./harnessCheck";
 import { listSeedGuidance } from "./skills";
 import { handleSkillMaintenance } from "./skillMaintenance";
 import { showHome } from "./home";
-import { redactSecrets } from "../redact";
+import { redactSecrets } from "@shadowclone/redact";
 import { botCommand } from "./bot";
 import { reviewCommand } from "./review";
 

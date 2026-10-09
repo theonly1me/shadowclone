@@ -1,13 +1,13 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import path from "node:path";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { installIntegration } from "../integrations/install";
 import { nativeSessionEnd } from "../integrations/hooks";
-import { defaultConfig, writeConfig } from "../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import { runAutomaticLearning } from "./worker";
 import { readLearningState } from "./state";
-import type { EngineRunner } from "../engine";
+import type { EngineRunner } from "@shadowclone/agents";
 
 test("settled and shutdown requests share the learning ledger and inherit the triggering Pi model", async () => {
   const fixture = await integrationFixture();

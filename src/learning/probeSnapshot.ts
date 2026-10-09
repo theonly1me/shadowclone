@@ -1,5 +1,10 @@
 import path from "node:path";
-import { readEffectiveConfig } from "../config";
+import {
+  readEffectiveConfig,
+  fingerprint,
+  canonicalPath,
+  type ProjectPaths,
+} from "@shadowclone/core";
 import { readEnvironment } from "../environment/store";
 import { recordFingerprint } from "../environment/records";
 import { compileContext } from "../integrations/compile";
@@ -7,10 +12,8 @@ import { prepareIntegrationFiles } from "../integrations/files";
 import { managedSection } from "../integrations/markdown";
 import { readIntegrations } from "../integrations/state";
 import { integrationFilePath } from "../integrations/targets";
-import { fingerprint } from "../localFiles";
-import { canonicalPath, type ProjectPaths } from "../paths";
-import { materializeSnapshot } from "../redact";
-import type { NativeEngine } from "../engine/native";
+import { materializeSnapshot } from "@shadowclone/redact";
+import type { NativeEngine } from "@shadowclone/agents";
 
 export type ProbeFile = {
   readonly location: "home" | "workspace";

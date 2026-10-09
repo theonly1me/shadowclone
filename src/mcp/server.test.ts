@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import product from "../product.json";
+import product from "@shadowclone/core/product.json";
 import { handleMcpRequest } from "./server";
 import { preferenceTools } from "./preferences";
 import { referenceTools } from "./references";

@@ -1,12 +1,13 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
+import { checkoutRoot } from "@shadowclone/core/testing";
 import { preferenceEditFixture } from "../learning/testing";
 
 test("the CLI keeps the complete replacement text in a preview", async () => {
   const { home, record } = await preferenceEditFixture();
   const process_ = Bun.spawn([process.execPath, path.join(import.meta.dir, "index.ts"), "learning", "replace", record.rule.key,
     "Use complete words for palette labels."], {
-    cwd: path.resolve(import.meta.dir, "../.."),
+    cwd: await checkoutRoot(),
     env: { ...process.env, HOME: home }, stdout: "pipe", stderr: "pipe",
   });
   const [output, error, exitCode] = await Promise.all([

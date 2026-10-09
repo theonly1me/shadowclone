@@ -1,7 +1,7 @@
 import path from "node:path";
 import { snapshotWorkspace } from "./snapshot";
-import { runProcess } from "../../src/io/process";
-import type { NativeEngine } from "../../src/engine/native";
+import { runProcess } from "@shadowclone/core";
+import type { NativeEngine } from "@shadowclone/agents";
 import { fingerprint } from "../shared/structured";
 import ts from "typescript";
 

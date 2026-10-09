@@ -1,4 +1,4 @@
-import type { GeneratedProfileStateEntry } from "../profile/state";
+import type { GeneratedProfileStateEntry } from "@shadowclone/profile";
 
 export function isRemovedImport(options: {
   readonly entry: GeneratedProfileStateEntry;

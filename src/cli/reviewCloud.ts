@@ -1,7 +1,7 @@
 import { readInstalledClone } from "../cloud/installed";
 import { githubApi, runGh } from "../cloud/setup/github";
 import { createReviewUpdatePull } from "../cloud/setup/update";
-import { projectPaths } from "../paths";
+import { projectPaths } from "@shadowclone/core";
 import { handleSetupCommand } from "./setup";
 import { runWebWizard } from "./webWizard";
 

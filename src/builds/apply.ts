@@ -1,7 +1,5 @@
 import path from "node:path";
-import { readEffectiveConfig } from "../config";
-import { readLocalText } from "../localFiles";
-import { acquireLocalLock } from "../localFiles/lock";
+import { readEffectiveConfig, readLocalText, acquireLocalLock } from "@shadowclone/core";
 import { publishEnvironmentRevision } from "../environment/revision";
 import type { BuildPlan } from "./types";
 import { ensureHookRunner } from "../integrations/hookRunner";

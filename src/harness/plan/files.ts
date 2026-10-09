@@ -1,7 +1,7 @@
 import { lstat } from "node:fs/promises";
 import path from "node:path";
 import { harnessMarkers, updateMarkedSection } from "../../integrations";
-import { fingerprint, readLocalText } from "../../localFiles";
+import { fingerprint, readLocalText } from "@shadowclone/core";
 import {
   claudeSettingsPath,
   mergeClaudeStopHook,

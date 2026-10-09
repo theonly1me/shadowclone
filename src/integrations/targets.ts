@@ -1,5 +1,5 @@
 import path from "node:path";
-import { linkedHomeFile } from "../localFiles/links";
+import { linkedHomeFile } from "@shadowclone/core";
 import type { Integration, IntegrationFile } from "./types";
 
 export function integrationTargets(

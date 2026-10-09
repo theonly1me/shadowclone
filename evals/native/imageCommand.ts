@@ -1,4 +1,4 @@
-import { runProcess } from "../../src/io/process";
+import { runProcess } from "@shadowclone/core";
 import { NativeInfrastructureError, type NativeDiagnostic } from "./diagnostics";
 
 type ImageRun = (options: {

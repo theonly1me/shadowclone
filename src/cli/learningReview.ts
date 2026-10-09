@@ -1,7 +1,6 @@
 import { z } from "zod";
-import { sourceIds } from "../config";
-import { projectPaths } from "../paths";
-import { redactSecrets } from "../redact";
+import { sourceIds, projectPaths } from "@shadowclone/core";
+import { redactSecrets } from "@shadowclone/redact";
 import { applyPreferencePreview, previewPreferenceEdit, previewSourceRemoval, type PreferencePreview } from "../learning/lifecycle";
 
 function printablePreview(preview: PreferencePreview) {

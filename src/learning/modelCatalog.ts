@@ -1,7 +1,7 @@
 import type { z } from "zod";
-import { readConfig, readEffectiveConfig, writeConfig } from "../config";
-import { availablePiModels, detectEngine } from "../engine";
-import type { ProjectPaths } from "../paths";
+import { readConfig, readEffectiveConfig, writeConfig } from "@shadowclone/core";
+import { availablePiModels, detectEngine } from "@shadowclone/agents";
+import type { ProjectPaths } from "@shadowclone/core";
 
 import { learningModelChoiceSchema, type LearningModelChoice, type learningModelCatalogSchema } from "./modelCatalogSchema";
 export { learningModelCatalogSchema, type LearningModelChoice } from "./modelCatalogSchema";

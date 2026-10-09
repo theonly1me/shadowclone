@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import type {
   EnvironmentRepository,
   EnvironmentState,

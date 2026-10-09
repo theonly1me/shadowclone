@@ -1,11 +1,11 @@
 import path from "node:path";
 import { lstat } from "node:fs/promises";
-import type { FileUpdate } from "../changes";
+import type { FileUpdate } from "@shadowclone/changes";
 import {
   assertRegularDestination,
   fingerprint,
   readLocalFile,
-} from "../localFiles";
+} from "@shadowclone/core";
 import type { EnvironmentArtifact, EnvironmentState } from "./types";
 
 export async function publishSkillResources(options: {

@@ -1,6 +1,6 @@
 import toml from "smol-toml";
 import { z } from "zod";
-import type { KnownTool } from "../../profile";
+import type { KnownTool } from "@shadowclone/profile";
 import type { PythonFacts } from "../types";
 
 const pyprojectSchema = z.object({

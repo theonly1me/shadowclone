@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
-import { defaultConfig, writeConfig } from "../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import { readEnvironment } from "../environment/store";
 import { acknowledgeCorrections, recordLaterCorrections, correctionReviewSignals } from "./feedback";
 import { probeFixture } from "./probe.fixtures";

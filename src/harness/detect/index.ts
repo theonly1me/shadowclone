@@ -1,4 +1,4 @@
-import type { KnownTool } from "../../profile";
+import type { KnownTool } from "@shadowclone/profile";
 import type { RepositoryFacts } from "../types";
 import { readManifest, readManifestDirectory, readRootEntries } from "./files";
 import { makeTargets } from "./make";

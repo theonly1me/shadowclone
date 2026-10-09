@@ -3,15 +3,16 @@ import {
   readManagedPolicy,
   setSourceEnabled,
   writeConfig,
-} from "../config";
-import type { ManagedPolicy } from "../config";
+  type ProjectPaths,
+  projectPaths,
+} from "@shadowclone/core";
+import type { ManagedPolicy } from "@shadowclone/core";
 import {
   importRepositoryGuidance,
   type RepositoryGuidanceImportResult,
 } from "../importRules";
-import { type ProjectPaths, projectPaths } from "../paths";
 import { refreshIntegrations } from "../integrations";
-import type { GitRemoteReader } from "../signal";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import { promptConfirmation, type ConfirmPrompt } from "./confirm";
 
 export async function importRepositoryGuidanceCommand(

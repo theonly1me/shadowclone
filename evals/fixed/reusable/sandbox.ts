@@ -1,6 +1,6 @@
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import path from "node:path";
-import { runProcess } from "../../../src/io/process";
+import { runProcess } from "@shadowclone/core";
 import { requirePrivateDirectory } from "../../native/files";
 import { mountReadOnlyWorkspace } from "../../native/readOnlyWorkspace";
 import { nativeFailure } from "../../native/diagnostics";

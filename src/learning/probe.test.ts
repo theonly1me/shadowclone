@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import { integrationFilePath } from "../integrations/targets";
 import { readLatestProbe, runLearningProbe } from "./probe";
 import { probeFixture, probeResponse } from "./probe.fixtures";

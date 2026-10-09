@@ -2,8 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { readConfig } from "../config";
-import { createProjectPaths } from "../paths";
+import { readConfig, createProjectPaths } from "@shadowclone/core";
 import { type ConsentPrompt, initialize } from "./init";
 import { onboardingCaptureSourceIds } from "./onboardingPresence";
 

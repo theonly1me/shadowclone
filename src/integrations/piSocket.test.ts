@@ -3,8 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { renderPiServer } from "./piServer";
-import { requestPiSocket } from "../engine/piSocket";
-import { detectPi } from "../engine/detect";
+import { requestPiSocket, detectPi } from "@shadowclone/agents";
 
 test("the live Pi bridge uses a session-registered provider, authenticates requests, and cancels on disconnect", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-pi-socket-"));

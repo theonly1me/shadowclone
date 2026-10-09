@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
-import { profileRulePath } from "../profile/render";
+import { profileRulePath } from "@shadowclone/profile";
 import { skillFixture } from "./testing";
 import { learningRecord } from "./fixtures";
 import { storeLearningRules } from "./records";

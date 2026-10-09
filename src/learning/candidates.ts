@@ -2,7 +2,7 @@ import {
   effectiveProfileStatus,
   type ProfileRule,
   type ProfileSnapshot,
-} from "../profile";
+} from "@shadowclone/profile";
 
 export function normalizeExplicitCandidates(profile: ProfileSnapshot): {
   readonly profile: ProfileSnapshot;

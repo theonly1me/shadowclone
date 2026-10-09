@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sourceIds } from "../config";
+import { sourceIds } from "@shadowclone/core";
 import { buildDefinitionSchema } from "./builds/definition";
 
 const locationSchema = z.discriminatedUnion("scope", [

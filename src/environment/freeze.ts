@@ -1,12 +1,10 @@
 import { cp, lstat, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { fingerprint, readLocalText } from "../localFiles";
-import type { ProjectPaths } from "../paths";
-import { discoverDeliverySkills } from "../skillMaintenance/discover";
-import { readMaintenanceState } from "../skillMaintenance/state";
+import { fingerprint, readLocalText, readEffectiveConfig } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import { discoverDeliverySkills, readMaintenanceState } from "@shadowclone/skills";
 import { readIntegrations } from "../integrations/state";
 import { integrationFilePath } from "../integrations/targets";
-import { readEffectiveConfig } from "../config";
 
 export async function freezeOriginalEnvironment(
   paths: ProjectPaths,

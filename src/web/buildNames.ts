@@ -1,4 +1,4 @@
-import { fingerprint } from "../localFiles";
+import { fingerprint } from "@shadowclone/core";
 import { bannedTitleWords, buildNamePrompt, buildNameSkills, type NamedSkill } from "./buildNamePrompt";
 import { buildNameSchema, type BuildName, type BuildNameResult } from "./buildNameProtocol";
 import { generationEngine, type GenerationEngine } from "./generationEngine";

@@ -1,6 +1,5 @@
 import path from "node:path";
-import { fingerprint } from "../localFiles";
-import { canonicalPath } from "../paths";
+import { fingerprint, canonicalPath } from "@shadowclone/core";
 import { validateSharedRequirements } from "./requirements";
 import type { EnvironmentState } from "../environment/types";
 import type { BuildItem } from "./types";

@@ -1,12 +1,11 @@
-import type { ShadowcloneConfig } from "../config";
+import type { ShadowcloneConfig, ProjectPaths } from "@shadowclone/core";
 import { readEnvironment } from "../environment";
-import type { ProjectPaths } from "../paths";
-import { compileProfile } from "../profile";
+import { compileProfile } from "@shadowclone/profile";
 import {
   isOriginBlocked,
   resolveRepository,
   type GitRemoteReader,
-} from "../signal";
+} from "@shadowclone/sessions";
 
 export async function refreshOfflineProfile(options: {
   readonly config: ShadowcloneConfig;

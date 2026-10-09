@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { installIntegration, uninstallIntegration } from "./install";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { readIntegrations } from "./state";
 import { refreshIntegrations } from "./refresh";
 

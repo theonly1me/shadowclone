@@ -3,7 +3,7 @@ import path from "node:path";
 import { mkdir } from "node:fs/promises";
 import { bunTaskList } from "../harness/fixtures/bunTaskList";
 import { harnessTestSetup } from "../harness/testFixture";
-import { claudeMemoryDirectory } from "../migrate/claudeMemory/scan";
+import { claudeMemoryDirectory } from "@shadowclone/profile";
 import { harnessInitCommand, parseRepositoryInit } from "./harness";
 import { harnessSyncCommand } from "./harnessSync";
 

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { EngineRunner } from "../engine";
+import type { EngineRunner } from "@shadowclone/agents";
 import { skillEngineRun, skillFixture } from "../environment/testing";
 import { learn } from "./learn";
 

@@ -2,8 +2,8 @@ import type {
   ProfileRule,
   ProfileSnapshotRejection,
   ProfileSnapshotRule,
-} from "../../profile";
-import type { CorrectionSignal } from "../../signal";
+} from "@shadowclone/profile";
+import type { CorrectionSignal } from "@shadowclone/sessions";
 import type { DistillBatch } from "../batch";
 
 export type ReconciliationVerdict = "reinforces" | "contradicts" | "narrows";

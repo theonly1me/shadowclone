@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { resolveRepository, type GitRemoteReader } from "../../signal";
+import { resolveRepository, type GitRemoteReader } from "@shadowclone/sessions";
 import { repositorySchema, type Repository } from "../types";
 import { ghApiData, type GhApiCall } from "./ghApi";
 

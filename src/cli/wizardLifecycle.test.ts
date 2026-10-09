@@ -2,8 +2,8 @@ import { expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createProjectPaths } from "../paths";
-import { loadSeedLibrary } from "../skills";
+import { createProjectPaths } from "@shadowclone/core";
+import { loadSeedLibrary } from "@shadowclone/skills";
 import { runWizard } from "./wizard";
 import { wizardAnswers } from "./wizardFixtures";
 

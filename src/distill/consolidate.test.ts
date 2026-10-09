@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
-import type { EngineRunner } from "../engine";
+import type { EngineRunner } from "@shadowclone/agents";
 import {
   explicitProfileEvidence,
   profileEvidenceId,
   type ProfileRule,
-} from "../profile";
+} from "@shadowclone/profile";
 import { consolidateNewRules } from "./consolidate";
 
 function rule(sessionIndex: number): ProfileRule {

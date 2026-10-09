@@ -1,6 +1,6 @@
-import { profileEvidenceId, type ProfileSnapshot } from "../../profile";
-import type { SeedGuidance, SeedLibrary } from "../../skills";
-import { seedGuidanceProfileKey } from "../../skills";
+import { profileEvidenceId, type ProfileSnapshot } from "@shadowclone/profile";
+import type { SeedGuidance, SeedLibrary } from "@shadowclone/skills";
+import { seedGuidanceProfileKey } from "@shadowclone/skills";
 import type { DistillBatch } from "../batch";
 import type {
   PromptAxisOption,

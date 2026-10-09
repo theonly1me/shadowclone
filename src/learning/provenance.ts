@@ -1,8 +1,7 @@
-import type { SourceId } from "../config";
-import type { IndexedEvent } from "../eventIndex";
-import { textRefKey } from "../observe";
-import { parseProfileEvidenceId, type ProfileRule } from "../profile";
-import type { CorrectionSignal } from "../signal";
+import type { SourceId } from "@shadowclone/core";
+import type { IndexedEvent, CorrectionSignal } from "@shadowclone/sessions";
+import { textRefKey } from "@shadowclone/sessions";
+import { parseProfileEvidenceId, type ProfileRule } from "@shadowclone/profile";
 
 export type LearningProvenance = {
   readonly sources: readonly SourceId[];

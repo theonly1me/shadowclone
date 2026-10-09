@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { listRevisions } from "../changes";
-import { readEffectiveConfig } from "../config";
-import type { ProjectPaths } from "../paths";
+import { listRevisions } from "@shadowclone/changes";
+import { readEffectiveConfig } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import { rememberPreference } from "../preferences";
-import type { GitRemoteReader } from "../signal";
-import { readMaintenanceState, listSkillProposals } from "../skillMaintenance";
+import type { GitRemoteReader } from "@shadowclone/sessions";
+import { readMaintenanceState, listSkillProposals } from "@shadowclone/skills";
 import { environmentStatus } from "../environment/status";
 
 export const preferenceTools = [

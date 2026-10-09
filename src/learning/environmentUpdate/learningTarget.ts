@@ -1,8 +1,8 @@
 import path from "node:path";
-import { fingerprint, readLocalText } from "../../localFiles";
-import type { ProjectPaths } from "../../paths";
-import { materializeSnapshot } from "../../redact";
-import type { DiscoveredSkill } from "../../skillMaintenance/types";
+import { fingerprint, readLocalText } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import { materializeSnapshot } from "@shadowclone/redact";
+import type { DiscoveredSkill } from "@shadowclone/skills";
 import type { LearningRoute } from "./planner";
 import type { LearningScope } from "../../environment/scope";
 

@@ -1,6 +1,6 @@
 import path from "node:path";
-import { commitLocalChanges, type FileUpdate } from "../changes";
-import type { ProjectPaths } from "../paths";
+import { commitLocalChanges, type FileUpdate } from "@shadowclone/changes";
+import type { ProjectPaths } from "@shadowclone/core";
 import { authorizedEnvironmentTarget } from "./authorization";
 import type { EnvironmentState } from "./types";
 

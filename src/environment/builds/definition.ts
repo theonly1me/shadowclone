@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ProjectPaths } from "../../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 
 export const buildScopeSchema = z.enum(["global", "private", "shared"]);
 const nameSchema = z

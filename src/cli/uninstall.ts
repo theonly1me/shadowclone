@@ -1,6 +1,6 @@
 import { resolveInstallTarget } from "../integrations/installation/installTarget";
-import { canonicalPath, projectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
+import { canonicalPath, projectPaths } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import { removeArtifacts, removeGitExcludes } from "../integrations/installation/installArtifacts";
 import {
   findInstallation,

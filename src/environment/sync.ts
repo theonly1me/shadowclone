@@ -1,12 +1,10 @@
 import path from "node:path";
-import { readLocalText } from "../localFiles";
-import { acquireLocalLock } from "../localFiles/lock";
-import type { ProjectPaths } from "../paths";
+import { readLocalText, acquireLocalLock, readEffectiveConfig } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import { environmentFile, readEnvironment, renderEnvironment } from "./store";
 import { nativePublication, type SkippedRouting } from "./native";
 import { publishEnvironmentRevision } from "./revision";
 import { synchronizePublishedSkills } from "./synchronize";
-import { readEffectiveConfig } from "../config";
 
 export async function syncLearningEnvironment(
   paths: ProjectPaths,

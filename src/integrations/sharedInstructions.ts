@@ -1,5 +1,5 @@
 import path from "node:path";
-import { realPathOrNull } from "../localFiles/links";
+import { realPathOrNull } from "@shadowclone/core";
 import { integrationFilePath, integrationTargets } from "./targets";
 import type { Integration } from "./types";
 

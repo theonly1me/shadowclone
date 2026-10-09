@@ -3,13 +3,18 @@ import { Database } from "bun:sqlite";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { readConfig } from "../../../src/config";
+import { readConfig } from "@shadowclone/core";
 import { allowlistedSignals, authorizedLearningEvents } from "../../../src/distill/eligible";
-import { EventIndex, ingestSources, openEventIndex } from "../../../src/eventIndex";
-import { observeClaudeCodeFile } from "../../../src/observe/adapters/claudeCode";
-import { resolveRedacted } from "../../../src/observe";
-import { deriveSignals } from "../../../src/signal";
-import { eventOriginKey, resolveEventRepositories } from "../../../src/signal/origin/resolve";
+import {
+  EventIndex,
+  ingestSources,
+  openEventIndex,
+  observeClaudeCodeFile,
+  resolveRedacted,
+  deriveSignals,
+  eventOriginKey,
+  resolveEventRepositories,
+} from "@shadowclone/sessions";
 import { treeFingerprint } from "../../native/files";
 import { correctionRepositoryHistory, correctionSessions } from "./corpus";
 import { materializeCorpus, prepareManualEnvironment, reusableLayout } from "./environments";

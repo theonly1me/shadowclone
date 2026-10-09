@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import { mkdir, symlink } from "node:fs/promises";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
 import { readClaudeRules } from "./claudeRules";
 import { compileContextDetails } from "./compile";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 
 test("session context omits a rule the repository instructions state only with repository guidance consent", async () => {
   const fixture = await integrationFixture();

@@ -1,4 +1,4 @@
-import { loadSeedLibrary, type SeedLibrary } from "../skills";
+import { loadSeedLibrary, type SeedLibrary } from "@shadowclone/skills";
 import { alwaysOnSkills, optionalSkills } from "./wizardChoices";
 
 function appendAxes(options: {

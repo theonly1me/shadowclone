@@ -1,5 +1,5 @@
 import { readEnvironment } from "../environment";
-import { readEffectiveConfig } from "../config";
+import { readEffectiveConfig, projectPaths, type ProjectPaths } from "@shadowclone/core";
 import { readHarnessManifest } from "../harness";
 import { repositoryRoot } from "../harness/check";
 import {
@@ -7,12 +7,11 @@ import {
   memoryTitle,
   recordMemoryDecision,
 } from "../harness/memory";
-import { projectPaths, type ProjectPaths } from "../paths";
 import {
   isOriginBlocked,
   resolveRepository,
   type GitRemoteReader,
-} from "../signal";
+} from "@shadowclone/sessions";
 import { promptConfirmation, type ConfirmPrompt } from "./confirm";
 import { harnessInitCommand } from "./harness";
 

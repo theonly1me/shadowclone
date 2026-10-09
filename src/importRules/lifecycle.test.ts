@@ -2,13 +2,13 @@ import { expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createProjectPaths } from "../paths";
-import type { ProjectPaths } from "../paths";
+import { createProjectPaths } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import {
   parseProfileRules,
   readGeneratedProfileState,
   readProfileRejections,
-} from "../profile";
+} from "@shadowclone/profile";
 import { importRepositoryGuidance } from "./importRepositoryGuidance";
 
 async function context(): Promise<{

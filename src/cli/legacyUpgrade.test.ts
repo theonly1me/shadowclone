@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { compileContext } from "../integrations";
-import { renderAgent } from "../profile";
+import { renderAgent } from "@shadowclone/profile";
 import { artifactRelativePaths } from "../integrations/installation/installArtifacts";
 import { readInstallations, writeInstallations } from "../integrations/installation/installState";
 import { removeUneditedLegacySubagent } from "./legacyUpgrade";

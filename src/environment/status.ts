@@ -1,4 +1,4 @@
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 import { readRedactedEnvironment } from "./store";
 import { recordFingerprint } from "./records";
 import { belongsToScope, learningScopes } from "./scope";

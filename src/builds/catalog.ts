@@ -1,15 +1,11 @@
 import path from "node:path";
-import { canonicalPath } from "../paths";
-import { readEffectiveConfig } from "../config";
+import { canonicalPath, readEffectiveConfig, seedSkillsDirectory } from "@shadowclone/core";
 import { readEnvironment } from "../environment/store";
-import { loadSeedLibrary } from "../skills/library";
-import { discoverDeliverySkills } from "../skillMaintenance/discover";
-import { readMaintenanceState } from "../skillMaintenance/state";
+import { loadSeedLibrary, discoverDeliverySkills, readMaintenanceState } from "@shadowclone/skills";
 import { installedBuildItem } from "./installed";
 import { customDocument } from "./selection";
 import type { BuildItem } from "./types";
 import { skillClassification } from "./classification";
-import { seedSkillsDirectory } from "../distribution";
 import type { BuildContext, BuildScope } from "../environment/builds/definition";
 
 export async function packagedBuildItems(): Promise<BuildItem[]> {

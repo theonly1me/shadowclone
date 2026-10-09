@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { LearningExecution } from "../../engine";
+import type { LearningExecution } from "@shadowclone/agents";
 import { internalLearningMarker } from "../../distill/excerpts";
-import type { DiscoveredSkill } from "../../skillMaintenance/types";
+import type { DiscoveredSkill } from "@shadowclone/skills";
 import type { LearningRecord } from "../../environment/types";
 
 const routeSchema = z.strictObject({

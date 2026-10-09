@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
-import type { EngineRunner } from "../engine";
-import { integrationFixture } from "../testing";
+import { defaultConfig, writeConfig } from "@shadowclone/core";
+import type { EngineRunner } from "@shadowclone/agents";
+import { integrationFixture } from "@shadowclone/core/testing";
 import { runAutomaticLearning } from "./index";
 import { readLearningState } from "./state";
 import { learningSessionKey } from "../integrations/sessionKey";

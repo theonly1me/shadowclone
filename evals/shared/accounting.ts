@@ -1,7 +1,6 @@
 import path from "node:path";
 import { z } from "zod";
-import { readBoundedFile } from "../../src/io/files";
-import { ownedWrite } from "../../src/storage";
+import { readBoundedFile, ownedWrite } from "@shadowclone/core";
 
 export const budgetSchema = z.strictObject({
   version: z.literal(1),

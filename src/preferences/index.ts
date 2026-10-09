@@ -1,14 +1,17 @@
-import { readEffectiveConfig } from "../config";
+import {
+  readEffectiveConfig,
+  fingerprint,
+  projectPaths,
+  type ProjectPaths,
+} from "@shadowclone/core";
 import { refreshIntegrations } from "../integrations";
-import { fingerprint } from "../localFiles";
-import { projectPaths, type ProjectPaths } from "../paths";
-import type { ProfileRule } from "../profile";
-import { redactSecrets } from "../redact";
+import type { ProfileRule } from "@shadowclone/profile";
+import { redactSecrets } from "@shadowclone/redact";
 import {
   isOriginBlocked,
   resolveRepository,
   type GitRemoteReader,
-} from "../signal";
+} from "@shadowclone/sessions";
 import { writeProfile } from "../environment/profileRecords";
 
 function preferenceTitle(body: string): string {

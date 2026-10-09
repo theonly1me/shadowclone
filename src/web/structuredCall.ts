@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { createLearningExecution, type LearningExecutionLimits } from "../engine";
-import { redactSecrets } from "../redact";
+import { createLearningExecution, type LearningExecutionLimits } from "@shadowclone/agents";
+import { redactSecrets } from "@shadowclone/redact";
 import type { GenerationEngine } from "./generationEngine";
 
 export function generationDestination(connection: GenerationEngine): string {

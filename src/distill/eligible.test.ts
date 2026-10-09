@@ -1,7 +1,6 @@
 import { expect, test } from "bun:test";
-import type { IndexedEvent } from "../eventIndex";
-import { defaultConfig } from "../config";
-import type { CorrectionSignal } from "../signal";
+import type { IndexedEvent, CorrectionSignal } from "@shadowclone/sessions";
+import { defaultConfig } from "@shadowclone/core";
 import {
   allowlistedSignals,
   authorizedLearningEvents,

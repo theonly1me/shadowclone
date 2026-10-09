@@ -1,7 +1,7 @@
-import type { FileUpdate } from "../changes";
+import type { FileUpdate } from "@shadowclone/changes";
 import type { BuildInput } from "../environment/builds/definition";
 import type { EnvironmentState } from "../environment/types";
-import type { DiscoveredSkill } from "../skillMaintenance/types";
+import type { DiscoveredSkill } from "@shadowclone/skills";
 
 export type BuildItem = {
   readonly id: string;

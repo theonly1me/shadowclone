@@ -1,5 +1,4 @@
-import { readEffectiveConfig } from "../config";
-import { projectPaths, type ProjectPaths } from "../paths";
+import { readEffectiveConfig, projectPaths, type ProjectPaths } from "@shadowclone/core";
 import { learningInterval, readLearningState } from "./state";
 import type { LearningPreferences } from "./modelPreferences";
 

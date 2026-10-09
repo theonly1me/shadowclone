@@ -2,9 +2,8 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { EngineRunner } from "../engine";
-import type { IndexedEvent } from "../eventIndex";
-import type { CorrectionSignal } from "../signal";
+import type { EngineRunner } from "@shadowclone/agents";
+import type { IndexedEvent, CorrectionSignal } from "@shadowclone/sessions";
 import { distillConcurrency, distillSignals } from "./index";
 
 test("aggregates more than one wave of batches in source order", async () => {

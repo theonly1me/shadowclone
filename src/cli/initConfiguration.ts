@@ -3,7 +3,7 @@ import {
   setDeepEnabled,
   setSourceEnabled,
   type ShadowcloneConfig,
-} from "../config";
+} from "@shadowclone/core";
 import type { OnboardingPresence } from "./onboardingPresence";
 
 export function initialConfiguration(options: {

@@ -1,7 +1,7 @@
-import type { LearningExecution } from "../../engine";
-import type { FileUpdate } from "../../changes";
-import type { ProjectPaths } from "../../paths";
-import type { DiscoveredSkill } from "../../skillMaintenance/types";
+import type { LearningExecution } from "@shadowclone/agents";
+import type { FileUpdate } from "@shadowclone/changes";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { DiscoveredSkill } from "@shadowclone/skills";
 import { reconcileDirectLearning } from "./reconcileDirect";
 import { reconcileSkillLearning } from "./reconcileSkill";
 import { routeLearning } from "./planner";

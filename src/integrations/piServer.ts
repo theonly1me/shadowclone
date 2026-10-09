@@ -1,4 +1,4 @@
-import { renderPiModelApi } from "../engine/piModelApi";
+import { renderPiModelApi } from "@shadowclone/agents";
 
 export function renderPiServer(): string {
   return `import { createServer } from "node:net";

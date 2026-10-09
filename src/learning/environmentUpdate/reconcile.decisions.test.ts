@@ -1,9 +1,8 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
-import { createLearningExecution } from "../../engine";
+import { createLearningExecution } from "@shadowclone/agents";
 import { skillEngineRun, skillFixture } from "../../environment/testing";
-import { discoverDeliverySkills } from "../../skillMaintenance/discover";
-import { readMaintenanceState } from "../../skillMaintenance/state";
+import { discoverDeliverySkills, readMaintenanceState } from "@shadowclone/skills";
 import { learningRecord } from "../../environment/fixtures";
 import { reconcileLearningBatch } from "./reconcile";
 import { emptyEnvironment } from "../../environment/types";

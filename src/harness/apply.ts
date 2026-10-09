@@ -1,7 +1,7 @@
 import path from "node:path";
-import { commitLocalChanges } from "../changes";
-import { acquireLocalLock } from "../localFiles/lock";
-import type { ProjectPaths } from "../paths";
+import { commitLocalChanges } from "@shadowclone/changes";
+import { acquireLocalLock } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import type { HarnessPlan } from "./plan";
 import { recordHarnessRoot } from "./state";
 

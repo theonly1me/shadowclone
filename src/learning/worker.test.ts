@@ -1,9 +1,9 @@
 import { now, emptyRunner, fixture } from "./worker.fixtures";
 import { expect, test } from "bun:test";
 import path from "node:path";
-import type { EngineRunner } from "../engine";
-import { integrationFixture } from "../testing";
-import { acquireLocalLock } from "../localFiles/lock";
+import type { EngineRunner } from "@shadowclone/agents";
+import { integrationFixture } from "@shadowclone/core/testing";
+import { acquireLocalLock } from "@shadowclone/core";
 import { runAutomaticLearning, scheduleLearning } from "./index";
 import { learningInterval, readLearningState } from "./state";
 import { readLatestLearningReceipt } from "./receipt";

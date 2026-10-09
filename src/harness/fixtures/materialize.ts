@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { canonicalPath } from "../../paths";
+import { canonicalPath } from "@shadowclone/core";
 
 export type FixtureRepository = {
   readonly name: string;

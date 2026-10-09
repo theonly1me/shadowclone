@@ -1,4 +1,9 @@
-import { fingerprint, readLocalText, replaceLocalText } from "../localFiles";
+import {
+  fingerprint,
+  readLocalText,
+  replaceLocalText,
+  createProjectPaths,
+} from "@shadowclone/core";
 import { emptyHookConfig, hasOwnedHooks, updateHookConfig } from "./hookConfig";
 import {
   guidanceMarkers,
@@ -11,7 +16,6 @@ import { integrationFilePath, integrationTargets, retiredIntegrationTargets } fr
 import type { Integration, IntegrationFile } from "./types";
 import { renderPiExtension } from "./piExtension";
 import { readIntegrations } from "./state";
-import { createProjectPaths } from "../paths";
 import { importsPeerInstructions } from "./sharedInstructions";
 
 export type IntegrationFileChange = {

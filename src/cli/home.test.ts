@@ -2,8 +2,8 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
-import { createProjectPaths } from "../paths";
+import { defaultConfig, writeConfig, createProjectPaths } from "@shadowclone/core";
+import { checkoutRoot } from "@shadowclone/core/testing";
 import { showHome } from "./home";
 
 test("the empty command names one useful next action", async () => {
@@ -23,7 +23,7 @@ test("the empty command names one useful next action", async () => {
 
 test("CLI failures print a bounded message without source code or a stack", async () => {
   const command = Bun.spawn([process.execPath, path.join(import.meta.dir, "index.ts"), "learn", "--apply"], {
-    cwd: path.resolve(import.meta.dir, "../.."), stdout: "pipe", stderr: "pipe",
+    cwd: await checkoutRoot(), stdout: "pipe", stderr: "pipe",
   });
   const [output, error, exitCode] = await Promise.all([
     new Response(command.stdout).text(), new Response(command.stderr).text(), command.exited,

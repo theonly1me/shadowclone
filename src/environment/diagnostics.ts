@@ -1,10 +1,10 @@
-import { readEffectiveConfig } from "../config";
-import type { ProjectPaths } from "../paths";
+import { readEffectiveConfig } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
 import {
   resolveRepository,
   isOriginBlocked,
   type GitRemoteReader,
-} from "../signal";
+} from "@shadowclone/sessions";
 import { readRedactedEnvironment } from "./store";
 import { belongsToScope, learningScopes } from "./scope";
 import { publishedSkills } from "./catalog";

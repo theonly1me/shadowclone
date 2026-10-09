@@ -2,10 +2,14 @@ import { expect, test } from "bun:test";
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { IndexedEvent } from "../eventIndex";
-import { openEventIndex } from "../eventIndex";
-import { deriveSignals, getEventRepository, resolveEventRepositories } from "../signal";
-import { createProjectPaths } from "../paths";
+import type { IndexedEvent } from "@shadowclone/sessions";
+import {
+  openEventIndex,
+  deriveSignals,
+  getEventRepository,
+  resolveEventRepositories,
+} from "@shadowclone/sessions";
+import { createProjectPaths } from "@shadowclone/core";
 import { episodeId, readLearningState, selectLearningEpisodes, writeLearningState } from "./state";
 import { bindHistoricalRepository, listHistoricalRepositories } from "./repositories";
 

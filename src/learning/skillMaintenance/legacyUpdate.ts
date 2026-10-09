@@ -1,17 +1,16 @@
 import { applyAssessedSkills, nextSkillBatch } from "./assessmentBatch";
 import path from "node:path";
-import { readEffectiveConfig } from "../../config";
-import type { LearningExecution } from "../../engine";
+import { readEffectiveConfig, acquireLocalLock } from "@shadowclone/core";
+import type { LearningExecution } from "@shadowclone/agents";
 import { compileContext } from "../../integrations";
-import { acquireLocalLock } from "../../localFiles/lock";
-import type { ProjectPaths } from "../../paths";
-import type { GitRemoteReader } from "../../signal";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 import { assessSkillBatch } from "./assess";
-import { discoverSkills } from "../../skillMaintenance/discover";
+import { discoverSkills } from "@shadowclone/skills";
 import { assessmentFingerprint } from "./prepare";
-import { readMaintenanceState } from "../../skillMaintenance/state";
-import { syncPortableSkills } from "../../skillMaintenance/portable";
-import { syncPersonalSkills } from "../../skillMaintenance/syncPersonal";
+import { readMaintenanceState } from "@shadowclone/skills";
+import { syncPortableSkills } from "@shadowclone/skills";
+import { syncPersonalSkills } from "@shadowclone/skills";
 
 export type SkillUpdateSummary = {
   readonly assessed: number;

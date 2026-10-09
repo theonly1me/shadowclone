@@ -1,13 +1,10 @@
 import path from "node:path";
 import { z } from "zod";
-import { readLocalText, replaceLocalText } from "../localFiles";
-import { acquireLocalLock } from "../localFiles/lock";
-import type { ProjectPaths } from "../paths";
-import type { ProfileRule } from "../profile";
+import { readLocalText, replaceLocalText, acquireLocalLock, sourceIds } from "@shadowclone/core";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { ProfileRule } from "@shadowclone/profile";
 import { learningRuleSchema } from "../environment/types";
-import { sourceIds } from "../config";
-import type { IndexedEvent } from "../eventIndex";
-import type { CorrectionSignal } from "../signal";
+import type { IndexedEvent, CorrectionSignal } from "@shadowclone/sessions";
 import { learningRuleProvenance } from "./provenance";
 
 const pendingSchema = z.strictObject({

@@ -1,5 +1,4 @@
-import { fingerprint, readLocalText } from "../localFiles";
-import { projectPaths } from "../paths";
+import { fingerprint, readLocalText, projectPaths } from "@shadowclone/core";
 import { compileContext } from "./compile";
 import { applyIntegrationFiles, prepareIntegrationFiles, savedRecords } from "./files";
 import { hasOwnedHooks } from "./hookConfig";

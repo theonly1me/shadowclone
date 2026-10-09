@@ -1,14 +1,13 @@
 import { mkdtemp, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
+import { defaultConfig, writeConfig, canonicalPath, createProjectPaths } from "@shadowclone/core";
 import { learningRecord } from "../environment/fixtures";
 import { recordFingerprint } from "../environment/records";
 import { writeEnvironment } from "../environment/store";
 import { emptyEnvironment } from "../environment/types";
 import { installIntegration } from "../integrations";
-import { canonicalPath, createProjectPaths } from "../paths";
-import type { NativeEngine, NativeEngineRun } from "../engine/native";
+import type { NativeEngine, NativeEngineRun } from "@shadowclone/agents";
 
 export async function probeFixture(engine: NativeEngine) {
   const root = canonicalPath(await mkdtemp(path.join(os.tmpdir(), "shadowclone-probe-fixture-")));

@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import path from "node:path";
-import { writeConfig, defaultConfig } from "../config";
+import { writeConfig, defaultConfig } from "@shadowclone/core";
 import { installIntegration } from "./install";
 import { nativeSessionStart } from "./hooks";
-import { integrationFixture } from "../testing";
+import { integrationFixture } from "@shadowclone/core/testing";
 
 test("redacts a profile secret before native hook delivery", async () => {
   const fixture = await integrationFixture();

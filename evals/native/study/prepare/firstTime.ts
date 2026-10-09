@@ -1,10 +1,10 @@
 import { initialize } from "../../../../src/cli/init";
 import { runWizard } from "../../../../src/cli/wizard";
-import type { EngineRunner } from "../../../../src/engine/types";
+import type { EngineRunner } from "@shadowclone/agents";
 import { installIntegration } from "../../../../src/integrations";
-import type { ProjectPaths } from "../../../../src/paths";
-import type { GitRemoteReader } from "../../../../src/signal";
-import { loadSeedLibrary } from "../../../../src/skills";
+import type { ProjectPaths } from "@shadowclone/core";
+import type { GitRemoteReader } from "@shadowclone/sessions";
+import { loadSeedLibrary } from "@shadowclone/skills";
 
 type WizardChoices = {
   readonly axes: readonly { readonly id: string; readonly guidance: readonly { readonly id: string }[] }[];

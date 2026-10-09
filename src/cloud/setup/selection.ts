@@ -2,7 +2,7 @@ import path from "node:path";
 import { readRedactedEnvironment } from "../../environment/store";
 import { learningScopes } from "../../environment/scope";
 import { publishedSkills } from "../../environment/catalog";
-import { resolveRepository, type GitRemoteReader } from "../../signal";
+import { resolveRepository, type GitRemoteReader } from "@shadowclone/sessions";
 import type { BuildContext } from "../../environment/builds/definition";
 
 export async function setupSelection(

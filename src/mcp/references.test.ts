@@ -2,10 +2,9 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { defaultConfig, writeConfig } from "../config";
-import { createProjectPaths } from "../paths";
-import { referenceRelativePath, renderReference } from "../references";
-import { normalizeRemoteRepository } from "../signal";
+import { defaultConfig, writeConfig, createProjectPaths } from "@shadowclone/core";
+import { referenceRelativePath, renderReference } from "@shadowclone/profile";
+import { normalizeRemoteRepository } from "@shadowclone/sessions";
 import { runReferenceTool } from "./references";
 
 test("MCP recall returns scoped full reference records", async () => {

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { ProjectPaths } from "../paths";
-import { recallReferences } from "../references";
-import type { GitRemoteReader } from "../signal";
+import type { ProjectPaths } from "@shadowclone/core";
+import { recallReferences } from "@shadowclone/profile";
+import type { GitRemoteReader } from "@shadowclone/sessions";
 
 export const referenceTools = [
   {

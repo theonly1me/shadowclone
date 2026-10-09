@@ -1,6 +1,6 @@
 import { lstat, opendir } from "node:fs/promises";
 import path from "node:path";
-import type { ProjectPaths } from "../paths";
+import type { ProjectPaths } from "@shadowclone/core";
 
 export const onboardingCaptureSourceIds = [
   "antigravity",

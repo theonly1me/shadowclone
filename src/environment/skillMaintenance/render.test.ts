@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import { renderContextSkill } from "../../integrations/markdown";
-import { parseSkillDocument } from "../../skillMaintenance/document";
-import { renderMaintainedSkill, restoreOriginalSkill } from "../../skillMaintenance/render";
-import { fixtureSkill } from "../../skills/testing";
+import { parseSkillDocument } from "@shadowclone/skills";
+import { renderMaintainedSkill, restoreOriginalSkill } from "@shadowclone/skills";
+import { fixtureSkill } from "@shadowclone/skills/testing";
 
 test("the integration skill has valid discoverable frontmatter and no unfinished scaffold", () => {
   const document = parseSkillDocument(renderContextSkill());

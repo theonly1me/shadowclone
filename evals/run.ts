@@ -1,4 +1,4 @@
-import { redactSecrets } from "../src/redact";
+import { redactSecrets } from "@shadowclone/redact";
 import { handleFixedEval } from "./cli/fixedEval";
 import { handleFourSetupEval } from "./cli/fourSetupEval";
 import { handleReusableEval } from "./cli/reusableEval";

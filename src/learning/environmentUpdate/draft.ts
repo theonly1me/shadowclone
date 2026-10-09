@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { LearningExecution } from "../../engine";
+import type { LearningExecution } from "@shadowclone/agents";
 import { internalLearningMarker } from "../../distill/excerpts";
-import { parseSkillDocument } from "../../skillMaintenance/document";
+import { parseSkillDocument } from "@shadowclone/skills";
 import type { LearningRecord } from "../../environment/types";
 import { editableSkillDocument } from "../../environment/document";
 import { generatedSkillBody } from "../../environment/generatedBody";

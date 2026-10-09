@@ -1,10 +1,8 @@
-import { readEffectiveConfig } from "../config";
+import { readEffectiveConfig, projectPaths, acquireLocalLock } from "@shadowclone/core";
 import { authorizedLearningEvents } from "../distill";
-import { openEventIndex } from "../eventIndex";
+import { openEventIndex } from "@shadowclone/sessions";
 import { bindHistoricalRepository, listHistoricalRepositories } from "../learning/repositories";
-import { projectPaths } from "../paths";
 import path from "node:path";
-import { acquireLocalLock } from "../localFiles/lock";
 
 export async function handleHistoricalRepositories(options: {
   readonly action: "repositories" | "bind";

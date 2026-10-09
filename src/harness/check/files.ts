@@ -1,4 +1,4 @@
-import { runCommand, type CommandRunner } from "../../io/command";
+import { runCommand, type CommandRunner } from "@shadowclone/core";
 
 const skippedDirectories = new Set([
   ".git",

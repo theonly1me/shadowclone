@@ -1,8 +1,8 @@
 import path from "node:path";
 import { lstat } from "node:fs/promises";
 import { z } from "zod";
-import type { ProjectPaths } from "../paths";
-import { ownedWrite } from "../storage";
+import type { ProjectPaths } from "@shadowclone/core";
+import { ownedWrite } from "@shadowclone/core";
 import { cloneSchema } from "./types";
 
 const installationSchema = z.strictObject({

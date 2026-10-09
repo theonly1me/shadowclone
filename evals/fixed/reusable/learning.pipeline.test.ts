@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
 import { learn } from "../../../src/cli/learn";
-import { readConfig, writeConfig } from "../../../src/config";
+import { readConfig, writeConfig } from "@shadowclone/core";
 import { evaluationBudget } from "../../shared/accounting";
 import { workflowLearningRunner } from "../workflow/learner";
 import type { LearnerConfiguration, LearningCall } from "../workflow/schema";
