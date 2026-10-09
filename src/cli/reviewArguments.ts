@@ -1,7 +1,11 @@
 import { reasoningEfforts, type ReasoningEffort } from "../engine/types";
 
+export type ReviewTarget =
+  | { readonly kind: "pull"; readonly number: number }
+  | { readonly kind: "branch"; readonly base: string | null };
+
 export type LocalReviewArguments = {
-  readonly number: number;
+  readonly target: ReviewTarget;
   readonly repository: string | null;
   readonly runChecks: boolean;
   readonly network: boolean;
@@ -14,13 +18,29 @@ export type LocalReviewArguments = {
 export const defaultReviewModel = "claude-opus-5-5";
 
 export const reviewUsage =
-  "Use shadowclone review <pr-number> [--cloud] [--no-checks] [--offline] [--repo owner/repository] [--output file.md] [--model id] [--effort level].";
+  "Use shadowclone review <pr-number> [--cloud] for a pull request, or shadowclone review [--base ref] for the current branch. Options: [--no-checks] [--offline] [--repo owner/repository] [--output file.md] [--model id] [--effort level].";
 
-const valueFlags = ["--repo", "--output", "--model", "--effort"] as const;
+const valueFlags = ["--repo", "--output", "--model", "--effort", "--base"] as const;
 const switchFlags = ["--cloud", "--no-checks", "--offline"] as const;
 
 function isReasoningEffort(value: string): value is ReasoningEffort {
   return reasoningEfforts.some((effort) => effort === value);
+}
+
+function reviewTarget(options: { readonly positionals: readonly string[]; readonly base: string | null }): ReviewTarget {
+  const [numberText, ...extra] = options.positionals;
+
+  if (numberText === undefined) {
+    return { kind: "branch", base: options.base };
+  }
+
+  const number = Number(numberText);
+
+  if (extra.length > 0 || options.base !== null || !Number.isInteger(number) || number <= 0) {
+    throw new Error(reviewUsage);
+  }
+
+  return { kind: "pull", number };
 }
 
 export function parseReviewArguments(arguments_: readonly string[]): LocalReviewArguments {
@@ -39,7 +59,7 @@ export function parseReviewArguments(arguments_: readonly string[]): LocalReview
     if (valueFlags.some((flag) => flag === argument)) {
       const value = arguments_[position + 1];
 
-      if (value === undefined || values.has(argument)) {
+      if (value === undefined || value.startsWith("-") || values.has(argument)) {
         throw new Error(reviewUsage);
       }
 
@@ -55,13 +75,12 @@ export function parseReviewArguments(arguments_: readonly string[]): LocalReview
     positionals.push(argument);
   }
 
-  const [numberText, ...extra] = positionals;
-  const number = Number(numberText);
   const repository = values.get("--repo") ?? null;
   const effort = values.get("--effort") ?? null;
+  const target = reviewTarget({ positionals, base: values.get("--base") ?? null });
 
-  if (extra.length > 0 || !Number.isInteger(number) || number <= 0) {
-    throw new Error(reviewUsage);
+  if (target.kind === "branch" && switches.has("--cloud")) {
+    throw new Error("A cloud review needs a pull request number, for example shadowclone review 123 --cloud.");
   }
 
   if (repository !== null && !/^[\w.-]+\/[\w.-]+$/.test(repository)) {
@@ -73,7 +92,7 @@ export function parseReviewArguments(arguments_: readonly string[]): LocalReview
   }
 
   return {
-    number,
+    target,
     repository,
     runChecks: !switches.has("--no-checks"),
     network: !switches.has("--offline"),

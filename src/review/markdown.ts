@@ -20,9 +20,9 @@ function toolchainTable(result: ReviewResult): string {
 
 export function reviewMarkdown(result: ReviewResult): string {
   const { pull, statistics } = result;
-  const target = { repository: pull.repository, headSha: pull.headSha };
+  const target = pull.number === null ? null : { repository: pull.repository, headSha: pull.headSha };
   const header = [
-    `# Review of ${pull.repository}#${pull.number}`,
+    pull.number === null ? `# Review of ${pull.repository} at ${pull.headSha.slice(0, 7)}` : `# Review of ${pull.repository}#${pull.number}`,
     "",
     `Head \`${pull.headSha.slice(0, 7)}\` against \`${pull.baseRefName}\` (\`${pull.baseSha.slice(0, 7)}\`). Model ${result.model}. ${plural({ count: result.findings.length, word: "finding" })}.`,
     "",

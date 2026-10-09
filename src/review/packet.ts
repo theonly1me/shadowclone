@@ -100,8 +100,12 @@ export function reviewPrompt(options: {
   const certain = ruleHits.filter((hit) => hit.level === "certain");
   const signals = ruleHits.filter((hit) => hit.level === "signal");
   const notInDiff = [...diff.notIncluded, ...diff.generated.map((generatedPath) => `${generatedPath} (generated)`)];
+  const subject =
+    facts.number === null
+      ? `the head of a local branch in ${facts.repository}, compared with ${escapeData(facts.baseRefName)}. The title and the description come from its commit messages`
+      : `the head of pull request #${facts.number} in ${facts.repository}`;
 
-  return `Follow this review process. The working directory is the head of pull request #${facts.number} in ${facts.repository}. Your tools read files in it, start subagents, and, when the network is on, search the web and fetch pages.
+  return `Follow this review process. The working directory is ${subject}. Your tools read files in it, start subagents, and, when the network is on, search the web and fetch pages.
 
 <process>
 ${options.skill}

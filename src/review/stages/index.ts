@@ -2,6 +2,7 @@ import { collectReview, readPullFacts } from "../collect";
 import { checkDependencies } from "../dependencies";
 import { checkBuiltInRules } from "../rules";
 import { runToolchain } from "../toolchain";
+import type { PullFacts } from "../types";
 import type { ChecksFile, PacketFile } from "./schemas";
 
 export { analyzeStage } from "./analyze";
@@ -17,11 +18,21 @@ export async function prepareStage(options: {
 }): Promise<PacketFile> {
   const current = await readPullFacts({ repository: options.repository, number: options.number, cwd: options.cwd });
   const facts = options.head === undefined ? current : { ...current, headSha: options.head };
+
+  return preparePacket({ facts, checkout: options.checkout, network: options.network });
+}
+
+export async function preparePacket(options: {
+  readonly facts: PullFacts;
+  readonly checkout: string;
+  readonly network: boolean;
+}): Promise<PacketFile> {
+  const { facts } = options;
   const context = await collectReview({ checkout: options.checkout, facts });
 
   const dependencies = await checkDependencies({
     checkout: options.checkout,
-    baseSha: facts.baseSha,
+    baseSha: context.mergeBaseSha,
     headSha: facts.headSha,
     files: context.files,
     network: options.network,
@@ -41,10 +52,10 @@ export async function checksStage(options: {
   readonly workDirectory: string;
   readonly onProgress: (message: string) => void;
 }): Promise<ChecksFile> {
-  const { facts, files } = options.packet.context;
+  const { facts, files, mergeBaseSha } = options.packet.context;
   const reports = await runToolchain({
     repository: options.repository,
-    baseSha: facts.baseSha,
+    baseSha: mergeBaseSha,
     headSha: facts.headSha,
     files,
     workDirectory: options.workDirectory,
