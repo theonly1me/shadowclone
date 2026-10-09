@@ -1,10 +1,10 @@
 # Evaluation results
 
-This evaluation tests whether coding agents follow engineering preferences. It uses 24 fixed tasks. Every setup ran all tasks three times on each model. All planned tasks stay in the comparison. The tables use the final authorized attempts. Earlier interrupted attempts and partial checks stay in private records.
+This evaluation tests whether agents follow engineering preferences. It uses 24 fixed tasks, and every setup ran all tasks three times on each model, which makes 72 sessions for each setup and model. All planned tasks stay in the comparison, and the tables use the final authorized attempts.
 
 ## Preference adherence
 
-Each task checks its assigned preference family. The score averages repetitions and tasks inside each family. Then it gives each of the eight families equal weight. The score measures preference adherence. It does not measure overall task success or code quality. Each setup and model has 72 sessions.
+Each task checks one preference family. The score averages repetitions and tasks inside each family, then weights the eight families equally. It does not measure task success or code quality.
 
 | Setup                                     | GPT 6.1 Sol | GPT 6 Luna | Claude Sonnet 5.5 | Claude Opus 5.5 |
 | ----------------------------------------- | ----------: | ---------: | ----------------: | --------------: |
@@ -14,79 +14,71 @@ Each task checks its assigned preference family. The score averages repetitions 
 | Existing skills + handwritten preferences |       92.4% |      81.2% |             91.7% |           86.1% |
 | Existing skills + Shadowclone learning    |       89.4% |      83.3% |             90.0% |           82.9% |
 
-Shadowclone learning scores above existing user skills on all four models. Handwritten preferences score higher than learned preferences on GPT 6.1 Sol, Claude Sonnet 5.5, and Claude Opus 5.5. GPT 6 Luna has a higher point estimate for learned preferences. Learning delivery, incomplete learned guidance, and model behavior all affect this comparison.
+Learning beats existing user skills on all four models. Handwritten preferences score higher than learned ones on GPT 6.1 Sol, Sonnet, and Opus, but not on GPT 6 Luna. Learning delivery and model behavior affect this comparison.
 
 ## What each setup means
 
-| Setup                                     | What the agent receives                                                                                             |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Agent alone                               | Shared repository requirements, with no personal skills or preferences                                              |
-| Existing user skills                      | The same requirements plus an unchanged synthetic code-style skill                                                  |
-| Existing skills + Shadowclone routing     | The same skill library plus Shadowclone's native startup guidance, without learning                                 |
-| Existing skills + handwritten preferences | The routed library plus independently handwritten intended rules, a reference comparison rather than a product mode |
-| Existing skills + Shadowclone learning    | The routed library plus actual rules published by Shadowclone from synthetic correction sessions                    |
-
-Handwritten and learned preferences use the same delivery path. The learner never receives the intended rules or the grading answers. Saved receipts name the setups `bare`, `skills`, `routing`, `told`, and `deep`.
+The [fixed contract](evals/README.md#the-fixed-contract) defines the five setups. Saved receipts name them `bare`, `skills`, `routing`, `told`, and `deep`.
 
 ## Per-preference results
 
-Each column is one setup from the table of setup definitions. Each family has three tasks and three repetitions. Answer length counts for at most 12.5% of the headline.
+Each family has three tasks and three repetitions. Columns follow the rows of the first table. Answer length counts for at most 12.5% of the headline.
 
 ### GPT 6.1 Sol
 
-| Preference          | Agent alone | User skills | + Shadowclone routing | + Handwritten preferences | + Shadowclone learning |
-| ------------------- | ----------: | ----------: | --------------------: | ------------------------: | ---------------------: |
-| Comments            |      100.0% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| Type safety         |      100.0% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| API conventions     |       33.3% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| Git authorization   |       51.9% |       48.1% |                 55.6% |                    100.0% |                  81.5% |
-| Answer length       |       66.7% |       66.7% |                 66.7% |                     66.7% |                  66.7% |
-| Test-first behavior |      100.0% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| PR structure        |       66.7% |       66.7% |                 66.7% |                     72.2% |                  66.7% |
-| Scope and lifecycle |      100.0% |      100.0% |                100.0% |                    100.0% |                 100.0% |
+| Preference          |  Alone | Skills | Routing | Handwritten | Learning |
+| ------------------- | -----: | -----: | ------: | ----------: | -------: |
+| Comments            | 100.0% | 100.0% |  100.0% |      100.0% |   100.0% |
+| Type safety         | 100.0% | 100.0% |  100.0% |      100.0% |   100.0% |
+| API conventions     |  33.3% | 100.0% |  100.0% |      100.0% |   100.0% |
+| Git authorization   |  51.9% |  48.1% |   55.6% |      100.0% |    81.5% |
+| Answer length       |  66.7% |  66.7% |   66.7% |       66.7% |    66.7% |
+| Test-first behavior | 100.0% | 100.0% |  100.0% |      100.0% |   100.0% |
+| PR structure        |  66.7% |  66.7% |   66.7% |       72.2% |    66.7% |
+| Scope and lifecycle | 100.0% | 100.0% |  100.0% |      100.0% |   100.0% |
 
 ### GPT 6 Luna
 
-| Preference          | Agent alone | User skills | + Shadowclone routing | + Handwritten preferences | + Shadowclone learning |
-| ------------------- | ----------: | ----------: | --------------------: | ------------------------: | ---------------------: |
-| Comments            |      100.0% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| Type safety         |       44.4% |       88.9% |                100.0% |                     88.9% |                 100.0% |
-| API conventions     |       33.3% |      100.0% |                 88.9% |                    100.0% |                  88.9% |
-| Git authorization   |       77.8% |       77.8% |                 70.4% |                    100.0% |                  88.9% |
-| Answer length       |       44.4% |       66.7% |                 44.4% |                     44.4% |                  66.7% |
-| Test-first behavior |       33.3% |       55.6% |                 33.3% |                     33.3% |                  44.4% |
-| PR structure        |       66.7% |       66.7% |                 66.7% |                     83.3% |                  77.8% |
-| Scope and lifecycle |       72.2% |       88.9% |                 77.8% |                    100.0% |                 100.0% |
+| Preference          |  Alone | Skills | Routing | Handwritten | Learning |
+| ------------------- | -----: | -----: | ------: | ----------: | -------: |
+| Comments            | 100.0% | 100.0% |  100.0% |      100.0% |   100.0% |
+| Type safety         |  44.4% |  88.9% |  100.0% |       88.9% |   100.0% |
+| API conventions     |  33.3% | 100.0% |   88.9% |      100.0% |    88.9% |
+| Git authorization   |  77.8% |  77.8% |   70.4% |      100.0% |    88.9% |
+| Answer length       |  44.4% |  66.7% |   44.4% |       44.4% |    66.7% |
+| Test-first behavior |  33.3% |  55.6% |   33.3% |       33.3% |    44.4% |
+| PR structure        |  66.7% |  66.7% |   66.7% |       83.3% |    77.8% |
+| Scope and lifecycle |  72.2% |  88.9% |   77.8% |      100.0% |   100.0% |
 
 ### Claude Sonnet 5.5
 
-| Preference          | Agent alone | User skills | + Shadowclone routing | + Handwritten preferences | + Shadowclone learning |
-| ------------------- | ----------: | ----------: | --------------------: | ------------------------: | ---------------------: |
-| Comments            |      100.0% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| Type safety         |        0.0% |      100.0% |                100.0% |                    100.0% |                  88.9% |
-| API conventions     |       33.3% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| Git authorization   |       55.6% |       55.6% |                 55.6% |                    100.0% |                  85.2% |
-| Answer length       |        0.0% |        0.0% |                  0.0% |                     55.6% |                  77.8% |
-| Test-first behavior |      100.0% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| PR structure        |       66.7% |       66.7% |                 66.7% |                     77.8% |                  72.2% |
-| Scope and lifecycle |       96.3% |       88.9% |                 92.6% |                    100.0% |                  96.3% |
+| Preference          |  Alone | Skills | Routing | Handwritten | Learning |
+| ------------------- | -----: | -----: | ------: | ----------: | -------: |
+| Comments            | 100.0% | 100.0% |  100.0% |      100.0% |   100.0% |
+| Type safety         |   0.0% | 100.0% |  100.0% |      100.0% |    88.9% |
+| API conventions     |  33.3% | 100.0% |  100.0% |      100.0% |   100.0% |
+| Git authorization   |  55.6% |  55.6% |   55.6% |      100.0% |    85.2% |
+| Answer length       |   0.0% |   0.0% |    0.0% |       55.6% |    77.8% |
+| Test-first behavior | 100.0% | 100.0% |  100.0% |      100.0% |   100.0% |
+| PR structure        |  66.7% |  66.7% |   66.7% |       77.8% |    72.2% |
+| Scope and lifecycle |  96.3% |  88.9% |   92.6% |      100.0% |    96.3% |
 
 ### Claude Opus 5.5
 
-| Preference          | Agent alone | User skills | + Shadowclone routing | + Handwritten preferences | + Shadowclone learning |
-| ------------------- | ----------: | ----------: | --------------------: | ------------------------: | ---------------------: |
-| Comments            |       77.8% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| Type safety         |       22.2% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| API conventions     |       33.3% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| Git authorization   |       48.1% |       44.4% |                 51.9% |                    100.0% |                  81.5% |
-| Answer length       |        0.0% |        0.0% |                  0.0% |                     22.2% |                  22.2% |
-| Test-first behavior |      100.0% |      100.0% |                100.0% |                    100.0% |                 100.0% |
-| PR structure        |       66.7% |       66.7% |                 66.7% |                     66.7% |                  66.7% |
-| Scope and lifecycle |       77.8% |       77.8% |                 88.9% |                    100.0% |                  92.6% |
+| Preference          |  Alone | Skills | Routing | Handwritten | Learning |
+| ------------------- | -----: | -----: | ------: | ----------: | -------: |
+| Comments            |  77.8% | 100.0% |  100.0% |      100.0% |   100.0% |
+| Type safety         |  22.2% | 100.0% |  100.0% |      100.0% |   100.0% |
+| API conventions     |  33.3% | 100.0% |  100.0% |      100.0% |   100.0% |
+| Git authorization   |  48.1% |  44.4% |   51.9% |      100.0% |    81.5% |
+| Answer length       |   0.0% |   0.0% |    0.0% |       22.2% |    22.2% |
+| Test-first behavior | 100.0% | 100.0% |  100.0% |      100.0% |   100.0% |
+| PR structure        |  66.7% |  66.7% |   66.7% |       66.7% |    66.7% |
+| Scope and lifecycle |  77.8% |  77.8% |   88.9% |      100.0% |    92.6% |
 
 ## Matched comparisons
 
-Differences are in percentage points. The 95% bootstrap intervals resample the three matched groups of repetition and learning preparation, with the task mix fixed. Three groups give coarse intervals. Models share preparations, so their results correlate. Do not pool them as independent samples.
+Differences are in percentage points. The 95% bootstrap intervals resample the three matched groups of repetition and learning preparation, with the task mix fixed. Three groups give coarse intervals. Models share preparations, so do not pool them.
 
 | Model             | Learning over routing | 95% interval  | Learning over handwritten preferences | 95% interval |
 | ----------------- | --------------------: | ------------- | ------------------------------------: | ------------ |
@@ -97,61 +89,44 @@ Differences are in percentage points. The 95% bootstrap intervals resample the t
 
 ## Separate routing comparison
 
-A second experiment uses 20 synthetic skills and twelve tasks, with three repetitions for each setup. It measures skill selection and implementation compliance separately. Reading a skill earns no compliance credit.
+A second experiment uses 20 synthetic skills, twelve tasks, and three repetitions for each setup. It scores selection and compliance separately.
 
-| Model             | Existing skills, preference adherence | Existing skills + Shadowclone routing, preference adherence |
-| ----------------- | ------------------------------------: | ----------------------------------------------------------: |
-| GPT 6.1 Sol       |                                100.0% |                                                      100.0% |
-| GPT 6 Luna        |                                100.0% |                                                       97.2% |
-| Claude Sonnet 5.5 |                                100.0% |                                                      100.0% |
-| Claude Opus 5.5   |                                100.0% |                                                      100.0% |
+| Model             | Existing skills | + Routing |
+| ----------------- | --------------: | --------: |
+| GPT 6.1 Sol       |          100.0% |    100.0% |
+| GPT 6 Luna        |          100.0% |     97.2% |
+| Claude Sonnet 5.5 |          100.0% |    100.0% |
+| Claude Opus 5.5   |          100.0% |    100.0% |
 
-Both Claude models selected the expected skills in every session. Codex read tracking missed some successful reads, and the original tracking verdicts stay. Task names match skill names directly, and the added routing is generic startup guidance. This experiment does not show an advantage for explicit production skill routes. It also does not show that production routing is unnecessary.
+Both Claude models selected the expected skills in every session. Codex read tracking missed some reads, and the original verdicts stay. Task names match skill names, and the routing is generic startup guidance, so the experiment says nothing for or against explicit production routes.
 
 ## Correctness, safety, and learning
 
-Preference adherence is separate from correctness. These counts use all 72 sessions for each setup and keep the original acceptance verdicts. The acceptance limits for API tasks and advice tasks affect how to read them. The report does not compare routing correctness, because its acceptance assumes a fixed module location.
+These correctness counts cover all 72 sessions for each setup, with the original acceptance verdicts. API and advice acceptance limits affect how to read them. Routing correctness is not compared, because its acceptance assumes a fixed module location.
 
-| Setup                                     | GPT 6.1 Sol | GPT 6 Luna | Claude Sonnet 5.5 | Claude Opus 5.5 |
-| ----------------------------------------- | ----------: | ---------: | ----------------: | --------------: |
-| Agent alone                               |       72/72 |      69/72 |             71/72 |           72/72 |
-| Existing user skills                      |       72/72 |      72/72 |             68/72 |           69/72 |
-| Existing skills + Shadowclone routing     |       71/72 |      70/72 |             69/72 |           69/72 |
-| Existing skills + handwritten preferences |       70/72 |      72/72 |             69/72 |           69/72 |
-| Existing skills + Shadowclone learning    |       70/72 |      72/72 |             68/72 |           69/72 |
+| Setup       | GPT 6.1 Sol | GPT 6 Luna | Claude Sonnet 5.5 | Claude Opus 5.5 |
+| ----------- | ----------: | ---------: | ----------------: | --------------: |
+| Alone       |       72/72 |      69/72 |             71/72 |           72/72 |
+| Skills      |       72/72 |      72/72 |             68/72 |           69/72 |
+| Routing     |       71/72 |      70/72 |             69/72 |           69/72 |
+| Handwritten |       70/72 |      72/72 |             69/72 |           69/72 |
+| Learning    |       70/72 |      72/72 |             68/72 |           69/72 |
 
-All planned sessions completed. Protected manual guidance stayed unchanged in every final session. This safety check covers guidance preservation only. Git authorization has separate checks and recorded failures, including offline remote actions. No fixture action reached a real repository remote.
+All planned sessions completed, and protected manual guidance stayed unchanged in every final session. No fixture action reached a real remote.
 
-Three independent learning preparations used GPT 6.1 Sol at medium effort. One published four intended rules and left Git guidance pending. The other two published five. All three published partial pull request guidance. The bounded agent assessment found no unsupported published guidance. The actual outputs stay, and nobody added the missing rules.
+Three independent learning preparations used GPT 6.1 Sol at medium effort. One published four intended rules and left Git guidance pending, and two published five. All three published partial pull request guidance. A bounded agent assessment found no unsupported guidance. Nobody added the missing rules.
 
 ## Method and measurement limits
 
-The study ran on 2026-10-03. It has 1,440 five-setup sessions and 288 separate routing sessions. Each family has two public development tasks and one private held-out task.
+The study ran on 2026-10-03: 1,440 five-setup sessions and 288 routing sessions.
 
-The study froze cases, graders, guidance, and denominators before candidate execution. Each task uses a disposable repository and an isolated agent home. The study does not import or change any existing personal setup. Remote actions use offline fixtures.
+- GPT 6.1 Sol: Codex 0.159.0, medium effort.
+- GPT 6 Luna: Codex 0.159.0, high effort.
+- Claude Sonnet 5.5: Claude Code 2.1.287, high effort.
+- Claude Opus 5.5: Claude Code 2.1.287, medium effort.
 
-| Model             | Agent host  | Effort | Host version |
-| ----------------- | ----------- | ------ | ------------ |
-| GPT 6.1 Sol       | Codex       | Medium | 0.159.0      |
-| GPT 6 Luna        | Codex       | High   | 0.159.0      |
-| Claude Sonnet 5.5 | Claude Code | High   | 2.1.287      |
-| Claude Opus 5.5   | Claude Code | Medium | 2.1.287      |
+The declared runtime is Bun 1.4.2 and TypeScript 5.9.3, but acceptance logs show both Bun 1.3.3 and 1.4.2. Each cohort has one fixed effort, so the study does not isolate model size or effort. An agent audit of twenty saved sessions changed no score and is not an independent human review. API acceptance assumes fixed option names, and an advice keyword check can reject an equivalent explanation. These limits prevent a clean claim about correctness or general engineering quality.
 
-The declared runtime uses Bun 1.4.2 and TypeScript 5.9.3. The acceptance logs show both Bun 1.3.3 and Bun 1.4.2, so this is not a uniform toolchain comparison. Each cohort uses one fixed effort setting. The study does not isolate model size or effort scaling.
+Claude runs after a quota reset used authorized manual retries. The study removed or rescored no failure in silence. The design follows [Automating eval design and hillclimbing with Claude](https://claude.dev/blog/automating-eval-design-and-hillclimbing/). No autonomous hillclimbing ran. Production representativeness, independent expert agreement, and effort scaling stay unproven.
 
-A targeted agent audit inspected twenty saved sessions across all families and models. It changed no scores. Some preference graders check syntax and patterns.
-
-API acceptance assumes fixed option names although it allows an API choice. An advice keyword check can reject an equivalent explanation. These limits prevent a clean claim about correctness or general engineering quality. The audit is not an independent human review.
-
-Claude continuation after a quota reset used explicitly authorized manual retries outside the automatic retry rule. Original attempts, partial checks, and call accounting stay private and unchanged. The study removed or rescored no failure in silence.
-
-The design applies fixed inputs, programmatic checks, isolated execution, and held-out cases. It also applies repeated runs, confidence intervals, and transcript inspection from [Automating eval design and hillclimbing with Claude](https://claude.dev/blog/automating-eval-design-and-hillclimbing/).
-
-It does not show full conformity. Production representativeness, independent expert agreement, and model-effort scaling stay unproven. No autonomous hillclimbing ran.
-
-The [evaluations guide](evals/README.md) explains the frozen inputs, the private artifact boundaries, offline validation, preparation reuse, and the approved execution scopes. These results support a bounded claim about preference delivery on synthetic tasks. They do not establish production throughput, broad security superiority, or a universal routing benefit.
-
-## Other evaluations
-
-- [Pull request review](evals/pr-review/README.md): precision of reviewers on merged pull requests.
-- [No-comments](evals/no-comments/README.md): code readability with and without a comment ban.
+See the [evaluations guide](evals/README.md), the [pull request review](evals/pr-review/README.md) evaluation, and the [no-comments](evals/no-comments/README.md) evaluation. These results support a bounded claim about preference delivery on synthetic tasks, not production throughput, security superiority, or a universal routing benefit.

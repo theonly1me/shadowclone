@@ -1,16 +1,16 @@
 # Move an existing installation to skills
 
-Older installations deliver a compiled Markdown profile. Migration keeps that learning and saves your original skill library. Then it publishes the supported guidance into skills and native instructions. It never changes native memory. New installations already use skills, so they need no migration.
+Older installations deliver a compiled Markdown profile. Migration keeps that learning, saves your original skill library, and publishes the supported guidance into skills and native instructions. It never changes native memory. New installations need no migration.
 
 ## Preview
 
-Run this command from a repository whose scoped learning you want to keep:
+Run this from a repository whose scoped learning you want to keep:
 
 ```bash
 shadowclone migrate skills --repo /path/to/repository
 ```
 
-The preview reads local state. It writes nothing and calls no model. Repeat `--repo` to register more repositories. Without the option, the command uses the current directory. Learning for a repository that you do not register stays stored, but Shadowclone cannot publish it there.
+The preview reads local state, writes nothing, and calls no model. Repeat `--repo` to register more repositories. Without it, the command uses the current directory. Learning for an unregistered repository stays unpublished.
 
 ## Publish
 
@@ -19,18 +19,13 @@ shadowclone migrate skills --apply --automatic --memory --repo /path/to/reposito
 ```
 
 - `--automatic` authorizes supported edits to the skills that you own.
-- `--memory` turns on recurring read-only extraction from Claude memory for the registered repositories.
-- If you omit a flag, its current setting stays.
+- `--memory` turns on recurring read-only Claude memory extraction for the registered repositories.
 
-Apply saves the original library and native instructions. Then it publishes in batches that you can reverse. It uses the authenticated agent CLI and the learning budget. Repeat the command to continue. Completed work and the original baseline stay.
+An omitted flag keeps its current setting.
 
-Inspect anything that remains unpublished:
+Apply saves the original library and native instructions, then publishes in reversible batches with the authenticated agent CLI and the learning budget. Repeat the command to continue. Completed work stays.
 
-```bash
-shadowclone skills pending
-```
-
-Resolve conflicting edits before you try a learning record again. Run `skills retry <key>` to queue a record for the next update. Run `skills exclude <key> <reason>` to record a deliberate exclusion. Run `shadowclone skills update` to process pending work when your maintenance consent allows it.
+Run `shadowclone skills pending` to inspect what remains unpublished. Resolve conflicting edits, then run `skills retry <key>` to queue a record or `skills exclude <key> <reason>` to exclude it. `shadowclone skills update` processes pending work when your maintenance consent allows.
 
 ## Activate
 
@@ -39,21 +34,14 @@ shadowclone migrate skills --apply --activate-only
 shadowclone context --explain
 ```
 
-Activation makes no new model call. It needs coverage for the applicable learning, a published baseline, and matching file fingerprints. An unresolved registered scope or a changed file stops the switch.
-
-The legacy profile files stay as recovery files after activation. Use `history` and `undo <revision>` to inspect and reverse recorded changes. Undo refuses to overwrite later edits.
+Activation makes no model call. It needs coverage of the applicable learning, a published baseline, and matching file fingerprints. An unresolved scope or a changed file stops the switch. The legacy profile files stay as recovery files. Reverse changes with `history` and `undo <revision>`.
 
 ## Before migration
 
-These compatibility commands work on installations that still use a profile:
+These commands work on profile installations:
 
-| Command                                | Purpose                                                                                             |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `shadowclone profile repair`           | Preview profile repairs. `--decisions <file>` supplies reviewed choices, and `--apply` writes them. |
-| `shadowclone migrate claude-memory`    | Preview the older one-time memory import. Reviewed decisions and apply are explicit.                |
-| `shadowclone skills show <id>`         | Inspect a legacy skill proposal                                                                     |
-| `shadowclone skills apply <id>`        | Apply a reviewed legacy proposal                                                                    |
-| `shadowclone skills reject <id>`       | Reject a legacy proposal                                                                            |
-| `shadowclone skills manage <skill-id>` | Authorize legacy managed additions for a skill                                                      |
+- `shadowclone profile repair` previews repairs. `--decisions <file>` supplies reviewed choices, and `--apply` writes them.
+- `shadowclone migrate claude-memory` previews the older one-time memory import.
+- `shadowclone skills show <id>`, `apply <id>`, and `reject <id>` handle a legacy proposal. `skills manage <skill-id>` authorizes legacy managed additions for a skill.
 
-After migration, use the controls in [skill maintenance](skills.md).
+After migration, use [skill maintenance](skills.md).

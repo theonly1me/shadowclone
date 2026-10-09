@@ -1,37 +1,33 @@
 # Pull request review evaluation
 
-This evaluation compares pull request reviewers on merged pull requests from one public repository. The headline is precision: how many findings are real, and how many are wrong. Detection of known bugs is secondary.
+This evaluation compares reviewers on merged pull requests from one public repository. The headline is precision: how many findings are real or wrong.
 
-The local evaluation runs Shadowclone and openqodex on one machine. It creates nothing on GitHub. It has two modes:
+The local evaluation runs Shadowclone and openqodex on one machine, with no GitHub use:
 
-- **Branch**: each case is a local repository with no remote. `main` is the base. One commit on `case` holds the head tree, with the upstream title and description as its message. Both reviewers review the branch with `--base main`.
-- **Upstream**: both reviewers review the real pull request number in a clone of the source repository. They read the pull request through `gh` and post nothing. The reviewer knows the exact pull request, so it can fetch its page.
-
-The cloud evaluation copies the cases into an evaluation repository and adds Greptile.
+- **Branch:** each case is a local repository with no remote. One commit on `case` over `main` holds the head tree, with the upstream title and description as its message.
+- **Upstream:** both reviewers review the real pull request in a clone of the source repository, read it through `gh`, and post nothing.
 
 ## Cases
 
-1. `mine/index.ts` lists merged pull requests in a window. For each fix pull request, it runs `git blame` on the lines that the fix removed or changed. It also blames the line next to each pure insertion. The pull request that last touched those lines is a candidate that introduced a defect.
-2. `validate.ts` gives both diffs to two judges, Claude Opus 5.5 and GPT 6.1 Sol. A candidate stays only when both judges say that the fix repairs a defect that the earlier pull request introduced.
-3. `sample.ts` takes every validated defect case. It also takes a seeded random sample of clean pull requests: merged pull requests that no later fix blames.
-4. `prepare` builds the local case repositories and writes `prepared.json`. For the cloud evaluation, `copy` pushes each case as a `case-<id>/base` branch and a `case-<id>/head` branch, without the source workflows. It then opens a draft pull request with a sanitized description.
+1. `mine/index.ts` lists merged pull requests in a window. For each fix, it blames the removed or changed lines and the line next to each pure insertion. The last pull request to touch them is a candidate that introduced a defect.
+2. `validate.ts` gives both diffs to two judges, Claude Opus 5.5 and GPT 6.1 Sol. A candidate stays only when both agree that the fix repairs a defect from the earlier pull request.
+3. `sample.ts` takes every validated defect case and a seeded sample of clean pull requests.
+4. `prepare` builds the local case repositories and writes `prepared.json`. `copy` pushes each case as `case-<id>/base` and `case-<id>/head` branches and opens a draft pull request with a sanitized description.
 
 ## Arms
 
-- **shadowclone-branch** and **shadowclone-upstream**: the same code as `shadowclone review --base main` and `shadowclone review <number>`. They use `claude-opus-5-5` at the default effort of Claude Code, with the toolchain checks on.
-- **openqodex-branch** and **openqodex-upstream**: `npx openqodex review --base main` and `npx openqodex review '#<number>'`. They use the same settings as the cloud arm below.
+All arms use `claude-opus-5-5` at the default effort of Claude Code, except Greptile with its own models.
 
-The cloud arms:
+- **shadowclone-branch** and **shadowclone-upstream** run `shadowclone review --base main` and `shadowclone review <number>`, with checks on.
+- **openqodex-branch** and **openqodex-upstream** run `npx openqodex review --base main` and `npx openqodex review '#<number>'`, with the Claude reviewer, web tools, and `ANTHROPIC_MODEL=claude-opus-5-5`.
 
-- **Shadowclone**: `@shadowclone review` on the pull request. The clone runs the released CLI with `claude-opus-5-5` at the default effort of Claude Code.
-- **openqodex**: `npx openqodex review '#<number>'` with `ANTHROPIC_MODEL=claude-opus-5-5`, the Claude reviewer, and its web tools on. It runs at the default effort of Claude Code.
-- **Greptile**: `@greptileai` on the pull request. Greptile uses its own models.
+The cloud arms are **Shadowclone** (`@shadowclone review`, which runs the released CLI), **openqodex** (the same command and settings), and **Greptile** (`@greptileai`), each on the pull request.
 
-Each arm counts the findings that its users see. For Shadowclone, these are the posted or written findings. For openqodex, these are `findings` and `outside_change`. For Greptile, these are the inline review comments.
+Each arm counts what its users see: posted or written findings for Shadowclone, `findings` and `outside_change` for openqodex, and inline review comments for Greptile.
 
 ## Grading
 
-The grading pools the findings of all arms for each case. It shuffles them, gives them random ids, and removes tool names and links. Both judges read the code at the head of the case. They label each finding `real`, `minor`, or `wrong`. On a defect case, they also list the findings that identify the known defect. A label counts when both judges agree. The owner decides each disagreement without seeing which reviewer wrote the finding.
+Grading pools and shuffles the findings of all arms for each case and removes tool names and links. Both judges read the head code and label each finding `real`, `minor`, or `wrong`. On a defect case, they also mark the findings that identify the defect. A label counts when both agree. The owner decides each disagreement blind.
 
 ## Run it
 
@@ -44,7 +40,7 @@ bun evals/pr-review/cli.ts run --arm shadowclone-branch --mined <dir> --runs <ru
 bun evals/pr-review/cli.ts judge --cases prepared.json --mined <dir> --runs <runs> --clone <clone> --seed 20261009
 ```
 
-The cloud evaluation replaces `prepare` and the local runs with these commands. Judge with `--cases copied.json`:
+For the cloud evaluation, use these instead of `prepare` and the local runs, and judge with `--cases copied.json`:
 
 ```bash
 bun evals/pr-review/cli.ts copy --mined <dir> --clone <clone> --eval-repo <owner/name>

@@ -13,73 +13,69 @@
 
 </div>
 
-**Shadowclone makes coding agents follow your engineering taste, or any rules you configure, whatever the harness, agent, or model.** It works on your machine in Claude Code, Codex, Cursor, Pi, and Antigravity. It also works on GitHub as a cloud bot that uses your Claude Code or Codex token. The bot takes issues and mentions and reviews pull requests, like an agent with your engineering taste.
+**Shadowclone makes coding agents follow your engineering taste, or any rules you configure, whatever the harness, agent, or model.** It works in Claude Code, Codex, Cursor, Pi, and Antigravity on your machine. It also runs on GitHub as a cloud bot with your Claude Code or Codex token. The bot works on issues, answers mentions, and reviews pull requests, like an agent with your engineering taste.
 
 ## Quick start
 
-Setup takes about 2 to 3 minutes. Learning from past sessions takes up to 5 minutes for each run.
+Setup takes about 2 to 3 minutes. Each learning run takes up to 5 minutes.
 
-**Claude Code.** Add the plugin, then tell the agent: "Set up Shadowclone."
+**Claude Code.** Add the plugin and tell the agent: "Set up Shadowclone."
 
 ```text
 /plugin marketplace add theonly1me/shadowclone
 /plugin install shadowclone@shadowclone
 ```
 
-**Codex.** Add the plugin, then tell the agent: "Set up Shadowclone."
+**Codex.** Add the plugin and give the same instruction.
 
 ```bash
 codex plugin marketplace add theonly1me/shadowclone
 codex plugin add shadowclone@shadowclone
 ```
 
-**Any agent.** Install the CLI and open the build wizard in your browser. To learn from past sessions, run `shadowclone init` and then `shadowclone learn --deep`.
+**Any agent.** Install the CLI and open the build wizard. To learn from past sessions, run `shadowclone init` and then `shadowclone learn --deep`. The wizard alone reads no sessions and sends no model request.
 
 ```bash
 npm install -g @shadowclone/cli
 shadowclone wizard
 ```
 
-The wizard alone reads no sessions. Opening it sends no model request. Cursor, Antigravity, and Pi can use the portable [`setup-shadowclone` skill](plugins/shadowclone/skills/setup-shadowclone/SKILL.md).
+Cursor, Antigravity, and Pi use the portable [`setup-shadowclone` skill](plugins/shadowclone/skills/setup-shadowclone/SKILL.md).
 
 ## What you get
 
-**Learning from your corrections.** Shadowclone finds the rules that you repeat in the sessions that you allow it to read. It turns them into skills and short native instructions. Learning runs on your machine. [Learning guide](docs/guides/learning.md).
-
-**One setup for every agent and any model.** The same skills reach Claude Code, Codex, Cursor, Pi, and Antigravity. Pi can use any model that you configure in Pi, including local models. [Skill maintenance](docs/guides/skills.md) and [Pi setup](docs/guides/pi.md).
-
-**Agent builds.** An Agent build is a set of workflow skills that you pick on a browser skill map. Choose a personal build, a private build for one repository, or a shared build that your team commits. [Agent builds guide](docs/guides/agent-builds.md).
+- **Learning from your corrections.** Rules that you repeat in allowed sessions become skills and short native instructions.
+- **One setup for every agent and model.** The same skills reach all five agents. Pi can use any model that you configure.
+- **Agent builds.** Pick workflow skills on a browser skill map. Equip a personal build, a private build for one repository, or a shared build that your team commits. [Agent builds guide](docs/guides/agent-builds.md).
+- **Cloud bot.** A GitHub account that you name runs in GitHub Actions with your Claude Code or Codex token. It works on issues, answers mentions, and reviews pull requests. You merge each pull request. [Cloud bot guide](docs/guides/cloud-bot.md).
+- **Reviews and delegated work.** `shadowclone review 123` reviews a pull request on your machine. The `shadowclone-work` skill takes a change to ready for review.
 
 ![The Skill constellation in the build wizard, with skills grouped by source and category, a named build, and skill details](docs/assets/agent-builds.jpg)
 
-**Cloud bot.** The bot is a GitHub account that you name. It runs in GitHub Actions with your Claude Code or Codex token. It works on issues, answers mentions, and reviews pull requests. You merge each pull request. [Cloud bot guide](docs/guides/cloud-bot.md).
-
-**Pull request review and delegated work.** `shadowclone review 123` reviews a pull request on your machine. The `shadowclone-work` skill takes a request or a pull request to ready for review. [Reviews](docs/guides/reviews.md) and [delegated work](docs/guides/delegated-work.md).
-
 ## Skills in the box
 
-Shadowclone bundles 14 workflow skills. You pick them in the wizard. Native routing lists the moment for each skill, and the agent loads the skill at that moment. `write-plain-english` is always on.
+Shadowclone bundles 14 workflow skills. Pick them in the wizard.
 
-| Skill                         | Loads                                                          |
-| ----------------------------- | -------------------------------------------------------------- |
-| `choose-by-consequence`       | When a change adds a skip, block, fallback, default, or retry  |
-| `design-deep-modules`         | When designing or reshaping a module or subsystem              |
-| `diagnose-before-editing`     | When behavior is wrong or slow and the cause is not known      |
-| `plan-with-review-page`       | Before a change that has many steps or open design choices     |
-| `research-primary-sources`    | When a decision depends on facts outside the repository        |
-| `resolve-conflicts-by-intent` | While a merge, rebase, or cherry-pick has conflicts            |
-| `scope-confirmed-changes`     | When fixing a bug, a regression, or a confirmed review finding |
-| `shadowclone-review`          | When a pull request needs a review                             |
-| `shadowclone-work`            | When taking a change or a pull request to ready for review     |
-| `tests-that-catch-bugs`       | When adding, changing, or proving a test                       |
-| `typescript-type-safety`      | When changing TypeScript types or input that enters typed code |
-| `verify-and-review`           | Before you say that work is done or ready for review           |
-| `verify-review-findings`      | When a pull request has review comments or bot findings        |
-| `write-plain-english`         | Before you write any text that a person reads (always on)      |
+| Skill                         | Loads when                              |
+| ----------------------------- | --------------------------------------- |
+| `choose-by-consequence`       | A change adds a skip or fallback        |
+| `design-deep-modules`         | You design a module                     |
+| `diagnose-before-editing`     | The cause of a failure is unknown       |
+| `plan-with-review-page`       | A change has many steps                 |
+| `research-primary-sources`    | A decision needs outside facts          |
+| `resolve-conflicts-by-intent` | A merge or rebase has conflicts         |
+| `scope-confirmed-changes`     | You fix a bug or review finding         |
+| `shadowclone-review`          | A pull request needs a review           |
+| `shadowclone-work`            | You take a change to ready for review   |
+| `tests-that-catch-bugs`       | You add or change a test                |
+| `typescript-type-safety`      | You change TypeScript types             |
+| `verify-and-review`           | Before you say that work is done        |
+| `verify-review-findings`      | A pull request has review comments      |
+| `write-plain-english`         | You write text for a person (always on) |
 
 ## Results
 
-A test of 24 fixed tasks ran three times for each setup and model. Shadowclone learning scored above existing user skills on all four models. The scores measure preference adherence on synthetic tasks. [Setups, methods, and limits](evals.md).
+Across 24 fixed tasks, Shadowclone learning scored above existing user skills on all four models. Scores measure preference adherence on synthetic tasks. See [setups, methods, and limits](evals.md).
 
 | Setup                                  | GPT 6.1 Sol | GPT 6 Luna | Claude Sonnet 5.5 | Claude Opus 5.5 |
 | -------------------------------------- | ----------: | ---------: | ----------------: | --------------: |
@@ -97,14 +93,12 @@ flowchart LR
   C --> E[Cloud bot on GitHub]
 ```
 
-Shadowclone indexes references to the sessions that you enable and does not copy transcripts. It redacts the text and learns rules.
-
-One session can give an explicit rule, and an inferred pattern needs three independent sessions. Shadowclone publishes rules as skills that you can read, edit, and undo. It changes the guidance that a model receives, not the model. See the [architecture](docs/architecture/README.md).
+Shadowclone indexes references to enabled sessions and copies no transcript. It redacts text and learns rules. One session can give an explicit rule, and an inferred pattern needs three independent sessions. Rules become skills that you can read, edit, and undo. Shadowclone changes the guidance, not the model. See the [architecture](docs/architecture/README.md).
 
 ## Privacy
 
-- **No collection service.** Shadowclone has no telemetry. Model work uses the agent CLI that you choose.
-- **Consent for each source.** Every source is off by default and has its own setting.
+- **No collection service.** No telemetry. Model work uses the agent CLI that you choose.
+- **Consent.** Every source is off by default and has its own setting.
 - **Redaction.** Tool results, tool-returned file contents, and thinking blocks never enter learning.
 - **Removal.** Run `shadowclone learning disable`, `shadowclone skills automatic off`, or `shadowclone forget --all`.
 
@@ -112,22 +106,22 @@ Read the [privacy policy](PRIVACY.md) and [data handling](docs/data-handling.md)
 
 ## Docs
 
-| Guide                                            | Use it to                                                        |
-| ------------------------------------------------ | ---------------------------------------------------------------- |
-| [Agent builds](docs/guides/agent-builds.md)      | Pick skills on the skill map and choose a build scope            |
-| [Learning](docs/guides/learning.md)              | Run deep learning, turn on background learning, or record a rule |
-| [Skill maintenance](docs/guides/skills.md)       | Review updates and conflicts, and undo a change                  |
-| [Repository setup](docs/guides/repositories.md)  | Share checks and skills with a repository                        |
-| [Pi setup](docs/guides/pi.md)                    | Use Pi models, including local models                            |
-| [Delegated work](docs/guides/delegated-work.md)  | Take a change or a pull request to ready for review              |
-| [Cloud bot](docs/guides/cloud-bot.md)            | Set up a GitHub bot for issues, mentions, and reviews            |
-| [Reviews](docs/guides/reviews.md)                | Review a pull request on your machine or in the cloud            |
-| [MCP server](docs/guides/mcp.md)                 | Give a connected agent the Shadowclone tools                     |
-| [Command reference](docs/guides/commands.md)     | Find every command                                               |
-| [Migration](docs/guides/migration.md)            | Move a profile installation to skills                            |
-| [Enterprise controls](docs/guides/enterprise.md) | Set scope and managed policy                                     |
+| Guide                                            | Use it to             |
+| ------------------------------------------------ | --------------------- |
+| [Agent builds](docs/guides/agent-builds.md)      | Pick skills and scope |
+| [Learning](docs/guides/learning.md)              | Learn from sessions   |
+| [Skill maintenance](docs/guides/skills.md)       | Review updates, undo  |
+| [Repository setup](docs/guides/repositories.md)  | Share checks          |
+| [Pi setup](docs/guides/pi.md)                    | Use Pi models         |
+| [Delegated work](docs/guides/delegated-work.md)  | Ready a pull request  |
+| [Cloud bot](docs/guides/cloud-bot.md)            | Set up the GitHub bot |
+| [Reviews](docs/guides/reviews.md)                | Review a pull request |
+| [MCP server](docs/guides/mcp.md)                 | Give agents the tools |
+| [Command reference](docs/guides/commands.md)     | Find every command    |
+| [Migration](docs/guides/migration.md)            | Move to skills        |
+| [Enterprise controls](docs/guides/enterprise.md) | Set scope and policy  |
 
-More: [documentation index](docs/README.md), [motivation](docs/motivation.md), [design history](docs/design/README.md), and [security](SECURITY.md).
+More: [documentation index](docs/README.md), [motivation](docs/motivation.md), [design history](docs/design/README.md), [security](SECURITY.md).
 
 ## Contributing
 
