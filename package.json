@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write",
     "format:check": "prettier --check",
-    "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run scripts/conventions.ts && bun run scripts/privacy.ts && bun run scripts/skills.ts && bun run scripts/skillVersions.ts",
+    "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run scripts/conventions.ts && bun run scripts/boundaries.ts && bun run scripts/privacy.ts && bun run scripts/skills.ts && bun run scripts/skillVersions.ts",
     "lint:fix": "biome lint --write .",
     "knip": "knip",
     "eval": "bun evals/run.ts",
