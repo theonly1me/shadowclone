@@ -18,8 +18,9 @@
     "stage": "turbo run stage",
     "format": "prettier --write",
     "format:check": "prettier --check",
-    "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run tooling/src/conventions.ts && bun run tooling/src/boundaries.ts && bun run tooling/src/privacy.ts && bun run tooling/src/skills.ts && bun run tooling/src/skillVersions.ts",
+    "lint": "biome lint --error-on-warnings --diagnostic-level=warn . && bun run tooling/src/conventions.ts && bun run tooling/src/boundaries.ts && bun run tooling/src/privacy.ts && bun run tooling/src/skills.ts && bun run tooling/src/skillVersions.ts && bun run tooling/src/prose.ts && bun run tooling/src/packageGuides.ts",
     "lint:fix": "biome lint --write .",
+    "guides": "bun run tooling/src/packageGuides.ts --write",
     "knip": "knip",
     "eval": "bun evals/run.ts",
     "eval:work": "bun evals/work/run.ts"
