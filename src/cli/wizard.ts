@@ -6,7 +6,9 @@ import { loadSeedLibrary } from "../skills";
 import { type ConfirmPrompt, promptConfirmation } from "./confirm";
 
 import {
+  alwaysOnSkills,
   choiceQuestion,
+  optionalSkills,
   parseAxisChoice,
   parseOptionalSkillChoices,
 } from "./wizardChoices";
@@ -113,7 +115,7 @@ export async function runWizard(
 
   selected.push(
     ...(await chooseOptionalSkills({
-      skills: library.independentSkills,
+      skills: optionalSkills(library),
       answer,
       writeLine,
     })),
@@ -124,6 +126,16 @@ export async function runWizard(
     writeLine(`  ${entry.title}`);
   }
 
+  const alwaysOn = alwaysOnSkills(library);
+
+  if (alwaysOn.length > 0) {
+    writeLine("Always included:");
+
+    for (const entry of alwaysOn) {
+      writeLine(`  ${entry.title}`);
+    }
+  }
+
   const selectedGuidanceIds = selected.map((entry) => entry.id);
 
   if (!(await confirm("Install these preferences and skills?"))) {
@@ -132,7 +144,11 @@ export async function runWizard(
     return { written: false, selectedGuidanceIds };
   }
 
-  await applyWizardSelection({ paths, library, selected });
+  await applyWizardSelection({
+    paths,
+    library,
+    selected: [...selected, ...alwaysOn],
+  });
 
   writeLine(
     "Applied your selected preferences and skills to native agent guidance.",

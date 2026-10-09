@@ -1,4 +1,12 @@
-import type { SeedAgentSkill, SeedGuidance } from "../skills";
+import type { SeedAgentSkill, SeedGuidance, SeedLibrary } from "../skills";
+
+export function optionalSkills(library: SeedLibrary): readonly SeedAgentSkill[] {
+  return library.independentSkills.filter((skill) => !skill.alwaysOn);
+}
+
+export function alwaysOnSkills(library: SeedLibrary): readonly SeedAgentSkill[] {
+  return library.skills.filter((skill) => skill.alwaysOn);
+}
 
 function numberedChoices<T extends SeedGuidance>(
   guidance: readonly T[],

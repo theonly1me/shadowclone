@@ -83,7 +83,7 @@ test("retired skills are replaced in the build, and their copies go away", async
   });
 
   expect(setup.result.state.builds.map((build) => build.choices)).toEqual([
-    { "verify-and-review": true, "tests-that-catch-bugs": true },
+    { "verify-and-review": true, "write-plain-english": true, "tests-that-catch-bugs": true },
   ]);
   expect(await setup.installed("testing-first")).toEqual([false, false, false]);
   expect(await setup.installed("prove-regression-tests")).toEqual([false, false, false]);
@@ -115,7 +115,12 @@ test("an edited retired copy stays selected, and the other retired skill is stil
   });
 
   expect(setup.result.state.builds.map((build) => build.choices)).toEqual([
-    { "verify-and-review": true, "testing-first": true, "tests-that-catch-bugs": true },
+    {
+      "verify-and-review": true,
+      "write-plain-english": true,
+      "testing-first": true,
+      "tests-that-catch-bugs": true,
+    },
   ]);
   expect(await setup.installed("testing-first")).toEqual([true, true, true]);
   expect(await setup.installed("prove-regression-tests")).toEqual([false, false, false]);
@@ -141,7 +146,7 @@ test("a deselected retired skill leaves the build without adding its replacement
   const setup = await migratedInstall({ retired: { "testing-first": false } });
 
   expect(setup.result.state.builds.map((build) => build.choices)).toEqual([
-    { "verify-and-review": true },
+    { "verify-and-review": true, "write-plain-english": true },
   ]);
   expect(await setup.installed("tests-that-catch-bugs")).toEqual([false, false, false]);
   expect(setup.result.changes).toEqual([]);
@@ -159,7 +164,7 @@ test("a replacement that cannot be installed is reported and leaves the build un
   });
 
   expect(setup.result.state.builds.map((build) => build.choices)).toEqual([
-    { "verify-and-review": true, "testing-first": true },
+    { "verify-and-review": true, "write-plain-english": true, "testing-first": true },
   ]);
   expect(await setup.installed("testing-first")).toEqual([true, true, true]);
   expect(renderRetiredSkillChanges(setup.result.changes)).toEqual([

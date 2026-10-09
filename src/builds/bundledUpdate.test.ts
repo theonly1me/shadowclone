@@ -48,6 +48,7 @@ test("skill maintenance leaves an older bundled copy alone, and sync updates it"
     updated: [{ name: "verify-and-review", copies: 3 }],
     kept: [],
     retired: [],
+    alwaysOn: [],
     warnings: [],
   });
 

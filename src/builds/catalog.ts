@@ -31,6 +31,7 @@ export async function packagedBuildItems(): Promise<BuildItem[]> {
       category: entry.category,
       section: entry.section,
       axis: entry.axis,
+      alwaysOn: entry.kind === "skill" && entry.alwaysOn,
       owner: "packaged",
     })),
   );
@@ -73,6 +74,7 @@ export async function buildCatalog(
           category: null,
           section: null,
           axis: null,
+          alwaysOn: false,
           owner: "managed",
         });
       }
@@ -161,6 +163,7 @@ export async function buildCatalog(
       category: classification.category,
       section: classification.section,
       axis: classification.axis,
+      alwaysOn: false,
       owner: source.root.owner === "user" ? "user" : "provider",
       source,
     });

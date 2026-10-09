@@ -74,7 +74,7 @@ const namer = createBuildNamer({
 });
 
 function selectedItems() {
-  return editor.view?.items.filter((item) => item.owner !== "provider" && equipped(item)) ?? [];
+  return editor.view?.items.filter((item) => item.owner !== "provider" && !item.alwaysOn && equipped(item)) ?? [];
 }
 
 function updateName(): void {

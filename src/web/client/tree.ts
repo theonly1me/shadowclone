@@ -213,7 +213,7 @@ function updateStates(): void {
     container.setAttribute("aria-pressed", String(selected));
     container.setAttribute(
       "aria-label",
-      `${nodeTitle(node)}${item?.owner === "provider" ? ", managed by its plugin" : selected ? ", equipped" : ""}`,
+      `${nodeTitle(node)}${item?.owner === "provider" ? ", managed by its plugin" : item?.alwaysOn ? ", always on" : selected ? ", equipped" : ""}`,
     );
   }
 }

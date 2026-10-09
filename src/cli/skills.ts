@@ -1,4 +1,5 @@
 import { loadSeedLibrary, type SeedLibrary } from "../skills";
+import { alwaysOnSkills, optionalSkills } from "./wizardChoices";
 
 function appendAxes(options: {
   readonly lines: string[];
@@ -34,7 +35,13 @@ export function renderSeedLibrary(library: SeedLibrary): readonly string[] {
   appendAxes({ lines, heading: "Skill axes", axes: skillAxes });
   lines.push("", "Optional skills");
 
-  for (const skill of library.independentSkills) {
+  for (const skill of optionalSkills(library)) {
+    lines.push(`  ${skill.id}: ${skill.title}`);
+  }
+
+  lines.push("", "Always on skills");
+
+  for (const skill of alwaysOnSkills(library)) {
     lines.push(`  ${skill.id}: ${skill.title}`);
   }
 

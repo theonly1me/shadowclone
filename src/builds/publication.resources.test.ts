@@ -56,6 +56,7 @@ async function packagedSkill(script: string): Promise<Packaged> {
       category: null,
       section: null,
       axis: null,
+      alwaysOn: false,
       owner: "packaged",
     },
   };

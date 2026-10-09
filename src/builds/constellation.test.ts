@@ -24,6 +24,7 @@ function item(options: {
     category: options.category ?? null,
     section: "workflow",
     axis: null,
+    alwaysOn: false,
     owner: options.owner ?? "user",
     ...(options.pluginPath
       ? {

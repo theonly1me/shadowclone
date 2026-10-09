@@ -97,7 +97,11 @@ test("a deselected skill that left the library does not block the build, and a s
         input: buildInput({ choices: { "retired-skill": false, "verify-and-review": true } }),
       })
     ).input.choices,
-  ).toEqual({ "retired-skill": false, "verify-and-review": true });
+  ).toEqual({
+    "retired-skill": false,
+    "verify-and-review": true,
+    "write-plain-english": true,
+  });
   await expect(
     previewBuild({ ...context, input: buildInput({ choices: { "retired-skill": true } }) }),
   ).rejects.toThrow("The selected library changed; reload the build before applying");

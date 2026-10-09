@@ -58,6 +58,7 @@ export async function installedBuildItem(options: {
     category: options.original?.category ?? classification.category,
     section: options.original?.section ?? classification.section,
     axis: options.original?.axis ?? classification.axis,
+    alwaysOn: options.original?.alwaysOn ?? false,
     owner: "managed",
     source: {
       id,

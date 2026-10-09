@@ -45,6 +45,7 @@ export function authoredBuildSkills(options: {
           category: null,
           section: null,
           axis: null,
+          alwaysOn: false,
           owner: "managed",
         }),
       ),
@@ -68,6 +69,7 @@ export function authoredBuildSkills(options: {
       category: "working-preferences",
       section: "workflow",
       axis: null,
+      alwaysOn: false,
       owner: "managed",
     });
   }

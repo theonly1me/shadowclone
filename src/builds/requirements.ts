@@ -49,11 +49,15 @@ export function validateSharedRequirements(options: {
     directory: options.build.directory,
   });
 
+  const alwaysOnIds = new Set(
+    options.catalog.filter((item) => item.alwaysOn).map((item) => item.id),
+  );
+
   for (const [id, enabled] of Object.entries(locked)) {
     const choice = options.build.choices[id];
 
     if (
-      (choice !== undefined && choice !== enabled) ||
+      (choice !== undefined && choice !== enabled && !alwaysOnIds.has(id)) ||
       options.build.edits[id]
     ) {
       throw new Error(

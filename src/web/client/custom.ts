@@ -43,6 +43,7 @@ export function saveCustomSkill(): void {
     category: null,
     section: null,
     axis: null,
+    alwaysOn: false,
     owner: "managed",
   });
 

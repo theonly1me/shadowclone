@@ -21,8 +21,15 @@ export async function previewBuild(
   }
 
   let state = await prepareBuildEnvironment(options);
-  const build = buildDefinition({ ...options, input });
   const catalog = await buildCatalog({ ...options, scope: input.scope });
+
+  for (const item of catalog) {
+    if (item.alwaysOn) {
+      input.choices[item.id] = true;
+    }
+  }
+
+  const build = buildDefinition({ ...options, input });
   const selected = selectedItems({ state, build, catalog });
   const authored = authoredBuildSkills({ input, selected });
 

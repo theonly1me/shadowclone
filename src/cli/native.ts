@@ -188,7 +188,10 @@ export async function handleNativeCommand(options: {
       console.log(line);
     }
 
-    if (bundled?.retired.some((change) => change.kind === "failed")) {
+    if (
+      bundled?.retired.some((change) => change.kind === "failed") ||
+      bundled?.alwaysOn.some((change) => change.kind === "failed")
+    ) {
       process.exitCode = 1;
     }
 

@@ -22,6 +22,7 @@ export const seedAgentSkillMetadataSchema = z.strictObject({
     "shadowclone-applies-when": z.string().trim().min(1),
     "shadowclone-axis": slugSchema.optional(),
     "shadowclone-voice": z.literal("true").optional(),
+    "shadowclone-always-on": z.literal("true").optional(),
   }),
 });
 
@@ -42,6 +43,7 @@ export type SeedPreference = SeedGuidanceFields & {
 export type SeedAgentSkill = SeedGuidanceFields & {
   readonly kind: "skill";
   readonly description: string;
+  readonly alwaysOn: boolean;
 };
 
 export type SeedGuidance = SeedPreference | SeedAgentSkill;

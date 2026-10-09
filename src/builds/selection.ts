@@ -52,7 +52,7 @@ export function selectedItems(options: {
   const locked = validateSharedRequirements(options);
   const choices = { ...effectiveChoices(options), ...locked };
   const selected = options.catalog.filter(
-    (item) => choices[item.id] && locked[item.id] !== true,
+    (item) => (item.alwaysOn || choices[item.id]) && locked[item.id] !== true,
   );
 
   for (const [id, chosen] of Object.entries(options.build.choices)) {

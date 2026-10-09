@@ -50,6 +50,7 @@ export type BuildItem = {
   readonly category: string | null;
   readonly section: string | null;
   readonly axis: string | null;
+  readonly alwaysOn: boolean;
   readonly owner: "packaged" | "managed" | "user" | "provider";
   readonly source?: DiscoveredSkill;
 };

@@ -45,6 +45,7 @@ export async function buildView(
           category: null,
           section: null,
           axis: null,
+          alwaysOn: false,
           owner: "managed",
         });
       }
@@ -68,7 +69,7 @@ export async function buildView(
     ) ?? []),
     ...(options.scope === "private" && shared
       ? catalog
-          .filter((item) => shared.choices[item.id])
+          .filter((item) => shared.choices[item.id] && !item.alwaysOn)
           .map((item) => `Shared requirement: ${item.title}`)
       : []),
   ];
@@ -93,14 +94,18 @@ export async function buildView(
       items: catalog,
       packagedIds: new Set((await loadSeedLibrary()).guidance.map((entry) => entry.id)),
     }),
-    locked:
-      state && options.scope === "private"
+    locked: {
+      ...Object.fromEntries(
+        catalog.filter((item) => item.alwaysOn).map((item) => [item.id, true]),
+      ),
+      ...(state && options.scope === "private"
         ? sharedRequirements({
             state,
             directory: canonicalPath(options.cwd),
             catalog,
           })
-        : {},
+        : {}),
+    },
     requirements,
     libraryEnabled: config.sources["skill-library"],
     migrationRequired: state?.phase === "preparing" || legacy,

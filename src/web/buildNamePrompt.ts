@@ -54,7 +54,7 @@ export async function buildNameSkills(options: BuildContext & { readonly input: 
   const state = (await readEnvironment(options.paths)) ?? emptyEnvironment;
   const build = buildDefinition({ ...options, input });
   const catalog = await buildCatalog({ ...options, scope: input.scope });
-  const selected = selectedItems({ state, build, catalog });
+  const selected = selectedItems({ state, build, catalog }).filter((item) => !item.alwaysOn);
   const skills = authoredBuildSkills({ input, selected }).filter((item) => item.id !== "build-preferences");
   const preferences = selected.filter((item) => item.kind === "preference");
 

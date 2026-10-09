@@ -51,7 +51,7 @@ export function activeRetirements(options: {
   );
 }
 
-function buildLabel(build: BuildDefinition): string {
+export function buildLabel(build: BuildDefinition): string {
   if (build.scope === "global") {
     return "your global build";
   }

@@ -98,11 +98,13 @@ export function renderDetail(options: {
     create({
       tag: "p",
       className: "skill-status",
-      text: locked
-        ? "◇ Shared requirement"
-        : external
-          ? "◇ Managed by its provider"
-          : "◇ Workflow guidance",
+      text: item.alwaysOn
+        ? "◇ Always on"
+        : locked
+          ? "◇ Shared requirement"
+          : external
+            ? "◇ Managed by its provider"
+            : "◇ Workflow guidance",
     }),
   );
 
@@ -111,7 +113,9 @@ export function renderDetail(options: {
       create({
         tag: "p",
         className: "owner-note",
-        text: "This choice belongs to the shared repository build. Switch to shared scope to propose a reviewed change.",
+        text: item.alwaysOn
+          ? "Shadowclone always applies this skill. Your agent loads it before it writes any text that a person reads."
+          : "This choice belongs to the shared repository build. Switch to shared scope to propose a reviewed change.",
       }),
     );
 

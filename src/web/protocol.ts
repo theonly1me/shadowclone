@@ -12,6 +12,7 @@ export const itemSchema = z.strictObject({
   category: z.string().nullable(),
   section: z.string().nullable(),
   axis: z.string().nullable(),
+  alwaysOn: z.boolean(),
   owner: z.enum(["packaged", "managed", "user", "provider"]),
 });
 

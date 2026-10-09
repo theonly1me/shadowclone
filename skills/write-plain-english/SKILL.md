@@ -4,14 +4,17 @@ description: 'Use when writing or editing prose that people read, such as docume
 metadata:
   shadowclone-category: writing
   shadowclone-section: workflow
-  shadowclone-applies-when: when writing prose that people read
+  shadowclone-applies-when: before you write any text that a person reads
   shadowclone-voice: "true"
+  shadowclone-always-on: "true"
 ---
 # Write Plain English
 
 ## Use when
 
-You write or edit text for people: a document, a pull request, a commit message, a review comment, a chat reply, or a skill. The rules come from ASD-STE100 Simplified Technical English. Clarity comes first. If a rule makes the text wrong or unclear, break the rule.
+You write or edit any text that a person reads. Examples are a document, a pull request, a commit message, a review comment, a chat reply, and a skill. This skill is always on, so load it before you write.
+
+The rules come from ASD-STE100 Simplified Technical English, at about 80% strictness. Fix every checker error. Fix each warning, or keep it and give a reason. Clarity comes first. If a rule makes the text wrong or unclear, break the rule.
 
 ## Gates
 
@@ -19,7 +22,7 @@ You write or edit text for people: a document, a pull request, a commit message,
 2. Is each instruction in the active voice, with the condition before the action?
 3. Do you use one term for one thing, every time?
 4. Is the text free of em dashes and en dashes?
-5. Did you run `scripts/check-ste.mjs` on the text, and fix or explain each finding?
+5. Did you run `scripts/check-ste.mjs` on the text, fix every error, and fix or explain each warning?
 6. Are code, commands, paths, and product names exactly as they were?
 
 ## Process
@@ -33,7 +36,15 @@ Write in the user's voice. Before you write, read `~/.agents/voice.md`. If it do
 5. Put a condition before its instruction: "If the test fails, read the first error."
 6. Replace each dash with a comma, a period, parentheses, or two sentences. For a range, write "to", as in "2 to 5".
 7. Save the text to a file, and run `node scripts/check-ste.mjs <file>`. If Node is not available, run the script with `bun`. If neither one runs, say that the check did not run.
-8. Fix each error. For each warning, fix it, or keep it and say why the rule makes the text worse.
+8. Fix every error. For each warning, fix it, or keep it and say why the rule makes the text worse.
+
+For a document, also follow these rules:
+
+- Lead with the result. Put the reason and the detail after it.
+- Write one topic in each paragraph.
+- Name each heading for the task or the answer that the reader needs.
+- Use a table to compare options. Use a numbered list for steps.
+- Link to the text that already exists. Do not repeat it.
 
 ## Example
 

@@ -7,12 +7,18 @@ import type { EnvironmentState } from "../environment/types";
 import { readLocalText } from "../localFiles";
 import { acquireLocalLock } from "../localFiles/lock";
 import type { ProjectPaths } from "../paths";
+import {
+  migrateAlwaysOnSkills,
+  renderAlwaysOnChanges,
+  type AlwaysOnChange,
+} from "./alwaysOnMigration";
 import { renderRetiredSkillChanges, type RetiredSkillChange } from "./retired";
 import { migrateRetiredSkills } from "./retiredMigration";
 import { renderBuildSkillSync, syncBuildSkills, type BuildSkillSyncReport } from "./sync";
 
 export type BundledSkillReport = BuildSkillSyncReport & {
   readonly retired: readonly RetiredSkillChange[];
+  readonly alwaysOn: readonly AlwaysOnChange[];
   readonly warnings: readonly string[];
 };
 
@@ -67,7 +73,11 @@ export async function updateBundledSkills(paths: ProjectPaths): Promise<BundledS
 
     await publishState({ paths, updates: migrated.updates, state: migrated.state });
 
-    const synced = await syncBuildSkills({ state: migrated.state });
+    const required = await migrateAlwaysOnSkills({ paths, state: migrated.state });
+
+    await publishState({ paths, updates: required.updates, state: required.state });
+
+    const synced = await syncBuildSkills({ state: required.state });
 
     await publishState({ paths, updates: synced.updates, state: synced.state });
 
@@ -75,7 +85,8 @@ export async function updateBundledSkills(paths: ProjectPaths): Promise<BundledS
       updated: synced.updated,
       kept: synced.kept,
       retired: migrated.changes,
-      warnings: migrated.warnings,
+      alwaysOn: required.changes,
+      warnings: [...migrated.warnings, ...required.warnings],
     };
   } finally {
     lock.release();
@@ -85,6 +96,7 @@ export async function updateBundledSkills(paths: ProjectPaths): Promise<BundledS
 export function renderBundledSkillReport(report: BundledSkillReport): readonly string[] {
   return [
     ...renderRetiredSkillChanges(report.retired),
+    ...renderAlwaysOnChanges(report.alwaysOn),
     ...report.warnings,
     ...renderBuildSkillSync(report),
   ];

@@ -43,6 +43,7 @@ export function syntheticLibrary(options: { readonly count: number }): {
       category: categories[index % categories.length] ?? null,
       section: "workflow",
       axis: null,
+      alwaysOn: false,
       owner: plugin ? "provider" : "user",
       ...(plugin ? { source: pluginSource({ id, plugin }) } : {}),
     };

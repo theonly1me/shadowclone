@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdir, mkdtemp, realpath } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { isPackageRoot } from "./library";
+import { isPackageRoot, loadSeedLibrary } from "./library";
 
 async function packageTree(options: {
   readonly name: string;
@@ -34,4 +34,12 @@ test("the package root is found by its name, without depending on any one bundle
     await isPackageRoot(await packageTree({ name: "@shadowclone/cli", folders: ["preferences"] })),
   ).toBeFalse();
   expect(await isPackageRoot(path.resolve(import.meta.dir, "../.."))).toBeTrue();
+});
+
+test("the bundled library marks only write-plain-english as always on", async () => {
+  const library = await loadSeedLibrary();
+
+  expect(library.skills.filter((skill) => skill.alwaysOn).map((skill) => skill.id)).toEqual([
+    "write-plain-english",
+  ]);
 });

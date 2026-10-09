@@ -179,6 +179,7 @@ export function parseSeedAgentSkillDocument(options: {
     category: parsed.data.metadata["shadowclone-category"],
     section: parsed.data.metadata["shadowclone-section"],
     appliesWhen: [parsed.data.metadata["shadowclone-applies-when"]],
+    alwaysOn: parsed.data.metadata["shadowclone-always-on"] === "true",
     body,
   };
 }
