@@ -13,6 +13,11 @@ export async function publishReview(options: {
   readonly cwd: string;
 }): Promise<string> {
   const { pull } = options.result;
+
+  if (pull.number === null) {
+    throw new Error("A branch review has no pull request to post to.");
+  }
+
   const posted = await runProcess({
     arguments: [
       "gh",

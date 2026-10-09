@@ -45,3 +45,11 @@ test("the local review lists each finding that failed the evidence check, with i
 test("the local review lists each signal that the reviewer checked and dropped, with its reason", () => {
   expect(reviewMarkdown(result)).toContain("- S1 js-eval: Code built from a string at runtime (`src/a.ts:3`): The string is a constant.");
 });
+
+test("a branch review names the head commit and shows plain locations, because the commit may not be on GitHub", () => {
+  const markdown = reviewMarkdown({ ...result, pull: { ...result.pull, repository: "local/project", number: null } });
+
+  expect(markdown).toStartWith(`# Review of local/project at ${headSha.slice(0, 7)}`);
+  expect(markdown).toContain("- `src/order.ts:12`: `return subtotal;`");
+  expect(markdown).not.toContain("https://github.com");
+});

@@ -51,7 +51,7 @@ export type Analysis = z.infer<typeof analysisSchema>;
 
 export const pullFactsSchema = z.object({
   repository: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
-  number: z.number().int().positive(),
+  number: z.number().int().positive().nullable(),
   title: z.string().max(1000),
   body: z.string().max(65_536),
   baseRefName: z.string().min(1).max(255),

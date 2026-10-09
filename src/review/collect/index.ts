@@ -6,6 +6,7 @@ import { readStandards, type Standards } from "./standards";
 
 export type { DiffFile } from "./diff";
 export type { Standards } from "./standards";
+export { branchRepositoryName, hasUncommittedChanges, readBranchFacts } from "./branch";
 export { readPullFacts } from "./facts";
 
 export type ReviewContext = {

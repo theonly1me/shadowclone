@@ -14,6 +14,10 @@ export const selectedCaseSchema = z.object({
 
 export type SelectedCase = z.infer<typeof selectedCaseSchema>;
 
+export const evalCaseSchema = selectedCaseSchema.extend({ baseSha: z.string(), headSha: z.string() });
+
+export type EvalCase = z.infer<typeof evalCaseSchema>;
+
 function seededShuffle<Item>(options: { readonly items: readonly Item[]; readonly seed: number }): readonly Item[] {
   const shuffled = [...options.items];
   let state = options.seed;

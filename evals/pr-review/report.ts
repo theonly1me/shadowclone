@@ -36,7 +36,9 @@ export function armMetrics(options: {
   readonly tiebreaks: ReadonlyMap<string, string>;
   readonly seed: number;
 }): readonly ArmMetrics[] {
-  return armNames.map((arm, armIndex) => {
+  const reported = armNames.filter((arm) => options.summaries.some((summary) => summary.arm === arm));
+
+  return reported.map((arm, armIndex) => {
     const runs = options.summaries.filter((summary) => summary.arm === arm);
     const completedCases = new Set(runs.filter((summary) => summary.done).map((summary) => summary.caseId));
     const perCase = options.judged

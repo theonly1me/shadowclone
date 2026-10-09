@@ -18,10 +18,10 @@ export function inlineCode(text: string): string {
   return `${fence}${padded.replace(/\s*\n\s*/g, " ")}${fence}`;
 }
 
-function codeLink(options: { readonly location: string; readonly target: LinkTarget }): string {
+function codeLink(options: { readonly location: string; readonly target: LinkTarget | null }): string {
   const parsed = parseCodeLocation(options.location);
 
-  if (parsed === null) {
+  if (parsed === null || options.target === null) {
     return inlineCode(options.location);
   }
 
@@ -43,7 +43,7 @@ function docLink(location: string): string {
   }
 }
 
-export function evidenceLine(options: { readonly item: Evidence; readonly target: LinkTarget }): string {
+export function evidenceLine(options: { readonly item: Evidence; readonly target: LinkTarget | null }): string {
   const { target } = options;
   const item = { ...options.item, quote: redactSecrets({ text: options.item.quote }) };
 
@@ -66,7 +66,7 @@ export function evidenceLine(options: { readonly item: Evidence; readonly target
   return `- ${docLink(item.location)}: "${neutralizeText(item.quote)}"`;
 }
 
-export function findingBody(options: { readonly finding: Finding; readonly target: LinkTarget; readonly refutation: boolean }): string {
+export function findingBody(options: { readonly finding: Finding; readonly target: LinkTarget | null; readonly refutation: boolean }): string {
   const { finding, target } = options;
   const sections = [
     `**${finding.severity} ${finding.category}: ${neutralizeText(finding.title)}**`,

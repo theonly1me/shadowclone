@@ -30,6 +30,7 @@ For contributor evaluations, use the source runner with `bun run eval --protocol
 | `shadowclone bot status`                                                               | Show saved clone installation metadata and its setup PR                                         |
 | `shadowclone sync`                                                                     | Refresh maintained skills and native routing                                                    |
 | `shadowclone review <pr>`                                                              | Review a pull request on this machine and write a markdown file                                 |
+| `shadowclone review --base <ref>`                                                      | Review the commits on the current branch since it left `<ref>`                                  |
 | `shadowclone review <pr> --cloud`                                                      | Ask the GitHub clone to review a pull request and post its review                               |
 
 ## Other commands
@@ -54,7 +55,7 @@ A Codex repository install writes `AGENTS.override.md`, and Codex reads only one
 
 ## Pull request reviews
 
-`shadowclone review <pr>` accepts `--no-checks`, `--repo owner/repository`, `--output file.md`, `--model <id>`, and `--effort <level>`. `--offline` turns off web search, page fetches, and the dependency check. The cloud workflow uses `review prepare`, `review checks`, `review analyze`, and `review publish`. See [pull request reviews](reviews.md).
+`shadowclone review <pr>` accepts `--no-checks`, `--repo owner/repository`, `--output file.md`, `--model <id>`, and `--effort <level>`. Without a pull request number, `shadowclone review` reviews the current branch, and `--base <ref>` names its base. `--offline` turns off web search, page fetches, and the dependency check. The cloud workflow uses `review prepare`, `review checks`, `review analyze`, and `review publish`. See [pull request reviews](reviews.md).
 
 ## Delegated engineering work
 

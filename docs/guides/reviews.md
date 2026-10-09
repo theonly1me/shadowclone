@@ -16,6 +16,14 @@ You need GitHub CLI signed in with `gh auth login` and Claude Code signed in. Th
 
 The review checks out the pull request into temporary worktrees. It removes them when it finishes. Your checkout and its branch do not change.
 
+## Review a branch before you open a pull request
+
+```bash
+shadowclone review --base main
+```
+
+Without a number, the review reads the commits on the current branch since it left `--base`. Without `--base`, it uses `origin/HEAD`. The commit messages take the place of the pull request title and description. Commit your change first: the review leaves out uncommitted changes, and it says so. A branch review needs no GitHub access. Its evidence shows plain `path:line` locations, because the commit may not be on GitHub.
+
 ## Review in the cloud
 
 ```bash
