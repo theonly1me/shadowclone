@@ -1,6 +1,6 @@
-import type { Convention } from "../conventions";
 import type { CommentReader, SourceComment } from "./comments";
 import type { HarnessFinding } from "./types";
+import type { Convention } from "../../environment/harness/conventionSchema";
 
 const proseExtensions = [
   ".md",

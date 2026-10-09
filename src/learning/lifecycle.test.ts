@@ -1,44 +1,15 @@
 import { expect, test } from "bun:test";
-import { readPendingLearning, updatePendingLearning } from "./pending";
-import { mkdtemp } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
-import { undoRevision } from "../changes";
-import { defaultConfig, writeConfig } from "../config";
+import { readPendingLearning, updatePendingLearning } from "./pending";
 import { learningRecord } from "../environment/fixtures";
 import { environmentFile, readEnvironment, writeEnvironment } from "../environment/store";
 import { emptyEnvironment } from "../environment/types";
-import { createProjectPaths } from "../paths";
-import { normalizeRemoteRepository } from "../signal";
+import { preferenceEditFixture } from "./testing";
 import { applyPreferencePreview, previewPreferenceEdit, previewSourceRemoval } from "./lifecycle";
-
-async function fixture() {
-  const home = await mkdtemp(path.join(os.tmpdir(), "shadowclone-preference-edit-"));
-  const paths = createProjectPaths({ homeDirectory: home, platform: "darwin" });
-  const record = learningRecord();
-  const repository = normalizeRemoteRepository("git@github.com:acme/palette.git");
-  if (!repository?.profileFileName) throw new Error("Expected a synthetic repository identity");
-  await writeConfig({
-    configPath: paths.configFile,
-    config: { ...defaultConfig, sources: { ...defaultConfig.sources, "git-metadata": true } },
-  });
-  await writeEnvironment({
-    paths,
-    state: {
-      ...emptyEnvironment,
-      records: [record],
-      repositories: [{
-        directory: path.join(home, "repository"),
-        originDirectory: repository.origin.directoryName,
-        repositoryName: repository.profileFileName,
-      }],
-    },
-  });
-  return { paths, record, home };
-}
+import { undoRevision } from "../environment/undo";
 
 test("replacement previews write nothing, reject stale state, and can be undone", async () => {
-  const { paths, record } = await fixture();
+  const { paths, record } = await preferenceEditFixture();
   const before = await Bun.file(environmentFile(paths)).text();
   const preview = await previewPreferenceEdit({
     paths, edit: { kind: "replace", key: record.rule.key, text: "Validate palette labels before saving." },
@@ -53,7 +24,7 @@ test("replacement previews write nothing, reject stale state, and can be undone"
 });
 
 test("narrowing retires the old global rule and keeps a distinct repository rule", async () => {
-  const { paths, record, home } = await fixture();
+  const { paths, record, home } = await preferenceEditFixture();
   const preview = await previewPreferenceEdit({
     paths, edit: { kind: "narrow", key: record.rule.key }, cwd: path.join(home, "repository"),
     readRemote: async () => "git@github.com:acme/palette.git",
@@ -70,7 +41,7 @@ test("narrowing retires the old global rule and keeps a distinct repository rule
 });
 
 test("source-removal previews retain mixed and unresolved evidence for explicit review", async () => {
-  const { paths, record } = await fixture();
+  const { paths, record } = await preferenceEditFixture();
   await writeEnvironment({
     paths,
     state: {
@@ -91,7 +62,7 @@ test("source-removal previews retain mixed and unresolved evidence for explicit 
 });
 
 test("source removal and undo restore both preference state and pending decisions", async () => {
-  const { paths, record } = await fixture();
+  const { paths, record } = await preferenceEditFixture();
   await writeEnvironment({ paths, state: { ...emptyEnvironment,
     records: [{ ...record, captureSources: ["codex"], provenanceComplete: true }],
   } });
@@ -109,20 +80,4 @@ test("source removal and undo restore both preference state and pending decision
   await undoRevision({ paths, id: result.revision });
   expect(await readPendingLearning(paths)).toEqual(before);
   expect((await readEnvironment(paths))?.records[0]?.retirementRequested).toBeUndefined();
-});
-
-test("the CLI keeps the complete replacement text in a preview", async () => {
-  const { home, record } = await fixture();
-  const process_ = Bun.spawn([process.execPath, "src/cli/index.ts", "learning", "replace", record.rule.key,
-    "Use complete words for palette labels."], {
-    cwd: path.resolve(import.meta.dir, "../.."),
-    env: { ...process.env, HOME: home }, stdout: "pipe", stderr: "pipe",
-  });
-  const [output, error, exitCode] = await Promise.all([
-    new Response(process_.stdout).text(), new Response(process_.stderr).text(), process_.exited,
-  ]);
-  expect(error).toBe("");
-  expect(exitCode).toBe(0);
-  expect(output).toContain("Use complete words for palette labels.");
-  expect(output).toContain("Preview only");
 });

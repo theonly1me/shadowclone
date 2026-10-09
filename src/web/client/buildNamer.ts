@@ -1,5 +1,5 @@
-import type { BuildInput } from "../../builds/types";
 import type { BuildNameResult } from "../buildNameProtocol";
+import type { BuildInput } from "../../environment/builds/definition";
 
 export type NamerState =
   | { readonly status: "empty" }

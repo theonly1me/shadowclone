@@ -1,4 +1,4 @@
-import { listRevisions, showRevision, undoRevision } from "../changes";
+import { listRevisions, showRevision } from "../changes";
 import { readConfig, readEffectiveConfig, writeConfig } from "../config";
 import { refreshIntegrations } from "../integrations";
 import { readLearningState } from "../learning";
@@ -20,6 +20,7 @@ import { acknowledgeCorrections, correctionReviewSignals } from "../learning/fee
 import { listSkillProposals } from "../skillMaintenance";
 import { handleSkillMaintenance } from "./skillMaintenance";
 import { automaticLearning } from "./automaticLearning";
+import { undoRevision } from "../environment/undo";
 
 export async function handlePreferenceCommand(options: {
   readonly command: string | undefined;

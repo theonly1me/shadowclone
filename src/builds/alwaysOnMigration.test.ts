@@ -6,7 +6,7 @@ import { syncLearningEnvironment } from "../environment/sync";
 import { applyBuild } from "./apply";
 import { skillName, readReleasedShapes, writeOlderRelease } from "./alwaysOnFixtures";
 import { updateBundledSkills } from "./bundledUpdate";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildFixture, buildInput } from "./testing";
 import { previewBuild } from "./plan";
 import { installedBuild, skillRoots } from "./syncFixtures";
 

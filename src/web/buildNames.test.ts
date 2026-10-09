@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { buildFixture, buildInput } from "../builds/fixtures";
+import { buildFixture, buildInput } from "../builds/testing";
 import { defaultConfig, writeConfig } from "../config";
 import { buildClaudeArguments } from "../engine/claudeCode";
 import { buildCodexArguments } from "../engine/codex";

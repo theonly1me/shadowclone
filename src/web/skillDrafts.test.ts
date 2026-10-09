@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { readEnvironment } from "../environment/store";
-import { buildFixture } from "../builds/fixtures";
+import { buildFixture } from "../builds/testing";
 import { createSkillDrafts } from "./skillDrafts";
 import {
   skillDraftResultSchema,

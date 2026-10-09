@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { BuildContext } from "../builds/types";
 import { serveBuildWizard } from "../web";
 import { setUpAccountClone, type AccountSetupOutcome } from "../cloud/setup/accountSetup";
 import { readCloudChecklist } from "../cloud/setup/checklist";
@@ -9,6 +8,7 @@ import { runGh, type GhCommand } from "../cloud/setup/github";
 import { openPage, pendingPages } from "../cloud/setup/openPage";
 import { cloneStatus, readInstallation } from "../cloud/status";
 import { isRecord } from "./protocol";
+import type { BuildContext } from "../environment/builds/definition";
 
 export const botTools = [
   {

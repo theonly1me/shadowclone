@@ -3,7 +3,7 @@ import { harnessInitCommand } from "../harness";
 import { emptyEnvironment } from "../../environment/types";
 import { writeEnvironment } from "../../environment/store";
 import { bunTaskList } from "../../harness/fixtures/bunTaskList";
-import { readHarnessManifest } from "../../harness/manifest";
+import { readHarnessManifest } from "../../environment/harness/manifest";
 import { harnessTestSetup } from "../../harness/testFixture";
 
 test("refreshing after skills activation preserves explicit repository checks", async () => {

@@ -3,7 +3,7 @@ import path from "node:path";
 import { readEnvironment } from "../environment/store";
 import { applyBuild } from "./apply";
 import { buildCatalog } from "./catalog";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildFixture, buildInput } from "./testing";
 import { previewBuild } from "./plan";
 
 test("a custom skill can be edited, disabled, and equipped again", async () => {

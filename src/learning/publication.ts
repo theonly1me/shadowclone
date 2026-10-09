@@ -1,7 +1,7 @@
 import { readEffectiveConfig } from "../config";
 import type { LearningExecution } from "../engine";
 import { readEnvironment } from "../environment";
-import { updateLearningEnvironment } from "../environment/update";
+import { updateLearningEnvironment } from "./environmentUpdate/update";
 import { refreshIntegrations } from "../integrations";
 import type { ProjectPaths } from "../paths";
 import type { GitRemoteReader } from "../signal";

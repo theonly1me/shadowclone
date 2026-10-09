@@ -1,4 +1,4 @@
-import type { BuildDefinition } from "./types";
+import type { BuildDefinition } from "../environment/builds/definition";
 
 export type RetiredSkill = {
   readonly replacement: string;

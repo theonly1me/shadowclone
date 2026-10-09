@@ -1,5 +1,5 @@
-import type { BuildInput } from "../../builds/types";
 import type { BrowserItem, BuildView } from "../protocol";
+import type { BuildInput } from "../../environment/builds/definition";
 
 type EditorState = {
   view: BuildView | null;

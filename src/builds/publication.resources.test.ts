@@ -4,10 +4,11 @@ import os from "node:os";
 import path from "node:path";
 import { publishEnvironmentRevision } from "../environment/revision";
 import { emptyEnvironment, type EnvironmentState } from "../environment/types";
-import { buildFixture } from "./fixtures";
+import { buildFixture } from "./testing";
 import { publishBuildSkill } from "./publication";
 import { retireBuildSkills } from "./retirement";
-import type { BuildContext, BuildDefinition, BuildItem } from "./types";
+import type { BuildItem } from "./types";
+import type { BuildContext, BuildDefinition } from "../environment/builds/definition";
 
 const skillText = [
   "---",

@@ -4,8 +4,6 @@ export { loadSeedLibrary } from "./library";
 
 export { installSeedSkills } from "./install";
 
-export { writeSeedGuidanceSelection } from "./profile";
-
 export type {
   SeedAgentSkill,
   SeedGuidance,

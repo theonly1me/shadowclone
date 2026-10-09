@@ -1,11 +1,12 @@
 import { authoredBuildSkills } from "../builds/authored";
 import { buildCatalog } from "../builds/catalog";
 import { buildDefinition, selectedItems } from "../builds/selection";
-import { buildInputSchema, type BuildContext } from "../builds/types";
 import { readEnvironment } from "../environment/store";
 import { emptyEnvironment } from "../environment/types";
 import { redactSecrets } from "../redact";
 import { skillPresentations } from "./skillPresentations";
+import { buildInputSchema } from "../environment/builds/definition";
+import type { BuildContext } from "../environment/builds/definition";
 
 export type NamedSkill = { readonly title: string; readonly summary: string };
 

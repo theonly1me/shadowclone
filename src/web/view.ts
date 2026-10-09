@@ -3,13 +3,13 @@ import { buildCatalog } from "../builds/catalog";
 import { buildConstellation } from "../builds/constellation";
 import { buildIdentity, customDocument } from "../builds/selection";
 import { sharedRequirements } from "../builds/requirements";
-import type { BuildContext, BuildScope } from "../builds/types";
 import { readEffectiveConfig } from "../config";
 import { readEnvironment } from "../environment/store";
-import { readHarnessManifest } from "../harness/manifest";
+import { readHarnessManifest } from "../environment/harness/manifest";
 import { canonicalPath } from "../paths";
 import { loadSeedLibrary } from "../skills/library";
 import { buildViewSchema, type BuildView } from "./protocol";
+import type { BuildContext, BuildScope } from "../environment/builds/definition";
 
 export async function buildView(
   options: BuildContext & {

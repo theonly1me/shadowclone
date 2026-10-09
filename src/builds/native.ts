@@ -4,9 +4,9 @@ import { renderSkillRouting } from "../environment/context";
 import type { EnvironmentState } from "../environment/types";
 import { updateManagedSection } from "../integrations/markdown";
 import { readLocalText } from "../localFiles";
-import { planBuildIntegrations } from "./integrations";
-import { renderBuildRouting } from "./routing";
-import type { BuildContext, BuildDefinition } from "./types";
+import { planBuildIntegrations } from "../environment/builds/integrations";
+import { renderBuildRouting } from "../environment/builds/routing";
+import type { BuildContext, BuildDefinition } from "../environment/builds/definition";
 
 export async function planBuildRouting(
   options: BuildContext & {

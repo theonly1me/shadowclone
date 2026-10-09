@@ -13,7 +13,7 @@ import {
 } from "./retired";
 import { retireBuildSkills } from "./retirement";
 import { changedOutsideBundle, installedFiles } from "./sync";
-import type { BuildDefinition } from "./types";
+import type { BuildDefinition } from "../environment/builds/definition";
 
 type Migration = {
   readonly state: EnvironmentState;

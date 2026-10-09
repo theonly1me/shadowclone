@@ -1,24 +1,5 @@
-import { z } from "zod";
+import type { Convention } from "../environment/harness/conventionSchema";
 import type { RepositoryFacts } from "./types";
-
-export const conventionSchema = z.discriminatedUnion("kind", [
-  z.strictObject({
-    kind: z.literal("file-length"),
-    maximumLines: z.number().int().min(10).max(10_000),
-  }),
-  z.strictObject({
-    kind: z.literal("forbidden-text"),
-    name: z.string().min(1),
-    text: z.string().min(1),
-  }),
-  z.strictObject({ kind: z.literal("no-suppressions") }),
-  z.strictObject({
-    kind: z.literal("no-comments"),
-    language: z.literal("typescript"),
-  }),
-]);
-
-export type Convention = z.infer<typeof conventionSchema>;
 
 const fileLengthPattern =
   /\b(?:under|at most|no more than|fewer than|below|maximum of|max(?:imum)?)\s+(\d{2,5})\s+lines\b/i;

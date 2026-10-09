@@ -5,7 +5,7 @@ import { defaultConfig, writeConfig } from "../config";
 import { openEventIndex } from "../eventIndex";
 import { renderProfileRule, type ProfileRule } from "../profile";
 import { referenceRelativePath, renderReference } from "../references";
-import { integrationFixture } from "./fixtures";
+import { integrationFixture } from "../testing";
 import { nativeSessionStart } from "./hooks";
 import { installIntegration } from "./install";
 

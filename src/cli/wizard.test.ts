@@ -3,7 +3,6 @@ import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
-import { readProfileSnapshot } from "../profile";
 import { loadSeedLibrary, seedGuidanceProfileKey } from "../skills";
 import { wizardAnswers } from "./wizardFixtures";
 import {
@@ -11,6 +10,7 @@ import {
   parseOptionalSkillChoices,
   runWizard,
 } from "./wizard";
+import { readProfileSnapshot } from "../environment/profileRecords";
 
 
 test("accepts only displayed axis and optional skill choices", async () => {

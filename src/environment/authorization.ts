@@ -10,8 +10,8 @@ import { readMaintenanceState } from "../skillMaintenance/state";
 import { readEnvironment, environmentFile } from "./store";
 import { learningScopes, skillDirectories } from "./scope";
 import type { EnvironmentState } from "./types";
-import { buildDirectories } from "../builds/selection";
-import { buildIntegrations } from "../builds/integrations";
+import { buildIntegrations } from "./builds/integrations";
+import { buildDirectories } from "./builds/directories";
 
 export async function authorizedEnvironmentTarget(options: {
   readonly paths: ProjectPaths;

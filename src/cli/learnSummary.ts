@@ -1,4 +1,4 @@
-import type { SkillUpdateSummary } from "../skillMaintenance/legacyUpdate";
+import type { SkillUpdateSummary } from "../learning/skillMaintenance/legacyUpdate";
 
 export function writeSkillMaintenance(options: {
   readonly skills: SkillUpdateSummary;

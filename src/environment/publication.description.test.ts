@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { rm } from "node:fs/promises";
-import { skillFixture } from "../skillMaintenance/fixtures";
+import { skillFixture } from "./testing";
 import { skillPublication } from "./publication";
 import { emptyEnvironment } from "./types";
 import { synchronizePublishedSkills } from "./synchronize";

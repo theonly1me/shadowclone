@@ -6,7 +6,7 @@ import { readRedactedEnvironment } from "./store";
 import type { EnvironmentState } from "./types";
 import { publishedSkills } from "./catalog";
 import { recordFingerprint } from "./records";
-import { renderBuildRouting } from "../builds/routing";
+import { renderBuildRouting } from "./builds/routing";
 
 export function renderSkillRouting(options: {
   readonly state: EnvironmentState;

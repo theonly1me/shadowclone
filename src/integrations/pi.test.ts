@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { rm } from "node:fs/promises";
-import { integrationFixture } from "./fixtures";
+import { integrationFixture } from "../testing";
 import { installIntegration, uninstallIntegration } from "./install";
 import { refreshIntegrations, integrationHealth } from "./refresh";
 import { nativeSessionEnd } from "./hooks";

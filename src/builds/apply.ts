@@ -3,8 +3,9 @@ import { readEffectiveConfig } from "../config";
 import { readLocalText } from "../localFiles";
 import { acquireLocalLock } from "../localFiles/lock";
 import { publishEnvironmentRevision } from "../environment/revision";
-import type { BuildContext, BuildPlan } from "./types";
+import type { BuildPlan } from "./types";
 import { ensureHookRunner } from "../integrations/hookRunner";
+import type { BuildContext } from "../environment/builds/definition";
 
 export async function applyBuild(
   options: BuildContext & { readonly plan: BuildPlan },

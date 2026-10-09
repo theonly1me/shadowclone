@@ -1,8 +1,8 @@
-import { customSkillSchema } from "../../builds/types";
 import { withCustomSkill } from "../../builds/constellation";
 import type { BrowserItem } from "../protocol";
 import { dialog, element, input, textarea } from "./dom";
 import { editor } from "./state";
+import { customSkillSchema } from "../../environment/builds/definition";
 
 export function openCustomEditor(item?: BrowserItem): void {
   element("custom-status").textContent = "";

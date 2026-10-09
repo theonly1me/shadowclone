@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { constellationSchema } from "../builds/constellationSchema";
-import { buildInputSchema, buildScopeSchema } from "../builds/types";
+import { buildInputSchema, buildScopeSchema } from "../environment/builds/definition";
 
 export const itemSchema = z.strictObject({
   id: z.string(),

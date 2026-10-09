@@ -4,18 +4,14 @@ import { readLocalText } from "../../localFiles";
 import { canonicalPath, projectPaths, type ProjectPaths } from "../../paths";
 import type { ProfileCompilation } from "../../profile";
 import type { GitRemoteReader } from "../../signal";
-import {
-  deriveConventions,
-  sourceExtensions,
-  type Convention,
-} from "../conventions";
+import { deriveConventions, sourceExtensions } from "../conventions";
 import { detectRepository } from "../detect";
 import { chooseGate, harnessCommands } from "../gate";
 import {
   harnessManifestPath,
   readHarnessManifest,
   renderHarnessManifest,
-} from "../manifest";
+} from "../../environment/harness/manifest";
 import { readPersonalSkill } from "../personalSkills";
 import { renderAgentsSection, type ReadFirstSkill } from "../render/agents";
 import {
@@ -26,6 +22,7 @@ import type { HarnessCommand, HarnessGate, RepositoryFacts } from "../types";
 import { planClaudeStopHook, planManagedFile, type PlannedFile } from "./files";
 import { carriedSkills, planSkillFiles } from "./skills";
 import { planClaudeImport } from "./claudeImport";
+import type { Convention } from "../../environment/harness/conventionSchema";
 
 export const harnessRuleByteBudget = 6_144;
 

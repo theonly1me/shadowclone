@@ -3,18 +3,14 @@ import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "../../paths";
-import {
-  profileEvidenceId,
-  readProfileSnapshot,
-  renderProfileRule,
-  type ProfileRule,
-} from "../../profile";
+import { profileEvidenceId, renderProfileRule, type ProfileRule } from "../../profile";
 import type { CorrectionSignal, OriginScope } from "../../signal";
 import type { SeedLibrary } from "../../skills";
 import type { DistillBatch } from "../batch";
 import { createReconciliationContext } from "./context";
 import { buildReconciliationPrompt } from "./prompt";
 import { materializeEvidence } from "../excerpts";
+import { readProfileSnapshot } from "../../environment/profileRecords";
 
 const profileSecret = ["sk", "proj", "profileSecret123456789"].join("-");
 const evidenceSecret = ["sk", "proj", "evidenceSecret123456789"].join("-");

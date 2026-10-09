@@ -4,7 +4,7 @@ import { createLearningExecution } from "../../../../src/engine";
 import type { EngineRunner } from "../../../../src/engine/types";
 import { activateEnvironment } from "../../../../src/environment/activate";
 import { prepareEnvironmentMigration } from "../../../../src/environment/migrate";
-import { updateLearningEnvironment } from "../../../../src/environment/update";
+import { updateLearningEnvironment } from "../../../../src/learning/environmentUpdate/update";
 import type { ProjectPaths } from "../../../../src/paths";
 import type { GitRemoteReader } from "../../../../src/signal";
 

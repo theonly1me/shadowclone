@@ -1,8 +1,8 @@
 import type { LearningExecution } from "../engine";
-import { updateLearningEnvironment } from "../environment/update";
+import { updateLearningEnvironment } from "./environmentUpdate/update";
 import type { ProjectPaths } from "../paths";
 import type { GitRemoteReader } from "../signal";
-import { updateLegacySkillLibrary, type SkillUpdateSummary } from "../skillMaintenance/legacyUpdate";
+import { updateLegacySkillLibrary, type SkillUpdateSummary } from "./skillMaintenance/legacyUpdate";
 
 export async function maintainSkills(options: {
   readonly paths: ProjectPaths;

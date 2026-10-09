@@ -1,12 +1,9 @@
 import { now, emptyRunner, fixture } from "./worker.fixtures";
 import { expect, test } from "bun:test";
 import type { EngineRunner } from "../engine";
-import {
-  learningSessionKey,
-  runAutomaticLearning,
-  scheduleLearning,
-} from "./index";
+import { runAutomaticLearning, scheduleLearning } from "./index";
 import { readLearningState } from "./state";
+import { learningSessionKey } from "../integrations/sessionKey";
 
 test("a requested session is learned even when older episodes fill the batch", async () => {
   const setup = await fixture(65);

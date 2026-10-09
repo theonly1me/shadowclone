@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { BuildContext } from "../../builds/types";
 import { exportGuidance } from "../export";
 import { cloneSchema, type Clone, type Delivery, type Repository } from "../types";
 import { saveInstallation } from "../status";
@@ -13,6 +12,7 @@ import { assertCloudPolicy } from "./managedPolicy";
 import { addSkillsDeployKey, ensureSkillsRepository, pushSkills } from "./skillsRepository";
 import type { App } from "./app";
 import type { GhCommand, GithubApi } from "./github";
+import type { BuildContext } from "../../environment/builds/definition";
 
 export type ReviewedSetup = {
   readonly id: string;

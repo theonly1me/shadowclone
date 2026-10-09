@@ -4,11 +4,11 @@ import os from "node:os";
 import path from "node:path";
 import type { FileTextRef } from "../../observe";
 import { createProjectPaths } from "../../paths";
-import { readProfileSnapshot } from "../../profile";
 import type { CorrectionSignal } from "../../signal";
 import { materializeEvidence } from "../excerpts";
 import { createReconciliationContext } from "./context";
 import { buildReconciliationPrompt } from "./prompt";
+import { readProfileSnapshot } from "../../environment/profileRecords";
 
 async function writeRef(options: {
   readonly filePath: string;

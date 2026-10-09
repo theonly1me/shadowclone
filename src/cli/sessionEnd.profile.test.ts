@@ -5,9 +5,10 @@ import path from "node:path";
 import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
 import { openEventIndex } from "../eventIndex";
 import { createProjectPaths } from "../paths";
-import { profileRulePath, writeProfile, type ProfileRule } from "../profile";
+import { profileRulePath, type ProfileRule } from "../profile";
 import { resolveCwdOrigin } from "../signal";
 import { runSessionEndHook } from "./hooks";
+import { writeProfile } from "../environment/profileRecords";
 
 test("session end recompiles existing guidance without creating advice", async () => {
   const homeDirectory = await mkdtemp(

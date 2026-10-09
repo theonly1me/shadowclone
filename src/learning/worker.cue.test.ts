@@ -2,9 +2,10 @@ import { expect, test } from "bun:test";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
 import type { EngineRunner } from "../engine";
-import { integrationFixture } from "../integrations/fixtures";
-import { learningSessionKey, runAutomaticLearning } from "./index";
+import { integrationFixture } from "../testing";
+import { runAutomaticLearning } from "./index";
 import { readLearningState } from "./state";
+import { learningSessionKey } from "../integrations/sessionKey";
 
 const now = Date.parse("2026-09-26T09:00:00Z");
 

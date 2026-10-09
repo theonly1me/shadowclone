@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { BuildContext } from "../builds/types";
 import { createLearningExecution } from "../engine";
 import { fingerprint } from "../localFiles";
 import { redactSecrets } from "../redact";
@@ -9,6 +8,7 @@ import {
   generationLimits,
   type GenerationEngine,
 } from "./generationEngine";
+import type { BuildContext } from "../environment/builds/definition";
 
 export function createReviewedGeneration<Output>(options: {
   readonly context: BuildContext & { readonly engine?: GenerationEngine };

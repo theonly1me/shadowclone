@@ -3,8 +3,9 @@ import { fingerprint, readLocalText } from "../localFiles";
 import { redactSecrets } from "../redact";
 import { parseSkillDocument } from "../skillMaintenance/document";
 import type { EnvironmentArtifact } from "../environment/types";
-import type { BuildDefinition, BuildItem } from "./types";
+import type { BuildItem } from "./types";
 import { skillClassification } from "./classification";
+import type { BuildDefinition } from "../environment/builds/definition";
 
 export async function installedBuildItem(options: {
   readonly build: BuildDefinition;

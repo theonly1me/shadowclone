@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { integrationFixture } from "../integrations/fixtures";
+import { integrationFixture } from "../testing";
 import type { CorrectionSignal } from "../signal";
 import { materializeEvidence } from "./excerpts";
 

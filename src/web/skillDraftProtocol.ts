@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { customSkillSchema } from "../builds/types";
+import { customSkillSchema } from "../environment/builds/definition";
 
 export const skillBriefSchema = z.strictObject({
   name: z.string().trim().max(48),

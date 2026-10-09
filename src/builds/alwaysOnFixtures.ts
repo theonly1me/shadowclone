@@ -5,7 +5,7 @@ import { environmentFile, renderEnvironment } from "../environment/store";
 import type { EnvironmentState } from "../environment/types";
 import type { ProjectPaths } from "../paths";
 import { skillRoots } from "./syncFixtures";
-import { buildScopeSchema, customSkillSchema } from "./types";
+import { buildScopeSchema, customSkillSchema } from "../environment/builds/definition";
 
 export const skillName = "write-plain-english";
 

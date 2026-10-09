@@ -1,6 +1,7 @@
 import path from "node:path";
 import type { EnvironmentState } from "../environment/types";
-import type { BuildDefinition, BuildItem } from "./types";
+import type { BuildItem } from "./types";
+import type { BuildDefinition } from "../environment/builds/definition";
 
 export function sharedRequirements(options: {
   readonly state: EnvironmentState;

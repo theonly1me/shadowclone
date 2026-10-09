@@ -1,7 +1,7 @@
 import { fingerprint, readLocalFile } from "../localFiles";
 import type { EnvironmentState } from "../environment/types";
 import type { FileUpdate } from "../changes";
-import type { BuildDefinition } from "./types";
+import type { BuildDefinition } from "../environment/builds/definition";
 
 export async function retireBuildSkills(options: {
   readonly state: EnvironmentState;

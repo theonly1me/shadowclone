@@ -4,7 +4,7 @@ import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
 import { readClaudeRules } from "./claudeRules";
 import { compileContextDetails } from "./compile";
-import { integrationFixture } from "./fixtures";
+import { integrationFixture } from "../testing";
 
 test("session context omits a rule the repository instructions state only with repository guidance consent", async () => {
   const fixture = await integrationFixture();

@@ -1,9 +1,9 @@
-import type { BuildContext } from "../builds/types";
 import { fingerprint } from "../localFiles";
 import { bannedTitleWords, buildNamePrompt, buildNameSkills, type NamedSkill } from "./buildNamePrompt";
 import { buildNameSchema, type BuildName, type BuildNameResult } from "./buildNameProtocol";
 import { generationEngine, type GenerationEngine } from "./generationEngine";
 import { generationDestination, structuredCall } from "./structuredCall";
+import type { BuildContext } from "../environment/builds/definition";
 
 export const buildNameLimits = { maximumCalls: 1, timeoutMilliseconds: 30_000, maximumCostUsd: 0.05 } as const;
 

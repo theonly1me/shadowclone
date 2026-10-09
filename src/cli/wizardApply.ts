@@ -1,14 +1,10 @@
 import { previewBuild, applyBuild } from "../builds";
 import { readEnvironment } from "../environment/store";
 import { initializeSkillEnvironment } from "../environment/initialize";
-import {
-  installSeedSkills,
-  writeSeedGuidanceSelection,
-  type SeedGuidance,
-  type SeedLibrary,
-} from "../skills";
+import { installSeedSkills, type SeedGuidance, type SeedLibrary } from "../skills";
 import type { ProjectPaths } from "../paths";
 import { refreshIntegrations } from "../integrations";
+import { writeSeedGuidanceSelection } from "../environment/seedGuidance";
 
 export async function applyWizardSelection(options: {
   readonly paths: ProjectPaths;

@@ -7,9 +7,10 @@ import { discoverDeliverySkills } from "../skillMaintenance/discover";
 import { readMaintenanceState } from "../skillMaintenance/state";
 import { installedBuildItem } from "./installed";
 import { customDocument } from "./selection";
-import type { BuildContext, BuildItem, BuildScope } from "./types";
+import type { BuildItem } from "./types";
 import { skillClassification } from "./classification";
 import { seedSkillsDirectory } from "../distribution";
+import type { BuildContext, BuildScope } from "../environment/builds/definition";
 
 export async function packagedBuildItems(): Promise<BuildItem[]> {
   const library = await loadSeedLibrary();

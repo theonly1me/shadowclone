@@ -5,9 +5,9 @@ import os from "node:os";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
 import { createProjectPaths } from "../paths";
-import { writeProfile } from "../profile";
 import { resolveCwdOrigin } from "../signal";
 import { installLiveClone } from "./install";
+import { writeProfile } from "../environment/profileRecords";
 
 test("installs the scoped profile as a Claude subagent", async () => {
   const homeDirectory = await mkdtemp(

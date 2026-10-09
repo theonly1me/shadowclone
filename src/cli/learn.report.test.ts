@@ -5,8 +5,9 @@ import path from "node:path";
 import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
 import { openEventIndex } from "../eventIndex";
 import { createProjectPaths } from "../paths";
-import { writeProfile, type ProfileRule } from "../profile";
+import type { ProfileRule } from "../profile";
 import { learn } from "./learn";
+import { writeProfile } from "../environment/profileRecords";
 
 function declaredRule(): ProfileRule {
   return {

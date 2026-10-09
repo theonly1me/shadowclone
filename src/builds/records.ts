@@ -3,8 +3,8 @@ import {
   type EnvironmentState,
 } from "../environment/types";
 import { loadSeedLibrary } from "../skills/library";
-import { profileRuleFromSeedGuidance } from "../skills/profile";
-import type { BuildDefinition } from "./types";
+import { profileRuleFromSeedGuidance } from "../environment/seedGuidance";
+import type { BuildDefinition } from "../environment/builds/definition";
 
 export async function recordBuildPreferences(options: {
   readonly state: EnvironmentState;

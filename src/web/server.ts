@@ -1,8 +1,8 @@
 import page from "./client/index.html";
-import type { BuildContext, BuildScope } from "../builds/types";
 import { createBrowserHandler } from "./handler";
 import { browserAssetRoutes } from "./assets";
 import { createBotBrowser } from "./bot/browser";
+import type { BuildContext, BuildScope } from "../environment/builds/definition";
 
 export function serveBuildWizard(
   options: BuildContext & {

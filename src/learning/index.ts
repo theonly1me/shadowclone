@@ -10,5 +10,3 @@ export {
   writeLearningState,
   type LearningState,
 } from "./state";
-
-export { learningSessionKey } from "./sessionKey";

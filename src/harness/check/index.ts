@@ -2,7 +2,7 @@ import { lstat } from "node:fs/promises";
 import path from "node:path";
 import { runCommand, type CommandRunner } from "../../io/command";
 import { canonicalPath } from "../../paths";
-import { readHarnessManifest } from "../manifest";
+import { readHarnessManifest } from "../../environment/harness/manifest";
 import { loadRepositoryCommentReader } from "./comments";
 import { conventionFindings, fileExtension } from "./conventions";
 import { listCheckFiles } from "./files";

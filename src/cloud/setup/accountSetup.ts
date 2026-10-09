@@ -1,4 +1,3 @@
-import type { BuildContext } from "../../builds/types";
 import type { GitRemoteReader } from "../../signal";
 import { exportGuidance } from "../export";
 import { saveInstallation } from "../status";
@@ -20,6 +19,7 @@ import {
   skillsRepositoryName,
 } from "./skillsRepository";
 import { readSetupTarget } from "./target";
+import type { BuildContext } from "../../environment/builds/definition";
 
 export type AccountSetupOutcome =
   | { readonly kind: "needs-account"; readonly login: string; readonly signupUrl: string }

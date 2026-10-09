@@ -8,17 +8,16 @@ import { runLearningMaintenance } from "../learning";
 import { projectPaths } from "../paths";
 import { handleEnvironmentSkills } from "./environmentSkills";
 import {
-  adoptSkill,
-  applySkillProposal,
   configureSkillMaintenance,
   disableSkillRoot,
-  inspectSkillLibrary,
   listSkillProposals,
   readMaintenanceState,
   rejectSkillProposal,
   showSkillProposal,
   showSkillRoots,
 } from "../skillMaintenance";
+import { adoptSkill, inspectSkillLibrary } from "../learning/skillMaintenance/lifecycle";
+import { applySkillProposal } from "../learning/skillMaintenance/apply";
 
 async function configure(arguments_: readonly string[]): Promise<void> {
   const scope = arguments_.includes("--global") ? "global" : "repository";

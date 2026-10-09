@@ -5,7 +5,7 @@ import path from "node:path";
 import { publishEnvironmentRevision } from "../environment/revision";
 import { readEnvironment } from "../environment/store";
 import { applyBuild } from "./apply";
-import { buildInput } from "./fixtures";
+import { buildInput } from "./testing";
 import { previewBuild } from "./plan";
 import { renderBuildSkillSync, syncBuildSkills } from "./sync";
 import { addedLine, copyPath, installedBuild, newerPackage, skillRoots } from "./syncFixtures";

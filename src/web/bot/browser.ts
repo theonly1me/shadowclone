@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { BuildContext } from "../../builds/types";
 import { resolveRepository, type GitRemoteReader } from "../../signal";
 import { setupSelection } from "../../cloud/setup/selection";
 import { browserJson } from "../security";
@@ -12,6 +11,7 @@ import { activateClone, type ReviewedSetup } from "../../cloud/setup/activate";
 import { handleAccountSetup } from "./browserAccount";
 import { readCloudChecklist } from "../../cloud/setup/checklist";
 import { ghApiCall, type GhApiCall } from "../../cloud/setup/ghApi";
+import type { BuildContext } from "../../environment/builds/definition";
 
 export function createBotBrowser(
   context: BuildContext & {

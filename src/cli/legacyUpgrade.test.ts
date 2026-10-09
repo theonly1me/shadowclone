@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { integrationFixture } from "../integrations/fixtures";
+import { integrationFixture } from "../testing";
 import { compileContext } from "../integrations";
 import { renderAgent } from "../profile";
 import { artifactRelativePaths } from "../integrations/installation/installArtifacts";

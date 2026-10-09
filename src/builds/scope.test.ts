@@ -3,7 +3,7 @@ import path from "node:path";
 import { environmentCompilation } from "../environment/context";
 import { applyBuild } from "./apply";
 import { buildCatalog } from "./catalog";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildFixture, buildInput } from "./testing";
 import { previewBuild } from "./plan";
 
 test("private builds inherit custom skills and leave the repository untouched", async () => {

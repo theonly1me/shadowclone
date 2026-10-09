@@ -1,8 +1,9 @@
 import path from "node:path";
 import type { ProjectPaths } from "../../../../src/paths";
 import { ownedWrite } from "../../../../src/storage";
-import { applySkillProposal, listSkillProposals, rejectSkillProposal } from "../../../../src/skillMaintenance";
+import { listSkillProposals, rejectSkillProposal } from "../../../../src/skillMaintenance";
 import { readSkillProposal } from "../../../../src/skillMaintenance/proposals";
+import { applySkillProposal } from "../../../../src/learning/skillMaintenance/apply";
 
 export type Resolution = {
   readonly applied: readonly string[];

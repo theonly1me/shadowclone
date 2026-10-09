@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { compileContextDetails } from "../integrations";
-import { integrationFixture } from "../integrations/fixtures";
+import { integrationFixture } from "../testing";
 import { renderStartupContextSummary } from "./contextExplain";
 
 test("the startup summary counts omitted rules by reason without printing rule text", async () => {

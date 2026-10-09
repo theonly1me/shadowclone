@@ -1,6 +1,7 @@
 import path from "node:path";
-import type { BuildContext, BuildPlan } from "../builds/types";
+import type { BuildPlan } from "../builds/types";
 import type { BuildPreview } from "./protocol";
+import type { BuildContext } from "../environment/builds/definition";
 
 export function reviewBuild(
   options: BuildContext & {

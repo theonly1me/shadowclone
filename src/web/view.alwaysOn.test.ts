@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { applyBuild } from "../builds/apply";
-import { buildInput } from "../builds/fixtures";
+import { buildInput } from "../builds/testing";
 import { previewBuild } from "../builds/plan";
 import { browserFixture } from "./fixtures";
 import { buildViewSchema } from "./protocol";

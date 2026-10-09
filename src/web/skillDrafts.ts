@@ -1,8 +1,9 @@
-import { customSkillSchema, type BuildContext } from "../builds/types";
 import { redactSecrets } from "../redact";
 import type { GenerationEngine } from "./generationEngine";
 import { createReviewedGeneration } from "./reviewedGeneration";
 import { skillBriefSchema } from "./skillDraftProtocol";
+import { customSkillSchema } from "../environment/builds/definition";
+import type { BuildContext } from "../environment/builds/definition";
 
 export async function skillDraftPrompt(input: unknown): Promise<string> {
   const brief = skillBriefSchema.parse(input);

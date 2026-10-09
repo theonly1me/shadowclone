@@ -6,7 +6,8 @@ import { planBuildRouting } from "./native";
 import { publishBuildSkill } from "./publication";
 import { sharedRequirements } from "./requirements";
 import { buildLabel } from "./retired";
-import type { BuildDefinition, BuildItem } from "./types";
+import type { BuildItem } from "./types";
+import type { BuildDefinition } from "../environment/builds/definition";
 
 export type AlwaysOnChange =
   | {

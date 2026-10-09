@@ -2,13 +2,14 @@ import { readEffectiveConfig } from "../config";
 import { refreshIntegrations } from "../integrations";
 import { fingerprint } from "../localFiles";
 import { projectPaths, type ProjectPaths } from "../paths";
-import { writeProfile, type ProfileRule } from "../profile";
+import type { ProfileRule } from "../profile";
 import { redactSecrets } from "../redact";
 import {
   isOriginBlocked,
   resolveRepository,
   type GitRemoteReader,
 } from "../signal";
+import { writeProfile } from "../environment/profileRecords";
 
 function preferenceTitle(body: string): string {
   const paragraph =

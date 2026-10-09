@@ -1,11 +1,11 @@
 import { z } from "zod";
-import type { BuildContext } from "../../builds/types";
 import type { GitRemoteReader } from "../../signal";
 import { browserJson } from "../security";
 import { accountSetupInput } from "../../cloud/browserProtocol";
 import { setUpAccountClone } from "../../cloud/setup/accountSetup";
 import type { GhApiCall } from "../../cloud/setup/ghApi";
 import type { GhCommand } from "../../cloud/setup/github";
+import type { BuildContext } from "../../environment/builds/definition";
 
 export async function handleAccountSetup(
   context: BuildContext & {

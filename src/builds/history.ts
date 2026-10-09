@@ -3,7 +3,7 @@ import { listRevisions, readRevision } from "../changes";
 import { environmentFile, readEnvironment } from "../environment/store";
 import { readLocalText } from "../localFiles";
 import { buildIdentity } from "./selection";
-import type { BuildContext, BuildScope } from "./types";
+import type { BuildContext, BuildScope } from "../environment/builds/definition";
 
 export async function lastBuildRevision(
   options: BuildContext & { readonly scope: BuildScope },

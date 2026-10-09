@@ -9,7 +9,9 @@ import { prepareBuildEnvironment } from "./prepare";
 import { publishBuildSkill, retireBuildSkills } from "./publication";
 import { recordBuildPreferences } from "./records";
 import { buildDefinition, selectedItems } from "./selection";
-import { buildInputSchema, type BuildContext, type BuildPlan } from "./types";
+import type { BuildPlan } from "./types";
+import { buildInputSchema } from "../environment/builds/definition";
+import type { BuildContext } from "../environment/builds/definition";
 
 export async function previewBuild(
   options: BuildContext & { readonly input: unknown },

@@ -6,8 +6,9 @@ import {
   type ClaudeMemoryFile,
 } from "../migrate/claudeMemory";
 import type { ProjectPaths } from "../paths";
-import { writeProfile, type ProfileRule } from "../profile";
+import type { ProfileRule } from "../profile";
 import type { RepositoryIdentity } from "../signal";
+import { writeProfile } from "../environment/profileRecords";
 
 const ledgerSchema = z.strictObject({
   version: z.literal(1),

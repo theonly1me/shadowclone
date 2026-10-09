@@ -1,5 +1,6 @@
 import { customDocument } from "./selection";
-import type { BuildInput, BuildItem } from "./types";
+import type { BuildItem } from "./types";
+import type { BuildInput } from "../environment/builds/definition";
 
 export function authoredBuildSkills(options: {
   readonly input: BuildInput;

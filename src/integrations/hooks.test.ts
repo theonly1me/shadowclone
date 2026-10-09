@@ -4,7 +4,7 @@ import path from "node:path";
 import { writeConfig, defaultConfig } from "../config";
 import { installIntegration } from "./install";
 import { nativeSessionStart } from "./hooks";
-import { integrationFixture } from "./fixtures";
+import { integrationFixture } from "../testing";
 
 test("redacts a profile secret before native hook delivery", async () => {
   const fixture = await integrationFixture();

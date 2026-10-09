@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { skillFixture } from "../skillMaintenance/fixtures";
+import { skillFixture } from "./testing";
 import { registerWorkingRepository } from "./registerRepository";
 import { readEnvironment, writeEnvironment } from "./store";
 import { emptyEnvironment } from "./types";

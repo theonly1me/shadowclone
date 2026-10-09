@@ -5,11 +5,11 @@ import path from "node:path";
 import { defaultConfig, setSourceEnabled, writeConfig } from "../config";
 import { openEventIndex } from "../eventIndex";
 import { installIntegration } from "../integrations";
-import { integrationFixture } from "../integrations/fixtures";
+import { integrationFixture } from "../testing";
 import { createProjectPaths } from "../paths";
-import { writeProfile } from "../profile";
 import { resolveCwdOrigin } from "../signal";
 import { getSessionStartContext, runSessionEndHook } from "./hooks";
+import { writeProfile } from "../environment/profileRecords";
 
 test("the session hook does not inspect input for a disabled source", async () => {
   const homeDirectory = await mkdtemp(
@@ -140,6 +140,12 @@ test("the plugin registers no tool-family blocking hook", async () => {
     new URL("../../.claude-plugin/hooks/hooks.json", import.meta.url),
     new URL("../../plugins/shadowclone/hooks/hooks.json", import.meta.url),
   ];
+
+  expect(
+    await Bun.file(
+      new URL("../../plugins/shadowclone/plugin.json", import.meta.url),
+    ).exists(),
+  ).toBeTrue();
 
   for (const hookFile of hookFiles) {
     expect(await Bun.file(hookFile).exists()).toBeFalse();

@@ -2,7 +2,7 @@ import { guidanceImportState } from "./learningState";
 import { canonicalPath } from "../paths";
 import { lstat } from "node:fs/promises";
 import type { ProjectPaths } from "../paths";
-import { createProfileRuleKey, writeProfile } from "../profile";
+import { createProfileRuleKey } from "../profile";
 import type { ProfileRule, ProfileRuleReference } from "../profile";
 import { resolveRedacted } from "../observe";
 import {
@@ -26,6 +26,7 @@ import type {
   RepositoryGuidanceImportResult,
   RepositoryRuleLocation,
 } from "./types";
+import { writeProfile } from "../environment/profileRecords";
 
 function findIdentity(options: {
   readonly identities: readonly ImportIdentity[];

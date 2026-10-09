@@ -6,9 +6,9 @@ import { writeMaintenanceState } from "../skillMaintenance/state";
 import { loadSeedLibrary } from "../skills/library";
 import { applyBuild } from "./apply";
 import { buildCatalog } from "./catalog";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildFixture, buildInput } from "./testing";
 import { previewBuild } from "./plan";
-import type { BuildContext } from "./types";
+import type { BuildContext } from "../environment/builds/definition";
 
 const nativeRoutingLimit = 4096;
 const userRoutingReserve = 1024;

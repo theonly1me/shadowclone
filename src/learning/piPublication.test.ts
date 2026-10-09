@@ -5,11 +5,11 @@ import { resolveLearningExecution } from "./execution";
 import { emptyEnvironment } from "../environment/types";
 import { learningRecord } from "../environment/fixtures";
 import { writeEnvironment, readEnvironment } from "../environment/store";
-import { updateLearningEnvironment } from "../environment/update";
+import { updateLearningEnvironment } from "./environmentUpdate/update";
 import { installIntegration } from "../integrations/install";
 import { nativeSessionStart } from "../integrations/hooks";
 import { fingerprint } from "../localFiles";
-import { skillFixture, skillEngineRun } from "../skillMaintenance/fixtures";
+import { skillFixture, skillEngineRun } from "../environment/testing";
 
 test("Pi learning publishes shared skills and native routing for the next session", async () => {
   const fixture = await skillFixture();

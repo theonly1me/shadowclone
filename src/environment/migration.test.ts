@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
-import { skillFixture } from "../skillMaintenance/fixtures";
+import { skillFixture } from "./testing";
 import { readEnvironment, environmentFile } from "./store";
 import { prepareEnvironmentMigration } from "./migrate";
 import { reviewLearning } from "./controls";
 import { activateEnvironment } from "./activate";
-import { undoRevision } from "../changes";
+import { undoRevision } from "./undo";
 
 test("migration preview is read-only, activation requires coverage, and activation can be undone", async () => {
   const setup = await skillFixture();

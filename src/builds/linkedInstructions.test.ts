@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import { mkdir, readlink, symlink } from "node:fs/promises";
 import path from "node:path";
-import { undoRevision } from "../changes";
 import { applyBuild } from "./apply";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildFixture, buildInput } from "./testing";
 import { previewBuild } from "./plan";
+import { undoRevision } from "../environment/undo";
 
 const masterText = "# My instructions\n\nKeep answers short.\n";
 

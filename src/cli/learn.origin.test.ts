@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
 import { openEventIndex } from "../eventIndex";
-import { integrationFixture } from "../integrations/fixtures";
+import { integrationFixture } from "../testing";
 import { learn } from "./learn";
 
 test("learning keeps an observed session bound to its original repository", async () => {

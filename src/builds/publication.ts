@@ -8,10 +8,11 @@ import {
 } from "../skillMaintenance/document";
 import { publishSkillResources } from "../environment/resources";
 import { skillClassification } from "./classification";
-import { buildDirectories } from "./selection";
 import { skillDestinationsWithoutLinks } from "./linkedDestinations";
-import type { BuildContext, BuildDefinition, BuildItem } from "./types";
+import type { BuildItem } from "./types";
 import { seedSkillsDirectory } from "../distribution";
+import type { BuildContext, BuildDefinition } from "../environment/builds/definition";
+import { buildDirectories } from "../environment/builds/directories";
 
 export async function publishBuildSkill(
   options: BuildContext & {

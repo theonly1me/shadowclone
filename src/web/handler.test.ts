@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { buildInput } from "../builds/fixtures";
+import { buildInput } from "../builds/testing";
 import { readEnvironment } from "../environment/store";
 import { browserFixture, syntheticBrief } from "./fixtures";
 import { applyResultSchema, buildViewSchema, previewSchema } from "./protocol";

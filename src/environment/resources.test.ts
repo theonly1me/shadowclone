@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { chmod, lstat } from "node:fs/promises";
-import { skillFixture } from "../skillMaintenance/fixtures";
+import { skillFixture } from "./testing";
 import { discoverSkills } from "../skillMaintenance/discover";
 import { readMaintenanceState } from "../skillMaintenance/state";
 import { emptyEnvironment } from "./types";
@@ -10,7 +10,7 @@ import { readLocalText } from "../localFiles";
 import { skillPublication } from "./publication";
 import { publishEnvironmentRevision } from "./revision";
 import { materializeSkillDelivery } from "./delivery";
-import { undoRevision } from "../changes";
+import { undoRevision } from "./undo";
 
 test("portable publication and dispatch retain resource bytes and executable modes, with grouped undo", async () => {
   const setup = await skillFixture();

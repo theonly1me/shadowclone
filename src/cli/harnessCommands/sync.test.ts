@@ -4,13 +4,14 @@ import { harnessInitCommand } from "../harness";
 import { harnessSyncCommand } from "../harnessSync";
 import { compileContextDetails, sessionStartProjection } from "../../integrations";
 import { claudeMemoryDirectory } from "../../migrate/claudeMemory";
-import { writeProfile, type ProfileRule } from "../../profile";
+import type { ProfileRule } from "../../profile";
 import { bunTaskList } from "../../harness/fixtures/bunTaskList";
 import {
   acceptAll,
   harnessTestSetup,
   type HarnessTestSetup,
 } from "../../harness/testFixture";
+import { writeProfile } from "../../environment/profileRecords";
 
 function note(options: {
   readonly name: string;

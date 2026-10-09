@@ -1,7 +1,7 @@
 import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
 import type { EngineRunner } from "../engine";
-import { integrationFixture } from "../integrations/fixtures";
+import { integrationFixture } from "../testing";
 
 export const now = Date.parse("2026-09-11T09:00:00Z");
 

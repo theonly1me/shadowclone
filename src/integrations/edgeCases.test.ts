@@ -2,11 +2,9 @@ import { expect, test } from "bun:test";
 import path from "node:path";
 import { createProjectPaths } from "../paths";
 import { installIntegration } from "./install";
-import { integrationFixture } from "./fixtures";
+import { integrationFixture } from "../testing";
 import { nativeSessionStart } from "./hooks";
 import { refreshIntegrations } from "./refresh";
-import { isolateNativeGuidance } from "../../evals/shared/nativeIsolation";
-import { managedStart, managedEnd } from "./markdown";
 
 test("uses the selected Codex home and existing override without losing personal skill discovery", async () => {
   const fixture = await integrationFixture();
@@ -82,20 +80,6 @@ test("repository hook injects guidance if its native instruction file disappeare
   });
 
   expect(JSON.stringify(output)).toContain("Use complete names.");
-});
-
-test("isolates generated sections from nested evaluation instructions before either arm runs", async () => {
-  const fixture = await integrationFixture();
-  const filePath = path.join(fixture.cwd, "nested/AGENTS.md");
-  const original = "# Nested instructions\n\nKeep this user guidance.\n";
-
-  await Bun.write(
-    filePath,
-    `${original}${managedStart}\n# Shadowclone profile\n\nGenerated rule\n${managedEnd}`,
-  );
-  await isolateNativeGuidance(fixture.cwd);
-
-  expect(await Bun.file(filePath).text()).toBe(original);
 });
 
 test("malformed native input produces a fixed error without echoing its contents", async () => {

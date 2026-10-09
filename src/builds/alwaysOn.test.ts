@@ -5,7 +5,7 @@ import { emptyEnvironment } from "../environment/types";
 import { readReleasedShapes } from "./alwaysOnFixtures";
 import { applyBuild } from "./apply";
 import { buildCatalog } from "./catalog";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildFixture, buildInput } from "./testing";
 import { previewBuild } from "./plan";
 import { buildDefinition, selectedItems } from "./selection";
 

@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { undoRevision } from "../changes";
 import { readEnvironment } from "../environment/store";
 import { environmentCompilation } from "../environment/context";
 import { applyBuild } from "./apply";
 import { previewBuild } from "./plan";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildFixture, buildInput } from "./testing";
+import { undoRevision } from "../environment/undo";
 
 test("preview is read-only and applying publishes preferences immediately", async () => {
   const context = await buildFixture();

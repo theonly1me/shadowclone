@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import type { EngineRunner } from "../engine";
-import { skillEngineRun, skillFixture } from "../skillMaintenance/fixtures";
+import { skillEngineRun, skillFixture } from "../environment/testing";
 import { learn } from "./learn";
 
 test("deep learn reports deferred skill assessments", async () => {

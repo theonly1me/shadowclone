@@ -3,7 +3,7 @@ import path from "node:path";
 import { resolveRepository } from "../signal";
 import { installIntegration } from "./install";
 import { nativeSessionStart } from "./hooks";
-import { integrationFixture } from "./fixtures";
+import { integrationFixture } from "../testing";
 import { integrationHealth } from "./refresh";
 
 test("global pointer stays stable while its hook injects combined guidance", async () => {

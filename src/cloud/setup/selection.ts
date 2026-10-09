@@ -1,9 +1,9 @@
 import path from "node:path";
-import type { BuildContext } from "../../builds/types";
 import { readRedactedEnvironment } from "../../environment/store";
 import { learningScopes } from "../../environment/scope";
 import { publishedSkills } from "../../environment/catalog";
 import { resolveRepository, type GitRemoteReader } from "../../signal";
+import type { BuildContext } from "../../environment/builds/definition";
 
 export async function setupSelection(
   context: BuildContext & {

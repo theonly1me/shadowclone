@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
-import type { BuildInput } from "../../builds/types";
 import type { BuildNameResult } from "../buildNameProtocol";
 import { createBuildNamer, namingDelayMilliseconds, type NamerState } from "./buildNamer";
+import type { BuildInput } from "../../environment/builds/definition";
 
 const input: BuildInput = { scope: "global", choices: { "tests-that-catch-bugs": true }, edits: {}, custom: [] };
 

@@ -6,7 +6,7 @@ import { defaultConfig, writeConfig } from "../config";
 import { writeMaintenanceState } from "../skillMaintenance/state";
 import { applyBuild } from "./apply";
 import { buildCatalog } from "./catalog";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildFixture, buildInput } from "./testing";
 import { previewBuild } from "./plan";
 
 const skillText = '---\nname: careful-review\ndescription: "Use when reviewing a change before handoff."\n---\n\nRead the whole diff.\n';

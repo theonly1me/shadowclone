@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readHarnessManifest } from "../harness/manifest";
+import { readHarnessManifest } from "../environment/harness/manifest";
 
 const maximumAncestors = 32;
 

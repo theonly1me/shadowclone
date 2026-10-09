@@ -3,7 +3,7 @@ import path from "node:path";
 import { harnessMarkers, markedSection } from "../../integrations";
 import { fingerprint, readLocalText } from "../../localFiles";
 import { parseSkillDocument } from "../../skillMaintenance/document";
-import type { HarnessManifest } from "../manifest";
+import type { HarnessManifest } from "../../environment/harness/manifest";
 import { repositorySkillRoots } from "../plan/skills";
 import type { HarnessFinding } from "./types";
 import { error, warning, refresh } from "./healthFinding";

@@ -4,10 +4,10 @@ import os from "node:os";
 import path from "node:path";
 import { readConfig } from "../config";
 import { createProjectPaths } from "../paths";
-import { readProfileSnapshot } from "../profile";
 import { readMaintenanceState } from "../skillMaintenance";
-import { fixtureSkill } from "../skillMaintenance/fixtures";
 import { answerIsYes, initialize } from "./init";
+import { readProfileSnapshot } from "../environment/profileRecords";
+import { fixtureSkill } from "../skills/testing";
 
 test("default yes prompt treats an explicit no as declined consent", () => {
   expect(answerIsYes("")).toBeTrue();

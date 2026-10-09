@@ -6,7 +6,7 @@ import {
 } from "../engine";
 import { projectPaths } from "../paths";
 import { prepareEnvironmentMigration } from "../environment/migrate";
-import { updateLearningEnvironment } from "../environment/update";
+import { updateLearningEnvironment } from "../learning/environmentUpdate/update";
 import { activateEnvironment } from "../environment/activate";
 import { belongsToScope, learningScopes } from "../environment/scope";
 import { selectLearningPreferences } from "../learning/modelPreferences";

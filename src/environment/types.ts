@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { buildDefinitionSchema } from "../builds/types";
 import { sourceIds } from "../config";
+import { buildDefinitionSchema } from "./builds/definition";
 
 const locationSchema = z.discriminatedUnion("scope", [
   z.object({

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { ProfileSection } from "../profile";
 
 const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const profileSectionSchema = z.enum(["engineering", "workflow", "boundaries"]);
+type SeedProfileSection = z.infer<typeof profileSectionSchema>;
 
 export const seedPreferenceMetadataSchema = z.strictObject({
   id: slugSchema,
@@ -31,7 +31,7 @@ type SeedGuidanceFields = {
   readonly title: string;
   readonly axis: string | null;
   readonly category: string;
-  readonly section: ProfileSection;
+  readonly section: SeedProfileSection;
   readonly appliesWhen: readonly string[];
   readonly body: string;
 };

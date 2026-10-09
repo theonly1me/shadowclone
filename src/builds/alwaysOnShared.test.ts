@@ -5,11 +5,11 @@ import { applyBuild } from "./apply";
 import { readReleasedShapes, skillName, writeOlderRelease } from "./alwaysOnFixtures";
 import { updateBundledSkills } from "./bundledUpdate";
 import { buildCatalog } from "./catalog";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildFixture, buildInput } from "./testing";
 import { previewBuild } from "./plan";
-import { renderBuildRouting } from "./routing";
+import { renderBuildRouting } from "../environment/builds/routing";
 import { buildDefinition, buildIdentity, selectedItems } from "./selection";
-import type { BuildContext, BuildInput } from "./types";
+import type { BuildContext, BuildInput } from "../environment/builds/definition";
 
 const routingLine = "- before you write any text that a person reads: write-plain-english\n";
 

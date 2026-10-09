@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { skillFixture } from "../skillMaintenance/fixtures";
+import { skillFixture } from "./testing";
 import { learningSnapshot } from "./records";
 import { writeEnvironment } from "./store";
 import { emptyEnvironment } from "./types";

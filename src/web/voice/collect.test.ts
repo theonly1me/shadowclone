@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { buildFixture } from "../../builds/fixtures";
+import { buildFixture } from "../../builds/testing";
 import { defaultConfig, setSourceEnabled, writeConfig } from "../../config";
 import { collectWriting } from "./collect";
 import { fakeGitHub, keptCommit, keptPullRequest, keptReview, syntheticToken } from "./fixtures";

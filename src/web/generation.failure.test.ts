@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { buildFixture } from "../builds/fixtures";
+import { buildFixture } from "../builds/testing";
 import { readEnvironment } from "../environment/store";
 import { createSkillDrafts } from "./skillDrafts";
 import { generationResult, syntheticBrief } from "./fixtures";

@@ -36,7 +36,7 @@ export { readProfileDiagnostics, type ProfileDiagnostics } from "./diagnostics";
 export { parseProfileBlocks, parseProfileRules } from "./parse";
 
 export {
-  readProfileSnapshot,
+  readLegacyProfileSnapshot,
   type ProfileSnapshot,
   type ProfileSnapshotRejection,
   type ProfileSnapshotRule,
@@ -67,7 +67,7 @@ export type {
   ProfileWriteResult,
 } from "./types";
 
-export { writeProfile } from "./write";
+export { writeLegacyProfile, type ProfileWriteOptions } from "./write";
 
 export {
   applyProfileCuration,

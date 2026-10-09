@@ -1,4 +1,3 @@
-import { buildScopeSchema, type BuildScope } from "../../builds/types";
 import { buildViewSchema } from "../protocol";
 import { request } from "./api";
 import { openCustomEditor, saveCustomSkill } from "./custom";
@@ -15,6 +14,8 @@ import { initializeEditorDialogs } from "./editorDialogs";
 import { initializeLearningModels } from "./models";
 import { initializeBotSetup } from "./bot";
 import { initializeVoice } from "./voice";
+import { buildScopeSchema } from "../../environment/builds/definition";
+import type { BuildScope } from "../../environment/builds/definition";
 
 initializeEditorDialogs();
 initializeLearningModels();

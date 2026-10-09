@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { BuildContext } from "../../builds/types";
 import { readConfig, readEffectiveConfig, setSourceEnabled, writeConfig } from "../../config";
 import { generationEngine, type GenerationEngine } from "../generationEngine";
 import { generationDestination, structuredCall } from "../structuredCall";
@@ -14,6 +13,7 @@ import {
   voiceSamplesPrompt,
   voiceSamplesSchema,
 } from "./profile";
+import type { BuildContext } from "../../environment/builds/definition";
 
 export const voiceLimits = {
   capture: { maximumCalls: 1, timeoutMilliseconds: 120_000, maximumCostUsd: 0.25 },

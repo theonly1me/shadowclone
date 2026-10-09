@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import { profileRulePath } from "../profile/render";
-import { skillFixture } from "../skillMaintenance/fixtures";
+import { skillFixture } from "./testing";
 import { learningRecord } from "./fixtures";
 import { storeLearningRules } from "./records";
 import { readEnvironment, writeEnvironment } from "./store";

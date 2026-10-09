@@ -1,11 +1,11 @@
 import { z } from "zod";
-import type { BuildContext } from "../builds/types";
 import type { HostRunner } from "./voice/collect";
 import { createVoiceCapture } from "./voice/capture";
 import { createBuildNames } from "./buildNames";
 import type { GenerationEngine } from "./generationEngine";
 import { browserJson } from "./security";
 import { createSkillDrafts } from "./skillDrafts";
+import type { BuildContext } from "../environment/builds/definition";
 
 const generateRequestSchema = z.strictObject({ previewId: z.uuid() });
 

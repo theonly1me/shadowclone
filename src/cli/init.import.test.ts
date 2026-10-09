@@ -5,8 +5,8 @@ import path from "node:path";
 import { createProjectPaths } from "../paths";
 import { readConfig } from "../config";
 import { defaultManagedPolicy } from "../config";
-import { readProfileSnapshot } from "../profile";
 import { initialize } from "./init";
+import { readProfileSnapshot } from "../environment/profileRecords";
 
 test("offers to import detected repository guidance", async () => {
   const homeDirectory = await mkdtemp(

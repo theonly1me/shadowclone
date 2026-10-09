@@ -1,7 +1,7 @@
 import { readEffectiveConfig } from "../config";
 import { readEnvironment } from "../environment/store";
 import { emptyEnvironment, type EnvironmentState } from "../environment/types";
-import type { BuildContext } from "./types";
+import type { BuildContext } from "../environment/builds/definition";
 
 export async function prepareBuildEnvironment(
   context: BuildContext,

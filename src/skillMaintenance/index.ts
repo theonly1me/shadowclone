@@ -1,13 +1,6 @@
 export { configureSkillMaintenance, standardSkillRoots } from "./configure";
 
-export {
-  inspectSkillLibrary,
-  adoptSkill,
-  skillRevisionRoots,
-  removeSkillMaintenance,
-} from "./lifecycle";
-
-export { updateSkillLibrary, type SkillUpdateSummary } from "./update";
+export { skillRevisionRoots, removeSkillMaintenance } from "./remove";
 
 export {
   registerPortableSkill,
@@ -15,7 +8,7 @@ export {
   syncPortableSkills,
 } from "./portable";
 
-export { applySkillProposal, rejectSkillProposal } from "./apply";
+export { rejectSkillProposal } from "./reject";
 
 export { listSkillProposals, showSkillProposal } from "./proposals";
 

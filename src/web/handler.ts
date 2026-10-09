@@ -1,14 +1,16 @@
 import { z } from "zod";
 import { applyBuild, previewBuild } from "../builds";
 import { lastBuildRevision } from "../builds/history";
-import { buildScopeSchema, type BuildContext, type BuildPlan } from "../builds/types";
-import { undoRevision } from "../changes";
+import type { BuildPlan } from "../builds/types";
 import { buildView } from "./view";
 import { reviewBuild } from "./review";
 import { createModelActions } from "./modelActions";
 import type { GenerationEngine } from "./generationEngine";
 import { authorizeBrowserRequest, browserJson } from "./security";
 import { learningModelCatalog, saveLearningModel } from "../learning/modelCatalog";
+import { undoRevision } from "../environment/undo";
+import { buildScopeSchema } from "../environment/builds/definition";
+import type { BuildContext } from "../environment/builds/definition";
 
 const previewRequestSchema = z.strictObject({ previewId: z.uuid() });
 const revisionRequestSchema = z.strictObject({ revisionId: z.uuid() });

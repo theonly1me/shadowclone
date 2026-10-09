@@ -3,7 +3,7 @@ import path from "node:path";
 import { rm } from "node:fs/promises";
 import { readConfig, writeConfig } from "../config";
 import { resolveRepository } from "../signal";
-import { skillFixture } from "../skillMaintenance/fixtures";
+import { skillFixture } from "./testing";
 import { learningRecord } from "./fixtures";
 import { skillPublication } from "./publication";
 import { readEnvironment, writeEnvironment } from "./store";

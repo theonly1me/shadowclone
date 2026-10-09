@@ -1,4 +1,4 @@
-import { buildFixture } from "../builds/fixtures";
+import { buildFixture } from "../builds/testing";
 import type { EngineRun, EngineRunOptions } from "../engine/types";
 import { createBrowserHandler } from "./handler";
 

@@ -2,9 +2,9 @@ import { readEffectiveConfig } from "../config";
 import { detectEngine } from "../engine";
 import type { EngineId, EngineRunner } from "../engine/types";
 import { getProviderByEngine } from "../provider";
-import type { BuildContext } from "../builds/types";
 import { selectLearningPreferences } from "../learning/modelPreferences";
 import { fastTier } from "../engine/fastTier";
+import type { BuildContext } from "../environment/builds/definition";
 
 export type GenerationEngine = {
   readonly engine: EngineId;

@@ -22,7 +22,7 @@ test("the empty command names one useful next action", async () => {
 });
 
 test("CLI failures print a bounded message without source code or a stack", async () => {
-  const command = Bun.spawn([process.execPath, "src/cli/index.ts", "learn", "--apply"], {
+  const command = Bun.spawn([process.execPath, path.join(import.meta.dir, "index.ts"), "learn", "--apply"], {
     cwd: path.resolve(import.meta.dir, "../.."), stdout: "pipe", stderr: "pipe",
   });
   const [output, error, exitCode] = await Promise.all([

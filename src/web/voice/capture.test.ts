@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { buildFixture } from "../../builds/fixtures";
+import { buildFixture } from "../../builds/testing";
 import { defaultConfig, readConfig, writeConfig } from "../../config";
 import type { EngineRunOptions } from "../../engine/types";
 import { generationResult } from "../fixtures";

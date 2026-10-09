@@ -3,7 +3,7 @@ import path from "node:path";
 import { defaultConfig, writeConfig } from "../config";
 import { writeMaintenanceState } from "../skillMaintenance/state";
 import { buildCatalog } from "./catalog";
-import { buildFixture, buildInput } from "./fixtures";
+import { buildFixture, buildInput } from "./testing";
 import { previewBuild } from "./plan";
 
 test("equipping a user skill that names another skill's file in backticks publishes it", async () => {

@@ -1,6 +1,5 @@
 import { renderProfileBlocks } from "./writeBlocks";
 import { commitLocalChanges, type FileUpdate } from "../changes";
-import { storeLearningRules } from "../environment";
 import path from "node:path";
 import { acquireLocalLock } from "../localFiles/lock";
 import { readLocalText } from "../localFiles";
@@ -19,26 +18,14 @@ import type {
   ProfileWriteResult,
 } from "./types";
 
-type WriteOptions = {
+export type ProfileWriteOptions = {
   readonly paths: ProjectPaths;
   readonly rules: readonly ProfileRule[];
   readonly retired?: readonly ProfileRuleReference[];
 };
 
-export async function writeProfile(
-  options: WriteOptions,
-): Promise<ProfileWriteResult> {
-  const learning = await storeLearningRules(options);
-
-  if (learning !== null) {
-    return learning;
-  }
-
-  return writeLegacyProfile(options);
-}
-
 export async function writeLegacyProfile(
-  options: WriteOptions,
+  options: ProfileWriteOptions,
 ): Promise<ProfileWriteResult> {
 
   await ownedDirectory(options.paths.profileDirectory);
@@ -59,7 +46,7 @@ export async function writeLegacyProfile(
 }
 
 async function writeProfileRevision(
-  options: WriteOptions,
+  options: ProfileWriteOptions,
 ): Promise<ProfileWriteResult> {
   const updates: FileUpdate[] = [];
   const previousManifest = await readLocalText(

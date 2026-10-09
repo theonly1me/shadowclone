@@ -1,5 +1,5 @@
-import type { Convention } from "./conventions";
 import type { HarnessPlan } from "./plan";
+import type { Convention } from "../environment/harness/conventionSchema";
 
 const maximumAgentsLines = 150;
 

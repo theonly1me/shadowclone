@@ -10,7 +10,7 @@ import { ingestSources, openEventIndex } from "../eventIndex";
 import { acquireLocalLock } from "../localFiles/lock";
 import { projectPaths, type ProjectPaths } from "../paths";
 import { deriveSignals, type GitRemoteReader } from "../signal";
-import type { SkillUpdateSummary } from "../skillMaintenance/legacyUpdate";
+import type { SkillUpdateSummary } from "./skillMaintenance/legacyUpdate";
 import { maintainSkills } from "./maintenance";
 import {
   episodeId,
