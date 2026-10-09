@@ -2,7 +2,8 @@ import path from "node:path";
 import { runClaudeCode } from "../engine/claudeCode";
 import { runHostCommand } from "../io/hostCommand";
 import { projectPaths } from "../paths";
-import { reviewLocally, reviewMarkdown } from "../review";
+import { reviewBranch, reviewLocally, reviewMarkdown, type ReviewResult } from "../review";
+import { branchRepositoryName } from "../review/collect";
 import { ownedWrite } from "../storage";
 import { parseReviewArguments } from "./reviewArguments";
 import { requestCloudReview } from "./reviewCloud";
@@ -16,6 +17,16 @@ async function commandOutput(options: { readonly arguments: readonly string[]; r
   }
 
   return result.stdout.trim();
+}
+
+async function writeReview(options: { readonly result: ReviewResult; readonly output: string | null; readonly fileName: string }): Promise<void> {
+  const { result } = options;
+  const output = path.resolve(
+    options.output ?? path.join(projectPaths.shadowcloneDirectory, "reviews", result.pull.repository.replace("/", "-"), options.fileName),
+  );
+
+  await ownedWrite({ path: output, content: reviewMarkdown(result) });
+  console.log(`${result.findings.length} ${result.findings.length === 1 ? "finding" : "findings"}. Review written to ${output}`);
 }
 
 export async function reviewCommand(arguments_: readonly string[]): Promise<void> {
@@ -34,6 +45,18 @@ export async function reviewCommand(arguments_: readonly string[]): Promise<void
     cwd,
     failure: "Run shadowclone review inside a Git repository",
   });
+  const reviewModel = { runner: runClaudeCode, model: parsed.model, effort: parsed.effort, network: parsed.network };
+  const onProgress = (message: string) => console.error(message);
+  const { target } = parsed;
+
+  if (target.kind === "branch") {
+    const repository = parsed.repository ?? (await branchRepositoryName(checkout));
+    const result = await reviewBranch({ repository, base: target.base, checkout, reviewModel, runChecks: parsed.runChecks, onProgress });
+
+    await writeReview({ result, output: parsed.output, fileName: `branch-${result.pull.headSha.slice(0, 7)}.md` });
+    return;
+  }
+
   const repository =
     parsed.repository ??
     (await commandOutput({
@@ -43,28 +66,11 @@ export async function reviewCommand(arguments_: readonly string[]): Promise<void
     }));
 
   if (parsed.cloud) {
-    await requestCloudReview({ repository, number: parsed.number });
+    await requestCloudReview({ repository, number: target.number });
     return;
   }
 
-  const result = await reviewLocally({
-    repository,
-    number: parsed.number,
-    checkout,
-    reviewModel: { runner: runClaudeCode, model: parsed.model, effort: parsed.effort, network: parsed.network },
-    runChecks: parsed.runChecks,
-    onProgress: (message) => console.error(message),
-  });
-  const output = path.resolve(
-    parsed.output ??
-      path.join(
-        projectPaths.shadowcloneDirectory,
-        "reviews",
-        repository.replace("/", "-"),
-        `pr-${result.pull.number}-${result.pull.headSha.slice(0, 7)}.md`,
-      ),
-  );
+  const result = await reviewLocally({ repository, number: target.number, checkout, reviewModel, runChecks: parsed.runChecks, onProgress });
 
-  await ownedWrite({ path: output, content: reviewMarkdown(result) });
-  console.log(`${result.findings.length} ${result.findings.length === 1 ? "finding" : "findings"}. Review written to ${output}`);
+  await writeReview({ result, output: parsed.output, fileName: `pr-${target.number}-${result.pull.headSha.slice(0, 7)}.md` });
 }

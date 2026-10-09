@@ -12,8 +12,8 @@ The GitHub clone works on issues and pull requests, but it cannot review one. A 
 
 1. **Collect.** It reads the PR facts, the diff from the base to the head, and the recent history of each changed file. Standards come from the base commit: `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` at the root and in each directory that the PR touches, `.claude/rules`, repository skills, `CONTRIBUTING.md`, `.github/copilot-instructions.md`, `.github/instructions`, `.cursor/rules`, `.cursorrules`, and `.shadowclone/harness.json`. A PR cannot change the rules that it is reviewed against. Personal global skills are excluded, because the owner's taste is not a rule of another repository.
 2. **Built-in rules.** A table of 67 rules and nine credential patterns runs on added lines only. It covers credentials (reusing the redaction patterns), conflict markers, and dangerous calls in JavaScript, TypeScript, Python, Go, Rust, Java, Kotlin, C#, GitHub Actions, shell, Docker, Terraform, and SQL migrations. Each rule has a hit example and a miss example that a test checks. A **certain** rule (credentials, private keys, conflict markers, focused tests) is reported without the model. A **signal** rule goes to the skill for verification.
-3. **Toolchain.** A table of stacks covers JavaScript and TypeScript (`typecheck` script or `tsc`, ESLint, Biome), Python (Ruff, mypy, Pyright), Go (`go vet`, `gofmt`), Rust (Clippy), Java (Maven, Gradle), and .NET. Installs run with scripts off. Type and build checks run at the head, and again at the base when the head has diagnostics, so only new diagnostics remain. Lint checks keep diagnostics on added lines. Each command reports ran, skipped, failed, or timed out.
-4. **Dependencies.** For each lockfile that the PR changes, code parses the base and the head and sends only added or upgraded packages, as names and versions, to the OSV API. It reads npm, Bun, Yarn, pnpm, pip requirements, Poetry, uv, Cargo, Go modules, Bundler, Composer, and NuGet lockfiles. Each package with advisories becomes one certain finding on its lockfile line, with the worst severity and every advisory id. The check runs in the prepare stage and follows the network setting.
+3. **Toolchain.** A table of stacks covers JavaScript and TypeScript (`typecheck` script or `tsc`, ESLint, Biome), Python (Ruff, mypy, Pyright), Go (`go vet`, `gofmt`), Rust (Clippy), Java (Maven, Gradle), and .NET. Installs run with scripts off. Type and build checks run at the head, and again at the merge base when the head has diagnostics, so only new diagnostics remain. Lint checks keep diagnostics on added lines. Each command reports ran, skipped, failed, or timed out.
+4. **Dependencies.** For each lockfile that the PR changes, code parses the merge base and the head and sends only added or upgraded packages, as names and versions, to the OSV API. It reads npm, Bun, Yarn, pnpm, pip requirements, Poetry, uv, Cargo, Go modules, Bundler, Composer, and NuGet lockfiles. Each package with advisories becomes one certain finding on its lockfile line, with the worst severity and every advisory id. The check runs in the prepare stage and follows the network setting.
 5. **Rank and output.** Certain rule hits and the skill's findings are sorted by severity, deduplicated, and capped at ten. Text is redacted. A posted review wraps mentions, cross-repository references, and issue links in code spans, so nobody gets a notification.
 
 **Judgment.** One Claude run follows the skill body, which the CLI passes in the prompt because `--safe-mode` skips installed skills. The skill asks for a strict staff-level review for correctness, security, performance, reliability, compatibility, and the standards. It sends each candidate to a fresh refuter subagent, and it returns only the findings that survive, with the refuter's reason. Findings are short sentences in Simplified Technical English, and the output schema caps each field.
@@ -38,9 +38,13 @@ The GitHub clone works on issues and pull requests, but it cannot review one. A 
 
 The CLI runs from the runner's temporary directory, so the PR's `bunfig.toml` and package files never load. The review jobs pin `@shadowclone/cli` to the rendering version, Claude Code 2.1.286, and Bun 1.4.2. `reviewModel` in the clone configuration defaults to `claude-opus-5-5`.
 
+**Branch review.** `shadowclone review --base <ref>` reviews the committed head of the current branch without a pull request. The base is the merge base of the head and `<ref>`. Without `--base`, the base is the merge base with `origin/HEAD`. The commit messages give the title and the description: one commit gives its subject and its body, and more commits give the latest subject and every message. The repository name comes from a GitHub `origin` remote, or it is `local/<folder>`. Evidence shows plain `path:line` locations, because the head commit may not be on GitHub. The review leaves out uncommitted changes and says so. A branch review needs no GitHub access, so an evaluation can run on cases that exist only on one machine. `--cloud` needs a pull request number.
+
 **Setup.** `--cloud` reads the clone configuration from the installed relay workflow. Without a clone, it starts the bot wizard. With a clone that cannot review, it opens a draft update PR that renders the workflows again.
 
 ## Consequences
+
+- The dependency check and the toolchain's base run use the merge base of the base branch and the head. The base branch tip can hold upgrades that landed after the PR branched, and a merge keeps those upgrades, so a comparison with the tip reported old versions as added. The evaluation found this on a vite PR: main moved `launch-editor` to a fixed version, and the review reported the older version as a new vulnerability.
 
 - A review uses the owner's Claude subscription for one run, with refuter subagents inside it.
 - `WebFetch` returns a summary from a small model, so a doc quote can fail the check even when the page supports the claim. The finding then keeps only its code evidence.
@@ -58,6 +62,7 @@ A review sends the PR text, the diff, the standards, the history, rule hits, too
 ## Verification
 
 - Tests cover these areas:
+  - a dependency that the base branch upgraded after the PR branched, which the check does not count as added
   - the evidence gate for matched, moved, out-of-checkout, and doc-only quotes
   - the address table for the doc fetch
   - each rule's examples, and rule hits on added lines only
@@ -69,6 +74,7 @@ A review sends the PR text, the diff, the standards, the history, rule hits, too
   - redaction and mention neutralization
   - the review isolation arguments
   - guard routing
+  - branch facts: the merge base, the commit messages, an unknown base, and a branch with no commits
   - the credentials of each rendered job
 - `actionlint` accepts the rendered workflows.
 - A local run on a merged PR finished in 52 seconds with a clean worktree list.

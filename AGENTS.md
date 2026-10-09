@@ -4,8 +4,7 @@ Shadowclone maintains portable coding-agent skills from consented sessions and m
 
 ## Read first
 
-- Read `.claude/skills/clean-code/SKILL.md` before editing code or prose.
-- Read `.claude/skills/scoped-fix/SKILL.md` when changing existing behavior.
+- Follow the code conventions in `CONTRIBUTING.md` when you edit code or prose.
 - Read `.claude/skills/data-handling/SKILL.md` before changing capture, storage, model access, or actions performed for the user.
 
 ## Work on the requested change

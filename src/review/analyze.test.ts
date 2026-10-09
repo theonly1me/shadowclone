@@ -16,6 +16,7 @@ const packet: ReviewPacket = {
       baseSha: "a".repeat(40),
       headSha: "b".repeat(40),
     },
+    mergeBaseSha: "a".repeat(40),
     files: parseDiff(["diff --git a/a.ts b/a.ts", "--- a/a.ts", "+++ b/a.ts", "@@ -1 +1 @@", "-a", "+b", ""].join("\n")),
     standards: { documents: [], omitted: [] },
     history: "",

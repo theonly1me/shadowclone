@@ -44,6 +44,7 @@ export const packetFileSchema = z.object({
   version: z.literal(1),
   context: z.object({
     facts: pullFactsSchema,
+    mergeBaseSha: commitShaSchema,
     files: z.array(diffFileSchema).max(5_000),
     standards: z.object({
       documents: z.array(z.object({ path: pathSchema, text: z.string().max(100_000) })),

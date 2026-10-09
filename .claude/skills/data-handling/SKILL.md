@@ -5,7 +5,7 @@ description: Read before changing capture, indexing, redaction, learning, profil
 
 # Data handling
 
-Read `clean-code` first. Preserve the boundaries documented in `docs/data-handling.md` and `docs/architecture/05-privacy.md`.
+Follow the code conventions in `CONTRIBUTING.md`. Preserve the boundaries documented in `docs/data-handling.md` and `docs/architecture/05-privacy.md`.
 
 ## Consent and scope
 
