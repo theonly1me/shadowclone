@@ -76,7 +76,7 @@ export async function setUpBotInTerminal(options: {
     throw new Error("Setup stopped before it configured the repository. Run it again.");
   }
 
-  console.log(checklistText(outcome.checklist));
+  console.log([...outcome.warnings, checklistText(outcome.checklist)].join("\n\n"));
 
   for (const url of options.open ? pendingPages(outcome.checklist) : []) {
     await openPage(url);

@@ -33,7 +33,7 @@ export async function handleAccountSetup(
     return browserJson({
       body:
         outcome.kind === "configured"
-          ? { kind: outcome.kind, pullUrl: outcome.pullUrl, checklist: outcome.checklist }
+          ? { kind: outcome.kind, pullUrl: outcome.pullUrl, checklist: outcome.checklist, warnings: outcome.warnings }
           : outcome,
     });
   } catch (error) {

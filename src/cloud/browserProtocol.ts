@@ -47,7 +47,12 @@ export const accountOutcomeSchema = z.discriminatedUnion("kind", [
     skillsRepository: z.string(),
     files: z.array(z.object({ path: z.string(), bytes: z.number() })),
   }),
-  z.object({ kind: z.literal("configured"), pullUrl: z.url().nullable(), checklist: checklistSchema }),
+  z.object({
+    kind: z.literal("configured"),
+    pullUrl: z.url().nullable(),
+    checklist: checklistSchema,
+    warnings: z.array(z.string()).default([]),
+  }),
 ]);
 export const manifestViewSchema = z.object({
   action: z.url(),

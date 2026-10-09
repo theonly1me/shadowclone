@@ -70,7 +70,7 @@ async function outcomeText(outcome: AccountSetupOutcome): Promise<string> {
     await openPage(url);
   }
 
-  return `${checklistText(outcome.checklist)}\n\nThe pages for the open steps are open in the browser. Call status to check progress.`;
+  return `${[...outcome.warnings, checklistText(outcome.checklist)].join("\n\n")}\n\nThe pages for the open steps are open in the browser. Call status to check progress.`;
 }
 
 export function createBotTool(context: BuildContext & { readonly call?: GhApiCall; readonly command?: GhCommand }) {

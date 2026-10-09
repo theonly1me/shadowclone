@@ -71,6 +71,7 @@ export function showAccountSetup(options: {
       return;
     }
 
+    result.append(...outcome.warnings.map((warning) => create({ tag: "p", text: warning })));
     renderChecklist({ container: result, checklist: checklistSchema.parse(outcome.checklist) });
     status.textContent =
       "Add the tokens on GitHub, then merge the setup pull request. Run shadowclone bot status to check progress.";

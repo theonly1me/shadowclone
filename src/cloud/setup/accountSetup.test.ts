@@ -1,19 +1,22 @@
 import { expect, test } from "bun:test";
 import { guidanceFixture } from "../fixtures";
 import { defaultBranchRuleset } from "./ruleset";
-import { setUpAccountClone } from "./accountSetup";
+import { organizationMergeWarning, setUpAccountClone } from "./accountSetup";
 import { ghApiFixture, setupRepository } from "./fixtures";
 import type { GhCommand } from "./github";
 
 const sha = (letter: string) => letter.repeat(40);
 
-function githubState(options: { readonly botExists: boolean }) {
+function githubState(options: { readonly botExists: boolean; readonly organization?: boolean }) {
   const events: string[] = [];
   let skillsCreated = false;
   let policyCreated = false;
   const api = ghApiFixture({
     "GET user": { status: 200, data: { login: "sample" } },
-    "GET repos/sample/project": { status: 200, data: setupRepository },
+    "GET repos/sample/project": {
+      status: 200,
+      data: options.organization ? { ...setupRepository, owner: { login: "sample", type: "Organization" } } : setupRepository,
+    },
     "GET users/sample-shadow": options.botExists
       ? { status: 200, data: { id: 31, login: "sample-shadow", type: "User" } }
       : { status: 404, data: null },
@@ -189,6 +192,25 @@ test("an approved setup protects the branch first, keeps tokens off Shadowclone,
         ? [outcome.clone.identity, outcome.clone.botLogin, outcome.pullUrl]
         : null,
     ).toEqual([{ kind: "account" }, "sample-shadow", "https://github.com/sample/project/pull/5"]);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test("a machine account setup in an organization repository warns that write-role members can no longer merge alone", async () => {
+  const fixture = await guidanceFixture();
+  const github = githubState({ botExists: true, organization: true });
+
+  try {
+    const outcome = await setUpAccountClone({
+      ...fixture,
+      repository: "sample/project",
+      botLogin: "sample-shadow",
+      approveSkills: true,
+      ...github,
+    });
+
+    expect(outcome.kind === "configured" ? outcome.warnings : null).toEqual([organizationMergeWarning]);
   } finally {
     await fixture.cleanup();
   }

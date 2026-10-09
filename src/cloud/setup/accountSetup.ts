@@ -32,7 +32,11 @@ export type AccountSetupOutcome =
       readonly clone: Clone;
       readonly pullUrl: string | null;
       readonly checklist: readonly ChecklistItem[];
+      readonly warnings: readonly string[];
     };
+
+export const organizationMergeWarning =
+  "In this organization repository, only admins and maintainers can now update the default branch, because the bot has the write role. Write-role members need one of them to merge.";
 
 export async function setUpAccountClone(
   options: BuildContext & {
@@ -135,5 +139,6 @@ export async function setUpAccountClone(
     clone,
     pullUrl,
     checklist: await readCloudChecklist({ call, clone, pullUrl }),
+    warnings: repository.owner.type === "Organization" ? [organizationMergeWarning] : [],
   };
 }
