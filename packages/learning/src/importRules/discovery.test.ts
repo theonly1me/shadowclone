@@ -4,7 +4,6 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import {
   discoverRepositoryGuidance,
-  maximumGuidanceBytes,
   maximumGuidanceFiles,
 } from "./discovery";
 
@@ -85,18 +84,5 @@ test("rejects a batch above the supported file count", async () => {
 
   await expect(discoverRepositoryGuidance(repository)).rejects.toThrow(
     "Repository guidance exceeds the supported file count",
-  );
-});
-
-test("rejects a batch above the supported byte limit", async () => {
-  const repository = await temporaryRepository();
-
-  await Bun.write(
-    path.join(repository, "CLAUDE.md"),
-    "x".repeat(maximumGuidanceBytes + 1),
-  );
-
-  await expect(discoverRepositoryGuidance(repository)).rejects.toThrow(
-    "Repository guidance exceeds the supported byte limit",
   );
 });

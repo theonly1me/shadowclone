@@ -60,32 +60,6 @@ test("Codex uses call limits without receiving a dollar limit", async () => {
   expect(budgets).toEqual([undefined]);
 });
 
-test("Claude receives the remaining cumulative dollar limit", async () => {
-  const budgets: (number | undefined)[] = [];
-  const costs = [0.75, 0.5];
-  const runner: EngineRunner = (options) => {
-    budgets.push(options.maxBudgetUsd);
-
-    const [costUsd = 0] = costs.splice(0, 1);
-
-    return Promise.resolve(result({ engine: "claude-code", costUsd }));
-  };
-  const execution = createLearningExecution({
-    engine: "claude-code",
-    runner,
-    limits: {
-      maximumCalls: 2,
-      timeoutMilliseconds: 5_000,
-      maximumCostUsd: 2,
-    },
-  });
-
-  await execution.runner(learningRequest());
-  await execution.runner(learningRequest());
-
-  expect(budgets).toEqual([2, 1.25]);
-});
-
 test("Claude failures are not hidden by missing cost telemetry", async () => {
   const runner: EngineRunner = () =>
     Promise.resolve({

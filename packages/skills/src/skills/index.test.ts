@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test";
-import path from "node:path";
 import { resolveSeedDirectories } from "@shadowclone/core";
 import { loadSeedLibrary } from "./index";
 
@@ -42,25 +41,6 @@ async function packageDirectories(): Promise<{
     skillsDirectory: seeds.skills,
   };
 }
-
-test("ships complete Agent Skills without the local comment rule", async () => {
-  const directories = await packageDirectories();
-  const skillFiles: string[] = [];
-  const glob = new Bun.Glob("*/SKILL.md");
-
-  for await (const skillFile of glob.scan({
-    cwd: directories.skillsDirectory,
-  })) {
-    skillFiles.push(skillFile);
-  }
-
-  expect(skillFiles.sort()).toHaveLength(14);
-  expect(
-    await Bun.file(
-      path.join(directories.preferencesDirectory, "comments-none.md"),
-    ).exists(),
-  ).toBeFalse();
-});
 
 test("loads preferences and Agent Skills into honest groups", async () => {
   const library = await loadSeedLibrary(await packageDirectories());

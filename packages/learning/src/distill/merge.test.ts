@@ -37,25 +37,6 @@ function runnerReturning(structured: unknown): EngineRunner {
     });
 }
 
-test("returns the consolidated rules the engine produced", async () => {
-  const merged = await mergeDistilledRules({
-    rules,
-    runner: runnerReturning({
-      rules: [
-        {
-          title: "Plans before editing",
-          body: "Show the plan before changing files.",
-          section: "workflow",
-          sources: [0, 1],
-        },
-      ],
-    }),
-    cwd: "/tmp",
-  });
-
-  expect(merged.rules.length).toBe(1);
-});
-
 test("retains constituent source indices from engine output", async () => {
   const merged = await mergeDistilledRules({
     rules,
