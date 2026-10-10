@@ -11,6 +11,10 @@ const packageDirectory = path.dirname(
 );
 const bundle = path.join(packageDirectory, "dist", "shadowclone.js");
 
+function runs(command) {
+  return spawnSync(command, ["--version"], { stdio: "ignore" }).status === 0;
+}
+
 function bundledBunPath() {
   try {
     const manifestPath = require.resolve("bun/package.json");
@@ -24,16 +28,14 @@ function bundledBunPath() {
 
     const candidate = path.join(path.dirname(manifestPath), relative);
 
-    return existsSync(candidate) ? candidate : null;
+    return existsSync(candidate) && runs(candidate) ? candidate : null;
   } catch {
     return null;
   }
 }
 
 function bunOnPath() {
-  return spawnSync("bun", ["--version"], { stdio: "ignore" }).status === 0
-    ? "bun"
-    : null;
+  return runs("bun") ? "bun" : null;
 }
 
 const runtime = bundledBunPath() ?? bunOnPath();
