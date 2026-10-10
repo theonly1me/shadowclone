@@ -31,7 +31,7 @@ const result: ReviewResult = {
   dropped: [{ title: "Cache never expires", path: "src/cache.ts", line: 4, reason: "the quoted code is not at `src/cache.ts:4`" }],
   candidates: { dropped: [{ id: "S1", title: "js-eval: Code built from a string at runtime", path: "src/a.ts", line: 3, reason: "The string is a constant." }], undecided: [] },
   rejections: [],
-  statistics: { modelFindings: 2, droppedForEvidence: 1, correctionRound: "none", certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 40_000, costUsd: null },
+  statistics: { modelFindings: 2, droppedForEvidence: 1, correctionRound: "none", certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 40_000, costUsd: null, parts: 1 },
 };
 
 test("evidence links in the local review keep the full head commit", () => {

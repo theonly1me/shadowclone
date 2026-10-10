@@ -3,11 +3,12 @@ export type Diagnostic = {
   readonly path: string;
   readonly line: number;
   readonly message: string;
+  readonly fileLevel?: boolean;
 };
 
 export type DiagnosticScope = "changed-lines" | "changed-files" | "new-in-head";
 
-export type ParserId = "colon" | "paren" | "maven" | "gradle" | "github" | "pyright" | "eslint-json" | "file-list";
+export type ParserId = "colon" | "paren" | "maven" | "gradle" | "github" | "pyright" | "hadolint" | "eslint-json" | "file-list" | "trivy-json";
 
 export type StackContext = {
   readonly root: string;

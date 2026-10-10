@@ -1,15 +1,15 @@
-import type { ReviewCandidate } from "./candidates";
 import { escapeData, type ReviewPacket, reviewPrompt } from "./packet";
+import type { ReviewPart } from "./shards";
 import type { Analysis } from "./types";
 
 export function correctionPrompt(options: {
   readonly skill: string;
   readonly packet: ReviewPacket;
-  readonly candidates: readonly ReviewCandidate[];
+  readonly part: ReviewPart;
   readonly previous: Analysis;
   readonly rejections: readonly string[];
 }): string {
-  return `${reviewPrompt({ skill: options.skill, packet: options.packet, candidates: options.candidates })}
+  return `${reviewPrompt({ skill: options.skill, packet: options.packet, part: options.part })}
 
 Your previous answer follows, with the problems that code found in it. Return the full corrected answer in the same schema.
 For each rejected finding, read the source again and copy the quote exactly, or remove the finding.

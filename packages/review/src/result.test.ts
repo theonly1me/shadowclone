@@ -65,6 +65,7 @@ function resultFor(options: { readonly hits: readonly RuleHit[]; readonly findin
     correctionRound: "none",
     rejections: [],
     startedAt: Date.now(),
+    parts: 1,
   });
 }
 
@@ -87,4 +88,35 @@ test("a certain finding survives the cap when the model returns many low finding
 
   expect(result.findings).toHaveLength(10);
   expect(result.findings[0]?.source).toBe("rule");
+});
+
+test("every high severity finding survives the cap, and the cap still limits the rest", () => {
+  const high = Array.from({ length: 12 }, (_, index) => ({ ...modelFinding(index * 10 + 1), severity: "high" as const }));
+  const low = Array.from({ length: 5 }, (_, index) => modelFinding(index * 10 + 500));
+  const result = resultFor({ hits: [], findings: [...low, ...high] });
+
+  expect(result.findings).toHaveLength(12);
+  expect(result.findings.every((finding) => finding.severity === "high")).toBe(true);
+});
+
+test("high severity findings stop at 25, the limit of a posted review", () => {
+  const high = Array.from({ length: 30 }, (_, index) => ({ ...modelFinding(index * 10 + 1), severity: "high" as const }));
+
+  expect(resultFor({ hits: [], findings: high }).findings).toHaveLength(25);
+});
+
+test("low linter findings stay past the cap and leave the model its 10 places", () => {
+  const linterHit = (line: number): RuleHit => ({ ...certainHit, ruleId: "hadolint", severity: "low", category: "correctness", title: `hadolint: ${line}`, line });
+  const model = Array.from({ length: 12 }, (_, index) => modelFinding(index * 10 + 1));
+  const result = resultFor({ hits: [linterHit(2), { ...linterHit(2), path: "Dockerfile" }, { ...linterHit(9), path: "deploy.sh" }], findings: model });
+
+  expect(result.findings.filter((finding) => finding.source === "rule")).toHaveLength(3);
+  expect(result.findings.filter((finding) => finding.source === "investigation")).toHaveLength(10);
+});
+
+test("linter findings on neighbouring lines of one file are separate findings", () => {
+  const hadolint = (line: number): RuleHit => ({ ...certainHit, ruleId: "hadolint", severity: "low", category: "correctness", title: `hadolint ${line}`, path: "Dockerfile", line });
+  const result = resultFor({ hits: [hadolint(1), hadolint(2), hadolint(3), hadolint(4)], findings: [] });
+
+  expect(result.findings.map((finding) => finding.line)).toEqual([1, 2, 3, 4]);
 });

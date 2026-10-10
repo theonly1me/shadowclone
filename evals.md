@@ -129,4 +129,4 @@ The declared runtime is Bun 1.4.2 and TypeScript 5.9.3, but acceptance logs show
 
 Claude runs after a quota reset used authorized manual retries. The study removed or rescored no failure in silence. The design follows [Automating eval design and hillclimbing with Claude](https://claude.dev/blog/automating-eval-design-and-hillclimbing/). No autonomous hillclimbing ran. Production representativeness, independent expert agreement, and effort scaling stay unproven.
 
-See the [evaluations guide](evals/README.md), the [pull request review](evals/pr-review/README.md) evaluation, and the [no-comments](evals/no-comments/README.md) evaluation. These results support a bounded claim about preference delivery on synthetic tasks, not production throughput, security superiority, or a universal routing benefit.
+See the [evaluations guide](evals/README.md), the [code review benchmark](https://github.com/theonly1me/code-review-bench), and the [no-comments](evals/no-comments/README.md) evaluation. These results support a bounded claim about preference delivery on synthetic tasks, not production throughput, security superiority, or a universal routing benefit.

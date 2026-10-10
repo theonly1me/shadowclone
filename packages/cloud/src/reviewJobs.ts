@@ -1,3 +1,4 @@
+import { linterInstallStep } from "./reviewLinters";
 import { codexInstallStep, codexLoginReturnStep, codexLoginStep } from "./agentSteps";
 import { botToken, botTokenSteps } from "./identitySteps";
 import type { Clone } from "./types";
@@ -125,6 +126,7 @@ ${artifact({ pin: pins.uploadArtifact, name: "packet", upload: true })}
 ${pullCheckout({ pins, fullHistory: true })}
 ${installSteps({ pins, versions, claude: false })}
 ${artifact({ pin: pins.downloadArtifact, name: "packet", upload: false })}
+${linterInstallStep()}
       - name: Run the repository toolchain without secrets
         working-directory: \${{ runner.temp }}
         run: |

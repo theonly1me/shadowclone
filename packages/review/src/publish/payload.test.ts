@@ -33,7 +33,7 @@ function result(findings: readonly Finding[]): ReviewResult {
     dropped: [],
     candidates: { dropped: [], undecided: [] },
     rejections: [],
-    statistics: { modelFindings: findings.length, droppedForEvidence: 0, correctionRound: "none", certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 1000, costUsd: null },
+    statistics: { modelFindings: findings.length, droppedForEvidence: 0, correctionRound: "none", certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 1000, costUsd: null, parts: 1 },
   };
 }
 

@@ -80,7 +80,7 @@ export const reviewResultSchema = z.object({
   version: z.literal(1),
   pull: pullFactsSchema,
   model: z.string().min(1),
-  findings: z.array(findingSchema).max(10),
+  findings: z.array(findingSchema).max(25),
   commentableLines: z.record(z.string(), z.array(lineRangeSchema)),
   skippedPaths: z.array(z.string().max(500)),
   toolchain: z.array(toolchainSummarySchema),
@@ -102,6 +102,7 @@ export const reviewResultSchema = z.object({
     signalRuleHits: z.number().int().nonnegative(),
     durationMilliseconds: z.number().int().nonnegative(),
     costUsd: z.number().nonnegative().nullable(),
+    parts: z.number().int().positive().default(1),
   }),
 });
 

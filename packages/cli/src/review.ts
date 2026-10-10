@@ -1,10 +1,11 @@
 import path from "node:path";
 import { runClaudeCode } from "@shadowclone/agents";
 import { runHostCommand, projectPaths, ownedWrite } from "@shadowclone/core";
-import { reviewBranch, reviewLocally, reviewMarkdown, type ReviewResult } from "@shadowclone/review";
+import { reviewBranch, reviewLocally, type ReviewResult } from "@shadowclone/review";
 import { branchRepositoryName } from "@shadowclone/review";
 import { parseReviewArguments } from "./reviewArguments";
 import { requestCloudReview } from "./reviewCloud";
+import { reviewFileContent } from "./reviewFile";
 import { reviewStages } from "./reviewStages";
 
 async function commandOutput(options: { readonly arguments: readonly string[]; readonly cwd: string; readonly failure: string }): Promise<string> {
@@ -23,7 +24,7 @@ async function writeReview(options: { readonly result: ReviewResult; readonly ou
     options.output ?? path.join(projectPaths.shadowcloneDirectory, "reviews", result.pull.repository.replace("/", "-"), options.fileName),
   );
 
-  await ownedWrite({ path: output, content: reviewMarkdown(result) });
+  await ownedWrite({ path: output, content: reviewFileContent({ result, file: output }) });
   console.log(`${result.findings.length} ${result.findings.length === 1 ? "finding" : "findings"}. Review written to ${output}`);
 }
 

@@ -13,7 +13,6 @@
     "@shadowclone/environment": "workspace:*",
     "@shadowclone/learning": "workspace:*",
     "@shadowclone/redact": "workspace:*",
-    "@shadowclone/review": "workspace:*",
     "@shadowclone/sessions": "workspace:*",
     "@shadowclone/skills": "workspace:*",
     "commander": "^15.0.0",

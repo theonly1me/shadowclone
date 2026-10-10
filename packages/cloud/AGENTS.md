@@ -16,7 +16,7 @@ Sets up the GitHub bot, writes its workflows, exports reviewed guidance, and rep
 ## Owns
 
 - `src/setup/`: account and App setup, environment, ruleset, and checklist (`setUpAccountClone`, `activateClone`, `readCloudChecklist`).
-- `src/workflow.ts`, `workerWorkflow.ts`, and `reviewJobs.ts`: the generated GitHub workflows.
+- `src/workflow.ts`, `workerWorkflow.ts`, and `reviewJobs.ts`: the generated GitHub workflows. `reviewLinters.ts` pins the linters that the review checks job installs.
 - `src/guard/` and `react.ts`: the code that runs inside the workflows to validate events.
 - `src/export.ts` and `deliveryFiles.ts`: `exportGuidance` and `writeDeliveryFiles`.
 - `src/status.ts`: `cloneStatus` and `readInstallation`.

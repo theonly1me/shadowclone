@@ -24,10 +24,10 @@ The pull request review engine. It collects the diff and standards, runs rules a
 ## Rules
 
 - The model can use only the review tools of `agents`: `Read`, `Grep`, `Glob`, and `Agent`. Web tools need the network option.
-- Toolchain checks get a fixed list of environment variables, with no token. JavaScript installs use `--ignore-scripts`.
+- Toolchain checks get a fixed list of environment variables, with no token. JavaScript installs use `--ignore-scripts`. When pnpm or Yarn is missing, `toolchain/corepack.ts` runs them through Corepack. `toolchain/projects.ts` runs a stack in the nearest configured folder when the root does not configure it. `toolchain/cache.ts` sets the 10 minute budget and the shared Cargo build folder.
 - `neutralizeText` redacts every posted text. It wraps mentions, cross-repository references, and GitHub thread links in code spans.
 - `publishReview` posts a `COMMENT` review only. It never approves and never requests changes.
-- `rank.ts` keeps at most 10 findings.
+- `rank.ts` keeps 10 findings for each review part, and 25 at most. It keeps every high severity finding up to 25. `shards.ts` puts each changed file in exactly one part.
 - A fetched documentation address must be public. `evidence/addresses.ts` refuses private, loopback, and metadata addresses.
 
 ## Tests
