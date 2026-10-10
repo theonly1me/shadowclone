@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         id: validate
         with:
           script: |
@@ -78,7 +78,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         id: validate
         with:
           script: |
@@ -113,7 +113,7 @@ jobs:
                 core.setOutput(name, String(value));
               }
             }
-      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
         id: app
         if: steps.validate.outputs.allowed == 'true'
         with:
@@ -127,7 +127,7 @@ jobs:
           permission-actions: write
           permission-checks: read
           permission-workflows: write
-      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         if: steps.validate.outputs.allowed == 'true'
         with:
           github-token: ${{ steps.app.outputs.token }}
@@ -141,7 +141,7 @@ jobs:
               request: github.request.bind(github),
               warn: core.warning,
             });
-      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         if: steps.validate.outputs.allowed == 'true'
         env:
           GUIDANCE_BUNDLE: ${{ secrets.SHADOWCLONE_GUIDANCE }}
@@ -161,7 +161,7 @@ jobs:
                 labels: ['shadowclone:managed'],
               });
             }
-      - uses: anthropics/claude-code-action@ed670b4cf9de2a5a570d130d2f6197b9e543cd64
+      - uses: anthropics/claude-code-action@6fed3ca145920b639991cb756090506e1bcaf515
         if: steps.validate.outputs.allowed == 'true'
         env:
           SHADOWCLONE_ENTITY: ${{ steps.validate.outputs.entity }}
