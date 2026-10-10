@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.28](https://github.com/theonly1me/shadowclone/compare/v0.0.27...v0.0.28) (2026-10-10)
+
+
+### Fixes
+
+* **cli:** use bun on the path when the bundled bun is an install placeholder ([#191](https://github.com/theonly1me/shadowclone/issues/191)) ([cd94b74](https://github.com/theonly1me/shadowclone/commit/cd94b7417920f698f542304109b2d1ddb6ed84ef))
+
 ## [0.0.27](https://github.com/theonly1me/shadowclone/compare/v0.0.26...v0.0.27) (2026-10-10)
 
 
