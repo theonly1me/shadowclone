@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.0.26](https://github.com/theonly1me/shadowclone/compare/v0.0.25...v0.0.26) (2026-10-09)
+
+
+### Features
+
+* always apply plain english and split the code into workspace packages ([#185](https://github.com/theonly1me/shadowclone/issues/185)) ([95ca1ef](https://github.com/theonly1me/shadowclone/commit/95ca1ef8bc472d566fa743eeee145664e0b8a9fd))
+* **cloud:** run for up to three hours, save unfinished work, and work with codex ([#182](https://github.com/theonly1me/shadowclone/issues/182)) ([e6a7680](https://github.com/theonly1me/shadowclone/commit/e6a7680a3b1dd86e4b05210fff8eaec595c5677e))
+* **cloud:** set up a named bot account with tokens entered on github ([#181](https://github.com/theonly1me/shadowclone/issues/181)) ([5fe1c05](https://github.com/theonly1me/shadowclone/commit/5fe1c05d48311fd7fb9c75f974bf6c343345a9a5))
+* let the agent run the whole setup from one pasted line ([#186](https://github.com/theonly1me/shadowclone/issues/186)) ([2a022f5](https://github.com/theonly1me/shadowclone/commit/2a022f5440a2418a8c4c89cb74ad3096adb519d2))
+* **review:** review the current branch without a pull request ([#178](https://github.com/theonly1me/shadowclone/issues/178)) ([0e0f23b](https://github.com/theonly1me/shadowclone/commit/0e0f23b68fa453a5ddd8b421696bb455daf8d2a6))
+
+
+### Fixes
+
+* **review:** compare dependencies and diagnostics with the merge base ([#179](https://github.com/theonly1me/shadowclone/issues/179)) ([037e233](https://github.com/theonly1me/shadowclone/commit/037e233b2c2d08336b7fccffed7149ff2390dfe1))
+
 ## [0.0.25](https://github.com/theonly1me/shadowclone/compare/v0.0.24...v0.0.25) (2026-10-08)
 
 
