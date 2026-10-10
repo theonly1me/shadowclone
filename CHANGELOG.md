@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.27](https://github.com/theonly1me/shadowclone/compare/v0.0.26...v0.0.27) (2026-10-10)
+
+
+### Features
+
+* **review:** review large changes in parts, run monorepo checks and linters, and write json reviews ([#187](https://github.com/theonly1me/shadowclone/issues/187)) ([e7fb7ac](https://github.com/theonly1me/shadowclone/commit/e7fb7ac1c6ab332c0b2218e80c4216b6c2f27a75))
+
 ## [0.0.26](https://github.com/theonly1me/shadowclone/compare/v0.0.25...v0.0.26) (2026-10-09)
 
 
