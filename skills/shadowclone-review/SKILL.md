@@ -31,10 +31,12 @@ A pull request needs a review. Run `shadowclone review <number>` in the reposito
    - Compatibility: public APIs, schemas, migrations, configuration, and data that older code reads.
    - Standards: a rule in the standards of the packet that the change breaks.
 3. Each signal rule hit and each new toolchain diagnostic is a candidate with an id, such as `S1` or `T1`. Check each candidate in the code. If it causes a real failure at the head, raise it in a finding and list its id in the candidates field. If not, put its id in dropped with the reason.
-4. When a claim depends on how a library, a framework, or a platform behaves, find its documentation for the version in the lockfile. Search the web and fetch the page. Quote the passage. Do not rely on memory for that behavior.
-5. Give each candidate a fresh subagent with only the claim and its evidence. Tell it to refute the claim from the code and the documentation. If you cannot start a subagent, check the claim again in a new pass that starts from the code.
-6. Keep a candidate only when the refuter could not refute it. Put the reason of the refuter in the refutation field.
-7. Write each finding in short plain sentences, and return the findings as JSON. An empty list is a valid result.
+4. A risky pattern that the change adds is a failure at the head. Examples are open network access, an injection sink, a lock on a live table, and a privileged container. Drop it only when code in the repository makes it safe. A fact outside the code, such as the current network, the table size, or a token scope, does not make it safe.
+5. When a claim depends on how a library, a framework, or a platform behaves, find its documentation for the version in the lockfile. Search the web and fetch the page. Quote the passage. Do not rely on memory for that behavior.
+6. Give each candidate a fresh subagent with only the claim and its evidence. Tell it to refute the claim from the code and the documentation. If you cannot start a subagent, check the claim again in a new pass that starts from the code.
+7. Keep a candidate only when the refuter could not refute it. Put the reason of the refuter in the refutation field.
+8. Raise each defect in its own finding, even when two defects are in the same file or the same step. Put each finding on the changed line that adds the defect. When the failure shows in a caller, quote that caller as evidence.
+9. Write each finding in short plain sentences, and return the findings as JSON. An empty list is a valid result.
 
 Each evidence item has a source, a location, and an exact quote:
 
@@ -64,6 +66,7 @@ Write the text of each finding in Simplified Technical English. Use one idea in 
 - Report problems that this change introduces or makes reachable. Leave out problems that existed before the change.
 - Leave out formatting, naming taste, missing comments, questions, praise, and suggestions without a failure.
 - Do not repeat the certain findings in the packet, such as committed credentials or advisories for added dependencies. The command reports them.
+- A linter problem in the certain findings does not replace your own finding. If the change causes a failure that a linter also flags, raise it with your evidence on the line that causes it.
 - Rate severity by the mechanism and by how often a real flow reaches it. Check the defaults that limit the impact.
 
 ## Completion

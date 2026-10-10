@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { ProcessLimitError, runProcess } from "@shadowclone/core";
+import { withCorepackManagers } from "./corepack";
 
 export type ToolRun =
   | { readonly kind: "finished"; readonly exitCode: number; readonly output: string }
@@ -59,16 +60,17 @@ export function toolEnvironment(
     }
   }
 
-  return environment;
+  return withCorepackManagers(environment);
 }
 
 export async function runTool(options: {
   readonly arguments: readonly string[];
   readonly cwd: string;
   readonly timeoutMilliseconds: number;
+  readonly environment: Readonly<Record<string, string>>;
 }): Promise<ToolRun> {
   const [executable] = options.arguments;
-  const environment = toolEnvironment();
+  const environment = { ...toolEnvironment(), ...options.environment };
 
   if (executable === undefined) {
     throw new Error("A toolchain command needs an executable");

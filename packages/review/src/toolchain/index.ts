@@ -1,7 +1,8 @@
 import path from "node:path";
 import type { DiffFile } from "../collect";
 import { addWorktree, removeWorktree, type Worktree } from "../worktree";
-import { stackContext } from "./context";
+import { sharedCargoTarget, toolchainBudgetMilliseconds } from "./cache";
+import { stackProjects } from "./projects";
 import { runStack } from "./stackRun";
 import { allStacks } from "./stacks";
 import type { CommandReport } from "./types";
@@ -23,19 +24,19 @@ export async function runToolchain(options: {
   let base: Promise<Worktree> | null = null;
 
   try {
-    const context = stackContext({
+    const projects = stackProjects({
+      stacks: allStacks,
       root: head.root,
       changedFiles: files.filter((file) => !file.deleted).map((file) => file.path),
     });
-    const stacks = allStacks.filter(
-      (stack) => files.some((file) => stack.sources.test(file.path)) && stack.detect(context),
-    );
+    const budget = { deadline: Date.now() + toolchainBudgetMilliseconds, environment: { CARGO_TARGET_DIR: await sharedCargoTarget(repository) } };
     const reports: CommandReport[] = [];
 
-    for (const stack of stacks) {
+    for (const { stack, directory } of projects) {
       reports.push(
         ...(await runStack({
           stack,
+          directory,
           head,
           base: () => {
             base ??= addWorktree({ repository, sha: options.baseSha, directory: baseDirectory });
@@ -43,6 +44,7 @@ export async function runToolchain(options: {
           },
           files,
           onProgress: options.onProgress,
+          budget,
         })),
       );
     }

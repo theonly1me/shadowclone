@@ -52,3 +52,18 @@ test("the update path reads the clone configuration back from the installed rela
 
   expect(cloneFromRelay(relay)).toEqual(fixtureClone);
 });
+
+test("the toolchain job installs each review linter at its pinned hash before it runs the checks", () => {
+  const steps = jobs()["review-checks"]?.steps ?? [];
+  const names = steps.map((step) => step.name);
+  const install = JSON.stringify(steps.find((step) => step.name === "Install the pinned review linters"));
+
+  expect(names.indexOf("Install the pinned review linters")).toBeLessThan(names.indexOf("Run the repository toolchain without secrets"));
+  expect(names.indexOf("Install the pinned review linters")).toBeGreaterThan(-1);
+  expect(install).toContain("sha256sum --check");
+  expect(install).toContain('"continue-on-error":true');
+  expect(install).toContain("install_linter shellcheck");
+  expect(install).toContain("6c881ab0698e4e6ea235245f22832860544f17ba386442fe7e9d629f8cbedf87");
+  expect(install).toContain("e7965f8146b53cfa7a4625ceecfea5c6aeb35add39132210aa60b11ae180b9f4");
+  expect(install).toContain('$RUNNER_TEMP/linters\\" >> \\"$GITHUB_PATH');
+});

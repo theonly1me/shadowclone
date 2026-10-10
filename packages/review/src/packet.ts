@@ -2,6 +2,7 @@ import type { DiffFile, ReviewContext, Standards } from "./collect";
 import { isGeneratedPath } from "./generated";
 import type { RuleHit } from "./rules";
 import type { ReviewCandidate } from "./candidates";
+import type { ReviewPart } from "./shards";
 import type { CommandReport } from "./toolchain";
 
 export type ReviewPacket = {
@@ -9,8 +10,6 @@ export type ReviewPacket = {
   readonly ruleHits: readonly RuleHit[];
   readonly toolchain: readonly CommandReport[];
 };
-
-const maximumDiffBytes = 150_000;
 
 const dataTags = [
   "pull_request_title",
@@ -44,23 +43,20 @@ function standardsBlock(standards: Standards): string {
   return `<repository_standards>\n${documents || "(none)"}\n</repository_standards>${omitted}`;
 }
 
-export function packetDiff(files: readonly DiffFile[]): { readonly text: string; readonly notIncluded: readonly string[]; readonly generated: readonly string[] } {
-  const generated = files.filter((file) => isGeneratedPath(file.path)).map((file) => file.path);
-  const included: string[] = [];
-  const notIncluded: string[] = [];
-  let bytes = 0;
+export function packetDiff(files: readonly DiffFile[]): { readonly text: string; readonly generated: readonly string[] } {
+  return {
+    text: files
+      .filter((file) => !isGeneratedPath(file.path))
+      .map((file) => file.text)
+      .join(""),
+    generated: files.filter((file) => isGeneratedPath(file.path)).map((file) => file.path),
+  };
+}
 
-  for (const file of files.filter((entry) => !isGeneratedPath(entry.path))) {
-    if (bytes + file.text.length > maximumDiffBytes) {
-      notIncluded.push(file.path);
-      continue;
-    }
-
-    bytes += file.text.length;
-    included.push(file.text);
-  }
-
-  return { text: included.join(""), notIncluded, generated };
+function partNote(part: ReviewPart): string {
+  return part.total === 1
+    ? ""
+    : `\n\nThis change is large, so the review runs in ${part.total} parts at the same time. This run is part ${part.index}. Review the diff in this packet. Other runs review the files that not_in_diff lists. Read those files only when this part depends on them, and report a finding there only when this part causes it.`;
 }
 
 function hitsJson(hits: readonly RuleHit[]): string {
@@ -92,20 +88,23 @@ function toolchainJson(reports: readonly CommandReport[]): string {
 export function reviewPrompt(options: {
   readonly skill: string;
   readonly packet: ReviewPacket;
-  readonly candidates: readonly ReviewCandidate[];
+  readonly part: ReviewPart;
 }): string {
-  const { context, ruleHits, toolchain } = options.packet;
+  const { context, toolchain } = options.packet;
   const { facts } = context;
-  const diff = packetDiff(context.files);
+  const partPaths = new Set(options.part.files.map((file) => file.path));
+  const diff = packetDiff(options.part.files);
+  const generated = packetDiff(context.files).generated;
+  const ruleHits = options.part.total === 1 ? options.packet.ruleHits : options.packet.ruleHits.filter((hit) => partPaths.has(hit.path));
   const certain = ruleHits.filter((hit) => hit.level === "certain");
   const signals = ruleHits.filter((hit) => hit.level === "signal");
-  const notInDiff = [...diff.notIncluded, ...diff.generated.map((generatedPath) => `${generatedPath} (generated)`)];
+  const notInDiff = [...options.part.otherFiles.map((otherPath) => `${otherPath} (another part)`), ...generated.map((generatedPath) => `${generatedPath} (generated)`)];
   const subject =
     facts.number === null
       ? `the head of a local branch in ${facts.repository}, compared with ${escapeData(facts.baseRefName)}. The title and the description come from its commit messages`
       : `the head of pull request #${facts.number} in ${facts.repository}`;
 
-  return `Follow this review process. The working directory is ${subject}. Your tools read files in it, start subagents, and, when the network is on, search the web and fetch pages.
+  return `Follow this review process. The working directory is ${subject}. Your tools read files in it, start subagents, and, when the network is on, search the web and fetch pages.${partNote(options.part)}
 
 <process>
 ${options.skill}
@@ -126,7 +125,7 @@ ${escapeData(hitsJson(certain))}
 </certain_findings>
 <candidates>
 Each candidate needs one decision: list its id in the candidates field of a finding, or put it in dropped with a reason.
-${escapeData(candidatesJson(options.candidates))}
+${escapeData(candidatesJson(options.part.candidates))}
 </candidates>
 <signal_rule_hits>
 ${escapeData(hitsJson(signals))}

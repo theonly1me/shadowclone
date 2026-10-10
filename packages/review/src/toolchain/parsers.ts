@@ -1,15 +1,17 @@
 import path from "node:path";
 import { z } from "zod";
+import { parseTrivy } from "./trivy";
 import type { Diagnostic, ParserId } from "./types";
 
-type RawDiagnostic = { readonly path: string; readonly line: number; readonly message: string };
+type RawDiagnostic = { readonly path: string; readonly line: number; readonly message: string; readonly fileLevel?: boolean };
 
-const linePatterns: Readonly<Record<Exclude<ParserId, "eslint-json" | "file-list" | "gradle">, RegExp>> = {
+const linePatterns: Readonly<Record<Exclude<ParserId, "eslint-json" | "file-list" | "gradle" | "trivy-json">, RegExp>> = {
   colon: /^(?<path>[^\s:][^:]*):(?<line>\d+)(?::\d+)?:\s*(?<message>.+)$/,
   paren: /^(?<path>[^\s(][^(]*)\((?<line>\d+)(?:,\d+)*\):\s*(?<message>.+?)(?:\s+\[[^\]]+\])?$/,
   maven: /^\[(?:ERROR|WARNING)\]\s+(?<path>[^:[\]]+?):\[(?<line>\d+),\d+\]\s*(?<message>.+)$/,
   github: /^::(?:error|warning)\s[^:]*?file=(?<path>[^,]+),line=(?<line>\d+)[^:]*::(?<message>.+)$/,
   pyright: /^\s*(?<path>\S[^:]*):(?<line>\d+):\d+\s+-\s+(?<message>.+)$/,
+  hadolint: /^hadolint:(?<path>[^\s:][^:]*):(?<line>\d+):\s*(?<message>.+)$/,
 };
 
 const kotlinPattern = /^[ew]:\s+(?:file:\/\/)?(?<path>[^:]+):(?<line>\d+):\d+\s+(?<message>.+)$/;
@@ -65,6 +67,10 @@ function rawDiagnostics(options: { readonly parser: ParserId; readonly output: s
     return parseEslint(output);
   }
 
+  if (parser === "trivy-json") {
+    return parseTrivy(output);
+  }
+
   if (parser === "file-list") {
     return output
       .split("\n")
@@ -78,6 +84,10 @@ function rawDiagnostics(options: { readonly parser: ParserId; readonly output: s
   }
 
   return matchLines({ output, patterns: [linePatterns[parser]] });
+}
+
+function isDependencyPath(relativePath: string): boolean {
+  return /(?:^|\/)node_modules\//.test(relativePath);
 }
 
 export function relativeToRoot(options: { readonly filePath: string; readonly roots: readonly string[] }): string | null {
@@ -109,8 +119,8 @@ export function parseDiagnostics(options: {
   return rawDiagnostics({ parser: options.parser, output: options.output }).flatMap((raw) => {
     const relative = relativeToRoot({ filePath: raw.path.trim(), roots: options.roots });
 
-    return relative !== null && raw.line > 0
-      ? [{ tool: options.tool, path: relative, line: raw.line, message: raw.message.trim() }]
+    return relative !== null && raw.line > 0 && !isDependencyPath(relative)
+      ? [{ tool: options.tool, path: relative, line: raw.line, message: raw.message.trim(), ...(raw.fileLevel === true ? { fileLevel: true } : {}) }]
       : [];
   });
 }

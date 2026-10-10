@@ -39,7 +39,7 @@ async function reviewAtHead(options: LocalReviewOptions & { readonly facts: Pull
 
     onProgress(`Built-in rules matched ${packet.ruleHits.length} added lines`);
 
-    const checks = options.runChecks ? await checksStage({ packet, repository: checkout, workDirectory, onProgress }) : null;
+    const checks = options.runChecks ? checksStage({ packet, repository: checkout, workDirectory, onProgress }) : null;
 
     onProgress(`Reviewing with ${options.reviewModel.model}`);
 

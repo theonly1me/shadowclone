@@ -2,6 +2,7 @@ import type { DispositionCheck, ReviewCandidate } from "./candidates";
 import type { EvidenceGate } from "./evidence";
 import { packetDiff, type ReviewPacket } from "./packet";
 import { rankFindings } from "./rank";
+import { findingLimit } from "./shards";
 import type { RuleHit } from "./rules";
 import { type Analysis, type Finding, type ReviewResult, reviewResultSchema } from "./types";
 
@@ -59,6 +60,7 @@ export function reviewResult(options: {
   readonly correctionRound: ReviewResult["statistics"]["correctionRound"];
   readonly rejections: readonly string[];
   readonly startedAt: number;
+  readonly parts: number;
 }): ReviewResult {
   const { packet, gate } = options;
   const certainHits = packet.ruleHits.filter((hit) => hit.level === "certain");
@@ -67,7 +69,7 @@ export function reviewResult(options: {
     version: 1,
     pull: packet.context.facts,
     model: options.model,
-    findings: rankFindings([...certainHits.map(certainFinding), ...gate.kept]),
+    findings: rankFindings({ findings: [...certainHits.map(certainFinding), ...gate.kept], limit: findingLimit(options.parts) }),
     commentableLines: Object.fromEntries(packet.context.files.map((file) => [file.path, file.ranges])),
     skippedPaths: packetDiff(packet.context.files).generated,
     toolchain: packet.toolchain.map((report) => ({
@@ -88,6 +90,7 @@ export function reviewResult(options: {
       signalRuleHits: packet.ruleHits.length - certainHits.length,
       durationMilliseconds: Date.now() - options.startedAt,
       costUsd: options.costUsd,
+      parts: options.parts,
     },
   });
 }

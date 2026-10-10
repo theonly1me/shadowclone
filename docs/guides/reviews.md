@@ -8,7 +8,7 @@ Shadowclone reviews a pull request against the standards of its own repository. 
 shadowclone review 123
 ```
 
-A small pull request takes about 1 minute. It writes a Markdown file to `~/.shadowclone/reviews/<owner>-<repository>/` and prints its path. `--output` chooses another file.
+A small pull request takes about 1 minute. It writes a Markdown file to `~/.shadowclone/reviews/<owner>-<repository>/` and prints its path. `--output` chooses another file. If the file name ends in `.json`, the review is the full result as JSON, for scripts and evaluations.
 
 You need the GitHub CLI signed in with `gh auth login` and Claude Code signed in. The review uses your Claude subscription. `--model` chooses the model (default `claude-opus-5-5`), and `--effort` sets the reasoning effort. The reviewer searches the web and fetches documentation when a claim depends on library behavior. `--offline` turns that off. It uses temporary worktrees and leaves your checkout unchanged.
 
@@ -35,10 +35,13 @@ A pull request that a requester opens or marks ready gets a review without a com
 - **Standards:** `AGENTS.md`, `CLAUDE.md`, `.claude/rules`, repository skills, `CONTRIBUTING.md`, Copilot and Cursor rules, and `.shadowclone/harness.json`, read from the base commit.
 - **Built-in rules:** 67 rules and nine credential patterns on added lines. They cover credentials, conflict markers, injection, unsafe deserialization, disabled TLS checks, weak hashes, risky workflows, and infrastructure settings.
 - **Dependencies:** packages that a changed lockfile adds or upgrades, checked against the OSV vulnerability database.
-- **Toolchain:** the type checks, compilers, and linters of the repository for JavaScript and TypeScript, Python, Go, Rust, Java, and .NET. Only the diagnostics that the pull request adds stay.
+- **Toolchain:** the type checks, compilers, and linters of the repository for JavaScript and TypeScript, Python, Go, Rust, Java, and .NET. Only the diagnostics that the pull request adds stay. In a monorepo, each stack runs in the nearest folder that configures it.
+- **Linters:** shellcheck, hadolint, actionlint, zizmor, and squawk on changed shell scripts, Dockerfiles, workflows, and SQL files. `trivy config` checks changed Terraform, Dockerfiles, and Kubernetes, Helm, and CloudFormation files. Each warning or error on a changed line is a finding.
 - **Judgment:** the skill traces each change through its callers and tests. A fresh refuter subagent tries to disprove each candidate finding before you see it.
 
-A certain rule, such as a committed credential, needs no model. Other rule hits and toolchain diagnostics reach the review only when the skill confirms a real failure. A review reports at most ten findings, highest severity first.
+A certain rule, such as a committed credential, needs no model. A linter warning or error on a changed line is also certain. Other rule hits and toolchain diagnostics reach the review only when the skill confirms a real failure. A review reports at most 10 findings from the skill, highest severity first. It also reports every high severity finding and every certain finding, up to 25.
+
+The review splits a change with more than 150 KB of diff into parts of up to 150 KB. At most four parts run at the same time. Each part gets its own reviewer, and every changed file reaches exactly one of them. A review in parts reports at most 10 findings for each part, and 25 in all.
 
 ## Evidence
 
@@ -52,6 +55,6 @@ The toolchain runs the configuration of the pull request, such as an ESLint conf
 
 ## Limits
 
-- The toolchain finds stacks from files at the repository root, so a monorepo without root manifests gets no toolchain checks.
-- The review skips a tool that you did not install. The cloud runner has the six runtimes but not every linter.
+- A stack runs in at most three project folders for each review. All checks share a budget of 10 minutes.
+- The review skips a tool that you did not install. When pnpm or Yarn is missing, it runs them through Corepack. The cloud runner has the six runtimes and the five linters, but not every language linter.
 - The review does not run the repository tests.

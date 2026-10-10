@@ -58,3 +58,31 @@ test("a diagnostic for a file outside the root is dropped", () => {
 
   expect(parseDiagnostics({ tool: "typecheck", parser: "paren", output, roots })).toEqual([]);
 });
+
+test("trivy JSON becomes one diagnostic for each check, with file-level checks on line 1", () => {
+  const output = JSON.stringify({
+    Results: [
+      {
+        Target: "Dockerfile",
+        Misconfigurations: [{ ID: "DS-0002", Severity: "HIGH", Title: "Image user should not be 'root'", Message: "Specify at least 1 USER command", CauseMetadata: { StartLine: null } }],
+      },
+      { Target: "infra/main.tf", Misconfigurations: [{ ID: "AWS-0107", Severity: "HIGH", Title: "Unrestricted SSH ingress", CauseMetadata: { StartLine: 6 } }] },
+      { Target: "infra", Misconfigurations: null },
+    ],
+  });
+
+  expect(parseDiagnostics({ tool: "trivy", parser: "trivy-json", output, roots })).toEqual([
+    { tool: "trivy", path: "Dockerfile", line: 1, message: "HIGH DS-0002: Image user should not be 'root' Specify at least 1 USER command", fileLevel: true },
+    { tool: "trivy", path: "infra/main.tf", line: 6, message: "HIGH AWS-0107: Unrestricted SSH ingress" },
+  ]);
+});
+
+test("a type error inside node_modules is not a diagnostic of the change", () => {
+  const output = [
+    "node_modules/next/dist/server/base-http.d.ts(3,22): error TS2580: Cannot find name 'Buffer'.",
+    "/work/head/node_modules/next/types/global.d.ts(9,1): error TS2307: Cannot find module 'node:http'.",
+    "app/page.tsx(12,5): error TS2322: Type 'string' is not assignable to type 'number'.",
+  ].join("\n");
+
+  expect(parseDiagnostics({ tool: "typecheck", parser: "paren", output, roots }).map((diagnostic) => diagnostic.path)).toEqual(["app/page.tsx"]);
+});

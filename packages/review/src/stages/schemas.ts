@@ -36,7 +36,7 @@ const reportSchema = z.object({
   status: z.enum(["ran", "skipped", "failed", "timed-out"]),
   detail: z.string().max(2_000),
   diagnostics: z
-    .array(z.object({ tool: z.string().max(50), path: pathSchema, line: lineSchema, message: z.string().max(2_000) }))
+    .array(z.object({ tool: z.string().max(50), path: pathSchema, line: lineSchema, message: z.string().max(2_000), fileLevel: z.boolean().optional() }))
     .max(50),
 });
 

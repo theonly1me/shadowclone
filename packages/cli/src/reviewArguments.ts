@@ -18,7 +18,7 @@ export type LocalReviewArguments = {
 export const defaultReviewModel = "claude-opus-5-5";
 
 export const reviewUsage =
-  "Use shadowclone review <pr-number> [--cloud] for a pull request, or shadowclone review [--base ref] for the current branch. Options: [--no-checks] [--offline] [--repo owner/repository] [--output file.md] [--model id] [--effort level].";
+  "Use shadowclone review <pr-number> [--cloud] for a pull request, or shadowclone review [--base ref] for the current branch. Options: [--no-checks] [--offline] [--repo owner/repository] [--output file.md|file.json] [--model id] [--effort level].";
 
 const valueFlags = ["--repo", "--output", "--model", "--effort", "--base"] as const;
 const switchFlags = ["--cloud", "--no-checks", "--offline"] as const;
