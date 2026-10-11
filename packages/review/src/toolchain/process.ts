@@ -1,13 +1,9 @@
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import path from "node:path";
-import { ProcessLimitError, runProcess } from "@shadowclone/core";
 import { withCorepackManagers } from "./corepack";
+import { runSandboxedTool, type SandboxRun } from "./sandbox";
 
-export type ToolRun =
-  | { readonly kind: "finished"; readonly exitCode: number; readonly output: string }
-  | { readonly kind: "timed-out" }
-  | { readonly kind: "too-much-output" }
-  | { readonly kind: "missing"; readonly executable: string };
+export type ToolRun = SandboxRun | { readonly kind: "missing"; readonly executable: string };
 
 const passedKeys = [
   "PATH",
@@ -68,6 +64,8 @@ export async function runTool(options: {
   readonly cwd: string;
   readonly timeoutMilliseconds: number;
   readonly environment: Readonly<Record<string, string>>;
+  readonly workspaceRoot?: string;
+  readonly stateDirectory?: string;
 }): Promise<ToolRun> {
   const [executable] = options.arguments;
   const environment = { ...toolEnvironment(), ...options.environment };
@@ -76,28 +74,22 @@ export async function runTool(options: {
     throw new Error("A toolchain command needs an executable");
   }
 
-  const available = executable.includes("/")
-    ? existsSync(path.join(options.cwd, executable))
-    : Bun.which(executable, { PATH: environment.PATH ?? "" }) !== null;
+  const located = executable.includes("/")
+    ? path.resolve(options.cwd, executable)
+    : Bun.which(executable, { PATH: environment.PATH ?? "" });
 
-  if (!available) {
+  if (located === null || !existsSync(located)) {
     return { kind: "missing", executable };
   }
 
-  try {
-    const result = await runProcess({
-      arguments: options.arguments,
-      cwd: options.cwd,
-      environment,
-      timeoutMilliseconds: options.timeoutMilliseconds,
-    });
+  const resolved = realpathSync(located);
+  const invocation = /\.(?:js|cjs|mjs)$/.test(resolved)
+    ? resolved
+    : path.join(realpathSync(path.dirname(located)), path.basename(located));
 
-    return { kind: "finished", exitCode: result.exitCode, output: `${result.stdout}\n${result.stderr}` };
-  } catch (error) {
-    if (!(error instanceof ProcessLimitError)) {
-      throw error;
-    }
-
-    return error.message === "Process output limit exceeded" ? { kind: "too-much-output" } : { kind: "timed-out" };
-  }
+  return runSandboxedTool({
+    ...options,
+    arguments: [invocation, ...options.arguments.slice(1)],
+    environment,
+  });
 }

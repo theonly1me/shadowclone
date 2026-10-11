@@ -73,8 +73,7 @@ async function consolidateOrigin(options: {
         ...combined,
         ...statistics,
         status:
-          evidence.for.some(isExplicitProfileEvidence) ||
-          statistics.sessions >= 3
+          evidence.for.some(isExplicitProfileEvidence) || statistics.sessions >= 3
             ? ("active" as const)
             : ("candidate" as const),
       },
@@ -93,7 +92,9 @@ export async function consolidateNewRules(options: {
   readonly workingDirectory: string;
   readonly checkpointDirectory?: string;
 }): Promise<ConsolidatedRules> {
-  const groups = Map.groupBy(options.rules, (rule) => rule.originDirectory);
+  const groups = Map.groupBy(options.rules, (rule) =>
+    JSON.stringify([rule.scope, rule.originDirectory, rule.repositoryName]),
+  );
   const rules: ProfileRule[] = [];
   const dropped: DroppedMergeRule[] = [];
 

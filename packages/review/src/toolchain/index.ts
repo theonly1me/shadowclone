@@ -1,7 +1,8 @@
 import path from "node:path";
+import { mkdtemp, rm } from "node:fs/promises";
 import type { DiffFile } from "../collect";
 import { addWorktree, removeWorktree, type Worktree } from "../worktree";
-import { sharedCargoTarget, toolchainBudgetMilliseconds } from "./cache";
+import { toolchainBudgetMilliseconds } from "./cache";
 import { stackProjects } from "./projects";
 import { runStack } from "./stackRun";
 import { allStacks } from "./stacks";
@@ -22,14 +23,20 @@ export async function runToolchain(options: {
   const baseDirectory = path.join(options.workDirectory, "toolchain-base");
   const head = await addWorktree({ repository, sha: options.headSha, directory: headDirectory });
   let base: Promise<Worktree> | null = null;
+  let stateDirectory: string | undefined;
 
   try {
+    stateDirectory = await mkdtemp(path.join(options.workDirectory, "toolchain-state-"));
     const projects = stackProjects({
       stacks: allStacks,
       root: head.root,
       changedFiles: files.filter((file) => !file.deleted).map((file) => file.path),
     });
-    const budget = { deadline: Date.now() + toolchainBudgetMilliseconds, environment: { CARGO_TARGET_DIR: await sharedCargoTarget(repository) } };
+    const budget = {
+      deadline: Date.now() + toolchainBudgetMilliseconds,
+      environment: {},
+      stateDirectory,
+    };
     const reports: CommandReport[] = [];
 
     for (const { stack, directory } of projects) {
@@ -51,6 +58,9 @@ export async function runToolchain(options: {
 
     return reports;
   } finally {
+    if (stateDirectory !== undefined) {
+      await rm(stateDirectory, { recursive: true, force: true });
+    }
     await removeWorktree({ repository, directory: headDirectory });
 
     if (base !== null) {

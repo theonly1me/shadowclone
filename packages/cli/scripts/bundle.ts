@@ -22,6 +22,7 @@ export async function buildRuntimeArtifacts(
   const result = await Bun.build({
     entrypoints: [entryPoint],
     target: "bun",
+    external: ["@anthropic-ai/sandbox-runtime"],
     minify: true,
     plugins: [runtimeModulePaths],
     naming: {
@@ -52,9 +53,7 @@ export async function buildRuntimeArtifacts(
   return result.outputs;
 }
 
-export async function buildRuntimeBundle(
-  entryPoint: string,
-): Promise<Bun.BuildArtifact> {
+export async function buildRuntimeBundle(entryPoint: string): Promise<Bun.BuildArtifact> {
   const [bundle] = await buildRuntimeArtifacts(entryPoint);
 
   if (!bundle) {
@@ -77,8 +76,7 @@ export async function writeRuntimeArtifacts(options: {
       throw new Error("Build output escapes its destination");
     }
 
-    const destination =
-      index === 0 ? bundleFile : path.join(options.distDirectory, relativePath);
+    const destination = index === 0 ? bundleFile : path.join(options.distDirectory, relativePath);
 
     await Bun.write(destination, artifact);
   }

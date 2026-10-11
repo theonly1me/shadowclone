@@ -10,6 +10,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@anthropic-ai/sandbox-runtime": "0.0.79",
     "@shadowclone/agents": "workspace:*",
     "@shadowclone/core": "workspace:*",
     "@shadowclone/redact": "workspace:*",

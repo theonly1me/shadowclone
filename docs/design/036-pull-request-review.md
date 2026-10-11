@@ -22,7 +22,7 @@ The GitHub clone works on issues and pull requests, but it cannot review one. A 
    - Changed shell scripts, Dockerfiles, GitHub workflows and actions, and SQL files: shellcheck, hadolint, actionlint, zizmor, and squawk.
    - Changed Terraform, Dockerfiles, and Kubernetes, Helm, or CloudFormation YAML: `trivy config` with its own checks, at MEDIUM severity and above.
 
-   A stack that the root does not configure runs in the nearest folder that does, for each changed file. Each stack checks at most three such folders, the ones with the most changed files. A Rust change in a workspace member runs Clippy in that crate only. Diagnostics keep their path from the repository root. All stacks share a budget of 10 minutes, and a command that the budget cannot reach reports timed out without a start. Reviews of one repository share a Cargo build folder in the system temporary folder, keyed by the root commit. So only the first review compiles from cold. The cloud checks job installs the six linters from pinned releases and checks each sha256. Diagnostics inside `node_modules` are not part of the change, so the toolchain leaves them out.
+   A stack that the root does not configure runs in the nearest folder that does, for each changed file. Each stack checks at most three such folders, the ones with the most changed files. A Rust change in a workspace member runs Clippy in that crate only. Diagnostics keep their path from the repository root. All stacks share a budget of 10 minutes, and a command that the budget cannot reach reports timed out without a start. Each review side has isolated caches that cleanup removes. Cargo build output stays in that private state instead of a shared writable cache. The cloud checks job installs the six linters from pinned releases and checks each sha256. Diagnostics inside `node_modules` are not part of the change, so the toolchain leaves them out.
 
    Installs run with scripts off. Sometimes pnpm or Yarn is missing from the path while Corepack is there. Then a private folder of shims runs them through Corepack, so scripts that call them also work. Type and build checks run at the head. They run again at the merge base when the head has diagnostics, so only new diagnostics remain. Lint checks keep diagnostics on added lines. Trivy runs at the head and the base from the repository root, so only new checks remain. Each command reports ran, skipped, failed, or timed out.
 
@@ -44,6 +44,28 @@ The GitHub clone works on issues and pull requests, but it cannot review one. A 
 **Correction round.** When a quote fails or a candidate has no decision, the model gets one more run with its previous answer and the list of problems. Code then judges the corrected answer and drops what still fails. If that run fails, code judges the first answer. The result keeps the problems that started the round.
 
 **Isolation.** The run uses a `review` execution purpose with `Read`, `Grep`, `Glob`, `Agent`, `WebSearch`, and `WebFetch`. Network access lets the reviewer read documentation instead of relying on memory. `--offline` removes the two network tools. `--restricted` confines file tools to the checkout. `--safe-mode` skips the checkout's `CLAUDE.md`, skills, hooks, and settings. MCP is off. The run denies cloud metadata hosts. The run cannot write or run commands. `WebFetch` sends only GET requests, so the run cannot upload local files. The code that checks doc quotes fetches with GET only, follows at most five redirects, and refuses private, loopback, link-local, and metadata addresses.
+
+### Toolchain boundary
+
+Every toolchain command needs operating-system isolation, including dependency installation and executable configuration files. Environment filtering and disabled install scripts do not restrict later processes.
+
+The pinned Anthropic sandbox runtime uses Bubblewrap on Linux and Seatbelt on macOS. Read access includes the disposable worktree and required tool runtimes. Host storage writes include only the worktree and isolated review state. Each review side gets its own HOME, temporary folder, and caches. Linux directory masks can hold temporary writes in the private namespace. Those writes never reach the host directories.
+
+Keep each native tool's invocation name when its executable is a symlink. Grant read access to its runtime link chain without overlapping directory mounts. Standalone Maven and Gradle can read their runtime files. Maven global credential settings stay outside the sandbox. Set `OPENSSL_CONF` to `/dev/null` so Node starts without reading host configuration.
+
+Run JavaScript CLI entry files from their resolved package location. This preserves relative module imports when Linux directory masks replace executable symlinks. Corepack shims use the same resolved entry file.
+
+Route dependency downloads through a fixed public-registry allowlist. Deny direct networking and access to local services and Unix sockets. Host credentials and private user configuration stay outside the sandbox.
+
+Keep the runtime's Linux bridge sockets readable when directory masks hide the host filesystem. Only the trusted bridge processes use those sockets. The workload still cannot create Unix sockets. Boundary tests check outside files on the host after execution.
+
+If isolation cannot start, report failed checks and continue the read-only review. Never execute the command without isolation. Private registries and credential-dependent checks can fail under this policy.
+
+The CLI bundle keeps the runtime external so installed packages retain its native helper files. Tests qualify Bun execution, relocated bundles, hostile scripts, nested projects, isolated state, socket denial, and command limits.
+
+Normalize documentation IPv6 addresses before validation. Classify the embedded IPv4 address of a mapped IPv6 value with the existing IPv4 policy. Direct URL and redirect tests verify rejection before fetch.
+
+### Cloud jobs
 
 **Cloud jobs.** A first-line `@shadowclone review` from a requester starts a review. A requester's PR starts one when it opens or becomes ready for review. The guard routes every other tagged request to `shadowclone-work`. The worker runs five jobs, each on its own runner:
 
@@ -67,7 +89,7 @@ The CLI runs from the temporary directory of the runner, so the `bunfig.toml` an
 - A review uses the owner's Claude subscription for one run, with refuter subagents inside it.
 - `WebFetch` returns a summary from a small model, so a doc quote can fail the check even when the page supports the claim. The finding then keeps only its code evidence.
 - A web search can find the fixed version of an old pull request. The evaluation gives every arm the same tools and records the fetched URLs.
-- A local review runs the toolchain of the PR on this machine with install scripts off. `--no-checks` skips it for an untrusted PR.
+- Local toolchain checks need supported operating-system isolation. Missing sandbox support produces failed checks. `--no-checks` skips toolchain execution.
 - The review does not use standards that exist only in local learning state.
 - Stack detection reads the repository root, so a monorepo without root manifests gets no toolchain checks.
 - The `.github` copy of the repository itself changes only after a release, through the update PR, because the review jobs install the released CLI.
@@ -82,12 +104,12 @@ A review sends the PR text, the diff, the standards, and the history to Anthropi
 - Tests cover these areas:
   - A dependency that the base branch upgraded after the PR branched, which the check does not count as added.
   - The evidence gate for matched, moved, out-of-checkout, and doc-only quotes.
-  - The address table for the doc fetch.
+  - The address table for the doc fetch, including normalized mapped IPv6 in direct URLs and redirects.
   - The examples of each rule, and rule hits on added lines only.
   - Credential levels.
   - Diff ranges and head line numbers.
   - Standards read from the base commit.
-  - Toolchain parsers and new-diagnostic filtering.
+  - Toolchain parsers, new-diagnostic filtering, native isolation, nested installs, disabled lifecycle scripts, and command limits.
   - Ranking and the cap.
   - Redaction and mention neutralization.
   - The review isolation arguments.

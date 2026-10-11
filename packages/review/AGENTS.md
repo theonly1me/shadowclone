@@ -8,7 +8,7 @@ The pull request review engine. It collects the diff and standards, runs rules a
 
 - Package name: `@shadowclone/review`
 - Workspace dependencies: `@shadowclone/agents`, `@shadowclone/core`, `@shadowclone/redact`
-- External dependencies: `smol-toml`, `zod`
+- External dependencies: `@anthropic-ai/sandbox-runtime`, `smol-toml`, `zod`
 - Export subpaths: `.`
 
 <!-- package-facts:end -->
@@ -24,7 +24,8 @@ The pull request review engine. It collects the diff and standards, runs rules a
 ## Rules
 
 - The model can use only the review tools of `agents`: `Read`, `Grep`, `Glob`, and `Agent`. Web tools need the network option.
-- Toolchain checks get a fixed list of environment variables, with no token. JavaScript installs use `--ignore-scripts`. When pnpm or Yarn is missing, `toolchain/corepack.ts` runs them through Corepack. `toolchain/projects.ts` runs a stack in the nearest configured folder when the root does not configure it. `toolchain/cache.ts` sets the 10 minute budget and the shared Cargo build folder.
+- Every toolchain command runs through `toolchain/sandbox/`, including installs and executable configuration files. The sandbox uses Bubblewrap on Linux and Seatbelt on macOS. It reads the worktree and required runtimes. It changes host files only in the worktree and isolated state. Each review side gets its own HOME and caches. Network access uses a fixed public-registry allowlist. Unavailable isolation fails the check without starting the command.
+- Toolchain checks get a fixed list of environment variables, with no token. JavaScript installs use `--ignore-scripts`. When pnpm or Yarn is missing, `toolchain/corepack.ts` runs them through Corepack. `toolchain/projects.ts` selects configured project folders. `toolchain/cache.ts` sets the shared 10 minute time budget.
 - `neutralizeText` redacts every posted text. It wraps mentions, cross-repository references, and GitHub thread links in code spans.
 - `publishReview` posts a `COMMENT` review only. It never approves and never requests changes.
 - `rank.ts` keeps 10 findings for each review part, and 25 at most. It keeps every high severity finding up to 25. `shards.ts` puts each changed file in exactly one part.
@@ -32,6 +33,6 @@ The pull request review engine. It collects the diff and standards, runs rules a
 
 ## Tests
 
-Run `bun test` in this folder, or `bun test packages/review` from the root. Several tests build temporary Git repositories, so `git` must be on the path. The model runner is a mock.
+Run `bun test` in this folder, or `bun test packages/review` from the root. Several tests build temporary Git repositories, so `git` must be on the path. Native sandbox tests need the support listed in [CONTRIBUTING.md](../../CONTRIBUTING.md#development-setup). The model runner is a mock.
 
 Update this file in the same commit when you change the package purpose, public exports, dependencies, or a rule above.
