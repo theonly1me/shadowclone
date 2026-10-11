@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.30](https://github.com/theonly1me/shadowclone/compare/v0.0.29...v0.0.30) (2026-10-11)
+
+
+### Fixes
+
+* **ci:** stabilize macos learning tests ([#198](https://github.com/theonly1me/shadowclone/issues/198)) ([08cdc64](https://github.com/theonly1me/shadowclone/commit/08cdc6416875df509c0d21b11ec4107781d2f551))
+
 ## [0.0.29](https://github.com/theonly1me/shadowclone/compare/v0.0.28...v0.0.29) (2026-10-11)
 
 
