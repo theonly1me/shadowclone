@@ -16,6 +16,12 @@ Separate activation from confidence. The original design required three independ
 
 Tie checkpoints to the redacted prompt, the output schema, and the learner version. Read metadata and model-facing text from one bounded snapshot. Then reconciliation cannot pair a stale hash with different contents. Unless the caller explicitly authorizes application, preview the proposed changes.
 
+### Consolidation scope
+
+Consolidation groups rules by `scope`, `originDirectory`, and `repositoryName` before it asks the model to merge them. An origin alone can contain several repositories. Combining their rules loses the repository metadata of all but the first rule.
+
+Keep evidence inside its complete scope group. Same-scope duplicates can still merge, and explicit guidance keeps its activation status. Add scope regressions before changing the grouping, then run the existing evidence tests.
+
 ## Verification
 
 Test repeated evidence, invalid evidence tokens, axis conflicts, user edits, rejected proposals, and stale checkpoints. Test that model failures preserve published guidance. Mutation checks must prove the source-to-redaction wiring. This includes instruction titles and conditions that could also contain secrets.

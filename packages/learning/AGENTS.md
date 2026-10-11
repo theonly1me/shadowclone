@@ -25,6 +25,7 @@ Turns evidence from consented sessions into guidance. It distills, reconciles, a
 - Only user prompts, plan decisions, question answers, permission denials, and interruptions with a text reference are evidence.
 - Each reference passes `authorizeRef` for the current consent and `resolveRedacted` before the model sees it.
 - All model calls for one learning run share one `createLearningExecution`. Do not start a second budget.
+- Consolidation groups rules by `scope`, `originDirectory`, and `repositoryName`. Merge evidence only within that complete scope.
 - A learned rule that reads like an instruction to the agent stays pending with its reasons (`heldLearningReason`).
 - The background worker takes the `learning-worker.db` lock. It exits as `busy` when another worker runs.
 - Background learning needs `distillation.deep`, `distillation.automatic`, and a managed policy that allows it.
