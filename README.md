@@ -74,7 +74,7 @@ Shadowclone bundles 15 workflow skills. Pick them in the wizard.
 | `write-plain-english`         | You write text for a person (always on) |
 
 To pick skills without the CLI, run `npx skills add theonly1me/shadowclone`.
-Use `--skill guided-pr-review` to install only the guided review skill.
+Use `--skill guided-pr-review shadowclone-review` to install guided review and its local reviewer.
 The separate `@shadowclone/skills` npm artifact contains the same portable skills and supporting files.
 See [manual installation](docs/guides/skills.md#install-skills-without-shadowclone).
 

@@ -10,12 +10,13 @@ Use the skills CLI to choose portable skills manually:
 
 ```bash
 npx skills add theonly1me/shadowclone
-npx skills add theonly1me/shadowclone --skill guided-pr-review
+npx skills add theonly1me/shadowclone --skill guided-pr-review shadowclone-review
 ```
 
 Use `--list` to inspect the available skills first.
 This installation does not enable Shadowclone learning or install its CLI.
 The guided review skill works with a local coding agent and the full repository.
+Install its `shadowclone-review` companion to investigate locally before building the guide.
 
 The separate `@shadowclone/skills` npm artifact contains the same root skills and their supporting files.
 The skills CLI accepts a repository, a local directory, or a direct tarball URL.

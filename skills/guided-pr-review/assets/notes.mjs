@@ -1,193 +1,182 @@
-function noteCard(note) {
-  const pull = report.pulls.find((item) => item.id === note.pr);
-  const label = note.author === "agent" ? "Agent proposal" : "Your note";
-  const source = note.source
-    ? note.source.path +
-      ":" +
-      note.source.start +
-      (note.source.end > note.source.start ? " to " + note.source.end : "")
-    : "Document passage";
-  const explanation =
-    note.author === "agent"
-      ? "<details><summary>Inspect the reasoning</summary><p><b>Why:</b> " +
-        escapeHtml(note.reason) +
-        "</p><p><b>Proof:</b> " +
-        escapeHtml(note.verification) +
-        "</p><p><b>Counterevidence:</b> " +
-        escapeHtml(note.counterevidence) +
-        "</p></details>"
-      : "";
-  return (
-    '<article class="note-card ' +
-    note.author +
-    (note.dismissed ? " dismissed" : "") +
-    '" data-note-id="' +
-    escapeHtml(note.id) +
-    '"><div class="note-meta"><b>' +
-    label +
-    '</b><span class="badge">' +
-    "PR #" +
-    pull.number +
-    "</span><span>" +
-    escapeHtml(source) +
-    "</span></div><blockquote>" +
-    escapeHtml(note.quote) +
-    '</blockquote><textarea aria-label="Edit comment">' +
-    escapeHtml(note.body) +
-    "</textarea>" +
-    explanation +
-    "<details><summary>Original wording</summary><p>" +
-    escapeHtml(note.originalBody) +
-    '</p></details><div class="note-footer"><label><input type="checkbox" class="select-note"' +
-    (note.selected ? " checked" : "") +
-    (note.dismissed ? " disabled" : "") +
-    '> Include in draft</label><button class="quiet dismiss-note" type="button">' +
-    (note.dismissed ? "Restore" : "Dismiss") +
-    "</button></div>" +
-    (note.draftUrl
-      ? '<a href="' +
-        escapeHtml(safeUrl(note.draftUrl) ?? "#") +
-        '" target="_blank" rel="noreferrer">Open pending review</a>'
-      : "") +
-    "</article>"
-  );
+let selectedContext = null;
+let editingNote = null;
+let dragStart = null;
+
+function changed() {
+  review.annotations.revision += 1;
+  dirty = true;
+  document.getElementById("save-status").textContent = "Unsaved changes";
+  try {
+    localStorage.setItem("guided-review-v2:" + review.id, JSON.stringify(review.annotations));
+  } catch {
+    document.getElementById("save-status").textContent =
+      "Unsaved changes. This browser cannot keep a recovery copy.";
+  }
 }
 
 function renderNotes() {
-  document.querySelectorAll(".note-list").forEach((element) => {
-    element.innerHTML = state.notes
-      .filter(
-        (note) =>
-          (note.author === "human" || state.showProposals) &&
-          note.anchor === element.dataset.notesFor,
-      )
-      .map(noteCard)
+  document.querySelectorAll(".inline-notes").forEach((element) => {
+    element.innerHTML = review.annotations.notes
+      .filter((note) => !note.dismissed && note.anchor === element.dataset.notesAt)
+      .map(noteMarkup)
       .join("");
   });
-  document.querySelectorAll(".agent-proposals").forEach((element) => {
-    const notes = state.notes.filter((note) => {
-      const proposal = report.proposals.find((item) => "proposal-" + item.id === note.id);
-      if (note.author !== "agent" || proposal?.group !== element.dataset.proposalsFor) return false;
-      const inline = [...element.closest(".group-section").querySelectorAll(".note-list")].find(
-        (item) => item.dataset.notesFor === note.anchor,
+  document.querySelectorAll(".group-findings").forEach((element) => {
+    const group = review.groups.find((group) => group.id === element.dataset.findingsFor);
+    const remaining = [];
+    for (const finding of review.pulls.flatMap((pull) => pull.findings)) {
+      if (!group.files.some((file) => file.pr === finding.pr && file.path === finding.path))
+        continue;
+      const rows = [...element.closest(".reading-step").querySelectorAll(".code-line")];
+      const row = rows.find(
+        (row) =>
+          row.dataset.file === finding.pr + ":" + finding.path &&
+          row.dataset.side === "HEAD" &&
+          Number(row.dataset.line) === finding.line,
       );
-      return !inline || inline.closest(".file-card")?.open !== true;
-    });
-    element.hidden = !state.showProposals || !notes.length;
-    element.innerHTML = "<h3>Agent proposals to discuss</h3>" + notes.map(noteCard).join("");
+      if (showFindings && row && row.closest(".file-card")?.hidden !== true)
+        row.nextElementSibling.insertAdjacentHTML("beforeend", findingMarkup(finding));
+      else remaining.push(finding);
+    }
+    element.hidden = !showFindings;
+    element.innerHTML = remaining.map(findingMarkup).join("");
   });
-  const anchorIds = new Set(
-    [...document.querySelectorAll("[data-anchor]")].map((element) => element.dataset.anchor),
-  );
-  const remaining = state.notes.filter(
-    (note) => note.author === "human" && !anchorIds.has(note.anchor),
-  );
-  document.getElementById("additional-notes").innerHTML = remaining.length
-    ? "<h3>Notes on code and other passages</h3>" + remaining.map(noteCard).join("")
+  document.getElementById("note-count").textContent = review.annotations.notes.filter(
+    (note) => !note.dismissed,
+  ).length;
+  document.getElementById("notes-list").innerHTML = review.annotations.notes.length
+    ? review.annotations.notes.map(noteMarkup).join("")
+    : '<p class="muted">Select code or an explanation, then choose Comment.</p>';
+  document.getElementById("findings-heading").hidden = !showFindings;
+  document.getElementById("findings-list").innerHTML = showFindings
+    ? review.pulls
+        .flatMap((pull) => pull.findings)
+        .map(findingMarkup)
+        .join("")
     : "";
-  const compare = document.getElementById("compare-proposals");
-  compare.disabled = report.proposals.length === 0;
-  if (compare.disabled) compare.textContent = "No agent proposals";
-  const visibleNotes = state.notes.filter((note) => note.author === "human" || state.showProposals);
-  document.getElementById("all-notes").innerHTML = visibleNotes.length
-    ? visibleNotes.map(noteCard).join("")
-    : '<p class="empty-notes">Add a note beside an explanation or a code line. Your notes will appear here.</p>';
-  document.getElementById("notes-count").textContent = String(
-    visibleNotes.filter((note) => !note.dismissed).length,
-  );
-  updateDraftButton();
 }
 
-function openNote(element) {
+function captureSelection(event) {
+  if (event.target.closest("#composer, #notes-panel, .note, .finding, button, textarea, select"))
+    return;
   const selection = window.getSelection();
-  const selectedText = selection?.toString().trim() ?? "";
-  const annotation = element.closest("[data-anchor]");
-  if (!annotation) return;
-  const evidence = report.evidence.find((item) => item.id === annotation.dataset.evidence);
-  const prIds = annotation.dataset.pr
-    ? [annotation.dataset.pr]
-    : (annotation.dataset.prs ?? "").split(",").filter(Boolean);
-  let source = evidence
-    ? { path: evidence.path, side: evidence.side, start: evidence.start, end: evidence.end }
-    : null;
-  if (annotation.dataset.line) {
-    const startNode = selection?.anchorNode?.parentElement?.closest("[data-line]");
-    const endNode = selection?.focusNode?.parentElement?.closest("[data-line]");
-    const sameRange =
-      startNode &&
-      endNode &&
-      startNode.dataset.path === annotation.dataset.path &&
-      endNode.dataset.path === annotation.dataset.path &&
-      startNode.dataset.side === annotation.dataset.side &&
-      endNode.dataset.side === annotation.dataset.side &&
-      startNode.dataset.pr === annotation.dataset.pr &&
-      endNode.dataset.pr === annotation.dataset.pr;
-    const line = Number(annotation.dataset.line);
-    source = {
-      path: annotation.dataset.path,
-      side: annotation.dataset.side,
-      start: sameRange
-        ? Math.min(Number(startNode.dataset.line), Number(endNode.dataset.line))
-        : line,
-      end: sameRange
-        ? Math.max(Number(startNode.dataset.line), Number(endNode.dataset.line))
-        : line,
+  if (!selection?.rangeCount || !selection.toString().trim()) return;
+  const range = selection.getRangeAt(0);
+  const start = selection.anchorNode.parentElement;
+  const end = selection.focusNode.parentElement;
+  const card = start.closest(".file-card, #source-dialog");
+  const rows =
+    card && end.closest(".file-card, #source-dialog") === card
+      ? [...card.querySelectorAll(".code-line")].filter((row) =>
+          range.intersectsNode(row.querySelector("code")),
+        )
+      : [];
+  if (rows.length) selectedContext = codeContext(rows);
+  else {
+    const passage = start.closest(".passage");
+    if (!passage || end.closest(".passage") !== passage) return;
+    selectedContext = {
+      anchor: passage.dataset.anchor,
+      quote: selection.toString(),
+      ranges: [],
+      prs: passage.dataset.prs?.split(",") ?? review.pulls.map((pull) => pull.id),
     };
   }
-  editingContext = {
-    anchor: annotation.dataset.anchor,
-    quote:
-      selectedText ||
-      evidence?.text ||
-      annotation.querySelector("code")?.textContent ||
-      annotation.closest(".group-section")?.querySelector("h2")?.textContent ||
-      "",
-    source,
-    evidence: evidence ? [evidence.id] : [],
-  };
-  const options = prIds.map((id) => report.pulls.find((pull) => pull.id === id)).filter(Boolean);
-  document.getElementById("note-pr").innerHTML =
-    (options.length > 1 ? '<option value="">Choose the PR for this note</option>' : "") +
-    options
+  if (!selectedContext) return;
+  const button = document.getElementById("selection-comment");
+  const dialog = start.closest("dialog");
+  (dialog ?? document.body).append(button);
+  button.hidden = false;
+  const bounds = range.getBoundingClientRect();
+  button.style.left = Math.max(12, Math.min(bounds.left, innerWidth - 110)) + "px";
+  button.style.top = Math.max(70, bounds.top - 40) + "px";
+}
+
+function openComposer(note) {
+  editingNote = note?.id ?? null;
+  if (note)
+    selectedContext = {
+      anchor: note.anchor,
+      quote: note.quote,
+      ranges: note.ranges,
+      prs: [note.pr],
+    };
+  if (!selectedContext) return;
+  const composer = document.getElementById("composer");
+  (document.getElementById("source-dialog").open
+    ? document.getElementById("source-dialog")
+    : document.body
+  ).append(composer);
+  document.getElementById("selection-comment").hidden = true;
+  document.getElementById("selected-quote").textContent = selectedContext.quote;
+  document.getElementById("target-pr").innerHTML =
+    (selectedContext.prs.length > 1 ? '<option value="">Choose a PR</option>' : "") +
+    selectedContext.prs
       .map(
-        (pull) =>
+        (id) =>
           '<option value="' +
-          pull.id +
-          '">' +
-          escapeHtml(pull.id + " · " + pull.title) +
+          id +
+          '">#' +
+          review.pulls.find((pull) => pull.id === id).number +
           "</option>",
       )
       .join("");
-  document.getElementById("note-quote").textContent = editingContext.quote;
-  document.getElementById("note-body").value = "";
-  document.getElementById("note-editor").showModal();
+  document.getElementById("target-label").hidden = selectedContext.prs.length === 1;
+  document.getElementById("note-body").value = note?.body ?? "";
+  composer.hidden = false;
   document.getElementById("note-body").focus();
 }
 
-function saveNote(event) {
-  event.preventDefault();
-  if (!editingContext) return;
-  const body = document.getElementById("note-body").value.trim();
-  const pr = document.getElementById("note-pr").value;
-  if (!body || !pr) return;
-  const originalEvidence = editingContext.evidence.map((id) =>
-    report.evidence.find((item) => item.id === id),
+function notesAction(event) {
+  const button = event.target.closest("button");
+  if (!button) return;
+  const note = review.annotations.notes.find(
+    (note) => note.id === (button.dataset.editNote ?? button.dataset.dismissNote),
   );
-  const source = originalEvidence.some((item) => item.pr !== pr) ? null : editingContext.source;
-  state.notes.push({
-    id: crypto.randomUUID(),
-    author: "human",
-    pr,
-    ...editingContext,
-    source,
-    body,
-    originalBody: body,
-    selected: false,
-    dismissed: false,
-  });
-  saveState();
-  renderNotes();
-  document.getElementById("note-editor").close();
-  editingContext = null;
-  setStatus("Note added. Select Include in draft when you want to stage it.");
+  if (button.dataset.editNote && note) openComposer(note);
+  if (button.dataset.dismissNote && note) {
+    note.dismissed = !note.dismissed;
+    changed();
+    renderNotes();
+  }
+  const finding = button.dataset.includeFinding ?? button.dataset.dismissFinding;
+  if (finding) {
+    const state = review.annotations.decisions[finding];
+    review.annotations.decisions[finding] = button.dataset.includeFinding
+      ? state === "included"
+        ? null
+        : "included"
+      : state === "dismissed"
+        ? null
+        : "dismissed";
+    changed();
+    renderNotes();
+  }
+}
+
+function startLineSelection(event) {
+  if (!event.target.closest(".line-number")) return;
+  event.preventDefault();
+  dragStart = event.target.closest(".code-line");
+}
+
+function finishLineSelection(event) {
+  if (!dragStart) return;
+  const end = event.target.closest(".code-line");
+  if (
+    end &&
+    dragStart.closest(".file-card") === end.closest(".file-card") &&
+    dragStart.dataset.file === end.dataset.file
+  ) {
+    const parent = dragStart.closest(".code-lines");
+    const rows = [...parent.querySelectorAll(".code-line")];
+    const indices = [rows.indexOf(dragStart), rows.indexOf(end)].sort(
+      (first, second) => first - second,
+    );
+    selectedContext = codeContext(rows.slice(indices[0], indices[1] + 1));
+    const selectedRows = rows.slice(indices[0], indices[1] + 1);
+    rows.forEach((row) => row.classList.toggle("chosen", selectedRows.includes(row)));
+    openComposer();
+  }
+  dragStart = null;
 }

@@ -16,4 +16,3 @@ export {
   prepareStage,
 } from "./stages";
 export { reviewResultSchema, type ReviewResult } from "./types";
-export { serveGuidedReview } from "./guided";

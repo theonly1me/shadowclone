@@ -4,50 +4,37 @@ Shadowclone reviews a pull request against the standards of its own repository. 
 
 ## Guided review with your agent
 
-Equip `guided-pr-review` in the wizard, or [install it manually](skills.md#install-skills-without-shadowclone).
+Equip `guided-pr-review` and `shadowclone-review`, or [install them manually](skills.md#install-skills-without-shadowclone).
 Ask your coding agent: "Use guided-pr-review to review PRs 1, 2, and 3."
 Give the repository or PR URLs when numbers could refer to several repositories.
 
 The agent reads the full local repository and pins each PR's base and head.
 It produces one self-contained HTML document with a shared reading route and PR filters.
-The guide connects behaviour across the stack while labeling each diff with its PR.
-It reads CI results and runs a focused check only when a specific behaviour needs verification.
+The guide connects behavior across the stack while labeling each diff with its PR.
+It uses `shadowclone-review` locally and keeps all findings in the document.
+It reads CI results and runs a focused check only when a specific behavior needs verification.
 It leaves the reviewed code unchanged.
 
 1. Read each step and inspect the actual diff and surrounding code.
-2. Use the base and head views to inspect source or rendered Markdown.
-3. Add notes beside an explanation or a code line.
-4. Compare your mental notes or draft PR comments with the agent proposals.
-5. Export your notes to keep a portable copy.
+2. Use the source links for callers and the base and head views for rendered Markdown.
+3. Select prose or a code range, then choose Comment to attach your note.
+4. Make mental notes or draft PR comments before revealing the agent findings.
+5. Compare both reviews, then include or dismiss the agent's proposals.
+6. Choose Save review in Chrome or Edge and select the original HTML.
 
 A standalone document supports the guide and annotations without Shadowclone.
-Keep reports and exports outside public checkouts when they contain private code or comments.
+Saving requires permission to edit that file. The notes stay inside the original HTML.
+Keep the document outside public checkouts when it contains private code or comments.
+If permission fails, the page keeps your unsaved notes and reports the failure.
+Browser recovery storage does not replace saving the HTML.
 
-### Prepare pending GitHub comments
+### Continue in your chat
 
-With the Shadowclone CLI installed, open the generated file from the reviewed repository:
-
-```bash
-shadowclone review open /path/to/review.html --checkout /path/to/repository
-```
-
-The command requires an authenticated GitHub CLI.
-The document opens a local connection. Opening it makes no model request or GitHub write.
-In **Review notes**, select **Include in draft** for the notes you want to stage.
-Choose their PR, then click **Leave draft review on PR**.
-
-The installed Claude Code or Codex agent checks those notes against current code and prepares exact inline anchors.
-Shadowclone verifies the account, revision, source quote, and pending-review response.
-If a pending review already exists, staging stops and preserves it.
-Unsupported notes stay local with reasons.
-You inspect and submit the pending review yourself in GitHub.
-
-Use `--engine claude` or `--engine codex` to choose an engine.
-Use `--voice <file>` and `--review-skill <file>` to provide your own wording and review guidance.
-The CLI uses `~/.agents/voice.md` when that file exists.
-Use `--model <id>` to select a model and `--no-open` to print the local URL.
-If no engine is available, annotations and export still work.
-Notes and staging receipts stay in private local storage and never enter learning.
+Attach the saved HTML to your existing chat and request staging.
+Your agent uses your configured staging workflow and posting preferences.
+It checks current code, resolves rough notes to actual changed lines, and merges duplicate concerns.
+The guide contains no staging engine. Generating or opening it posts nothing to GitHub.
+Shadowclone does not bundle a personal staging skill.
 
 ## Review on this machine
 

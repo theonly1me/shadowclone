@@ -1,67 +1,47 @@
 import { expect, test } from "bun:test";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import { guidedFixture, guidedScript } from "./guidedFixtures";
+import { pathToFileURL } from "node:url";
+import { build, embedded, fixture, skillDirectory } from "./guidedFixture.js";
 
-for (const runtime of [process.execPath, Bun.which("node")].filter(
-  (value): value is string => value !== null,
-)) {
-  test(
-    path.basename(runtime) +
-      ": the HTML contains real evidence, Markdown, ownership, and offline notes without executing PR content",
-    async () => {
-      const fixture = await guidedFixture();
-      const [group] = fixture.input.groups;
-      if (!group) throw new Error("The fixture needs a group.");
-      group.summary = "Read **three attempts** and inspect the source.";
-      await Bun.write(fixture.inputPath, JSON.stringify(fixture.input));
-      const collected = path.join(fixture.directory, "report.json");
-      expect(
-        (
-          await guidedScript({
-            runtime,
-            name: "collect",
-            arguments: [fixture.inputPath, collected],
-          })
-        ).exitCode,
-      ).toBe(0);
-      const output = path.join(fixture.directory, "review.html");
-      const result = await guidedScript({
-        runtime,
-        name: "render",
-        arguments: [collected, output],
-      });
-      expect(result.exitCode).toBe(0);
-      const html = await Bun.file(output).text();
-      expect(html).toContain("await connectShadowclone();");
-      expect(html).toContain("<strong>three attempts</strong>");
-      expect(/Investigation coverage: ([^<]+)/.exec(html)?.[1]).toBe(
-        "0 reviewed · 0 generated · 2 unexamined",
-      );
-      expect(html).toContain("export const attempts = 3;");
-      expect(html).not.toContain('data-pr-tab="pr-1"');
-      expect(html).toContain('data-guide-step="retry"');
-      expect(html).toContain('id="note-editor"');
-      expect(html).toContain('id="stage-review"');
-      expect(html).toContain(fixture.headSha + "/job.ts#L1");
-      expect(html).not.toContain("<script>alert(1)</script>");
-      expect(html).toContain("\\u003cscript>");
-      expect(html).not.toMatch(/<script[^>]+src=/);
-      expect(
-        (await guidedScript({ runtime, name: "validate", arguments: [output] })).exitCode,
-      ).toBe(0);
+test("saving updates only the original HTML and refuses a changed file or another review", async () => {
+  const context = await fixture();
+  expect(build(context).exitCode).toBe(0);
+  const scriptPath = path.join(context.directory, "save.mjs");
+  const script = `import { readFile, writeFile } from 'node:fs/promises';
+    import { writeAnnotations } from ${JSON.stringify(pathToFileURL(path.join(skillDirectory, "assets/document.mjs")))};
+    const path = ${JSON.stringify(context.outputPath)};
+    const html = await readFile(path, 'utf8');
+    const review = JSON.parse(/id="review-data">([\\s\\S]*?)<\\/script>/.exec(html)[1]);
+    const annotations = { ...review.annotations, revision: 1, notes: [{ id: 'human', pr: 'pr-1', anchor: 'flow:summary', quote: 'PR 1 changes retries.', ranges: [], body: '</script> My question', originalBody: '</script> My question', dismissed: false }], decisions: { 'agent-1': 'dismissed' } };
+    let pending;
+    const handle = { getFile: async () => ({ text: () => readFile(path, 'utf8') }), createWritable: async () => ({ write: async text => { pending = text; }, close: () => writeFile(path, pending), abort: async () => { pending = undefined; } }) };
+    const options = { handle, id: review.id, previous: null, expected: review.annotations, annotations };
+    const saved = await writeAnnotations(options);
+    console.log(saved.replace(/id="review-data">[\\s\\S]*?<\\/script>/, '') === html.replace(/id="review-data">[\\s\\S]*?<\\/script>/, ''));
+    await writeFile(path, saved + '\\nExternal edit');
+    try { await writeAnnotations({ ...options, previous: saved }); } catch (error) { console.log(error.message); }
+    try { await writeAnnotations({ ...options, id: 'another' }); } catch (error) { console.log(error.message); }
+    try { await writeAnnotations(options); } catch (error) { console.log(error.message); }
+    const denied = { ...handle, createWritable: async () => { throw new Error('Permission denied'); } };
+    try { await writeAnnotations({ ...options, handle: denied, expected: annotations }); } catch (error) { console.log(error.message); }
+    console.log((await readFile(path, 'utf8')).endsWith('External edit'));`;
+  await writeFile(scriptPath, script);
+  const result = Bun.spawnSync([process.execPath, scriptPath], { stdout: "pipe", stderr: "pipe" });
+  expect(result.exitCode).toBe(0);
+  expect(result.stdout.toString().trim().split("\n")).toEqual([
+    "true",
+    "The HTML changed outside this page. Your unsaved notes are preserved.",
+    "This file belongs to another review.",
+    "The file's notes changed outside this page. Reopen it before saving.",
+    "Permission denied",
+    "true",
+  ]);
+  expect(embedded(await Bun.file(context.outputPath).text())).toMatchObject({
+    annotations: {
+      revision: 1,
+      notes: [expect.objectContaining({ body: "</script> My question", dismissed: false })],
+      decisions: { "agent-1": "dismissed" },
     },
-  );
-}
-
-test("rendering refuses to replace an existing annotated document", async () => {
-  const fixture = await guidedFixture();
-  const collected = path.join(fixture.directory, "report.json");
-  expect(
-    (await guidedScript({ name: "collect", arguments: [fixture.inputPath, collected] })).exitCode,
-  ).toBe(0);
-  const output = path.join(fixture.directory, "review.html");
-  await Bun.write(output, "Preserve my document.");
-  const result = await guidedScript({ name: "render", arguments: [collected, output] });
-  expect(result.exitCode).toBe(1);
-  expect(await Bun.file(output).text()).toBe("Preserve my document.");
+  });
 });

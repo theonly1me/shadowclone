@@ -1,6 +1,6 @@
 # @shadowclone/review
 
-The pull request review engine. It collects the diff and standards, runs rules and toolchain checks, asks a model for findings, and publishes the result. It also connects guided documents to pending review staging.
+The pull request review engine. It collects the diff and standards, runs rules and toolchain checks, asks a model for findings, and publishes the result.
 
 <!-- package-facts:start -->
 
@@ -21,16 +21,11 @@ The pull request review engine. It collects the diff and standards, runs rules a
 - `src/evidence/` and `src/dependencies/`: documentation quote checks and lockfile checks.
 - `src/local.ts`, `markdown.ts`, and `publish/`: `reviewLocally`, `reviewBranch`, `reviewMarkdown`, and `publishReview`.
 
-- `src/guided/`: `serveGuidedReview`, private notes, installed-agent dispatch, exact anchors, and pending-review receipts.
-
 ## Rules
 
 - The model can use only the review tools of `agents`: `Read`, `Grep`, `Glob`, and `Agent`. Web tools need the network option.
 - Toolchain checks get a fixed list of environment variables, with no token. JavaScript installs use `--ignore-scripts`. When pnpm or Yarn is missing, `toolchain/corepack.ts` runs them through Corepack. `toolchain/projects.ts` runs a stack in the nearest configured folder when the root does not configure it. `toolchain/cache.ts` sets the 10 minute budget and the shared Cargo build folder.
 - `neutralizeText` redacts every posted text. It wraps mentions, cross-repository references, and GitHub thread links in code spans.
-- Guided staging sends only selected notes to a read-only agent. It checks current code before writing inline `PENDING` comments.
-- Guided staging preserves manual drafts and verifies receipts before retrying uncertain writes. It never submits a review.
-- The guided browser uses loopback, origin checks, and an ephemeral token. Opening it makes no model request.
 - `publishReview` posts a `COMMENT` review only. It never approves and never requests changes.
 - `rank.ts` keeps 10 findings for each review part, and 25 at most. It keeps every high severity finding up to 25. `shards.ts` puts each changed file in exactly one part.
 - A fetched documentation address must be public. `evidence/addresses.ts` refuses private, loopback, and metadata addresses.

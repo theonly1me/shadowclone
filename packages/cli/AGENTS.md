@@ -17,7 +17,6 @@ The `shadowclone` command. It parses commands, calls the other packages, and bui
 
 - `bin/shadowclone.mjs`: the `bin` entry. It runs `dist/shadowclone.js` with Bun.
 - `src/main.ts`: the command router and the usage text. Each command has its own file, such as `init.ts`, `learn.ts`, `review.ts`, and `forget.ts`.
-- `src/reviewOpen.ts`: the guided document command and local browser connection.
 - `scripts/build.ts`: bundles the workspace packages into `dist/`.
 - `scripts/stage.ts` and `publishedManifest.ts`: write the publishable package to `out/package`.
 

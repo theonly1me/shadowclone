@@ -52,7 +52,6 @@ See [skill maintenance](skills.md).
 
 ## Review, cloud, and repository
 
-- `shadowclone review open <report.html>`: open a guided document with local notes and optional pending-review staging. Options are `--checkout <repository>`, `--engine claude` or `codex`, `--voice <file>`, `--review-skill <file>`, `--model <id>`, and `--no-open`. See [guided reviews](reviews.md#guided-review-with-your-agent).
 - `shadowclone review <pr>`: review a pull request on this machine and write a Markdown file. `--base <ref>` reviews the commits on this branch since it left `<ref>`. `--cloud` asks the cloud bot instead. Other options are `--no-checks`, `--offline`, `--repo owner/repository`, `--output file.md` (or `file.json` for the full result as JSON), `--model <id>`, and `--effort <level>`. The cloud workflow also uses `review prepare`, `checks`, `analyze`, and `publish`. See [reviews](reviews.md).
 - `shadowclone bot setup`: open the browser setup, which also offers a GitHub App. `--bot <login>` sets up a machine account bot, and `--app` selects a GitHub App. The two options exclude each other. Other options are `--engine claude` or `codex`, `--codex-auth api-key` or `plan`, `--repo owner/repository`, `--yes`, and `--no-open`. See the [cloud bot guide](cloud-bot.md).
 - `shadowclone bot status [--repo owner/repository]`: show the setup steps that are still open.

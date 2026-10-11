@@ -29,7 +29,11 @@
     "assets/main.mjs": ["cf89b32a255adbc9bcade0df96398f990dd2bde4a1e0b09f9cea9f4735ee2bec"],
     "assets/navigation.mjs": ["eaeee7514c3b8ce5301a7d680b6dbab2076166927b7bad7f3c84f3c6dcd3a929"],
     "assets/notes.css": ["f6c694afb86bc3a056d6260d8e0aa405eda665aea20356b8c75b1f1ecfeb647a"],
-    "assets/notes.mjs": ["6c78f2db84d379edcdbe14d2e148b67db1c4f68abfd2ff955bdc136aece848c4"],
+    "assets/notes.mjs": [
+      "6c78f2db84d379edcdbe14d2e148b67db1c4f68abfd2ff955bdc136aece848c4",
+      "a25fb6a74c4e4f9cf337093221d14cbfc6d254a87063bf18ee03a8008b55914a",
+      "3215670edf621f4b8a4d4a759aeaa5d3b9ab3c6010c784040d846aadcdac321e"
+    ],
     "assets/noteValidation.mjs": [
       "96d71a5a6dbf6a22c410e9b9c19b5753101be7d6ee82fb2f050e87e28689f65f"
     ],
@@ -38,11 +42,18 @@
       "d08ab095154ce17d5dfeeff00943c631b0a0530db062eeda8a36d5ee93dff4d9"
     ],
     "assets/responsive.css": ["916a3e03c497a3e0482b2f71e8ecf38e97454d771417e3d00772fede88c17663"],
-    "assets/review.html": ["a9c9fd651625b4673bb659391f5e7044ae5e39dc740ce57920150d321c1c1e1a"],
+    "assets/review.html": [
+      "a9c9fd651625b4673bb659391f5e7044ae5e39dc740ce57920150d321c1c1e1a",
+      "58afebc22f7892b172794486c536e0f72c6fcbe900edd6efb22825741dee172c"
+    ],
     "assets/savedNotes.mjs": ["653f832d9707698d19870a0836b95591650f2328969a4b3b30f46ad4ffddb44b"],
     "assets/state.mjs": ["923408e9df7fc5adf964003c4f76cd131af48619469c3c1bb0fd8489983ce7d1"],
     "assets/theme.css": ["e02b79e98f326f6b876617358ec84c4121d10d68692ee5af42581bff7ea0eedb"],
-    "references/report.md": ["6ec5d5ba124d40c46121fd2cc32d1e39ed682f157d05a4cb8d3b69a6d8f997ff"],
+    "references/report.md": [
+      "6ec5d5ba124d40c46121fd2cc32d1e39ed682f157d05a4cb8d3b69a6d8f997ff",
+      "7f0408b38f7ea16f53998ae9ff0e009ea7b99bd2d4bd71e8224aaa1dd51b5564",
+      "f8ed5d03205b2264fa15db34a8051ee03debf6e1dd816efe28f00b81d893094d"
+    ],
     "references/staging.md": ["85c025e27c828f4017fe71744bb881f1869bc241390d1fac03548d2d3eb6c612"],
     "scripts/collect.mjs": ["ca6f4b856ebc878f6f75f8a2f866d89d747460021cf9462086ff31793b24ea6d"],
     "scripts/document/annotations.mjs": [
@@ -87,9 +98,39 @@
     "scripts/evidence/git.mjs": [
       "45f5bdab70478f679be5d9156beaa59b5bbfba499cb6d7c271fe627742264e5e"
     ],
-    "scripts/render.mjs": ["826a0cccccce0e582c2d7e63586647c0a9cd0a1c1b7eb6bd40c906ca14c853fd"],
+    "scripts/render.mjs": [
+      "826a0cccccce0e582c2d7e63586647c0a9cd0a1c1b7eb6bd40c906ca14c853fd",
+      "bdba77f5f9da351f92fa4deef2c2231d3fffcdb226e44f2b35d26ce1fb0645a7"
+    ],
     "scripts/validate.mjs": ["3d0d453fdd6dd69b91e89dff7e313945d91553bc0ee5031d68f170278f48c0dc"],
-    "SKILL.md": ["81a6f90139ca56725bed78586c55f4417973f2c9cd405109eded4f9d00a3942d"]
+    "SKILL.md": [
+      "81a6f90139ca56725bed78586c55f4417973f2c9cd405109eded4f9d00a3942d",
+      "ca330ff0657510ab72800bcbc2ee22feb7534567d92f624716d3770f0e9a8c00",
+      "655a2a60abe42e24f27b33871214045d50aad9692eb3c5bada0e5df46f452e74",
+      "484ec4c78eb403c7ac3775bb1d62c712542c3388ac10f84ff8690cedd3f0fa8a"
+    ],
+    "assets/document.mjs": ["01124e83de61acd693ece667f2825a47c149cef1a351f64cbb938c4824f00bc5"],
+    "assets/guide.mjs": [
+      "d49815541abcfda200cae9e858c5740d359f2dda81161a44a551fa2ae863e1b1",
+      "e13859ba51f974f1475b31439cd34e871b8ba5643fb75397946aa2dc8e3ad31a"
+    ],
+    "assets/presentation.mjs": [
+      "8547f40dcf29feee11bde8fd73786912958a7a1628d7096279b43ba087f05322",
+      "08425129189d85b80076fedc77dd2c2b5c6ca61334c2c55f924e3c94473727fb",
+      "36466c05ce07955b7ede4982edcebf3792e79a4ebfd5f76dfa73c5884dcbd78b"
+    ],
+    "scripts/build.mjs": ["95ef8b1f8b7c14d984c4ed0e6c2cb00f83aca17ee1dd7c29d57983c78e54ae7e"],
+    "scripts/check.mjs": ["17b52b0730e3fb341965f300a6dabe8e60dfec3ceb528efb565fa3c3ff90670a"],
+    "scripts/format.mjs": [
+      "7fd99a3b85524c3d7767402100f04a73ded65fb8ee5f6ffa6728c8a541fbf9ad",
+      "ca01a17398f985cc6e31b73c05f365bd9df0adf96a29ea4ac1004238a70335ba",
+      "af384a080f2c8ed3da3d46207dee61bfc26b079b7e580a1556ca27b7be288d47",
+      "68bc3a22193171a46cea03f6bedc3152d0fc85311056a2587cc294e9778410c7"
+    ],
+    "scripts/git.mjs": [
+      "cf6b13100069d520522c4ff23b128951be83dc6f1b7186fbe9ab7e28f41d9e40",
+      "983bc8816b4727207485087faae756a1a3dae68def4acc1a9c35f2b95c347b6e"
+    ]
   },
   "plan-with-review-page": {
     "assets/review-page.html": ["8a587b325fc576a2eefb247baa2d3374ce1e5633f62fbe7987e2e65141292964"],

@@ -153,19 +153,10 @@ Root-owned managed policy can disable Shadowclone or restrict sources, engines, 
 
 Report exposures privately through [security reporting](../SECURITY.md). Public reports should hold synthetic examples and reviewed summaries, never raw transcripts, private receipts, credentials, or identifying paths.
 
-## Guided review documents and draft comments
+## Guided review documents
 
-The guided review skill reads pinned Git objects and writes source excerpts, diffs, and explanations into a local HTML document.
-Keep that document outside public checkouts when it contains private code.
-The standalone document stores notes in browser storage and can export them to JSON.
-It makes no model request or GitHub write.
-
-`shadowclone review open` serves trusted bundled UI on loopback with an ephemeral token and origin checks.
-It stores notes and staging receipts under `~/.shadowclone/reviews/guided/<report-id>/`.
-A selected staging action sends the chosen notes, required code, and permitted voice guidance through an installed Claude Code or Codex agent.
-The agent receives bounded excerpts for selected notes and related changes. It reads additional callers in an isolated snapshot and returns prepared comments.
-Shadowclone validates current diff anchors and writes inline `PENDING` comments through the authenticated GitHub CLI.
-It never submits, approves, or requests changes.
-Existing manual drafts remain unchanged. Unverified notes stay local with reasons.
-The response identifies the actual pending review and exact staged notes.
-Guided review data never becomes learning input.
+The guided review skill puts pinned code, explanations, findings, and human notes in a local HTML document.
+Keep private reports outside public checkouts. Generating or opening the guide makes no GitHub review write.
+With browser file permission, Save review writes annotations into the original HTML.
+The user can attach that file to a coding agent and explicitly request staging through their own workflow.
+Review content never enters learning. Personal staging instructions and voice evidence stay outside the public package.
