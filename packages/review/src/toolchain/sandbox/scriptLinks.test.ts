@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { chmod, copyFile, mkdir, mkdtemp, realpath, rm, symlink } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, realpath, rm, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { runTool, toolEnvironment } from "../process";
@@ -26,13 +26,17 @@ for (const manager of ["npm", "pnpm"]) {
     if (node === null) {
       throw new Error("The script-link fixture needs Node");
     }
-    await copyFile(node, path.join(bin, "node"));
+    const managers = toolEnvironment({ PATH: `${bin}:/usr/bin:/bin` });
+    const interpreterDirectory = path.dirname(await realpath(node));
 
     try {
       const result = await runTool({
         arguments: [manager, "--version"],
         cwd: workspace,
-        environment: toolEnvironment({ PATH: `${bin}:/usr/bin:/bin` }),
+        environment: {
+          ...managers,
+          PATH: [managers.PATH, interpreterDirectory].join(path.delimiter),
+        },
         timeoutMilliseconds: 10_000,
       });
       expect(result).toMatchObject({
