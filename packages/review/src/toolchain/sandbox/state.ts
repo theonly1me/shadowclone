@@ -64,6 +64,7 @@ export function isolatedEnvironment(options: {
     DOTNET_CLI_HOME: home,
     NUGET_PACKAGES: path.join(cache, "nuget"),
     PYTHONNOUSERSITE: "1",
+    OPENSSL_CONF: "/dev/null",
     GIT_CONFIG_GLOBAL: "/dev/null",
     GIT_CONFIG_SYSTEM: "/dev/null",
     GIT_CONFIG_NOSYSTEM: "1",

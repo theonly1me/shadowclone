@@ -1,6 +1,7 @@
-import { existsSync, realpathSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { executableReadPaths } from "./executables";
 
 const systemReadPaths = [
   "/bin",
@@ -67,54 +68,17 @@ const toolNames = [
   "trivy",
 ];
 
-function packageRoot(file: string): string | null {
-  const marker = `${path.sep}node_modules${path.sep}`;
-  const position = file.lastIndexOf(marker);
-
-  if (position < 0) {
-    return null;
-  }
-
-  const [first, second] = file.slice(position + marker.length).split(path.sep);
-
-  if (first === undefined || (first.startsWith("@") && second === undefined)) {
-    return null;
-  }
-
-  return path.join(
-    file.slice(0, position + marker.length),
-    first,
-    ...(first.startsWith("@") && second !== undefined ? [second] : []),
-  );
-}
-
-function executableReadPaths(file: string): readonly string[] {
-  const resolved = realpathSync(file);
-  const packageDirectory = packageRoot(resolved);
-  const runtime = path.dirname(path.dirname(resolved));
-  const installedRuntime =
-    path.basename(path.dirname(resolved)) === "bin" &&
-    ["VERSION", "release", "pyvenv.cfg"].some((name) => existsSync(path.join(runtime, name)));
-
-  return [
-    file,
-    resolved,
-    ...(packageDirectory ? [packageDirectory] : []),
-    ...(installedRuntime ? [runtime] : []),
-  ];
-}
-
 export function runtimeReadPaths(environment: Readonly<Record<string, string>>): readonly string[] {
-  const executables = toolNames.flatMap((name) => {
-    const file = Bun.which(name, { PATH: environment.PATH ?? "" });
-    return file === null ? [] : executableReadPaths(file);
+  const executables = toolNames.flatMap((tool) => {
+    const file = Bun.which(tool, { PATH: environment.PATH ?? "" });
+    return file === null ? [] : executableReadPaths({ file, tool });
   });
   const rustup = environment.RUSTUP_HOME ?? path.join(os.homedir(), ".rustup");
   const sdk = path.dirname(
     Bun.resolveSync("@anthropic-ai/sandbox-runtime/package.json", import.meta.dir),
   );
 
-  return [
+  const files = [
     ...new Set(
       [
         ...systemReadPaths.filter(existsSync),
@@ -125,4 +89,8 @@ export function runtimeReadPaths(environment: Readonly<Record<string, string>>):
       ].filter(existsSync),
     ),
   ];
+  const directories = files.filter((file) => statSync(file).isDirectory());
+  return files.filter(
+    (file) => !directories.some((directory) => file.startsWith(`${directory}${path.sep}`)),
+  );
 }

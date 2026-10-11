@@ -84,7 +84,10 @@ export async function runTool(options: {
 
   return runSandboxedTool({
     ...options,
-    arguments: [realpathSync(located), ...options.arguments.slice(1)],
+    arguments: [
+      path.join(realpathSync(path.dirname(located)), path.basename(located)),
+      ...options.arguments.slice(1),
+    ],
     environment,
   });
 }

@@ -51,6 +51,8 @@ Every toolchain command needs operating-system isolation, including dependency i
 
 The pinned Anthropic sandbox runtime uses Bubblewrap on Linux and Seatbelt on macOS. Read access includes the disposable worktree and required tool runtimes. Write access includes only the worktree and isolated review state. Each review side gets its own HOME, temporary folder, and caches.
 
+Keep each tool's invocation name when its executable is a symlink. Grant read access to its runtime link chain without overlapping directory mounts. Standalone Maven and Gradle can read their runtime files. Maven global credential settings stay outside the sandbox. Set `OPENSSL_CONF` to `/dev/null` so Node starts without reading host configuration.
+
 Route dependency downloads through a fixed public-registry allowlist. Deny direct networking and access to local services and Unix sockets. Host credentials and private user configuration stay outside the sandbox.
 
 If isolation cannot start, report failed checks and continue the read-only review. Never execute the command without isolation. Private registries and credential-dependent checks can fail under this policy.
