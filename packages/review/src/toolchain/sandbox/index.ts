@@ -81,10 +81,19 @@ async function execute(options: Options & { readonly deadline: number }): Promis
       arguments: options.arguments,
       temporary: path.join(state.directory, "temporary"),
     });
+    const proxySockets = [
+      SandboxManager.getLinuxHttpSocketPath(),
+      SandboxManager.getLinuxSocksSocketPath(),
+    ].flatMap((socket) => (socket === undefined ? [] : [{ path: socket, literal: true as const }]));
     const wrapped = await SandboxManager.wrapWithSandbox(
       command,
       "/bin/bash",
-      undefined,
+      {
+        filesystem: {
+          ...policy.filesystem,
+          allowRead: [...(policy.filesystem.allowRead ?? []), ...proxySockets],
+        },
+      },
       AbortSignal.timeout(remaining),
     );
     const timeoutMilliseconds = options.deadline - Date.now();

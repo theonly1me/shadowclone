@@ -53,7 +53,7 @@ Each rule hit and toolchain diagnostic that needs judgment gets an id. The revie
 
 Every toolchain command runs in an operating-system sandbox, including dependency installs, PR scripts, and executable configuration files. Linux uses Bubblewrap and needs `bubblewrap`, `socat`, `ripgrep`, and usable unprivileged user namespaces. macOS uses Seatbelt through the system `sandbox-exec` command.
 
-Commands can read the disposable worktree and required runtimes. They can write only inside that worktree and isolated review state. Each review side gets a fresh HOME, temporary folder, and caches. Host credentials and private user configuration stay outside. Dependency install scripts remain disabled.
+Commands can read the disposable worktree and required runtimes. They can change host files only inside that worktree and isolated review state. Each review side gets a fresh HOME, temporary folder, and caches. Host credentials and private user configuration stay outside. Dependency install scripts remain disabled.
 
 Downloads use a fixed public-registry allowlist through a restricted proxy. Direct networking, local services, and Unix sockets are blocked. Private registries and checks that need host credentials can fail.
 

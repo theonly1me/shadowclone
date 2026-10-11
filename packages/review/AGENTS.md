@@ -24,7 +24,7 @@ The pull request review engine. It collects the diff and standards, runs rules a
 ## Rules
 
 - The model can use only the review tools of `agents`: `Read`, `Grep`, `Glob`, and `Agent`. Web tools need the network option.
-- Every toolchain command runs through `toolchain/sandbox/`, including installs and executable configuration files. The sandbox uses Bubblewrap on Linux and Seatbelt on macOS. It reads the worktree and required runtimes, and writes only the worktree and isolated state. Each review side gets its own HOME and caches. Network access uses a fixed public-registry allowlist. Unavailable isolation fails the check without starting the command.
+- Every toolchain command runs through `toolchain/sandbox/`, including installs and executable configuration files. The sandbox uses Bubblewrap on Linux and Seatbelt on macOS. It reads the worktree and required runtimes. It changes host files only in the worktree and isolated state. Each review side gets its own HOME and caches. Network access uses a fixed public-registry allowlist. Unavailable isolation fails the check without starting the command.
 - Toolchain checks get a fixed list of environment variables, with no token. JavaScript installs use `--ignore-scripts`. When pnpm or Yarn is missing, `toolchain/corepack.ts` runs them through Corepack. `toolchain/projects.ts` selects configured project folders. `toolchain/cache.ts` sets the shared 10 minute time budget.
 - `neutralizeText` redacts every posted text. It wraps mentions, cross-repository references, and GitHub thread links in code spans.
 - `publishReview` posts a `COMMENT` review only. It never approves and never requests changes.
