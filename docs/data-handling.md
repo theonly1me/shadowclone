@@ -152,3 +152,11 @@ Original transcripts, native memory, provider-retained requests, external reposi
 Root-owned managed policy can disable Shadowclone or restrict sources, engines, origins, and action tiers. It governs this installation, not other programs under the same account. `local-only` blocks hosted learning, and no local model engine exists.
 
 Report exposures privately through [security reporting](../SECURITY.md). Public reports should hold synthetic examples and reviewed summaries, never raw transcripts, private receipts, credentials, or identifying paths.
+
+## Guided review documents
+
+The guided review skill puts pinned code, explanations, findings, and human notes in a local HTML document.
+Keep private reports outside public checkouts. Generating or opening the guide makes no GitHub review write.
+With browser file permission, Save review writes annotations into the original HTML.
+The user can attach that file to a coding agent and explicitly request staging through their own workflow.
+Review content never enters learning. Personal staging instructions and voice evidence stay outside the public package.

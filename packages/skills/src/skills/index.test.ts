@@ -17,6 +17,7 @@ const skillIds = [
   "choose-by-consequence",
   "design-deep-modules",
   "diagnose-before-editing",
+  "guided-pr-review",
   "plan-with-review-page",
   "research-primary-sources",
   "resolve-conflicts-by-intent",
@@ -47,17 +48,15 @@ test("loads preferences and Agent Skills into honest groups", async () => {
 
   expect(library.preferences.map((entry) => entry.id)).toEqual(preferenceIds);
   expect(library.skills.map((entry) => entry.id)).toEqual(skillIds);
-  expect(library.guidance).toHaveLength(22);
+  expect(library.guidance).toHaveLength(23);
   expect(library.axes.map((axis) => [axis.id, axis.guidance.length])).toEqual([
     ["dependency-posture", 2],
     ["planning-threshold", 2],
     ["question-frequency", 2],
     ["refactor-tolerance", 2],
   ]);
-  expect(library.independentSkills).toHaveLength(14);
-  expect(
-    library.guidance.some((entry) => entry.id.startsWith("comments-")),
-  ).toBeFalse();
+  expect(library.independentSkills).toHaveLength(15);
+  expect(library.guidance.some((entry) => entry.id.startsWith("comments-"))).toBeFalse();
 });
 
 test("loads every Agent Skill with its routing and workflow contract", async () => {

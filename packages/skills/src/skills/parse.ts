@@ -1,8 +1,5 @@
 import path from "node:path";
-import {
-  seedAgentSkillMetadataSchema,
-  seedPreferenceMetadataSchema,
-} from "./schema";
+import { seedAgentSkillMetadataSchema, seedPreferenceMetadataSchema } from "./schema";
 import type { SeedAgentSkill, SeedPreference } from "./schema";
 
 const requiredSkillSections = [
@@ -26,13 +23,9 @@ function hasCompleteSkillSections(body: string): boolean {
     }
 
     const followingLines = lines.slice(sectionIndex + 1);
-    const nextSectionOffset = followingLines.findIndex((line) =>
-      line.startsWith("## "),
-    );
+    const nextSectionOffset = followingLines.findIndex((line) => line.startsWith("## "));
     const sectionLines =
-      nextSectionOffset < 0
-        ? followingLines
-        : followingLines.slice(0, nextSectionOffset);
+      nextSectionOffset < 0 ? followingLines : followingLines.slice(0, nextSectionOffset);
 
     return sectionLines.some((line) => line.trim().length > 0);
   });
@@ -67,10 +60,7 @@ function validateUniqueKeys(options: {
   }
 }
 
-function parseDocument(options: {
-  readonly filename: string;
-  readonly text: string;
-}): {
+function parseDocument(options: { readonly filename: string; readonly text: string }): {
   readonly metadata: unknown;
   readonly bodyLines: readonly string[];
 } {
@@ -108,17 +98,13 @@ export function parseSeedPreferenceDocument(options: {
   }
 
   if (path.basename(options.filename) !== `${parsed.data.id}.md`) {
-    throw new Error(
-      `Preference filename does not match its id in ${options.filename}`,
-    );
+    throw new Error(`Preference filename does not match its id in ${options.filename}`);
   }
 
   const [heading, ...bodyLines] = document.bodyLines;
 
   if (heading !== `## ${parsed.data.title}`) {
-    throw new Error(
-      `Preference heading does not match its title in ${options.filename}`,
-    );
+    throw new Error(`Preference heading does not match its title in ${options.filename}`);
   }
 
   const body = bodyLines.join("\n").trim();
@@ -152,12 +138,11 @@ export function parseSeedAgentSkillDocument(options: {
   }
 
   if (parsed.data.name !== options.directoryName) {
-    throw new Error(
-      `Agent Skill directory does not match its name in ${filename}`,
-    );
+    throw new Error(`Agent Skill directory does not match its name in ${filename}`);
   }
 
-  const [heading, ...bodyLines] = document.bodyLines;
+  const headingIndex = document.bodyLines.findIndex((line) => line.trim().length > 0);
+  const [heading, ...bodyLines] = document.bodyLines.slice(Math.max(0, headingIndex));
 
   if (!heading?.startsWith("# ") || heading.startsWith("## ")) {
     throw new Error(`Agent Skill needs one H1 title in ${filename}`);

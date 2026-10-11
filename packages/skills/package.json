@@ -2,11 +2,19 @@
   "name": "@shadowclone/skills",
   "private": true,
   "type": "module",
+  "description": "Portable coding-agent skills for guided reviews and everyday engineering work.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theonly1me/shadowclone.git"
+  },
+  "license": "MIT",
+  "homepage": "https://shadowclone.co",
   "exports": {
     ".": "./src/index.ts",
     "./testing": "./src/testing.ts"
   },
   "scripts": {
+    "stage": "bun run scripts/stage.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },

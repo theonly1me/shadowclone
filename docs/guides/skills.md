@@ -4,6 +4,25 @@ Skills are ordinary files that you can inspect and edit. Shadowclone reviews the
 
 Reading a library and allowing automatic edits are separate choices. Supported changes to authorized skills apply automatically. Conflicts and uncertain changes stay pending. Third-party packages stay unchanged and get local companions. With maintenance on, an update reviews the library of the selected agent, even without new learning.
 
+## Install skills without Shadowclone
+
+Use the skills CLI to choose portable skills manually:
+
+```bash
+npx skills add theonly1me/shadowclone
+npx skills add theonly1me/shadowclone --skill guided-pr-review shadowclone-review
+```
+
+Use `--list` to inspect the available skills first.
+This installation does not enable Shadowclone learning or install its CLI.
+The guided review skill works with a local coding agent and the full repository.
+Install its `shadowclone-review` companion to investigate locally before building the guide.
+
+The separate `@shadowclone/skills` npm artifact contains the same root skills and their supporting files.
+The skills CLI accepts a repository, a local directory, or a direct tarball URL.
+Use the repository command above for selection, or extract the npm artifact and pass its directory.
+The Shadowclone CLI continues to bundle and equip the same content.
+
 ## Review pending work
 
 `skills pending` separates candidate evidence, missing repository scope, conflicting evidence, and publication backlog. Organization guidance waits for a matching registered repository and never becomes global guidance to finish publication. Setup and `learn --deep` register the repository where they run if you gave Git-metadata consent and turned on skill maintenance.

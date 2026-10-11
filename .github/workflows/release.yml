@@ -21,6 +21,8 @@ jobs:
       pull-requests: write
     outputs:
       tag: ${{ steps.pending.outputs.tag }}
+      cli_missing: ${{ steps.pending.outputs.cli_missing }}
+      skills_missing: ${{ steps.pending.outputs.skills_missing }}
     steps:
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7
         with:
@@ -29,10 +31,12 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+      - run: bun install --frozen-lockfile
+
       - name: Find an unpublished release at this commit
         id: pending
         run: |
-          name="$(node -p 'require("./packages/core/src/product.json").name')"
           version="$(node -p 'require("./packages/core/src/product.json").version')"
           tag="v$version"
           if ! git fetch --no-tags --depth=1 origin "refs/tags/$tag:refs/tags/$tag"; then
@@ -43,12 +47,7 @@ jobs:
             echo "$tag belongs to another commit"
             exit 0
           fi
-          status="$(curl -sS -o /dev/null -w '%{http_code}' "https://registry.npmjs.org/${name/\//%2f}/$version")"
-          case "$status" in
-            200) echo "$name@$version is already on npm" ;;
-            404) echo "tag=$tag" >> "$GITHUB_OUTPUT" ;;
-            *) echo "npm registry answered $status for $name@$version" >&2; exit 1 ;;
-          esac
+          bun run tooling/src/releasePackages.ts >> "$GITHUB_OUTPUT"
 
   publish:
     needs: [prepare, gate]
@@ -77,11 +76,17 @@ jobs:
         run: |
           version="$(bun --print 'require("./packages/core/src/product.json").version')"
           staged="$(bun --print 'require("./packages/cli/out/package/package.json").version')"
+          skills="$(bun --print 'require("./packages/skills/out/package/package.json").version')"
           tag="${{ needs.prepare.outputs.tag }}"
-          if [ "${tag#v}" != "$version" ] || [ "$staged" != "$version" ]; then
-            echo "tag $tag, product.json version $version, and staged version $staged must match" >&2
+          if [ "${tag#v}" != "$version" ] || [ "$staged" != "$version" ] || [ "$skills" != "$version" ]; then
+            echo "tag $tag, product.json version $version, and staged versions $staged and $skills must match" >&2
             exit 1
           fi
 
-      - name: Publish to npm
+      - name: Publish CLI to npm
+        if: needs.prepare.outputs.cli_missing == 'true'
         run: npm publish ./packages/cli/out/package --access public --provenance
+
+      - name: Publish skills to npm
+        if: needs.prepare.outputs.skills_missing == 'true'
+        run: npm publish ./packages/skills/out/package --access public --provenance

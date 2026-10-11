@@ -1,6 +1,6 @@
 # @shadowclone/cli
 
-The `shadowclone` command. It parses commands, calls the other packages, and builds the one package that goes to npm.
+The `shadowclone` command. It parses commands, calls the other packages, and builds the CLI package for npm.
 
 <!-- package-facts:start -->
 
@@ -22,7 +22,7 @@ The `shadowclone` command. It parses commands, calls the other packages, and bui
 
 ## Rules
 
-- This is the only package that goes to npm. Other packages stay private.
+- This package publishes the CLI. The separate skills artifact publishes portable content. Workspace runtime packages stay private.
 - `publishedManifest` copies a fixed list of fields. It drops every `workspace:` dependency.
 - The build fails when the bundle contains a path of the build machine.
 - The bundle keeps `@anthropic-ai/sandbox-runtime` external. The published manifest retains its pinned dependency so installed packages include native sandbox helpers.

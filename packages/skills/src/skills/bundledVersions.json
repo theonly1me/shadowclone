@@ -21,6 +21,141 @@
       "a7ceaf6e07b273bbd634a8d89c89bb3dd91051e30bf246cbeae8746b42e6bee3"
     ]
   },
+  "guided-pr-review": {
+    "assets/actions.mjs": ["53c60612d369ad950ecdb1950dce76d29d1aba996da324b3c8048b0b26e8193a"],
+    "assets/code.css": ["254fc3a5ea29d8027882ed22d7b3afe1875bfd5c15fb100cd9cc4fdf4241e5f0"],
+    "assets/files.mjs": ["1c89d32bdcdc8145f107cb0d890c4e7094ae5735def6244a2ef36a7a7e208507"],
+    "assets/layout.css": ["4c9b4348430df905bcda24b8a5a0e96fc2a2ef1b16dcc1d998ebc097b04c9d13"],
+    "assets/main.mjs": ["cf89b32a255adbc9bcade0df96398f990dd2bde4a1e0b09f9cea9f4735ee2bec"],
+    "assets/navigation.mjs": ["eaeee7514c3b8ce5301a7d680b6dbab2076166927b7bad7f3c84f3c6dcd3a929"],
+    "assets/notes.css": ["f6c694afb86bc3a056d6260d8e0aa405eda665aea20356b8c75b1f1ecfeb647a"],
+    "assets/notes.mjs": [
+      "6c78f2db84d379edcdbe14d2e148b67db1c4f68abfd2ff955bdc136aece848c4",
+      "a25fb6a74c4e4f9cf337093221d14cbfc6d254a87063bf18ee03a8008b55914a",
+      "3215670edf621f4b8a4d4a759aeaa5d3b9ab3c6010c784040d846aadcdac321e",
+      "d7d2c0b912d50611460cb3d205b1c1dc802c6641c3ca573ac038ce85dd26a294"
+    ],
+    "assets/noteValidation.mjs": [
+      "96d71a5a6dbf6a22c410e9b9c19b5753101be7d6ee82fb2f050e87e28689f65f"
+    ],
+    "assets/reading.css": ["6ad402eb3b1be6e21ed47d2562e96b13a99d7fac88f4b204ea3c34ece38868d8"],
+    "assets/readingLayout.css": [
+      "d08ab095154ce17d5dfeeff00943c631b0a0530db062eeda8a36d5ee93dff4d9"
+    ],
+    "assets/responsive.css": ["916a3e03c497a3e0482b2f71e8ecf38e97454d771417e3d00772fede88c17663"],
+    "assets/review.html": [
+      "a9c9fd651625b4673bb659391f5e7044ae5e39dc740ce57920150d321c1c1e1a",
+      "58afebc22f7892b172794486c536e0f72c6fcbe900edd6efb22825741dee172c"
+    ],
+    "assets/savedNotes.mjs": ["653f832d9707698d19870a0836b95591650f2328969a4b3b30f46ad4ffddb44b"],
+    "assets/state.mjs": ["923408e9df7fc5adf964003c4f76cd131af48619469c3c1bb0fd8489983ce7d1"],
+    "assets/theme.css": ["e02b79e98f326f6b876617358ec84c4121d10d68692ee5af42581bff7ea0eedb"],
+    "references/report.md": [
+      "6ec5d5ba124d40c46121fd2cc32d1e39ed682f157d05a4cb8d3b69a6d8f997ff",
+      "7f0408b38f7ea16f53998ae9ff0e009ea7b99bd2d4bd71e8224aaa1dd51b5564",
+      "f8ed5d03205b2264fa15db34a8051ee03debf6e1dd816efe28f00b81d893094d",
+      "9d3e5d145f7add12da9e33d41e4930c30ae45fd48d7ffb25a50e82a8288af839"
+    ],
+    "references/staging.md": ["85c025e27c828f4017fe71744bb881f1869bc241390d1fac03548d2d3eb6c612"],
+    "scripts/collect.mjs": ["ca6f4b856ebc878f6f75f8a2f866d89d747460021cf9462086ff31793b24ea6d"],
+    "scripts/document/annotations.mjs": [
+      "0336dcd23dbc8dcec517d55f93a3688e096f4f0194679ea374af4434ff8f6afb"
+    ],
+    "scripts/document/behaviour.mjs": [
+      "c907e8c4942e66cdb85a88afd5a0b2b07952889e74e2da6f7cce056b3c131bd6"
+    ],
+    "scripts/document/chrome.mjs": [
+      "fa181c54921f8ef3a1f72c0b1e8defdff12e49cbac205060b652caa68f381574"
+    ],
+    "scripts/document/contract.mjs": [
+      "d6229375e508a1342637fc2b8c90b968354edc488f4813575650f59287375c72"
+    ],
+    "scripts/document/diff.mjs": [
+      "0f173aca3e81d158fd356e6eadd5f78d9aeabe5ccefce6360d56d37f293809b0"
+    ],
+    "scripts/document/html.mjs": [
+      "63ae5a195398f8d9119c8193ac3151e2297d2c8b5c67a6e91c48e6f2a5e8561b"
+    ],
+    "scripts/document/markdown.mjs": [
+      "69b07182781c49d20b2771104ea1f659e0add3ffc8a1e1cddc114cb4e1a072d5"
+    ],
+    "scripts/document/render.mjs": [
+      "cab64376fd1564311f9d82203b251d92447c0d5863c8d83bc978cb98f3594e42"
+    ],
+    "scripts/document/sections.mjs": [
+      "96732af52c59083d2cebc226b4aa110058fe18f5b0faa99881424812c19f3c64"
+    ],
+    "scripts/document/validate.mjs": [
+      "3f22926bce4facdd1d1bb7003c6d0b76923276bf5e6330f537ff787bdea83a2e"
+    ],
+    "scripts/document/write.mjs": [
+      "7374cee888c3dee87156f65aa0fe4248a5c5f547597ea42750a5604b79ec4ab7"
+    ],
+    "scripts/evidence/collect.mjs": [
+      "7474d2cabdbc7c1a3d5194b20a83a77d5625a785161974c7761b2f5cb89f40b4"
+    ],
+    "scripts/evidence/files.mjs": [
+      "84778ea1a8348860d38cce0e9780680e0f5b816295c2e7964b96a4c6308d9803"
+    ],
+    "scripts/evidence/git.mjs": [
+      "45f5bdab70478f679be5d9156beaa59b5bbfba499cb6d7c271fe627742264e5e"
+    ],
+    "scripts/render.mjs": [
+      "826a0cccccce0e582c2d7e63586647c0a9cd0a1c1b7eb6bd40c906ca14c853fd",
+      "bdba77f5f9da351f92fa4deef2c2231d3fffcdb226e44f2b35d26ce1fb0645a7",
+      "09c1937b3fb1afe79a5d572405551fd7c0943351d2a07414dad50c99380409f0",
+      "1f5cdffe9862f383efcbcfd0f091b9dea174d3dfd2b0d7de1536fb84cec56d76",
+      "4a76aa42528c900a7a6914ff95f98a4e7352f20d386ee4b38776d6cc64861d6f"
+    ],
+    "scripts/validate.mjs": ["3d0d453fdd6dd69b91e89dff7e313945d91553bc0ee5031d68f170278f48c0dc"],
+    "SKILL.md": [
+      "81a6f90139ca56725bed78586c55f4417973f2c9cd405109eded4f9d00a3942d",
+      "ca330ff0657510ab72800bcbc2ee22feb7534567d92f624716d3770f0e9a8c00",
+      "655a2a60abe42e24f27b33871214045d50aad9692eb3c5bada0e5df46f452e74",
+      "484ec4c78eb403c7ac3775bb1d62c712542c3388ac10f84ff8690cedd3f0fa8a",
+      "94fa02119fbde784aa9bc9847382ae454ca3311247d3cc01fa268d896b4fff69"
+    ],
+    "assets/document.mjs": [
+      "01124e83de61acd693ece667f2825a47c149cef1a351f64cbb938c4824f00bc5",
+      "8ae3b0a4c8ffae1f9fe60b7a2cdbc9d323cb897ec8399c0600b0e6822ee4d609"
+    ],
+    "assets/guide.mjs": [
+      "d49815541abcfda200cae9e858c5740d359f2dda81161a44a551fa2ae863e1b1",
+      "e13859ba51f974f1475b31439cd34e871b8ba5643fb75397946aa2dc8e3ad31a",
+      "42d53ca7b57ad42bebc1f9b487d4535da7ea6f122c8df32920499ab5dae94f3e",
+      "ae47c04fb1e09b814bb956035870e9edea7695ce06c2f6e3deeeba27f0fa5054"
+    ],
+    "assets/presentation.mjs": [
+      "8547f40dcf29feee11bde8fd73786912958a7a1628d7096279b43ba087f05322",
+      "08425129189d85b80076fedc77dd2c2b5c6ca61334c2c55f924e3c94473727fb",
+      "36466c05ce07955b7ede4982edcebf3792e79a4ebfd5f76dfa73c5884dcbd78b",
+      "8117fcc1528ff7a960766c8bccdebdeba02791c6740c4b7c457122193941aa89",
+      "1febc605519fb1db503fecddc78f0bfc60faa6d4a182441a9611d4f948873a0b",
+      "ee7d0aaaaa4863cc12dff658feca948af3fecc751be492ea346494d155bca53d",
+      "8e36f149bc1a23f4c242ae30549be8053ea2e358cb28d82a8b7c20ca1583bcc2"
+    ],
+    "scripts/build.mjs": [
+      "95ef8b1f8b7c14d984c4ed0e6c2cb00f83aca17ee1dd7c29d57983c78e54ae7e",
+      "cb6d2aea92b7e99bdf2c5bdad42a3a4387724abe6db36356cb9457f33f959852"
+    ],
+    "scripts/check.mjs": [
+      "17b52b0730e3fb341965f300a6dabe8e60dfec3ceb528efb565fa3c3ff90670a",
+      "eaf3c5e2405d9ba4e319cf9e10a46c0cd457d0ae945efb3dfd78141293ab73e9"
+    ],
+    "scripts/format.mjs": [
+      "7fd99a3b85524c3d7767402100f04a73ded65fb8ee5f6ffa6728c8a541fbf9ad",
+      "ca01a17398f985cc6e31b73c05f365bd9df0adf96a29ea4ac1004238a70335ba",
+      "af384a080f2c8ed3da3d46207dee61bfc26b079b7e580a1556ca27b7be288d47",
+      "68bc3a22193171a46cea03f6bedc3152d0fc85311056a2587cc294e9778410c7",
+      "4f7de646f7620f648673fb1c4877f35ce2fbf49325a58027700a625ea270e783",
+      "e3c9c4e88472b50c41c0054a09c13aa8f9b9f9a9cf70a29814888abd69458d9d"
+    ],
+    "scripts/git.mjs": [
+      "cf6b13100069d520522c4ff23b128951be83dc6f1b7186fbe9ab7e28f41d9e40",
+      "983bc8816b4727207485087faae756a1a3dae68def4acc1a9c35f2b95c347b6e",
+      "6e5aa7cd4975bce0be82f8a9c04c8e0ee7f9411cbabe9b7fe19f39ac41477376"
+    ]
+  },
   "plan-with-review-page": {
     "assets/review-page.html": ["8a587b325fc576a2eefb247baa2d3374ce1e5633f62fbe7987e2e65141292964"],
     "scripts/validate-page.mjs": [

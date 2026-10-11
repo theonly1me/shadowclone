@@ -2,6 +2,40 @@
 
 Shadowclone reviews a pull request against the standards of its own repository. Code collects the facts and runs the mechanical checks, and the `shadowclone-review` skill does the judgment.
 
+## Guided review with your agent
+
+Equip `guided-pr-review` and `shadowclone-review`, or [install them manually](skills.md#install-skills-without-shadowclone).
+Ask your coding agent: "Use guided-pr-review to review PRs 1, 2, and 3."
+Give the repository or PR URLs when numbers could refer to several repositories.
+
+The agent reads the full local repository and pins each PR's base and head.
+It produces one self-contained HTML document with a shared reading route and PR filters.
+The guide connects behavior across the stack while labeling each diff with its PR.
+It uses `shadowclone-review` locally and keeps all findings in the document.
+It reads CI results and runs a focused check only when a specific behavior needs verification.
+It leaves the reviewed code unchanged.
+
+1. Read each step and inspect the actual diff and surrounding code.
+2. Use the source links for callers and the base and head views for rendered Markdown.
+3. Select prose or a code range, then choose Comment to attach your note.
+4. Make mental notes or draft PR comments before revealing the agent findings.
+5. Compare both reviews, then include or dismiss the agent's proposals.
+6. Choose Save review in Chrome or Edge and select the original HTML.
+
+A standalone document supports the guide and annotations without Shadowclone.
+Saving requires permission to edit that file. The notes stay inside the original HTML.
+Keep the document outside public checkouts when it contains private code or comments.
+If permission fails, the page keeps your unsaved notes and reports the failure.
+Browser recovery storage does not replace saving the HTML.
+
+### Continue in your chat
+
+Attach the saved HTML to your existing chat and request staging.
+Your agent uses your configured staging workflow and posting preferences.
+It checks current code, resolves rough notes to actual changed lines, and merges duplicate concerns.
+The guide contains no staging engine. Generating or opening it posts nothing to GitHub.
+Shadowclone does not bundle a personal staging skill.
+
 ## Review on this machine
 
 ```bash

@@ -23,6 +23,10 @@
       "project": ["src/**/*.ts", "scripts/**/*.ts", "bin/*.mjs"],
       "ignoreDependencies": ["commander", "smol-toml"]
     },
+    "packages/skills": {
+      "entry": ["scripts/*.ts", "src/**/*.test.ts", "scripts/**/*.test.ts"],
+      "project": ["src/**/*.ts", "scripts/**/*.ts"]
+    },
     "packages/mcp": {
       "entry": ["src/server.ts", "src/**/*.test.ts"],
       "project": ["src/**/*.ts"]

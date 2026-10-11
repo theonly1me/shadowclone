@@ -1,8 +1,5 @@
 import { expect, test } from "bun:test";
-import {
-  parseSeedAgentSkillDocument,
-  parseSeedPreferenceDocument,
-} from "./parse";
+import { parseSeedAgentSkillDocument, parseSeedPreferenceDocument } from "./parse";
 
 function agentSkill(
   options: {
@@ -53,6 +50,16 @@ test("rejects unknown standard Agent Skill frontmatter", () => {
       text: agentSkill().replace("metadata:\n", "command: review\nmetadata:\n"),
     }),
   ).toThrow("Invalid Agent Skill metadata in focused-review/SKILL.md");
+});
+
+test("loads a formatted Agent Skill with blank lines before its title", () => {
+  const skill = parseSeedAgentSkillDocument({
+    directoryName: "focused-review",
+    text: agentSkill().replace("---\n# Focused Review", "---\n\n\n# Focused Review"),
+  });
+
+  expect(skill.title).toBe("Focused Review");
+  expect(skill.body).toContain("## Process");
 });
 
 test("rejects invalid Shadowclone metadata", () => {

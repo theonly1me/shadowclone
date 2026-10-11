@@ -27,7 +27,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`evals`](../../evals/AGENTS.md)                      | Private evaluation suites                            |
 | [`tooling`](../../tooling/AGENTS.md)                  | Repository checks that `bun run lint` runs           |
 
-`skills/`, `preferences/`, and `plugins/` stay at the repository root, where installers look. Only `@shadowclone/cli` goes to npm, and its build bundles the other packages.
+`skills/`, `preferences/`, and `plugins/` stay at the repository root, where installers look. `@shadowclone/cli` bundles private runtime packages for npm. A separate `@shadowclone/skills` artifact publishes root skill content.
 
 ## Dependencies
 

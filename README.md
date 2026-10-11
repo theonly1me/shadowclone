@@ -53,11 +53,12 @@ To add the plugin, run `/plugin install shadowclone@shadowclone` after `/plugin 
 
 ## Skills in the box
 
-Shadowclone bundles 14 workflow skills. Pick them in the wizard.
+Shadowclone bundles 15 workflow skills. Pick them in the wizard.
 
 | Skill                         | Loads when                              |
 | ----------------------------- | --------------------------------------- |
 | `choose-by-consequence`       | A change adds a skip or fallback        |
+| `guided-pr-review`            | You want a guided PR walkthrough        |
 | `design-deep-modules`         | You design a module                     |
 | `diagnose-before-editing`     | The cause of a failure is unknown       |
 | `plan-with-review-page`       | A change has many steps                 |
@@ -71,6 +72,15 @@ Shadowclone bundles 14 workflow skills. Pick them in the wizard.
 | `verify-and-review`           | Before you say that work is done        |
 | `verify-review-findings`      | A pull request has review comments      |
 | `write-plain-english`         | You write text for a person (always on) |
+
+To pick skills without the CLI, run `npx skills add theonly1me/shadowclone`.
+Use `--skill guided-pr-review shadowclone-review` to install guided review and its local reviewer.
+The separate `@shadowclone/skills` npm artifact contains the same portable skills and supporting files.
+See [manual installation](docs/guides/skills.md#install-skills-without-shadowclone).
+
+The guided review skill creates an HTML reading route with real diffs, behaviour traces, and inline notes.
+It connects related changes across PRs and identifies each change's PR.
+See [guided reviews](docs/guides/reviews.md#guided-review-with-your-agent).
 
 ## Results
 
