@@ -17,6 +17,7 @@ const systemReadPaths = [
   "/usr/local/share",
   "/opt/homebrew/bin",
   "/opt/homebrew/lib",
+  "/opt/homebrew/opt",
   "/opt/homebrew/Cellar",
   "/System/Library",
   "/Library/Frameworks",
