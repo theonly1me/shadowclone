@@ -101,7 +101,8 @@
     "scripts/render.mjs": [
       "826a0cccccce0e582c2d7e63586647c0a9cd0a1c1b7eb6bd40c906ca14c853fd",
       "bdba77f5f9da351f92fa4deef2c2231d3fffcdb226e44f2b35d26ce1fb0645a7",
-      "09c1937b3fb1afe79a5d572405551fd7c0943351d2a07414dad50c99380409f0"
+      "09c1937b3fb1afe79a5d572405551fd7c0943351d2a07414dad50c99380409f0",
+      "1f5cdffe9862f383efcbcfd0f091b9dea174d3dfd2b0d7de1536fb84cec56d76"
     ],
     "scripts/validate.mjs": ["3d0d453fdd6dd69b91e89dff7e313945d91553bc0ee5031d68f170278f48c0dc"],
     "SKILL.md": [
@@ -113,13 +114,15 @@
     "assets/document.mjs": ["01124e83de61acd693ece667f2825a47c149cef1a351f64cbb938c4824f00bc5"],
     "assets/guide.mjs": [
       "d49815541abcfda200cae9e858c5740d359f2dda81161a44a551fa2ae863e1b1",
-      "e13859ba51f974f1475b31439cd34e871b8ba5643fb75397946aa2dc8e3ad31a"
+      "e13859ba51f974f1475b31439cd34e871b8ba5643fb75397946aa2dc8e3ad31a",
+      "42d53ca7b57ad42bebc1f9b487d4535da7ea6f122c8df32920499ab5dae94f3e"
     ],
     "assets/presentation.mjs": [
       "8547f40dcf29feee11bde8fd73786912958a7a1628d7096279b43ba087f05322",
       "08425129189d85b80076fedc77dd2c2b5c6ca61334c2c55f924e3c94473727fb",
       "36466c05ce07955b7ede4982edcebf3792e79a4ebfd5f76dfa73c5884dcbd78b",
-      "8117fcc1528ff7a960766c8bccdebdeba02791c6740c4b7c457122193941aa89"
+      "8117fcc1528ff7a960766c8bccdebdeba02791c6740c4b7c457122193941aa89",
+      "1febc605519fb1db503fecddc78f0bfc60faa6d4a182441a9611d4f948873a0b"
     ],
     "scripts/build.mjs": ["95ef8b1f8b7c14d984c4ed0e6c2cb00f83aca17ee1dd7c29d57983c78e54ae7e"],
     "scripts/check.mjs": ["17b52b0730e3fb341965f300a6dabe8e60dfec3ceb528efb565fa3c3ff90670a"],

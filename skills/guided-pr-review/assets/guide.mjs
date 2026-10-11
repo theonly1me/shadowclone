@@ -86,7 +86,10 @@ function showSource(id) {
     pulls: review.pulls,
     sha: file.sha,
   });
-  document.getElementById("source-link").href = item.url;
+  setSourceLink({
+    element: document.getElementById("source-link"),
+    url: item.url,
+  });
   document.getElementById("source-dialog").showModal();
 }
 

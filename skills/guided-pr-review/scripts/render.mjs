@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { reviewStyle, findingMarkup } from "../assets/presentation.mjs";
+import { reviewStyle, findingMarkup, setSourceLink } from "../assets/presentation.mjs";
 import { escapeHtml, jsonForHtml, markdown, fileCard, behaviorMarkup } from "./format.mjs";
 
 function sourceLinks(options) {
@@ -155,6 +155,7 @@ export async function renderReview(review) {
   const scripts = [
     format,
     findingMarkup.toString(),
+    setSourceLink.toString(),
     ...(await Promise.all(["document.mjs", "notes.mjs", "guide.mjs"].map(asset))),
   ]
     .map((script) => script.replace(/^export /gm, ""))

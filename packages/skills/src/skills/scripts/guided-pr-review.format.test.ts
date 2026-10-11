@@ -39,3 +39,28 @@ test("source metadata cannot create HTML elements inside the code view", () => {
   );
   expect(result.stdout.toString()).toContain("<code>real source</code>");
 });
+
+test("source links reject executable URLs and clear a previous valid destination", () => {
+  const script = `import { setSourceLink } from ${JSON.stringify(pathToFileURL(path.join(skillDirectory, "assets/presentation.mjs")))};
+    const element = { href: 'https://previous.example/source', textContent: '', removeAttribute() { delete this.href; } };
+    const urls = ["javascript:'unexpected'", 'https://github.com/example/project/blob/head/job.ts#L1', 'data:text/html,unexpected', 'https://code.example/project/blob/head/job.ts#L1', 'http://github.com/example/project'];
+    console.log(JSON.stringify(urls.map(url => {
+      setSourceLink({ element, url });
+      return { href: element.href ?? null, text: element.textContent };
+    })));`;
+  const result = Bun.spawnSync([process.execPath, "--eval", script], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  expect(result.exitCode).toBe(0);
+  expect(JSON.parse(result.stdout.toString())).toEqual([
+    { href: null, text: "Source link unavailable." },
+    {
+      href: "https://github.com/example/project/blob/head/job.ts#L1",
+      text: "Open pinned source",
+    },
+    { href: null, text: "Source link unavailable." },
+    { href: "https://code.example/project/blob/head/job.ts#L1", text: "Open pinned source" },
+    { href: null, text: "Source link unavailable." },
+  ]);
+});

@@ -142,3 +142,12 @@ export function findingMarkup(finding) {
     .join("");
   return `<aside class="finding ${escapeHtml(state ?? "")}" data-finding="${escapeHtml(finding.id)}"><div class="note-meta"><strong>Agent</strong><span>#${escapeHtml(pull.number)} · <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(finding.path)}:${escapeHtml(finding.line)}</a></span><span>${state === "included" ? "in your review" : state === "dismissed" ? "dismissed" : "proposal"}</span></div><p>${escapeHtml(finding.explanation)}</p><details><summary>Inspect the reasoning</summary><p><strong>Trigger:</strong> ${escapeHtml(finding.failureScenario)}</p>${proof}<p><strong>Countercheck:</strong> ${escapeHtml(finding.refutation)}</p><p><strong>Suggested direction:</strong> ${escapeHtml(finding.suggestion ?? "Inspect the affected contract before choosing a fix.")}</p></details><div class="note-actions"><button data-include-finding="${escapeHtml(finding.id)}" type="button">${state === "included" ? "Remove from review" : "Add to my review"}</button><button data-dismiss-finding="${escapeHtml(finding.id)}" type="button">${state === "dismissed" ? "Restore" : "Dismiss"}</button></div></aside>`;
 }
+
+export function setSourceLink(options) {
+  options.element.removeAttribute("href");
+  options.element.textContent = "Source link unavailable.";
+  if (options.url.startsWith("https://")) {
+    options.element.href = options.url;
+    options.element.textContent = "Open pinned source";
+  }
+}
