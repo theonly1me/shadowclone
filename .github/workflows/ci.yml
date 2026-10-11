@@ -35,6 +35,7 @@ jobs:
       - run: bun run knip
       - run: bun run stage
       - run: npm pack --dry-run ./packages/cli/out/package
+      - run: npm pack --dry-run ./packages/skills/out/package
 
   test:
     runs-on: ${{ matrix.os }}

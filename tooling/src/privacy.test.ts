@@ -19,7 +19,9 @@ function described(findings: readonly { file: string; line: number; rule: string
 }
 
 test("the repository's shipped guidance has no private material", async () => {
-  const report = await findPrivacyFindings({ rootDirectory: path.resolve(import.meta.dir, "../..") });
+  const report = await findPrivacyFindings({
+    rootDirectory: path.resolve(import.meta.dir, "../.."),
+  });
 
   expect(report.findings).toEqual([]);
   expect(report.checkedFileCount).toBeGreaterThan(0);
@@ -58,6 +60,17 @@ test("allows listed documentation URLs, example addresses, and paths written wit
   });
 
   expect((await findPrivacyFindings({ rootDirectory, privateTerms: [] })).findings).toEqual([]);
+});
+
+test("allows the generic GitHub origin without allowing private repository URLs", async () => {
+  const rootDirectory = await treeWith({
+    "skills/sample-skill/scripts/links.mjs":
+      'const origin = "https://github.com/";\nconst privateRepository = "https://github.com/acme/private";\n',
+  });
+
+  expect(
+    described((await findPrivacyFindings({ rootDirectory, privateTerms: [] })).findings),
+  ).toEqual(["skills/sample-skill/scripts/links.mjs:2 url"]);
 });
 
 test("flags a gendered pronoun in skill prose but not inside a script", async () => {

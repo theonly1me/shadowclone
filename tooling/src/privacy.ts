@@ -109,7 +109,10 @@ function lineFindings(options: {
   }
 
   for (const [url, target = ""] of options.text.matchAll(urlPattern)) {
-    if (!allowedUrlPrefixes.some((prefix) => target.startsWith(prefix))) {
+    if (
+      url !== "https://github.com/" &&
+      !allowedUrlPrefixes.some((prefix) => target.startsWith(prefix))
+    ) {
       findings.push({
         ...at,
         rule: "url",

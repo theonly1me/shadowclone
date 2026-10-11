@@ -19,8 +19,12 @@ Handles skill files without any model call. It loads the bundled skills, checks 
 - `src/skills/bundledVersions.json`: the recorded fingerprint of each bundled skill file. `isBundledVersion` reads it.
 - `src/skillMaintenance/`: roots, `discoverSkills`, `renderMaintainedSkill`, `syncPortableSkills`, and the proposal store.
 
+- `scripts/stage.ts`: stages the separate npm content artifact from root skills, with no private runtime or workspace dependencies.
+
 ## Rules
 
+- Bundled skill parsing permits blank lines before the first H1 title. It still requires the workflow sections.
+- Content staging refuses symbolic links in its output path before replacing its previous artifact.
 - This package never calls a model. It does not depend on `agents`.
 - Skill text that the package discovers passes through `resolveRedacted`.
 - Callers replace an installed bundled skill only when `isBundledVersion` accepts its text.

@@ -1,0 +1,120 @@
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 12px 24px;
+  background: var(--page);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.brand {
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+.brand span {
+  color: var(--accent);
+  margin-right: 8px;
+}
+.toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.layout {
+  max-width: 1700px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 265px minmax(0, 1fr);
+}
+aside {
+  position: sticky;
+  top: 69px;
+  height: calc(100vh - 69px);
+  padding: 26px 18px;
+  border-right: 1px solid var(--line);
+  overflow: auto;
+}
+main {
+  padding: 30px 42px 100px;
+  min-width: 0;
+  max-width: 1280px;
+}
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+}
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+.sidebar-search {
+  width: 100%;
+  margin: 12px 0 22px;
+}
+input,
+textarea,
+select {
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 9px;
+}
+textarea {
+  width: 100%;
+  resize: vertical;
+}
+.route {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.route a {
+  display: block;
+  padding: 9px 10px;
+  color: var(--muted);
+  border-left: 2px solid transparent;
+}
+.route a:hover,
+.route a.active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--surface);
+}
+.route small {
+  display: block;
+  font-size: 11px;
+  color: var(--accent);
+}
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0;
+}
+.tabs button[aria-selected="true"] {
+  background: var(--accent);
+  color: var(--page);
+}
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 20px;
+  margin-bottom: 25px;
+}
+.stats strong {
+  display: block;
+  font-size: 23px;
+}
+.stats span {
+  font-size: 12px;
+  color: var(--muted);
+}

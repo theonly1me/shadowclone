@@ -58,6 +58,12 @@ Report exposures as [SECURITY.md](SECURITY.md) describes.
 
 ## Releasing
 
-Release Please maintains a release PR from conventional commits on `main`. Merging it creates the version tag and GitHub release. After CI passes, a maintainer approves the `npm` environment and the workflow publishes `@shadowclone/cli` with provenance.
+Release Please maintains a release PR from conventional commits on `main`. Merging it creates the version tag and GitHub release. After CI passes, a maintainer approves the `npm` environment and the workflow publishes `@shadowclone/cli` and the separate `@shadowclone/skills` content artifact with provenance.
 
 Use `feat:` for a minor version, `fix:` for a patch, and `!` for a breaking change. The [release workflow](.github/workflows/release.yml) defines publishing and retry behavior.
+
+`bun run stage` stages both artifacts with the product version.
+Inspect each `out/package` with `npm pack --dry-run --json` before release.
+The content artifact contains root skills and their supporting files, with no workspace runtime dependencies.
+Configure an npm trusted publisher for each package before its first release.
+A retry publishes only package versions that the registry reports as missing.

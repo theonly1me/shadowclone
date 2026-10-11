@@ -18,6 +18,7 @@ The repository checks that `bun run lint` runs. They check conventions, package 
 - `src/conventions.ts`: file length, no comments, and no dashes.
 - `src/boundaries.ts` and `src/boundaries/`: the package graph in `packages.ts`, import checks, and manifest checks.
 - `src/privacy.ts` and `src/skills.ts`: privacy terms and bundled skill quality.
+- `src/releasePackages.ts`: checks CLI and skill-content publication independently for partial-release retries.
 - `src/skillVersions.ts` and `src/releaseVersions.ts`: recorded skill fingerprints and release versions.
 - `src/prose.ts` and `src/packageGuides.ts`: Markdown prose and links, and the package guides.
 
