@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { chmod, mkdir, mkdtemp, realpath, rm, symlink } from "node:fs/promises";
+import { chmod, copyFile, mkdir, mkdtemp, realpath, rm, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { runTool, toolEnvironment } from "../process";
@@ -26,7 +26,7 @@ for (const manager of ["npm", "pnpm"]) {
     if (node === null) {
       throw new Error("The script-link fixture needs Node");
     }
-    await symlink(node, path.join(bin, "node"));
+    await copyFile(node, path.join(bin, "node"));
 
     try {
       const result = await runTool({
