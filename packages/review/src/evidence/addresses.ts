@@ -15,7 +15,10 @@ const ipv4RangesThatAreNotPubliclyRoutable: readonly Ipv4Range[] = [
   { name: "multicast and reserved, RFC 5771 and RFC 1112", base: "224.0.0.0", bits: 3 },
 ];
 
-const ipv6PrefixesThatAreNotPubliclyRoutable: readonly { readonly name: string; readonly pattern: RegExp }[] = [
+const ipv6PrefixesThatAreNotPubliclyRoutable: readonly {
+  readonly name: string;
+  readonly pattern: RegExp;
+}[] = [
   { name: "unspecified and loopback, RFC 4291", pattern: /^::1?$/ },
   { name: "unique local, RFC 4193", pattern: /^f[cd][0-9a-f]{2}:/ },
   { name: "link-local, RFC 4291", pattern: /^fe[89ab][0-9a-f]:/ },
@@ -25,9 +28,7 @@ function ipv4Number(address: string): number {
   return address.split(".").reduce((total, octet) => total * 256 + Number(octet), 0);
 }
 
-function isPublicIpv4(address: string): boolean {
-  const value = ipv4Number(address);
-
+function isPublicIpv4(value: number): boolean {
   return !ipv4RangesThatAreNotPubliclyRoutable.some(({ base, bits }) => {
     const size = 2 ** (32 - bits);
 
@@ -39,19 +40,26 @@ export function isPublicAddress(address: string): boolean {
   const version = isIP(address);
 
   if (version === 4) {
-    return isPublicIpv4(address);
+    return isPublicIpv4(ipv4Number(address));
   }
 
   if (version !== 6) {
     return false;
   }
 
-  const lower = address.toLowerCase();
-  const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(lower)?.[1];
+  let normalized: string;
 
-  if (mapped !== undefined) {
-    return isPublicIpv4(mapped);
+  try {
+    normalized = new URL(`http://[${address}]/`).hostname.slice(1, -1);
+  } catch {
+    return false;
   }
 
-  return !ipv6PrefixesThatAreNotPubliclyRoutable.some(({ pattern }) => pattern.test(lower));
+  const [, high, low] = /^::ffff:([0-9a-f]+):([0-9a-f]+)$/.exec(normalized) ?? [];
+
+  if (high !== undefined && low !== undefined) {
+    return isPublicIpv4(Number.parseInt(high, 16) * 65_536 + Number.parseInt(low, 16));
+  }
+
+  return !ipv6PrefixesThatAreNotPubliclyRoutable.some(({ pattern }) => pattern.test(normalized));
 }
