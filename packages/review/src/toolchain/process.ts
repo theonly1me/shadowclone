@@ -82,12 +82,14 @@ export async function runTool(options: {
     return { kind: "missing", executable };
   }
 
+  const resolved = realpathSync(located);
+  const invocation = /\.(?:js|cjs|mjs)$/.test(resolved)
+    ? resolved
+    : path.join(realpathSync(path.dirname(located)), path.basename(located));
+
   return runSandboxedTool({
     ...options,
-    arguments: [
-      path.join(realpathSync(path.dirname(located)), path.basename(located)),
-      ...options.arguments.slice(1),
-    ],
+    arguments: [invocation, ...options.arguments.slice(1)],
     environment,
   });
 }

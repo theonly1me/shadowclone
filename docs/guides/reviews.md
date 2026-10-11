@@ -55,7 +55,7 @@ Every toolchain command runs in an operating-system sandbox, including dependenc
 
 Commands can read the disposable worktree and required runtimes. They can change host files only inside that worktree and isolated review state. Each review side gets a fresh HOME, temporary folder, and caches. Host credentials and private user configuration stay outside. Dependency install scripts remain disabled.
 
-Downloads use a fixed public-registry allowlist through a restricted proxy. Direct networking, local services, and Unix sockets are blocked. Private registries and checks that need host credentials can fail.
+Downloads use a fixed public-registry allowlist through a restricted proxy. Package managers must support authenticated proxies. Direct networking, local services, and Unix sockets are blocked. Private registries and checks that need host credentials can fail.
 
 If the sandbox cannot start, the check reports failure and the read-only review continues. The command never runs without isolation. `--no-checks` skips toolchain commands. The built-in rules and the skill still run. In the cloud, the toolchain job also has no secrets.
 

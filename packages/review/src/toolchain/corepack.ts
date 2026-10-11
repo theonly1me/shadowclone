@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -10,7 +10,10 @@ function shellQuoted(text: string): string {
   return `'${text.replaceAll("'", `'\\''`)}'`;
 }
 
-function shimDirectory(options: { readonly corepack: string; readonly managers: readonly string[] }): string {
+function shimDirectory(options: {
+  readonly corepack: string;
+  readonly managers: readonly string[];
+}): string {
   const key = `${options.corepack}\n${options.managers.join(",")}`;
   const known = shimDirectories.get(key);
 
@@ -19,19 +22,29 @@ function shimDirectory(options: { readonly corepack: string; readonly managers: 
   }
 
   const directory = mkdtempSync(path.join(os.tmpdir(), "shadowclone-corepack-"));
+  const executable = realpathSync(options.corepack);
 
   for (const manager of options.managers) {
-    writeFileSync(path.join(directory, manager), `#!/bin/sh\nexec ${shellQuoted(options.corepack)} ${manager} "$@"\n`, { mode: 0o755 });
+    writeFileSync(
+      path.join(directory, manager),
+      `#!/bin/sh\nexec ${shellQuoted(executable)} ${manager} "$@"\n`,
+      { mode: 0o755 },
+    );
   }
 
   shimDirectories.set(key, directory);
   return directory;
 }
 
-export function withCorepackManagers(environment: Readonly<Record<string, string>>): Record<string, string> {
+export function withCorepackManagers(
+  environment: Readonly<Record<string, string>>,
+): Record<string, string> {
   const searchPath = environment.PATH ?? "";
-  const corepack = process.platform === "win32" ? null : Bun.which("corepack", { PATH: searchPath });
-  const missing = corepackManagers.filter((manager) => Bun.which(manager, { PATH: searchPath }) === null);
+  const corepack =
+    process.platform === "win32" ? null : Bun.which("corepack", { PATH: searchPath });
+  const missing = corepackManagers.filter(
+    (manager) => Bun.which(manager, { PATH: searchPath }) === null,
+  );
 
   if (corepack === null || missing.length === 0) {
     return { ...environment };
@@ -39,7 +52,9 @@ export function withCorepackManagers(environment: Readonly<Record<string, string
 
   return {
     ...environment,
-    PATH: [shimDirectory({ corepack, managers: missing }), searchPath].filter((entry) => entry !== "").join(path.delimiter),
+    PATH: [shimDirectory({ corepack, managers: missing }), searchPath]
+      .filter((entry) => entry !== "")
+      .join(path.delimiter),
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
   };
 }
