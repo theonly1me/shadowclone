@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.0.29](https://github.com/theonly1me/shadowclone/compare/v0.0.28...v0.0.29) (2026-10-11)
+
+
+### Features
+
+* **skills:** add guided pr reviews and portable content ([#195](https://github.com/theonly1me/shadowclone/issues/195)) ([25893b9](https://github.com/theonly1me/shadowclone/commit/25893b92d22e824e1eed8168261cf8fb5e66a71e))
+
+
+### Fixes
+
+* **review:** sandbox checks and close scope and address gaps ([#197](https://github.com/theonly1me/shadowclone/issues/197)) ([f886e12](https://github.com/theonly1me/shadowclone/commit/f886e120708b48d2468ef0fc29f479c28cc72eb5))
+
+
+### Documentation
+
+* **evals:** publish the code review results on 40 vite pull requests ([#193](https://github.com/theonly1me/shadowclone/issues/193)) ([bbcca5c](https://github.com/theonly1me/shadowclone/commit/bbcca5ce1d010f6837864500879c4ba045dd0de6))
+
 ## [0.0.28](https://github.com/theonly1me/shadowclone/compare/v0.0.27...v0.0.28) (2026-10-10)
 
 
