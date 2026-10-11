@@ -8,7 +8,7 @@ Maintainers run these suites from a source checkout. The published CLI does not 
 - **Routing experiment** (the same command with `--experiment routing`): whether native routing changes skill selection and compliance.
 - **Work suite** (`bun run eval:work`): whether `shadowclone-work` takes a case to a ready pull request.
 - **Workflow outcomes** (`bun run eval --protocol workflow-outcomes-v1`): frozen tasks under existing skills, current Shadowclone, and an evolved workflow.
-- **Code review** ([code-review-bench](https://github.com/theonly1me/code-review-bench)): Shadowclone and other code reviewers on real vite defects and planted defects. It is a separate repository, so anyone can clone it and run it.
+- **Code review** ([`code-review/README.md`](code-review/README.md)): Shadowclone, Greptile, and OpenQodex on 40 merged vite pull requests. The [code-review-bench](https://github.com/theonly1me/code-review-bench) harness is a separate repository, so anyone can clone it and run it.
 - **No-comments** ([`no-comments/README.md`](no-comments/README.md)): whether agents write more readable code without comments.
 
 ## Rules for paid runs
