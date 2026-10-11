@@ -93,7 +93,7 @@ export function fileMarkup(options) {
     const anchor = escapeHtml(file.id + ":" + view);
     return text === null
       ? '<p class="muted">This side has no Markdown file.</p>'
-      : `<div class="markdown passage" data-anchor="${anchor}" data-prs="${prs.join(",")}">${markdown(text)}<div class="inline-notes" data-notes-at="${anchor}"></div></div>`;
+      : `<div class="markdown passage" data-anchor="${anchor}" data-prs="${escapeHtml(prs.join(","))}">${markdown(text)}<div class="inline-notes" data-notes-at="${anchor}"></div></div>`;
   }
   if (!file.rows.length)
     return (
@@ -113,7 +113,7 @@ export function fileMarkup(options) {
           .map((id) => pulls.find((pull) => pull.id === id))
           .filter(Boolean);
         const owner = pulls.length > 1 ? owners.map((pull) => "#" + pull.number).join(" + ") : "";
-        return `<div class="code-line ${row.kind}" data-anchor="${escapeHtml(file.id + ":" + index)}" data-file="${escapeHtml(file.id)}" data-side="${side}" data-line="${line}" data-sha="${sha[side]}" data-owner="${escapeHtml(row.owner)}"><button class="line-number" type="button" aria-label="Select line ${line}">${row.oldLine ?? ""}</button><span class="line-number">${row.newLine ?? ""}</span><span class="sign">${row.kind === "add" ? "+" : row.kind === "remove" ? "-" : ""}</span><code>${escapeHtml(row.text)}</code><span class="owner">${owner}</span></div><div class="inline-notes" data-notes-at="${escapeHtml(file.id + ":" + index)}"></div>`;
+        return `<div class="code-line ${escapeHtml(row.kind)}" data-anchor="${escapeHtml(file.id + ":" + index)}" data-file="${escapeHtml(file.id)}" data-side="${escapeHtml(side)}" data-line="${escapeHtml(line)}" data-sha="${escapeHtml(sha[side])}" data-owner="${escapeHtml(row.owner)}"><button class="line-number" type="button" aria-label="Select line ${escapeHtml(line)}">${escapeHtml(row.oldLine ?? "")}</button><span class="line-number">${escapeHtml(row.newLine ?? "")}</span><span class="sign">${row.kind === "add" ? "+" : row.kind === "remove" ? "-" : ""}</span><code>${escapeHtml(row.text)}</code><span class="owner">${escapeHtml(owner)}</span></div><div class="inline-notes" data-notes-at="${escapeHtml(file.id + ":" + index)}"></div>`;
       })
       .join("") +
     "</div>"
@@ -121,12 +121,12 @@ export function fileMarkup(options) {
 }
 
 export function fileCard(options) {
-  return `<details class="file-card" data-file="${escapeHtml(options.file.id)}" ${options.open ? "open" : ""}><summary><span>${escapeHtml(options.file.path)}</span><span class="file-stat">${escapeHtml(options.prLabel)} <b>+${options.file.additions}</b> / -${options.file.deletions}</span></summary><div class="file-toolbar"><button data-view="diff" class="selected" type="button">Diff</button>${options.file.baseMarkdown !== null || options.file.headMarkdown !== null ? '<button data-view="base" type="button">Base Markdown</button><button data-view="head" type="button">Head Markdown</button>' : ""}<a href="${escapeHtml(options.url)}" target="_blank" rel="noreferrer">Open PR</a></div><div class="file-content"></div></details>`;
+  return `<details class="file-card" data-file="${escapeHtml(options.file.id)}" ${options.open ? "open" : ""}><summary><span>${escapeHtml(options.file.path)}</span><span class="file-stat">${escapeHtml(options.prLabel)} <b>+${escapeHtml(options.file.additions)}</b> / -${escapeHtml(options.file.deletions)}</span></summary><div class="file-toolbar"><button data-view="diff" class="selected" type="button">Diff</button>${options.file.baseMarkdown !== null || options.file.headMarkdown !== null ? '<button data-view="base" type="button">Base Markdown</button><button data-view="head" type="button">Head Markdown</button>' : ""}<a href="${escapeHtml(options.url)}" target="_blank" rel="noreferrer">Open PR</a></div><div class="file-content"></div></details>`;
 }
 
 export function noteMarkup(note) {
   const pull = review.pulls.find((pull) => pull.id === note.pr);
-  return `<aside class="note ${note.dismissed ? "dismissed" : ""}" data-note="${escapeHtml(note.id)}"><div class="note-meta"><strong>You</strong><span>#${pull.number} · ${note.dismissed ? "removed" : "draft"}</span></div><blockquote>${escapeHtml(note.quote)}</blockquote><p>${escapeHtml(note.body)}</p><div class="note-actions"><button data-edit-note="${escapeHtml(note.id)}" type="button">Edit</button><button data-dismiss-note="${escapeHtml(note.id)}" type="button">${note.dismissed ? "Restore" : "Remove"}</button></div></aside>`;
+  return `<aside class="note ${note.dismissed ? "dismissed" : ""}" data-note="${escapeHtml(note.id)}"><div class="note-meta"><strong>You</strong><span>#${escapeHtml(pull.number)} · ${note.dismissed ? "removed" : "draft"}</span></div><blockquote>${escapeHtml(note.quote)}</blockquote><p>${escapeHtml(note.body)}</p><div class="note-actions"><button data-edit-note="${escapeHtml(note.id)}" type="button">Edit</button><button data-dismiss-note="${escapeHtml(note.id)}" type="button">${note.dismissed ? "Restore" : "Remove"}</button></div></aside>`;
 }
 
 export function behaviorMarkup(options) {

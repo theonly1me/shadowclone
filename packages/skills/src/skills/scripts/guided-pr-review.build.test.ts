@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { writeFile } from "node:fs/promises";
-import { build, fixture } from "./guidedFixture.js";
+import { build, embedded, fixture } from "./guidedFixture.js";
 
 test("the builder rejects an incomplete route and never replaces an annotated file", async () => {
   const context = await fixture();
@@ -32,4 +32,14 @@ test("a fabricated source quote fails before an HTML is written", async () => {
     error: expect.stringContaining("Source evidence does not match: job.ts:1"),
   });
   expect(await Bun.file(context.outputPath).exists()).toBeFalse();
+});
+
+test("shell dollar quotes remain literal in the guide and embedded review data", async () => {
+  const context = await fixture();
+  context.input.summary = "Inspect $'line\\n' and $$ without changing their meaning.";
+  await writeFile(context.inputPath, JSON.stringify(context.input));
+  expect(build(context).exitCode).toBe(0);
+  const html = await Bun.file(context.outputPath).text();
+  expect(embedded(html)).toMatchObject({ summary: context.input.summary });
+  expect(html).toContain("Inspect $&#39;line\\n&#39; and $$ without changing their meaning.");
 });

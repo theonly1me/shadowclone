@@ -160,12 +160,12 @@ export async function renderReview(review) {
     .map((script) => script.replace(/^export /gm, ""))
     .join("\n");
   return (await asset("review.html"))
-    .replace("{{TITLE}}", escapeHtml(review.title))
-    .replace("{{STYLE}}", reviewStyle)
-    .replace("{{BODY}}", body)
-    .replace("{{DATA}}", jsonForHtml(review))
+    .replace("{{TITLE}}", () => escapeHtml(review.title))
+    .replace("{{STYLE}}", () => reviewStyle)
+    .replace("{{BODY}}", () => body)
+    .replace("{{DATA}}", () => jsonForHtml(review))
     .replace(
       '<script type="module" id="review-runtime"></script>',
-      '<script type="module" id="review-runtime">' + scripts + "</script>",
+      () => '<script type="module" id="review-runtime">' + scripts + "</script>",
     );
 }
