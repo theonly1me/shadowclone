@@ -72,7 +72,7 @@ test("synthetic corrections travel through capture, redaction, extraction, revie
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
-});
+}, 30_000);
 
 test("failed learning retains its charged invocation and cannot produce a scored suite", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "four-setup-failed-learning-"));

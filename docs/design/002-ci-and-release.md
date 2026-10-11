@@ -32,6 +32,12 @@ The `v0.0.11` release gate exposed two timing-dependent tests. The project publi
 
 Seed the deadline test with valid saved votes. Wait for a judge call that ignores cancellation. Verify that the hard deadline keeps the receipt and resumes the remaining work. Give the deadline and maintenance tests enough time for runner variation. Run focused tests and the full check gate, so these tests do not block future releases.
 
+The learning queue test allowed 10 ms for its first dispatch. A slow runner could consume that window and reject both calls. Its assertion required one call, so correct deadline enforcement could fail CI.
+
+Control the test clock before creating the execution. Advance past the shared deadline inside the first provider call. Assert that the first call completes and the queued call rejects with the deadline error. Restore the clock after the test. Prove that renewing the deadline at dispatch makes the assertion fail. Run the focused tests and the full check gate.
+
+The workflow learning fixture prepares guidance and freezes it for both agents. It also snapshots the repository repeatedly. The default five-second test limit can interrupt valid work on a slow runner. Give this integration test 30 seconds, as related learning tests already do. Keep its assertions and production deadlines unchanged. Verify it with delayed Git commands, then run the full check gate.
+
 ## Maintainer source scan
 
 The catalog scans Shadowclone independently. A source change can pass the repository typecheck, lint, and tests and still fail that gate. Run the pinned HOL scanner action on pushes and pull requests, with a score floor of 80 and no high-severity findings. Give it read-only repository access. Keep checkout credentials out of the workspace. Leave PR comments, online probing, and SARIF upload disabled.

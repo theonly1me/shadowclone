@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, spyOn, test } from "bun:test";
 import { createLearningExecution } from "./learning";
 import type { EngineRun, EngineRunner } from "./types";
 
@@ -119,24 +119,31 @@ test("a thrown provider failure cannot renew a queued allowance", async () => {
 
 test("queued requests retain the original deadline", async () => {
   let calls = 0;
+  let clock = 0;
+  const now = spyOn(Date, "now").mockImplementation(() => clock);
 
-  const execution = createLearningExecution({
-    engine: "claude-code",
-    limits: { ...limits, timeoutMilliseconds: 10 },
-    runner: async () => {
-      calls += 1;
-      await Bun.sleep(30);
+  try {
+    const execution = createLearningExecution({
+      engine: "claude-code",
+      limits,
+      runner: async () => {
+        calls += 1;
+        clock = limits.timeoutMilliseconds + 1;
 
-      return result(0);
-    },
-  });
+        return result(0);
+      },
+    });
 
-  await Promise.allSettled([
-    execution.runner(request),
-    execution.runner(request),
-  ]);
+    await Promise.all([
+      expect(execution.runner(request)).resolves.toEqual(result(0)),
+      expect(execution.runner(request)).rejects.toThrow("Learning deadline reached"),
+    ]);
 
-  expect(calls).toBe(1);
+    expect(calls).toBe(1);
+    expect(execution.callsUsed()).toBe(1);
+  } finally {
+    now.mockRestore();
+  }
 });
 
 test("zero cost is valid and queued calls still respect the call limit", async () => {
