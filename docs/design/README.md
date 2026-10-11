@@ -47,3 +47,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [037: Cloud bot accounts](037-cloud-bot-accounts.md)                           | A named machine account, tokens entered on GitHub, and skills in a private repository                                   |
 | [038: Workspace packages and plain English](038-packages-and-plain-english.md) | Bun and Turborepo workspace packages with no import cycles, plain English always on, and shorter docs                   |
 | [039: Review evaluation](039-review-evaluation.md)                             | One case format for real vite defects and planted defects, with blind judges from two vendors who must agree on a label |
+| [040: Guided PR review](040-guided-pr-review.md)                               | Connected PR guides, inline human notes, optional pending reviews, and a separate portable skill artifact               |

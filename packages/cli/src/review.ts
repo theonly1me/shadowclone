@@ -7,8 +7,13 @@ import { parseReviewArguments } from "./reviewArguments";
 import { requestCloudReview } from "./reviewCloud";
 import { reviewFileContent } from "./reviewFile";
 import { reviewStages } from "./reviewStages";
+import { openGuidedReview } from "./reviewOpen";
 
-async function commandOutput(options: { readonly arguments: readonly string[]; readonly cwd: string; readonly failure: string }): Promise<string> {
+async function commandOutput(options: {
+  readonly arguments: readonly string[];
+  readonly cwd: string;
+  readonly failure: string;
+}): Promise<string> {
   const result = await runHostCommand({ arguments: options.arguments, cwd: options.cwd });
 
   if (result.exitCode !== 0) {
@@ -18,18 +23,34 @@ async function commandOutput(options: { readonly arguments: readonly string[]; r
   return result.stdout.trim();
 }
 
-async function writeReview(options: { readonly result: ReviewResult; readonly output: string | null; readonly fileName: string }): Promise<void> {
+async function writeReview(options: {
+  readonly result: ReviewResult;
+  readonly output: string | null;
+  readonly fileName: string;
+}): Promise<void> {
   const { result } = options;
   const output = path.resolve(
-    options.output ?? path.join(projectPaths.shadowcloneDirectory, "reviews", result.pull.repository.replace("/", "-"), options.fileName),
+    options.output ??
+      path.join(
+        projectPaths.shadowcloneDirectory,
+        "reviews",
+        result.pull.repository.replace("/", "-"),
+        options.fileName,
+      ),
   );
 
   await ownedWrite({ path: output, content: reviewFileContent({ result, file: output }) });
-  console.log(`${result.findings.length} ${result.findings.length === 1 ? "finding" : "findings"}. Review written to ${output}`);
+  console.log(
+    `${result.findings.length} ${result.findings.length === 1 ? "finding" : "findings"}. Review written to ${output}`,
+  );
 }
 
 export async function reviewCommand(arguments_: readonly string[]): Promise<void> {
   const [first = "", ...rest] = arguments_;
+  if (first === "open") {
+    await openGuidedReview(rest);
+    return;
+  }
   const stage = reviewStages[first];
 
   if (stage !== undefined) {
@@ -44,15 +65,31 @@ export async function reviewCommand(arguments_: readonly string[]): Promise<void
     cwd,
     failure: "Run shadowclone review inside a Git repository",
   });
-  const reviewModel = { runner: runClaudeCode, model: parsed.model, effort: parsed.effort, network: parsed.network };
+  const reviewModel = {
+    runner: runClaudeCode,
+    model: parsed.model,
+    effort: parsed.effort,
+    network: parsed.network,
+  };
   const onProgress = (message: string) => console.error(message);
   const { target } = parsed;
 
   if (target.kind === "branch") {
     const repository = parsed.repository ?? (await branchRepositoryName(checkout));
-    const result = await reviewBranch({ repository, base: target.base, checkout, reviewModel, runChecks: parsed.runChecks, onProgress });
+    const result = await reviewBranch({
+      repository,
+      base: target.base,
+      checkout,
+      reviewModel,
+      runChecks: parsed.runChecks,
+      onProgress,
+    });
 
-    await writeReview({ result, output: parsed.output, fileName: `branch-${result.pull.headSha.slice(0, 7)}.md` });
+    await writeReview({
+      result,
+      output: parsed.output,
+      fileName: `branch-${result.pull.headSha.slice(0, 7)}.md`,
+    });
     return;
   }
 
@@ -69,7 +106,18 @@ export async function reviewCommand(arguments_: readonly string[]): Promise<void
     return;
   }
 
-  const result = await reviewLocally({ repository, number: target.number, checkout, reviewModel, runChecks: parsed.runChecks, onProgress });
+  const result = await reviewLocally({
+    repository,
+    number: target.number,
+    checkout,
+    reviewModel,
+    runChecks: parsed.runChecks,
+    onProgress,
+  });
 
-  await writeReview({ result, output: parsed.output, fileName: `pr-${target.number}-${result.pull.headSha.slice(0, 7)}.md` });
+  await writeReview({
+    result,
+    output: parsed.output,
+    fileName: `pr-${target.number}-${result.pull.headSha.slice(0, 7)}.md`,
+  });
 }
