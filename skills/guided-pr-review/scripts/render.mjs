@@ -1,5 +1,10 @@
 import { readFile } from "node:fs/promises";
-import { reviewStyle, findingMarkup, setSourceLink } from "../assets/presentation.mjs";
+import {
+  reviewStyle,
+  findingMarkup,
+  setSourceLink,
+  sourceExcerptMarkup,
+} from "../assets/presentation.mjs";
 import { escapeHtml, jsonForHtml, markdown, fileCard, behaviorMarkup } from "./format.mjs";
 
 function sourceLinks(options) {
@@ -24,53 +29,71 @@ function groupMarkup(options) {
   const numbers = group.prs
     .map((id) => "#" + review.pulls.find((pull) => pull.id === id).number)
     .join(" + ");
-  const files = [...new Set(group.files.map((item) => item.path))];
-  const passages = group.steps
-    .map(
-      (step, stepIndex) =>
-        `<section class="passage" data-anchor="${group.id}:passage:${stepIndex}" data-prs="${group.prs.join(",")}"><h3>${escapeHtml(step.title)}</h3>${markdown(step.text)}<div class="sources">${sourceLinks({ review, ids: step.evidence ?? [] })}</div><div class="inline-notes" data-notes-at="${group.id}:passage:${stepIndex}"></div></section>`,
-    )
-    .join("");
+  const placedPaths = new Set();
   const { flow, dryRuns } = behaviorMarkup({
     group,
     sources: (ids) => sourceLinks({ review, ids }),
   });
-  const fileSlots = files
-    .map((path, fileIndex) => {
-      const related = group.files.filter((item) => item.path === path);
-      const combinedFile = review.combined?.files.find((file) => file.path === path);
-      const combinedCard = combinedFile
-        ? fileCard({
-            file: combinedFile,
-            open: fileIndex === 0,
-            prLabel: "Combined stack",
-            url: review.pulls.find((pull) => pull.headSha === review.combined.headSha).url,
+  const fileSlots = (paths) =>
+    [...new Set(paths)]
+      .filter((path) => !placedPaths.has(path))
+      .map((path) => {
+        placedPaths.add(path);
+        const related = group.files.filter((item) => item.path === path);
+        const combinedFile = review.combined?.files.find((file) => file.path === path);
+        const combinedCard = combinedFile
+          ? fileCard({
+              file: combinedFile,
+              open: true,
+              prLabel: "Combined stack",
+              url: review.pulls.find((pull) => pull.id === related.at(-1).pr).url,
+            })
+          : "";
+        const cards = related
+          .map((item) => {
+            const pull = review.pulls.find((pull) => pull.id === item.pr);
+            return fileCard({
+              file: pull.files.find((file) => file.path === path),
+              open: true,
+              prLabel: "#" + pull.number,
+              url: pull.url,
+            });
           })
-        : "";
-      const cards = related
-        .map((item) => {
-          const pull = review.pulls.find((pull) => pull.id === item.pr);
-          return fileCard({
-            file: pull.files.find((file) => file.path === path),
-            open: fileIndex === 0,
-            prLabel: "#" + pull.number,
-            url: pull.url,
-          });
-        })
+          .join("");
+        return (
+          '<div class="file-slot" data-path="' +
+          escapeHtml(path) +
+          '" data-prs="' +
+          related.map((item) => item.pr).join(",") +
+          '">' +
+          combinedCard +
+          cards +
+          "</div>"
+        );
+      })
+      .join("");
+  const passages = group.steps
+    .map((step, stepIndex) => {
+      const files =
+        step.files ??
+        (step.evidence ?? [])
+          .map((id) => review.evidence.find((item) => item.id === id))
+          .filter((item) =>
+            group.files.some((file) => file.pr === item.pr && file.path === item.path),
+          );
+      const definitions = (step.definitions ?? [])
+        .map((id) =>
+          sourceExcerptMarkup({
+            item: review.evidence.find((item) => item.id === id),
+            pulls: review.pulls,
+          }),
+        )
         .join("");
-      return (
-        '<div class="file-slot" data-path="' +
-        escapeHtml(path) +
-        '" data-prs="' +
-        related.map((item) => item.pr).join(",") +
-        '">' +
-        combinedCard +
-        cards +
-        "</div>"
-      );
+      return `<section class="passage" data-anchor="${group.id}:passage:${stepIndex}" data-prs="${group.prs.join(",")}"><h3>${escapeHtml(step.title)}</h3>${markdown(step.text)}${definitions}<div class="sources">${sourceLinks({ review, ids: step.evidence ?? [] })}</div><div class="inline-notes" data-notes-at="${group.id}:passage:${stepIndex}"></div></section>${fileSlots(files.map((file) => file.path))}`;
     })
     .join("");
-  return `<article class="reading-step" id="step-${group.id}" data-group="${group.id}" ${index ? "hidden" : ""}><div class="step-meta"><span>Step ${index + 1} of ${review.groups.length} · ${numbers}</span><label><input type="checkbox" data-reviewed="${group.id}"> Reviewed</label></div><h1>${escapeHtml(group.title)}</h1><div class="passage" data-anchor="${group.id}:summary" data-prs="${group.prs.join(",")}">${markdown(group.summary)}<div class="inline-notes" data-notes-at="${group.id}:summary"></div></div><p class="why">${escapeHtml(group.why)}</p><div class="before-after"><div><span>Before</span><p>${escapeHtml(group.before)}</p></div><div><span>After</span><p>${escapeHtml(group.after)}</p></div></div>${flow}${passages}<div class="step-files">${fileSlots}</div><div class="group-findings" data-findings-for="${group.id}"></div>${dryRuns}</article>`;
+  const remaining = fileSlots(group.files.map((file) => file.path));
+  return `<article class="reading-step" id="step-${group.id}" data-group="${group.id}" ${index ? "hidden" : ""}><div class="step-meta"><span>Step ${index + 1} of ${review.groups.length} · ${numbers}</span><label><input type="checkbox" data-reviewed="${group.id}"> Reviewed</label></div><h1>${escapeHtml(group.title)}</h1><div class="passage" data-anchor="${group.id}:summary" data-prs="${group.prs.join(",")}">${markdown(group.summary)}<div class="inline-notes" data-notes-at="${group.id}:summary"></div></div><p class="why">${escapeHtml(group.why)}</p><div class="before-after"><div><span>Before</span><p>${escapeHtml(group.before)}</p></div><div><span>After</span><p>${escapeHtml(group.after)}</p></div></div>${flow}${passages}${remaining ? '<div class="step-files"><h3>Remaining file changes</h3>' + remaining + "</div>" : ""}<div class="group-findings" data-findings-for="${group.id}"></div>${dryRuns}</article>`;
 }
 
 export async function renderReview(review) {
@@ -147,7 +170,7 @@ export async function renderReview(review) {
       );
     })
     .join("");
-  const body = `<header><strong class="brand">◇ shadowclone <span>/ guided review</span></strong><div class="header-actions"><button id="toggle-findings" type="button">Agent findings <span>${findings}</span></button><button id="toggle-notes" type="button">Your notes <span id="note-count">0</span></button><button id="save-review" type="button">Save review</button><span id="save-status" role="status">Saved HTML</span></div></header><div class="document">${sidebar}<main><div class="overview"><h2>${escapeHtml(review.title)}</h2>${markdown(review.summary)}${review.status === "prototype" ? '<p class="prototype">Prototype: one part of the reading route. The full file inventory remains available.</p>' : ""}${prTabs}<div class="view-tabs"><button data-mode="guide" type="button">Guide</button><button data-mode="files" type="button">All changes (${count})</button></div><details class="pr-details"><summary>PR details and CI</summary>${ci}</details></div><div id="guide">${review.groups.map((group, index) => groupMarkup({ group, review, index })).join("")}<nav class="step-navigation"><button id="previous" type="button">Previous</button><button id="next" type="button">Next</button></nav></div><section id="files" hidden><h1>Every changed file</h1><p>These are the actual per-PR changes, including files outside the main reading step.</p><input id="file-search" type="search" placeholder="Find a file" aria-label="Find a changed file"><div id="file-list"></div></section></main></div><aside id="notes-panel" hidden><button id="close-notes" type="button">Close</button><h2>Your review notes</h2><p>Save this HTML, then attach it to your chat and request staging.</p><div id="notes-list"></div><h2 id="findings-heading" hidden>Agent findings</h2><div id="findings-list"></div></aside><aside id="composer" hidden><form id="note-form"><div class="composer-title"><strong>Your note</strong><button id="cancel-note" type="button" aria-label="Cancel note">×</button></div><blockquote id="selected-quote"></blockquote><label id="target-label">Post on <select id="target-pr"></select></label><textarea id="note-body" aria-label="Your rough note" placeholder="Write the concern or question in your words." required></textarea><button type="submit">Save note</button></form></aside><button id="selection-comment" type="button" hidden>Comment</button><dialog id="source-dialog"><button id="close-source" type="button">Close</button><h2 id="source-title"></h2><p id="source-pin"></p><pre><code id="source-code"></code></pre><a id="source-link" target="_blank" rel="noreferrer">Open pinned source</a></dialog>`;
+  const body = `<header><strong class="brand">◇ shadowclone <span>/ guided review</span></strong><div class="header-actions"><button id="toggle-findings" type="button">Agent findings <span>${findings}</span></button><button id="toggle-notes" type="button">Your notes <span id="note-count">0</span></button><button id="save-review" type="button">Save review</button><span id="save-status" role="status">Saved HTML</span></div></header><div class="document">${sidebar}<main><div class="overview"><h2>${escapeHtml(review.title)}</h2>${markdown(review.summary)}${review.status === "prototype" ? '<p class="prototype">Prototype: one part of the reading route. The full file inventory remains available.</p>' : ""}${prTabs}<div class="view-tabs"><button data-mode="guide" type="button">Guide</button><button data-mode="files" type="button">All changes (${count})</button></div><details class="pr-details"><summary>PR details and CI</summary>${ci}</details></div><div id="guide">${review.groups.map((group, index) => groupMarkup({ group, review, index })).join("")}<nav class="step-navigation"><button id="previous" type="button">Previous</button><button id="next" type="button">Next</button></nav></div><section id="files" hidden><h1>Every changed file</h1><p>These are the actual per-PR changes, including files outside the main reading step.</p><input id="file-search" type="search" placeholder="Find a file" aria-label="Find a changed file"><div id="file-list"></div></section></main></div><aside id="notes-panel" hidden><button id="close-notes" type="button">Close</button><section class="human-notes"><h2>Your review notes</h2><p>Save this HTML, then attach it to your chat and request staging.</p><div id="notes-list"></div></section><section class="agent-findings"><h2 id="findings-heading" hidden>Agent findings</h2><div id="findings-list"></div></section></aside><aside id="composer" hidden><form id="note-form"><div class="composer-title"><strong>Your note</strong><button id="cancel-note" type="button" aria-label="Cancel note">×</button></div><blockquote id="selected-quote"></blockquote><label id="target-label">Post on <select id="target-pr"></select></label><textarea id="note-body" aria-label="Your rough note" placeholder="Write the concern or question in your words." required></textarea><button type="submit">Save note</button></form></aside><button id="selection-comment" type="button" hidden>Comment</button><dialog id="source-dialog"><button id="close-source" type="button">Close</button><h2 id="source-title"></h2><p id="source-pin"></p><pre><code id="source-code"></code></pre><a id="source-link" target="_blank" rel="noreferrer">Open pinned source</a></dialog>`;
   const format = (await readFile(new URL("./format.mjs", import.meta.url), "utf8")).replace(
     /^export /gm,
     "",

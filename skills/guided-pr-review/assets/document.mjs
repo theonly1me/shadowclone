@@ -129,7 +129,7 @@ function loadCard(options) {
     .forEach((button) =>
       button.classList.toggle("selected", button.dataset.view === (options.view ?? "diff")),
     );
-  renderNotes();
+  if (!options.deferNotes) renderNotes();
 }
 function codeContext(rows) {
   const first = rows[0];

@@ -1,3 +1,5 @@
+import { escapeHtml, fileMarkup } from "../scripts/format.mjs";
+
 export const reviewStyle = String.raw`:root { color-scheme: dark; --background: #090a10; --panel: #141620; --border: #303246; --text: #e5e4ed; --muted: #9c9bae; --accent: #b6a2ee; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -58,6 +60,12 @@ p { margin: 10px 0; }
 .file-toolbar button { padding: 3px 10px; font-size: 12px; }
 .file-toolbar a { margin-left: auto; }
 .file-content { max-height: 540px; overflow: auto; background: #0b1011; }
+.source-card { margin: 16px 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.source-card figcaption { padding: 10px 14px; background: var(--panel); color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.source-card figcaption a { float: right; margin-left: 12px; }
+.source-card .code-lines { overflow: auto; background: #0b1011; }
+.source-card .code-line { grid-template-columns: 40px 0 0 minmax(max-content, 1fr) auto; }
+.source-card .code-line > span.line-number { visibility: hidden; padding: 0; }
 .code-line { display: grid; grid-template-columns: 34px 34px 18px minmax(max-content, 1fr) auto; min-width: max-content; padding-right: 12px; font: 12px/1.8 ui-monospace, SFMono-Regular, monospace; }
 .code-line.add { background: #10251e; }
 .code-line.remove { background: #2b171c; }
@@ -89,7 +97,8 @@ th { color: var(--muted); font-size: 12px; }
 .finding.included { border-color: var(--accent); }
 #notes-panel { position: fixed; z-index: 40; top: 64px; right: 0; bottom: 0; width: min(460px, 100vw); overflow: auto; padding: 24px 16px; background: #10121b; border-left: 1px solid var(--border); box-shadow: -12px 0 40px #0006; }
 #notes-panel h2 { margin: 18px 14px 8px; font-size: 18px; }
-#notes-panel > p { margin: 12px 14px; color: var(--muted); font-size: 13px; }
+.human-notes > p { margin: 12px 14px; color: var(--muted); font-size: 13px; }
+#notes-panel[data-view="findings"] .human-notes, #notes-panel[data-view="notes"] .agent-findings { display: none; }
 #close-notes { float: right; }
 #composer { position: fixed; z-index: 60; right: 24px; top: 96px; width: min(380px, calc(100vw - 32px)); padding: 18px; border: 1px solid var(--accent); border-radius: 10px; background: var(--panel); box-shadow: 0 12px 60px #0008; }
 .composer-title { display: flex; justify-content: space-between; align-items: center; }
@@ -119,6 +128,24 @@ dialog h2 { font-size: 17px; }
   #composer { right: 16px; top: 128px; }
 }
 `;
+
+export function sourceExcerptMarkup(options) {
+  const { item, pulls } = options;
+  const pull = pulls.find((pull) => pull.id === item.pr);
+  const file = {
+    id: "evidence:" + item.id,
+    pr: item.pr,
+    rows: item.text.split("\n").map((text, index) => ({
+      kind: "context",
+      side: item.side,
+      text,
+      oldLine: item.start + index,
+      newLine: item.start + index,
+      owner: item.pr,
+    })),
+  };
+  return `<figure class="source-card"><figcaption>#${pull.number} · ${escapeHtml(item.path)}:${item.start} to ${item.end} · ${item.side}<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open pinned source</a></figcaption>${fileMarkup({ file, pulls, sha: { BASE: item.sha, HEAD: item.sha } })}</figure>`;
+}
 
 export function findingMarkup(finding) {
   const state = review.annotations.decisions[finding.id];

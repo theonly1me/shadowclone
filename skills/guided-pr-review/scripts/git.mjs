@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { ancestor, patchRows } from "./check.mjs";
 
 function fileKey(options) {
@@ -6,10 +7,14 @@ function fileKey(options) {
 }
 
 function git(options) {
-  const result = spawnSync("git", ["-C", options.checkout, "--no-pager", ...options.arguments], {
-    encoding: "utf8",
-    maxBuffer: 64 * 1024 * 1024,
-  });
+  const result = spawnSync(
+    "git",
+    ["--literal-pathspecs", "-C", options.checkout, ...options.arguments],
+    {
+      encoding: "utf8",
+      maxBuffer: 64 * 1024 * 1024,
+    },
+  );
   if (result.error) throw result.error;
   if (result.status !== 0)
     throw new Error("Git evidence failed: " + result.stderr.trim().slice(0, 400));
@@ -50,6 +55,7 @@ function filesAt(options) {
       checkout: options.checkout,
       arguments: [
         "diff",
+        "--no-color",
         "--no-ext-diff",
         "--no-textconv",
         "--find-renames",
@@ -66,6 +72,7 @@ function filesAt(options) {
       id: fileKey({ pr: options.pr, path }),
       pr: options.pr,
       path,
+      diffAnchor: "diff-" + createHash("sha256").update(path).digest("hex"),
       oldPath,
       status,
       rows,

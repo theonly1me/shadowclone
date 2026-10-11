@@ -35,20 +35,24 @@ Write in the user's voice. Before you write, read `~/.agents/voice.md`. If it do
 6. With another supported engine, use the existing local prepare and analyze stages without the checks or publish stages.
 7. Without the CLI, follow shadowclone-review in the host agent and save its pinned findings locally.
 8. Follow surrounding callers, writes, consumers, and failure paths to explain how the change affects existing behavior.
-9. Group all changed files into a connected reading route. Explain supporting changes instead of hiding them in an inventory.
+9. Group all changed files into a connected reading route. Start with the main contracts and their signatures.
 10. Connect related PRs and label ownership. Claim combined behavior only when Git establishes a combined head.
-11. Pair concise explanations with diffs, source evidence, useful diagrams, and concrete dry runs.
+11. Show each definition before its callers and effects. Pair each passage with its actual diffs and visible signature excerpts.
 12. Run a focused check only when it answers a named uncertainty. Record its actual result and limits.
 13. Write the input outside the public checkout, then run `node scripts/build.mjs <input.json> <review.html>`.
 14. Run `node scripts/check.mjs <review.html>` and inspect the real document before delivering it.
 15. Verify the reading order, complete file view, selection comments, and a same-file save and reopen cycle.
 
 The script paths are relative to this skill. Node and Bun can run them.
+Place supporting files after the main behavior. Keep every file expanded, including the complete file view.
+Use diagrams and dry runs where they help. Ground them in source evidence.
 If shadowclone-review is absent, install that companion skill through the user's normal skill installer before claiming its review.
 Do not silently substitute a different reviewer.
 
 The human makes mental notes or draft PR comments before revealing the agent findings.
+Agent findings opens the findings list immediately. Each file link opens its exact diff on GitHub.
 Their comments attach to selected text or code ranges. Prose comments need a target PR, but need not invent a line.
+An open note keeps its selection until the human saves or cancels it. Escape preserves its draft when closing a source view.
 Save review uses Chrome or Edge file permission to update the original HTML. Other browsers can read the guide.
 If saving fails, preserve unsaved notes and state that the HTML has not changed.
 

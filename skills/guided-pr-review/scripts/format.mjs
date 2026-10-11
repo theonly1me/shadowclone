@@ -121,7 +121,11 @@ export function fileMarkup(options) {
 }
 
 export function fileCard(options) {
-  return `<details class="file-card" data-file="${escapeHtml(options.file.id)}" ${options.open ? "open" : ""}><summary><span>${escapeHtml(options.file.path)}</span><span class="file-stat">${escapeHtml(options.prLabel)} <b>+${escapeHtml(options.file.additions)}</b> / -${escapeHtml(options.file.deletions)}</span></summary><div class="file-toolbar"><button data-view="diff" class="selected" type="button">Diff</button>${options.file.baseMarkdown !== null || options.file.headMarkdown !== null ? '<button data-view="base" type="button">Base Markdown</button><button data-view="head" type="button">Head Markdown</button>' : ""}<a href="${escapeHtml(options.url)}" target="_blank" rel="noreferrer">Open PR</a></div><div class="file-content"></div></details>`;
+  const url = new URL(options.url);
+  url.pathname += "/files";
+  url.search = "";
+  url.hash = options.file.diffAnchor;
+  return `<details class="file-card" data-file="${escapeHtml(options.file.id)}" ${options.open ? "open" : ""}><summary><span>${escapeHtml(options.file.path)}</span><span class="file-stat">${escapeHtml(options.prLabel)} <b>+${escapeHtml(options.file.additions)}</b> / -${escapeHtml(options.file.deletions)}</span></summary><div class="file-toolbar"><button data-view="diff" class="selected" type="button">Diff</button>${options.file.baseMarkdown !== null || options.file.headMarkdown !== null ? '<button data-view="base" type="button">Base Markdown</button><button data-view="head" type="button">Head Markdown</button>' : ""}<a href="${escapeHtml(url.href)}" target="_blank" rel="noreferrer">Open file in PR</a></div><div class="file-content"></div></details>`;
 }
 
 export function noteMarkup(note) {

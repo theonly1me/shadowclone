@@ -52,6 +52,22 @@ try {
         item.start,
     };
   });
+  const groups = input.groups.map((group) => {
+    const paths = [
+      ...group.steps.flatMap((step) =>
+        (
+          step.files ?? (step.evidence ?? []).map((id) => evidence.find((item) => item.id === id))
+        ).map((file) => file.path),
+      ),
+      ...group.files.map((file) => file.path),
+    ];
+    return {
+      ...group,
+      files: [...group.files].sort(
+        (first, second) => paths.indexOf(first.path) - paths.indexOf(second.path),
+      ),
+    };
+  });
   const id = createHash("sha256")
     .update(
       JSON.stringify({
@@ -69,7 +85,13 @@ try {
     summary: input.summary,
     status: input.status ?? "complete",
     pulls,
-    groups: input.groups,
+    groups,
+    fileOrder: [
+      ...new Set([
+        ...groups.flatMap((group) => group.files.map((file) => file.pr + ":" + file.path)),
+        ...pulls.flatMap((pull) => pull.files.map((file) => file.id)),
+      ]),
+    ],
     evidence,
     combined,
     annotations: { notes: [], decisions: {}, reviewed: [], revision: 0 },

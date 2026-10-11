@@ -8,15 +8,19 @@ let mode = "guide";
 
 function renderFileList() {
   const search = document.getElementById("file-search").value.toLowerCase();
-  const files = review.pulls
-    .filter((pull) => currentPr === "stack" || currentPr === pull.id || review.pulls.length === 1)
-    .flatMap((pull) => pull.files.map((file) => ({ file, pull })))
-    .filter((item) => item.file.path.toLowerCase().includes(search));
+  const files = review.fileOrder
+    .map(getFile)
+    .filter((file) => currentPr === "stack" || currentPr === file.pr || review.pulls.length === 1)
+    .filter((file) => file.path.toLowerCase().includes(search));
   document.getElementById("file-list").innerHTML = files
-    .map(({ file, pull }) =>
-      fileCard({ file, open: false, prLabel: "#" + pull.number, url: pull.url }),
-    )
+    .map((file) => {
+      const pull = review.pulls.find((pull) => pull.id === file.pr);
+      return fileCard({ file, open: true, prLabel: "#" + pull.number, url: pull.url });
+    })
     .join("");
+  document
+    .querySelectorAll("#file-list .file-card")
+    .forEach((card) => loadCard({ card, deferNotes: true }));
   renderNotes();
 }
 
@@ -40,7 +44,7 @@ function refreshGuide() {
       const file = getFile(card.dataset.file);
       card.hidden = file.pr !== currentPr;
       if (!card.hidden && !element.hidden && card.open && card.dataset.loaded !== "true")
-        loadCard({ card });
+        loadCard({ card, deferNotes: true });
     });
   });
   const previous = document.getElementById("previous");
@@ -64,22 +68,17 @@ function selectStep(index) {
   mode = "guide";
   document.getElementById("selection-comment").hidden = true;
   refreshGuide();
-  document
-    .getElementById("step-" + review.groups[currentStep].id)
-    .scrollIntoView({ block: "start" });
+  const step = document.getElementById("step-" + review.groups[currentStep].id);
+  step.scrollIntoView({ block: "start" });
 }
 
 function showSource(id) {
   const item = review.evidence.find((item) => item.id === id);
+  const number = review.pulls.find((pull) => pull.id === item.pr).number;
   document.getElementById("source-title").textContent =
     item.path + ":" + item.start + (item.end === item.start ? "" : " to " + item.end);
   document.getElementById("source-pin").textContent =
-    "PR #" +
-    review.pulls.find((pull) => pull.id === item.pr).number +
-    " · " +
-    item.side +
-    " · " +
-    item.sha.slice(0, 12);
+    `PR #${number} · ${item.side} · ${item.sha.slice(0, 12)}`;
   const file = getFile("evidence:" + id);
   document.getElementById("source-code").innerHTML = fileMarkup({
     file,
@@ -145,6 +144,8 @@ document.addEventListener(
     if (
       event.target.matches(".file-card") &&
       event.target.open &&
+      !event.target.hidden &&
+      !event.target.closest(".reading-step")?.hidden &&
       event.target.dataset.loaded !== "true"
     )
       loadCard({ card: event.target });
@@ -159,14 +160,8 @@ document.addEventListener("change", (event) => {
     : review.annotations.reviewed.filter((value) => value !== id);
   changed();
 });
-document.getElementById("toggle-findings").onclick = () => {
-  showFindings = !showFindings;
-  document.getElementById("toggle-findings").classList.toggle("selected", showFindings);
-  renderNotes();
-};
-document.getElementById("toggle-notes").onclick = () => {
-  document.getElementById("notes-panel").hidden = !document.getElementById("notes-panel").hidden;
-};
+document.getElementById("toggle-findings").onclick = () => showReviewPanel("findings");
+document.getElementById("toggle-notes").onclick = () => showReviewPanel("notes");
 document.getElementById("close-notes").onclick = () => {
   document.getElementById("notes-panel").hidden = true;
 };
@@ -178,6 +173,8 @@ document.getElementById("note-form").onsubmit = saveNote;
 document.getElementById("save-review").onclick = saveReview;
 document.getElementById("close-source").onclick = () => {
   document.getElementById("source-dialog").close();
+};
+document.getElementById("source-dialog").onclose = () => {
   document.body.append(
     document.getElementById("composer"),
     document.getElementById("selection-comment"),

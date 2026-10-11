@@ -2,6 +2,16 @@ let selectedContext = null;
 let editingNote = null;
 let dragStart = null;
 
+function showReviewPanel(view) {
+  const panel = document.getElementById("notes-panel");
+  panel.dataset.view = view;
+  panel.hidden = false;
+  panel.scrollTop = 0;
+  showFindings = view === "findings";
+  document.getElementById("toggle-findings").classList.toggle("selected", showFindings);
+  renderNotes();
+}
+
 function changed() {
   review.annotations.revision += 1;
   dirty = true;
@@ -57,6 +67,7 @@ function renderNotes() {
 }
 
 function captureSelection(event) {
+  if (!document.getElementById("composer").hidden) return;
   if (event.target.closest("#composer, #notes-panel, .note, .finding, button, textarea, select"))
     return;
   const selection = window.getSelection();
@@ -64,9 +75,9 @@ function captureSelection(event) {
   const range = selection.getRangeAt(0);
   const start = selection.anchorNode.parentElement;
   const end = selection.focusNode.parentElement;
-  const card = start.closest(".file-card, #source-dialog");
+  const card = start.closest(".file-card, .source-card, #source-dialog");
   const rows =
-    card && end.closest(".file-card, #source-dialog") === card
+    card && end.closest(".file-card, .source-card, #source-dialog") === card
       ? [...card.querySelectorAll(".code-line")].filter((row) =>
           range.intersectsNode(row.querySelector("code")),
         )
@@ -93,6 +104,7 @@ function captureSelection(event) {
 }
 
 function openComposer(note) {
+  if (!document.getElementById("composer").hidden) return;
   editingNote = note?.id ?? null;
   if (note)
     selectedContext = {
@@ -155,6 +167,7 @@ function notesAction(event) {
 }
 
 function startLineSelection(event) {
+  if (!document.getElementById("composer").hidden) return;
   if (!event.target.closest(".line-number")) return;
   event.preventDefault();
   dragStart = event.target.closest(".code-line");

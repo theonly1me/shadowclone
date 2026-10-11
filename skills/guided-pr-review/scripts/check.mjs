@@ -71,9 +71,12 @@ export function checkInput(input) {
       throw new Error("Each reading step needs files and passages.");
     for (const file of group.files)
       if (!pullIds.has(file.pr)) throw new Error("A file refers to another PR.");
+    for (const file of group.steps.flatMap((step) => step.files ?? []))
+      if (!group.files.some((entry) => entry.pr === file.pr && entry.path === file.path))
+        throw new Error("A passage file must belong to its reading group.");
     const references = [
       ...(group.evidence ?? []),
-      ...group.steps.flatMap((step) => step.evidence ?? []),
+      ...group.steps.flatMap((step) => [...(step.evidence ?? []), ...(step.definitions ?? [])]),
       ...(group.diagram?.nodes ?? []).flatMap((node) => node.evidence ?? []),
       ...(group.diagram?.edges ?? []).flatMap((edge) => edge.evidence ?? []),
       ...(group.dryRuns ?? []).flatMap((run) => run.steps.flatMap((step) => step.evidence ?? [])),

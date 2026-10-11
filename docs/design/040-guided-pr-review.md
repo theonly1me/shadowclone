@@ -15,6 +15,15 @@ Group every changed file into the reading route or an explained supporting group
 Expose each actual diff and label its PR. Use combined views only when Git ancestry establishes a stack.
 Keep findings hidden until the human chooses comparison. Each visual and claim links to pinned evidence.
 
+Start with the main definitions and their signatures, then follow their callers and effects.
+Pair each passage with its related diffs. Put supporting changes after that part of the story.
+Expand every file by default. The findings button opens the findings list immediately.
+Each file link opens that file's diff on GitHub.
+
+Read Git paths literally and disable diff colors when collecting evidence.
+An open note keeps its selected code and draft until the human saves or cancels it.
+Closing a source view, including Escape, returns its note to the visible document.
+
 The human selects prose or code to leave a rough comment.
 Chrome or Edge writes annotations into the original HTML after the human selects that file and grants permission.
 The document reports a saved state only after the write completes. It preserves unsaved notes after a failure.
@@ -49,3 +58,5 @@ Private reports and annotations stay outside public checkouts.
 Use synthetic Git fixtures for actual diffs, source ranges, stack ownership, Markdown, and complete coverage.
 Verify selection comments and same-file saving in a supported browser, then inspect that saved HTML as an agent.
 Check the portable scripts, personal routing separately, both staged npm artifacts, and the repository gate.
+Check definition order, inline signatures, expanded files, the findings panel, and exact GitHub file links.
+Check route filenames, forced Git colors, selection changes during a draft, and Escape from the source view.

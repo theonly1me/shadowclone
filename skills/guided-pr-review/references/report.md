@@ -51,7 +51,9 @@ Use these fields:
         {
           "title": "Read the callback",
           "text": "<plain Markdown explanation>",
-          "evidence": ["retry-boundary"]
+          "evidence": ["retry-boundary"],
+          "definitions": ["retry-boundary"],
+          "files": [{ "pr": "pr-1", "path": "src/job.ts" }]
         }
       ],
       "diagram": { "nodes": [], "edges": [] },
@@ -68,6 +70,12 @@ Do not copy benchmark findings into another PR. Do not rewrite their claims whil
 
 CI entries use name and conclusion. They become short status counts, not a badge wall.
 Markdown explanations escape raw HTML. The actual Markdown diff and rendered base and head remain inspectable.
+
+Order passages by behavior. Define the main contract before showing its callers, effects, and supporting changes.
+steps.definitions lists evidence identifiers for signature excerpts shown beside the explanation.
+steps.files orders the actual diffs after that passage. Each file must belong to the group's files list.
+Without steps.files, the builder follows changed files in steps.evidence order.
+The group's remaining files follow its main passages. Every file starts expanded and links to its exact PR diff.
 
 ## Complete coverage
 
