@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import product from "@shadowclone/core/product.json";
@@ -25,24 +25,38 @@ test("a relocated package initializes a fresh home and hooks work without shadow
       workspaceRoot: path.resolve(sourcePackageDirectory, "../.."),
       outputDirectory: packageDirectory,
     });
+    const sdk = path.dirname(
+      Bun.resolveSync("@anthropic-ai/sandbox-runtime/package.json", import.meta.dir),
+    );
+    await mkdir(path.join(packageDirectory, "node_modules/@anthropic-ai"), { recursive: true });
+    await symlink(sdk, path.join(packageDirectory, "node_modules/@anthropic-ai/sandbox-runtime"));
     const environment = {
-      ...process.env, HOME: userDirectory, CODEX_HOME: path.join(userDirectory, ".codex"),
+      ...process.env,
+      HOME: userDirectory,
+      CODEX_HOME: path.join(userDirectory, ".codex"),
       CLAUDE_CONFIG_DIR: path.join(userDirectory, ".claude"),
       PI_CODING_AGENT_DIR: path.join(userDirectory, ".pi/agent"),
       SHADOWCLONE_INTERNAL_RUN: "1",
     };
     const command = async (arguments_: readonly string[]) => {
       const child = Bun.spawn([process.execPath, output, ...arguments_], {
-        cwd: repository, env: environment, stdout: "pipe", stderr: "pipe",
+        cwd: repository,
+        env: environment,
+        stdout: "pipe",
+        stderr: "pipe",
       });
       const [text, error, exitCode] = await Promise.all([
-        new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited,
+        new Response(child.stdout).text(),
+        new Response(child.stderr).text(),
+        child.exited,
       ]);
       expect(error).toBe("");
       expect(exitCode).toBe(0);
       return text;
     };
-    expect(await command(["init", "--no-learn", "--skill-maintenance", "--no-background-learning"])).toContain("0 rules learned");
+    expect(
+      await command(["init", "--no-learn", "--skill-maintenance", "--no-background-learning"]),
+    ).toContain("0 rules learned");
     for (const agent of ["claude-code", "codex", "pi"]) {
       await command(["install", "--agent", agent, "--global"]);
     }
@@ -50,10 +64,15 @@ test("a relocated package initializes a fresh home and hooks work without shadow
     expect(JSON.parse(await command(["learning", "pending"]))).toEqual([]);
     expect(await Bun.file(path.join(repository, "AGENTS.md")).exists()).toBeFalse();
     expect(await Bun.file(path.join(repository, "CLAUDE.md")).exists()).toBeFalse();
-    expect(await Bun.file(path.join(userDirectory, ".pi/agent/extensions/shadowclone.js")).text()).toContain("agent_settled");
+    expect(
+      await Bun.file(path.join(userDirectory, ".pi/agent/extensions/shadowclone.js")).text(),
+    ).toContain("agent_settled");
     const launcher = path.join(userDirectory, ".shadowclone/bin/shadowclone");
     const hook = Bun.spawn(["/bin/sh", launcher, "--version"], {
-      cwd: repository, env: { ...environment, PATH: "/usr/bin:/bin" }, stdout: "pipe", stderr: "pipe",
+      cwd: repository,
+      env: { ...environment, PATH: "/usr/bin:/bin" },
+      stdout: "pipe",
+      stderr: "pipe",
     });
     expect((await new Response(hook.stdout).text()).trim()).toBe(product.version);
     expect(await hook.exited).toBe(0);

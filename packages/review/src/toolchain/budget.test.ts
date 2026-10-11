@@ -1,11 +1,9 @@
 import { expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
-import { mkdtemp } from "node:fs/promises";
+import { mkdir, mkdtemp, realpath, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createGitFixture } from "../collect/gitFixture";
 import { parseDiff } from "../collect/diff";
-import { sharedCargoTarget } from "./cache";
 import { runStack } from "./stackRun";
 import type { Stack } from "./types";
 
@@ -57,39 +55,41 @@ test("a command after the toolchain budget runs out is reported as timed out and
   expect(existsSync(path.join(root, "ran.txt"))).toBe(false);
 });
 
-test("a command gets the shared Cargo build folder in its environment", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "shadowclone-budget-"));
-  const head = { root, roots: [root] };
+test("Cargo state persists within a worktree and remains separate across review sides and runs", async () => {
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "shadowclone-budget-")));
+  const first = path.join(root, "head");
+  const second = path.join(root, "base");
+  const firstState = path.join(root, "first-state");
+  const secondState = path.join(root, "second-state");
+  await mkdir(first);
+  await mkdir(second);
 
-  await runStack({
-    stack: recordingStack,
-    directory: "",
-    head,
-    base: async () => head,
-    files,
-    onProgress: () => {},
-    budget: { deadline: Date.now() + 60_000, environment: { CARGO_TARGET_DIR: "/cache/cargo" } },
-  });
+  const run = async (options: { readonly workspace: string; readonly stateDirectory: string }) => {
+    const head = { root: options.workspace, roots: [options.workspace] };
+    const [report] = await runStack({
+      stack: recordingStack,
+      directory: "",
+      head,
+      base: async () => head,
+      files,
+      onProgress: () => {},
+      budget: {
+        deadline: Date.now() + 20_000,
+        environment: { CARGO_TARGET_DIR: "/cache/cargo" },
+        stateDirectory: options.stateDirectory,
+      },
+    });
+    expect(report?.status).toBe("ran");
+    return readFileSync(path.join(options.workspace, "ran.txt"), "utf8");
+  };
 
-  expect(readFileSync(path.join(root, "ran.txt"), "utf8")).toBe("/cache/cargo");
-});
-
-test("two clones of one repository share a Cargo build folder, and another repository gets its own", async () => {
-  const first = await createGitFixture();
-  await first.write({ "a.txt": "a\n" });
-  first.commit("root");
-  const other = await createGitFixture();
-  await other.write({ "b.txt": "b\n" });
-  other.commit("another root");
-  const clone = await mkdtemp(path.join(os.tmpdir(), "shadowclone-clone-"));
-  Bun.spawnSync({ cmd: ["git", "clone", "--quiet", first.directory, clone] });
-
-  const [original, cloned, unrelated] = await Promise.all([
-    sharedCargoTarget(first.directory),
-    sharedCargoTarget(clone),
-    sharedCargoTarget(other.directory),
-  ]);
-
-  expect(cloned).toBe(original);
-  expect(unrelated).not.toBe(original);
+  try {
+    const initial = await run({ workspace: first, stateDirectory: firstState });
+    expect(initial.startsWith(`${firstState}${path.sep}`)).toBe(true);
+    expect(await run({ workspace: first, stateDirectory: firstState })).toBe(initial);
+    expect(await run({ workspace: second, stateDirectory: firstState })).not.toBe(initial);
+    expect(await run({ workspace: first, stateDirectory: secondState })).not.toBe(initial);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

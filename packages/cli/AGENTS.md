@@ -8,7 +8,7 @@ The `shadowclone` command. It parses commands, calls the other packages, and bui
 
 - Package name: `@shadowclone/cli`
 - Workspace dependencies: `@shadowclone/agents`, `@shadowclone/builds`, `@shadowclone/changes`, `@shadowclone/cloud`, `@shadowclone/core`, `@shadowclone/environment`, `@shadowclone/harness`, `@shadowclone/learning`, `@shadowclone/mcp`, `@shadowclone/profile`, `@shadowclone/redact`, `@shadowclone/review`, `@shadowclone/sessions`, `@shadowclone/skills`, `@shadowclone/web`
-- External dependencies: `bun`, `commander`, `smol-toml`, `zod`
+- External dependencies: `@anthropic-ai/sandbox-runtime`, `bun`, `commander`, `smol-toml`, `zod`
 - Export subpaths: `.`
 
 <!-- package-facts:end -->
@@ -25,6 +25,7 @@ The `shadowclone` command. It parses commands, calls the other packages, and bui
 - This is the only package that goes to npm. Other packages stay private.
 - `publishedManifest` copies a fixed list of fields. It drops every `workspace:` dependency.
 - The build fails when the bundle contains a path of the build machine.
+- The bundle keeps `@anthropic-ai/sandbox-runtime` external. The published manifest retains its pinned dependency so installed packages include native sandbox helpers.
 - Product name and version come from `@shadowclone/core/product.json`. Workspace manifests have no version.
 - `forget --all` stops while task worktrees from earlier versions remain.
 - Error text passes through `redactSecrets` before it prints.

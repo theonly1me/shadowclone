@@ -51,7 +51,13 @@ Each rule hit and toolchain diagnostic that needs judgment gets an id. The revie
 
 ## Untrusted pull requests
 
-The toolchain runs the configuration of the pull request, such as an ESLint config file, with dependency install scripts off. A local review runs it as you, so add `--no-checks` for a pull request from someone you do not trust. The built-in rules and the skill still run, because they only read the code. In the cloud, the toolchain job has no secrets.
+Every toolchain command runs in an operating-system sandbox, including dependency installs, PR scripts, and executable configuration files. Linux uses Bubblewrap and needs `bubblewrap`, `socat`, `ripgrep`, and usable unprivileged user namespaces. macOS uses Seatbelt through the system `sandbox-exec` command.
+
+Commands can read the disposable worktree and required runtimes. They can write only inside that worktree and isolated review state. Each review side gets a fresh HOME, temporary folder, and caches. Host credentials and private user configuration stay outside. Dependency install scripts remain disabled.
+
+Downloads use a fixed public-registry allowlist through a restricted proxy. Direct networking, local services, and Unix sockets are blocked. Private registries and checks that need host credentials can fail.
+
+If the sandbox cannot start, the check reports failure and the read-only review continues. The command never runs without isolation. `--no-checks` skips toolchain commands. The built-in rules and the skill still run. In the cloud, the toolchain job also has no secrets.
 
 ## Limits
 

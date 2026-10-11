@@ -75,9 +75,13 @@ flowchart LR
     Delivery --> Agents["Coding agents"]
     Agents --> Sources
     Diff["Pull request diff and base standards"] --> Judge["review: rules, checks, model"]
+    Diff --> Sandbox["Toolchain sandbox: worktree and isolated state"]
+    Runtime["Read-only tool runtimes"] --> Sandbox
+    Sandbox -- "diagnostics" --> Judge
   end
   Learning -- "redacted excerpts, no tools" --> Provider["Model provider via your agent CLI"]
   Judge -- "diff and read-only file access" --> Provider
+  Sandbox -- "restricted proxy" --> Registries["Allowed public package registries"]
   Delivery -- "reviewed skills" --> Bot["cloud: GitHub bot"]
   subgraph GitHub["GitHub"]
     Bot --> Pulls["Draft pull requests and review comments"]
@@ -88,14 +92,16 @@ flowchart LR
 
 ## Trust boundaries
 
-| Boundary                | What crosses it                           | Control                                                               |
-| ----------------------- | ----------------------------------------- | --------------------------------------------------------------------- |
-| Source files to index   | Pointers and event metadata, no text      | A default-off consent flag for each source. Policy can only narrow it |
-| Index to model          | Redacted user text, labeled agent context | `resolveRedacted`, then a run with no tools and fixed limits          |
-| Model output to files   | Proposed skill and native edits           | Reversible revisions, ownership fingerprints, kept manual edits       |
-| Browser to local server | Wizard actions                            | Loopback, ephemeral token, origin check                               |
-| Machine to GitHub       | Reviewed skills, secrets, review text     | Owner approval of an exact preview. Secrets use standard input        |
-| Evaluation              | Synthetic tasks, receipts, held-out cases | Private storage outside checkouts. Approved scope per paid run        |
+| Boundary                | What crosses it                           | Control                                                                                               |
+| ----------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Source files to index   | Pointers and event metadata, no text      | A default-off consent flag for each source. Policy can only narrow it                                 |
+| Index to model          | Redacted user text, labeled agent context | `resolveRedacted`, then a run with no tools and fixed limits                                          |
+| Model output to files   | Proposed skill and native edits           | Reversible revisions, ownership fingerprints, kept manual edits                                       |
+| Browser to local server | Wizard actions                            | Loopback, ephemeral token, origin check                                                               |
+| PR code to host         | Toolchain installs, scripts, and configs  | Bubblewrap or Seatbelt. Worktree and isolated state writes only. No host credentials or local sockets |
+| Toolchain to network    | Dependency downloads                      | A fixed public-registry allowlist through a restricted proxy                                          |
+| Machine to GitHub       | Reviewed skills, secrets, review text     | Owner approval of an exact preview. Secrets use standard input                                        |
+| Evaluation              | Synthetic tasks, receipts, held-out cases | Private storage outside checkouts. Approved scope per paid run                                        |
 
 ## How the packages work together
 
