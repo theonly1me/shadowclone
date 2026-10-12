@@ -28,7 +28,7 @@ test("a session model without its harness never reaches the saved learning engin
       models.push(options.model);
       return { engine: "claude-code", sessionId: "synthetic-learning", transcriptPath: null, text: "", structured: { existingRules: [], newRules: [], assessments: [] }, costUsd: 0, durationMs: 0, turns: 1, isError: false, permissionDenials: [], actions: [], errorMessage: null };
     };
-    expect(await runAutomaticLearning({ ...fixture, runner, model: "gpt-5.5", sessionKeys: [sessionKey] })).toBe("completed");
+    expect(await runAutomaticLearning({ ...fixture, runner, model: "gpt-6.1", sessionKeys: [sessionKey] })).toBe("completed");
     expect(models).toEqual(["saved-model"]);
     expect((await readLatestLearningReceipt(fixture.paths))?.model).toBe("saved-model");
   } finally { await rm(fixture.home, { recursive: true, force: true }); }

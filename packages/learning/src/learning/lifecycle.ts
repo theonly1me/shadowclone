@@ -22,22 +22,24 @@ import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "@shado
 import { publishReviewedLearning } from "./publication";
 import { profileRulePath } from "@shadowclone/profile";
 import { parseProfileRejectionText } from "@shadowclone/profile";
-import { renderProfileRejections } from "@shadowclone/profile";
+import { renderProfileRejections, type ProfileRejectionReason } from "@shadowclone/profile";
 import { pendingLearningFile, readPendingLearning } from "./pending";
 
 export type PreferenceEdit = {
   readonly kind: "retire" | "replace" | "narrow";
   readonly key: string;
   readonly text?: string;
+  readonly rejectionReason?: ProfileRejectionReason;
 };
 
 export type PreferencePreview = {
   readonly fingerprint: string;
   readonly changes: readonly { readonly before: LearningRecord; readonly after: LearningRecord }[];
   readonly rejectedPendingKeys?: readonly string[];
+  readonly rejectionReason?: ProfileRejectionReason;
 };
 
-function retiredRecord(record: LearningRecord): LearningRecord {
+export function retiredRecord(record: LearningRecord): LearningRecord {
   return {
     ...record,
     rule: { ...record.rule, status: "stale", proposal: null },
@@ -55,7 +57,11 @@ export async function previewPreferenceEdit(options: {
   const record = state?.records.find(({ rule }) => rule.key === options.edit.key);
   if (!state || !record) throw new Error("Active learned rule was not found");
   if (options.edit.kind === "retire") {
-    return { fingerprint: fingerprint(renderEnvironment(state)), changes: [{ before: record, after: retiredRecord(record) }] };
+    return {
+      fingerprint: fingerprint(renderEnvironment(state)),
+      changes: [{ before: record, after: retiredRecord(record) }],
+      ...(options.edit.rejectionReason ? { rejectionReason: options.edit.rejectionReason } : {}),
+    };
   }
 
   const text = options.edit.kind === "replace" ? options.edit.text?.trim() : record.rule.body;
@@ -135,7 +141,7 @@ function applyDecision(options: {
         body: after.rule.body,
         source: after.rule.source,
         importReference: after.rule.importReference,
-        reason: "user-rejected",
+        reason: options.preview.rejectionReason ?? "user-rejected",
       });
     } else {
       rejected.delete(after.rule.key);

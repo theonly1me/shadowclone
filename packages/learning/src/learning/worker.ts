@@ -1,6 +1,6 @@
 import { resolveLearningExecution } from "./execution";
 import { selectLearningPreferences } from "./modelPreferences";
-import { writeLearningReceipt, type LearningReceipt } from "./receipt";
+import { learningFailure, writeLearningReceipt, type LearningReceipt } from "./receipt";
 import path from "node:path";
 import {
   readEffectiveConfig,
@@ -239,7 +239,7 @@ export async function runLearningMaintenance(
       } finally {
         index.close();
       }
-    } catch {
+    } catch (error) {
       await writeLearningReceipt({
         paths,
         receipt: {
@@ -252,6 +252,9 @@ export async function runLearningMaintenance(
           sourceCounts,
           proposalCount,
           pendingCount,
+          engine: receiptEngine,
+          model: receiptModel,
+          failure: learningFailure({ paths, error }),
           nextAction: stage === "publication"
             ? "Run shadowclone skills pending and retry shadowclone skills update."
             : "Check shadowclone doctor and retry learning.",

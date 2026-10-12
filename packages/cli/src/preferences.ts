@@ -5,6 +5,8 @@ import {
   acknowledgeCorrections,
   correctionReviewSignals,
   decidePendingLearning,
+  discardLearnings,
+  isLearningPublished,
   learningCatalog,
   publishReviewedLearning,
   readLatestLearningReceipt,
@@ -130,6 +132,8 @@ export async function handlePreferenceCommand(options: {
     const pending = await readPendingLearning(projectPaths);
     if (pending.rules.some((rule) => rule.key === key)) {
       await decidePendingLearning({ paths: projectPaths, key, action });
+    } else if (action === "reject" && !(await isLearningPublished({ paths: projectPaths, key }))) {
+      await discardLearnings({ paths: projectPaths, keys: [key], reason: "user-rejected" });
     } else {
       await reviewLearning({
         paths: projectPaths, key,
