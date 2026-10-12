@@ -15,21 +15,23 @@ Lead the README with two promises:
 
 Keep learning, bundled skills, builds, and reviews. They are the way that Shadowclone keeps that set current.
 
-Add a short comparison table to the README. It asks four questions about each tool:
+Add a short comparison table to the README. It asks five questions about each tool:
 
-1. Which agents does it cover?
-2. Does it learn from sessions?
-3. Does the same guidance reach the cloud?
-4. Does it review pull requests?
+1. What is it?
+2. Which agents does it cover?
+3. Does it learn from sessions?
+4. Does the same guidance reach the cloud?
+5. Does it review pull requests?
 
-| Tool                    | Why it is in the table                                    |
-| ----------------------- | --------------------------------------------------------- |
-| pstack                  | A skill pack that also shapes how an agent works          |
-| Hermes Agent            | An agent that writes its own skills from experience       |
-| Claude Code auto memory | Built-in learning from corrections in one agent           |
-| Claude Subconscious     | A background agent that learns from Claude Code sessions  |
-| imprint                 | A profile trained from Claude Code session history        |
-| herdr, Orca, and cmux   | Workspaces that run agents side by side, with no guidance |
+| Tool                    | Why it is in the table                                   |
+| ----------------------- | -------------------------------------------------------- |
+| pstack                  | A skill pack that also shapes how an agent works         |
+| Hermes Agent            | An agent that writes its own skills from experience      |
+| Claude Code auto memory | Built-in learning from corrections in one agent          |
+| Claude Subconscious     | A background agent that learns from Claude Code sessions |
+| imprint                 | A profile trained from Claude Code session history       |
+
+Agent workspaces, such as herdr, Orca, and cmux, stay out of the table. They run agents side by side and do not maintain guidance. A row for them suggests that they compete with Shadowclone, but they are a different category.
 
 Add `docs/guides/comparison.md` with one section for each tool. Each section says what the tool is, how it differs, whether it can run with Shadowclone, and its primary sources.
 

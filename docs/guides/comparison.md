@@ -6,15 +6,16 @@ Each section below uses only the project's own repository or documentation. The 
 
 ## Summary
 
-| Tool                    | What it is                              | Runs in the agent that you use | Agents                                      |
-| ----------------------- | --------------------------------------- | ------------------------------ | ------------------------------------------- |
-| Shadowclone             | Skills, instructions, and learning      | Yes                            | Claude Code, Codex, Cursor, Pi, Antigravity |
-| pstack                  | A skill and principle pack              | Yes                            | Cursor                                      |
-| Hermes Agent            | An agent with a learning loop           | No, you run Hermes             | Hermes                                      |
-| Claude Code auto memory | Built-in notes from corrections         | Yes                            | Claude Code                                 |
-| Claude Subconscious     | A background Letta agent                | Yes                            | Claude Code                                 |
-| imprint                 | A plugin that trains a profile          | Yes                            | Claude Code                                 |
-| herdr, Orca, and cmux   | Workspaces that run agents side by side | They host the agent            | Any terminal agent                          |
+| Tool                    | What it is                                                                                  | Runs in the agent that you use | Agents                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------- |
+| Shadowclone             | Skills, instructions, learning, and a GitHub cloud bot on your existing agent subscriptions | Yes                            | Claude Code, Codex, Cursor, Pi, Antigravity |
+| pstack                  | A skill and principle pack                                                                  | Yes                            | Cursor                                      |
+| Hermes Agent            | Its own agent with a learning loop                                                          | No, you run Hermes             | Hermes only                                 |
+| Claude Code auto memory | Built-in notes from corrections                                                             | Yes                            | Claude Code                                 |
+| Claude Subconscious     | A background Letta agent                                                                    | Yes                            | Claude Code                                 |
+| imprint                 | A plugin that trains one profile                                                            | Yes                            | Claude Code                                 |
+
+Agent workspaces, such as herdr, Orca, and cmux, are not in this guide. They run several agents side by side and do not maintain guidance, so they are a different category. They can run an agent that has Shadowclone skills.
 
 ## pstack
 
@@ -71,14 +72,3 @@ imprint is a Claude Code plugin. It trains a behavioral profile from your sessio
 - **Difference.** Shadowclone keeps rules in separate skills with repository scope, and it reaches more agents.
 
 Sources: [repository](https://github.com/n33kos/imprint).
-
-## herdr, Orca, and cmux
-
-These tools run several agents at the same time. None of them learns or syncs preferences.
-
-- **herdr.** A terminal multiplexer that shows the state of each agent: blocked, working, done, or idle. A background server keeps sessions alive, and it can run on a remote machine.
-- **Orca.** A desktop app that runs agents in separate git worktrees. It has SSH worktrees, a mobile app, and GitHub and Linear task views.
-- **cmux.** A macOS terminal that is built on Ghostty, with notifications, a browser, and an iOS app.
-- **With Shadowclone.** Each one runs the agent that you choose. That agent loads its Shadowclone skills as usual.
-
-Sources: [herdr](https://herdr.dev), [Orca](https://github.com/stablyai/orca), [cmux](https://cmux.com/agents).
