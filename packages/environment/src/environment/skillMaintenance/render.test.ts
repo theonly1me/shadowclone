@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { renderContextSkill } from "../../integrations/markdown";
+import { renderContextSkill } from "../../integrations/contextSkill";
 import { parseSkillDocument } from "@shadowclone/skills";
 import { renderMaintainedSkill, restoreOriginalSkill } from "@shadowclone/skills";
 import { fixtureSkill } from "@shadowclone/skills/testing";

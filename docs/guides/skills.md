@@ -27,6 +27,8 @@ The Shadowclone CLI continues to bundle and equip the same content.
 
 `skills pending` separates candidate evidence, missing repository scope, conflicting evidence, and publication backlog. Organization guidance waits for a matching registered repository and never becomes global guidance to finish publication. Setup and `learn --deep` register the repository where they run if you gave Git-metadata consent and turned on skill maintenance. To keep a repository's rules out of its files, run `shadowclone learning repositories set . --private` there first. Background [triage](learning.md#triage-after-each-session) discards duplicates and applies the rest when automatic maintenance is on. `learning reject <key>` removes a rule from this list for good.
 
+When proposals wait for your decision, the next agent session says so once. The agent then shows each proposal and asks you with its multiple-choice question tool: apply, reword, reject, or decide later. The `shadowclone-context` skill holds these steps. The agent asks again only after the set of waiting proposals changes.
+
 A conflict proposal holds the supporting passages and the decision it needs. It cannot apply edits or choose precedence. Inspect it with `shadowclone skills show <proposal-id>`, resolve the owning instructions, and update again. To dismiss an unsupported finding, run `shadowclone skills reject <proposal-id>`. A stale status alone does not authorize removal of an instruction.
 
 ## Skill locations and routing

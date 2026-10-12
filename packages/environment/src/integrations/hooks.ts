@@ -7,6 +7,7 @@ import type { Integration, IntegrationOptions } from "./types";
 import { bindNativeSessionOrigin, nativeBindingTimestamp } from "./bindings";
 import { readEnvironment } from "../environment/store";
 import { takeLearningNotice } from "../environment/learningNotice";
+import { takeReviewPrompt } from "../environment/reviewPrompt";
 import { learningSessionKey } from "./sessionKey";
 
 const inputSchema = z
@@ -120,8 +121,10 @@ export async function nativeSessionStart(
     return {};
   }
 
-  const notice = input.hook_event_name === "SubagentStart" ? "" : await takeLearningNotice(paths);
-  const additionalContext = [profile, notice].filter((part) => part.length > 0).join("\n\n");
+  const mainSession = input.hook_event_name !== "SubagentStart";
+  const notice = mainSession ? await takeLearningNotice(paths) : "";
+  const review = mainSession ? await takeReviewPrompt(paths) : "";
+  const additionalContext = [profile, notice, review].filter((part) => part.length > 0).join("\n\n");
 
   if (additionalContext.length === 0) {
     return {};

@@ -75,6 +75,10 @@ Earlier versions kept delegated task records under `~/.shadowclone/runs/`, grant
 | `~/.shadowclone/learning-feedback.json` | Opaque evidence hashes, rule and guidance identifiers, source names, correction times, and review acknowledgements                   |
 | `~/.shadowclone/learning-probes/`       | Probe receipts with task and guidance hashes, provider metadata, outcomes, and loading observations, without prompt or response text |
 | `~/.shadowclone/skills.json`            | Configured roots, maintenance ownership, and cached library review fingerprints                                                      |
+| `~/.shadowclone/learning-notice.json`   | Titles of rules that triage applied or discarded, revision identifiers, and when the next session received them |
+| `~/.shadowclone/learning-triage.json`   | Learning keys and record fingerprints that triage deferred, so it does not ask about them again |
+| `~/.shadowclone/review-notice.json`     | A fingerprint of the proposals that the last session start announced |
+| `~/.shadowclone/builds/learning-*/`     | Private skills for repositories whose learnings stay out of the repository |
 | `~/.shadowclone/skill-proposals/`       | Proposed edits and conflicts with redacted supporting passages and required decisions                                                |
 | Other files under `~/.shadowclone/`     | Revisions, installation ownership, original-library snapshots, and learning and skill ledgers                                        |
 | Agent skill and instruction directories | Published skills, resources, native routing, and hooks                                                                               |

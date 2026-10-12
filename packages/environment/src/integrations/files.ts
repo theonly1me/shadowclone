@@ -8,7 +8,6 @@ import { emptyHookConfig, hasOwnedHooks, updateHookConfig } from "./hookConfig";
 import {
   guidanceMarkers,
   markedSection,
-  renderContextSkill,
   renderInstructionPointer,
   updateManagedSection,
 } from "./markdown";
@@ -18,6 +17,7 @@ import { renderPiExtension } from "./piExtension";
 import { readIntegrations } from "./state";
 import { importsPeerInstructions } from "./sharedInstructions";
 import { preservedFileMessages } from "./preserved";
+import { renderContextSkill } from "./contextSkill";
 
 export type IntegrationFileChange = {
   readonly filePath: string;
