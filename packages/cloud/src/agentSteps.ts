@@ -1,4 +1,3 @@
-import { mentionNames } from "./guard/comment";
 import {
   codexHome,
   codexInstallStep,
@@ -114,7 +113,7 @@ ${options.environment}
           bot_id: '${clone.botId}'
           bot_name: '${clone.botLogin}'
           allowed_bots: '${[...new Set([...clone.reviewerBots, "github-actions[bot]"])].join(",")}'
-          trigger_phrase: '@${mentionNames(clone)[0]}'
+          trigger_phrase: '@${clone.botLogin}'
           plugin_marketplaces: \${{ env.SHADOWCLONE_GUIDANCE_DIRECTORY }}
           plugins: shadowclone-personal@shadowclone-personal
           claude_args: '--permission-mode acceptEdits --allowedTools Bash,Skill --append-system-prompt-file \${{ env.SHADOWCLONE_GUIDANCE_DIRECTORY }}/native.md${modelArgument({ clone, flag: "--model" }).replaceAll("'", "")}'

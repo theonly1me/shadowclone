@@ -2,10 +2,6 @@ import type { Clone, GithubRequest } from "../types";
 import { hasWriteAccess, mentionsBot } from "./access";
 import { positiveNumber, readGithub, record } from "./records";
 
-export function mentionNames(clone: Clone): readonly string[] {
-  return [clone.botLogin];
-}
-
 export async function readRequestComment(options: {
   readonly clone: Clone;
   readonly request: GithubRequest;

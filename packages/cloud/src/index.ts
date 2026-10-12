@@ -14,13 +14,12 @@ export { checklistText, checkText, nextStepsText, remainingSteps } from "./setup
 
 export { ghApiCall, type GhApiCall } from "./setup/ghApi";
 
-export { type GhCommand, githubApi, type GithubApi, runGh } from "./setup/github";
+export { type GhCommand, runGh } from "./setup/github";
 
 export { openPage, pendingPages } from "./setup/openPage";
 
 export { setupSelection } from "./setup/selection";
 
-export { createReviewUpdatePull } from "./setup/update";
 
 export { cloneStatus, readInstallation } from "./status";
 
