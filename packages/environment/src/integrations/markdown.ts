@@ -50,10 +50,27 @@ export function stripManagedGuidance(text: string): string {
   return section === null ? text : text.replace(section, "");
 }
 
-export function stripEveryManagedSection(text: string): string | null {
-  const stripped = text.replace(/<shadowclone-guidance>[\s\S]*?<\/shadowclone-guidance>\n?/gu, "");
+const guidanceOpen = "<shadowclone-guidance>";
+const guidanceClose = "</shadowclone-guidance>";
 
-  return stripped.includes("<shadowclone-guidance>") || stripped.includes("</shadowclone-guidance>") ? null : stripped;
+export function stripEveryManagedSection(text: string): string | null {
+  const kept: string[] = [];
+  let position = 0;
+
+  for (let start = text.indexOf(guidanceOpen); start >= 0; start = text.indexOf(guidanceOpen, position)) {
+    const end = text.indexOf(guidanceClose, start + guidanceOpen.length);
+
+    if (end < 0) {
+      return null;
+    }
+
+    kept.push(text.slice(position, start));
+    position = end + guidanceClose.length + (text[end + guidanceClose.length] === "\n" ? 1 : 0);
+  }
+
+  const stripped = `${kept.join("")}${text.slice(position)}`;
+
+  return stripped.includes(guidanceClose) ? null : stripped;
 }
 
 export function stripHarnessSection(text: string): string {
