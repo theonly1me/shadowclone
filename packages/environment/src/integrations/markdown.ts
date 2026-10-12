@@ -2,6 +2,7 @@ import { fingerprint } from "@shadowclone/core";
 
 export type SectionMarkers = { readonly start: string; readonly end: string };
 
+export const editedManagedContent = "Shadowclone managed content was edited; preserving the file";
 export const managedStart = "\n\n<shadowclone-guidance>";
 export const managedEnd = "</shadowclone-guidance>\n";
 export const guidanceMarkers: SectionMarkers = {
@@ -49,6 +50,12 @@ export function stripManagedGuidance(text: string): string {
   return section === null ? text : text.replace(section, "");
 }
 
+export function stripEveryManagedSection(text: string): string | null {
+  const stripped = text.replace(/<shadowclone-guidance>[\s\S]*?<\/shadowclone-guidance>\n?/gu, "");
+
+  return stripped.includes("<shadowclone-guidance>") || stripped.includes("</shadowclone-guidance>") ? null : stripped;
+}
+
 export function stripHarnessSection(text: string): string {
   const section = markedSection({ text, markers: harnessMarkers });
 
@@ -79,9 +86,7 @@ export function updateMarkedSection(options: {
     !recordedEmpty &&
     (!section || fingerprint(section) !== options.expected)
   ) {
-    throw new Error(
-      "Shadowclone managed content was edited; preserving the file",
-    );
+    throw new Error(editedManagedContent);
   }
 
   if (section && options.expected === undefined) {

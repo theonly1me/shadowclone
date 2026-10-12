@@ -14,7 +14,7 @@ After consent, repository instruction import accepts the three supported root in
 
 The event index holds no transcript text. A file reference selects a bounded byte range. A Cursor reference selects a text field in a content-addressed SQLite blob. `resolveRedacted` checks the reference and redacts the selected text before it becomes learning input.
 
-Only user-authored text is learning evidence. Tool results, tool-returned file contents, thinking blocks, and data-access results get no eligible reference. Agent responses, plans, and questions appear only as labeled context beside a user correction.
+Only user-authored text is learning evidence. Learning removes Shadowclone guidance sections from user text, and it skips text that has an unmatched section marker. Tool results, tool-returned file contents, thinking blocks, and data-access results get no eligible reference. Agent responses, plans, and questions appear only as labeled context beside a user correction.
 
 ## Incremental reads
 
@@ -25,7 +25,7 @@ Oversized records and databases are skipped with diagnostics. SQLite chat source
 ## Adapter distinctions
 
 - **Claude Code:** assistant blocks can share a message identity, tool results can arrive as user records, and injected metadata is not guidance. Subagent transcripts are discovered separately from parent files.
-- **Codex:** message and event streams can describe the same turn, so adapters count one.
+- **Codex:** message and event streams can describe the same turn, so adapters count one. Codex also writes the `AGENTS.md` text that it loads as a user message that starts with `# AGENTS.md instructions for`. That message is not evidence.
 - **Pi:** version 3 JSONL keeps parent links. Each correction has its own ancestor context, without tools, thinking, injected messages, or summaries.
 - **Cursor:** chat databases hold JSON messages and opaque blobs. Adapters read only supported records.
 - **Antigravity:** generated logs give conversation records and cancellation signals. Capture queries no live daemon and writes no sidecars.
