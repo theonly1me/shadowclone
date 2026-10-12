@@ -41,5 +41,9 @@ test("history details redact private profile text", async () => {
     throw new Error("Expected a revision");
   }
 
-  expect(await showRevision({ paths, id })).not.toContain(secret);
+  const details = await showRevision({ paths, id });
+
+  expect(details).toContain("global/engineering.md");
+  expect(details).toContain("Replacement");
+  expect(details).not.toContain(secret);
 });

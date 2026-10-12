@@ -15,6 +15,7 @@ export {
   managedEnd,
   markedSection,
   type SectionMarkers,
+  stripEveryManagedSection,
   stripHarnessSection,
   stripManagedGuidance,
   updateManagedSection,

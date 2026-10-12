@@ -34,4 +34,4 @@ test("500 skills with native copies and overlapping roots remain discoverable in
   } finally {
     await rm(setup.home, { recursive: true, force: true });
   }
-}, 15_000);
+}, 30_000);

@@ -1,5 +1,5 @@
 import type { ProjectPaths } from "@shadowclone/core";
-import { pendingLearningRecords, recordFingerprint, type EnvironmentState } from "@shadowclone/environment";
+import { learningScopes, pendingLearningRecords, recordFingerprint, type EnvironmentState } from "@shadowclone/environment";
 import type { TriageCandidate } from "./prompt";
 import type { TriageMemory } from "./memory";
 
@@ -15,10 +15,13 @@ export function selectTriageCandidates(options: {
   readonly memory: TriageMemory;
 }): readonly TriageCandidate[] {
   const destinations = new Map<string, TriageCandidate["destination"]>();
+  const sharedScopes = new Set(learningScopes(options)
+    .filter(({ repository }) => repository !== null && !repository.privateSkillsDirectory)
+    .map(({ key }) => key));
 
   for (const entry of pendingLearningRecords(options)) {
     if (entry.status === "awaiting-publication") {
-      destinations.set(entry.key, "available");
+      destinations.set(entry.key, sharedScopes.has(entry.scope) ? "approval-needed" : "available");
     } else if (entry.status === "unresolved-scope" && !destinations.has(entry.key)) {
       destinations.set(entry.key, "repository-choice-needed");
     }

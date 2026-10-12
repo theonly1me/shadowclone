@@ -10,6 +10,7 @@ import {
   emptyEnvironment,
   learningRuleSchema,
   readEnvironment,
+  reviewLearning,
   writeEnvironment,
 } from "@shadowclone/environment";
 import { updateLearningEnvironment } from "./update";
@@ -118,18 +119,26 @@ test("organization learning is published independently into each matching reposi
     },
   });
 
-  await updateLearningEnvironment({
-    ...setup,
-    execution,
-    readRemote: async (directory) =>
-      [
-        "https://github.com",
-        path.basename(directory) === "unrelated" ? "other" : "synthetic",
-        path.basename(directory) + ".git",
-      ].join("/"),
-  });
+  const readRemote = async (directory: string) =>
+    [
+      "https://github.com",
+      path.basename(directory) === "unrelated" ? "other" : "synthetic",
+      path.basename(directory) + ".git",
+    ].join("/");
 
-  expect(calls).toBe(5);
+  await updateLearningEnvironment({ ...setup, execution, readRemote });
+
+  expect(
+    await Bun.file(
+      path.join(setup.home, "first/.agents/skills/palette-check/SKILL.md"),
+    ).exists(),
+  ).toBeFalse();
+  expect((await readEnvironment(setup.paths))?.dispositions.map(({ status }) => status)).toEqual(["pending", "pending"]);
+
+  await reviewLearning({ paths: setup.paths, key: record.rule.key, action: "retry" });
+  await updateLearningEnvironment({ ...setup, execution, readRemote, learningKeys: [record.rule.key] });
+
+  expect(calls).toBe(4);
   expect(
     await Bun.file(
       path.join(setup.home, "first/.agents/skills/palette-check/SKILL.md"),

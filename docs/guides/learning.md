@@ -47,7 +47,7 @@ With `agent-context` on, learning reads `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.
 A repository rule waits until its repository has a destination. When you start a session in that repository, the agent asks you once:
 
 - `shadowclone learning repositories set . --private` keeps the rules in `~/.shadowclone/builds/` and changes no repository file. Sessions in that repository receive them at start.
-- `shadowclone learning repositories set . --repository` publishes them into the repository's `.agents/skills` and `.claude/skills` folders.
+- `shadowclone learning repositories set . --repository` publishes them into the repository's `.agents/skills` and `.claude/skills` folders. Other people use those files, so each rule waits as a proposal until you approve it. An edit to an existing repository skill changes only the copies that already exist.
 
 Setup and `learn --deep` still register the repository where they run, with the `--repository` destination.
 
@@ -65,7 +65,7 @@ Preview each change:
 
 - `learning narrow <key>` moves global or owner-wide guidance into the current verified repository. It never widens a scope.
 - `learning replace <key> "Use complete words in release notes."` makes the typed guidance your direct decision and clears the conflicting proposal.
-- `learning retire <key>` retires the rule.
+- `learning retire <key>` retires the rule. If you retire every rule in a skill that Shadowclone created, Shadowclone removes that skill. It keeps a skill that you wrote or edited.
 - `learning remove-source codex` retires records that only that source supports and rejects pending proposals with that provenance. Mixed-source and unresolved records stay for single review. Original transcripts, memory, and skills stay.
 
 These commands write nothing until you repeat them with `--apply --expected <fingerprint>` and the printed fingerprint. If learning changed in the meantime, apply stops so that you can review again. Each decision has a revision that you can read with `history` and reverse with `undo`.

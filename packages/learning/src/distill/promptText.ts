@@ -39,10 +39,14 @@ export function stripLeadingSlashCommands(prompt: string): string {
   }
 }
 
+function isInjectedInstructions(text: string): boolean {
+  return text.startsWith("# AGENTS.md instructions for ") && text.includes("<INSTRUCTIONS>");
+}
+
 function cleanPrompt(text: string): string | null {
   const cleaned = stripLeadingSlashCommands(text);
 
-  return cleaned.length > 0 ? cleaned : null;
+  return cleaned.length > 0 && !isInjectedInstructions(cleaned) ? cleaned : null;
 }
 
 function readContentText(content: unknown): string | null {

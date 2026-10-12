@@ -1,5 +1,5 @@
 import { extractPromptText } from "./promptText";
-import { stripManagedGuidance } from "@shadowclone/environment";
+import { stripEveryManagedSection } from "@shadowclone/environment";
 import {
   textRefKey,
   resolveRedacted,
@@ -45,9 +45,9 @@ export async function materializeEvidence(options: {
         continue;
       }
 
-      const authored = stripManagedGuidance(text);
+      const authored = stripEveryManagedSection(text);
 
-      if (!authored.trim()) {
+      if (authored === null || !authored.trim()) {
         continue;
       }
 

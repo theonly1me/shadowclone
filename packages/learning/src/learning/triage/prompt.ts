@@ -5,7 +5,7 @@ import { internalLearningMarker } from "../../distill/excerpts";
 export type TriageCandidate = {
   readonly token: string;
   readonly record: LearningRecord;
-  readonly destination: "available" | "repository-choice-needed";
+  readonly destination: "available" | "approval-needed" | "repository-choice-needed";
 };
 
 function ruleText(options: { readonly heading: string; readonly record: LearningRecord }): string {

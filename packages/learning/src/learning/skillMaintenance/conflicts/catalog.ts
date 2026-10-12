@@ -10,6 +10,10 @@ export function shareSkillScope(pair: SkillPair): boolean {
   );
 }
 
+export function involvesUserSkill(pair: SkillPair): boolean {
+  return pair.some((skill) => skill.root.owner === "user");
+}
+
 export function comparisonFingerprint(pair: SkillPair): string {
   return fingerprint(JSON.stringify({ version: 1, skills: pair.map(skillIdentity) }));
 }

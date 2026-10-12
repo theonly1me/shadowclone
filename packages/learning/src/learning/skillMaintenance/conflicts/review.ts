@@ -3,7 +3,7 @@ import type { ProjectPaths } from "@shadowclone/core";
 import { writeMaintenanceState } from "@shadowclone/skills";
 import type { DiscoveredSkill, MaintenanceState } from "@shadowclone/skills";
 import { assessCatalogOverlap, assessSkillConflict } from "./assess";
-import { comparisonFingerprint, libraryCatalogBatches, type SkillPair } from "./catalog";
+import { comparisonFingerprint, involvesUserSkill, libraryCatalogBatches, type SkillPair } from "./catalog";
 import { currentConflictProposals, saveConflictProposal } from "./proposals";
 
 export async function reviewDiscoveredSkills(options: {
@@ -60,6 +60,8 @@ export async function reviewDiscoveredSkills(options: {
       if (!left || !right) continue;
 
       const pair: SkillPair = [left, right];
+      if (!involvesUserSkill(pair)) continue;
+
       const inputFingerprint = comparisonFingerprint(pair);
       pairs.set(inputFingerprint, pair);
 

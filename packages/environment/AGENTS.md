@@ -19,7 +19,8 @@ Holds what agents receive: the environment record, skill publication, native ins
 - `src/environment/builds/` and `harness/`: build definitions, routing text, and the harness manifest.
 - `src/integrations/`: native sections, hooks, `installIntegration`, `uninstallIntegration`, and `compileContext`.
 - `src/integrations/installation/`: the install record and artifact ownership checks.
-- `src/environment/learningNotice.ts` and `repositoryQuestion.ts`: the one-time triage notice and the repository destination question in session-start context.
+- `src/environment/learningNotice.ts`, `repositoryQuestion.ts`, and `reviewPrompt.ts`: the one-time triage notice, the repository destination question, and the prompt to review waiting proposals in session-start context.
+- `src/integrations/contextSkill.ts`: the `shadowclone-context` skill that each agent receives, including the steps to review proposals with the user.
 
 ## Rules
 
