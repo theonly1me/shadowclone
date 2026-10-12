@@ -36,6 +36,18 @@ Use the banner from the author as the README header, with descriptive alternativ
 
 **Verification.** Check every relative link and the paragraph length. Check every command against `shadowclone --help`. Public evaluation material contains no evaluator identity, billing detail, private installation, path, or repository name.
 
+## Show the current capabilities
+
+**Problem.** The README compresses cloud work and reviews into feature bullets. It does not give learning, configurable builds, reviews, and cloud execution enough context. Readers can mistake the product for a skill installer.
+
+**Decision.** Keep engineering preferences as the opening promise. Give each current capability a short explanation and a working entry point. Show agent-led setup, configurable builds, evolving guidance, local and guided reviews, and a personal cloud bot. Keep the evaluation results and their limits.
+
+**Accuracy.** Setup handles installation and configuration while the user chooses consent and skills. Cloud setup also needs account credentials and a setup pull request. Background learning triages pending rules after each session. It applies durable rules only when automatic maintenance is on. Manual deep learning still offers a review step.
+
+**Sources.** Link cloud authentication to Anthropic's GitHub Actions documentation, authentication guidance, and applicable terms. Describe the personal subscription setup and its boundaries without claiming endorsement or blanket compliance.
+
+**Sequence.** Revise the README introduction and capability sections. Keep detailed setup and reference material in the existing guides. Verify the examples against the guides, setup skill, and current commands, then run the prose and repository checks.
+
 ## Writing guidance
 
 Keep information that helps a reader complete a task or understand a decision. Remove expired setup instructions, session narration, and duplicate explanations. Use optional template sections only when they apply. Record enduring verification requirements and meaningful experimental results, not incidental test counts or tool output.

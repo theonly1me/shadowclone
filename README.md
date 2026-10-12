@@ -7,11 +7,13 @@
 [![license](https://img.shields.io/github/license/theonly1me/shadowclone)](LICENSE)
 [![HOL Guard](https://img.shields.io/endpoint?url=https%3A%2F%2Fhol.org%2Fapi%2Fregistry%2Fbadges%2Fplugin%3Fslug%3Dtheonly1me%252Fshadowclone%26metric%3Dtrust)](https://hol.org/registry/plugins/theonly1me%2Fshadowclone)
 
-[Quick start](#quick-start) · [What you get](#what-you-get) · [Skills](#skills-in-the-box) · [Cloud bot](docs/guides/cloud-bot.md) · [Docs](#docs)
+[Quick start](#quick-start) · [What you get](#what-you-get) · [Skills](#skills-in-the-box) · [Reviews](#reviews-on-your-machine-and-on-github) · [Cloud bot](#a-cloud-bot-with-your-skills) · [Docs](#docs)
 
 </div>
 
-**Shadowclone makes coding agents follow your engineering taste, or any rules you configure, whatever the harness, agent, or model.** It works in Claude Code, Codex, Cursor, Pi, and Antigravity on your machine. It also runs on GitHub as a cloud bot with your Claude Code or Codex token. The bot works on issues, answers mentions, and reviews pull requests, like an agent with your engineering taste.
+**Shadowclone brings your engineering preferences to every coding agent.** It maintains skills and instructions for Claude Code, Codex, Cursor, Pi, and Antigravity. Those preferences can evolve as Shadowclone learns from the sessions you allow.
+
+**Skills, reviews, and delegated work.** Start with bundled skills and a build you configure. Review pull requests locally, read a guided review with your agent, or send work to a personal GitHub bot. The bot runs with your selected skills and your own Claude subscription or Codex credentials.
 
 ## Quick start
 
@@ -21,7 +23,7 @@ Paste this into Claude Code, Codex, Cursor, Pi, or Antigravity:
 Set up Shadowclone: https://raw.githubusercontent.com/theonly1me/shadowclone/main/plugins/shadowclone/skills/setup-shadowclone/SKILL.md
 ```
 
-The agent does the setup in about 5 minutes:
+The agent handles installation and configuration in about 5 minutes. You answer the consent questions and pick skills in the browser:
 
 1. It installs the CLI, and the plugin in Claude Code or Codex.
 2. It asks if Shadowclone can learn from your past sessions, keep skills in sync, and keep learning in the background.
@@ -43,13 +45,53 @@ To add the plugin, run `/plugin install shadowclone@shadowclone` after `/plugin 
 
 ## What you get
 
-- **Learning from your corrections.** Rules that you repeat in allowed sessions become skills and short native instructions.
-- **One setup for every agent and model.** The same skills reach all five agents. Pi can use any model that you configure.
-- **Agent builds.** Pick workflow skills on a browser skill map. Equip a personal build, a private build for one repository, or a shared build that your team commits. [Agent builds guide](docs/guides/agent-builds.md).
-- **Cloud bot.** A GitHub account that you name runs in GitHub Actions with your Claude Code or Codex token. It works on issues, answers mentions, and reviews pull requests. You merge each pull request. [Cloud bot guide](docs/guides/cloud-bot.md).
-- **Reviews and delegated work.** `shadowclone review 123` reviews a pull request on your machine. The `shadowclone-work` skill takes a change to ready for review.
+### Preferences that evolve with your work
+
+**Learn from corrections.** Shadowclone reads the sessions you allow and turns reusable instructions into skills and short native guidance. It keeps repository-specific rules in their scope. Rules remain readable, editable, and reversible.
+
+**Keep guidance current.** Background learning reviews new rules after each session. It applies durable guidance when automatic maintenance is on and discards rules that existing guidance covers. You can review and undo each change. See the [learning guide](docs/guides/learning.md).
+
+### Skills and builds you can configure
+
+**Start with a build.** Shadowclone includes 15 workflow skills for planning, debugging, implementation, verification, and review. New users can pick skills immediately. Learning from past sessions is optional.
+
+**Choose where skills apply.** The browser wizard supports a personal build, a private build for one repository, or a shared build that a team commits. The same skills reach all five agents. Pi can use any model it supports. See [Agent builds](docs/guides/agent-builds.md).
 
 ![The Skill constellation in the build wizard, with skills grouped by source and category, a named build, and skill details](docs/assets/agent-builds.jpg)
+
+### Reviews on your machine and on GitHub
+
+**Review a pull request.** Run a local review with your Claude subscription:
+
+```bash
+shadowclone review 123
+```
+
+The reviewer combines repository standards, mechanical checks, and code analysis. Findings include evidence checked against the source. The result stays in a local file. Run `shadowclone review --base main` to review committed branch changes before opening a PR.
+
+**Read a guided review.** Equip `guided-pr-review` and `shadowclone-review`, then ask your agent:
+
+```text
+Use guided-pr-review to review PRs 1, 2, and 3.
+```
+
+The agent creates an HTML guide with actual diffs, behavior traces, and a reading order across the PRs. It supports inline notes and lets the reader reveal agent findings after forming a review. The guide stays local. See [reviews](docs/guides/reviews.md).
+
+**Review in the cloud.** A configured cloud bot reviews eligible PRs or responds to a review mention. It posts findings on GitHub under its own identity. See [cloud review](docs/guides/reviews.md#review-in-the-cloud).
+
+### A cloud bot with your skills
+
+**Delegate GitHub work.** A personal bot runs in GitHub Actions with its owner's Claude subscription and selected skills. It works on issues, answers mentions, opens pull requests, and follows checks and review feedback. The owner decides when to merge. Codex is also supported.
+
+**Ask the agent to configure it.** After local setup, ask:
+
+```text
+Set up Shadowclone cloud here with the bot octo-shadow.
+```
+
+The agent prepares the skills repository and workflows. The owner supplies the account credentials and merges the setup PR. The [cloud bot guide](docs/guides/cloud-bot.md) covers setup, Codex authentication, and pausing work to continue locally.
+
+**Use the documented subscription path.** Anthropic documents Claude subscription authentication for GitHub Actions. Runs use the owner's subscription and GitHub Actions minutes. See [Claude subscriptions and terms](docs/guides/cloud-bot.md#claude-subscriptions-and-terms) for the official sources and usage boundaries.
 
 ## Skills in the box
 
@@ -77,10 +119,6 @@ To pick skills without the CLI, run `npx skills add theonly1me/shadowclone`.
 Use `--skill guided-pr-review shadowclone-review` to install guided review and its local reviewer.
 The separate `@shadowclone/skills` npm artifact contains the same portable skills and supporting files.
 See [manual installation](docs/guides/skills.md#install-skills-without-shadowclone).
-
-The guided review skill creates an HTML reading route with real diffs, behaviour traces, and inline notes.
-It connects related changes across PRs and identifies each change's PR.
-See [guided reviews](docs/guides/reviews.md#guided-review-with-your-agent).
 
 ## Results
 

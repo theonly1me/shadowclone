@@ -24,6 +24,18 @@ You need the GitHub CLI (`gh auth login`), administration access to the reposito
 
 Shadowclone never reads your tokens. `shadowclone bot status --repo owner/repository` lists the open steps from secret names. To update your skills, run setup again. It pushes only changed files and replaces the deploy key.
 
+## Claude subscriptions and terms
+
+**Documented support.** Anthropic's [GitHub Actions guide](https://code.claude.com/docs/en/github-actions) supports creating and reviewing PRs with a Claude subscription. It documents `claude setup-token` and `CLAUDE_CODE_OAUTH_TOKEN`. OAuth runs use the subscription rather than API billing. GitHub Actions minutes still apply.
+
+**Shadowclone's setup.** Work jobs use Anthropic's official `claude-code-action`. Review jobs install the published Claude Code CLI. The owner generates the token through Claude Code and adds it directly to the GitHub environment. Shadowclone does not operate a hosted credential service.
+
+**Individual accounts.** Each developer uses their own subscription for their own bot work. The [Consumer Terms](https://www.anthropic.com/legal/consumer-terms) prohibit account sharing. They allow automation where Anthropic explicitly permits it. Adding requesters to a workflow does not grant permission to share a subscription.
+
+**Product boundaries.** Anthropic's [authentication rules](https://code.claude.com/docs/en/legal-and-compliance#authentication-and-credential-use) prohibit collecting user credentials or routing subscription requests for users. They distinguish an end user signing in to unmodified Claude Code. Hosting Claude Code also has [product conditions](https://code.claude.com/docs/en/legal-and-compliance#can-customers-offer-claude-code-in-their-products).
+
+**Applicable terms.** Anthropic lists [Consumer Terms](https://www.anthropic.com/legal/consumer-terms) for Free, Pro, and Max, and [Commercial Terms](https://www.anthropic.com/legal/commercial-terms) for Team, Enterprise, and API users. This describes the documented authentication path, not Anthropic endorsement or a legal guarantee for every deployment. Sources checked on 12 October 2026.
+
 ## Use Codex
 
 Add `--engine codex` or choose Codex in the browser. The checklist then asks for `OPENAI_API_KEY`. `--codex-auth plan` uses your ChatGPT plan instead. It is experimental and needs a machine account bot. Each run stores the refreshed login in `CODEX_AUTH_JSON`, so runs on the repository wait for each other. If another machine uses the same login, add a fresh `auth.json` when the bot cannot sign in. A Codex review reads only the pull request checkout.
