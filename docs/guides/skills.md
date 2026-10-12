@@ -2,7 +2,7 @@
 
 Skills are ordinary files that you can inspect and edit. Shadowclone reviews the consented library, updates a relevant workflow, or creates a skill when none exists. It keeps supporting files, unrelated instructions, and invocation settings. Run `shadowclone skills list`, `update`, or `pending`.
 
-Reading a library and allowing automatic edits are separate choices. Supported changes to authorized skills apply automatically. Conflicts and uncertain changes stay pending. Third-party packages stay unchanged and get local companions. With maintenance on, an update reviews the library of the selected agent, even without new learning.
+Reading a library and allowing automatic edits are separate choices. Supported changes to authorized skills apply automatically. Conflicts and uncertain changes stay pending. Third-party packages stay unchanged and get local companions. Library review compares a third-party skill only with your own skills, so it never proposes a conflict between two third-party skills. With maintenance on, an update reviews the library of the selected agent, even without new learning.
 
 ## Install skills without Shadowclone
 
