@@ -6,6 +6,8 @@ const documentSchema = z
   .object({ hooks: z.record(z.string(), z.array(z.unknown())).default({}) })
   .passthrough();
 
+const keyOrderSchema = z.record(z.string(), z.unknown());
+
 function parseDocument(text: string | null) {
   try {
     return documentSchema.parse(text === null ? {} : JSON.parse(text));
@@ -85,6 +87,7 @@ export function updateHookConfig(options: {
   readonly remove?: boolean;
 }): { readonly text: string; readonly fingerprint: string } {
   const parsed = parseDocument(options.previous);
+  const original = keyOrderSchema.parse(options.previous === null ? {} : JSON.parse(options.previous));
   const hooks = { ...parsed.hooks };
   const owned = ownedHooks(options.integration);
   const legacy = legacyHooks(options.integration);
@@ -105,7 +108,7 @@ export function updateHookConfig(options: {
   }
 
   return {
-    text: `${JSON.stringify({ ...(options.integration.agent === "cursor" ? { version: 1 } : {}), ...parsed, hooks }, null, 2)}\n`,
+    text: `${JSON.stringify({ ...(options.integration.agent === "cursor" ? { version: 1 } : {}), ...original, hooks }, null, 2)}\n`,
     fingerprint: fingerprint(JSON.stringify(owned)),
   };
 }
