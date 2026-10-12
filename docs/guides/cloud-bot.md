@@ -1,10 +1,10 @@
 # Cloud bot
 
-A cloud bot is Claude Code or Codex running in GitHub Actions on your repository, with your engineering skills. It works on issues, answers mentions, and reviews pull requests. You merge. Live installation qualification is pending.
+A cloud bot is a coding agent that runs in GitHub Actions on your repository, with your engineering skills. People with write access tag it on issues and pull requests. It works on issues, answers tags, and reviews pull requests. You merge. Live installation qualification is pending.
 
-The bot is a **machine account**, a GitHub account that you create and name, such as `octo-shadow`. GitHub allows one free machine account for each person. A personal GitHub App is the second option.
+The bot is a **machine account**: a GitHub account that you create and name, such as `octo-shadow`. GitHub allows one free machine account for each person. The bot runs on one provider API key that you add on GitHub.
 
-## Set up a machine account bot
+## Set up the bot
 
 Ask your agent: "Set up shadowclone cloud here with the bot octo-shadow." The agent calls the `shadowclone_bot` MCP tool. Or run this in the checkout:
 
@@ -14,55 +14,54 @@ shadowclone bot setup --bot octo-shadow
 
 You need the GitHub CLI (`gh auth login`), administration access to the repository, and an active Shadowclone skills environment.
 
-1. If the account does not exist, setup opens the GitHub signup page. Create it and run setup again.
-2. Approve the skill files that setup will push to your private repository `<you>/shadowclone-skills`. An agent must ask you first.
-3. Setup protects the default branch, pushes the skills, adds a read-only deploy key, invites the bot, and opens the setup pull request.
-4. Sign in as the bot, create a classic token with only the `repo` scope, and add it to the `shadowclone` environment as `SHADOWCLONE_BOT_TOKEN`.
-5. Add the secret for your agent to the same environment: `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`), `OPENAI_API_KEY`, or `CODEX_AUTH_JSON` (the content of `~/.codex/auth.json` after `codex login`).
+1. If the account does not exist, setup opens the GitHub signup page. Create the account, then run setup again.
+2. Approve the skill files that setup pushes to your private repository `<you>/shadowclone-skills`. An agent must ask you first.
+3. Setup protects the default branch, pushes the skills, and adds a read-only deploy key. Then it invites the bot and opens the setup pull request.
+4. Setup prints one link to the `shadowclone` environment page, and the pages that create each secret.
+5. On the environment page, add `SHADOWCLONE_BOT_TOKEN` and the API key of your provider. Make the bot token while you are signed in as the bot: a classic token with only the `repo` scope.
 6. Merge the setup pull request.
-7. Mention the bot once, so that its first run accepts the invitation.
+7. Run `shadowclone bot status --repo owner/repository`.
 
-Shadowclone never reads your tokens. `shadowclone bot status --repo owner/repository` lists the open steps from secret names. To update your skills, run setup again. It pushes only changed files and replaces the deploy key.
+The status command starts a check run. The run accepts the repository invitation as the bot and confirms the API key with one small request. The command prints the run link, or the step that failed. Shadowclone never reads your secrets. To update your skills, run setup again. It pushes only changed files and replaces the deploy key.
 
-## Claude subscriptions and terms
+## Choose a provider
 
-**Documented support.** Anthropic's [GitHub Actions guide](https://code.claude.com/docs/en/github-actions) supports creating and reviewing PRs with a Claude subscription. It documents `claude setup-token` and `CLAUDE_CODE_OAUTH_TOKEN`. OAuth runs use the subscription rather than API billing. GitHub Actions minutes still apply.
+Add `--provider` to setup. The default is `anthropic`.
 
-**Shadowclone's setup.** Work jobs use Anthropic's official `claude-code-action`. Review jobs install the published Claude Code CLI. The owner generates the token through Claude Code and adds it directly to the GitHub environment. Shadowclone does not operate a hosted credential service.
+| Provider            | Secret                      | Agent            | Notes                                                                                          |
+| ------------------- | --------------------------- | ---------------- | ---------------------------------------------------------------------------------------------- |
+| `anthropic`         | `ANTHROPIC_API_KEY`         | Claude Code      | Runs through Anthropic's `claude-code-action`                                                  |
+| `openai`            | `OPENAI_API_KEY`            | Codex            |                                                                                                |
+| `openai-compatible` | `OPENAI_COMPATIBLE_API_KEY` | Codex            | Needs `--base-url https://...` and `--model`. The endpoint must serve the OpenAI Responses API |
+| `cursor`            | `CURSOR_API_KEY`            | Cursor Agent CLI | Installs a pinned Cursor CLI and checks its SHA-256 digest                                     |
 
-**Individual accounts.** Each developer uses their own subscription for their own bot work. The [Consumer Terms](https://www.anthropic.com/legal/consumer-terms) prohibit account sharing. They allow automation where Anthropic explicitly permits it. Adding requesters to a workflow does not grant permission to share a subscription.
+`--model <id>` chooses the model for work and reviews. Without it, reviews use `claude-opus-5-5` for Anthropic, `gpt-6.1-sol` for OpenAI, and the Cursor default for Cursor. Work uses the default model of each agent.
 
-**Product boundaries.** Anthropic's [authentication rules](https://code.claude.com/docs/en/legal-and-compliance#authentication-and-credential-use) prohibit collecting user credentials or routing subscription requests for users. They distinguish an end user signing in to unmodified Claude Code. Hosting Claude Code also has [product conditions](https://code.claude.com/docs/en/legal-and-compliance#can-customers-offer-claude-code-in-their-products).
-
-**Applicable terms.** Anthropic lists [Consumer Terms](https://www.anthropic.com/legal/consumer-terms) for Free, Pro, and Max, and [Commercial Terms](https://www.anthropic.com/legal/commercial-terms) for Team, Enterprise, and API users. This describes the documented authentication path, not Anthropic endorsement or a legal guarantee for every deployment. Sources checked on 12 October 2026.
-
-## Use Codex
-
-Add `--engine codex` or choose Codex in the browser. The checklist then asks for `OPENAI_API_KEY`. `--codex-auth plan` uses your ChatGPT plan instead. It is experimental and needs a machine account bot. Each run stores the refreshed login in `CODEX_AUTH_JSON`, so runs on the repository wait for each other. If another machine uses the same login, add a fresh `auth.json` when the bot cannot sign in. A Codex review reads only the pull request checkout.
-
-## Set up a GitHub App bot
-
-Run `shadowclone bot setup` without `--bot` and choose **Use a GitHub App instead**. Review the skill files, register and name the App, and install it with **Only select repositories**. Setup rejects **All repositories**. It uploads the App key and opens the setup pull request. Add the agent secret and merge. A private App installs only on its owning account, so an organization repository registers it under that organization.
+The bot uses API keys only. Anyone with write access can spend the key, so set a spending limit in your provider console.
 
 ## Work on issues and pull requests
 
-Create an issue as the installing owner. Its stated scope lets the bot plan, change files, run checks, commit, push, and open a draft pull request. The bot marks it ready when checks pass, it has no conflicts, and every review thread has an answer. A larger scope needs your decision.
+Tag the bot in an issue title, an issue body, or a comment: `@octo-shadow fix the parser`. The person who tags it must have the write, maintain, or admin role on the repository. The bot does nothing in a repository that it does not belong to.
 
-Mention the bot on an issue or a same-repository pull request: `@octo-shadow` for a machine account, or `@shadowclone` and the App slug for an App. External users, unapproved authors, fork pull requests, and the bot's own comments cannot start work.
+The issue's stated scope lets the bot plan, change files, run checks, commit, push, and open a draft pull request. The bot marks the pull request ready when checks pass, it has no conflicts, and every review thread has an answer. A larger scope needs your decision. The bot cannot work on a pull request from a fork, because it cannot push to a fork. Other bots and the bot's own comments cannot start work.
 
-- It reports a check that waits for a human and does not run it again.
+- It reports a check that waits for a human, and it does not run that check again.
 - A run works for up to 3 hours. When it stops, its last step commits the remaining changes as the bot and pushes them to the work branch, unless the request is paused.
-- Each branch has a daily limit of ten worker runs.
+- Each branch has a daily limit of 10 worker runs, and the repository has a daily limit of 100.
 
-When the last Actions run on the head of a managed pull request finishes, the bot resumes it once. Approved reviewer events can resume it too. The default reviewers are `coderabbitai[bot]` and `github-actions[bot]`, and findings from repository writers count. To change requesters, reviewers, or limits, edit both workflow configurations in a reviewed pull request.
+When the last Actions run on the head of a managed pull request finishes, the bot continues the work once. Events from approved reviewers can continue it too. The default reviewers are `coderabbitai[bot]` and `github-actions[bot]`, and comments from people with write access count. To change the reviewers or the limits, edit both workflow configurations in a reviewed pull request.
 
-It answers review threads as [delegated work](delegated-work.md#review-comments) describes. It never merges, releases, or force pushes.
+The bot answers review threads as [delegated work](delegated-work.md#review-comments) describes. It never merges, releases, or force pushes.
 
 ## Review pull requests
 
-The bot posts one review with the event `COMMENT`. [Reviews](reviews.md) lists the triggers and the checks. A review runs in five jobs. Only the acknowledge and publish jobs hold the bot or App token. The toolchain job runs the pull request code with no secrets. The model job holds only the Claude token or Codex login and never runs that code. With a Codex plan login, only its last step gets the bot token.
+Comment `@octo-shadow review` as the first line on a pull request. The bot posts one review with the event `COMMENT`. A pull request that opens gets no review until someone tags the bot. [Reviews](reviews.md) lists the checks.
 
-`reviewModel` in both workflow configurations chooses the model, by default `claude-opus-5-5` for Claude and `gpt-6.1-sol` for Codex. `reviewNetwork: false` turns off web search and page fetches. Reviews count toward the daily branch limit.
+A review runs in five jobs. Only the acknowledge and publish jobs hold the bot token. The toolchain job runs the pull request code with no secrets. The model job holds only the API key and never runs that code.
+
+A pull request from a fork also gets a review when someone with write access tags the bot. For a fork, the review skips the toolchain job and turns off web search and page fetches. So no code from the fork runs, and the model cannot send data out.
+
+`reviewNetwork: false` in both workflow configurations turns off web search and page fetches for every review. Reviews count toward the daily branch limit.
 
 ## Continue locally
 
@@ -70,26 +69,26 @@ The bot posts one review with the event `COMMENT`. [Reviews](reviews.md) lists t
 2. Run `gh pr checkout <number>`, then make and push your changes.
 3. Remove the label when the bot can continue.
 
-A pause on the original issue also blocks its issue branch. The worker checks the pause state again after it queues and before writes. A cancellation does not make an in-flight write atomic.
+A pause on the issue also blocks its issue branch. The worker checks the pause state again after it queues and before each write. A cancellation does not make an in-flight write atomic.
 
 ## Skills and credentials
 
 The bot reads your skills and native rules from the private repository `<you>/shadowclone-skills`, with a read-only deploy key for each target repository. Setup redacts and path-checks the files first. The bundle is frozen, so later local changes do not update it.
 
-The `shadowclone` environment holds `SHADOWCLONE_BOT_TOKEN` (or `SHADOWCLONE_APP_PRIVATE_KEY`), the agent secret, and the deploy key `SHADOWCLONE_SKILLS_KEY`. Only the default branch can use it. Setup keeps existing approval settings and rejects broader branch policies. Your GitHub plan must support environment secrets.
+The `shadowclone` environment holds `SHADOWCLONE_BOT_TOKEN`, the provider API key, and the deploy key `SHADOWCLONE_SKILLS_KEY`. Only the default branch can use it. Setup keeps existing approval settings and rejects broader branch policies. Your GitHub plan must support environment secrets.
 
-The environment trusts its default-branch workflows and the code that runs with its secrets. The coding agent gets the bot or App token, never the App private key, and can run any shell command on the runner. A machine account token has no `workflow` scope and reaches every repository that you invite the bot to. Invite it only to repositories that it works on.
+The environment trusts its default-branch workflows and the code that runs with its secrets. The coding agent gets the bot token and can run any shell command on the runner. The bot token has no `workflow` scope, and it reaches every repository that you invite the bot to. Invite the bot only to repositories that it works on.
 
-Before it adds a secret, setup adds the `shadowclone default branch` ruleset, which restricts updates and deletion of the default branch. Setup stops if a ruleset with that name has other settings. The admin and maintain roles are exempt, and with an App the write role is exempt too. The bot has the write role, so with a machine account, write-role members in an organization repository need an admin or a maintainer to merge. Workflows that push to the default branch with `GITHUB_TOKEN` stop working, because GitHub Actions is not exempt.
+Before it adds a secret, setup adds the `shadowclone default branch` ruleset, which restricts updates and deletion of the default branch. Only the admin and maintain roles are exempt. The bot has the write role, so it cannot update the default branch. In an organization repository, write-role members need an admin or a maintainer to merge. Workflows that push to the default branch with `GITHUB_TOKEN` stop working, because GitHub Actions is not exempt. If a ruleset with that name has other settings, setup stops and links to it.
 
 `shadowclone bot export --skill shadowclone-work --skill shadowclone-baseline --output <private-folder>` saves the skills to a folder outside the checkout. It uploads nothing.
 
 ## Stop and remove
 
-1. Pause the work and cancel remaining Actions runs.
-2. Remove the two Shadowclone workflows and `.github/shadowclone/` in a pull request.
+1. Pause the work and cancel the remaining Actions runs.
+2. Remove the three Shadowclone workflows and `.github/shadowclone/` in a pull request.
 3. Delete the environment secrets, the ruleset, and the deploy key on your skills repository.
-4. Remove the bot from the collaborators, or uninstall or delete the App.
-5. Remove `~/.shadowclone/cloud/installations/` if you no longer need it.
+4. Remove the bot from the collaborators.
+5. Remove `~/.shadowclone/cloud/installations/` if you do not need it.
 
 Exported folders and your skills repository stay until you delete them. GitHub and the provider apply their own retention policies.

@@ -67,37 +67,35 @@ Normalize documentation IPv6 addresses before validation. Classify the embedded 
 
 ### Cloud jobs
 
-**Cloud jobs.** A first-line `@shadowclone review` from a requester starts a review. A requester's PR starts one when it opens or becomes ready for review. The guard routes every other tagged request to `shadowclone-work`. The worker runs five jobs, each on its own runner:
+**Cloud jobs.** A first-line `@<bot> review` from a person with write access starts a review. A pull request that opens starts nothing. The guard routes every other tagged request to `shadowclone-work`. A fork pull request gets a review, with no toolchain job and no network, as [design 043](043-cloud-bot-api-keys.md) describes. The worker runs five jobs, each on its own runner:
 
 | Job                  | Credentials              | Runs PR code |
 | -------------------- | ------------------------ | ------------ |
-| `review-acknowledge` | App token                | No           |
+| `review-acknowledge` | Bot token                | No           |
 | `review-prepare`     | Read-only `GITHUB_TOKEN` | No           |
 | `review-checks`      | None                     | Yes          |
-| `review-analyze`     | Claude token             | No           |
-| `review-publish`     | App token                | No           |
+| `review-analyze`     | Provider API key         | No           |
+| `review-publish`     | Bot token                | No           |
 
-The CLI runs from the temporary directory of the runner, so the `bunfig.toml` and package files of the PR never load. The review jobs pin `@shadowclone/cli` to the rendering version, Claude Code 2.1.286, and Bun 1.4.2. `reviewModel` in the clone configuration defaults to `claude-opus-5-5`.
+The CLI runs from the temporary directory of the runner, so the `bunfig.toml` and package files of the PR never load. The review jobs pin `@shadowclone/cli` to the rendering version, the agent CLI, and Bun 1.4.2. The `model` in the clone configuration chooses the model. Without it, a Claude review uses `claude-opus-5-5`.
 
 **Branch review.** `shadowclone review --base <ref>` reviews the committed head of the current branch without a pull request. The base is the merge base of the head and `<ref>`. Without `--base`, the base is the merge base with `origin/HEAD`. The commit messages give the title and the description. One commit gives its subject and its body. More commits give the latest subject and every message. The repository name comes from a GitHub `origin` remote, or it is `local/<folder>`. Evidence shows plain `path:line` locations, because the head commit may not be on GitHub. The review leaves out uncommitted changes and says so. A branch review needs no GitHub access, so an evaluation can run on cases that exist only on one machine. `--cloud` needs a pull request number.
 
-**Setup.** `--cloud` reads the clone configuration from the installed relay workflow. Without a clone, it starts the bot wizard. With a clone that cannot review, it opens a draft update PR that renders the workflows again.
+**Setup.** `--cloud` reads the clone configuration from the installed relay workflow and comments `@<bot> review`. Without a clone, it says to run `shadowclone bot setup`.
 
 ## Consequences
 
 - The dependency check and the base run of the toolchain use the merge base of the base branch and the head. The tip of the base branch can hold upgrades that landed after the PR branched. A merge keeps those upgrades. So a comparison with the tip reported old versions as added. The evaluation found this on a vite PR. Main moved `launch-editor` to a fixed version, and the review reported the older version as a new vulnerability.
-- A review uses the owner's Claude subscription for one run, with refuter subagents inside it.
+- A local review uses the agent login on the machine for one run, with refuter subagents inside it. A cloud review uses the provider API key.
 - `WebFetch` returns a summary from a small model, so a doc quote can fail the check even when the page supports the claim. The finding then keeps only its code evidence.
 - A web search can find the fixed version of an old pull request. The evaluation gives every arm the same tools and records the fetched URLs.
 - Local toolchain checks need supported operating-system isolation. Missing sandbox support produces failed checks. `--no-checks` skips toolchain execution.
 - The review does not use standards that exist only in local learning state.
 - Stack detection reads the repository root, so a monorepo without root manifests gets no toolchain checks.
-- The `.github` copy of the repository itself changes only after a release, through the update PR, because the review jobs install the released CLI.
-- PRs from forks get no cloud review.
 
 ## Data handling
 
-A review sends the PR text, the diff, the standards, and the history to Anthropic under the owner's subscription. It also sends rule hits, toolchain diagnostics, and the files that the agent reads. The dependency check sends package names and versions to the OSV API, and no code. Its web searches and the pages that it fetches go to the public web. The skill tells it to use only public names, such as a package and a version, in them. A local result stays in `~/.shadowclone/reviews/`. A cloud result passes between jobs as a workflow artifact that expires after one day. The clone posts its findings to the PR. Nothing from a review becomes learning input.
+A review sends the PR text, the diff, the standards, and the history to the model provider. It also sends rule hits, toolchain diagnostics, and the files that the agent reads. The dependency check sends package names and versions to the OSV API, and no code. Its web searches and the pages that it fetches go to the public web. The skill tells it to use only public names, such as a package and a version, in them. A local result stays in `~/.shadowclone/reviews/`. A cloud result passes between jobs as a workflow artifact that expires after one day. The clone posts its findings to the PR. Nothing from a review becomes learning input.
 
 ## Verification
 

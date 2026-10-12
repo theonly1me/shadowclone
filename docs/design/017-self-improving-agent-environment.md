@@ -6,7 +6,7 @@ Copied profile text became stale, automatic learning could process unhelpful ses
 
 ## Decision
 
-Use stable native pointers and session hooks to load current scoped guidance. The main agent marks a useful session through an opaque, expiring attribution token. Session-end work then processes that session within the user's learning permissions. A model may classify evidence but cannot widen capture consent.
+Use native routing sections and session hooks to load current scoped guidance. The main agent marks a useful session through an opaque, expiring attribution token. Session-end work then processes that session within the user's learning permissions. A model may classify evidence but cannot widen capture consent.
 
 Maintain canonical personal skills and portable copies. Preserve divergent manual edits and package ownership. Global publication contains only global guidance. Repository and remote-owner learning keep their scopes.
 

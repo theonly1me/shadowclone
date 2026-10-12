@@ -18,7 +18,7 @@ Release checks verify the package version, test the built CLI, and attach proven
 
 ## Tradeoffs
 
-The initial choice of compiled archives avoided a runtime installation. Packaging later moved to npm, so archive download, signing, and first-release instructions are no longer installation guidance.
+Releases publish npm packages, so an install needs Node.js or Bun.
 
 Biome covered the required rules with a small toolchain. Formatting stayed separate, because enabling it would produce an unrelated repository-wide rewrite. Custom checks need tests for both violations and valid input, including strings that look like comments.
 

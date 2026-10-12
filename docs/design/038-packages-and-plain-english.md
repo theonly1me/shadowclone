@@ -21,27 +21,17 @@ The documentation was long, and parts of it were out of date. Agent lists left o
 | `review`      | Pull request review engine                                                                  |
 | `changes`     | Reversible local writes, stored as revisions                                                |
 | `skills`      | Skill files without model calls: library, quality rules, parsing, discovery, and proposals  |
-| `profile`     | Learned rule model, legacy profile, references, and Claude memory migration                 |
+| `profile`     | Learned rule model and Claude memory scanner                                                |
 | `environment` | What agents receive: environment records, publication, native integrations, install, undo   |
 | `builds`      | Agent builds: catalog, plan, apply, sync, and retire                                        |
 | `learning`    | Evidence to guidance: distillation, reconciliation, skill assessment, workers, and remember |
 | `harness`     | Repository harness (`init --repo` and `check`)                                              |
 | `cloud`       | GitHub bot setup, workflows, export, and status                                             |
-| `web`         | Wizard server and client, voice, and browser setup for the cloud bot                        |
+| `web`         | Wizard server and client, voice, and skill drafts                                           |
 | `mcp`         | MCP server                                                                                  |
 | `cli`         | Commands, the `bin` entry, build, stage, and publish                                        |
 
-```mermaid
-graph BT
-  redact-->core; agents-->redact; sessions-->redact
-  changes-->sessions; skills-->changes; profile-->skills
-  environment-->profile; environment-->agents
-  builds-->environment; learning-->environment
-  review-->agents; harness-->environment
-  cloud-->environment; cloud-->review
-  web-->cloud; web-->builds; web-->learning
-  mcp-->web; cli-->mcp; cli-->harness
-```
+The [architecture](../architecture/README.md#dependencies) page has the current dependency graph.
 
 `skills/` and `plugins/` stay at the repository root, because people and skill installers look for them there. `evals/` and `tooling/` are private workspaces.
 
@@ -50,8 +40,8 @@ graph BT
 - `EngineId` moves to `core`. The seed library lookup moves to `core/distribution.ts`. The product name and version move to `core/product.json`.
 - `resolveRedacted` and `captureRoots` move to `sessions`, because they read session records.
 - `src/index/` becomes `eventIndex/`, so that a module barrel does not collide with a package entry.
-- The cloud browser setup files move to `web`. The CLI install files move to `environment`.
-- `undoRevision`, `writeProfile`, `readProfileSnapshot`, and the seed guidance writer move to `environment`.
+- The CLI install files move to `environment`.
+- `undoRevision` and the seed guidance rules move to `environment`.
 - Build schemas, build directories, build integrations, and build routing move to `environment/builds/`. The harness manifest and recipes move to `environment/harness/`.
 - The skill maintenance files that call a model, and the 11 learning files in `environment`, move to `learning`.
 - About 30 tests move to the package that has what they import. The test count stays the same.

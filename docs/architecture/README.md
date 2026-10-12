@@ -15,7 +15,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`review`](../../packages/review/AGENTS.md)           | Pull request review engine                           |
 | [`changes`](../../packages/changes/AGENTS.md)         | Reversible local writes, stored as revisions         |
 | [`skills`](../../packages/skills/AGENTS.md)           | Skill files without model calls                      |
-| [`profile`](../../packages/profile/AGENTS.md)         | Learned rules, legacy profile, memory migration      |
+| [`profile`](../../packages/profile/AGENTS.md)         | Learned rule model and Claude memory scanner         |
 | [`environment`](../../packages/environment/AGENTS.md) | Publication, native sections, install, and undo      |
 | [`builds`](../../packages/builds/AGENTS.md)           | Agent builds                                         |
 | [`learning`](../../packages/learning/AGENTS.md)       | Distillation, reconciliation, probes, `remember`     |
@@ -40,8 +40,9 @@ graph BT
   sessions --> redact
   changes --> sessions
   skills --> changes
-  profile --> skills
+  profile --> sessions
   environment --> profile
+  environment --> skills
   environment --> agents
   builds --> environment
   learning --> environment

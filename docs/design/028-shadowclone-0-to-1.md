@@ -48,7 +48,7 @@ Unrelated ledger entries stay unchanged. A later learning run can reconcile thos
 
 ### Learning service and lifecycle
 
-Move engine selection, bounded execution, reconciliation, persistence, and publication coordination from `cli/deepLearn.ts` into a service under `learning/`. CLI commands format output and ask for confirmation. The background worker supplies its previously authorized automatic decision. Keep legacy profile reads and writes behind migration adapters. Select active environment storage explicitly, not through misleading profile-named entry points.
+Move engine selection, bounded execution, reconciliation, persistence, and publication coordination from `cli/deepLearn.ts` into a service under `learning/`. CLI commands format output and ask for confirmation. The background worker supplies its previously authorized automatic decision. The skills environment is the only store, and the service reads and writes it directly.
 
 Manual learning works when the user consented to learning. It does not depend on background improvement. Background improvement stays a separate consent flag. The background path uses the same evidence and durability classification as manual learning, within its existing time and call limits. An English keyword is not an eligibility requirement.
 
@@ -72,11 +72,11 @@ Regenerate the published aggregate from private receipts after the scorer and bo
 
 ## Implementation sequence
 
-`learning/maintenance` owns the choice between active environment maintenance and legacy library maintenance. Active CLI and worker callers use that service directly. `skillMaintenance/legacyUpdate` contains the legacy implementation. The old exported update API stays as a small compatibility forwarding module. Environment modules reuse discovery and synchronization primitives. They do not reuse the compatibility coordinator. This removes the ambiguity about package-level ownership. It does not replace the publication safeguards.
+`learning/maintenance` runs environment maintenance. Active CLI and worker callers use that service directly. Environment modules reuse discovery and synchronization primitives. This keeps package-level ownership clear. It does not replace the publication safeguards.
 
 1. Add the shared authorized evidence selector and provider user-text normalization. Prove revocation after indexing and Codex learning with synthetic transcripts.
 2. Separate manual and background consent. Move learning orchestration to the service. Save pending decisions and private attempt receipts. Make episode processing depend on durable outcomes.
-3. Add reviewed historical repository binding, source provenance and removal, and one preference review lifecycle. Migrate existing environment state. Do not discard records, prior revisions, or legacy recovery artifacts.
+3. Add reviewed historical repository binding, source provenance and removal, and one preference review lifecycle. Do not discard records or prior revisions.
 4. Publish short native rules and full skills together. Repair Claude and Codex destinations and hook commands. Simplify first-run status. Verify ownership, private repository output, manual edits, conflict rollback, and undo.
 5. Repair evaluation scoring and resampling, recompute public aggregates, and update the README and guides. Raise the TypeScript limit to 300 lines. Keep the no-comments rule. Repair design-record numbering and long lines in touched files.
 
@@ -101,7 +101,7 @@ Regenerate the published aggregate from private receipts after the scorer and bo
 
 ## Consequences
 
-The change spans persistence, publication, native integrations, setup, and evaluation. Existing environment files, legacy profiles, manual instruction edits, user skills, and revision history must remain readable and reversible. Source removal can require review when one artifact contains guidance from several sources. Native instruction budgets stay bounded. Overflow produces a pending reason. It does not truncate or silently drop a rule.
+The change spans persistence, publication, native integrations, setup, and evaluation. Existing environment files, manual instruction edits, user skills, and revision history must remain readable and reversible. Source removal can require review when one artifact contains guidance from several sources. Native instruction budgets stay bounded. Overflow produces a pending reason. It does not truncate or silently drop a rule.
 
 The Cursor and Antigravity support claims remain. Their provider paths and paid evaluations are outside this implementation round. The existing `run`, MCP, and subagent interfaces remain advanced capabilities. This design justifies no new dependency.
 
@@ -132,50 +132,6 @@ Use at most three short authenticated sessions on each of Claude Code and Codex.
 
 ## Implemented scope and qualification
 
-### Evolution through completed work
-
-The next increment extends maintained skills into task execution inside an existing Claude Code or Codex session. The optional `shadowclone-work` starter skill composes installed guidance. A local task service records acceptance criteria, repository requirements, selected guidance, delegation acknowledgments, verification, independent review, and the requested finish line. Loading guidance is not the same as following it. Execution records never become learning input. Explicit corrections use the existing preference service.
-
-Implement in this order:
-
-1. The task contract and private persistence.
-2. Snapshot-bound verification.
-3. Ownership and recovery.
-4. Explicit action grants and GitHub maintenance.
-5. CLI, MCP, and local browser presentation.
-
-Reuse the existing harness, skill delivery, sandbox, remote helpers, and storage primitives. Keep the headless runner and legacy profiles compatible. Version task records independently from existing receipts. Store records and guidance under private run storage, outside the checkout.
-
-Task start reads the current repository instructions and the applicable maintained guidance. It freezes the required gate and verification recipes. It records the Git head and the fingerprints of tracked and untracked changes. A worker cannot remove repository requirements. Verification runs bounded recipes in the existing credential-free sandbox. It records incomplete prerequisites honestly. Substantive work needs an independent review. A changed workspace, guidance snapshot, or grant invalidates readiness. A failed check permits one repair. A further failure blocks the task.
-
-Native sessions own execution. One coordinator reserves each worktree and each file scope. Up to two independent workers can run, but only after explicit workspace and guidance delivery acknowledgments. Unknown host capabilities use serial execution. Durable checkpoints support pause, cancel, and resume. They cause no implicit retries and no deletion of work. Recovery requires that the prior session has stopped. Cleanup never removes unfinished or unpushed worktrees.
-
-Repository grants are explicit decisions that the user makes through the local CLI. They are separate from learned preferences and from the per-run approvals of the legacy runner. Grants cover commit, push, PR creation, reply, and merge. A user can revoke them. Each grant applies only where the task's requested actions and managed policy also allow it. Task helpers verify current evidence before Git writes. They bind PR maintenance to the recorded repository and branch. They never force push. They use exact-head merge checks. Remote operations record intent before execution. An uncertain interrupted operation needs reconciliation, not a blind retry. Maintenance works only inside an active session.
-
-Qualification uses synthetic fixtures and real local Git, CLI, MCP, and sandbox runs. Authenticated host runs, paid evaluation, publication, and the external adopter pilot need separate authorization. Freeze evaluation tasks before you measure preference coverage. Collect accepted changes, review time, corrections, interventions, regressions, and cost. Do not import execution output into learning. Report unqualified host behavior explicitly.
-
-Cancellation keeps ownership until verification has stopped, including cleanup. Frozen guidance records repository instruction paths relative to the worktree. Verification checks for added, removed, and changed instructions in the actual checkout of each worker. A worker cannot reuse a coordinator snapshot when its repository requirements differ.
-
-The implementation adds:
-
-- The opt-in workflow skill.
-- Shared CLI and MCP task operations.
-- Private versioned records.
-- Sandboxed verification recipes.
-- Attributed review.
-- Bounded worktree ownership.
-- Interruption recovery.
-- Repository action grants.
-- GitHub action journals and reconciliation.
-- Browser progress.
-- Matched outcome reporting.
-
-Existing skill installation and the headless runner keep their interfaces. New task records do not change legacy receipt formats. They do not give existing repositories new permissions.
-
-Qualification tested real local Git fixtures, stdio MCP initialization and task requests, and the recorded task view of the browser. It also tested the protections of the macOS verification sandbox against Git metadata writes, credential reads, external writes, and networking. A read-only GitHub CLI check confirmed the response shapes and the fallback for missing required checks. Remote write paths use synthetic contract tests. Regression checks showed a failure when someone removed snapshot binding or task action restrictions. They reproduced instruction drift and cancellation races before the fixes.
-
-No real Claude Code or Codex agent run, live GitHub write, matched held-out study, or adopter pilot has qualified the engineering workflow yet. These stay release gates. The native preference-delivery qualification below came earlier. It covers learning and delivery, not this new task lifecycle. The local checks show no superiority in throughput or security.
-
 ### Plugin bootstrap qualification
 
 The packaged setup skill checks the installed CLI version before it reads setup state. A bundled Node helper runs only `shadowclone --version`, with bounded output and a timeout. It requires stable CLI version 0.0.13 or newer. A missing or older installation prompts a decision to install or upgrade. After the user approves, the skill installs the public package without elevated privileges and repeats the compatibility check. A compatible existing installation keeps its consent settings. If the public package is still too old, setup stops before initialization and explains the action to take. Setup also stops in this way when a different executable shadows the installation.
@@ -205,7 +161,7 @@ The implementation includes:
 - Review signals for later corrections.
 - An on-demand native response probe.
 
-The CLI and workers use learning application services. Legacy profile and library entry points stay as compatibility paths. Publication keeps ownership, edited native destinations, original resources, and revision recovery. Short rules are inline. Workflow skills use native names. Generic starter workflows are optional. Hooks use an owned launcher that does not depend on `PATH`. Source removal records the pending rejection and the environment retirement together, so undo restores both.
+The CLI and workers use learning application services. Publication keeps ownership, edited native destinations, original resources, and revision recovery. Short rules are inline. Workflow skills use native names. Generic starter workflows are optional. Hooks use an owned launcher that does not depend on `PATH`. Source removal records the pending rejection and the environment retirement together, so undo restores both.
 
 Synthetic contract tests cover each supported learning provider. The tests run from capture through declined review, failed publication, retry, and successful publication. They cover both native guidance formats. Tests run the relocated package against a fresh private home. This includes a launcher invocation with no Shadowclone executable on `PATH`. Three short synthetic sessions for each agent qualified live native delivery and the bounded probe. Both final probes matched their expected response with no permission denials. The record of a probe pass is independent of skill reads and hook observation.
 

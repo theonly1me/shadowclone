@@ -23,7 +23,6 @@ Agent identifiers are `claude-code`, `codex`, `cursor`, `antigravity`, and `pi`.
 - `shadowclone learn --deep`: run a bounded learning pass with a model. Options are `--dry-run`, `--apply`, `--engine <id>`, `--model <id>`, `--reasoning-effort <level>`, and `--max-calls <n>`. See [learning](learning.md).
 - `shadowclone remember [--repo or --global] <text>`: record a rule yourself.
 - `shadowclone import`: read consented repository guidance as evidence.
-- `shadowclone recall <query> [--limit 1..10]`: search the scoped reference records.
 - `shadowclone learning enable`, `disable`, or `status`: turn background learning on or off, or read the last attempt.
 - `shadowclone learning list` or `pending`: list active guidance, or every open review and publication decision.
 - `shadowclone learning show <key>`: read the redacted evidence, the guidance, and the scope.
@@ -52,17 +51,14 @@ See [skill maintenance](skills.md).
 
 ## Review, cloud, and repository
 
-- `shadowclone review <pr>`: review a pull request on this machine and write a Markdown file. `--base <ref>` reviews the commits on this branch since it left `<ref>`. `--cloud` asks the cloud bot instead. Other options are `--no-checks`, `--offline`, `--repo owner/repository`, `--output file.md` (or `file.json` for the full result as JSON), `--model <id>`, and `--effort <level>`. The cloud workflow also uses `review prepare`, `checks`, `analyze`, and `publish`. See [reviews](reviews.md).
-- `shadowclone bot setup`: open the browser setup, which also offers a GitHub App. `--bot <login>` sets up a machine account bot, and `--app` selects a GitHub App. The two options exclude each other. Other options are `--engine claude` or `codex`, `--codex-auth api-key` or `plan`, `--repo owner/repository`, `--yes`, and `--no-open`. See the [cloud bot guide](cloud-bot.md).
-- `shadowclone bot status [--repo owner/repository]`: show the setup steps that are still open.
+- `shadowclone review <pr>`: review a pull request on this machine and write a Markdown file. `--base <ref>` reviews the commits on this branch since it left `<ref>`. `--cloud` comments `@<bot> review` so the cloud bot reviews it. Other options are `--no-checks`, `--offline`, `--repo owner/repository`, `--output file.md` (or `file.json` for the full result as JSON), `--model <id>`, and `--effort <level>`. The cloud workflow also uses `review prepare`, `checks`, `analyze`, and `publish`. See [reviews](reviews.md).
+- `shadowclone bot setup --bot <login>`: set up the machine account bot. `--provider` is `anthropic` (default), `openai`, `openai-compatible`, or `cursor`. `openai-compatible` needs `--base-url <https url>` and `--model <id>`. Other options are `--model <id>`, `--repo owner/repository`, `--yes`, and `--no-open`. See the [cloud bot guide](cloud-bot.md).
+- `shadowclone bot status --repo owner/repository`: list the open setup steps, or start the check run and wait up to 8 minutes for its result. It exits with status 1 until the check passes. Without `--repo`, it prints the saved setups as JSON.
 - `shadowclone bot export --skill <name> --output <private-folder>`: save skills to a folder outside the checkout, with no upload.
 - `shadowclone check [--changed]`: run the repository checks. `--format` accepts `human`, `json`, or `claude-stop`.
 
-## Migrate and serve
+## Serve
 
-- `shadowclone migrate skills`: preview a move from a profile installation to skills.
-- `shadowclone migrate claude-memory`: preview the older one-time import of Claude memory.
-- `shadowclone profile repair`: preview repairs for a profile installation.
 - `shadowclone mcp`: serve the [MCP tools](mcp.md) on standard input and output.
 
 ## Install notes

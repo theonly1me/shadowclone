@@ -49,7 +49,7 @@ When a release retires a bundled skill, `sync` replaces it with its successor in
 
 ## History and undo
 
-Each publication has a revision. Run `shadowclone history`, `shadowclone history <revision>`, or `shadowclone undo <revision>`. Undo refuses to overwrite later edits. An installation that uses a profile needs [migration](migration.md) first.
+Each publication has a revision. Run `shadowclone history`, `shadowclone history <revision>`, or `shadowclone undo <revision>`. Undo refuses to overwrite later edits.
 
 ## Controls
 

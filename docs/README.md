@@ -10,11 +10,10 @@ Start with the [README](../README.md) to install Shadowclone and pick your first
 - [Repository setup](guides/repositories.md): share checks and skills with a repository.
 - [Pi setup](guides/pi.md): use Pi models, including local models.
 - [Delegated work](guides/delegated-work.md): take a change to ready for review.
-- [Cloud bot](guides/cloud-bot.md): set up a GitHub bot.
+- [Cloud bot](guides/cloud-bot.md): set up a GitHub bot on a provider API key.
 - [Reviews](guides/reviews.md): follow a guided review, or review a PR locally or in the cloud.
 - [MCP server](guides/mcp.md): give a connected agent the Shadowclone tools.
 - [Command reference](guides/commands.md): find every command.
-- [Migration](guides/migration.md): move a profile installation to skills.
 - [Enterprise controls](guides/enterprise.md): set scope and managed policy.
 - [Comparison](guides/comparison.md): compare Shadowclone with related tools.
 
@@ -27,7 +26,7 @@ Start with the [README](../README.md) to install Shadowclone and pick your first
 
 - [Motivation](motivation.md): why the project exists.
 - [Architecture](architecture/README.md): packages, dependencies, data flow, and trust boundaries.
-- [Design history](design/README.md): decisions, and the designs that replaced them.
+- [Design records](design/README.md): the decisions behind current behavior.
 - [Evaluations](../evals/README.md): the suites and paid runs.
 - [Contributing](../CONTRIBUTING.md): setup, checks, new packages, and pull requests.
 
@@ -35,7 +34,8 @@ Coding assistants start with [AGENTS.md](../AGENTS.md). Each package also has an
 
 ## Open work
 
-- Test setup, migration, conflict recovery, and removal on real installations with explicit source consent.
+- Test setup, conflict recovery, and removal on real installations with explicit source consent.
+- Qualify the cloud bot on a live repository for each provider.
 - Measure whether maintained guidance reduces the effort of repeated tasks. Preference scores do not measure productivity.
 - Add a model runner for Antigravity, which has capture and native guidance only. No API or local-endpoint engine exists.
 - Define evidence and action boundaries for merge outcomes, issue-tracker intake, and concurrent clones. The learning workflow excludes them.
