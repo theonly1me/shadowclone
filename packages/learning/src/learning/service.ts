@@ -1,7 +1,7 @@
 import { captureRoots } from "@shadowclone/sessions";
 import { normalizeExplicitCandidates } from "./candidates";
 import type { ManagedPolicy, ProjectPaths } from "@shadowclone/core";
-import { readConfig } from "@shadowclone/core";
+import { readConfig, readEffectiveConfig } from "@shadowclone/core";
 import { selectLearningPreferences } from "./modelPreferences";
 import { distillSignals, renderReconciliationChanges } from "../distill";
 import {
@@ -23,6 +23,7 @@ import { loadSeedLibrary } from "@shadowclone/skills";
 import { readEnvironment, refreshIntegrations } from "@shadowclone/environment";
 import { queuePendingLearning, readPendingLearning, updatePendingLearning } from "./pending";
 import { recordLaterCorrections } from "./feedback";
+import { readCoveredGuidance } from "./coverage";
 
 export type DeepLearningResult = {
   readonly changesProposed: number;
@@ -115,11 +116,15 @@ export async function runLearningService(options: {
     ].join(""),
   );
 
-  const [storedProfile, seedLibrary, pending, previousEnvironment] = await Promise.all([
+  const { config: effectiveConfig } = await readEffectiveConfig({
+    configPath: options.paths.configFile, managedConfigPath: options.paths.managedConfigFile,
+  });
+  const [storedProfile, seedLibrary, pending, previousEnvironment, coverage] = await Promise.all([
     readLearningSnapshot(options.paths),
     loadSeedLibrary(),
     readPendingLearning(options.paths),
     readEnvironment(options.paths),
+    readCoveredGuidance({ paths: options.paths, config: effectiveConfig }),
   ]);
   const normalized = normalizeExplicitCandidates(storedProfile);
   const result = await distillSignals({
@@ -134,6 +139,7 @@ export async function runLearningService(options: {
     events: options.events,
     profile: normalized.profile,
     seedLibrary,
+    coverage,
     requireSteeringCue: options.requireSteeringCue,
     authorizeRef: options.authorizeRef,
   });

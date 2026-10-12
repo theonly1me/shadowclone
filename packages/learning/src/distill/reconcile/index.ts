@@ -15,6 +15,7 @@ export {
 
 export type {
   AppliedReconciliation,
+  CoveredGuidance,
   ReconciliationChange,
   ReconciliationContext,
   ReconciliationOutput,

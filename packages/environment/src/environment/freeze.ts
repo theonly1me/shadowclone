@@ -6,6 +6,12 @@ import { discoverDeliverySkills, readMaintenanceState } from "@shadowclone/skill
 import { readIntegrations } from "../integrations/state";
 import { integrationFilePath } from "../integrations/targets";
 
+export const globalInstructionFiles = [
+  ".claude/CLAUDE.md",
+  ".codex/AGENTS.md",
+  ".codex/AGENTS.override.md",
+] as const;
+
 export async function freezeOriginalEnvironment(
   paths: ProjectPaths,
 ): Promise<string> {
@@ -101,11 +107,7 @@ export async function freezeOriginalEnvironment(
   const home = path.dirname(paths.shadowcloneDirectory);
 
   const instructions = [
-    ...[
-      ".claude/CLAUDE.md",
-      ".codex/AGENTS.md",
-      ".codex/AGENTS.override.md",
-    ].map((relative) => ({
+    ...globalInstructionFiles.map((relative) => ({
       source: path.join(home, relative),
       scope: "global",
       cwd: null,

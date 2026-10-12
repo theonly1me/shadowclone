@@ -34,6 +34,8 @@ Shell history is not a source. Upgrading deletes indexed shell history events, c
 
 Personal skill locations include `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`, and `~/.gemini/config/skills/`. Shadowclone may also review configured provider plugin caches. Codex paths follow `$CODEX_HOME` when set. Evaluation context can include `~/.claude/CLAUDE.md`, Codex `AGENTS.md` and `AGENTS.override.md`, and the selected skill catalog, which each study freezes.
 
+With `agent-context` on, learning also reads those three instruction files to find guidance that you already maintain. With `skill-library` on, it reads the names and descriptions of your personal skills for the same purpose. The text crosses the redaction boundary, and each instruction file has a 32 KB limit. Learning drops a new rule that this text already states, and triage discards a pending rule that it covers.
+
 Transcript parsers can meet prompts, assistant responses, tool results, and thinking blocks in an enabled file. Only user-authored text counts as learning evidence. Tool results, tool-returned file contents, thinking, and data-access results never enter learning. Agent responses, plans, and questions reach the model only as labeled context beside a user correction. Eligible text can still hold sensitive information.
 
 Pi transcript consent is separate from Git metadata and skill maintenance. Session start records repository identity only when both Pi capture and Git metadata are on. See [capture](architecture/01-capture.md) for what each adapter excludes.
@@ -43,7 +45,7 @@ Pi transcript consent is separate from Git metadata and skill maintenance. Sessi
 | Operation                   | Provider access                                                                                                                              |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | Plain `learn` after setup   | Local indexing and reporting. No model calls                                                                                                 |
-| Deep or background learning | Selected redacted steering, supporting context, and guidance needed for reconciliation                                                       |
+| Deep or background learning | Selected redacted steering, supporting context, guidance needed for reconciliation, and redacted coverage text for duplicate checks and triage |
 | Skill maintenance           | Redacted catalogs, full instructions of overlapping workflows, and evidence for proposed updates. Supporting resources are checked locally   |
 | Browser editor              | Opening it makes no model request. Build naming sends redacted skill titles and summaries. Voice capture and skill drafts need a user action |
 | Cloud bot                   | Reviewed skills from your private skills repository, the selected repository, and an authorized issue or PR task                             |
@@ -69,7 +71,7 @@ Earlier versions kept delegated task records under `~/.shadowclone/runs/`, grant
 | `~/.shadowclone/profile/`               | Legacy profile state and recovery artifacts                                                                                          |
 | `~/.shadowclone/distill/`               | Derived learning checkpoints and fingerprints                                                                                        |
 | `~/.shadowclone/learning-pending.json`  | Learned rules awaiting approval, with source provenance and keys rejected during review                                              |
-| `~/.shadowclone/learning-attempts/`     | Private receipts with outcome codes, counts, and next actions, without excerpts or transcript paths                                  |
+| `~/.shadowclone/learning-attempts/`     | Private receipts with outcome codes, counts, next actions, and a redacted failure reason of up to 200 characters, without excerpts or transcript paths                                  |
 | `~/.shadowclone/learning-feedback.json` | Opaque evidence hashes, rule and guidance identifiers, source names, correction times, and review acknowledgements                   |
 | `~/.shadowclone/learning-probes/`       | Probe receipts with task and guidance hashes, provider metadata, outcomes, and loading observations, without prompt or response text |
 | `~/.shadowclone/skills.json`            | Configured roots, maintenance ownership, and cached library review fingerprints                                                      |

@@ -3,6 +3,7 @@ import type { SeedGuidance, SeedLibrary } from "@shadowclone/skills";
 import { seedGuidanceProfileKey } from "@shadowclone/skills";
 import type { DistillBatch } from "../batch";
 import type {
+  CoveredGuidance,
   PromptAxisOption,
   PromptEvidence,
   PromptRejection,
@@ -97,6 +98,7 @@ export function createReconciliationContext(options: {
   readonly batch: DistillBatch;
   readonly profile: ProfileSnapshot;
   readonly library: SeedLibrary;
+  readonly coverage?: readonly CoveredGuidance[];
 }): ReconciliationContext {
   const rules: PromptRule[] = options.profile.rules
     .filter((entry) => ruleInBatch({ rule: entry.rule, batch: options.batch }))
@@ -132,5 +134,7 @@ export function createReconciliationContext(options: {
     }),
   );
 
-  return { batch: options.batch, rules, rejections, evidence };
+  const coverage = (options.coverage ?? []).map((entry, index) => ({ ...entry, token: `covered-${index + 1}` }));
+
+  return { batch: options.batch, rules, rejections, coverage, evidence };
 }

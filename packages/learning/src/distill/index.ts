@@ -23,6 +23,7 @@ import {
   buildReconciliationPrompt,
   createReconciliationContext,
   runReconciliation,
+  type CoveredGuidance,
   type ReconciliationChange,
 } from "./reconcile";
 
@@ -44,6 +45,7 @@ export {
 
 export {
   buildReconciliationPrompt,
+  type CoveredGuidance,
   parseReconciliationOutput,
   reconciliationOutputSchema,
   renderReconciliationChanges,
@@ -88,6 +90,7 @@ export async function distillSignals(options: {
   readonly events: readonly IndexedEvent[];
   readonly profile?: ProfileSnapshot;
   readonly seedLibrary?: SeedLibrary;
+  readonly coverage?: readonly CoveredGuidance[];
   readonly execution?: LearningExecution;
   readonly requireSteeringCue?: boolean;
   readonly authorizeRef?: (ref: CorrectionSignal["textRefs"][number]) => Promise<boolean>;
@@ -122,6 +125,7 @@ export async function distillSignals(options: {
         batch,
         profile: options.profile ?? emptyProfile,
         library: options.seedLibrary ?? emptyLibrary,
+        coverage: options.coverage,
       });
       const prompt = await buildReconciliationPrompt({ context, excerpts });
 

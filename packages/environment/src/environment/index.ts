@@ -49,6 +49,8 @@ export { materializeSkillDelivery } from "./delivery";
 
 export { explainLearningEnvironment } from "./diagnostics";
 
+export { globalInstructionFiles } from "./freeze";
+
 export { editableSkillDocument } from "./document";
 
 export {

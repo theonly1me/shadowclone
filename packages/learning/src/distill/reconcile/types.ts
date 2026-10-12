@@ -69,10 +69,20 @@ export type PromptEvidence = {
   readonly signal: CorrectionSignal;
 };
 
+export type CoveredGuidance = {
+  readonly source: string;
+  readonly text: string;
+};
+
+export type PromptCoverage = CoveredGuidance & {
+  readonly token: string;
+};
+
 export type ReconciliationContext = {
   readonly batch: DistillBatch;
   readonly rules: readonly PromptRule[];
   readonly rejections: readonly PromptRejection[];
+  readonly coverage: readonly PromptCoverage[];
   readonly evidence: readonly PromptEvidence[];
 };
 
