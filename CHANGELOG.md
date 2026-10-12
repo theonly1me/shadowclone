@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.31](https://github.com/theonly1me/shadowclone/compare/v0.0.30...v0.0.31) (2026-10-12)
+
+
+### Features
+
+* **learning:** triage learned rules at session end and fix failed background runs ([#200](https://github.com/theonly1me/shadowclone/issues/200)) ([989c32c](https://github.com/theonly1me/shadowclone/commit/989c32ca972e46706c0af56cb26fdf915940a667))
+
+
+### Documentation
+
+* **readme:** explain shadowclone capabilities ([#202](https://github.com/theonly1me/shadowclone/issues/202)) ([8e72bf3](https://github.com/theonly1me/shadowclone/commit/8e72bf3fc7687e076fbb475640f9d97db7ef946c))
+
 ## [0.0.30](https://github.com/theonly1me/shadowclone/compare/v0.0.29...v0.0.30) (2026-10-11)
 
 
