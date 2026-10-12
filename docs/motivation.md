@@ -30,4 +30,6 @@ Instruction files, skills, and memory stay part of the setup that Shadowclone ma
 - **Transcript analysis** finds repeated steering. It needs consent and evidence that justifies durable guidance.
 - **Evaluation** checks behavior under stated guidance. It needs fair baselines and correctness checks.
 
+The [comparison guide](guides/comparison.md) compares Shadowclone with specific tools.
+
 Well-maintained instructions may already give you what you need. The useful comparison is the effort and quality of keeping that setup current. More guidance can help, change nothing, or cause a conflict.

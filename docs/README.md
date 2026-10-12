@@ -16,6 +16,7 @@ Start with the [README](../README.md) to install Shadowclone and pick your first
 - [Command reference](guides/commands.md): find every command.
 - [Migration](guides/migration.md): move a profile installation to skills.
 - [Enterprise controls](guides/enterprise.md): set scope and managed policy.
+- [Comparison](guides/comparison.md): compare Shadowclone with related tools.
 
 ## Privacy and results
 

@@ -49,3 +49,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [039: Review evaluation](039-review-evaluation.md)                             | One case format for real vite defects and planted defects, with blind judges from two vendors who must agree on a label |
 | [040: Guided PR review](040-guided-pr-review.md)                               | Connected PR guides, inline human notes, optional pending reviews, and a separate portable skill artifact               |
 | [041: Learning triage](041-learning-triage.md)                                 | Coverage from the user's own files, session-end triage with undo, and private repository delivery                       |
+| [042: Compare related tools](042-compare-alternatives.md)                      | A README opening about one skill set for local and cloud agents, and a dated comparison with related tools              |
