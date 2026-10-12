@@ -27,7 +27,7 @@ Results include usage, model and session identity, structured output, errors, an
 
 ## Learning limits
 
-One `createLearningExecution` instance owns the whole model allowance of a learning invocation, including reconciliation, consolidation, and skill maintenance. Defaults are 20 attempted calls and five minutes. Claude also gets a cumulative $2 ceiling. Setup uses 12 calls, 90 seconds, and a supported $1 ceiling. These limits cover model work, not the local scan.
+One `createLearningExecution` instance owns the whole model allowance of a learning invocation, including reconciliation, consolidation, triage, and skill maintenance. Defaults are 20 attempted calls and five minutes. Claude also gets a cumulative $2 ceiling. Setup uses 12 calls, 90 seconds, and a supported $1 ceiling. These limits cover model work, not the local scan.
 
 Dollar-limited calls run serially, and each gets the allowance that remains. Unknown spend stops further calls. Engines without dollar enforcement use call and time limits only. Attempts, failures, and timeouts use calls. A deadline aborts the provider request. Completed checkpoints can be reused without a model call.
 

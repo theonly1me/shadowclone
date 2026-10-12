@@ -49,6 +49,10 @@ export function belongsToScope(options: {
 }
 
 export function skillDirectories(scope: LearningScope): readonly string[] {
+  if (scope.repository?.privateSkillsDirectory) {
+    return [scope.repository.privateSkillsDirectory];
+  }
+
   return [
     ".agents/skills",
     ".claude/skills",

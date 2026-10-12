@@ -3,6 +3,7 @@ import {
   readLocalText,
   acquireLocalLock,
   canonicalPath,
+  fingerprint,
   type ProjectPaths,
 } from "@shadowclone/core";
 import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "@shadowclone/sessions";
@@ -11,6 +12,18 @@ import { publishEnvironmentRevision } from "./revision";
 import { environmentFile, readEnvironment, renderEnvironment } from "./store";
 import type { EnvironmentRepository } from "./types";
 
+export type RepositoryDelivery = "repository" | "private";
+
+function privateSkillsDirectory(options: {
+  readonly paths: ProjectPaths;
+  readonly originDirectory: string;
+  readonly repositoryName: string;
+}): string {
+  const identity = fingerprint(`${options.originDirectory}/${options.repositoryName}`).slice(0, 16);
+
+  return canonicalPath(path.join(options.paths.shadowcloneDirectory, "builds", `learning-${identity}`, "skills"));
+}
+
 export async function registerWorkingRepository(options: {
   readonly paths: ProjectPaths;
   readonly workingDirectory: string;
@@ -18,6 +31,7 @@ export async function registerWorkingRepository(options: {
   readonly blockedOrigins: readonly string[];
   readonly managedConfigPath?: string | null;
   readonly readRemote?: GitRemoteReader;
+  readonly delivery?: RepositoryDelivery;
 }): Promise<EnvironmentRepository | null> {
   if (!options.gitMetadataEnabled) {
     return null;
@@ -37,11 +51,14 @@ export async function registerWorkingRepository(options: {
     return null;
   }
 
-  const registered: EnvironmentRepository = {
+  const identity = {
     directory: canonicalPath(options.workingDirectory),
     originDirectory: repository.origin.directoryName,
     repositoryName: repository.profileFileName,
   };
+  const registered: EnvironmentRepository = options.delivery === "private"
+    ? { ...identity, privateSkillsDirectory: privateSkillsDirectory({ paths: options.paths, ...identity }) }
+    : identity;
   const lock = await acquireLocalLock(
     path.join(options.paths.shadowcloneDirectory, "environment-write.db"),
   );
@@ -62,6 +79,7 @@ export async function registerWorkingRepository(options: {
       paths: options.paths,
       cwd: registered.directory,
       managedConfigPath: options.managedConfigPath,
+      ...(registered.privateSkillsDirectory ? { rootDirectory: registered.privateSkillsDirectory } : {}),
     });
 
     const filePath = environmentFile(options.paths);

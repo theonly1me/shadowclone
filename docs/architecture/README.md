@@ -69,7 +69,8 @@ flowchart LR
     Sources["Consented sessions and memory"] --> Index["sessions: event index"]
     Index --> Redaction["resolveRedacted: redacted user text"]
     Redaction --> Learning["learning: reconcile guidance"]
-    Learning --> Review["Apply or hold for review"]
+    Instructions["Your instruction files and skills"] --> Learning
+    Learning --> Review["Triage: apply, discard, or hold"]
     Review --> Revision["changes: one revision"]
     Revision --> Delivery["environment: skills and native sections"]
     Delivery --> Agents["Coding agents"]

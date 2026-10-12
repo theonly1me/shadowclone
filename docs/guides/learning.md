@@ -30,6 +30,27 @@ Approval records the rule and tries to publish it in its scope, within the learn
 
 Background learning has its own consent. After `shadowclone learning enable`, Shadowclone classifies eligible steering inside the same bounded execution as manual learning. A temporary exception or an interruption alone never becomes a standing preference, and cue words need not be English. `learning disable` turns it off.
 
+## Triage after each session
+
+After each background run, Shadowclone triages the learned rules that wait for publication, in one model call inside the same budget. Each rule gets one result:
+
+- **Discard** a rule that repeats another rule, published guidance, your instruction files, or your skills. Also discard a rule that names a missing skill or that applied to one task only. The rule becomes a rejection, so it does not return.
+- **Apply** durable guidance that nothing covers. Triage publishes it only when automatic maintenance is on (`shadowclone skills automatic on`).
+- **Defer** a rule when the model is not sure, when automatic maintenance is off, or when its repository has no destination yet. Triage asks again only after the rule or its destination changes.
+
+Your next agent session starts with one line that names the applied and discarded rules and their revisions. Use `shadowclone history` to review a change and `shadowclone undo <revision>` to reverse it. `learning status` shows the triage counts of the latest run.
+
+With `agent-context` on, learning reads `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, and `~/.codex/AGENTS.override.md`. With `skill-library` on, it reads the names and descriptions of your personal skills. It then drops new rules that this text already states.
+
+## Choose where repository rules go
+
+A repository rule waits until its repository has a destination. When you start a session in that repository, the agent asks you once:
+
+- `shadowclone learning repositories set . --private` keeps the rules in `~/.shadowclone/builds/` and changes no repository file. Sessions in that repository receive them at start.
+- `shadowclone learning repositories set . --repository` publishes them into the repository's `.agents/skills` and `.claude/skills` folders.
+
+Setup and `learn --deep` still register the repository where they run, with the `--repository` destination.
+
 ## Record a rule
 
 `shadowclone remember --repo "Use complete variable names."` records repository guidance yourself. Use `--global` only for guidance that applies to every repository. Recording and publishing are separate steps. `shadowclone skills pending` shows the publication work, and `shadowclone context --explain` shows active guidance.

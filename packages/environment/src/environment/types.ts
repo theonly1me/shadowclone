@@ -67,6 +67,7 @@ export const environmentRepositorySchema = z.strictObject({
   directory: z.string(),
   originDirectory: z.string(),
   repositoryName: z.string(),
+  privateSkillsDirectory: z.string().optional(),
 });
 
 export const artifactSchema = z.strictObject({

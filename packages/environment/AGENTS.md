@@ -19,6 +19,7 @@ Holds what agents receive: the environment record, skill publication, native ins
 - `src/environment/builds/` and `harness/`: build definitions, routing text, and the harness manifest.
 - `src/integrations/`: native sections, hooks, `installIntegration`, `uninstallIntegration`, and `compileContext`.
 - `src/integrations/installation/`: the install record and artifact ownership checks.
+- `src/environment/learningNotice.ts` and `repositoryQuestion.ts`: the one-time triage notice and the repository destination question in session-start context.
 
 ## Rules
 
@@ -28,6 +29,7 @@ Holds what agents receive: the environment record, skill publication, native ins
 - Shadowclone rewrites only the text between the `<shadowclone-guidance>` markers. Malformed markers are an error.
 - Shadowclone replaces an installed file only when its fingerprint matches the install record. A manual edit stays.
 - Migration copies the original skills and native instructions to `environment-baselines/` before it publishes.
+- A repository with `privateSkillsDirectory` publishes skills only under `~/.shadowclone/builds/`. Its routing names each skill by its file path, and no repository file changes.
 
 ## Tests
 

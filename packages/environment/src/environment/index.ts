@@ -51,6 +51,8 @@ export { explainLearningEnvironment } from "./diagnostics";
 
 export { globalInstructionFiles } from "./freeze";
 
+export { recordLearningNotice, takeLearningNotice } from "./learningNotice";
+
 export { editableSkillDocument } from "./document";
 
 export {
@@ -85,7 +87,7 @@ export { readProfileSnapshot, writeProfile } from "./profileRecords";
 
 export { skillPublication } from "./publication";
 
-export { registerWorkingRepository } from "./registerRepository";
+export { registerWorkingRepository, type RepositoryDelivery } from "./registerRepository";
 
 export { publishSkillResources } from "./resources";
 
@@ -93,7 +95,7 @@ export { publishEnvironmentRevision } from "./revision";
 
 export { validateRouting } from "./routingValidation";
 
-export { belongsToScope, type LearningScope, learningScopes } from "./scope";
+export { belongsToScope, type LearningScope, learningScopes, skillDirectories } from "./scope";
 
 export { profileRuleFromSeedGuidance, writeSeedGuidanceSelection } from "./seedGuidance";
 

@@ -32,6 +32,11 @@ const receiptSchema = z.strictObject({
   model: z.string().nullable().default(null),
   ruleKeys: z.array(z.string()).default([]),
   failure: z.string().max(maximumFailureCharacters).nullable().default(null),
+  triage: z.strictObject({
+    applied: z.number().int().nonnegative(),
+    discarded: z.number().int().nonnegative(),
+    deferred: z.number().int().nonnegative(),
+  }).nullable().default(null),
   nextAction: z.string(),
 });
 

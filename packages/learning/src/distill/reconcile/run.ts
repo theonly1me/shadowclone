@@ -7,18 +7,18 @@ import {
 } from "./schema";
 import type { ReconciliationOutput } from "./types";
 
-function structuredValue(run: {
-  readonly structured: unknown;
-  readonly text: string;
+export function structuredValue(options: {
+  readonly run: { readonly structured: unknown; readonly text: string };
+  readonly purpose: string;
 }): unknown {
-  if (run.structured !== null && run.structured !== undefined) {
-    return run.structured;
+  if (options.run.structured !== null && options.run.structured !== undefined) {
+    return options.run.structured;
   }
 
   try {
-    return JSON.parse(run.text);
+    return JSON.parse(options.run.text);
   } catch {
-    throw new Error("The engine returned no structured reconciliation result");
+    throw new Error(`The engine returned no structured ${options.purpose} result`);
   }
 }
 
@@ -54,7 +54,7 @@ export async function runReconciliation(options: {
     );
   }
 
-  const output = parseReconciliationOutput(structuredValue(run));
+  const output = parseReconciliationOutput(structuredValue({ run, purpose: "reconciliation" }));
 
   if (options.checkpointDirectory) {
     await writeCheckpoint({

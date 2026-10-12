@@ -4,7 +4,7 @@ import type { ProjectPaths } from "@shadowclone/core";
 import { materializeSnapshot } from "@shadowclone/redact";
 import type { DiscoveredSkill } from "@shadowclone/skills";
 import type { LearningRoute } from "./planner";
-import type { LearningScope } from "@shadowclone/environment";
+import { skillDirectories, type LearningScope } from "@shadowclone/environment";
 
 export async function resolveLearningTarget(options: {
   readonly paths: ProjectPaths;
@@ -13,6 +13,11 @@ export async function resolveLearningTarget(options: {
   readonly route: LearningRoute;
 }) {
   const { route } = options;
+  const [primaryDirectory] = skillDirectories(options.scope);
+
+  if (!primaryDirectory) {
+    throw new Error("Learning scope has no skill directory");
+  }
 
   const selected =
     options.skills.find(({ id }) => id === route.skillId) ?? null;
@@ -28,7 +33,7 @@ export async function resolveLearningTarget(options: {
   const target =
     selected && !companion
       ? path.join(selected.root.directory, selected.relativePath)
-      : path.join(options.scope.directory, ".agents/skills", name, "SKILL.md");
+      : path.join(primaryDirectory, name, "SKILL.md");
 
   const rawOriginal =
     selected && !companion ? selected.raw : await readLocalText(target);
@@ -38,7 +43,7 @@ export async function resolveLearningTarget(options: {
       ? null
       : await materializeSnapshot({
           filePath: target,
-          roots: [path.join(options.scope.directory, ".agents/skills")],
+          roots: [primaryDirectory],
           maximumBytes: 48_000,
           parse: () => null,
         });
