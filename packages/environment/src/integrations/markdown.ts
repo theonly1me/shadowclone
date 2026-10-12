@@ -1,8 +1,8 @@
 import { fingerprint } from "@shadowclone/core";
+import { preservedFileMessages } from "./preserved";
 
 export type SectionMarkers = { readonly start: string; readonly end: string };
 
-export const editedManagedContent = "Shadowclone managed content was edited; preserving the file";
 export const managedStart = "\n\n<shadowclone-guidance>";
 export const managedEnd = "</shadowclone-guidance>\n";
 export const guidanceMarkers: SectionMarkers = {
@@ -86,13 +86,11 @@ export function updateMarkedSection(options: {
     !recordedEmpty &&
     (!section || fingerprint(section) !== options.expected)
   ) {
-    throw new Error(editedManagedContent);
+    throw new Error(preservedFileMessages.editedManagedContent);
   }
 
   if (section && options.expected === undefined) {
-    throw new Error(
-      "Untracked Shadowclone content already exists; preserving the file",
-    );
+    throw new Error(preservedFileMessages.untrackedManagedContent);
   }
 
   const next =

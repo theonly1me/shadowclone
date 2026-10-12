@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fingerprint } from "@shadowclone/core";
 import type { Integration } from "./types";
+import { preservedFileMessages } from "./preserved";
 
 const documentSchema = z
   .object({ hooks: z.record(z.string(), z.array(z.unknown())).default({}) })
@@ -12,7 +13,7 @@ function parseDocument(text: string | null) {
   try {
     return documentSchema.parse(text === null ? {} : JSON.parse(text));
   } catch {
-    throw new Error("Invalid native hook configuration; preserving the file");
+    throw new Error(preservedFileMessages.invalidHookConfiguration);
   }
 }
 

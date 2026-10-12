@@ -7,15 +7,18 @@ import { emptyEnvironment, installIntegration, readEnvironment, writeEnvironment
 import { learningRecord, skillEngineRun, skillFixture } from "@shadowclone/environment/testing";
 import { updateLearningEnvironment } from "./environmentUpdate/update";
 
-test("an edited routing section in one agent's instructions does not stop skill publication", async () => {
+async function publishAfterEditing(options: {
+  readonly relativePath: string;
+  readonly edit: (text: string) => string;
+}) {
   const fixture = await skillFixture();
   const record = learningRecord({ body: "Use complete parameter names when editing typed code." });
   try {
     await writeEnvironment({ paths: fixture.paths, state: { ...emptyEnvironment, phase: "active", automatic: true, records: [record] } });
     await installIntegration({ ...fixture, agent: "codex", scope: "global" });
-    const instructions = path.join(fixture.home, ".codex/AGENTS.md");
-    const edited = (await Bun.file(instructions).text()).replace("</shadowclone-guidance>", "- my own routing line\n</shadowclone-guidance>");
-    await Bun.write(instructions, edited);
+    const editedPath = path.join(fixture.home, options.relativePath);
+    const edited = options.edit(await Bun.file(editedPath).text());
+    await Bun.write(editedPath, edited);
     const execution = createLearningExecution({
       engine: "claude-code",
       limits: { maximumCalls: 10, maximumCostUsd: 2, timeoutMilliseconds: 60_000 },
@@ -28,9 +31,32 @@ test("an edited routing section in one agent's instructions does not stop skill 
         }),
     });
 
-    expect((await updateLearningEnvironment({ ...fixture, execution }))?.applied).toBe(1);
-    expect(await Bun.file(fixture.filePath).text()).toContain(record.rule.body);
-    expect((await readEnvironment(fixture.paths))?.dispositions[0]?.status).toBe("published");
-    expect(await Bun.file(instructions).text()).toBe(edited);
+    return {
+      applied: (await updateLearningEnvironment({ ...fixture, execution }))?.applied,
+      skill: await Bun.file(fixture.filePath).text(),
+      status: (await readEnvironment(fixture.paths))?.dispositions[0]?.status,
+      editedFileKept: (await Bun.file(editedPath).text()) === edited,
+      body: record.rule.body,
+    };
   } finally { await rm(fixture.home, { recursive: true, force: true }); }
+}
+
+test("an edited routing section in one agent's instructions does not stop skill publication", async () => {
+  const result = await publishAfterEditing({
+    relativePath: ".codex/AGENTS.md",
+    edit: (text) => text.replace("</shadowclone-guidance>", "- my own routing line\n</shadowclone-guidance>"),
+  });
+
+  expect(result).toMatchObject({ applied: 1, status: "published", editedFileKept: true });
+  expect(result.skill).toContain(result.body);
+});
+
+test("an edited Shadowclone hook in one agent's hook file does not stop skill publication", async () => {
+  const result = await publishAfterEditing({
+    relativePath: ".codex/hooks.json",
+    edit: (text) => text.replace("\"timeout\": 10", "\"additionalContextLimit\": 6000,\n            \"timeout\": 10"),
+  });
+
+  expect(result).toMatchObject({ applied: 1, status: "published", editedFileKept: true });
+  expect(result.skill).toContain(result.body);
 });

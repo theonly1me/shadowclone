@@ -8,7 +8,7 @@ import {
 } from "@shadowclone/core";
 import type { ProjectPaths } from "@shadowclone/core";
 import { prepareIntegrationFiles, savedRecords } from "../integrations/files";
-import { editedManagedContent } from "../integrations/markdown";
+import { isPreservedFileError } from "../integrations/preserved";
 import { readIntegrations } from "../integrations/state";
 import { sharedIntegrationUpdates } from "../integrations/sharedUpdates";
 import { learningScopes } from "./scope";
@@ -82,7 +82,7 @@ export async function nativePublication(options: {
       profile: renderSkillRouting({ state: options.state, scopes: applicable }),
       environment: true,
     }).catch((error: unknown) => {
-      if (error instanceof Error && error.message === editedManagedContent) {
+      if (isPreservedFileError(error)) {
         skipped.push({ agent: integration.agent, path: integration.directory, target: null });
 
         return null;

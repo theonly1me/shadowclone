@@ -17,6 +17,7 @@ import type { Integration, IntegrationFile } from "./types";
 import { renderPiExtension } from "./piExtension";
 import { readIntegrations } from "./state";
 import { importsPeerInstructions } from "./sharedInstructions";
+import { preservedFileMessages } from "./preserved";
 
 export type IntegrationFileChange = {
   readonly filePath: string;
@@ -67,7 +68,7 @@ export async function prepareIntegrationFiles(options: {
         previous !== null &&
         !hasOwnedHooks({ text: previous, integration: options.integration })
       ) {
-        throw new Error("Integration hooks were edited; preserving the file");
+        throw new Error(preservedFileMessages.editedHooks);
       }
 
       const changed = updateHookConfig({
@@ -88,9 +89,7 @@ export async function prepareIntegrationFiles(options: {
         (!recorded || (fingerprint(previous) !== recorded.fingerprint &&
           !shared.some(file => file.kind === target.kind && file.fingerprint === fingerprint(previous))))
       ) {
-        throw new Error(
-          "Integration skill or extension was edited or already exists; preserving it",
-        );
+        throw new Error(preservedFileMessages.editedIntegrationFile);
       }
 
       next = options.remove
