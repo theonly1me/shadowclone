@@ -7,7 +7,8 @@ import {
   validateSkillReferences,
 } from "@shadowclone/skills";
 import type { DiscoveredSkill } from "@shadowclone/skills";
-import { skillDirectories, type LearningScope } from "./scope";
+import type { LearningScope } from "./scope";
+import { activeLearningKeys, skillDestinations } from "./skillDestinations";
 import { recordFingerprint } from "./records";
 import type { EnvironmentState, LearningRecord } from "./types";
 import { publishSkillResources } from "./resources";
@@ -25,23 +26,8 @@ export async function skillPublication(options: {
   readonly updates: readonly FileUpdate[];
 }> {
   const metadata = parseSkillDocument(options.text).metadata;
-  const copies = skillDirectories(options.scope).map((directory) =>
-    path.join(directory, options.name, "SKILL.md"),
-  );
-  const editsExistingRepositorySkill =
-    options.scope.repository !== null && options.skill?.root.owner === "user";
-  const existingCopies = editsExistingRepositorySkill
-    ? (await Promise.all(copies.map(async (filePath) => ((await Bun.file(filePath).exists()) ? [filePath] : [])))).flat()
-    : copies;
-
-  const destinations = [
-    ...new Set([
-      ...existingCopies,
-      ...(options.skill?.root.owner === "user"
-        ? [path.join(options.skill.root.directory, options.skill.relativePath)]
-        : []),
-    ]),
-  ];
+  const destinations = await skillDestinations(options);
+  const activeKeys = activeLearningKeys(options);
 
   const updates: FileUpdate[] = [];
   const artifacts = [...options.state.artifacts];
@@ -106,6 +92,19 @@ export async function skillPublication(options: {
       );
     }
 
+    const learningKeys = [
+      ...new Set([
+        ...(tracked?.learningKeys ?? []),
+        ...options.records.map(({ rule }) => rule.key),
+      ]),
+    ];
+
+    if (tracked?.original === null && !learningKeys.some((key) => activeKeys.has(key))) {
+      updates.push({ filePath, previous, next: null });
+      artifacts.splice(artifacts.findIndex((entry) => entry.filePath === filePath), 1);
+      continue;
+    }
+
     if (options.skill?.root.owner === "user") {
       await validateSkillReferences({
         filePath: path.join(
@@ -135,12 +134,7 @@ export async function skillPublication(options: {
       scope: options.scope.key,
       name: options.name,
       description: metadata.description,
-      learningKeys: [
-        ...new Set([
-          ...(tracked?.learningKeys ?? []),
-          ...options.records.map(({ rule }) => rule.key),
-        ]),
-      ],
+      learningKeys,
     };
 
     const position = artifacts.findIndex(
@@ -178,7 +172,7 @@ export async function skillPublication(options: {
           status: "published" as const,
           publishedAt: Date.now(),
           reason: "Reconciled into the matching skill",
-          destinations,
+          destinations: [...destinations],
         })),
       ],
     },

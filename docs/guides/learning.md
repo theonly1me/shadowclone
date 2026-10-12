@@ -65,7 +65,7 @@ Preview each change:
 
 - `learning narrow <key>` moves global or owner-wide guidance into the current verified repository. It never widens a scope.
 - `learning replace <key> "Use complete words in release notes."` makes the typed guidance your direct decision and clears the conflicting proposal.
-- `learning retire <key>` retires the rule.
+- `learning retire <key>` retires the rule. If you retire every rule in a skill that Shadowclone created, Shadowclone removes that skill. It keeps a skill that you wrote or edited.
 - `learning remove-source codex` retires records that only that source supports and rejects pending proposals with that provenance. Mixed-source and unresolved records stay for single review. Original transcripts, memory, and skills stay.
 
 These commands write nothing until you repeat them with `--apply --expected <fingerprint>` and the printed fingerprint. If learning changed in the meantime, apply stops so that you can review again. Each decision has a revision that you can read with `history` and reverse with `undo`.
