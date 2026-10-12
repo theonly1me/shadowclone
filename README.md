@@ -1,32 +1,32 @@
 <div align="center">
 
-<img src="docs/assets/shadowclone-banner.png" alt="Shadowclone: Your engineering taste, in every coding agent." width="1280">
+<img src="docs/assets/shadowclone-banner.png" alt="shadowclone: Your engineering taste, in every coding agent." width="1280">
 
 [![npm](https://img.shields.io/npm/v/@shadowclone/cli)](https://www.npmjs.com/package/@shadowclone/cli)
 [![CI](https://img.shields.io/github/actions/workflow/status/theonly1me/shadowclone/ci.yml?branch=main&label=CI)](https://github.com/theonly1me/shadowclone/actions/workflows/ci.yml)
 [![license](https://img.shields.io/github/license/theonly1me/shadowclone)](LICENSE)
 [![HOL Guard](https://img.shields.io/endpoint?url=https%3A%2F%2Fhol.org%2Fapi%2Fregistry%2Fbadges%2Fplugin%3Fslug%3Dtheonly1me%252Fshadowclone%26metric%3Dtrust)](https://hol.org/registry/plugins/theonly1me%2Fshadowclone)
 
-[Quick start](#quick-start) · [What you get](#what-you-get) · [Skills](#skills-in-the-box) · [Reviews](#reviews-on-your-machine-and-on-github) · [Cloud bot](#a-cloud-bot-with-your-skills) · [Compare](#how-shadowclone-compares) · [Docs](#docs)
+[Quick start](#quick-start) · [What shadowclone offers](#what-shadowclone-offers) · [Compare](#how-shadowclone-compares-to-other-tools) · [How it works](#how-it-works) · [Eval and Results](#eval-and-results) · [Docs](#docs)
 
 </div>
 
-**Shadowclone keeps your engineering preferences the same in every coding agent.** It maintains one set of skills and instructions for Claude Code, Codex, Cursor, Pi, and Antigravity. You do not copy rules from one tool to the next. Shadowclone can also learn new preferences from the sessions that you allow.
+**shadowclone keeps your engineering preferences the same in every coding agent.** It maintains one set of skills and instructions for Claude Code, Codex, Cursor, Pi, and Antigravity. You do not copy rules from one tool to the next. shadowclone can also learn new preferences from the sessions that you allow.
 
-**The same skills reach your cloud agent.** A GitHub bot runs Claude Code, Codex, or Cursor with your selected skills. So the bot writes and reviews code with the preferences that your local agents use. Shadowclone is not a separate agent. It equips the agent that you already use. See [how it compares](#how-shadowclone-compares).
+**The same skills reach your cloud agent.** A GitHub bot runs Claude Code, Codex, or Cursor with your selected skills. So the bot writes and reviews code with the preferences that your local agents use. shadowclone is not a separate agent. It equips the agent that you already use. See [how it compares to other tools](#how-shadowclone-compares-to-other-tools).
 
 ## Quick start
 
 Paste this into Claude Code, Codex, Cursor, Pi, or Antigravity:
 
 ```text
-Set up Shadowclone: https://raw.githubusercontent.com/theonly1me/shadowclone/main/plugins/shadowclone/skills/setup-shadowclone/SKILL.md
+Set up shadowclone: https://raw.githubusercontent.com/theonly1me/shadowclone/main/plugins/shadowclone/skills/setup-shadowclone/SKILL.md
 ```
 
 The agent handles installation and configuration in about 5 minutes. You answer the consent questions and pick skills in the browser:
 
 1. It installs the CLI, and the plugin in Claude Code or Codex.
-2. It asks if Shadowclone can learn from your past sessions, keep skills in sync, and keep learning in the background.
+2. It asks if shadowclone can learn from your past sessions, keep skills in sync, and keep learning in the background.
 3. It opens the skill wizard, where you pick skills and select **Equip**.
 4. It learns from your past sessions while you pick skills, if you agreed.
 
@@ -43,17 +43,17 @@ To add the plugin, run `/plugin install shadowclone@shadowclone` after `/plugin 
 
 </details>
 
-## What you get
+## What shadowclone offers
 
 ### Preferences that evolve with your work
 
-**Learn from corrections.** Shadowclone reads the sessions you allow and turns reusable instructions into skills and short native guidance. It keeps repository-specific rules in their scope. Rules remain readable, editable, and reversible.
+**Learn from corrections.** shadowclone reads the sessions you allow and turns reusable instructions into skills and short native guidance. It keeps repository-specific rules in their scope. Rules remain readable, editable, and reversible.
 
 **Keep guidance current.** Background learning reviews new rules after each session. It applies durable guidance when automatic maintenance is on and discards rules that existing guidance covers. You can review and undo each change. See the [learning guide](docs/guides/learning.md).
 
 ### Skills and builds you can configure
 
-**Start with a build.** Shadowclone includes 15 workflow skills for planning, debugging, implementation, verification, and review. New users can pick skills immediately. Learning from past sessions is optional.
+**Start with a build.** shadowclone includes 15 workflow skills for planning, debugging, implementation, verification, and review. New users can pick skills immediately. Learning from past sessions is optional. Browse the skills in [`skills/`](skills/), or [install them without the CLI](docs/guides/skills.md#install-skills-without-shadowclone).
 
 **Choose where skills apply.** The browser wizard supports a personal build, a private build for one repository, or a shared build that a team commits. The same skills reach all five agents. Pi can use any model it supports. See [Agent builds](docs/guides/agent-builds.md).
 
@@ -86,64 +86,27 @@ The agent creates an HTML guide with actual diffs, behavior traces, and a readin
 **Ask the agent to configure it.** After local setup, ask:
 
 ```text
-Set up Shadowclone cloud here with the bot octo-shadow.
+Set up shadowclone cloud here with the bot octo-shadow.
 ```
 
 The agent prepares the skills repository and workflows. Then it gives you one link where you add the bot token and the API key on GitHub. Merge the setup PR, and the agent runs a check. The [cloud bot guide](docs/guides/cloud-bot.md) covers providers, setup, and pausing work to continue locally.
 
-**Keep your key on GitHub.** The bot reads the API key from a GitHub environment, and Shadowclone never sees it. Anyone with write access can tag the bot, so set a spending limit in your provider console.
+**Keep your key on GitHub.** The bot reads the API key from a GitHub environment, and shadowclone never sees it. Anyone with write access can tag the bot, so set a spending limit in your provider console.
 
-## Skills in the box
+## How shadowclone compares to other tools
 
-Shadowclone bundles 15 workflow skills. Pick them in the wizard.
-
-| Skill                         | Loads when                              |
-| ----------------------------- | --------------------------------------- |
-| `choose-by-consequence`       | A change adds a skip or fallback        |
-| `guided-pr-review`            | You want a guided PR walkthrough        |
-| `design-deep-modules`         | You design a module                     |
-| `diagnose-before-editing`     | The cause of a failure is unknown       |
-| `plan-with-review-page`       | A change has many steps                 |
-| `research-primary-sources`    | A decision needs outside facts          |
-| `resolve-conflicts-by-intent` | A merge or rebase has conflicts         |
-| `scope-confirmed-changes`     | You fix a bug or review finding         |
-| `shadowclone-review`          | A pull request needs a review           |
-| `shadowclone-work`            | You take a change to ready for review   |
-| `tests-that-catch-bugs`       | You add or change a test                |
-| `typescript-type-safety`      | You change TypeScript types             |
-| `verify-and-review`           | Before you say that work is done        |
-| `verify-review-findings`      | A pull request has review comments      |
-| `write-plain-english`         | You write text for a person (always on) |
-
-To pick skills without the CLI, run `npx skills add theonly1me/shadowclone`.
-Use `--skill guided-pr-review shadowclone-review` to install guided review and its local reviewer.
-The separate `@shadowclone/skills` npm artifact contains the same portable skills and supporting files.
-See [manual installation](docs/guides/skills.md#install-skills-without-shadowclone).
-
-## Results
-
-Across 24 fixed tasks, Shadowclone learning scored above existing user skills on all four models. Scores measure preference adherence on synthetic tasks. See [setups, methods, and limits](evals.md).
-
-| Setup                                  | GPT 6.1 Sol | GPT 6 Luna | Claude Sonnet 5.5 | Claude Opus 5.5 |
-| -------------------------------------- | ----------: | ---------: | ----------------: | --------------: |
-| Agent alone                            |       77.3% |      59.0% |             56.5% |           53.2% |
-| Existing user skills                   |       85.2% |      80.6% |             76.4% |           73.6% |
-| Existing skills + Shadowclone learning |       89.4% |      83.3% |             90.0% |           82.9% |
-
-## How Shadowclone compares
-
-Shadowclone gives one set of skills to the agents that you already use, on your machine and on GitHub. The table uses each project's own pages, checked on 12 October 2026. "Not stated" means that those pages do not answer the question.
+shadowclone gives one set of skills to the agents that you already use, on your machine and on GitHub. The table uses each project's own pages, checked on 12 October 2026. "Not stated" means that those pages do not answer the question.
 
 | Tool                                                                   | What it is                                                                                 | Agents                                      | Learns from your sessions              | Same guidance in the cloud      | Reviews pull requests                 |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------- | -------------------------------------- | ------------------------------- | ------------------------------------- |
-| Shadowclone                                                            | Skills, instructions, learning, and a GitHub cloud bot for the agents that you already use | Claude Code, Codex, Cursor, Pi, Antigravity | Yes, from the sessions that you allow  | Yes, a GitHub Actions bot       | Yes, locally, guided, and on GitHub   |
+| shadowclone                                                            | Skills, instructions, learning, and a GitHub cloud bot for the agents that you already use | Claude Code, Codex, Cursor, Pi, Antigravity | Yes, from the sessions that you allow  | Yes, a GitHub Actions bot       | Yes, locally, guided, and on GitHub   |
 | [pstack](https://github.com/cursor/plugins/tree/main/pstack)           | A skill and principle pack                                                                 | Cursor                                      | No. You run `/reflect` to edit a skill | Not stated                      | Yes, `/interrogate` and Comment Sicko |
 | [Hermes Agent](https://github.com/NousResearch/hermes-agent)           | Its own agent with a learning loop                                                         | Hermes only                                 | Yes, it writes skills after tasks      | Yes, on a server with chat apps | Not stated                            |
 | [Claude Code auto memory](https://code.claude.com/docs/en/memory)      | Built-in notes from corrections                                                            | Claude Code                                 | Yes, notes from your corrections       | No. Memory stays on one machine | No                                    |
 | [Claude Subconscious](https://github.com/letta-ai/claude-subconscious) | A background Letta agent                                                                   | Claude Code                                 | Yes, through a Letta agent             | Not stated                      | No                                    |
 | [imprint](https://github.com/n33kos/imprint)                           | A plugin that trains one profile                                                           | Claude Code                                 | Yes, when you run `/imprint:train`     | Not stated                      | No                                    |
 
-Claude Code loads its auto memory beside Shadowclone skills, so you can use both. See the [comparison guide](docs/guides/comparison.md) for each tool and its sources.
+Claude Code loads its auto memory beside shadowclone skills, so you can use both. See the [comparison guide](docs/guides/comparison.md) for each tool and its sources.
 
 ## How it works
 
@@ -155,7 +118,17 @@ flowchart LR
   C --> E[Cloud bot on GitHub]
 ```
 
-Shadowclone indexes references to enabled sessions and copies no transcript. It redacts text and learns rules. One session can give an explicit rule, and an inferred pattern needs three independent sessions. Rules become skills that you can read, edit, and undo. Shadowclone changes the guidance, not the model. See the [architecture](docs/architecture/README.md).
+shadowclone indexes references to enabled sessions and copies no transcript. It redacts text and learns rules. One session can give an explicit rule, and an inferred pattern needs three independent sessions. Rules become skills that you can read, edit, and undo. shadowclone changes the guidance, not the model. See the [architecture](docs/architecture/README.md).
+
+## Eval and Results
+
+Across 24 fixed tasks, shadowclone learning scored above existing user skills on all four models. Scores measure preference adherence on synthetic tasks. See [setups, methods, and limits](evals.md).
+
+| Setup                                  | GPT 6.1 Sol | GPT 6 Luna | Claude Sonnet 5.5 | Claude Opus 5.5 |
+| -------------------------------------- | ----------: | ---------: | ----------------: | --------------: |
+| Agent alone                            |       77.3% |      59.0% |             56.5% |           53.2% |
+| Existing user skills                   |       85.2% |      80.6% |             76.4% |           73.6% |
+| Existing skills + shadowclone learning |       89.4% |      83.3% |             90.0% |           82.9% |
 
 ## Privacy
 
@@ -183,8 +156,8 @@ Read the [privacy policy](PRIVACY.md) and [data handling](docs/data-handling.md)
 | [Enterprise controls](docs/guides/enterprise.md) | Set scope and policy  |
 | [Comparison](docs/guides/comparison.md)          | Compare related tools |
 
-More: [documentation index](docs/README.md), [motivation](docs/motivation.md), [design history](docs/design/README.md), [security](SECURITY.md).
+More: [documentation index](docs/README.md), [motivation](docs/motivation.md), [design records](docs/design/README.md), [security](SECURITY.md).
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before you open a pull request. Shadowclone uses the MIT license. If Shadowclone saves you a correction, star the repository.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before you open a pull request. shadowclone uses the MIT license. If shadowclone saves you a correction, star the repository.
