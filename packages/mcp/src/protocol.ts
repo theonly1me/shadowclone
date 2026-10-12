@@ -1,6 +1,5 @@
 import product from "@shadowclone/core/product.json";
 import { preferenceTools } from "./preferences";
-import { referenceTools } from "./references";
 import { botTools } from "./bot";
 
 type JsonRpcId = string | number | null;
@@ -27,7 +26,7 @@ export function parseRequest(value: unknown): JsonRpcRequest | null {
 
 export function handleMcpRequest(options: {
   readonly request: JsonRpcRequest;
-  readonly profile: string;
+  readonly context: string;
   readonly toolResult?: Readonly<Record<string, unknown>> | null;
 }): Readonly<Record<string, unknown>> | null {
   const base = { jsonrpc: "2.0", id: options.request.id };
@@ -49,16 +48,10 @@ export function handleMcpRequest(options: {
       result: {
         tools: [
           ...preferenceTools,
-          ...referenceTools,
           ...botTools,
           {
             name: "shadowclone_context",
             description: "Inspect applicable learned skills and native routing for this repository",
-            inputSchema: { type: "object", properties: {} },
-          },
-          {
-            name: "shadowclone_profile",
-            description: "Deprecated alias for shadowclone_context",
             inputSchema: { type: "object", properties: {} },
           },
         ],
@@ -73,7 +66,7 @@ export function handleMcpRequest(options: {
 
     const params = isRecord(options.request.params) ? options.request.params : {};
 
-    if (params.name !== "shadowclone_profile" && params.name !== "shadowclone_context") {
+    if (params.name !== "shadowclone_context") {
       return {
         ...base,
         error: { code: -32602, message: "Unknown tool" },
@@ -83,7 +76,7 @@ export function handleMcpRequest(options: {
     return {
       ...base,
       result: {
-        content: [{ type: "text", text: options.profile }],
+        content: [{ type: "text", text: options.context }],
         isError: false,
       },
     };

@@ -28,7 +28,7 @@ Use the banner from the author as the README header, with descriptive alternativ
 
 **Problem.** The self-contained README grew to about 200 lines of reference material. A new reader met Agent builds, learning, skill maintenance, repository setup, and internals before learning how fast setup is. The results table used counts and multiples that did not tell a reader whether Shadowclone helps.
 
-**Decision.** This replaces the earlier decision that the README is self-contained. The README leads with three commands and their time cost. Then it gives plain-language results, a privacy summary, and links to guides. `shadowclone wizard` alone is the shortest path and needs no learning. A `learn --deep` run stops after about five minutes or 20 model calls. So the README says to run it again when history remains. A short block tells coding agents the exact commands. It also says that `init` needs the user.
+**Decision.** The README leads with three commands and their time cost. Then it gives plain-language results, a privacy summary, and links to guides. `shadowclone wizard` alone is the shortest path and needs no learning. A `learn --deep` run stops after about five minutes or 20 model calls. So the README says to run it again when history remains. A short block tells coding agents the exact commands. It also says that `init` needs the user.
 
 **Guides.** Usage detail moves to `docs/guides/`: agent builds, learning, skills, repositories, how it works, and commands. The README keeps a short privacy summary and links to the data-handling and enterprise references. The move loses no text. It splits long paragraphs and corrects relative links. The documentation index and `AGENTS.md` link to the guides instead of README anchors.
 
@@ -44,7 +44,7 @@ Use the banner from the author as the README header, with descriptive alternativ
 
 **Accuracy.** Setup handles installation and configuration while the user chooses consent and skills. Cloud setup also needs account credentials and a setup pull request. Background learning triages pending rules after each session. It applies durable rules only when automatic maintenance is on. Manual deep learning still offers a review step.
 
-**Sources.** Link cloud authentication to Anthropic's GitHub Actions documentation, authentication guidance, and applicable terms. Describe the personal subscription setup and its boundaries without claiming endorsement or blanket compliance.
+**Sources.** Describe the cloud bot as a machine account on a provider API key that the owner adds on GitHub. Claim no endorsement by a provider.
 
 **Sequence.** Revise the README introduction and capability sections. Keep detailed setup and reference material in the existing guides. Verify the examples against the guides, setup skill, and current commands, then run the prose and repository checks.
 

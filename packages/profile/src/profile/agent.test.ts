@@ -1,25 +1,11 @@
 import { expect, test } from "bun:test";
-import { mkdtemp } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
-import { writeAgent } from "./index";
+import { renderAgent } from "./index";
 
-test("writes a dispatchable agent with advisory boundaries", async () => {
-  const targetDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "shadowclone-agent-"),
-  );
-
-  const profile = [
-    "# Shadowclone profile",
-    "",
-    "## Requests confirmation after refusing Bash",
-    "",
-    "Ask before repeating a similar Bash action.",
-  ].join("\n");
-
-  const outputPath = await writeAgent({ targetDirectory, profile });
-  const agent = await Bun.file(outputPath).text();
+test("renders a dispatchable agent with the delivered context", () => {
+  const profile = ["# Shadowclone", "", "Use the shadowclone-work skill for delegated work."].join("\n");
+  const agent = renderAgent({ profile });
 
   expect(agent).toContain("name: shadowclone");
   expect(agent).toContain(profile);
+  expect(() => renderAgent({ profile, name: "Not Valid" })).toThrow("Agent name must use lowercase letters");
 });

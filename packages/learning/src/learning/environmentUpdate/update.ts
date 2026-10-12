@@ -4,7 +4,7 @@ import { readEffectiveConfig, readLocalText, acquireLocalLock } from "@shadowclo
 import type { LearningExecution } from "@shadowclone/agents";
 import type { ProjectPaths } from "@shadowclone/core";
 import { readMaintenanceState, syncPersonalSkills, syncPortableSkills } from "@shadowclone/skills";
-import type { SkillUpdateSummary } from "../skillMaintenance/legacyUpdate";
+import type { SkillUpdateSummary } from "../skillMaintenance/update";
 import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "@shadowclone/sessions";
 import {
   environmentFile,

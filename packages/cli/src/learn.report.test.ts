@@ -11,7 +11,7 @@ import {
 import { openEventIndex } from "@shadowclone/sessions";
 import type { ProfileRule } from "@shadowclone/profile";
 import { learn } from "./learn";
-import { writeProfile } from "@shadowclone/environment";
+import { emptyEnvironment, environmentFile, storeLearningRules, writeEnvironment } from "@shadowclone/environment";
 
 function declaredRule(): ProfileRule {
   return {
@@ -33,31 +33,6 @@ function declaredRule(): ProfileRule {
     origins: [],
     importReference: null,
   };
-}
-
-async function profileSnapshot(
-  profileDirectory: string,
-): Promise<Readonly<Record<string, string>>> {
-  const relativePaths = await Array.fromAsync(
-    new Bun.Glob("**/*").scan({
-      cwd: profileDirectory,
-      dot: true,
-      onlyFiles: true,
-    }),
-  );
-  const entries = await Promise.all(
-    relativePaths
-      .sort()
-      .map(
-        async (relativePath) =>
-          [
-            relativePath,
-            await Bun.file(path.join(profileDirectory, relativePath)).text(),
-          ] as const,
-      ),
-  );
-
-  return Object.fromEntries(entries);
 }
 
 test("plain learn reports evidence without changing the profile", async () => {
@@ -106,9 +81,13 @@ test("plain learn reports evidence without changing the profile", async () => {
   });
 
   await writeConfig({ config, configPath: paths.configFile });
-  await writeProfile({ paths, rules: [declaredRule()] });
+  await writeEnvironment({
+    paths,
+    state: { ...emptyEnvironment, phase: "active", baselineDirectory: paths.shadowcloneDirectory },
+  });
+  await storeLearningRules({ paths, rules: [declaredRule()] });
 
-  const before = await profileSnapshot(paths.profileDirectory);
+  const before = await Bun.file(environmentFile(paths)).text();
 
   await learn({
     configPath: paths.configFile,
@@ -117,7 +96,7 @@ test("plain learn reports evidence without changing the profile", async () => {
     managedConfigPath: null,
   });
 
-  expect(await profileSnapshot(paths.profileDirectory)).toEqual(before);
+  expect(await Bun.file(environmentFile(paths)).text()).toBe(before);
 
   const index = await openEventIndex(paths.indexDatabase);
 

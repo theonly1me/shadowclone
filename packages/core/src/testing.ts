@@ -18,10 +18,6 @@ export async function integrationFixture() {
 
   await Bun.write(path.join(cwd, "README.md"), "Repository fixture\n");
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
-  await Bun.write(
-    path.join(paths.profileDirectory, "global/engineering.md"),
-    "## Naming\n\nUse complete names.\n",
-  );
 
   return {
     home,

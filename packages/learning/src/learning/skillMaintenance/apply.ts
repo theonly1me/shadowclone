@@ -26,7 +26,7 @@ type ApplyOptions = {
   readonly readRemote?: GitRemoteReader;
 };
 
-export async function applySkillProposalUnlocked(
+async function applySkillProposalUnlocked(
   options: ApplyOptions,
 ): Promise<string | null> {
   const { config } = await readEffectiveConfig({

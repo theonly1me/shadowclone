@@ -1,12 +1,4 @@
-import { encodeProfileMetadata, uniqueProfileEvidence } from "./metadata";
 import type { ProfileRule } from "./types";
-
-export function profileFingerprint(value: string): string {
-  return new Bun.CryptoHasher("sha256")
-    .update(value)
-    .digest("hex")
-    .slice(0, 16);
-}
 
 export function createProfileRuleKey(): string {
   return crypto.randomUUID();
@@ -32,7 +24,7 @@ export function profileRulePath(rule: ProfileRule): string {
   return `org/${rule.originDirectory}/${rule.section}.md`;
 }
 
-export function isSafeProfileSegment(value: string): boolean {
+function isSafeProfileSegment(value: string): boolean {
   return (
     value.length > 0 &&
     value !== "." &&
@@ -40,30 +32,4 @@ export function isSafeProfileSegment(value: string): boolean {
     !value.includes("/") &&
     !value.includes("\\")
   );
-}
-
-export function renderProfileRule(rule: ProfileRule): string {
-  const visible = `## ${rule.title}\n\n${rule.body}`;
-  const evidence = uniqueProfileEvidence(rule.evidence);
-
-  const metadata = {
-    schema: 1,
-    key: rule.key,
-    source: rule.source,
-    status: rule.status,
-    proposal: rule.proposal,
-    "applies-when": [...rule.appliesWhen],
-    supports: evidence.for.length,
-    contradicts: evidence.against.length,
-    evidence,
-    observations: rule.observations,
-    "last-seen": rule.lastSeen,
-    sessions: rule.sessions,
-    origins: [...rule.origins],
-    scope: rule.scope,
-    "import-reference": rule.importReference,
-    fingerprint: profileFingerprint(visible),
-  };
-
-  return `${visible}\n\n<!-- shadowclone: ${encodeProfileMetadata(metadata)} -->`;
 }

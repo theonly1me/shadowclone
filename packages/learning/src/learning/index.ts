@@ -50,6 +50,6 @@ export { type DeepLearningResult, runLearningService } from "./service";
 
 export { applySkillProposal } from "./skillMaintenance/apply";
 
-export type { SkillUpdateSummary } from "./skillMaintenance/legacyUpdate";
+export type { SkillUpdateSummary } from "./skillMaintenance/update";
 
 export { adoptSkill, inspectSkillLibrary } from "./skillMaintenance/lifecycle";

@@ -10,7 +10,7 @@ import {
   parseOptionalSkillChoices,
   runWizard,
 } from "./wizard";
-import { readProfileSnapshot } from "@shadowclone/environment";
+import { learningSnapshot } from "@shadowclone/environment";
 
 
 test("accepts only displayed axis and optional skill choices", async () => {
@@ -79,7 +79,6 @@ test("prints every selection and writes nothing when confirmation is declined", 
     expect(entry ? output.includes(`  ${entry.title}`) : false).toBeTrue();
   }
 
-  expect(await Bun.file(paths.profileDirectory).exists()).toBeFalse();
 });
 
 test("writes stable declared rules on identical reruns", async () => {
@@ -101,7 +100,7 @@ test("writes stable declared rules on identical reruns", async () => {
     });
   }
 
-  const rules = (await readProfileSnapshot(paths)).rules.map(
+  const rules = (await learningSnapshot(paths)).rules.map(
     ({ rule }) => rule,
   );
   const testingSkill = rules.find(
@@ -133,5 +132,4 @@ test("writes stable declared rules on identical reruns", async () => {
     ).toBeFalse();
   }
 
-  expect(await Bun.file(paths.profileManifestFile).exists()).toBeFalse();
 });

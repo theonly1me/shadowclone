@@ -21,11 +21,10 @@ import {
   compileContextDetails,
   environmentStatus,
   integrationHealth,
-  sessionStartProjection,
+  missingEnvironmentMessage,
 } from "@shadowclone/environment";
 import { readLearningState } from "@shadowclone/learning";
 import { listSkillProposals, readMaintenanceState } from "@shadowclone/skills";
-import { createProfileRepairPlan } from "@shadowclone/profile";
 import { renderStartupContextSummary } from "./contextExplain";
 
 export function renderProviderSupport(): readonly string[] {
@@ -141,11 +140,7 @@ export async function doctor(
 
   console.log(
     renderStartupContextSummary(
-      await compileContextDetails({
-        cwd: process.cwd(),
-        managedConfigPath,
-        ...sessionStartProjection,
-      }),
+      await compileContextDetails({ cwd: process.cwd(), managedConfigPath }),
     ),
   );
 
@@ -169,11 +164,7 @@ export async function doctor(
       `Skill environment: ${environment.phase}; ${environment.skills} skills, ${environment.pending} pending learning(s), ${environment.unresolvedScopes} learning(s) in unregistered scopes.`,
     );
   } else {
-    const profileRepair = await createProfileRepairPlan(projectPaths);
-
-    console.log(
-      `Profile repair: ${profileRepair.repairs.length} ready, ${profileRepair.blocked.length} blocked, ${profileRepair.isolatedDirectories} isolated.`,
-    );
+    console.log(`Skill environment: none. ${missingEnvironmentMessage}`);
   }
 
   const dbFile = Bun.file(options.databasePath ?? projectPaths.indexDatabase);

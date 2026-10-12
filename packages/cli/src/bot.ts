@@ -1,19 +1,20 @@
 import path from "node:path";
 import { canonicalPath, projectPaths } from "@shadowclone/core";
 import {
-  checklistText,
+  checkText,
   cloneStatus,
   exportGuidance,
   ghApiCall,
-  readCloudChecklist,
+  providers,
   readInstallation,
+  runCloneCheck,
   writeDeliveryFiles,
 } from "@shadowclone/cloud";
 import { setUpBotInTerminal } from "./botSetup";
-import { runWebWizard } from "./webWizard";
 
-const setupUsage =
-  "Use shadowclone bot setup [--bot login] [--engine claude|codex] [--codex-auth api-key|plan] [--app] [--repo owner/repository] [--yes] [--no-open].";
+const setupSyntax =
+  "shadowclone bot setup --bot login [--provider anthropic|openai|openai-compatible|cursor] [--base-url https-url --model id] [--model id] [--repo owner/repository] [--yes] [--no-open]";
+const setupUsage = `Use ${setupSyntax}.`;
 
 function flagValue(options: { readonly arguments: readonly string[]; readonly flag: string }): string | null {
   const index = options.arguments.indexOf(options.flag);
@@ -24,35 +25,31 @@ function flagValue(options: { readonly arguments: readonly string[]; readonly fl
 async function setup(arguments_: readonly string[]): Promise<void> {
   const repository = flagValue({ arguments: arguments_, flag: "--repo" });
   const botLogin = flagValue({ arguments: arguments_, flag: "--bot" });
-  const engine = flagValue({ arguments: arguments_, flag: "--engine" }) ?? "claude";
-  const codexAuth = flagValue({ arguments: arguments_, flag: "--codex-auth" }) ?? "api-key";
-  const known = new Set(["--app", "--yes", "--no-open", "--repo", "--bot", "--engine", "--codex-auth"]);
-  const values = new Set([repository, botLogin, engine, codexAuth]);
+  const provider = providers.find((entry) => entry === (flagValue({ arguments: arguments_, flag: "--provider" }) ?? "anthropic"));
+  const baseUrl = flagValue({ arguments: arguments_, flag: "--base-url" });
+  const model = flagValue({ arguments: arguments_, flag: "--model" });
+  const known = new Set(["--yes", "--no-open", "--repo", "--bot", "--provider", "--base-url", "--model"]);
+  const values = new Set([repository, botLogin, provider, baseUrl, model]);
 
   if (
+    botLogin === null ||
+    provider === undefined ||
     (repository !== null && !/^[\w.-]+\/[\w.-]+$/.test(repository)) ||
-    (botLogin !== null && !/^[A-Za-z0-9-]{1,39}$/.test(botLogin)) ||
-    (botLogin !== null && arguments_.includes("--app")) ||
-    (engine !== "claude" && engine !== "codex") ||
-    (codexAuth !== "api-key" && codexAuth !== "plan") ||
+    !/^[A-Za-z0-9-]{1,39}$/.test(botLogin) ||
     arguments_.some((argument) => !known.has(argument) && !values.has(argument))
   ) {
     throw new Error(setupUsage);
   }
 
-  if (botLogin !== null) {
-    await setUpBotInTerminal({
-      repository,
-      botLogin,
-      engine,
-      codexAuth,
-      yes: arguments_.includes("--yes"),
-      open: !arguments_.includes("--no-open"),
-    });
-    return;
-  }
-
-  await runWebWizard({ bot: true, targetRepository: repository ?? undefined, open: !arguments_.includes("--no-open") });
+  await setUpBotInTerminal({
+    repository,
+    botLogin,
+    provider,
+    ...(baseUrl === null ? {} : { baseUrl }),
+    ...(model === null ? {} : { model }),
+    yes: arguments_.includes("--yes"),
+    open: !arguments_.includes("--no-open"),
+  });
 }
 
 async function status(arguments_: readonly string[]): Promise<void> {
@@ -69,7 +66,18 @@ async function status(arguments_: readonly string[]): Promise<void> {
     throw new Error(`No cloud bot setup is saved for ${repository}. Run shadowclone bot setup first.`);
   }
 
-  console.log(checklistText(await readCloudChecklist({ call: ghApiCall, clone: installation.clone, pullUrl: installation.pullUrl })));
+  const check = await runCloneCheck({
+    clone: installation.clone,
+    call: ghApiCall,
+    pullUrl: installation.pullUrl,
+    limitMilliseconds: 8 * 60_000,
+  });
+
+  console.log(checkText(check));
+
+  if (check.kind !== "passed") {
+    process.exitCode = 1;
+  }
 }
 
 async function exportSkills(arguments_: readonly string[]): Promise<void> {
@@ -129,7 +137,7 @@ export async function botCommand(arguments_: readonly string[]): Promise<void> {
     return;
   }
 
-  console.log("shadowclone bot setup [--bot login] [--engine claude|codex] [--codex-auth api-key|plan] [--app] [--repo owner/repository] [--yes] [--no-open]");
+  console.log(setupSyntax);
   console.log("shadowclone bot export --skill shadowclone-work [--skill name] --output folder");
   console.log("shadowclone bot status [--repo owner/repository]");
 }

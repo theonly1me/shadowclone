@@ -5,6 +5,7 @@ import { installIntegration } from "./install";
 import { integrationFixture } from "@shadowclone/core/testing";
 import { nativeSessionStart } from "./hooks";
 import { refreshIntegrations } from "./refresh";
+import { writeActiveEnvironment } from "../environment/fixtures";
 
 test("uses the selected Codex home and existing override without losing personal skill discovery", async () => {
   const fixture = await integrationFixture();
@@ -15,6 +16,7 @@ test("uses the selected Codex home and existing override without losing personal
     codexHomeDirectory,
   });
 
+  await writeActiveEnvironment({ ...fixture, bodies: ["Use complete names."] });
   await Bun.write(
     path.join(codexHomeDirectory, "AGENTS.override.md"),
     "User override\n",
@@ -28,7 +30,7 @@ test("uses the selected Codex home and existing override without losing personal
 
   expect(
     await Bun.file(path.join(codexHomeDirectory, "AGENTS.override.md")).text(),
-  ).toContain("A session hook loads");
+  ).toContain("Use complete names.");
   expect(
     await Bun.file(path.join(codexHomeDirectory, "AGENTS.md")).exists(),
   ).toBeFalse();
@@ -61,25 +63,6 @@ test("refresh preserves a hook command the user edited", async () => {
     preserved: 1,
   });
   expect(await file.text()).toBe(edited);
-});
-
-test("repository hook injects guidance if its native instruction file disappeared", async () => {
-  const fixture = await integrationFixture();
-  const installed = await installIntegration({
-    ...fixture,
-    agent: "codex",
-    scope: "repository",
-  });
-
-  await Bun.file(path.join(fixture.cwd, "AGENTS.override.md")).delete();
-
-  const output = await nativeSessionStart({
-    ...fixture,
-    id: installed.id,
-    input: JSON.stringify({ cwd: fixture.cwd }),
-  });
-
-  expect(JSON.stringify(output)).toContain("Use complete names.");
 });
 
 test("malformed native input produces a fixed error without echoing its contents", async () => {

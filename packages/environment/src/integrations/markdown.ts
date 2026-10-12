@@ -79,14 +79,6 @@ export function stripHarnessSection(text: string): string {
   return section === null ? text : text.replace(section, "");
 }
 
-export function renderInstructionPointer(): string {
-  return [
-    "# Shadowclone",
-    "",
-    "A session hook loads this user's standing engineering preferences, which rank below the current request. If they are missing, run `shadowclone context` in the active repository.",
-  ].join("\n");
-}
-
 export function updateMarkedSection(options: {
   readonly previous: string | null;
   readonly body: string | null;

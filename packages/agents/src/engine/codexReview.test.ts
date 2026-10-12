@@ -60,3 +60,19 @@ test("work outside a review keeps web search off", () => {
 
   expect(arguments_).toContain('web_search="disabled"');
 });
+
+test("a Codex run with a base URL sends its requests to that OpenAI-compatible endpoint", () => {
+  const arguments_ = buildCodexArguments({
+    run: {
+      prompt: "review",
+      cwd: "/repo",
+      execution: { purpose: "review", network: false },
+      permissionMode: "dontAsk",
+      model: "sample-model",
+      baseUrl: "https://models.example.test/v1",
+    },
+  });
+
+  expect(arguments_.join(" ")).toContain('--model sample-model -c openai_base_url="https://models.example.test/v1"');
+  expect(reviewArguments(false).join(" ")).not.toContain("openai_base_url");
+});

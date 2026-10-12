@@ -1,4 +1,3 @@
-import path from "node:path";
 import {
   buildCatalog,
   buildConstellation,
@@ -79,12 +78,6 @@ export async function buildView(
       : []),
   ];
 
-  const legacy =
-    state === null &&
-    (await Bun.file(
-      path.join(options.paths.profileDirectory, ".generated"),
-    ).exists());
-
   return buildViewSchema.parse({
     scope: options.scope,
     input: {
@@ -113,7 +106,6 @@ export async function buildView(
     },
     requirements,
     libraryEnabled: config.sources["skill-library"],
-    migrationRequired: state?.phase === "preparing" || legacy,
     revisionId: options.revisionId,
   });
 }

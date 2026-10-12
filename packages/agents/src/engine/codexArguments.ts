@@ -199,6 +199,10 @@ export function buildCodexArguments(options: {
     arguments_.push("--model", options.run.model);
   }
 
+  if (options.run.baseUrl) {
+    arguments_.push("-c", `openai_base_url=${JSON.stringify(options.run.baseUrl)}`);
+  }
+
   if (options.run.reasoningEffort) {
     arguments_.push(
       "-c",

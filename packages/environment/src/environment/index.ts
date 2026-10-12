@@ -6,7 +6,7 @@ export {
   renderEnvironment,
 } from "./store";
 
-export { learningSnapshot, storeLearningRules, recordFingerprint } from "./records";
+export { learningSnapshot, missingEnvironmentMessage, storeLearningRules, recordFingerprint } from "./records";
 
 export {
   emptyEnvironment,
@@ -16,8 +16,6 @@ export {
   learningRecordSchema,
   learningRuleSchema,
 } from "./types";
-
-export { activateEnvironment } from "./activate";
 
 export {
   type BuildContext,
@@ -39,9 +37,8 @@ export { publishedSkills } from "./catalog";
 
 export { removeLearningEnvironment } from "./cleanup";
 
-export { compileAgentDelivery } from "./compile";
 
-export { environmentCompilation, renderSkillRouting } from "./context";
+export { emptyCompilation, environmentCompilation, renderSkillRouting, type ContextCompilation } from "./context";
 
 export { reviewLearning, setAutomaticMaintenance } from "./controls";
 
@@ -77,13 +74,9 @@ export { initializeSkillEnvironment } from "./initialize";
 
 export { coveredLearningState, pendingLearningState } from "./learningDisposition";
 
-export { prepareEnvironmentMigration } from "./migrate";
-
 export { nativePublication, type SkippedRouting } from "./native";
 
 export { pendingLearningRecords } from "./pending";
-
-export { readProfileSnapshot, writeProfile } from "./profileRecords";
 
 export { skillPublication } from "./publication";
 
@@ -97,7 +90,7 @@ export { validateRouting } from "./routingValidation";
 
 export { belongsToScope, type LearningScope, learningScopes, skillDirectories } from "./scope";
 
-export { profileRuleFromSeedGuidance, writeSeedGuidanceSelection } from "./seedGuidance";
+export { profileRuleFromSeedGuidance } from "./seedGuidance";
 
 export { environmentStatus } from "./status";
 

@@ -8,7 +8,6 @@ import { emptyHookConfig, hasOwnedHooks, updateHookConfig } from "./hookConfig";
 import {
   guidanceMarkers,
   markedSection,
-  renderInstructionPointer,
   updateManagedSection,
 } from "./markdown";
 import { integrationFilePath, integrationTargets, retiredIntegrationTargets } from "./targets";
@@ -35,7 +34,6 @@ export async function prepareIntegrationFiles(options: {
   readonly integration: Integration;
   readonly profile: string;
   readonly remove?: boolean;
-  readonly environment?: boolean;
   readonly peers?: readonly Integration[];
 }): Promise<readonly IntegrationFileChange[]> {
   const changes: IntegrationFileChange[] = [];
@@ -95,7 +93,7 @@ export async function prepareIntegrationFiles(options: {
       next = options.remove
         ? null
         : target.kind === "extension" ? renderPiExtension(options.integration)
-        : `${renderContextSkill(options.environment)}\n`;
+        : `${renderContextSkill()}\n`;
       digest = fingerprint(next ?? "");
     } else {
       const prefix =
@@ -110,11 +108,7 @@ export async function prepareIntegrationFiles(options: {
       });
       const changed = updateManagedSection({
         previous: prefix,
-        body: options.remove || importsPeer
-          ? null
-          : options.environment
-            ? options.profile
-            : renderInstructionPointer(),
+        body: options.remove || importsPeer ? null : options.profile,
         expected: recorded?.fingerprint,
       });
 

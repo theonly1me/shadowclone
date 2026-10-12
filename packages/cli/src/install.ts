@@ -3,11 +3,11 @@ import {
   artifactExcludePatterns,
   artifactRelativePaths,
   checkArtifactWrite,
-  compileAgentDelivery,
+  emptyCompilation,
+  environmentCompilation,
   findInstallation,
   type InstalledArtifact,
   mergeInstallation,
-  readEnvironment,
   readInstallations,
   resolveInstallTarget,
   writeInstallations,
@@ -63,14 +63,13 @@ export async function installLiveClone(
     throw new Error("Managed policy blocks this repository");
   }
 
-  const compilation = await compileAgentDelivery({
-    paths,
-    cwd,
-    repository,
-    ...((await readEnvironment(paths)) === null
-      ? { outputPath: paths.compiledProfileFile }
-      : {}),
-  });
+  const compilation =
+    (await environmentCompilation({
+      paths,
+      cwd,
+      originDirectory: repository.origin.directoryName,
+      repositoryName: repository.profileFileName,
+    })) ?? emptyCompilation;
 
   const state = await readInstallations(paths.installationsFile);
   const directory = canonicalPath(cwd);
@@ -119,6 +118,6 @@ export async function installLiveClone(
   const names = artifacts.map((artifact) => artifactRelativePaths[artifact]);
 
   console.log(
-    `Installed ${names.join(" and ")} for this repository, applying ${compilation.appliedRuleCount} profile rules.`,
+    `Installed ${names.join(" and ")} for this repository, routing ${compilation.skills.length} skill(s).`,
   );
 }

@@ -3,7 +3,7 @@ import { readEnvironment, renderEnvironment, environmentFile } from "./store";
 import { readLocalText, acquireLocalLock, readEffectiveConfig } from "@shadowclone/core";
 import { publishEnvironmentRevision } from "./revision";
 import path from "node:path";
-import { recordFingerprint } from "./records";
+import { missingEnvironmentMessage, recordFingerprint } from "./records";
 import { belongsToScope, learningScopes } from "./scope";
 
 export async function setAutomaticMaintenance(options: {
@@ -22,9 +22,7 @@ export async function setAutomaticMaintenance(options: {
     const state = await readEnvironment(options.paths);
 
     if (state === null) {
-      throw new Error(
-        "Run migrate skills before enabling environment maintenance",
-      );
+      throw new Error(missingEnvironmentMessage);
     }
 
     const filePath = environmentFile(options.paths);

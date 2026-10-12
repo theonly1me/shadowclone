@@ -12,13 +12,11 @@ import { initializeCustomGeneration, customStatus } from "./customGeneration";
 import { perform, actionButton } from "./actions";
 import { initializeEditorDialogs } from "./editorDialogs";
 import { initializeLearningModels } from "./models";
-import { initializeBotSetup } from "./bot";
 import { initializeVoice } from "./voice";
 import { type BuildScope, buildScopeSchema } from "@shadowclone/environment/browser";
 
 initializeEditorDialogs();
 initializeLearningModels();
-initializeBotSetup();
 initializeVoice();
 
 function render(): void {
@@ -68,13 +66,6 @@ async function loadBuildState(scope: BuildScope): Promise<void> {
 
   element("scope-note").textContent = scopeNotes[scope];
   element("library-note").hidden = view.libraryEnabled;
-
-  if (view.migrationRequired) {
-    notice({
-      message:
-        "Your existing profile needs its reviewed skills migration before this build can be applied. You can explore the editor now.",
-    });
-  }
 
   render();
 }

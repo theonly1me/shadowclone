@@ -68,17 +68,17 @@ test("defaults the sources an older config predates", () => {
   expect(parsed.sources.antigravity).toBeFalse();
   expect(parsed.sources["antigravity-workspaces"]).toBeFalse();
   expect(parsed.sources["claude-memory"]).toBeFalse();
-  expect(parsed.sources["claude-rules"]).toBeFalse();
   expect(parsed.sources["declared-rules"]).toBeFalse();
   expect(parsed.sources["git-metadata"]).toBeFalse();
   expect(parsed.sources["repository-manifests"]).toBeFalse();
 });
 
-test("drops the retired shell source from an older config", () => {
+test("drops the retired shell and claude-rules sources from an older config", () => {
   const parsed = parseConfig(
-    config({ sources: { ...coreSources, shell: true } }),
+    config({ sources: { ...coreSources, shell: true, "claude-rules": false } }),
   );
 
   expect("shell" in parsed.sources).toBeFalse();
+  expect("claude-rules" in parsed.sources).toBeFalse();
   expect(parsed.sources["claude-code"]).toBeTrue();
 });

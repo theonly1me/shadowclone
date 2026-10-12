@@ -54,7 +54,9 @@ test("resume dispatch uses the latest pause label event after the first page", a
               actor: { login: fixtureClone.owner },
             },
           ]
-      : fixtureIssue,
+      : route.endsWith("/permission")
+        ? { permission: "admin" }
+        : fixtureIssue,
   });
   const context = eventContext({
     payload: { action: "unlabeled", label: { name: "shadowclone:paused" } },

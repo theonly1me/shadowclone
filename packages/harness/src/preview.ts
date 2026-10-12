@@ -19,19 +19,6 @@ function describeConvention(convention: Convention): string {
   return "no comments in TypeScript";
 }
 
-function omissionSummary(plan: HarnessPlan): string {
-  const counts = new Map<string, number>();
-
-  for (const omission of plan.compilation.omissions) {
-    counts.set(omission.reason, (counts.get(omission.reason) ?? 0) + 1);
-  }
-
-  return (
-    [...counts].map(([reason, count]) => `${count} ${reason}`).join(", ") ||
-    "none"
-  );
-}
-
 export function renderHarnessOutcome(
   revision: string | null | undefined,
 ): string {
@@ -58,7 +45,7 @@ export function renderHarnessPreview(options: {
     plan.files.find((file) => file.relativePath === "AGENTS.md")?.next ?? "";
   const lines = [
     gate,
-    `Rules: ${plan.compilation.appliedRuleCount} included, personal global preferences ${plan.personal ? "included" : "excluded"}; omitted: ${omissionSummary(plan)}.`,
+    `Skills routed: ${plan.compilation.skills.length}, personal global preferences ${plan.personal ? "included" : "excluded"}.`,
     ...(plan.compilation.markdown.length === 0
       ? []
       : [plan.compilation.markdown.trimEnd()]),

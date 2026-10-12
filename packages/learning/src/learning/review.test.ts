@@ -85,7 +85,6 @@ test("a source disabled after learning blocks approval and keeps the rule pendin
   await expect(decidePendingLearning({ paths, key: rule.key, action: "apply", managedConfigPath: null }))
     .rejects.toThrow("disabled sources: codex");
   expect((await readPendingLearning(paths)).rules).toHaveLength(1);
-  expect(await Bun.file(path.join(paths.profileDirectory, "global", "engineering.md")).exists()).toBeFalse();
 
   await decidePendingLearning({ paths, key: rule.key, action: "reject", managedConfigPath: null });
   expect((await readPendingLearning(paths)).rules).toHaveLength(0);

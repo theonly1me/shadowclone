@@ -7,11 +7,11 @@ import { acceptAll, type FixtureRepository, harnessTestSetup } from "@shadowclon
 const repositoryRoot = await checkoutRoot();
 const personalSkills = ["scope-confirmed-changes", "tests-that-catch-bugs"] as const;
 const tasteRules = [
-  "## File size\n\nKeep every file under 200 lines, tests included.\n",
-  "## Comments\n\nWrite zero comments in TypeScript files.\n",
-  "## Prose\n\nNo em-dashes anywhere in code or prose.\n",
-  "## Suppressions\n\nNever silence a lint or type rule with a suppression.\n",
-].join("\n");
+  "Keep every file under 200 lines, tests included.",
+  "Write zero comments in TypeScript files.",
+  "No em-dashes anywhere in code or prose.",
+  "Never silence a lint or type rule with a suppression.",
+];
 
 async function repositoryText(relativePath: string): Promise<string> {
   return Bun.file(path.join(repositoryRoot, relativePath)).text();

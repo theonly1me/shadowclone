@@ -11,6 +11,7 @@ import {
 import type { EngineRunner } from "@shadowclone/agents";
 import { openEventIndex } from "@shadowclone/sessions";
 import { learn } from "./learn";
+import { emptyEnvironment, learningSnapshot, writeEnvironment } from "@shadowclone/environment";
 
 test("learn indexes an enabled fixture corpus end to end", async () => {
   const homeDirectory = await mkdtemp(
@@ -26,6 +27,10 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
   );
 
   await mkdir(transcriptDirectory, { recursive: true });
+  await writeEnvironment({
+    paths,
+    state: { ...emptyEnvironment, phase: "active", baselineDirectory: homeDirectory },
+  });
 
   const records = [
     {
@@ -168,22 +173,13 @@ test("learn indexes an enabled fixture corpus end to end", async () => {
 
   expect(engineRuns).toBe(1);
 
-  const profileGlob = new Bun.Glob("**/*.md");
-  const profileFiles = await Array.fromAsync(
-    profileGlob.scan({
-      cwd: paths.profileDirectory,
-      absolute: true,
-      onlyFiles: true,
-    }),
-  );
+  const profile = (await learningSnapshot(paths)).rules
+    .map(({ rule }) => `${rule.title}\n${rule.body}`)
+    .join("\n");
 
-  if (profileFiles.length === 0) {
-    throw new Error("Expected learn to write a profile");
+  if (profile.length === 0) {
+    throw new Error("Expected learn to store a rule");
   }
-
-  const profile = (
-    await Promise.all(profileFiles.map((filePath) => Bun.file(filePath).text()))
-  ).join("\n");
 
   expect(profile).not.toContain("Stops the agent while using Edit");
   expect(profile).toContain("Choose the smaller scope");

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { canonicalPath, projectPaths, readEffectiveConfig } from "@shadowclone/core";
-import { readEnvironment, registerWorkingRepository } from "@shadowclone/environment";
+import { missingEnvironmentMessage, readEnvironment, registerWorkingRepository } from "@shadowclone/environment";
 
 const usage = "Use learning repositories set <directory> --private|--repository";
 
@@ -25,7 +25,7 @@ export async function setRepositoryDelivery(arguments_: readonly string[]): Prom
   const state = await readEnvironment(projectPaths);
 
   if (state === null) {
-    throw new Error("Run shadowclone migrate skills before you choose where repository learnings go");
+    throw new Error(missingEnvironmentMessage);
   }
 
   const existing = state.repositories.find((repository) => repository.directory === workingDirectory);

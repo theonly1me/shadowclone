@@ -9,6 +9,7 @@ import {
   createProjectPaths,
   type ProjectPaths,
 } from "@shadowclone/core";
+import { writeActiveEnvironment } from "@shadowclone/environment/testing";
 import {
   materializeFixture,
   type FixtureRepository,
@@ -22,7 +23,7 @@ export type HarnessTestSetup = {
 
 export async function harnessTestSetup(options: {
   readonly fixture: FixtureRepository;
-  readonly globalRules?: string;
+  readonly globalRules?: readonly string[];
   readonly sources?: Partial<ShadowcloneConfig["sources"]>;
 }): Promise<HarnessTestSetup> {
   const home = canonicalPath(
@@ -43,10 +44,7 @@ export async function harnessTestSetup(options: {
   });
 
   if (options.globalRules !== undefined) {
-    await Bun.write(
-      path.join(paths.profileDirectory, "global/engineering.md"),
-      options.globalRules,
-    );
+    await writeActiveEnvironment({ paths, home, bodies: options.globalRules });
   }
 
   const root = await materializeFixture({

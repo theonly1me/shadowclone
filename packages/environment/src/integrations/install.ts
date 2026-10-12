@@ -14,7 +14,6 @@ import type {
   IntegrationOptions,
   IntegrationScope,
 } from "./types";
-import { readEnvironment } from "../environment";
 import { ensureHookRunner } from "./hookRunner";
 import { assertCodexOverrideHidesNothing } from "./hiddenInstructions";
 
@@ -95,7 +94,6 @@ export async function installIntegration(
   const changes = await prepareIntegrationFiles({
     integration,
     profile,
-    environment: (await readEnvironment(paths))?.phase === "active",
   });
   const updated = {
     ...integration,

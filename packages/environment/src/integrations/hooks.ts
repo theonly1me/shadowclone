@@ -1,11 +1,10 @@
 import path from "node:path";
 import { z } from "zod";
 import { canonicalPath, projectPaths, readEffectiveConfig } from "@shadowclone/core";
-import { compileContext, sessionStartProjection } from "./compile";
+import { compileContext } from "./compile";
 import { readIntegrations, saveIntegration } from "./state";
 import type { Integration, IntegrationOptions } from "./types";
 import { bindNativeSessionOrigin, nativeBindingTimestamp } from "./bindings";
-import { readEnvironment } from "../environment/store";
 import { takeLearningNotice } from "../environment/learningNotice";
 import { takeReviewPrompt } from "../environment/reviewPrompt";
 import { learningSessionKey } from "./sessionKey";
@@ -88,16 +87,13 @@ export async function nativeSessionStart(
     return {};
   }
 
-  const environment = await readEnvironment(paths);
-  const scopedDelivery = environment?.phase === "active" &&
-    (integration.agent === "claude-code" || integration.agent === "codex" || integration.agent === "pi");
+  const scopedDelivery =
+    integration.agent === "claude-code" || integration.agent === "codex" || integration.agent === "pi";
   const profile = await compileContext({
     ...options,
     paths,
     cwd,
-    audience: input.hook_event_name === "SubagentStart" ? "subagent" : "main",
     ...(scopedDelivery ? { scope: integration.scope === "global" ? "scoped" as const : "global" as const } : {}),
-    ...sessionStartProjection,
   });
 
   if (profile === null) {

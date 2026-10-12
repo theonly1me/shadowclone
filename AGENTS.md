@@ -1,6 +1,6 @@
 # Working on Shadowclone
 
-Shadowclone maintains portable coding-agent skills from consented sessions and memory. It delivers skills and small native instruction sections. Legacy profiles remain for migration.
+Shadowclone maintains portable coding-agent skills from consented sessions and memory. It delivers skills and small native instruction sections.
 
 Follow `CONTRIBUTING.md` when you edit code or prose. Read `.claude/skills/data-handling/SKILL.md` before you change capture, storage, model access, or user actions. Read a package `AGENTS.md` before you change that package.
 
@@ -20,7 +20,7 @@ Follow `CONTRIBUTING.md` when you edit code or prose. Read `.claude/skills/data-
 
 Inspect the worktree and keep unrelated edits. Before you implement, record the reasoning and sequence in `docs/`. If you extend a design, use its existing record. Keep types and names explicit. Use Bun and the existing module boundaries. Add a dependency only for a concrete reason.
 
-Keep active skills delivery separate from legacy profile compatibility. Never inject an aggregated profile into an active skill environment.
+The skills environment is the only store for learned rules. Keep code for removed formats out of the repository.
 
 ## Checks
 

@@ -1,11 +1,6 @@
 import { z } from "zod";
 import { cloneSchema, type Clone } from "./types";
 
-export type InstalledClone = {
-  readonly clone: Clone;
-  readonly hasReview: boolean;
-};
-
 const contentSchema = z.object({ content: z.string(), encoding: z.literal("base64") });
 const repositorySchema = z.object({ default_branch: z.string().min(1) });
 
@@ -63,17 +58,11 @@ export function cloneFromRelay(relay: string): Clone {
 export async function readInstalledClone(options: {
   readonly repository: string;
   readonly token: string;
-}): Promise<InstalledClone | null> {
+}): Promise<Clone | null> {
   const repository = repositorySchema.parse(await getJson({ route: `/repos/${options.repository}`, token: options.token }));
   const read = (filePath: string) =>
     readFile({ repository: options.repository, reference: repository.default_branch, filePath, token: options.token });
   const relay = await read(".github/workflows/shadowclone-relay.yml");
 
-  if (relay === null) {
-    return null;
-  }
-
-  const worker = await read(".github/workflows/shadowclone.yml");
-
-  return { clone: cloneFromRelay(relay), hasReview: worker?.includes("review-analyze:") ?? false };
+  return relay === null ? null : cloneFromRelay(relay);
 }

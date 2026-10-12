@@ -1,18 +1,15 @@
 import { z } from "zod";
-import type { Identity, Repository } from "../types";
+import type { Repository } from "../types";
 import type { GhCommand } from "./github";
 
 const repositoryRoleIds = { admin: 5, maintain: 2, write: 4 } as const;
 
-const exemptRoles: Readonly<Record<Identity["kind"], readonly (keyof typeof repositoryRoleIds)[]>> = {
-  app: ["admin", "maintain", "write"],
-  account: ["admin", "maintain"],
-};
+const exemptRoles: readonly (keyof typeof repositoryRoleIds)[] = ["admin", "maintain"];
 
-export function defaultBranchRuleset(identity: Identity["kind"]) {
+export function defaultBranchRuleset() {
   return {
     ...defaultBranchRules,
-    bypass_actors: exemptRoles[identity].map((role) => ({
+    bypass_actors: exemptRoles.map((role) => ({
       actor_id: repositoryRoleIds[role],
       actor_type: "RepositoryRole",
       bypass_mode: "exempt",
@@ -84,10 +81,9 @@ function hasDefaultBranchRules(ruleset: Ruleset): boolean {
 
 export async function protectDefaultBranch(options: {
   readonly repository: Repository;
-  readonly identity: Identity["kind"];
   readonly command: GhCommand;
 }): Promise<void> {
-  const expected = defaultBranchRuleset(options.identity);
+  const expected = defaultBranchRuleset();
   const base = `repos/${options.repository.full_name}/rulesets`;
   const summaries = summarySchema.parse(
     JSON.parse(
@@ -112,25 +108,12 @@ export async function protectDefaultBranch(options: {
         }),
       ),
     ).id;
-  const read = async () => rulesetSchema.parse(JSON.parse(await options.command({ arguments: ["api", `${base}/${id}`] })));
-  const stored = await read();
+  const stored = rulesetSchema.parse(JSON.parse(await options.command({ arguments: ["api", `${base}/${id}`] })));
 
-  const otherIdentity = options.identity === "app" ? "account" : "app";
-  const switchesIdentity = bypassKey(stored.bypass_actors) === bypassKey(defaultBranchRuleset(otherIdentity).bypass_actors);
-
-  if (existing && hasDefaultBranchRules(stored) && switchesIdentity) {
-    await options.command({
-      arguments: ["api", "--method", "PUT", `${base}/${id}`, "--input", "-"],
-      input: JSON.stringify(expected),
-    });
-  }
-
-  const verified = existing ? await read() : stored;
-
-  if (!hasDefaultBranchRules(verified) || bypassKey(verified.bypass_actors) !== bypassKey(expected.bypass_actors)) {
+  if (!hasDefaultBranchRules(stored) || bypassKey(stored.bypass_actors) !== bypassKey(expected.bypass_actors)) {
     throw new Error(
       existing
-        ? "Review the existing shadowclone default branch ruleset before setup."
+        ? `The ${expected.name} ruleset differs from the rules that setup expects. Delete it or restore it, then run setup again: https://github.com/${options.repository.full_name}/settings/rules/${id}`
         : "The default branch ruleset could not be verified.",
     );
   }

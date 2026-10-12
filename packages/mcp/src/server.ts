@@ -1,13 +1,12 @@
 import { handleMcpRequest, isRecord, parseRequest } from "./protocol";
 import { runPreferenceTool } from "./preferences";
-import { runReferenceTool } from "./references";
 import { createBotTool } from "./bot";
 import { compileContext } from "@shadowclone/environment";
 import { projectPaths } from "@shadowclone/core";
 import type { ProjectPaths } from "@shadowclone/core";
 import type { GitRemoteReader } from "@shadowclone/sessions";
 
-async function activeProfile(options: {
+async function activeContext(options: {
   readonly cwd: string;
   readonly configPath?: string;
   readonly paths: ProjectPaths;
@@ -63,12 +62,11 @@ export async function serveMcp(
               error: { code: -32600, message: "Invalid request" },
             });
           } else {
-            const profile =
+            const context =
               request.method === "tools/call" &&
               isRecord(request.params) &&
-              (request.params.name === "shadowclone_profile" ||
-                request.params.name === "shadowclone_context")
-                ? await activeProfile({
+              request.params.name === "shadowclone_context"
+                ? await activeContext({
                     cwd,
                     configPath: options.configPath,
                     paths,
@@ -86,17 +84,10 @@ export async function serveMcp(
                     paths,
                     managedConfigPath: options.managedConfigPath,
                     readRemote: options.readRemote,
-                  })) ??
-                  (await runReferenceTool({
-                    params: request.params,
-                    cwd,
-                    paths,
-                    managedConfigPath: options.managedConfigPath,
-                    readRemote: options.readRemote,
                   })))
                 : null;
 
-            const response = handleMcpRequest({ request, profile, toolResult });
+            const response = handleMcpRequest({ request, context, toolResult });
 
             if (response !== null) {
               await writeMessage(response);
@@ -114,8 +105,6 @@ export async function serveMcp(
       lineEnd = buffer.indexOf("\n");
     }
   }
-
-  bot.stop();
 }
 
 if (import.meta.main) {

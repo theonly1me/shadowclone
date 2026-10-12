@@ -1,12 +1,11 @@
 import { linterInstallStep } from "./reviewLinters";
-import { codexInstallStep, codexLoginReturnStep, codexLoginStep } from "./agentSteps";
 import { botToken, botTokenSteps } from "./identitySteps";
-import type { Clone } from "./types";
+import { codexHome, codexInstallStep, codexSetupStep, cursorInstallStep, providerKey } from "./providerSteps";
+import { providerEngine, providerSecrets, type Clone } from "./types";
 
 export type ReviewPins = {
   readonly checkout: string;
   readonly script: string;
-  readonly appToken: string;
   readonly setupBun: string;
   readonly uploadArtifact: string;
   readonly downloadArtifact: string;
@@ -63,14 +62,26 @@ export function reviewJobs(options: {
 }): string {
   const { clone, pins, versions } = options;
   const shadowclone = '"$RUNNER_TEMP/shadowclone/bin/shadowclone" review';
+  const network = clone.reviewNetwork ? `\${{ needs.guard.outputs.fork == 'true' && 'off' || 'on' }}` : "off";
   const stageEnvironment = `          ENTITY: \${{ needs.guard.outputs.entity }}
           HEAD_SHA: \${{ needs.guard.outputs.head }}`;
-  const tokenSteps = (permissions: readonly string[]) => botTokenSteps({ clone, pins, permissions, when: null });
-  const codex = clone.engine === "codex";
-  const planConcurrency =
-    codex && clone.codexAuth === "plan"
-      ? `\n    concurrency:\n      group: shadowclone-${clone.repositoryId}-codex-login\n      cancel-in-progress: false`
-      : "";
+  const tokenSteps = () => botTokenSteps({ clone, pins, when: null });
+  const engine = providerEngine(clone.provider);
+  const engineSteps =
+    engine === "codex"
+      ? `${codexInstallStep({ version: versions.codex, when: "success()" })}\n${codexSetupStep({ clone, when: "success()" })}\n`
+      : engine === "cursor"
+        ? `${cursorInstallStep({ when: "success()" })}\n`
+        : "";
+  const engineEnvironment =
+    engine === "codex"
+      ? `          CODEX_HOME: ${codexHome}`
+      : `          ${providerSecrets[clone.provider]}: ${providerKey(clone)}`;
+  const analyzeOptions = [
+    `--engine ${engine}`,
+    ...(clone.model === undefined ? [] : [`--model '${clone.model}'`]),
+    ...(clone.baseUrl === undefined ? [] : [`--base-url '${clone.baseUrl}'`]),
+  ].join(" ");
 
   return `  review-acknowledge:
     needs: guard
@@ -82,10 +93,10 @@ export function reviewJobs(options: {
       - uses: ${pins.checkout}
         with:
           persist-credentials: false
-${tokenSteps(["issues: write", "pull-requests: write"])}
+${tokenSteps()}
       - uses: ${pins.script}
         with:
-          github-token: ${botToken(clone)}
+          github-token: ${botToken}
           script: |
             const { reactToRequest } = require('./.github/shadowclone/react.cjs');
             await reactToRequest({
@@ -113,11 +124,11 @@ ${installSteps({ pins, versions, claude: false })}
           GH_TOKEN: \${{ github.token }}
 ${stageEnvironment}
         run: |
-          ${shadowclone} prepare --repo '${clone.repository}' --pr "$ENTITY" --head "$HEAD_SHA" --network ${clone.reviewNetwork ? "on" : "off"} --checkout "$GITHUB_WORKSPACE/pull-request" --output "$RUNNER_TEMP/packet.json"
+          ${shadowclone} prepare --repo '${clone.repository}' --pr "$ENTITY" --head "$HEAD_SHA" --network ${network} --checkout "$GITHUB_WORKSPACE/pull-request" --output "$RUNNER_TEMP/packet.json"
 ${artifact({ pin: pins.uploadArtifact, name: "packet", upload: true })}
   review-checks:
     needs: [guard, review-prepare]
-    if: ${reviewCondition}
+    if: ${reviewCondition} && needs.guard.outputs.fork != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -138,22 +149,22 @@ ${artifact({ pin: pins.uploadArtifact, name: "checks", upload: true })}
     if: \${{ !cancelled() && ${reviewCondition} && needs.review-prepare.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: shadowclone${planConcurrency}
+    environment: shadowclone
     permissions:
       contents: read
     steps:
 ${pullCheckout({ pins, fullHistory: false })}
-${installSteps({ pins, versions, claude: clone.engine === "claude" })}
-${codex ? `${codexInstallStep({ version: versions.codex, when: "success()" })}\n${codexLoginStep({ clone, when: "success()" })}\n` : ""}${artifact({ pin: pins.downloadArtifact, name: "packet", upload: false })}
+${installSteps({ pins, versions, claude: engine === "claude" })}
+${engineSteps}${artifact({ pin: pins.downloadArtifact, name: "packet", upload: false })}
 ${artifact({ pin: pins.downloadArtifact, name: "checks", upload: false, optional: true })}
       - name: Review with the shadowclone-review skill
         working-directory: \${{ runner.temp }}
         env:
-${codex ? `          CODEX_HOME: \${{ runner.temp }}/codex-home` : `          CLAUDE_CODE_OAUTH_TOKEN: \${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`}
+${engineEnvironment}
         run: |
           checks=()
           if [ -f "$RUNNER_TEMP/checks.json" ]; then checks=(--checks "$RUNNER_TEMP/checks.json"); fi
-          ${shadowclone} analyze --packet "$RUNNER_TEMP/packet.json" "\${checks[@]}" --checkout "$GITHUB_WORKSPACE/pull-request" --engine ${clone.engine} --model '${clone.reviewModel}' --network ${clone.reviewNetwork ? "on" : "off"} --output "$RUNNER_TEMP/result.json"${codexLoginReturnStep({ clone, token: botToken(clone), when: "success()" })}
+          ${shadowclone} analyze --packet "$RUNNER_TEMP/packet.json" "\${checks[@]}" --checkout "$GITHUB_WORKSPACE/pull-request" ${analyzeOptions} --network ${network} --output "$RUNNER_TEMP/result.json"
 ${artifact({ pin: pins.uploadArtifact, name: "result", upload: true })}
   review-publish:
     needs: [guard, review-analyze]
@@ -166,11 +177,11 @@ ${artifact({ pin: pins.uploadArtifact, name: "result", upload: true })}
     steps:
 ${installSteps({ pins, versions, claude: false })}
 ${artifact({ pin: pins.downloadArtifact, name: "result", upload: false })}
-${tokenSteps(["pull-requests: write"])}
+${tokenSteps()}
       - name: Post the review as the clone
         working-directory: \${{ runner.temp }}
         env:
-          GH_TOKEN: ${botToken(clone)}
+          GH_TOKEN: ${botToken}
         run: |
           ${shadowclone} publish --input "$RUNNER_TEMP/result.json"
 `;

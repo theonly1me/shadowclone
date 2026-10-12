@@ -1,8 +1,6 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { mkdir } from "node:fs/promises";
 import { bunTaskList, harnessTestSetup } from "@shadowclone/harness/testing";
-import { claudeMemoryDirectory } from "@shadowclone/profile";
 import { harnessInitCommand, parseRepositoryInit } from "./harness";
 import { harnessSyncCommand } from "./harnessSync";
 
@@ -66,59 +64,6 @@ test("sync leaves a repository without Shadowclone files alone", async () => {
       writeLine: () => undefined,
     }),
   ).toBeNull();
-  expect(
-    await Bun.file(path.join(setup.root, "AGENTS.md")).exists(),
-  ).toBeFalse();
-});
-
-test("sync offers consented memory notes without creating a repository harness", async () => {
-  const setup = await harnessTestSetup({
-    fixture: bunTaskList,
-    sources: { "claude-memory": true },
-  });
-  const directory = claudeMemoryDirectory({
-    paths: setup.paths,
-    repositoryRoot: setup.root,
-  });
-
-  await mkdir(directory, { recursive: true });
-  await Bun.write(
-    path.join(directory, "feedback_review.md"),
-    "---\nname: review\ndescription: Keep reviews short\n---\nUse short reviews.\n",
-  );
-
-  const lines: string[] = [];
-
-  await harnessSyncCommand({
-    apply: false,
-    cwd: setup.root,
-    paths: setup.paths,
-    managedConfigPath: null,
-    ask: () => {
-      throw new Error("asked");
-    },
-    writeLine: (line) => lines.push(line),
-  });
-
-  expect(lines.join("\n")).toContain("1 Claude memory note");
-
-  const prompts: string[] = [];
-
-  expect(
-    await harnessSyncCommand({
-      apply: "confirm",
-      cwd: setup.root,
-      paths: setup.paths,
-      managedConfigPath: null,
-      ask: (prompt) => {
-        prompts.push(prompt);
-
-        return false;
-      },
-      writeLine: () => undefined,
-    }),
-  ).toBeNull();
-  expect(prompts).toHaveLength(1);
   expect(
     await Bun.file(path.join(setup.root, "AGENTS.md")).exists(),
   ).toBeFalse();

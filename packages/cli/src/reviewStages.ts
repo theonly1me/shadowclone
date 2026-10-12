@@ -4,6 +4,7 @@ import path from "node:path";
 import {
   runClaudeCode,
   runCodex,
+  runCursorAgent,
   reasoningEfforts,
   type ReasoningEffort,
 } from "@shadowclone/agents";
@@ -12,10 +13,25 @@ import { defaultCodexReviewModel } from "@shadowclone/review";
 import { analyzeStage, checksFileSchema, checksStage, packetFileSchema, prepareStage } from "@shadowclone/review";
 import { defaultReviewModel } from "./reviewArguments";
 
+function reviewModelChoice(options: {
+  readonly engine: "claude" | "codex" | "cursor";
+  readonly model: string | undefined;
+}): { readonly model?: string } {
+  if (options.model !== undefined) {
+    return { model: options.model };
+  }
+
+  return options.engine === "claude"
+    ? { model: defaultReviewModel }
+    : options.engine === "codex"
+      ? { model: defaultCodexReviewModel }
+      : {};
+}
+
 const stageUsage = [
   "shadowclone review prepare --repo owner/repository --pr <number> --checkout <directory> --output <file> [--head <sha>] [--network on|off]",
   "shadowclone review checks --packet <file> --checkout <directory> --output <file>",
-  "shadowclone review analyze --packet <file> [--checks <file>] --checkout <directory> --output <file> [--engine claude|codex] [--model <id>] [--effort <level>] [--network on|off]",
+  "shadowclone review analyze --packet <file> [--checks <file>] --checkout <directory> --output <file> [--engine claude|codex|cursor] [--model <id>] [--base-url <https url>] [--effort <level>] [--network on|off]",
   "shadowclone review publish --input <file>",
 ].join("\n");
 
@@ -97,7 +113,8 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
     }
   },
   analyze: async (arguments_) => {
-    const flags = readFlags({ arguments: arguments_, allowed: ["--packet", "--checks", "--checkout", "--output", "--engine", "--model", "--effort", "--network"] });
+    const flags = readFlags({ arguments: arguments_, allowed: ["--packet", "--checks", "--checkout", "--output", "--engine", "--model", "--base-url", "--effort", "--network"] });
+    const baseUrl = flags.get("--base-url");
     const engine = flags.get("--engine") ?? "claude";
     const effort = flags.get("--effort") ?? null;
     const checksFile = flags.get("--checks");
@@ -108,8 +125,12 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
       throw new Error(`Choose an effort from ${reasoningEfforts.join(", ")}.`);
     }
 
-    if (engine !== "claude" && engine !== "codex") {
-      throw new Error("Choose --engine claude or --engine codex.");
+    if (engine !== "claude" && engine !== "codex" && engine !== "cursor") {
+      throw new Error("Choose --engine claude, codex, or cursor.");
+    }
+
+    if (baseUrl !== undefined && (engine !== "codex" || !/^https:\/\//.test(baseUrl))) {
+      throw new Error("--base-url takes an https URL and works only with --engine codex.");
     }
 
     if (network !== "on" && network !== "off") {
@@ -121,9 +142,10 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
       checks: checksFile === undefined ? null : checksFileSchema.parse(await Bun.file(path.resolve(checksFile)).json()),
       checkout: path.resolve(required({ flags, name: "--checkout" })),
       reviewModel: {
-        runner: engine === "codex" ? runCodex : runClaudeCode,
+        runner: engine === "codex" ? runCodex : engine === "cursor" ? runCursorAgent : runClaudeCode,
         engine,
-        model: flags.get("--model") ?? (engine === "codex" ? defaultCodexReviewModel : defaultReviewModel),
+        ...reviewModelChoice({ engine, model: flags.get("--model") }),
+        ...(baseUrl === undefined ? {} : { baseUrl }),
         effort,
         network: network === "on",
       },

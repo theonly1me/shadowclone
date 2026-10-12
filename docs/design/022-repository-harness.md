@@ -12,10 +12,10 @@ Ask before including personal preferences in shared files. Keep repository requi
 
 Make configured checks available through the CLI and the dispatch gate. A bounded Claude stop-hook loop can request corrections after a failed check. Where the rule allows it, support checks on only the changed files. Do not claim that prose alone enforces behavior.
 
-Limit startup context to a deduplicated 4 KiB index. Do not copy imported native guidance back into the same prompt. [Skills delivery](023-skills-as-delivery.md) replaced the remaining compiled profile with baseline and skill routing.
+Limit startup context to 4 KiB of baseline and skill routing, as [skills delivery](023-skills-as-delivery.md) describes. Do not copy imported native guidance back into the same prompt.
 
 ## Persistence and verification
 
-Repository check configuration is explicit state. [Agent builds](024-agent-builds.md) later fixed refresh, so replacing profile prose with routing could not erase configured checks.
+Repository check configuration is explicit state. A refresh keeps configured checks when the routing text changes, as [agent builds](024-agent-builds.md) describes.
 
 Test detection, consent, preview, cancellation, ownership, shared and private output, check execution, and bounded repair. The current [evaluation](../../evals.md) measures preference delivery separately from repository harness effectiveness.

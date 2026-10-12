@@ -5,23 +5,26 @@ import { replaceLocalText } from "@shadowclone/core";
 import { applyRevisionFiles } from "./apply";
 
 test("a later write failure rolls back the files already changed", async () => {
-  const { paths } = await integrationFixture();
-  const filePath = path.join(paths.profileDirectory, "global/engineering.md");
-  const before = await Bun.file(filePath).text();
+  const { home } = await integrationFixture();
+  const root = path.join(home, ".agents/skills");
+  const filePath = path.join(root, "naming/SKILL.md");
+  const before = "Use complete names.\n";
+
+  await Bun.write(filePath, before);
   let writes = 0;
 
   await expect(
     applyRevisionFiles({
       revision: {
         id: crypto.randomUUID(),
-        root: paths.profileDirectory,
-        kind: "profile",
+        root,
+        kind: "skill",
         status: "prepared",
         createdAt: Date.now(),
         changes: [
-          { relativePath: "global/engineering.md", before, after: "Changed" },
+          { relativePath: "naming/SKILL.md", before, after: "Changed" },
           {
-            relativePath: "global/workflow.md",
+            relativePath: "workflow/SKILL.md",
             before: null,
             after: "New guidance",
           },

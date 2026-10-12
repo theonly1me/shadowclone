@@ -8,7 +8,7 @@ Learning records keep guidance, scope, observations, source hashes, rejection st
 
 Reconciliation uses redacted user steering as evidence and bounded agent text as labeled context. Context alone never supports a rule. Current source consent filters indexed events, and each reference is checked again before it resolves. Explicit durable guidance can activate after one session. Inferred behavior needs three independent sessions. Questions, silence, temporary exceptions, and interruptions alone make no preference. Contradictory evidence creates a review decision and never silently replaces an explicit instruction.
 
-Manual deep learning and background learning call `packages/learning/src/learning/service.ts`. `storage.ts` in that folder selects environment persistence and keeps the legacy-profile fallback at one compatibility boundary. A declined manual proposal is stored with source provenance in `learning-pending.json`. Approval checks current consent and publishes only the selected keys. It does not repeat extraction or enable automatic maintenance. `remember` stores a direct preference without inference.
+Manual deep learning and background learning call `packages/learning/src/learning/service.ts`. `storage.ts` in that folder reads and writes the skills environment. A declined manual proposal is stored with source provenance in `learning-pending.json`. Approval checks current consent and publishes only the selected keys. It does not repeat extraction or enable automatic maintenance. `remember` stores a direct preference without inference.
 
 ## Publication
 
@@ -30,10 +30,10 @@ Copies of a skill keep supporting bytes and executable permissions. One manual e
 
 Sync regenerates native sections in the same revision and keeps manual sections. Routine sync creates no shared `AGENTS.md` or `CLAUDE.md` in a repository. A local install uses private Claude and Codex destinations, and shared files come from reviewed repository setup. A description that exceeds routing capacity stays a review decision and keeps the existing native section.
 
-## Builds, memory, and compatibility
+## Builds and memory
 
 Terminal and browser builds publish through the same revision machinery. Recurring Claude memory extraction needs the named source and a registered, matching repository. Memory is read-only, hashes skip unchanged notes, and temporary task state does not become durable guidance.
 
-Migration freezes original skills and native instructions, keeps legacy learning, and publishes in bounded batches. Delivery switches only after coverage and file validation. Legacy profile files stay as recovery artifacts ([migration](../guides/migration.md)).
+Setup freezes the original skills and native instructions before the first publication. The skills environment in `~/.shadowclone/environment.json` is the only store for learned rules.
 
-Hooks, subagents, and MCP use the active delivery path. `shadowclone_context` returns scoped routing, and `shadowclone_profile` is a deprecated alias. The [preference study](../../evals/README.md) compares original and maintained libraries in separate arms.
+Hooks, subagents, and MCP use the same delivery path. `shadowclone_context` returns scoped routing. The [preference study](../../evals/README.md) compares original and maintained libraries in separate arms.

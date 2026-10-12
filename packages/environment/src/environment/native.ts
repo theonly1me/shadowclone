@@ -80,7 +80,6 @@ export async function nativePublication(options: {
     const changes = await prepareIntegrationFiles({
       integration,
       profile: renderSkillRouting({ state: options.state, scopes: applicable }),
-      environment: true,
     }).catch((error: unknown) => {
       if (isPreservedFileError(error)) {
         skipped.push({ agent: integration.agent, path: integration.directory, target: null });

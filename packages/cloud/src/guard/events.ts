@@ -1,7 +1,7 @@
 import type { Clone, EventContext, GithubRequest } from "../types";
 import { readRequestComment } from "./comment";
 import { readGithub, readIssueEvents, record, positiveNumber } from "./records";
-import { isReviewOpenAction, readReviewablePull } from "./reviewRequest";
+import { hasWriteAccess, mentionsBot } from "./access";
 import {
   findPull,
   headStillRunning,
@@ -19,6 +19,7 @@ export type Trigger = {
   readonly head: string;
   readonly kind: "issue" | "pull" | "pause" | "review";
   readonly key: string;
+  readonly fork: boolean;
 };
 
 export async function resolveTrigger(options: {
@@ -39,7 +40,11 @@ export async function resolveTrigger(options: {
   const dispatched = context.eventName === "workflow_dispatch";
   const input = record(context.payload.inputs);
 
-  if (dispatched && ![...clone.requesters, "github-actions[bot]"].includes(context.actor)) {
+  if (
+    dispatched &&
+    context.actor !== "github-actions[bot]" &&
+    !(await hasWriteAccess({ clone, request, actor: context.actor }))
+  ) {
     return null;
   }
 
@@ -74,6 +79,7 @@ export async function resolveTrigger(options: {
   let maintenance = false;
   let pause = false;
   let review = false;
+  let fork = false;
   let version = "";
 
   if (source === "workflow_run") {
@@ -130,20 +136,6 @@ export async function resolveTrigger(options: {
     maintenance = comment.maintenance;
     review = comment.review;
     version = comment.version;
-  } else if (
-    source === "pull_request_target" &&
-    isReviewOpenAction(dispatched ? input.action : payload.action)
-  ) {
-    const pull = await readReviewablePull({ clone, request, number: identifier });
-
-    if (!pull) {
-      return null;
-    }
-
-    entityNumber = identifier;
-    actor = pull.actor;
-    version = pull.version;
-    review = true;
   } else if (source === "issues" || source === "pull_request_target") {
     entityNumber = identifier;
 
@@ -192,9 +184,13 @@ export async function resolveTrigger(options: {
       });
 
       actor = String(record(task.user).login);
+
+      if (!mentionsBot({ clone, text: `${String(task.title ?? "")}\n${String(task.body ?? "")}` })) {
+        return null;
+      }
     }
 
-    if (!clone.requesters.includes(actor) || actor.endsWith("[bot]")) {
+    if (!(await hasWriteAccess({ clone, request, actor }))) {
       return null;
     }
   } else {
@@ -232,7 +228,9 @@ export async function resolveTrigger(options: {
       route: `GET /repos/${clone.repository}/pulls/${entityNumber}`,
     });
 
-    if (task.state !== "open" || record(record(task.head).repo).id !== clone.repositoryId) {
+    fork = record(record(task.head).repo).id !== clone.repositoryId;
+
+    if (task.state !== "open" || (fork && !review)) {
       return null;
     }
 
@@ -255,10 +253,6 @@ export async function resolveTrigger(options: {
       return null;
     }
   } else {
-    if (source === "issues" && !version && record(task.user).login !== clone.owner) {
-      return null;
-    }
-
     branch = `shadowclone/issue-${entityNumber}`;
   }
 
@@ -291,5 +285,6 @@ export async function resolveTrigger(options: {
     head,
     key,
     kind: pause ? "pause" : review ? "review" : isPull ? "pull" : "issue",
+    fork,
   };
 }

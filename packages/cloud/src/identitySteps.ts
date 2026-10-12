@@ -3,14 +3,9 @@ import type { Clone } from "./types";
 type IdentityPins = {
   readonly checkout: string;
   readonly script: string;
-  readonly appToken: string;
 };
 
-export function botToken(clone: Clone): string {
-  return clone.identity.kind === "app"
-    ? `\${{ steps.app.outputs.token }}`
-    : `\${{ secrets.SHADOWCLONE_BOT_TOKEN }}`;
-}
+export const botToken = `\${{ secrets.SHADOWCLONE_BOT_TOKEN }}`;
 
 function condition(when: string | null): string {
   return when === null ? "" : `\n        if: ${when}`;
@@ -19,27 +14,14 @@ function condition(when: string | null): string {
 export function botTokenSteps(options: {
   readonly clone: Clone;
   readonly pins: IdentityPins;
-  readonly permissions: readonly string[];
   readonly when: string | null;
 }): string {
   const { clone, pins } = options;
-  const [owner = "", repository = ""] = clone.repository.split("/");
-
-  if (clone.identity.kind === "app") {
-    return `      - uses: ${pins.appToken}
-        id: app${condition(options.when)}
-        with:
-          app-id: '${clone.identity.appId}'
-          private-key: \${{ secrets.SHADOWCLONE_APP_PRIVATE_KEY }}
-          owner: '${owner}'
-          repositories: '${repository}'
-${options.permissions.map((permission) => `          permission-${permission}`).join("\n")}`;
-  }
 
   return `      - uses: ${pins.script}
         name: Accept the repository invitation as ${clone.botLogin}${condition(options.when)}
         with:
-          github-token: ${botToken(clone)}
+          github-token: ${botToken}
           script: |
             const invitations = await github.paginate('GET /user/repository_invitations');
 

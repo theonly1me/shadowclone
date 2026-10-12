@@ -15,13 +15,13 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`review`](../../packages/review/AGENTS.md)           | Pull request review engine                           |
 | [`changes`](../../packages/changes/AGENTS.md)         | Reversible local writes, stored as revisions         |
 | [`skills`](../../packages/skills/AGENTS.md)           | Skill files without model calls                      |
-| [`profile`](../../packages/profile/AGENTS.md)         | Learned rules, legacy profile, memory migration      |
+| [`profile`](../../packages/profile/AGENTS.md)         | Learned rule model and Claude memory scanner         |
 | [`environment`](../../packages/environment/AGENTS.md) | Publication, native sections, install, and undo      |
 | [`builds`](../../packages/builds/AGENTS.md)           | Agent builds                                         |
 | [`learning`](../../packages/learning/AGENTS.md)       | Distillation, reconciliation, probes, `remember`     |
 | [`harness`](../../packages/harness/AGENTS.md)         | Repository harness for `init --repo` and `check`     |
 | [`cloud`](../../packages/cloud/AGENTS.md)             | GitHub bot setup and workflows                       |
-| [`web`](../../packages/web/AGENTS.md)                 | Wizard, voice capture, browser bot setup             |
+| [`web`](../../packages/web/AGENTS.md)                 | Wizard, voice capture, and skill drafts              |
 | [`mcp`](../../packages/mcp/AGENTS.md)                 | MCP server                                           |
 | [`cli`](../../packages/cli/AGENTS.md)                 | Commands, build, and publish                         |
 | [`evals`](../../evals/AGENTS.md)                      | Private evaluation suites                            |
@@ -31,7 +31,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 
 ## Dependencies
 
-An arrow points from a package to a package that it imports. The graph omits an arrow that another path implies. For example, `cli` also declares `review`, but `mcp`, `web`, and `cloud` already lead to it.
+An arrow points from a package to a package that it imports. The graph omits an arrow that another path implies. For example, `cli` also declares `environment`, but `mcp` and `harness` already lead to it.
 
 ```mermaid
 graph BT
@@ -40,21 +40,23 @@ graph BT
   sessions --> redact
   changes --> sessions
   skills --> changes
-  profile --> skills
+  profile --> sessions
   environment --> profile
+  environment --> skills
   environment --> agents
   builds --> environment
   learning --> environment
   harness --> environment
   review --> agents
   cloud --> environment
-  cloud --> review
   web --> builds
-  web --> cloud
   web --> learning
-  mcp --> web
+  mcp --> learning
+  mcp --> cloud
   cli --> mcp
+  cli --> web
   cli --> harness
+  cli --> review
 ```
 
 `tooling/src/boundaries/packages.ts` lists the allowed imports. `bun run lint` checks every import against it and fails on a cycle. A package exposes `.` and, where needed, `./testing` for fixtures and `./browser` for web client modules. See [design record 038](../design/038-packages-and-plain-english.md).

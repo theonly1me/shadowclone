@@ -67,7 +67,7 @@ export async function freezeProbeGuidance(options: {
       scope: integration.scope === "global" ? "global" : "combined",
     });
     if (profile === null) throw new Error("Policy blocks this integration");
-    const changes = await prepareIntegrationFiles({ integration, profile, environment: true });
+    const changes = await prepareIntegrationFiles({ integration, profile });
     for (const file of integration.files.filter((entry) => entry.kind === "instructions")) {
       const filePath = integrationFilePath({ integration, file });
       const snapshot = await materializeSnapshot({

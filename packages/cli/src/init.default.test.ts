@@ -5,7 +5,7 @@ import path from "node:path";
 import { readConfig, createProjectPaths } from "@shadowclone/core";
 import { readMaintenanceState } from "@shadowclone/skills";
 import { answerIsYes, initialize } from "./init";
-import { readProfileSnapshot } from "@shadowclone/environment";
+import { learningSnapshot } from "@shadowclone/environment";
 import { fixtureSkill } from "@shadowclone/skills/testing";
 
 test("default yes prompt treats an explicit no as declined consent", () => {
@@ -186,8 +186,7 @@ test("default setup retains imported guidance as internal learning with an injec
     writeLine: () => {},
   });
 
-  expect((await readProfileSnapshot(paths)).rules).toHaveLength(1);
-  expect(await Bun.file(paths.profileManifestFile).exists()).toBeFalse();
+  expect((await learningSnapshot(paths)).rules).toHaveLength(1);
 });
 
 test("setup reports an agent it skipped and counts only the agents it installed", async () => {

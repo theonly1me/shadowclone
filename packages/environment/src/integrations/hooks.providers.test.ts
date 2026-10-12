@@ -1,27 +1,15 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
-import { resolveRepository } from "@shadowclone/sessions";
 import { installIntegration } from "./install";
 import { nativeSessionStart } from "./hooks";
 import { integrationFixture } from "@shadowclone/core/testing";
+import { writeActiveEnvironment } from "../environment/fixtures";
 import { integrationHealth } from "./refresh";
 
-test("global pointer stays stable while its hook injects combined guidance", async () => {
+test("a global Codex install writes the global routing to its instructions", async () => {
   const fixture = await integrationFixture();
-  const repository = await resolveRepository({
-    cwd: fixture.cwd,
-    enabled: false,
-  });
 
-  await Bun.write(
-    path.join(
-      fixture.paths.profileDirectory,
-      "org",
-      repository.origin.directoryName,
-      "engineering.md",
-    ),
-    "## Local convention\n\nUse the repository's queue.\n",
-  );
+  await writeActiveEnvironment({ ...fixture, bodies: ["Use complete names."] });
 
   const installed = await installIntegration({
     ...fixture,
@@ -32,25 +20,14 @@ test("global pointer stays stable while its hook injects combined guidance", asy
     path.join(fixture.home, ".codex/AGENTS.md"),
   ).text();
 
-  expect(text).toContain("A session hook loads");
-  expect(text).not.toContain("Use complete names.");
-  expect(text).not.toContain("repository's queue");
-
-  const output = await nativeSessionStart({
-    ...fixture,
-    id: installed.id,
-    input: JSON.stringify({ cwd: fixture.cwd }),
-  });
-
-  expect(JSON.stringify(output)).toContain("repository's queue");
-  expect(JSON.stringify(output)).toContain("Use complete names.");
-  expect((await integrationHealth(fixture))[0]).toContain(
-    "hook delivery observed",
-  );
+  expect(text).toContain("Use complete names.");
+  expect(installed.agent).toBe("codex");
 });
 
 test("Cursor global hooks inject combined context and repository installation suppresses duplicate global delivery", async () => {
   const fixture = await integrationFixture();
+
+  await writeActiveEnvironment({ ...fixture, bodies: ["Use complete names."] });
   const global = await installIntegration({
     ...fixture,
     agent: "cursor",
@@ -62,6 +39,9 @@ test("Cursor global hooks inject combined context and repository installation su
     (await nativeSessionStart({ ...fixture, id: global.id, input }))
       .additional_context,
   ).toContain("Use complete names.");
+  expect((await integrationHealth(fixture))[0]).toContain(
+    "hook delivery observed",
+  );
 
   await installIntegration({
     ...fixture,
@@ -74,8 +54,10 @@ test("Cursor global hooks inject combined context and repository installation su
   ).toEqual({});
 });
 
-test("Antigravity receives profile context through native hook output", async () => {
+test("Antigravity receives the learned routing through native hook output", async () => {
   const fixture = await integrationFixture();
+
+  await writeActiveEnvironment({ ...fixture, bodies: ["Use complete names."] });
   const installed = await installIntegration({
     ...fixture,
     agent: "antigravity",

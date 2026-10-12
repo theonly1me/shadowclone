@@ -21,7 +21,22 @@ test("MCP offers setup and saved status but rejects credential and activation op
       expect(result?.isError).toBeTrue();
     }
   } finally {
-    bot.stop();
+    await fixture.cleanup();
+  }
+});
+
+test("MCP status for a repository without a saved setup says to set it up first", async () => {
+  const fixture = await guidanceFixture();
+  const bot = createBotTool(fixture);
+
+  try {
+    const result = await bot.run({ name: "shadowclone_bot", arguments: { operation: "status", repository: "sample/project" } });
+
+    expect(result).toEqual({
+      content: [{ type: "text", text: "No cloud bot setup is saved for sample/project. Call setup first." }],
+      isError: true,
+    });
+  } finally {
     await fixture.cleanup();
   }
 });

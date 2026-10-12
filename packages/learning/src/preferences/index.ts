@@ -4,7 +4,7 @@ import {
   projectPaths,
   type ProjectPaths,
 } from "@shadowclone/core";
-import { refreshIntegrations, writeProfile } from "@shadowclone/environment";
+import { refreshIntegrations, storeLearningRules } from "@shadowclone/environment";
 import type { ProfileRule } from "@shadowclone/profile";
 import { redactSecrets } from "@shadowclone/redact";
 import {
@@ -128,7 +128,7 @@ export async function rememberPreference(options: {
     importReference: null,
   };
 
-  await writeProfile({ paths, rules: [rule] });
+  await storeLearningRules({ paths, rules: [rule] });
   await refreshIntegrations({
     paths,
     configPath: paths.configFile,

@@ -30,15 +30,15 @@ test("the job that runs the pull request's toolchain gets no secrets and no envi
   expect(JSON.stringify(checks)).not.toContain("secrets.");
 });
 
-test("the model job holds only the Claude token and the publish job alone holds the App key", () => {
+test("the model job holds only the API key and the publish job alone holds the bot token", () => {
   const rendered = jobs();
   const analyze = JSON.stringify(rendered["review-analyze"]);
   const publish = JSON.stringify(rendered["review-publish"]);
 
-  expect(analyze).toContain("secrets.CLAUDE_CODE_OAUTH_TOKEN");
-  expect(analyze).not.toContain("SHADOWCLONE_APP_PRIVATE_KEY");
-  expect(publish).toContain("SHADOWCLONE_APP_PRIVATE_KEY");
-  expect(publish).not.toContain("CLAUDE_CODE_OAUTH_TOKEN");
+  expect(analyze).toContain("secrets.ANTHROPIC_API_KEY");
+  expect(analyze).not.toContain("SHADOWCLONE_BOT_TOKEN");
+  expect(publish).toContain("secrets.SHADOWCLONE_BOT_TOKEN");
+  expect(publish).not.toContain("ANTHROPIC_API_KEY");
 });
 
 test("review requests skip the work job", () => {
@@ -66,4 +66,16 @@ test("the toolchain job installs each review linter at its pinned hash before it
   expect(install).toContain("6c881ab0698e4e6ea235245f22832860544f17ba386442fe7e9d629f8cbedf87");
   expect(install).toContain("e7965f8146b53cfa7a4625ceecfea5c6aeb35add39132210aa60b11ae180b9f4");
   expect(install).toContain('$RUNNER_TEMP/linters\\" >> \\"$GITHUB_PATH');
+});
+
+test("a fork head skips the toolchain job and reviews with the network off", () => {
+  const rendered = jobs();
+  const worker = renderWorkflows(fixtureClone)[".github/workflows/shadowclone.yml"] ?? "";
+
+  expect(JSON.stringify(rendered["review-checks"])).toContain("needs.guard.outputs.fork != 'true'");
+  const forkNetwork = `--network \${{ needs.guard.outputs.fork == 'true' && 'off' || 'on' }}`;
+
+  expect(worker).toContain(`fork: \${{ steps.validate.outputs.fork }}`);
+  expect(JSON.stringify(rendered["review-prepare"])).toContain(forkNetwork);
+  expect(JSON.stringify(rendered["review-analyze"])).toContain(forkNetwork);
 });

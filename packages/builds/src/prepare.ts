@@ -21,26 +21,11 @@ export async function prepareBuildEnvironment(
   const initial = await readEnvironment(context.paths);
 
   if (initial?.phase === "preparing") {
-    throw new Error(
-      "Finish the pending skills migration before applying a build",
-    );
+    throw new Error("The skills environment is not active yet. Run shadowclone init first.");
   }
 
   if (initial !== null) {
     return initial;
-  }
-
-  const legacyFiles = await Array.fromAsync(
-    new Bun.Glob("{global,org}/**/*.md").scan({
-      cwd: context.paths.profileDirectory,
-      onlyFiles: true,
-    }),
-  ).catch(() => []);
-
-  if (legacyFiles.length > 0) {
-    throw new Error(
-      "Migrate the existing profile to skills before applying a visual build",
-    );
   }
 
   return { ...emptyEnvironment, phase: "active" };

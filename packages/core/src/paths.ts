@@ -20,11 +20,7 @@ export type ProjectPaths = {
   readonly shadowcloneDirectory: string;
   readonly configFile: string;
   readonly indexDatabase: string;
-  readonly profileDirectory: string;
-  readonly rejectedProfileFile: string;
-  readonly profileManifestFile: string;
   readonly installationsFile: string;
-  readonly compiledProfileFile: string;
   readonly distillDirectory: string;
   readonly worktreesDirectory: string;
   readonly runsDirectory: string;
@@ -63,17 +59,12 @@ export function createProjectPaths(options: {
     canonicalPath(options.homeDirectory),
     ".shadowclone",
   );
-  const profileDirectory = path.join(shadowcloneDirectory, "profile");
 
   return {
     shadowcloneDirectory,
     configFile: path.join(shadowcloneDirectory, "config.toml"),
     indexDatabase: path.join(shadowcloneDirectory, "index.db"),
-    profileDirectory,
-    rejectedProfileFile: path.join(profileDirectory, ".rejected"),
-    profileManifestFile: path.join(profileDirectory, ".generated"),
     installationsFile: path.join(shadowcloneDirectory, "installations.json"),
-    compiledProfileFile: path.join(profileDirectory, ".compiled.md"),
     distillDirectory: path.join(shadowcloneDirectory, "distill"),
     worktreesDirectory: path.join(shadowcloneDirectory, "worktrees"),
     runsDirectory: path.join(shadowcloneDirectory, "runs"),

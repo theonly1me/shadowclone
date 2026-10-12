@@ -3,7 +3,7 @@ import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { defaultManagedPolicy, readConfig, createProjectPaths } from "@shadowclone/core";
-import { readGeneratedProfileState } from "@shadowclone/profile";
+import { emptyEnvironment, environmentFile, writeEnvironment } from "@shadowclone/environment";
 import { importRepositoryGuidanceCommand } from "./import";
 
 async function testContext(): Promise<{
@@ -17,14 +17,19 @@ async function testContext(): Promise<{
     path.join(os.tmpdir(), "shadowclone-import-repo-"),
   );
 
-  return {
-    repository,
-    paths: createProjectPaths({ homeDirectory, platform: "darwin" }),
-  };
+  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+
+  await writeEnvironment({
+    paths,
+    state: { ...emptyEnvironment, phase: "active", baselineDirectory: homeDirectory },
+  });
+
+  return { repository, paths };
 }
 
-test("declining import leaves configuration and profile state untouched", async () => {
+test("declining import leaves configuration and the learning store untouched", async () => {
   const { repository, paths } = await testContext();
+  const before = await Bun.file(environmentFile(paths)).text();
 
   await mkdir(path.join(repository, "CLAUDE.md"));
 
@@ -39,7 +44,7 @@ test("declining import leaves configuration and profile state untouched", async 
 
   expect(result).toBeNull();
   expect(await Bun.file(paths.configFile).exists()).toBeFalse();
-  expect(await Bun.file(paths.profileManifestFile).exists()).toBeFalse();
+  expect(await Bun.file(environmentFile(paths)).text()).toBe(before);
 });
 
 test("persists consent and imports only redacted repository guidance", async () => {
@@ -71,16 +76,7 @@ test("persists consent and imports only redacted repository guidance", async () 
   });
 
   const config = await readConfig({ configPath: paths.configFile });
-  const [entry] = await readGeneratedProfileState(paths.profileManifestFile);
-
-  if (!entry) {
-    throw new Error("Expected imported profile state");
-  }
-
-  const profile = await Bun.file(
-    path.join(paths.profileDirectory, entry.relativePath),
-  ).text();
-  const persisted = `${profile}\n${await Bun.file(paths.profileManifestFile).text()}`;
+  const persisted = await Bun.file(environmentFile(paths)).text();
 
   expect(result?.imported).toBe(1);
   expect(config.sources["declared-rules"]).toBeTrue();

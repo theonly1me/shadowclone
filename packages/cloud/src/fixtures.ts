@@ -10,24 +10,13 @@ export const fixtureClone: Clone = {
   repository: "sample/project",
   defaultBranch: "main",
   owner: "sample",
-  identity: { kind: "app", appId: 20 },
-  botId: 30,
-  botLogin: "sample-clone[bot]",
-  skillsRepository: "sample/shadowclone-skills",
-  requesters: ["sample"],
-  reviewerBots: ["reviewer[bot]"],
-  maximumRuns: 10,
-  reviewModel: "claude-opus-5-5",
-  reviewNetwork: true,
-  engine: "claude",
-  codexAuth: "api-key",
-};
-
-export const fixtureAccountClone: Clone = {
-  ...fixtureClone,
-  identity: { kind: "account" },
   botId: 31,
   botLogin: "sample-shadow",
+  skillsRepository: "sample/shadowclone-skills",
+  reviewerBots: ["reviewer[bot]"],
+  maximumRuns: 10,
+  provider: "anthropic",
+  reviewNetwork: true,
 };
 
 export function eventContext(
@@ -67,7 +56,22 @@ export function githubFixture(routes: Readonly<Record<string, unknown>>) {
   return { request, calls };
 }
 
-export const fixtureIssue = { number: 1, state: "open", user: { login: "sample" }, labels: [] };
+export function collaboratorPermission(options: { readonly login: string; readonly permission: string }) {
+  return {
+    [`GET /repos/sample/project/collaborators/${options.login}/permission`]: { permission: options.permission },
+  };
+}
+
+export const ownerPermission = collaboratorPermission({ login: "sample", permission: "admin" });
+
+export const fixtureIssue = {
+  number: 1,
+  state: "open",
+  user: { login: "sample" },
+  title: "Fix the parser",
+  body: "@sample-shadow please fix the parser.",
+  labels: [],
+};
 export const fixturePull = {
   number: 2,
   state: "open",

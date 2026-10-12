@@ -1,3 +1,2 @@
 export * from "./profile";
-export * from "./references";
-export * from "./migrate";
+export { claudeMemoryDirectory, scanClaudeMemory, type ClaudeMemoryFile } from "./claudeMemory";

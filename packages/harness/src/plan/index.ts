@@ -1,13 +1,13 @@
 import path from "node:path";
 import {
   compileContextDetails,
+  type ContextCompilation,
   type Convention,
   harnessManifestPath,
   readHarnessManifest,
   renderHarnessManifest,
 } from "@shadowclone/environment";
 import { readLocalText, canonicalPath, projectPaths, type ProjectPaths } from "@shadowclone/core";
-import type { ProfileCompilation } from "@shadowclone/profile";
 import type { GitRemoteReader } from "@shadowclone/sessions";
 import { deriveConventions, sourceExtensions } from "../conventions";
 import { detectRepository } from "../detect";
@@ -23,14 +23,12 @@ import { planClaudeStopHook, planManagedFile, type PlannedFile } from "./files";
 import { carriedSkills, planSkillFiles } from "./skills";
 import { planClaudeImport } from "./claudeImport";
 
-export const harnessRuleByteBudget = 6_144;
-
 export type HarnessPlan = {
   readonly root: string;
   readonly facts: RepositoryFacts;
   readonly gate: HarnessGate | null;
   readonly commands: readonly HarnessCommand[];
-  readonly compilation: ProfileCompilation;
+  readonly compilation: ContextCompilation;
   readonly conventions: readonly Convention[];
   readonly skills: readonly ReadFirstSkill[];
   readonly personal: boolean;
@@ -61,10 +59,6 @@ export async function planHarness(options: {
     managedConfigPath: options.managedConfigPath,
     readRemote: options.readRemote,
     scope: options.personal ? "combined" : "scoped",
-    format: "harness",
-    byteBudget: harnessRuleByteBudget,
-    applicability: { tools: facts.tools, entries: new Set(facts.entries) },
-    nativeDuplicates: "excluding-harness",
   });
 
   if (details === null) {
@@ -107,7 +101,7 @@ export async function planHarness(options: {
   const commands = harnessCommands({ facts, gate });
   const conventions =
     manifest?.conventions ??
-    deriveConventions({ ruleLines: details.compilation.markdown, facts });
+    deriveConventions({ ruleLines: details.markdown, facts });
 
   const files = [
     await planManagedFile({
@@ -118,7 +112,7 @@ export async function planHarness(options: {
         skills,
         commands,
         gate,
-        rules: details.compilation.markdown,
+        rules: details.markdown,
         checked: conventions.length > 0,
       }),
       expected: artifacts["AGENTS.md"],
@@ -141,7 +135,7 @@ export async function planHarness(options: {
     conventions: [...conventions],
     sourceExtensions: [...sourceExtensions(facts)],
     skills: skills.map((skill) => skill.name),
-    ruleKeys: [...details.compilation.appliedRuleKeys],
+    ruleKeys: [],
     artifacts: { ...carried.artifacts, ...recorded },
     ...(manifest?.verification ? { verification: manifest.verification } : {}),
   });
@@ -168,7 +162,7 @@ export async function planHarness(options: {
     facts,
     gate,
     commands,
-    compilation: details.compilation,
+    compilation: details,
     conventions,
     skills,
     personal: options.personal,

@@ -6,7 +6,7 @@ An aggregated profile compresses every preference into one startup budget. Copyi
 
 ## Decision
 
-Keep complete guidance, evidence, scope, rejections, source hashes, and publication destinations in versioned local learning records. Deliver behavior through portable skills and small native instruction sections. Active skill environments receive no aggregated profile overlay.
+Keep complete guidance, evidence, scope, rejections, source hashes, and publication destinations in versioned local learning records. Deliver behavior through portable skills and small native instruction sections. The agent receives no aggregated profile.
 
 Review the entire consented library. Update relevant procedures and descriptions. If no existing workflow fits, create an instruction-only skill. Preserve unrelated text, supporting resources, permissions, and invocation settings. Supported changes to authorized user skills can apply automatically. Conflicts and uncertain technical claims stay pending. Third-party packages receive local companions.
 
@@ -14,19 +14,11 @@ A mandatory baseline carries universal guidance. Native sections load it and rou
 
 Keep global, remote-owner, and repository scopes distinct. Publish repository skills only to registered matching repositories. Skill files, native sections, and publication records form one reversible revision. Pending publication survives a completed capture batch.
 
-## Memory and migration
+## Memory and setup
 
 Read consented Claude memory for registered repositories. Use source hashes to avoid processing the same memory again. Native memory stays read-only. Temporary task state does not become durable guidance.
 
-Migration shows a preview by default. Before you switch delivery, do these steps:
-
-1. Freeze the original library and instructions.
-2. Map active profile entries and references.
-3. Record unresolved scopes.
-4. Validate coverage.
-5. Publish successfully.
-
-Keep legacy profiles for recovery. Source consent alone does not authorize skill writes.
+Setup freezes the original library and instructions before the first publication. The skills environment is the only store for learned rules. Source consent alone does not authorize skill writes.
 
 Context diagnostics, hooks, MCP, dispatch, optional subagents, and repository setup use the shared skills delivery path. The [preference study](027-preference-study.md) evaluates the resulting delivery.
 

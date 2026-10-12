@@ -18,6 +18,9 @@ import {
 import { redactSecrets } from "@shadowclone/redact";
 import { learningRuleSchema, type LearningRecord } from "./types";
 
+export const missingEnvironmentMessage =
+  "Shadowclone has no skills environment yet. Run shadowclone init first.";
+
 export function recordFingerprint(record: LearningRecord): string {
   return fingerprint(JSON.stringify({
     kind: record.kind,
@@ -28,12 +31,12 @@ export function recordFingerprint(record: LearningRecord): string {
 
 export async function learningSnapshot(
   paths: ProjectPaths,
-): Promise<ProfileSnapshot | null> {
+): Promise<ProfileSnapshot> {
   const state = await readRedactedEnvironment(paths);
   const original = await readEnvironment(paths);
 
   if (state === null || original === null) {
-    return null;
+    throw new Error(missingEnvironmentMessage);
   }
 
   return {
@@ -62,9 +65,9 @@ export async function storeLearningRules(options: {
     readonly sources: readonly SourceId[];
     readonly complete: boolean;
   }>>;
-}): Promise<ProfileWriteResult | null> {
+}): Promise<ProfileWriteResult> {
   if ((await readEnvironment(options.paths)) === null) {
-    return null;
+    throw new Error(missingEnvironmentMessage);
   }
 
   const lock = await acquireLocalLock(

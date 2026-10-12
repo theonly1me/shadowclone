@@ -5,6 +5,7 @@ import path from "node:path";
 import { defaultConfig, writeConfig, createProjectPaths } from "@shadowclone/core";
 import type { EngineRunner } from "@shadowclone/agents";
 import { learn } from "./learn";
+import { emptyEnvironment, writeEnvironment } from "@shadowclone/environment";
 
 function emptyRunner(prompts: string[]): EngineRunner {
   return (request) => {
@@ -32,6 +33,10 @@ test("disabling a source after indexing prevents its evidence from reaching lear
     path.join(os.tmpdir(), "shadowclone-revoked-source-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  await writeEnvironment({
+    paths,
+    state: { ...emptyEnvironment, phase: "active", baselineDirectory: homeDirectory },
+  });
   const transcriptDirectory = path.join(paths.claudeProjectsDirectory, "sample");
 
   await mkdir(transcriptDirectory, { recursive: true });
@@ -82,6 +87,10 @@ test("Codex user input survives indexing and reaches the redacted learner", asyn
     path.join(os.tmpdir(), "shadowclone-codex-learning-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  await writeEnvironment({
+    paths,
+    state: { ...emptyEnvironment, phase: "active", baselineDirectory: homeDirectory },
+  });
   const transcriptDirectory = path.join(
     paths.codexSessionsDirectory,
     "2026",

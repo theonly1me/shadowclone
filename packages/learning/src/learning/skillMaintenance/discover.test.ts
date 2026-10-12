@@ -2,13 +2,11 @@ import { expect, test } from "bun:test";
 import { symlink } from "node:fs/promises";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "@shadowclone/core";
-import { skillExecution, skillFixture } from "@shadowclone/environment/testing";
+import { skillFixture } from "@shadowclone/environment/testing";
 import { inspectSkillLibrary } from "./lifecycle";
-import { readMaintenanceState } from "@shadowclone/skills";
-import { updateSkillLibrary } from "./update";
 import { fixtureSkill } from "@shadowclone/skills/testing";
 
-test("disabled consent prevents library reads and model calls", async () => {
+test("disabled consent prevents library reads", async () => {
   const setup = await skillFixture();
 
   await writeConfig({
@@ -16,14 +14,7 @@ test("disabled consent prevents library reads and model calls", async () => {
     config: defaultConfig,
   });
 
-  const execution = skillExecution();
-
   await expect(inspectSkillLibrary(setup)).rejects.toThrow("disabled");
-
-  expect(await updateSkillLibrary({ ...setup, execution })).toMatchObject({
-    assessed: 0,
-  });
-  expect(execution.callsUsed()).toBe(0);
 });
 
 test("malformed skills and unavailable references are reported without mutation", async () => {
@@ -74,20 +65,4 @@ test("symlinked content is ignored and identical portable copies collapse", asyn
 
   expect(discovered.skills).toHaveLength(1);
   expect(discovered.duplicates).toBe(0);
-});
-
-test("technical verification findings remain inspectable without rewriting instructions", async () => {
-  const setup = await skillFixture();
-
-  expect(
-    await updateSkillLibrary({
-      ...setup,
-      execution: skillExecution({ verify: true }),
-    }),
-  ).toMatchObject({ verification: 1, applied: 0, pending: 0 });
-
-  const state = await readMaintenanceState(setup.paths);
-
-  expect(Object.values(state.findings)[0]).toContain("needs-verification");
-  expect(await Bun.file(setup.filePath).text()).toBe(setup.original);
 });

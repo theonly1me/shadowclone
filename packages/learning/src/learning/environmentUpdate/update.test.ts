@@ -6,11 +6,11 @@ import { listRevisions } from "@shadowclone/changes";
 import { learningRecord, skillEngineRun, skillFixture } from "@shadowclone/environment/testing";
 import {
   emptyEnvironment,
+  learningSnapshot,
   readEnvironment,
-  readProfileSnapshot,
+  storeLearningRules,
   undoRevision,
   writeEnvironment,
-  writeProfile,
 } from "@shadowclone/environment";
 import { updateLearningEnvironment } from "./update";
 
@@ -89,7 +89,6 @@ test("learning maintains a skill, publishes portable copies, and skips unchanged
   await updateLearningEnvironment(setup);
 
   expect(setup.calls()).toBe(2);
-  expect(await Bun.file(setup.paths.compiledProfileFile).exists()).toBeFalse();
 });
 
 test("undo restores every skill copy and its publication record", async () => {
@@ -135,26 +134,18 @@ test("explicit approval publishes only its selected rule with automatic maintena
   expect(await Bun.file(setup.filePath).text()).not.toContain(unrelated.rule.body);
 });
 
-test("new learning uses the internal store and leaves legacy markdown unchanged", async () => {
+test("new learning keeps the complete rule text in the environment store", async () => {
   const setup = await setupLearning();
-  const original = await Bun.file(
-    path.join(setup.paths.profileDirectory, "global/engineering.md"),
-  ).text();
   const record = learningRecord({
     key: "detailed",
     body: "Preserve this complete condition. ".repeat(80),
   });
 
-  await writeProfile({ paths: setup.paths, rules: [record.rule] });
+  await storeLearningRules({ paths: setup.paths, rules: [record.rule] });
 
   expect(
-    (await readProfileSnapshot(setup.paths)).rules.find(
+    (await learningSnapshot(setup.paths)).rules.find(
       ({ rule }) => rule.key === "detailed",
     )?.promptBody,
   ).toBe(record.rule.body);
-  expect(
-    await Bun.file(
-      path.join(setup.paths.profileDirectory, "global/engineering.md"),
-    ).text(),
-  ).toBe(original);
 });

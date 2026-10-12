@@ -1,11 +1,6 @@
 import type { Clone, GithubRequest } from "../types";
+import { hasWriteAccess, mentionsBot } from "./access";
 import { positiveNumber, readGithub, record } from "./records";
-
-export function mentionNames(clone: Clone): readonly string[] {
-  const login = clone.botLogin.replace(/\[bot\]$/, "");
-
-  return clone.identity.kind === "app" ? ["shadowclone", login] : [login];
-}
 
 export async function readRequestComment(options: {
   readonly clone: Clone;
@@ -48,14 +43,13 @@ export async function readRequestComment(options: {
   }
 
   const entityNumber = positiveNumber(entityUrl.slice(prefix.length));
-  const names = mentionNames(clone).join("|");
-  const tagged = new RegExp(`(^|\\s)@(${names})(?=$|[\\s,:])`, "i").test(String(comment.body));
+  const tagged = mentionsBot({ clone, text: String(comment.body) });
   const [firstLine = ""] = String(comment.body).split("\n");
-  const review = new RegExp(`^\\s*@(${names})\\s+review\\s*$`, "i").test(firstLine);
+  const review = new RegExp(`^\\s*@${clone.botLogin}\\s+review\\s*$`, "i").test(firstLine);
 
   if (
     !entityNumber ||
-    (!maintenance && (!tagged || !clone.requesters.includes(actor) || actorType === "Bot"))
+    (!maintenance && (!tagged || actorType === "Bot" || !(await hasWriteAccess({ clone, request, actor }))))
   ) {
     return null;
   }

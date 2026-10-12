@@ -1,9 +1,4 @@
-export {
-  compileContext,
-  compileContextDetails,
-  sessionStartProjection,
-  type CompiledContext,
-} from "./compile";
+export { compileContext, compileContextDetails } from "./compile";
 export { installIntegration, uninstallIntegration } from "./install";
 export { nativeSessionEnd, nativeSessionStart } from "./hooks";
 export { integrationHealth, refreshIntegrations } from "./refresh";

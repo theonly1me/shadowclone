@@ -9,7 +9,6 @@ import { commitLocalChanges, readRevision, revisionTarget } from "@shadowclone/c
 import { authorizedEnvironmentTarget } from "./authorization";
 
 const lockNames = {
-  profile: "profile-write.db",
   skill: "skills-worker.db",
   harness: "harness-write.db",
   environment: "environment-write.db",
@@ -33,14 +32,9 @@ export async function undoRevision(options: {
   }
 
   try {
-    const allowed =
-      revision.kind === "profile"
-        ? [canonicalPath(options.paths.profileDirectory)]
-        : (
-            (revision.kind === "skill"
-              ? options.skillRoots
-              : options.harnessRoots) ?? []
-          ).map(canonicalPath);
+    const allowed = (
+      (revision.kind === "skill" ? options.skillRoots : options.harnessRoots) ?? []
+    ).map(canonicalPath);
 
     if (
       revision.kind !== "environment" &&
@@ -64,22 +58,6 @@ export async function undoRevision(options: {
         !harnessTarget.test(change.relativePath.split(path.sep).join("/"))
       ) {
         throw new Error("Invalid harness revision target");
-      }
-
-      if (
-        revision.kind === "profile" &&
-        !(
-          change.relativePath === ".generated" ||
-          change.relativePath === ".rejected" ||
-          /^(global|org|references\/(?:global|org))\/.+\.md$/.test(
-            change.relativePath.split(path.sep).join("/"),
-          ) ||
-          /^migrations\/claude-memory-[a-f0-9]{16}\.json$/.test(
-            change.relativePath.split(path.sep).join("/"),
-          )
-        )
-      ) {
-        throw new Error("Invalid profile revision target");
       }
 
       const filePath = revisionTarget({

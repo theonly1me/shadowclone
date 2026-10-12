@@ -1,19 +1,19 @@
 # Compare Shadowclone with related tools
 
-Shadowclone is not a separate agent. It maintains one set of skills and instructions for Claude Code, Codex, Cursor, Pi, and Antigravity. The same skills reach a GitHub bot that runs Claude Code or Codex. So local and cloud agents write and review code with the same preferences.
+Shadowclone is not a separate agent. It maintains one set of skills and instructions for Claude Code, Codex, Cursor, Pi, and Antigravity. The same skills reach a GitHub bot that runs Claude Code, Codex, or Cursor. So local and cloud agents write and review code with the same preferences.
 
 Each section below uses only the project's own repository or documentation. The check date is 12 October 2026. "Not stated" means that those pages do not answer the question. It does not mean that the feature is missing.
 
 ## Summary
 
-| Tool                    | What it is                                                                                  | Runs in the agent that you use | Agents                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------- |
-| Shadowclone             | Skills, instructions, learning, and a GitHub cloud bot on your existing agent subscriptions | Yes                            | Claude Code, Codex, Cursor, Pi, Antigravity |
-| pstack                  | A skill and principle pack                                                                  | Yes                            | Cursor                                      |
-| Hermes Agent            | Its own agent with a learning loop                                                          | No, you run Hermes             | Hermes only                                 |
-| Claude Code auto memory | Built-in notes from corrections                                                             | Yes                            | Claude Code                                 |
-| Claude Subconscious     | A background Letta agent                                                                    | Yes                            | Claude Code                                 |
-| imprint                 | A plugin that trains one profile                                                            | Yes                            | Claude Code                                 |
+| Tool                    | What it is                                                                                 | Runs in the agent that you use | Agents                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------- |
+| Shadowclone             | Skills, instructions, learning, and a GitHub cloud bot for the agents that you already use | Yes                            | Claude Code, Codex, Cursor, Pi, Antigravity |
+| pstack                  | A skill and principle pack                                                                 | Yes                            | Cursor                                      |
+| Hermes Agent            | Its own agent with a learning loop                                                         | No, you run Hermes             | Hermes only                                 |
+| Claude Code auto memory | Built-in notes from corrections                                                            | Yes                            | Claude Code                                 |
+| Claude Subconscious     | A background Letta agent                                                                   | Yes                            | Claude Code                                 |
+| imprint                 | A plugin that trains one profile                                                           | Yes                            | Claude Code                                 |
 
 Agent workspaces, such as herdr, Orca, and cmux, are not in this guide. They run several agents side by side and do not maintain guidance, so they are a different category. They can run an agent that has Shadowclone skills.
 

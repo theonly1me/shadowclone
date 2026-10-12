@@ -1,16 +1,16 @@
 import { expect, test } from "bun:test";
-import { mkdir, mkdtemp } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createProjectPaths } from "@shadowclone/core";
-import { profileEvidenceId, renderProfileRule, type ProfileRule } from "@shadowclone/profile";
+import { profileEvidenceId, type ProfileRule } from "@shadowclone/profile";
 import type { CorrectionSignal, OriginScope } from "@shadowclone/sessions";
 import type { SeedLibrary } from "@shadowclone/skills";
 import type { DistillBatch } from "../batch";
 import { createReconciliationContext } from "./context";
 import { buildReconciliationPrompt } from "./prompt";
 import { materializeEvidence } from "../excerpts";
-import { readProfileSnapshot } from "@shadowclone/environment";
+import { emptyEnvironment, learningRuleSchema, learningSnapshot, writeEnvironment } from "@shadowclone/environment";
 
 const profileSecret = ["sk", "proj", "profileSecret123456789"].join("-");
 const evidenceSecret = ["sk", "proj", "evidenceSecret123456789"].join("-");
@@ -50,39 +50,37 @@ function declaredRule(): ProfileRule {
   };
 }
 
-test("sends only redacted profile text and opaque local tokens", async () => {
+test("sends only redacted learning text and opaque local tokens", async () => {
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-prompt-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
-  const profilePath = path.join(
-    paths.profileDirectory,
-    "global",
-    "boundaries.md",
-  );
-
-  await mkdir(path.dirname(profilePath), { recursive: true });
-  await Bun.write(profilePath, `${renderProfileRule(declaredRule())}\n`);
-  await Bun.write(
-    paths.rejectedProfileFile,
-    `${JSON.stringify({
-      schema: 1,
-      relativePath:
-        "org/github.com--private-owner--c48a251dc59a4aa3/projects/sample-app--0123456789abcdef.md",
-      key: "rejected-private-key",
-      title: "Rejected secret",
-      body: `Do not restore ${profileSecret}.`,
-      source: "imported",
-      importReference: {
-        repositoryAliases: [
-          "1111111111111111111111111111111111111111111111111111111111111111",
-        ],
-        sourceLocator:
-          "2222222222222222222222222222222222222222222222222222222222222222",
-      },
-      reason: "repo-covered",
-    })}\n`,
-  );
+  await writeEnvironment({
+    paths,
+    state: {
+      ...emptyEnvironment,
+      phase: "active",
+      baselineDirectory: homeDirectory,
+      records: [{ kind: "guidance", sourceHash: null, sourceLocator: null, rule: learningRuleSchema.parse(declaredRule()) }],
+      rejectionText: `${JSON.stringify({
+        schema: 1,
+        relativePath:
+          "org/github.com--private-owner--c48a251dc59a4aa3/projects/sample-app--0123456789abcdef.md",
+        key: "rejected-private-key",
+        title: "Rejected secret",
+        body: `Do not restore ${profileSecret}.`,
+        source: "imported",
+        importReference: {
+          repositoryAliases: [
+            "1111111111111111111111111111111111111111111111111111111111111111",
+          ],
+          sourceLocator:
+            "2222222222222222222222222222222222222222222222222222222222222222",
+        },
+        reason: "repo-covered",
+      })}\n`,
+    },
+  });
 
   const evidencePath = path.join(homeDirectory, "evidence.txt");
 
@@ -106,7 +104,7 @@ test("sends only redacted profile text and opaque local tokens", async () => {
     ],
   };
 
-  const profile = await readProfileSnapshot(paths);
+  const profile = await learningSnapshot(paths);
   const batch: DistillBatch = {
     origin,
     repositoryName: signal.repositoryName,
@@ -128,7 +126,6 @@ test("sends only redacted profile text and opaque local tokens", async () => {
     category: signal.category,
   });
 
-  expect(profile.rules[0]?.rule.body).toContain(profileSecret);
   expect(profile.rules[0]?.promptAppliesWhen.join(" ")).not.toContain(
     profileSecret,
   );

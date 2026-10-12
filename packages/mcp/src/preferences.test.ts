@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
-import { compileContext } from "@shadowclone/environment";
-import { integrationFixture } from "@shadowclone/core/testing";
+import { environmentFile } from "@shadowclone/environment";
+import { environmentFixture } from "@shadowclone/environment/testing";
 import { runPreferenceTool } from "./preferences";
 
 test("MCP requires explicit scope and records redacted preferences", async () => {
-  const setup = await integrationFixture();
+  const setup = await environmentFixture();
   const secret = `sk-ant-${"A".repeat(90)}`;
 
   expect(
@@ -29,7 +29,7 @@ test("MCP requires explicit scope and records redacted preferences", async () =>
       })
     )?.isError,
   ).toBeFalse();
-  expect(await compileContext(setup)).not.toContain(secret);
+  expect(await Bun.file(environmentFile(setup.paths)).text()).not.toContain(secret);
 
   const history = await runPreferenceTool({
     ...setup,

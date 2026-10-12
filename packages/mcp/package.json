@@ -15,10 +15,8 @@
     "@shadowclone/core": "workspace:*",
     "@shadowclone/environment": "workspace:*",
     "@shadowclone/learning": "workspace:*",
-    "@shadowclone/profile": "workspace:*",
     "@shadowclone/sessions": "workspace:*",
     "@shadowclone/skills": "workspace:*",
-    "@shadowclone/web": "workspace:*",
     "zod": "^4.5.4"
   }
 }

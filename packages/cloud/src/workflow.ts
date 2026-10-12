@@ -1,13 +1,13 @@
 import product from "@shadowclone/core/product.json";
 import { runtimeSources } from "./guardSource" with { type: "macro" };
-import { cloneSchema, type Clone } from "./types";
+import { cloneSchema, providerEngine, type Clone } from "./types";
 import { cloudPrompt } from "./prompt";
 import { workerWorkflow } from "./workerWorkflow";
+import { checkWorkflow, checkWorkflowPath } from "./checkWorkflow";
 
 export const actionPins = {
   checkout: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
   script: "actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd",
-  appToken: "actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349",
   claude: "anthropics/claude-code-action@ed670b4cf9de2a5a570d130d2f6197b9e543cd64",
   setupBun: "oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
   uploadArtifact: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
@@ -29,7 +29,7 @@ export function renderWorkflows(input: Clone): Record<string, string> {
     configured,
     pins: actionPins,
     versions: reviewVersions,
-    prompt: cloudPrompt(clone.engine),
+    prompt: cloudPrompt(providerEngine(clone.provider)),
   });
   const relay = `name: Shadowclone relay
 on:
@@ -42,7 +42,7 @@ on:
   pull_request_review:
     types: [submitted]
   pull_request_target:
-    types: [labeled, unlabeled, opened, ready_for_review]
+    types: [labeled, unlabeled]
   workflow_run:
     workflows: ["*"]
     types: [completed]
@@ -104,5 +104,6 @@ jobs:
     ...runtimeSources(),
     ".github/workflows/shadowclone-relay.yml": relay,
     ".github/workflows/shadowclone.yml": worker,
+    [checkWorkflowPath]: checkWorkflow({ clone, pins: actionPins }),
   };
 }
