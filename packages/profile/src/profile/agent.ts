@@ -1,6 +1,3 @@
-import { ownedWrite } from "@shadowclone/core";
-import path from "node:path";
-
 export function renderAgent(options: {
   readonly profile: string;
   readonly name?: string;
@@ -24,22 +21,4 @@ export function renderAgent(options: {
     options.profile.trim(),
     "",
   ].join("\n");
-}
-
-export async function writeAgent(options: {
-  readonly targetDirectory: string;
-  readonly profile: string;
-  readonly name?: string;
-}): Promise<string> {
-  const name = options.name ?? "shadowclone";
-  const agentsDirectory = path.join(
-    options.targetDirectory,
-    ".claude",
-    "agents",
-  );
-  const outputPath = path.join(agentsDirectory, `${name}.md`);
-
-  await ownedWrite({ path: outputPath, content: renderAgent(options) });
-
-  return outputPath;
 }

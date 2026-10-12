@@ -3,11 +3,10 @@ import { runHostCommand, defaultConfig, writeConfig, createProjectPaths } from "
 import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { resolveCwdOrigin } from "@shadowclone/sessions";
 import { installLiveClone } from "./install";
-import { writeProfile } from "@shadowclone/environment";
+import { writeActiveEnvironment } from "@shadowclone/environment/testing";
 
-test("installs the scoped profile as a Claude subagent", async () => {
+test("installs the learned routing as a Claude subagent", async () => {
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-install-"),
   );
@@ -27,34 +26,10 @@ test("installs the scoped profile as a Claude subagent", async () => {
 
   await writeConfig({ config: defaultConfig, configPath: paths.configFile });
 
-  const origin = await resolveCwdOrigin({
-    cwd: targetDirectory,
-    enabled: false,
-  });
-
-  await writeProfile({
+  await writeActiveEnvironment({
     paths,
-    rules: [
-      {
-        key: "plan-first",
-        title: "Plans before editing",
-        body: "Show the plan before changing files.",
-        section: "workflow",
-        scope: "org",
-        originDirectory: origin.directoryName,
-        repositoryName: null,
-        source: "declared",
-        status: "active",
-        proposal: null,
-        appliesWhen: [],
-        evidence: { for: ["event:plan"], against: [] },
-        observations: 3,
-        lastSeen: "2026-09-05",
-        sessions: 2,
-        origins: [origin.id],
-        importReference: null,
-      },
-    ],
+    home: homeDirectory,
+    bodies: ["Show the plan before changing files."],
   });
 
   await installLiveClone({
@@ -72,8 +47,8 @@ test("installs the scoped profile as a Claude subagent", async () => {
   );
   const agent = await Bun.file(agentPath).text();
 
-  expect(agent).toContain("Plans before editing");
-  expect(agent).not.toContain("<!-- shadowclone:");
+  expect(agent).toContain("name: shadowclone");
+  expect(agent).toContain("- Show the plan before changing files.");
 });
 
 test("adds installed files to git info exclude", async () => {

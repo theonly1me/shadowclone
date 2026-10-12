@@ -10,11 +10,11 @@ import {
 } from "@shadowclone/harness/testing";
 
 export const checkedRules = [
-  "## File size\n\nKeep every file under 200 lines.\n",
-  "## Comments\n\nWrite zero comments in TypeScript files.\n",
-  "## Prose\n\nNo em-dashes anywhere.\n",
-  "## Suppressions\n\nNever silence a lint or type rule with a suppression.\n",
-].join("\n");
+  "Keep every file under 200 lines.",
+  "Write zero comments in TypeScript files.",
+  "No em-dashes anywhere.",
+  "Never silence a lint or type rule with a suppression.",
+];
 
 export function git(options: {
   readonly root: string;

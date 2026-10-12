@@ -10,6 +10,7 @@ import {
 } from "@shadowclone/core";
 import type { EngineRunner } from "@shadowclone/agents";
 import { learn } from "./learn";
+import { emptyEnvironment, writeEnvironment } from "@shadowclone/environment";
 
 test("learn --dry-run does not create profile directory or write database", async () => {
   const homeDirectory = await mkdtemp(
@@ -34,7 +35,6 @@ test("learn --dry-run does not create profile directory or write database", asyn
     managedConfigPath: null,
   });
 
-  expect(await Bun.file(paths.profileDirectory).exists()).toBeFalse();
   expect(await Bun.file(paths.indexDatabase).exists()).toBeFalse();
 });
 
@@ -43,6 +43,10 @@ test("learn --deep --dry-run reconciles without writing learning state", async (
     path.join(os.tmpdir(), "shadowclone-deep-dry-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  await writeEnvironment({
+    paths,
+    state: { ...emptyEnvironment, phase: "active", baselineDirectory: homeDirectory },
+  });
   const transcriptDirectory = path.join(
     paths.claudeProjectsDirectory,
     "fixture",
@@ -137,6 +141,5 @@ test("learn --deep --dry-run reconciles without writing learning state", async (
   expect(calls).toBe(1);
   expect(confirmations).toBe(0);
   expect(await Bun.file(paths.indexDatabase).exists()).toBeFalse();
-  expect(await Bun.file(paths.profileDirectory).exists()).toBeFalse();
   expect(await Bun.file(paths.distillDirectory).exists()).toBeFalse();
 });

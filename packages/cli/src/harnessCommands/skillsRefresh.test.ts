@@ -3,11 +3,10 @@ import { harnessInitCommand } from "../harness";
 import { emptyEnvironment, readHarnessManifest, writeEnvironment } from "@shadowclone/environment";
 import { bunTaskList, harnessTestSetup } from "@shadowclone/harness/testing";
 
-test("refreshing after skills activation preserves explicit repository checks", async () => {
+test("refreshing after the learned rules change keeps the recorded repository checks", async () => {
   const setup = await harnessTestSetup({
     fixture: bunTaskList,
-    globalRules:
-      "## Small files\n\nKeep files under 200 lines.\n\n## Comments\n\nWrite zero comments.\n",
+    globalRules: ["Keep files under 200 lines.", "Write zero comments."],
   });
   const options = {
     apply: true as const,
@@ -32,7 +31,7 @@ test("refreshing after skills activation preserves explicit repository checks", 
 
   await writeEnvironment({
     paths: setup.paths,
-    state: { ...emptyEnvironment, phase: "active" },
+    state: { ...emptyEnvironment, phase: "active", baselineDirectory: setup.home },
   });
   await harnessInitCommand(options);
 

@@ -17,7 +17,7 @@ import {
   deriveSignals,
   type GitRemoteReader,
 } from "@shadowclone/sessions";
-import type { SkillUpdateSummary } from "./skillMaintenance/legacyUpdate";
+import type { SkillUpdateSummary } from "./skillMaintenance/update";
 import { maintainSkills } from "./maintenance";
 import { triagePendingLearning, type TriageSummary } from "./triage";
 import {

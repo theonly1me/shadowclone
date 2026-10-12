@@ -4,15 +4,18 @@ import { integrationFixture } from "@shadowclone/core/testing";
 import { commitLocalChanges, listRevisions, showRevision } from "./index";
 
 test("revision checks every destination before mutating any file", async () => {
-  const { paths } = await integrationFixture();
-  const first = path.join(paths.profileDirectory, "global/engineering.md");
-  const second = path.join(paths.profileDirectory, "global/workflow.md");
+  const { paths, home } = await integrationFixture();
+  const root = path.join(home, ".agents/skills");
+  const first = path.join(root, "naming/SKILL.md");
+  const second = path.join(root, "workflow/SKILL.md");
+
+  await Bun.write(first, "Use complete names.\n");
 
   await expect(
     commitLocalChanges({
       paths,
-      root: paths.profileDirectory,
-      kind: "profile",
+      root,
+      kind: "skill",
       updates: [
         { filePath: first, next: "new" },
         { filePath: second, next: "new", previous: "Changed elsewhere" },
@@ -23,17 +26,18 @@ test("revision checks every destination before mutating any file", async () => {
   expect(await listRevisions(paths)).toEqual([]);
 });
 
-test("history details redact private profile text", async () => {
-  const { paths } = await integrationFixture();
+test("history details redact private skill text", async () => {
+  const { paths, home } = await integrationFixture();
   const secret = `sk-ant-${"A".repeat(90)}`;
-  const filePath = path.join(paths.profileDirectory, "global/engineering.md");
+  const root = path.join(home, ".agents/skills");
+  const filePath = path.join(root, "naming/SKILL.md");
 
   await Bun.write(filePath, `Private fixture ${secret}\n`);
 
   const id = await commitLocalChanges({
     paths,
-    root: paths.profileDirectory,
-    kind: "profile",
+    root,
+    kind: "skill",
     updates: [{ filePath, next: "Replacement" }],
   });
 
@@ -43,7 +47,7 @@ test("history details redact private profile text", async () => {
 
   const details = await showRevision({ paths, id });
 
-  expect(details).toContain("global/engineering.md");
+  expect(details).toContain("naming/SKILL.md");
   expect(details).toContain("Replacement");
   expect(details).not.toContain(secret);
 });

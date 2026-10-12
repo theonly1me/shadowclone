@@ -32,7 +32,7 @@ export const packageLayout: PackageLayout = {
     review: ["core", "redact", "agents"],
     changes: ["core", "sessions"],
     skills: ["core", "sessions", "changes"],
-    profile: ["core", "redact", "sessions", "changes", "skills"],
+    profile: ["core", "sessions"],
     environment: ["core", "redact", "agents", "sessions", "changes", "skills", "profile"],
     builds: ["core", "redact", "changes", "skills", "environment"],
     learning: [
@@ -45,7 +45,7 @@ export const packageLayout: PackageLayout = {
       "profile",
       "environment",
     ],
-    harness: ["core", "redact", "sessions", "changes", "skills", "profile", "environment"],
+    harness: ["core", "redact", "sessions", "changes", "skills", "environment"],
     cloud: ["core", "sessions", "environment"],
     web: [
       "core",
@@ -61,7 +61,6 @@ export const packageLayout: PackageLayout = {
       "sessions",
       "changes",
       "skills",
-      "profile",
       "environment",
       "learning",
       "cloud",

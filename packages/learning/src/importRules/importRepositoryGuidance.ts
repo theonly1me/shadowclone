@@ -26,7 +26,7 @@ import type {
   RepositoryGuidanceImportResult,
   RepositoryRuleLocation,
 } from "./types";
-import { writeProfile } from "@shadowclone/environment";
+import { storeLearningRules } from "@shadowclone/environment";
 
 function findIdentity(options: {
   readonly identities: readonly ImportIdentity[];
@@ -182,7 +182,7 @@ export async function importRepositoryGuidance(options: {
       ? [{ relativePath: entry.relativePath, key: entry.key }]
       : [],
   );
-  const result = await writeProfile({ paths: options.paths, rules, retired });
+  const result = await storeLearningRules({ paths: options.paths, rules, retired });
   const rejectedKeys = new Set(
     (await guidanceImportState(options.paths)).rejections.map(
       (entry) => entry.key,

@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "@shadowclone/core";
 import type { EngineRunner } from "@shadowclone/agents";
-import { integrationFixture } from "@shadowclone/core/testing";
+import { environmentFixture } from "@shadowclone/environment/testing";
 import { runAutomaticLearning } from "./index";
 import { readLearningState } from "./state";
 import { learningSessionKey } from "@shadowclone/environment";
@@ -10,7 +10,7 @@ import { learningSessionKey } from "@shadowclone/environment";
 const now = Date.parse("2026-09-26T09:00:00Z");
 
 async function sessionFixture(message: string) {
-  const setup = await integrationFixture();
+  const setup = await environmentFixture();
 
   await writeConfig({
     configPath: setup.paths.configFile,

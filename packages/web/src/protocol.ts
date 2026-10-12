@@ -25,7 +25,6 @@ export const buildViewSchema = z.strictObject({
   constellation: constellationSchema,
   requirements: z.array(z.string()),
   libraryEnabled: z.boolean(),
-  migrationRequired: z.boolean(),
   revisionId: z.string().nullable(),
 });
 

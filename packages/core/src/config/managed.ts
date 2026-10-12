@@ -90,8 +90,6 @@ export function applyManagedPolicy(options: {
       "claude-memory":
         options.config.sources["claude-memory"] &&
         sourceAllowed("claude-memory"),
-      "claude-rules":
-        options.config.sources["claude-rules"] && sourceAllowed("claude-rules"),
       "claude-code":
         options.config.sources["claude-code"] && sourceAllowed("claude-code"),
       "claude-prompts":

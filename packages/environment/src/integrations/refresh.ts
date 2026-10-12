@@ -6,14 +6,12 @@ import { managedSection } from "./markdown";
 import { readIntegrations, saveIntegration } from "./state";
 import { integrationFilePath } from "./targets";
 import type { IntegrationOptions } from "./types";
-import { readEnvironment } from "../environment";
 import { ensureHookRunner } from "./hookRunner";
 
 export async function refreshIntegrations(
   options: IntegrationOptions = {},
 ): Promise<{ readonly refreshed: number; readonly preserved: number }> {
   const paths = options.paths ?? projectPaths;
-  const environment = (await readEnvironment(paths))?.phase === "active";
   let refreshed = 0;
   let preserved = 0;
 
@@ -36,7 +34,6 @@ export async function refreshIntegrations(
       const changes = await prepareIntegrationFiles({
         integration,
         profile,
-        environment,
       });
 
       await applyIntegrationFiles(changes);
@@ -60,7 +57,6 @@ export async function integrationHealth(
   options: IntegrationOptions = {},
 ): Promise<readonly string[]> {
   const paths = options.paths ?? projectPaths;
-  const environment = (await readEnvironment(paths))?.phase === "active";
   const lines: string[] = [];
 
   for (const integration of await readIntegrations(paths)) {
@@ -109,7 +105,6 @@ export async function integrationHealth(
         const changes = await prepareIntegrationFiles({
           integration,
           profile,
-          environment,
         });
 
         if (changes.some((change) => change.next !== change.previous)) {

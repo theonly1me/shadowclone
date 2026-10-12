@@ -1,0 +1,28 @@
+export const toolPatterns = {
+  bun: /\bbun\b/i,
+  npm: /\bnpm\b|\bnpx\b/i,
+  pnpm: /\bpnpm\b/i,
+  yarn: /\byarn\b/i,
+  deno: /\bdeno\b/i,
+  typescript: /\btypescript\b|\btsc\b|\.tsx?\b/i,
+  python: /\bpython\d?\b|\bpip\b|\.py\b/i,
+  pytest: /\bpytest\b/i,
+  poetry: /\bpoetry\b/i,
+  uv: /\buv (?:run|sync|pip|add)\b/i,
+  ruff: /\bruff\b/i,
+  mypy: /\bmypy\b/i,
+  jest: /\bjest\b/i,
+  vitest: /\bvitest\b/i,
+  mocha: /\bmocha\b/i,
+  eslint: /\beslint\b/i,
+  prettier: /\bprettier\b/i,
+  biome: /\bbiome\b/i,
+  rust: /\bcargo\b|\brust\b|\.rs\b/i,
+  go: /\bgo (?:test|build|vet|mod|run|fmt)\b|\bgolang\b|\bgofmt\b/i,
+  react: /\breact\b/i,
+  nx: /\bnx\b/i,
+  docker: /\bdocker(?:file)?\b/i,
+  make: /\bmake (?:check|test|lint|build)\b|\bmakefile\b/i,
+} as const;
+
+export type KnownTool = keyof typeof toolPatterns;

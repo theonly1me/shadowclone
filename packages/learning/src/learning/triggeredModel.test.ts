@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import path from "node:path";
-import { integrationFixture } from "@shadowclone/core/testing";
+import { environmentFixture } from "@shadowclone/environment/testing";
 import { installIntegration, nativeSessionEnd } from "@shadowclone/environment";
 import { defaultConfig, writeConfig } from "@shadowclone/core";
 import { runAutomaticLearning } from "./worker";
@@ -9,7 +9,7 @@ import { readLatestLearningReceipt } from "./receipt";
 import type { EngineRunner } from "@shadowclone/agents";
 
 test("a session model without its harness never reaches the saved learning engine", async () => {
-  const fixture = await integrationFixture();
+  const fixture = await environmentFixture();
   try {
     await writeConfig({ configPath: fixture.paths.configFile, config: {
       ...defaultConfig, sources: { ...defaultConfig.sources, pi: true },

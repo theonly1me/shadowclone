@@ -1,5 +1,4 @@
 import {
-  activateEnvironment,
   belongsToScope,
   learningScopes,
   readEnvironment,
@@ -11,12 +10,12 @@ import type { ProjectPaths } from "@shadowclone/core";
 
 const reason = "Left unpublished by the study's resolution rule because it conflicts with another source or the evaluation policy.";
 
-export async function activateWithResolution(paths: ProjectPaths): Promise<{ readonly excluded: readonly string[]; readonly revision: string | null }> {
+export async function excludeUnresolved(paths: ProjectPaths): Promise<{ readonly excluded: readonly string[] }> {
   const state = await readEnvironment(paths);
   const redacted = await readRedactedEnvironment(paths);
 
   if (state === null || redacted === null) {
-    throw new Error("Prepare the environment before activating it");
+    throw new Error("Prepare the environment before excluding its unresolved learnings");
   }
 
   const scopes = learningScopes({ paths, state });
@@ -28,5 +27,5 @@ export async function activateWithResolution(paths: ProjectPaths): Promise<{ rea
     await reviewLearning({ paths, key: record.rule.key, action: "exclude", reason });
   }
 
-  return { excluded: blockers.map((record) => record.rule.key), revision: await activateEnvironment(paths) };
+  return { excluded: blockers.map((record) => record.rule.key) };
 }

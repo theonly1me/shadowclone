@@ -12,6 +12,7 @@ import type { EngineRunOptions, EngineRunner } from "@shadowclone/agents";
 import type { IndexedEvent, CorrectionSignal, OriginScope } from "@shadowclone/sessions";
 import { runDeepLearning } from "./deepLearn";
 import { decidePendingLearning, readPendingLearning } from "@shadowclone/learning";
+import { emptyEnvironment, learningSnapshot, writeEnvironment } from "@shadowclone/environment";
 
 const origin: OriginScope = {
   id: "github.com/acme",
@@ -24,6 +25,10 @@ async function fixture() {
     path.join(os.tmpdir(), "shadowclone-deep-"),
   );
   const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
+  await writeEnvironment({
+    paths,
+    state: { ...emptyEnvironment, phase: "active", baselineDirectory: homeDirectory },
+  });
   await writeConfig({
     configPath: paths.configFile,
     config: {
@@ -131,7 +136,6 @@ test("semantic dry run calls the engine and writes no local learning state", asy
   expect(calls).toBe(1);
   expect(confirmations).toBe(0);
   expect(result.profileUpdated).toBeFalse();
-  expect(await Bun.file(paths.profileDirectory).exists()).toBeFalse();
   expect(await Bun.file(paths.distillDirectory).exists()).toBeFalse();
 });
 
@@ -188,9 +192,7 @@ test("default review can decline while apply skips confirmation", async () => {
   const pending = await readPendingLearning(paths);
   expect(pending.rules).toHaveLength(1);
   expect(pending.rules[0]?.body).toBe("Choose the smallest change that satisfies the request.");
-  expect(
-    await Bun.file(path.join(paths.profileDirectory, "org")).exists(),
-  ).toBeFalse();
+  expect((await learningSnapshot(paths)).rules).toHaveLength(0);
 
   const applied = await runDeepLearning({
     ...common,
@@ -202,16 +204,9 @@ test("default review can decline while apply skips confirmation", async () => {
 
   expect(applied.profileUpdated).toBeTrue();
   expect((await readPendingLearning(paths)).rules).toHaveLength(0);
-  expect(
-    await Bun.file(
-      path.join(
-        paths.profileDirectory,
-        "org",
-        origin.directoryName,
-        "workflow.md",
-      ),
-    ).exists(),
-  ).toBeTrue();
+  expect((await learningSnapshot(paths)).rules.map(({ rule }) => rule.body)).toContain(
+    "Choose the smallest change that satisfies the request.",
+  );
 });
 
 test("a reviewed pending rule can be applied or rejected without learning again", async () => {
@@ -234,8 +229,9 @@ test("a reviewed pending rule can be applied or rejected without learning again"
   await decidePendingLearning({ paths, key, action: "apply" });
 
   expect((await readPendingLearning(paths)).rules).toHaveLength(0);
-  expect((await Bun.file(path.join(paths.profileDirectory, "org", origin.directoryName, "workflow.md")).text()))
-    .toContain("Choose the smallest change that satisfies the request.");
+  expect((await learningSnapshot(paths)).rules.map(({ rule }) => rule.body)).toContain(
+    "Choose the smallest change that satisfies the request.",
+  );
 
   await runDeepLearning(common);
   await decidePendingLearning({ paths, key, action: "reject" });
@@ -261,5 +257,5 @@ test("a rejection during learning confirmation prevents the rule from being reco
   } });
   expect(result.profileUpdated).toBeFalse();
   expect((await readPendingLearning(paths)).rejectedKeys).toContain(key);
-  expect(await Bun.file(path.join(paths.profileDirectory, "org", origin.directoryName, "workflow.md")).exists()).toBeFalse();
+  expect((await learningSnapshot(paths)).rules).toHaveLength(0);
 });

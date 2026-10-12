@@ -57,7 +57,6 @@ test("renders named source settings as TOML", () => {
       "antigravity = false",
       "antigravity-workspaces = false",
       "claude-memory = false",
-      "claude-rules = false",
       "claude-code = false",
       "claude-prompts = false",
       "codex = false",
@@ -95,7 +94,6 @@ test("migrates an existing config with git metadata disabled", async () => {
   const migrated = await readConfig({ configPath });
 
   expect(migrated.sources["declared-rules"]).toBeFalse();
-  expect(migrated.sources["claude-rules"]).toBeFalse();
   expect(migrated.sources["git-metadata"]).toBeFalse();
   expect(migrated.sources["github-writing"]).toBeFalse();
   expect(migrated.sources.pi).toBeFalse();

@@ -6,7 +6,6 @@ export const sourceIds = [
   "antigravity",
   "antigravity-workspaces",
   "claude-memory",
-  "claude-rules",
   "claude-code",
   "claude-prompts",
   "codex",
@@ -21,7 +20,7 @@ export const sourceIds = [
 
 export type SourceId = (typeof sourceIds)[number];
 
-export const retiredSourceIds = ["shell"] as const;
+export const retiredSourceIds = ["shell", "claude-rules"] as const;
 
 export function isSourceId(value: string): value is SourceId {
   return sourceIds.some((sourceId) => sourceId === value);
@@ -53,7 +52,6 @@ export const defaultConfig: ShadowcloneConfig = {
     antigravity: false,
     "antigravity-workspaces": false,
     "claude-memory": false,
-    "claude-rules": false,
     "claude-code": false,
     "claude-prompts": false,
     codex: false,
@@ -76,7 +74,6 @@ const sourcesSchema = z.strictObject({
   antigravity: z.boolean().optional().default(false),
   "antigravity-workspaces": z.boolean().optional().default(false),
   "claude-memory": z.boolean().optional().default(false),
-  "claude-rules": z.boolean().optional().default(false),
   "claude-code": z.boolean(),
   "claude-prompts": z.boolean(),
   codex: z.boolean(),

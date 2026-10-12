@@ -1,20 +1,14 @@
 #!/usr/bin/env bun
-import { handleSkillsMigration } from "./migrateSkills";
-
 import product from "@shadowclone/core/product.json";
 import { serveMcp } from "@shadowclone/mcp";
 import { doctor } from "./doctor";
 import { forgetAll } from "./forget";
-import { runSessionEndHook, runSessionStartHook } from "./hooks";
 import { handleSetupCommand } from "./setup";
 import { importRepositoryGuidanceCommand } from "./import";
 import { handleNativeCommand } from "./native";
 import { handlePreferenceCommand } from "./preferences";
 import { learn } from "./learn";
 import { parseLearnOptions } from "./learnOptions";
-import { parseRecallOptions, recallCommand } from "./recall";
-import { handleProfileRepairCommand } from "./profileRepair";
-import { handleMigrateCommand } from "./migrate";
 import { harnessCheckCommand, parseHarnessCheck } from "./harnessCheck";
 import { listSeedGuidance } from "./skills";
 import { handleSkillMaintenance } from "./skillMaintenance";
@@ -24,7 +18,7 @@ import { botCommand } from "./bot";
 import { reviewCommand } from "./review";
 
 const usage =
-  "Usage: shadowclone <init [--advanced]|init --status [--json]|init (--learn|--no-learn) (--skill-maintenance|--no-skill-maintenance) (--background-learning|--no-background-learning)|init --repo [--personal|--no-personal] [--skill <name>] [--no-enforce]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|profile repair [--decisions <file>] [--apply]|migrate skills [--apply] [--automatic] [--memory] [--activate-only] [--repo <path>]|migrate claude-memory [--decisions <file>] [--apply]|install [--agent claude-code|codex|cursor|antigravity|pi|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain [--json]]|recall <query> [--limit 1..10]|sync|mcp|forget --all>";
+  "Usage: shadowclone <init [--advanced]|init --status [--json]|init (--learn|--no-learn) (--skill-maintenance|--no-skill-maintenance) (--background-learning|--no-background-learning)|init --repo [--personal|--no-personal] [--skill <name>] [--no-enforce]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|install [--agent claude-code|codex|cursor|antigravity|pi|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain]|sync|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);
@@ -126,27 +120,6 @@ async function main(arguments_: readonly string[]): Promise<void> {
     return;
   }
 
-  if (await handleProfileRepairCommand({ command, arguments: rest })) {
-    return;
-  }
-
-  if (
-    (await handleSkillsMigration({ command, arguments: rest })) ||
-    (await handleMigrateCommand({ command, arguments: rest }))
-  ) {
-    return;
-  }
-
-  if (command === "recall") {
-    const options = parseRecallOptions(rest);
-
-    if (options !== null) {
-      await recallCommand(options);
-
-      return;
-    }
-  }
-
   if (await handleNativeCommand({ command, arguments: rest })) {
     return;
   }
@@ -165,18 +138,6 @@ async function main(arguments_: readonly string[]): Promise<void> {
 
   if (command === "review") {
     await reviewCommand(rest);
-
-    return;
-  }
-
-  if (command === "hook" && rest[0] === "session-end") {
-    await runSessionEndHook({ input: await Bun.stdin.text() });
-
-    return;
-  }
-
-  if (command === "hook" && rest[0] === "session-start") {
-    await runSessionStartHook({ input: await Bun.stdin.text() });
 
     return;
   }

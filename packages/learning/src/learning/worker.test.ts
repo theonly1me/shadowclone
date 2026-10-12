@@ -4,6 +4,7 @@ import path from "node:path";
 import type { EngineRunner } from "@shadowclone/agents";
 import { integrationFixture } from "@shadowclone/core/testing";
 import { acquireLocalLock } from "@shadowclone/core";
+import { environmentFile } from "@shadowclone/environment";
 import { runAutomaticLearning, scheduleLearning } from "./index";
 import { learningInterval, readLearningState } from "./state";
 import { readLatestLearningReceipt } from "./receipt";
@@ -136,12 +137,9 @@ test("the ledger keeps episodes it processed more than thirty days ago", async (
   expect((await readLearningState(setup.paths)).processed).toHaveLength(65);
 });
 
-test("a failed attempt preserves the profile and can retry at a later boundary", async () => {
+test("a failed attempt preserves the learning store and can retry at a later boundary", async () => {
   const setup = await fixture(1);
-  const filePath = path.join(
-    setup.paths.profileDirectory,
-    "global/engineering.md",
-  );
+  const filePath = environmentFile(setup.paths);
   const before = await Bun.file(filePath).text();
   const failingRunner: EngineRunner = () =>
     Promise.reject(new Error("Fixture engine failure"));

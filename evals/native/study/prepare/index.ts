@@ -15,9 +15,8 @@ import { prepareFirstTime } from "./firstTime";
 import { captureArm } from "./freeze";
 import { createLearningRunner } from "./learningRunner";
 import { copyPersonalLibrary } from "./library";
-import { migrateLegacyProfile } from "./migrate";
 import { applyPendingChanges } from "./resolve";
-import { activateWithResolution } from "./activate";
+import { excludeUnresolved } from "./exclude";
 import { installClaudeRouting } from "./claude";
 
 export const preparationSchema = z.strictObject({
@@ -32,10 +31,9 @@ export const preparationSchema = z.strictObject({
   maximumPasses: z.number().int().min(1).max(6),
   callsPerPass: z.number().int().min(2).max(40),
   deadlineAt: z.number().positive(),
-  legacyProfileDirectory: z.string().min(1).nullable().default(null),
 });
 
-export const preparationStages = ["original", "first-time", "deep", "deep-continue", "resolve", "activate", "freeze", "claude", "freeze-claude"] as const;
+export const preparationStages = ["original", "first-time", "deep", "deep-continue", "resolve", "exclude", "freeze", "claude", "freeze-claude"] as const;
 export type PreparationStage = (typeof preparationStages)[number];
 export type Preparation = z.infer<typeof preparationSchema>;
 
@@ -112,13 +110,6 @@ export async function runPreparation(options: {
         await requireAbsent(layout.home("deep"));
         await copyWorkspace({ source: layout.home("original"), target: layout.home("deep") });
         await copyWorkspace({ source: preparation.templateDirectory, target: layout.workspace("deep") });
-        if (preparation.legacyProfileDirectory) {
-          const migrated = await migrateLegacyProfile({
-            paths: paths("deep"), sourceProfileDirectory: preparation.legacyProfileDirectory, workspace: layout.workspace("deep"),
-            runner: runner("deep"), readRemote, passes: 3, writeLine,
-          });
-          await ownedWrite({ path: path.join(directory, "deep-migration.json"), content: JSON.stringify(migrated, null, 2) });
-        }
         await prepareFirstTime({
           paths: paths("deep"), learningPaths: learningPaths("deep"), workspace: layout.workspace("deep"),
           runner: runner("deep"), readRemote, build: preparation.wizardBuild, writeLine,
@@ -137,10 +128,10 @@ export async function runPreparation(options: {
       return await applyPendingChanges({ paths: paths("deep"), directory });
     }
 
-    if (options.stage === "activate") {
-      const activated = await activateWithResolution(paths("deep"));
+    if (options.stage === "exclude") {
+      const excluded = await excludeUnresolved(paths("deep"));
       await assertConfined({ paths: paths("deep"), directory });
-      return activated;
+      return excluded;
     }
 
     if (options.stage === "claude") {

@@ -25,7 +25,7 @@ function botEmail(clone: Clone): string {
   return `${clone.botId}+${clone.botLogin}@users.noreply.github.com`;
 }
 
-export function codexWorkSteps(options: {
+function codexWorkSteps(options: {
   readonly clone: Clone;
   readonly token: string;
   readonly when: string;
@@ -61,7 +61,7 @@ ${indented({ text: options.prompt, spaces: 12 })}
           printf '%s' "$SHADOWCLONE_PROMPT" | codex exec - --skip-git-repo-check --sandbox danger-full-access -c 'approval_policy="never"' -c 'shell_environment_policy.inherit="all"'${codexProviderArguments(clone)}`;
 }
 
-export function cursorWorkSteps(options: {
+function cursorWorkSteps(options: {
   readonly clone: Clone;
   readonly token: string;
   readonly when: string;
@@ -93,7 +93,7 @@ ${indented({ text: options.prompt, spaces: 12 })}
           { cat "$SHADOWCLONE_GUIDANCE_DIRECTORY/native.md"; printf '\\n\\n%s' "$SHADOWCLONE_PROMPT"; } | cursor-agent --print --force --trust --output-format text --workspace "$GITHUB_WORKSPACE"${modelArgument({ clone, flag: "--model" })}`;
 }
 
-export function claudeWorkStep(options: {
+function claudeWorkStep(options: {
   readonly clone: Clone;
   readonly token: string;
   readonly when: string;

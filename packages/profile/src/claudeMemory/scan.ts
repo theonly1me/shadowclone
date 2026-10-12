@@ -70,7 +70,7 @@ export async function scanClaudeMemoryDirectory(
   );
 
   if (markdown.length > maximumClaudeMemoryFiles) {
-    throw new Error("Claude memory exceeds the 256-file migration limit");
+    throw new Error("Claude memory exceeds the 256-file read limit");
   }
 
   const files: ClaudeMemoryFile[] = [];
@@ -89,7 +89,7 @@ export async function scanClaudeMemoryDirectory(
     totalBytes += metadata.size;
 
     if (totalBytes > maximumClaudeMemoryBytes) {
-      throw new Error("Claude memory exceeds the 2 MiB migration limit");
+      throw new Error("Claude memory exceeds the 2 MiB read limit");
     }
 
     const raw = await readBoundedFile({
@@ -99,7 +99,7 @@ export async function scanClaudeMemoryDirectory(
     });
 
     if (raw === null) {
-      throw new Error("Claude memory changed during migration scan");
+      throw new Error("Claude memory changed while Shadowclone read it");
     }
 
     const hash = new Bun.CryptoHasher("sha256").update(raw).digest("hex");

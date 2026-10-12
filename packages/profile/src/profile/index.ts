@@ -1,27 +1,7 @@
-export { renderAgent, writeAgent } from "./agent";
+export { renderAgent } from "./agent";
 
 export {
-  compileProfile,
-  defaultIndexByteBudget,
-  defaultProfileByteBudget,
-  profileScopePaths,
-  toolPatterns,
-  type KnownTool,
-  type ProfileCompilation,
-  type ProfileCompilationAudience,
-  type ProfileCompilationBreakdown,
-  type ProfileCompilationFormat,
-  type ProfileCompilationOmission,
-  type ProfileCompilationOmissionReason,
-  type ProfileCompilationRepositoryContext,
-  type ProfileCompileInput,
-  type RepositoryApplicability,
-} from "./compiler";
-
-export {
-  activatesFromSessions,
   effectiveProfileStatus,
-  independentSessionThreshold,
   parseProfileEvidenceId,
   explicitProfileEvidence,
   isExplicitProfileEvidence,
@@ -31,29 +11,13 @@ export {
 
 export { renderMirror } from "./mirror";
 
-export { readProfileDiagnostics, type ProfileDiagnostics } from "./diagnostics";
+export type { ProfileSnapshot, ProfileSnapshotRejection, ProfileSnapshotRule } from "./snapshot";
 
-export { parseProfileBlocks, parseProfileRules } from "./parse";
-
-export {
-  readLegacyProfileSnapshot,
-  type ProfileSnapshot,
-  type ProfileSnapshotRejection,
-  type ProfileSnapshotRule,
-} from "./snapshot";
-
-export {
-  createProfileRuleKey,
-  profileFingerprint,
-  profileRulePath,
-  renderProfileRule,
-} from "./render";
+export { createProfileRuleKey, profileRulePath } from "./render";
 
 export { mergeProfileImportReference } from "./importReference";
 
 export type {
-  ExistingProfileRule,
-  ExistingProfileBlock,
   ProfileEvidence,
   ProfileImportReference,
   ProfileProposal,
@@ -67,36 +31,8 @@ export type {
   ProfileWriteResult,
 } from "./types";
 
-export { writeLegacyProfile, type ProfileWriteOptions } from "./write";
+export { parseProfileRejectionText } from "./state";
 
-export {
-  applyProfileCuration,
-  applyProfileRepair,
-  createProfileCurationPlan,
-  createProfileRepairPlan,
-  parseProfileCurationDecisions,
-  type BlockedOriginRepair,
-  type OriginRepair,
-  type ProfileCurationDecision,
-  type ProfileCurationDecisions,
-  type ProfileCurationPlan,
-  type ProfileRepairPlan,
-} from "./repair";
+export type { GeneratedProfileStateEntry, ProfileRejection, ProfileRejectionReason } from "./state";
 
-export {
-  readGeneratedProfileState,
-  parseProfileRejectionText,
-  readProfileRejections,
-} from "./state";
-
-export type {
-  GeneratedProfileStateEntry,
-  ProfileRejection,
-  ProfileRejectionReason,
-} from "./state";
-
-export { splitProfileBlocks } from "./blocks";
-
-export { renderGeneratedProfileState, renderProfileRejections } from "./stateRender";
-
-export { profileVisibleParts, stripProfileMetadata } from "./visible";
+export { renderProfileRejections } from "./stateRender";

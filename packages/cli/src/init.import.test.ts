@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { createProjectPaths, readConfig, defaultManagedPolicy } from "@shadowclone/core";
 import { initialize } from "./init";
-import { readProfileSnapshot } from "@shadowclone/environment";
+import { learningSnapshot } from "@shadowclone/environment";
 
 test("offers to import detected repository guidance", async () => {
   const homeDirectory = await mkdtemp(
@@ -60,7 +60,7 @@ test("imports accepted guidance after configuration and skips seed selection", a
   });
 
   const config = await readConfig({ configPath: paths.configFile });
-  const state = (await readProfileSnapshot(paths)).rules.map(
+  const state = (await learningSnapshot(paths)).rules.map(
     ({ rule }) => rule,
   );
 

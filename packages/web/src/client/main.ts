@@ -67,13 +67,6 @@ async function loadBuildState(scope: BuildScope): Promise<void> {
   element("scope-note").textContent = scopeNotes[scope];
   element("library-note").hidden = view.libraryEnabled;
 
-  if (view.migrationRequired) {
-    notice({
-      message:
-        "Your existing profile needs its reviewed skills migration before this build can be applied. You can explore the editor now.",
-    });
-  }
-
   render();
 }
 

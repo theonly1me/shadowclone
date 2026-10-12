@@ -2,8 +2,10 @@ import path from "node:path";
 import { harnessInitCommand } from "../harness";
 import { acceptAll, type HarnessTestSetup } from "@shadowclone/harness/testing";
 
-export const rules =
-  "## Small files\n\nKeep every file under 200 lines, tests included.\n\n## Bun tests\n\nRun `bun test` before presenting.\n";
+export const rules = [
+  "Keep every file under 200 lines, tests included.",
+  "Run `bun test` before presenting.",
+];
 
 export function init(
   setup: HarnessTestSetup,

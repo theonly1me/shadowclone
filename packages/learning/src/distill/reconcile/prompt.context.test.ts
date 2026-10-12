@@ -3,11 +3,9 @@ import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { FileTextRef, CorrectionSignal } from "@shadowclone/sessions";
-import { createProjectPaths } from "@shadowclone/core";
 import { materializeEvidence } from "../excerpts";
 import { createReconciliationContext } from "./context";
 import { buildReconciliationPrompt } from "./prompt";
-import { readProfileSnapshot } from "@shadowclone/environment";
 
 async function writeRef(options: {
   readonly filePath: string;
@@ -27,7 +25,6 @@ test("labels the presented plan as context and keeps only the user response as e
   const homeDirectory = await mkdtemp(
     path.join(os.tmpdir(), "shadowclone-prompt-context-"),
   );
-  const paths = createProjectPaths({ homeDirectory, platform: "darwin" });
   const origin = {
     id: "github.com/acme",
     directoryName: "github.com--acme--936913df4a5c268b",
@@ -61,7 +58,7 @@ test("labels the presented plan as context and keeps only the user response as e
   const prompt = await buildReconciliationPrompt({
     context: createReconciliationContext({
       batch: { origin, repositoryName: null, signals: [signal] },
-      profile: await readProfileSnapshot(paths),
+      profile: { rules: [], rejections: [] },
       library: {
         guidance: [],
         preferences: [],

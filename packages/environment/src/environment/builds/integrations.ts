@@ -64,7 +64,6 @@ export async function planBuildIntegrations(
     const changes = await prepareIntegrationFiles({
       integration,
       profile: options.routing,
-      environment: true,
       peers: integrations,
     });
 

@@ -3,10 +3,11 @@ import path from "node:path";
 import { runHostCommand } from "@shadowclone/core";
 import { integrationFixture } from "@shadowclone/core/testing";
 import { installIntegration, uninstallIntegration } from "./install";
-import { renderInstructionPointer, updateManagedSection } from "./markdown";
+import { updateManagedSection } from "./markdown";
 import { readIntegrations, saveIntegration } from "./state";
 
 const teamRules = "# Team rules\n\nRun the full test suite before you push.\n";
+const olderSection = "# Shadowclone\n\nA session hook loads this user's standing engineering preferences.";
 
 async function gitRepository() {
   const fixture = await integrationFixture();
@@ -36,7 +37,7 @@ test("a Pi repository install leaves the team AGENTS.md untouched", async () => 
 
 test("a reinstall removes the section that an older Pi install wrote into the team file", async () => {
   const fixture = await gitRepository();
-  const section = updateManagedSection({ previous: teamRules, body: renderInstructionPointer() });
+  const section = updateManagedSection({ previous: teamRules, body: olderSection });
 
   await Bun.write(path.join(fixture.cwd, "AGENTS.md"), section.text);
   await saveIntegration({
@@ -71,7 +72,7 @@ test("a reinstall removes the section that an older Pi install wrote into the te
 
 test("an edited section from an older Pi install is kept and the install says why", async () => {
   const fixture = await gitRepository();
-  const section = updateManagedSection({ previous: teamRules, body: renderInstructionPointer() });
+  const section = updateManagedSection({ previous: teamRules, body: olderSection });
   const edited = section.text.replace("A session hook", "My own session hook");
 
   await Bun.write(path.join(fixture.cwd, "AGENTS.md"), edited);

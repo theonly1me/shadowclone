@@ -2,13 +2,12 @@ import { expect, test } from "bun:test";
 import product from "@shadowclone/core/product.json";
 import { handleMcpRequest } from "./server";
 import { preferenceTools } from "./preferences";
-import { referenceTools } from "./references";
 import { botTools } from "./bot";
 
 test("responds to initialize with protocol version and serverInfo", () => {
   const response = handleMcpRequest({
     request: { id: 1, method: "initialize", params: {} },
-    profile: "",
+    context: "",
   });
 
   expect(response).toEqual({
@@ -22,10 +21,10 @@ test("responds to initialize with protocol version and serverInfo", () => {
   });
 });
 
-test("advertises profile recall and explicit preference operations", () => {
+test("advertises the context, preference, and bot tools without the removed profile alias", () => {
   const response = handleMcpRequest({
     request: { id: 1, method: "tools/list", params: {} },
-    profile: "",
+    context: "",
   });
 
   expect(response).toEqual({
@@ -34,16 +33,10 @@ test("advertises profile recall and explicit preference operations", () => {
     result: {
       tools: [
         ...preferenceTools,
-        ...referenceTools,
         ...botTools,
         {
           name: "shadowclone_context",
           description: "Inspect applicable learned skills and native routing for this repository",
-          inputSchema: { type: "object", properties: {} },
-        },
-        {
-          name: "shadowclone_profile",
-          description: "Deprecated alias for shadowclone_context",
           inputSchema: { type: "object", properties: {} },
         },
       ],
@@ -51,21 +44,21 @@ test("advertises profile recall and explicit preference operations", () => {
   });
 });
 
-test("returns the scoped profile through the recall tool", () => {
+test("returns the scoped context through the context tool", () => {
   const response = handleMcpRequest({
     request: {
       id: "call-1",
       method: "tools/call",
-      params: { name: "shadowclone_profile", arguments: {} },
+      params: { name: "shadowclone_context", arguments: {} },
     },
-    profile: "# Shadowclone profile\n\nUse Bun.",
+    context: "# Shadowclone guidance\n\n- Use Bun.",
   });
 
   expect(response).toEqual({
     jsonrpc: "2.0",
     id: "call-1",
     result: {
-      content: [{ type: "text", text: "# Shadowclone profile\n\nUse Bun." }],
+      content: [{ type: "text", text: "# Shadowclone guidance\n\n- Use Bun." }],
       isError: false,
     },
   });

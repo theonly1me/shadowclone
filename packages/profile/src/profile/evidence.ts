@@ -10,12 +10,6 @@ export function isExplicitProfileEvidence(evidenceId: string): boolean {
   return evidenceId.startsWith(explicitPrefix);
 }
 
-export const independentSessionThreshold = 3;
-
-export function activatesFromSessions(sessions: number): boolean {
-  return sessions >= independentSessionThreshold;
-}
-
 export function effectiveProfileStatus(options: {
   readonly status: ProfileStatus;
   readonly evidence: ProfileEvidence;

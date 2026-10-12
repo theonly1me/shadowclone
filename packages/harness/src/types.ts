@@ -1,4 +1,4 @@
-import type { KnownTool } from "@shadowclone/profile";
+import type { KnownTool } from "./detect/toolPatterns";
 
 export type NodePackageManager = "bun" | "pnpm" | "yarn" | "npm";
 export type PythonPackageManager = "uv" | "poetry" | "pip";

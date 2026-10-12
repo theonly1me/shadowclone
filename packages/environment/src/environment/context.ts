@@ -1,6 +1,5 @@
 import path from "node:path";
 import type { ProjectPaths } from "@shadowclone/core";
-import type { ProfileCompilation } from "@shadowclone/profile";
 import { belongsToScope, learningScopes, type LearningScope } from "./scope";
 import { readRedactedEnvironment } from "./store";
 import type { EnvironmentState } from "./types";
@@ -8,6 +7,22 @@ import { publishedSkills } from "./catalog";
 import { recordFingerprint } from "./records";
 import { renderBuildRouting } from "./builds/routing";
 import { repositoryDeliveryQuestion } from "./repositoryQuestion";
+
+export type ContextCompilation = {
+  readonly markdown: string;
+  readonly skills: readonly string[];
+  readonly usedBytes: number;
+  readonly byteBudget: number;
+};
+
+const routingByteBudget = 4096;
+
+export const emptyCompilation: ContextCompilation = {
+  markdown: "",
+  skills: [],
+  usedBytes: 0,
+  byteBudget: routingByteBudget,
+};
 
 export function renderSkillRouting(options: {
   readonly state: EnvironmentState;
@@ -68,9 +83,9 @@ export function renderSkillRouting(options: {
   const text = `${lines.join("\n")}\n`;
   const bytes = Buffer.byteLength(text);
 
-  if (bytes > 4096) {
+  if (bytes > routingByteBudget) {
     throw new Error(
-      `Native skill routing uses ${bytes} of 4096 bytes; equip fewer skills before publishing`,
+      `Native skill routing uses ${bytes} of ${routingByteBudget} bytes; equip fewer skills before publishing`,
     );
   }
 
@@ -83,7 +98,7 @@ export async function environmentCompilation(options: {
   readonly scope?: "global" | "scoped" | "combined";
   readonly originDirectory: string | null;
   readonly repositoryName: string | null;
-}): Promise<ProfileCompilation | null> {
+}): Promise<ContextCompilation | null> {
   const state = await readRedactedEnvironment(options.paths);
 
   if (state?.phase !== "active") {
@@ -110,17 +125,7 @@ export async function environmentCompilation(options: {
   });
 
   if (options.scope === "scoped" && scopes.length === 0) {
-    return {
-      markdown: question,
-      appliedRuleKeys: [],
-      appliedRuleCount: 0,
-      appliedReferenceKeys: [],
-      appliedReferenceCount: 0,
-      usedBytes: Buffer.byteLength(question),
-      byteBudget: 4096,
-      breakdown: [],
-      omissions: [],
-    };
+    return { ...emptyCompilation, markdown: question, usedBytes: Buffer.byteLength(question) };
   }
 
   const routing = renderSkillRouting({
@@ -136,13 +141,8 @@ export async function environmentCompilation(options: {
 
   return {
     markdown,
-    appliedRuleKeys: [],
-    appliedRuleCount: 0,
-    appliedReferenceKeys: applied.map(({ name }) => name),
-    appliedReferenceCount: applied.length,
+    skills: applied.map(({ name }) => name),
     usedBytes: Buffer.byteLength(markdown),
-    byteBudget: 4096,
-    breakdown: [],
-    omissions: [],
+    byteBudget: routingByteBudget,
   };
 }

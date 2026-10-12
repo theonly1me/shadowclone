@@ -1,6 +1,6 @@
 # @shadowclone/changes
 
-Writes local files as revisions that people can inspect and undo. Skills, profile, environment, and harness writes use it.
+Writes local files as revisions that people can inspect and undo. Skills, environment, and harness writes use it.
 
 <!-- package-facts:start -->
 

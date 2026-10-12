@@ -3,19 +3,15 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./testing": "./src/testing.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
   "dependencies": {
-    "@shadowclone/changes": "workspace:*",
     "@shadowclone/core": "workspace:*",
-    "@shadowclone/redact": "workspace:*",
     "@shadowclone/sessions": "workspace:*",
-    "@shadowclone/skills": "workspace:*",
     "zod": "^4.5.4"
   }
 }

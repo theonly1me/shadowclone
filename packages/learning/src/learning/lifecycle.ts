@@ -11,6 +11,7 @@ import {
   environmentFile,
   type EnvironmentState,
   type LearningRecord,
+  missingEnvironmentMessage,
   publishEnvironmentRevision,
   readEnvironment,
   recordFingerprint,
@@ -230,7 +231,7 @@ export async function previewSourceRemoval(options: {
   readonly source: SourceId;
 }) {
   const state = await readEnvironment(options.paths);
-  if (!state) throw new Error("Run migrate skills before reviewing learned-source removal");
+  if (!state) throw new Error(missingEnvironmentMessage);
   const affected = state.records.filter((record) =>
     !record.retirementRequested && record.captureSources?.includes(options.source),
   );

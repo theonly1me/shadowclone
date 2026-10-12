@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test";
-import { parseProfileBlocks } from "@shadowclone/profile";
 import { renderFeatureWorkflowSkill } from "@shadowclone/harness";
 import {
   nestMarkdownHeadings,
@@ -16,7 +15,7 @@ function skillSource(): RepositoryGuidanceSource {
   };
 }
 
-test("keeps one skill file inside one profile rule", () => {
+test("nests the headings of one skill file and keeps fenced examples", () => {
   const transformed = transformRepositoryGuidance({
     source: skillSource(),
     redactedText: [
@@ -39,10 +38,6 @@ test("keeps one skill file inside one profile rule", () => {
   expect(transformed?.body).toContain("### Review carefully");
   expect(transformed?.body).toContain("#### Correctness");
   expect(transformed?.body).toContain("## This is an example");
-
-  const profile = `## ${transformed?.title}\n\n${transformed?.body}`;
-
-  expect(parseProfileBlocks(profile)).toHaveLength(1);
 });
 
 test("does not treat fenced headings as a skill title", () => {

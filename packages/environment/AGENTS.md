@@ -29,11 +29,12 @@ Holds what agents receive: the environment record, skill publication, native ins
 - Native routing text is at most 4096 bytes. A longer text is an error, and the old section stays.
 - Shadowclone rewrites only the text between the `<shadowclone-guidance>` markers. Malformed markers are an error.
 - Shadowclone replaces an installed file only when its fingerprint matches the install record. A manual edit stays.
-- Migration copies the original skills and native instructions to `environment-baselines/` before it publishes.
+- Initialization copies the original skills and native instructions to `environment-baselines/` before it publishes.
+- The skills environment is the only store for learned rules. Without `environment.json`, learning and `remember` stop and say to run `shadowclone init`, and context delivery is empty.
 - A repository with `privateSkillsDirectory` publishes skills only under `~/.shadowclone/builds/`. Its routing names each skill by its file path, and no repository file changes.
 
 ## Tests
 
-Run `bun test` in this folder, or `bun test packages/environment` from the root. The `./testing` export gives `learningRecord` and `skillFixture`. Several tests run `git` on temporary repositories.
+Run `bun test` in this folder, or `bun test packages/environment` from the root. The `./testing` export gives `environmentFixture`, `writeActiveEnvironment`, `learningRecord`, and `skillFixture`. Several tests run `git` on temporary repositories.
 
 Update this file in the same commit when you change the package purpose, public exports, dependencies, or a rule above.

@@ -59,37 +59,6 @@ type ProfileRuleFields = {
 
 export type ProfileRule = ProfileRuleFields & ProfileRuleLocation;
 
-export type ExistingProfileRule = {
-  readonly key: string;
-  readonly title: string;
-  readonly body: string;
-  readonly source: ProfileSource;
-  readonly status: ProfileStatus;
-  readonly proposal: ProfileProposal | null;
-  readonly appliesWhen: readonly string[];
-  readonly evidence: ProfileEvidence;
-  readonly observations: number;
-  readonly lastSeen: string;
-  readonly sessions: number;
-  readonly origins: readonly string[];
-  readonly scope: ProfileScope;
-  readonly importReference: ProfileImportReference | null;
-  readonly fingerprint: string;
-  readonly content: string;
-  readonly edited: boolean;
-  readonly legacy: boolean;
-};
-
-export type ExistingProfileBlock =
-  | ExistingProfileRule
-  | {
-      readonly key: null;
-      readonly content: string;
-      readonly edited: true;
-      readonly source: "user";
-      readonly status: "active";
-    };
-
 export type ProfileRuleReference = {
   readonly relativePath: string;
   readonly key: string;

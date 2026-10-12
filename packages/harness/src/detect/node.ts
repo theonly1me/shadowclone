@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { toolPatterns, type KnownTool } from "@shadowclone/profile";
+import { toolPatterns, type KnownTool } from "./toolPatterns";
 import type { NodeFacts, NodePackageManager } from "../types";
 
 const packageSchema = z.object({

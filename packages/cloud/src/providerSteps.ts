@@ -2,7 +2,7 @@ import { providerSecrets, type Clone } from "./types";
 
 export const codexHome = `\${{ runner.temp }}/codex-home`;
 
-export const cursorPackage = {
+const cursorPackage = {
   version: "2026.10.01-e373342",
   url: "https://downloads.cursor.com/lab/2026.10.01-e373342/linux/x64/agent-cli-package.tar.gz",
   sha256: "a79726c6e644520e993970be4c45775a6889802b67abe461a677a53219ae28e8",

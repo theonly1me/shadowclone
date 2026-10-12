@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdir, mkdtemp, readdir } from "node:fs/promises";
+import { mkdir, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@shadowclone/core";
 import type { EngineRunner } from "@shadowclone/agents";
 import { learn } from "./learn";
+import { emptyEnvironment, learningSnapshot, writeEnvironment } from "@shadowclone/environment";
 
 test("deep learn does not substitute structural rules for an empty result", async () => {
   const homeDirectory = await mkdtemp(
@@ -22,6 +23,10 @@ test("deep learn does not substitute structural rules for an empty result", asyn
   );
 
   await mkdir(transcriptDirectory, { recursive: true });
+  await writeEnvironment({
+    paths,
+    state: { ...emptyEnvironment, phase: "active", baselineDirectory: homeDirectory },
+  });
 
   const records = [
     {
@@ -100,11 +105,5 @@ test("deep learn does not substitute structural rules for an empty result", asyn
 
   expect(engineRuns).toBe(1);
 
-  const profileEntries = await readdir(paths.profileDirectory, {
-    recursive: true,
-  }).catch(() => []);
-
-  expect(profileEntries.filter((entry) => entry.endsWith(".md"))).toHaveLength(
-    0,
-  );
+  expect((await learningSnapshot(paths)).rules).toHaveLength(0);
 });
