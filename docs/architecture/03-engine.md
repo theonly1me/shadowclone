@@ -14,7 +14,7 @@ The registry in `packages/agents/src/provider/` records capabilities apart from 
 
 Observation support does not allow learning or evaluation. An unsupported security option fails before the process starts.
 
-Learning selection follows explicit command options, the harness and model of a triggering session, saved preferences, then detection. An unavailable or blocked engine gets no silent fallback.
+Learning selection follows explicit command options, the harness and model of a triggering session, saved preferences, then detection. A triggering session must name its harness. Learning ignores a session model without a harness, such as the model in a Codex hook payload, so it never reaches another engine. An unavailable or blocked engine gets no silent fallback.
 
 ## Execution purposes
 
