@@ -7,13 +7,13 @@
 [![license](https://img.shields.io/github/license/theonly1me/shadowclone)](LICENSE)
 [![HOL Guard](https://img.shields.io/endpoint?url=https%3A%2F%2Fhol.org%2Fapi%2Fregistry%2Fbadges%2Fplugin%3Fslug%3Dtheonly1me%252Fshadowclone%26metric%3Dtrust)](https://hol.org/registry/plugins/theonly1me%2Fshadowclone)
 
-[Quick start](#quick-start) · [What you get](#what-you-get) · [Skills](#skills-in-the-box) · [Reviews](#reviews-on-your-machine-and-on-github) · [Cloud bot](#a-cloud-bot-with-your-skills) · [Docs](#docs)
+[Quick start](#quick-start) · [What you get](#what-you-get) · [Skills](#skills-in-the-box) · [Reviews](#reviews-on-your-machine-and-on-github) · [Cloud bot](#a-cloud-bot-with-your-skills) · [Compare](#how-shadowclone-compares) · [Docs](#docs)
 
 </div>
 
-**Shadowclone brings your engineering preferences to every coding agent.** It maintains skills and instructions for Claude Code, Codex, Cursor, Pi, and Antigravity. Those preferences can evolve as Shadowclone learns from the sessions you allow.
+**Shadowclone keeps your engineering preferences the same in every coding agent.** It maintains one set of skills and instructions for Claude Code, Codex, Cursor, Pi, and Antigravity. You do not copy rules from one tool to the next. Shadowclone can also learn new preferences from the sessions that you allow.
 
-**Skills, reviews, and delegated work.** Start with bundled skills and a build you configure. Review pull requests locally, read a guided review with your agent, or send work to a personal GitHub bot. The bot runs with your selected skills and your own Claude subscription or Codex credentials.
+**The same skills reach your cloud agent.** A personal GitHub bot runs Claude Code or Codex with your selected skills. So the bot writes and reviews code with the preferences that your local agents use. Shadowclone is not a separate agent. It equips the agent that you already use. See [how it compares](#how-shadowclone-compares).
 
 ## Quick start
 
@@ -130,6 +130,22 @@ Across 24 fixed tasks, Shadowclone learning scored above existing user skills on
 | Existing user skills                   |       85.2% |      80.6% |             76.4% |           73.6% |
 | Existing skills + Shadowclone learning |       89.4% |      83.3% |             90.0% |           82.9% |
 
+## How Shadowclone compares
+
+Shadowclone gives one set of skills to the agents that you already use, on your machine and on GitHub. The table uses each project's own pages, checked on 12 October 2026. "Not stated" means that those pages do not answer the question.
+
+| Tool                                                                             | Agents                                      | Learns from your sessions              | Same guidance in the cloud             | Reviews pull requests                 |
+| -------------------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------- | -------------------------------------- | ------------------------------------- |
+| Shadowclone                                                                      | Claude Code, Codex, Cursor, Pi, Antigravity | Yes, from the sessions that you allow  | Yes, a GitHub Actions bot              | Yes, locally, guided, and on GitHub   |
+| [pstack](https://github.com/cursor/plugins/tree/main/pstack)                     | Cursor                                      | No. You run `/reflect` to edit a skill | Not stated                             | Yes, `/interrogate` and Comment Sicko |
+| [Hermes Agent](https://github.com/NousResearch/hermes-agent)                     | Hermes, which is its own agent              | Yes, it writes skills after tasks      | Yes, on a server with chat apps        | Not stated                            |
+| [Claude Code auto memory](https://code.claude.com/docs/en/memory)                | Claude Code                                 | Yes, notes from your corrections       | No. Memory stays on one machine        | No                                    |
+| [Claude Subconscious](https://github.com/letta-ai/claude-subconscious)           | Claude Code                                 | Yes, through a Letta agent             | Not stated                             | No                                    |
+| [imprint](https://github.com/n33kos/imprint)                                     | Claude Code                                 | Yes, when you run `/imprint:train`     | Not stated                             | No                                    |
+| [herdr](https://herdr.dev), [Orca](https://onorca.dev), [cmux](https://cmux.com) | Any terminal agent                          | No. They run agents side by side       | Remote machines over SSH (herdr, Orca) | No automatic review                   |
+
+You can use some of these tools with Shadowclone. Claude Code loads its auto memory beside Shadowclone skills. herdr, Orca, and cmux can run an agent that has Shadowclone skills. See the [comparison guide](docs/guides/comparison.md) for each tool and its sources.
+
 ## How it works
 
 ```mermaid
@@ -167,6 +183,7 @@ Read the [privacy policy](PRIVACY.md) and [data handling](docs/data-handling.md)
 | [Command reference](docs/guides/commands.md)     | Find every command    |
 | [Migration](docs/guides/migration.md)            | Move to skills        |
 | [Enterprise controls](docs/guides/enterprise.md) | Set scope and policy  |
+| [Comparison](docs/guides/comparison.md)          | Compare related tools |
 
 More: [documentation index](docs/README.md), [motivation](docs/motivation.md), [design history](docs/design/README.md), [security](SECURITY.md).
 
