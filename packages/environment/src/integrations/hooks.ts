@@ -6,6 +6,7 @@ import { readIntegrations, saveIntegration } from "./state";
 import type { Integration, IntegrationOptions } from "./types";
 import { bindNativeSessionOrigin, nativeBindingTimestamp } from "./bindings";
 import { readEnvironment } from "../environment/store";
+import { takeLearningNotice } from "../environment/learningNotice";
 import { learningSessionKey } from "./sessionKey";
 
 const inputSchema = z
@@ -119,11 +120,12 @@ export async function nativeSessionStart(
     return {};
   }
 
-  if (profile.length === 0) {
+  const notice = input.hook_event_name === "SubagentStart" ? "" : await takeLearningNotice(paths);
+  const additionalContext = [profile, notice].filter((part) => part.length > 0).join("\n\n");
+
+  if (additionalContext.length === 0) {
     return {};
   }
-
-  const additionalContext = profile;
 
   await saveIntegration({
     paths,

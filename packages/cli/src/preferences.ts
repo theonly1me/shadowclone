@@ -5,6 +5,8 @@ import {
   acknowledgeCorrections,
   correctionReviewSignals,
   decidePendingLearning,
+  discardLearnings,
+  isLearningPublished,
   learningCatalog,
   publishReviewedLearning,
   readLatestLearningReceipt,
@@ -17,6 +19,7 @@ import {
 import { readHarnessRoots } from "@shadowclone/harness";
 import { skillRevisionRoots, listSkillProposals } from "@shadowclone/skills";
 import { handleHistoricalRepositories } from "./learningRepositories";
+import { setRepositoryDelivery } from "./repositoryDelivery";
 import { handleLearningReview } from "./learningReview";
 import { handleLearningProbe } from "./learningProbe";
 import { handleSkillMaintenance } from "./skillMaintenance";
@@ -111,6 +114,12 @@ export async function handlePreferenceCommand(options: {
     return true;
   }
 
+  if (action === "repositories" && rest[0] === "set") {
+    await setRepositoryDelivery(rest.slice(1));
+
+    return true;
+  }
+
   if (action === "bind" && rest.length === 1) {
     await handleHistoricalRepositories({ action, id: rest[0] });
 
@@ -130,6 +139,8 @@ export async function handlePreferenceCommand(options: {
     const pending = await readPendingLearning(projectPaths);
     if (pending.rules.some((rule) => rule.key === key)) {
       await decidePendingLearning({ paths: projectPaths, key, action });
+    } else if (action === "reject" && !(await isLearningPublished({ paths: projectPaths, key }))) {
+      await discardLearnings({ paths: projectPaths, keys: [key], reason: "user-rejected" });
     } else {
       await reviewLearning({
         paths: projectPaths, key,
@@ -153,7 +164,7 @@ export async function handlePreferenceCommand(options: {
     rest.length !== 0 ||
     !["enable", "disable", "status"].includes(action ?? "status")
   ) {
-    throw new Error("Use learning enable|disable|status|list|pending|show <key>|apply <key>|reject <key>|repositories|bind <id>|retire|replace|narrow|remove-source");
+    throw new Error("Use learning enable|disable|status|list|pending|show <key>|apply <key>|reject <key>|repositories [set <directory> --private|--repository]|bind <id>|retire|replace|narrow|remove-source");
   }
 
   const { config: effective, policy } = await readEffectiveConfig();

@@ -2,6 +2,9 @@ import path from "node:path";
 import { z } from "zod";
 import { readLocalText, replaceLocalText } from "@shadowclone/core";
 import type { ProjectPaths } from "@shadowclone/core";
+import { redactSecrets } from "@shadowclone/redact";
+
+const maximumFailureCharacters = 200;
 
 const receiptSchema = z.strictObject({
   id: z.uuid(),
@@ -28,10 +31,26 @@ const receiptSchema = z.strictObject({
   engine: z.string().nullable().default(null),
   model: z.string().nullable().default(null),
   ruleKeys: z.array(z.string()).default([]),
+  failure: z.string().max(maximumFailureCharacters).nullable().default(null),
+  triage: z.strictObject({
+    applied: z.number().int().nonnegative(),
+    discarded: z.number().int().nonnegative(),
+    deferred: z.number().int().nonnegative(),
+  }).nullable().default(null),
   nextAction: z.string(),
 });
 
 export type LearningReceipt = z.infer<typeof receiptSchema>;
+
+export function learningFailure(options: {
+  readonly paths: ProjectPaths;
+  readonly error: unknown;
+}): string {
+  const message = options.error instanceof Error ? options.error.message : "Unknown learning failure";
+  const homeDirectory = path.dirname(options.paths.shadowcloneDirectory);
+
+  return redactSecrets({ text: message.replaceAll(homeDirectory, "~") }).slice(0, maximumFailureCharacters);
+}
 
 function latestFile(paths: ProjectPaths): string {
   return path.join(paths.shadowcloneDirectory, "learning-attempts", "latest.json");

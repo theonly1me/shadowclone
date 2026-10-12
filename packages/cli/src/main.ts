@@ -30,7 +30,7 @@ function printUsage(): void {
   console.log(usage);
   console.log("Skill tree: wizard [--repo] [--no-open]; terminal setup: wizard --cli");
   console.log(
-    "Preferences: remember [--repo|--global] <text>, history [revision-id], undo <revision-id>, learning enable|disable|status|list|pending|show <key>|apply <key>|reject <key>|repositories|bind <id>",
+    "Preferences: remember [--repo|--global] <text>, history [revision-id], undo <revision-id>, learning enable|disable|status|list|pending|show <key>|apply <key>|reject <key>|repositories [set <directory> --private|--repository]|bind <id>",
   );
   console.log(
     "Review: learning retire|narrow <key>, learning replace <key> <guidance>, learning remove-source <source> [--apply --expected <fingerprint>]",

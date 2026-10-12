@@ -13,6 +13,8 @@ export {
 
 export { learningCatalog, showLearning } from "./catalog";
 
+export { discardLearnings, isLearningPublished } from "./discard";
+
 export { updateLearningEnvironment } from "./environmentUpdate/update";
 
 export { acknowledgeCorrections, correctionReviewSignals } from "./feedback";

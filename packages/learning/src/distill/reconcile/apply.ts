@@ -73,9 +73,10 @@ export function applyReconciliation(options: {
     });
   }
 
-  const rejectionTokens = new Set(
-    options.context.rejections.map((entry) => entry.token),
-  );
+  const rejectionTokens = new Set([
+    ...options.context.rejections.map((entry) => entry.token),
+    ...options.context.coverage.map((entry) => entry.token),
+  ]);
   let rejectedMatches = 0;
 
   for (const result of options.output.newRules) {

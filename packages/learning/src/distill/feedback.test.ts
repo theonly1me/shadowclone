@@ -14,7 +14,7 @@ test("feedback requires a durable correction assessment linked to an existing ru
   const context: ReconciliationContext = {
     batch: { origin: signal.origin, repositoryName: null, signals: [signal] },
     rules: [{ token: "rule-1", snapshot: { rule, promptTitle: rule.title, promptBody: rule.body,
-      promptProposal: null, promptAppliesWhen: [] }, axisOptions: [] }], rejections: [],
+      promptProposal: null, promptAppliesWhen: [] }, axisOptions: [] }], rejections: [], coverage: [],
     evidence: [{ token: "evidence-1", evidenceId: "opaque-evidence", signal }],
   };
   const output: ReconciliationOutput = {

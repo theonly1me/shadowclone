@@ -7,6 +7,7 @@ import type { EnvironmentState } from "./types";
 import { publishedSkills } from "./catalog";
 import { recordFingerprint } from "./records";
 import { renderBuildRouting } from "./builds/routing";
+import { repositoryDeliveryQuestion } from "./repositoryQuestion";
 
 export function renderSkillRouting(options: {
   readonly state: EnvironmentState;
@@ -15,6 +16,7 @@ export function renderSkillRouting(options: {
   readonly includeGlobalBuild?: boolean;
 }): string {
   const keys = new Set(options.scopes.map(({ key }) => key));
+  const privateKeys = new Set(options.scopes.filter(({ repository }) => repository?.privateSkillsDirectory).map(({ key }) => key));
   const skills = publishedSkills({ state: options.state, scopes: keys });
   const shortRules = options.state.records.flatMap((record) => {
     const body = record.rule.body.replace(/\s+/gu, " ").trim();
@@ -49,7 +51,9 @@ export function renderSkillRouting(options: {
     ...shortRules,
     ...skills
       .filter(({ name }) => name !== "shadowclone-baseline")
-      .map((skill) => `- ${skill.description} Use the ${skill.name} skill when relevant.`),
+      .map((skill) => privateKeys.has(skill.scope)
+        ? `- ${skill.description} Read ${skill.filePath} when relevant.`
+        : `- ${skill.description} Use the ${skill.name} skill when relevant.`),
     ...options.state.facts
       .filter((fact) => keys.has(fact.scope))
       .map((fact) => `\n${fact.text}`),
@@ -99,26 +103,33 @@ export async function environmentCompilation(options: {
               .startsWith(`${scope.directory}${path.sep}`)),
   );
 
+  const question = options.scope === "global" ? "" : repositoryDeliveryQuestion({
+    state,
+    originDirectory: options.originDirectory,
+    repositoryName: options.repositoryName,
+  });
+
   if (options.scope === "scoped" && scopes.length === 0) {
     return {
-      markdown: "",
+      markdown: question,
       appliedRuleKeys: [],
       appliedRuleCount: 0,
       appliedReferenceKeys: [],
       appliedReferenceCount: 0,
-      usedBytes: 0,
+      usedBytes: Buffer.byteLength(question),
       byteBudget: 4096,
       breakdown: [],
       omissions: [],
     };
   }
 
-  const markdown = renderSkillRouting({
+  const routing = renderSkillRouting({
     state,
     scopes,
     cwd: options.cwd,
     includeGlobalBuild: options.scope !== "scoped",
   });
+  const markdown = question ? `${routing}\n${question}\n` : routing;
 
   const keys = new Set(scopes.map(({ key }) => key));
   const applied = publishedSkills({ state, scopes: keys });

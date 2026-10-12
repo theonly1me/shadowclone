@@ -1,6 +1,6 @@
 import { resolveLearningExecution } from "./execution";
 import { selectLearningPreferences } from "./modelPreferences";
-import { writeLearningReceipt, type LearningReceipt } from "./receipt";
+import { learningFailure, writeLearningReceipt, type LearningReceipt } from "./receipt";
 import path from "node:path";
 import {
   readEffectiveConfig,
@@ -19,6 +19,7 @@ import {
 } from "@shadowclone/sessions";
 import type { SkillUpdateSummary } from "./skillMaintenance/legacyUpdate";
 import { maintainSkills } from "./maintenance";
+import { triagePendingLearning, type TriageSummary } from "./triage";
 import {
   episodeId,
   learningInterval,
@@ -104,6 +105,7 @@ export async function runLearningMaintenance(
     let receiptEngine: string | null = null;
     let receiptModel: string | null = null;
     let ruleKeys: string[] = [];
+    let triage: TriageSummary | null = null;
 
     try {
       const index = await openEventIndex(paths.indexDatabase);
@@ -191,6 +193,7 @@ export async function runLearningMaintenance(
 
           if (effective.config.sources["skill-library"]) {
             stage = "publication";
+            triage = await triagePendingLearning({ paths, execution });
             const summary = await maintainSkills({
               paths,
               execution,
@@ -201,7 +204,7 @@ export async function runLearningMaintenance(
             options.reportSkills?.(summary);
             pendingCount += summary.pending + summary.deferred + summary.conflicts;
             outcome = pendingCount > 0 ? "needs-scope-or-publication" :
-              summary.applied > 0 ? "guidance-published" : outcome;
+              summary.applied > 0 || triage.applied > 0 ? "guidance-published" : outcome;
           }
         }
 
@@ -218,6 +221,7 @@ export async function runLearningMaintenance(
             proposalCount,
             engine: receiptEngine, model: receiptModel, ruleKeys,
             pendingCount,
+            triage,
             nextAction: outcome === "needs-scope-or-publication"
               ? "Run shadowclone skills pending to review scope or publication."
               : outcome === "awaiting-review"
@@ -239,7 +243,7 @@ export async function runLearningMaintenance(
       } finally {
         index.close();
       }
-    } catch {
+    } catch (error) {
       await writeLearningReceipt({
         paths,
         receipt: {
@@ -252,6 +256,9 @@ export async function runLearningMaintenance(
           sourceCounts,
           proposalCount,
           pendingCount,
+          engine: receiptEngine,
+          model: receiptModel,
+          failure: learningFailure({ paths, error }),
           nextAction: stage === "publication"
             ? "Run shadowclone skills pending and retry shadowclone skills update."
             : "Check shadowclone doctor and retry learning.",
