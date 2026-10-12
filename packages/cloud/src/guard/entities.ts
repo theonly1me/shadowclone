@@ -1,3 +1,4 @@
+import { hasWriteAccess } from "./access";
 import type { Clone, GithubRequest } from "../types";
 import { readGithub, readIssueEvents, record, records } from "./records";
 
@@ -109,14 +110,5 @@ export async function approvedReviewer(options: {
     return options.clone.reviewerBots.includes(options.actor);
   }
 
-  if (options.clone.requesters.includes(options.actor)) {
-    return true;
-  }
-
-  const permission = await readGithub({
-    request: options.request,
-    route: `GET /repos/${options.clone.repository}/collaborators/${options.actor}/permission`,
-  });
-
-  return ["admin", "maintain", "write"].includes(String(permission.permission));
+  return hasWriteAccess(options);
 }

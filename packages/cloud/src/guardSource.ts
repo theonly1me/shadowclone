@@ -7,7 +7,7 @@ export function runtimeSources(): Record<string, string> {
     "guard/records",
     "guard/comment",
     "guard/entities",
-    "guard/reviewRequest",
+    "guard/access",
     "guard/events",
     "guard/policy",
     "react",

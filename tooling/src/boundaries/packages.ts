@@ -46,17 +46,15 @@ export const packageLayout: PackageLayout = {
       "environment",
     ],
     harness: ["core", "redact", "sessions", "changes", "skills", "profile", "environment"],
-    cloud: ["core", "sessions", "review", "environment"],
+    cloud: ["core", "sessions", "environment"],
     web: [
       "core",
       "redact",
       "agents",
-      "sessions",
       "skills",
       "environment",
       "builds",
       "learning",
-      "cloud",
     ],
     mcp: [
       "core",
@@ -67,7 +65,6 @@ export const packageLayout: PackageLayout = {
       "environment",
       "learning",
       "cloud",
-      "web",
     ],
     cli: [
       "core",

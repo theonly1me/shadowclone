@@ -2,13 +2,14 @@ import { z } from "zod";
 import type { Clone } from "../types";
 import { renderWorkflows } from "../workflow";
 import type { GithubApi } from "./github";
+import { checkWorkflowPath } from "../checkWorkflow";
 
 const shaSchema = z.object({ sha: z.string().regex(/^[a-f0-9]{40}$/) });
 
 export function isCloneWorkflowPath(filePath: string): boolean {
   return (
     filePath.startsWith(".github/shadowclone/") ||
-    [".github/workflows/shadowclone.yml", ".github/workflows/shadowclone-relay.yml"].includes(filePath)
+    [".github/workflows/shadowclone.yml", ".github/workflows/shadowclone-relay.yml", checkWorkflowPath].includes(filePath)
   );
 }
 

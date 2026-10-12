@@ -21,7 +21,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`learning`](../../packages/learning/AGENTS.md)       | Distillation, reconciliation, probes, `remember`     |
 | [`harness`](../../packages/harness/AGENTS.md)         | Repository harness for `init --repo` and `check`     |
 | [`cloud`](../../packages/cloud/AGENTS.md)             | GitHub bot setup and workflows                       |
-| [`web`](../../packages/web/AGENTS.md)                 | Wizard, voice capture, browser bot setup             |
+| [`web`](../../packages/web/AGENTS.md)                 | Wizard, voice capture, and skill drafts              |
 | [`mcp`](../../packages/mcp/AGENTS.md)                 | MCP server                                           |
 | [`cli`](../../packages/cli/AGENTS.md)                 | Commands, build, and publish                         |
 | [`evals`](../../evals/AGENTS.md)                      | Private evaluation suites                            |
@@ -31,7 +31,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 
 ## Dependencies
 
-An arrow points from a package to a package that it imports. The graph omits an arrow that another path implies. For example, `cli` also declares `review`, but `mcp`, `web`, and `cloud` already lead to it.
+An arrow points from a package to a package that it imports. The graph omits an arrow that another path implies. For example, `cli` also declares `environment`, but `mcp` and `harness` already lead to it.
 
 ```mermaid
 graph BT
@@ -48,13 +48,14 @@ graph BT
   harness --> environment
   review --> agents
   cloud --> environment
-  cloud --> review
   web --> builds
-  web --> cloud
   web --> learning
-  mcp --> web
+  mcp --> learning
+  mcp --> cloud
   cli --> mcp
+  cli --> web
   cli --> harness
+  cli --> review
 ```
 
 `tooling/src/boundaries/packages.ts` lists the allowed imports. `bun run lint` checks every import against it and fails on a cycle. A package exposes `.` and, where needed, `./testing` for fixtures and `./browser` for web client modules. See [design record 038](../design/038-packages-and-plain-english.md).

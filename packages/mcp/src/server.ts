@@ -114,8 +114,6 @@ export async function serveMcp(
       lineEnd = buffer.indexOf("\n");
     }
   }
-
-  bot.stop();
 }
 
 if (import.meta.main) {

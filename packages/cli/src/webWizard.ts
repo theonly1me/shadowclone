@@ -5,16 +5,12 @@ export async function runWebWizard(
   options: {
     readonly repository?: boolean;
     readonly open?: boolean;
-    readonly bot?: boolean;
-    readonly targetRepository?: string;
   } = {},
 ): Promise<void> {
   const wizard = serveBuildWizard({
     paths: projectPaths,
     cwd: canonicalPath(process.cwd()),
     scope: options.repository ? "private" : "global",
-    bot: options.bot,
-    repository: options.targetRepository,
   });
 
   console.log(`Open your local skill tree: ${wizard.url}`);
@@ -36,11 +32,7 @@ export async function runWebWizard(
   const executable = Bun.which(command);
 
   if (executable) {
-    const arguments_ =
-      process.platform === "darwin" && options.bot
-        ? [executable, "-a", "Safari", wizard.url]
-        : [executable, wizard.url];
-    const child = Bun.spawn(arguments_, {
+    const child = Bun.spawn([executable, wizard.url], {
       stdout: "ignore",
       stderr: "ignore",
     });

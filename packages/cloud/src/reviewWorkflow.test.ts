@@ -30,15 +30,15 @@ test("the job that runs the pull request's toolchain gets no secrets and no envi
   expect(JSON.stringify(checks)).not.toContain("secrets.");
 });
 
-test("the model job holds only the Claude token and the publish job alone holds the App key", () => {
+test("the model job holds only the API key and the publish job alone holds the bot token", () => {
   const rendered = jobs();
   const analyze = JSON.stringify(rendered["review-analyze"]);
   const publish = JSON.stringify(rendered["review-publish"]);
 
-  expect(analyze).toContain("secrets.CLAUDE_CODE_OAUTH_TOKEN");
-  expect(analyze).not.toContain("SHADOWCLONE_APP_PRIVATE_KEY");
-  expect(publish).toContain("SHADOWCLONE_APP_PRIVATE_KEY");
-  expect(publish).not.toContain("CLAUDE_CODE_OAUTH_TOKEN");
+  expect(analyze).toContain("secrets.ANTHROPIC_API_KEY");
+  expect(analyze).not.toContain("SHADOWCLONE_BOT_TOKEN");
+  expect(publish).toContain("secrets.SHADOWCLONE_BOT_TOKEN");
+  expect(publish).not.toContain("ANTHROPIC_API_KEY");
 });
 
 test("review requests skip the work job", () => {

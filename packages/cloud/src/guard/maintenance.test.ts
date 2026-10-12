@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { resolveTrigger } from "./events";
-import { eventContext, fixtureClone, fixtureIssue, fixturePull, githubFixture } from "../fixtures";
+import { eventContext, fixtureClone, fixtureIssue, fixturePull, githubFixture, ownerPermission } from "../fixtures";
 import { allowWorker, cancelBranchWork } from "./policy";
 
 function reviewRoutes(pull: Record<string, unknown> = fixturePull) {
@@ -71,6 +71,7 @@ test("CI must refer to the current head and cannot replay the clone workflows", 
 
 test("a PR pause event cancels only that branch's active clone runs", async () => {
   const { request, calls } = githubFixture({
+    ...ownerPermission,
     "GET /repos/sample/project/issues/2/events": [
       {
         id: 80,

@@ -1,16 +1,16 @@
 import { z } from "zod";
-import { serveBuildWizard } from "@shadowclone/web";
 import {
   type AccountSetupOutcome,
-  checklistText,
+  checkText,
   cloneStatus,
   ghApiCall,
   type GhApiCall,
   type GhCommand,
+  nextStepsText,
   openPage,
-  pendingPages,
-  readCloudChecklist,
+  providers,
   readInstallation,
+  runCloneCheck,
   runGh,
   setUpAccountClone,
 } from "@shadowclone/cloud";
@@ -21,13 +21,14 @@ export const botTools = [
   {
     name: "shadowclone_bot",
     description:
-      "Set up the Shadowclone cloud bot for a GitHub repository, or read its setup status. " +
-      "With bot, setup uses a machine account with that login: it invites the bot, protects " +
+      "Set up the Shadowclone cloud bot for a GitHub repository, or check it. The bot is a " +
+      "GitHub machine account that runs on a provider API key. Setup invites the bot, protects " +
       "the default branch, pushes the owner's skills to a private repository, and opens the " +
-      "setup pull request. The owner enters every token on GitHub, never here. The first " +
-      "setup call returns the skill files; show them to the owner and call again with " +
-      "approveSkills true only after the owner agrees. Without bot, setup opens the local " +
-      "wizard, which also offers a GitHub App.",
+      "setup pull request. It returns one environment link where the owner adds the bot token " +
+      "and the API key; keys never pass through this tool. The first setup call returns the " +
+      "skill files: show them to the owner and call again with approveSkills true only after " +
+      "the owner agrees. After the owner adds the keys and merges, call status: it runs a " +
+      "check that accepts the invitation and confirms the key.",
     inputSchema: {
       type: "object",
       properties: {
@@ -35,8 +36,9 @@ export const botTools = [
         repository: { type: "string", description: "owner/repository" },
         bot: { type: "string", description: "GitHub login of the bot's machine account" },
         approveSkills: { type: "boolean", description: "true only after the owner approved the listed skill files" },
-        engine: { type: "string", enum: ["claude", "codex"], description: "the agent that works and reviews; defaults to claude" },
-        codexAuth: { type: "string", enum: ["api-key", "plan"], description: "Codex sign-in; plan is experimental" },
+        provider: { type: "string", enum: [...providers], description: "API key provider; defaults to anthropic" },
+        baseUrl: { type: "string", description: "https base URL, only for openai-compatible" },
+        model: { type: "string", description: "model id; required for openai-compatible" },
       },
       required: ["operation"],
       additionalProperties: false,
@@ -55,9 +57,12 @@ const inputSchema = z.strictObject({
     .regex(/^[A-Za-z0-9-]{1,39}$/)
     .optional(),
   approveSkills: z.boolean().optional(),
-  engine: z.enum(["claude", "codex"]).default("claude"),
-  codexAuth: z.enum(["api-key", "plan"]).default("api-key"),
+  provider: z.enum(providers).default("anthropic"),
+  baseUrl: z.string().regex(/^https:\/\//).optional(),
+  model: z.string().regex(/^[\w.:/-]+$/).optional(),
 });
+
+const statusWaitMilliseconds = 45_000;
 
 function text(options: { readonly value: string; readonly isError?: boolean }) {
   return { content: [{ type: "text", text: options.value }], isError: options.isError ?? false };
@@ -77,20 +82,23 @@ async function outcomeText(outcome: AccountSetupOutcome): Promise<string> {
     ].join("\n");
   }
 
-  for (const url of pendingPages(outcome.checklist)) {
-    await openPage(url);
-  }
+  await openPage(outcome.environmentUrl);
 
-  return `${[...outcome.warnings, checklistText(outcome.checklist)].join("\n\n")}\n\nThe pages for the open steps are open in the browser. Call status to check progress.`;
+  return `${[
+    ...outcome.warnings,
+    nextStepsText({
+      repository: outcome.clone.repository,
+      environmentUrl: outcome.environmentUrl,
+      pullUrl: outcome.pullUrl,
+      checklist: outcome.checklist,
+    }),
+  ].join("\n\n")}\n\nThe environment page is open. Give the owner these links, and call status after they say done.`;
 }
 
 export function createBotTool(context: BuildContext & { readonly call?: GhApiCall; readonly command?: GhCommand }) {
   const call = context.call ?? ghApiCall;
   const command = context.command ?? runGh;
-  let wizard: ReturnType<typeof serveBuildWizard> | null = null;
-
   return {
-    stop: () => wizard?.stop(),
     run: async (params: unknown) => {
       if (!isRecord(params) || params.name !== "shadowclone_bot") {
         return null;
@@ -100,7 +108,7 @@ export function createBotTool(context: BuildContext & { readonly call?: GhApiCal
 
       if (!input.success) {
         return text({
-          value: "Use operation setup or status, with optional repository, bot, and approveSkills. Tokens go on GitHub, never here.",
+          value: "Use operation setup or status with repository, and bot for setup. Keys go on GitHub, never here.",
           isError: true,
         });
       }
@@ -109,25 +117,28 @@ export function createBotTool(context: BuildContext & { readonly call?: GhApiCal
 
       try {
         if (operation === "status") {
-          const installation = repository ? await readInstallation({ paths: context.paths, repository }) : null;
+          if (repository === undefined) {
+            return text({ value: JSON.stringify(await cloneStatus(context.paths)) });
+          }
 
-          return text({
-            value: installation
-              ? checklistText(await readCloudChecklist({ call, clone: installation.clone, pullUrl: installation.pullUrl }))
-              : JSON.stringify(await cloneStatus(context.paths)),
+          const installation = await readInstallation({ paths: context.paths, repository });
+
+          if (!installation) {
+            return text({ value: `No cloud bot setup is saved for ${repository}. Call setup first.`, isError: true });
+          }
+
+          const check = await runCloneCheck({
+            clone: installation.clone,
+            call,
+            pullUrl: installation.pullUrl,
+            limitMilliseconds: statusWaitMilliseconds,
           });
+
+          return text({ value: checkText(check), isError: check.kind === "failed" });
         }
 
         if (bot === undefined || repository === undefined) {
-          if (bot !== undefined) {
-            return text({ value: "Name the repository as owner/repository to set up a machine account bot.", isError: true });
-          }
-
-          wizard ??= serveBuildWizard({ ...context, bot: true });
-
-          return text({
-            value: `Open ${wizard.url}. Choose a machine account or a GitHub App there. Keep this MCP connection open until setup finishes.`,
-          });
+          return text({ value: "Name the bot's machine account with bot and the repository as owner/repository.", isError: true });
         }
 
         return text({
@@ -137,8 +148,9 @@ export function createBotTool(context: BuildContext & { readonly call?: GhApiCal
               repository,
               botLogin: bot,
               approveSkills: input.data.approveSkills === true,
-              engine: input.data.engine,
-              codexAuth: input.data.codexAuth,
+              provider: input.data.provider,
+              ...(input.data.baseUrl === undefined ? {} : { baseUrl: input.data.baseUrl }),
+              ...(input.data.model === undefined ? {} : { model: input.data.model }),
               call,
               command,
             }),

@@ -8,6 +8,8 @@ import {
   eventContext,
   fixtureIssue,
   githubFixture,
+  collaboratorPermission,
+  ownerPermission,
 } from "./fixtures";
 import { record } from "./guard/records";
 import { reactToRequest } from "./react";
@@ -21,13 +23,10 @@ test(
 
     expect(relay).not.toContain("secrets.");
     expect(relay).toContain("ref: config.defaultBranch");
-    expect(relay).toContain("pull_request_target:");
+    expect(relay).toContain("pull_request_target:\n    types: [labeled, unlabeled]");
     expect(worker).toContain("environment: shadowclone");
     expect(worker).toContain("github.ref == 'refs/heads/main'");
-    expect(worker).toContain("repositories: 'project'");
-    expect(worker.indexOf("allowWorker")).toBeLessThan(
-      worker.indexOf("secrets.SHADOWCLONE_APP_PRIVATE_KEY"),
-    );
+    expect(worker.indexOf("allowWorker")).toBeLessThan(worker.indexOf("secrets.SHADOWCLONE_BOT_TOKEN"));
     expect(worker).toContain("timeout-minutes: 180");
     expect(worker).toContain("timeout-minutes: 170");
     expect(worker).not.toContain("--max-turns");
@@ -42,7 +41,7 @@ test(
   },
 );
 
-test("generated CommonJS guards execute with the same owner issue policy", async () => {
+test("generated CommonJS guards execute with the same tag and write access policy", async () => {
   const fixture = await guidanceFixture();
 
   try {
@@ -58,14 +57,21 @@ test("generated CommonJS guards execute with the same owner issue policy", async
       throw new Error("The generated guard does not export its policy.");
     }
 
-    const { request } = githubFixture({ "GET /repos/sample/project/issues/1": fixtureIssue });
-    const result: unknown = await resolve({
-      clone: fixtureClone,
-      context: eventContext(),
-      request,
+    const tagged = githubFixture({ "GET /repos/sample/project/issues/1": fixtureIssue, ...ownerPermission });
+    const untagged = githubFixture({
+      "GET /repos/sample/project/issues/1": { ...fixtureIssue, body: "Please fix the parser." },
+      ...ownerPermission,
+    });
+    const reader = githubFixture({
+      "GET /repos/sample/project/issues/1": fixtureIssue,
+      ...collaboratorPermission({ login: "sample", permission: "read" }),
     });
 
-    expect(record(result).branch).toBe("shadowclone/issue-1");
+    expect(record(await resolve({ clone: fixtureClone, context: eventContext(), request: tagged.request })).branch).toBe(
+      "shadowclone/issue-1",
+    );
+    expect(await resolve({ clone: fixtureClone, context: eventContext(), request: untagged.request })).toBeNull();
+    expect(await resolve({ clone: fixtureClone, context: eventContext(), request: reader.request })).toBeNull();
   } finally {
     await fixture.cleanup();
   }

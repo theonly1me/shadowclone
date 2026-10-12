@@ -1,12 +1,12 @@
 import { z } from "zod";
-import type { Clone } from "../types";
+import { providerSecrets, type Clone, type Provider } from "../types";
 import { readBotAccess } from "./account";
 import type { GhApiCall } from "./ghApi";
 
 export type ChecklistLink = { readonly label: string; readonly url: string };
 
 export type ChecklistItem = {
-  readonly key: "bot-token" | "app-key" | "model-token" | "skills" | "workflows" | "invitation";
+  readonly key: "bot-token" | "provider-key" | "skills" | "workflows" | "invitation";
   readonly done: boolean;
   readonly title: string;
   readonly action: string;
@@ -15,6 +15,22 @@ export type ChecklistItem = {
 
 const environmentSchema = z.object({ id: z.number().int().positive() });
 const secretsSchema = z.object({ secrets: z.array(z.object({ name: z.string() })) });
+
+const providerKeys: Readonly<Record<Provider, { readonly title: string; readonly source: ChecklistLink | null }>> = {
+  anthropic: {
+    title: "Anthropic API key",
+    source: { label: "Create the key in the Claude Console", url: "https://platform.claude.com/settings/keys" },
+  },
+  openai: {
+    title: "OpenAI API key",
+    source: { label: "Create the key on the OpenAI Platform", url: "https://platform.openai.com/api-keys" },
+  },
+  "openai-compatible": { title: "API key for the OpenAI-compatible provider", source: null },
+  cursor: {
+    title: "Cursor API key",
+    source: { label: "Create the key in the Cursor dashboard", url: "https://cursor.com/dashboard" },
+  },
+};
 
 export function botTokenPage(repository: string): string {
   const page = new URL("https://github.com/settings/tokens/new");
@@ -25,7 +41,7 @@ export function botTokenPage(repository: string): string {
   return page.toString();
 }
 
-async function environmentState(options: {
+export async function environmentState(options: {
   readonly call: GhApiCall;
   readonly repository: string;
 }) {
@@ -54,28 +70,6 @@ async function environmentState(options: {
   };
 }
 
-function modelToken(clone: Clone): { readonly secret: string; readonly title: string; readonly action: string } {
-  if (clone.engine === "claude") {
-    return {
-      secret: "CLAUDE_CODE_OAUTH_TOKEN",
-      title: "Claude token",
-      action: "Run claude setup-token in a terminal, and add the token to the environment as CLAUDE_CODE_OAUTH_TOKEN.",
-    };
-  }
-
-  return clone.codexAuth === "plan"
-    ? {
-        secret: "CODEX_AUTH_JSON",
-        title: "Codex login (experimental)",
-        action: "Run codex login on your machine, and add the content of ~/.codex/auth.json to the environment as CODEX_AUTH_JSON.",
-      }
-    : {
-        secret: "OPENAI_API_KEY",
-        title: "OpenAI API key",
-        action: "Create an API key in the OpenAI platform, and add it to the environment as OPENAI_API_KEY.",
-      };
-}
-
 export async function readCloudChecklist(options: {
   readonly call: GhApiCall;
   readonly clone: Clone;
@@ -83,38 +77,30 @@ export async function readCloudChecklist(options: {
 }): Promise<readonly ChecklistItem[]> {
   const { call, clone } = options;
   const environment = await environmentState({ call, repository: clone.repository });
-  const environmentLink = { label: "Environment secrets", url: environment.page };
+  const environmentLink = { label: "Add it here", url: environment.page };
   const relay = await call({
     route: `repos/${clone.repository}/contents/.github/workflows/shadowclone-relay.yml?ref=${encodeURIComponent(clone.defaultBranch)}`,
   });
-  const identity: ChecklistItem =
-    clone.identity.kind === "account"
-      ? {
-          key: "bot-token",
-          done: environment.secrets.has("SHADOWCLONE_BOT_TOKEN"),
-          title: `Token for ${clone.botLogin}`,
-          action: `Sign in to GitHub as ${clone.botLogin}, create a classic token with only the repo scope, and add it to the environment as SHADOWCLONE_BOT_TOKEN.`,
-          links: [
-            { label: "Create the token", url: botTokenPage(clone.repository) },
-            environmentLink,
-          ],
-        }
-      : {
-          key: "app-key",
-          done: environment.secrets.has("SHADOWCLONE_APP_PRIVATE_KEY"),
-          title: "App key",
-          action: "Run shadowclone bot setup --app again to upload the App key.",
-          links: [environmentLink],
-        };
-  const model = modelToken(clone);
-  const items: ChecklistItem[] = [
-    identity,
+  const secret = providerSecrets[clone.provider];
+  const key = providerKeys[clone.provider];
+  const access = await readBotAccess({ call, repository: clone.repository, login: clone.botLogin });
+
+  return [
     {
-      key: "model-token",
-      done: environment.secrets.has(model.secret),
-      title: model.title,
-      action: model.action,
-      links: [environmentLink],
+      key: "bot-token",
+      done: environment.secrets.has("SHADOWCLONE_BOT_TOKEN"),
+      title: `Token for ${clone.botLogin}`,
+      action: `Sign in to GitHub as ${clone.botLogin}, create a classic token with only the repo scope, and add it as SHADOWCLONE_BOT_TOKEN.`,
+      links: [{ label: "Create the token", url: botTokenPage(clone.repository) }, environmentLink],
+    },
+    {
+      key: "provider-key",
+      done: environment.secrets.has(secret),
+      title: key.title,
+      action: clone.provider === "openai-compatible"
+        ? `Add the key for ${clone.baseUrl ?? "the provider"} as ${secret}. The endpoint must serve the OpenAI Responses API.`
+        : `Add the key as ${secret}.`,
+      links: [...(key.source ? [key.source] : []), environmentLink],
     },
     {
       key: "skills",
@@ -128,29 +114,16 @@ export async function readCloudChecklist(options: {
       done: relay.status === 200,
       title: `Workflows on ${clone.defaultBranch}`,
       action: "Review and merge the setup pull request.",
-      links:
-        options.pullUrl === null ? [] : [{ label: "Setup pull request", url: options.pullUrl }],
+      links: options.pullUrl === null ? [] : [{ label: "Setup pull request", url: options.pullUrl }],
     },
-  ];
-
-  if (clone.identity.kind === "account") {
-    const access = await readBotAccess({
-      call,
-      repository: clone.repository,
-      login: clone.botLogin,
-    });
-
-    items.push({
+    {
       key: "invitation",
       done: access === "collaborator",
       title: `${clone.botLogin} joined the repository`,
-      action:
-        access === "invited"
-          ? `After the merge, mention @${clone.botLogin} once. Its first run accepts the invitation.`
-          : "Run shadowclone bot setup again to invite the bot.",
+      action: access === "invited"
+        ? "Run shadowclone bot status. Its check run accepts the invitation and confirms the API key."
+        : "Run shadowclone bot setup again to invite the bot.",
       links: [],
-    });
-  }
-
-  return items;
+    },
+  ];
 }

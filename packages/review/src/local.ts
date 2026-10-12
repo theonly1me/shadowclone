@@ -41,7 +41,7 @@ async function reviewAtHead(options: LocalReviewOptions & { readonly facts: Pull
 
     const checks = options.runChecks ? checksStage({ packet, repository: checkout, workDirectory, onProgress }) : null;
 
-    onProgress(`Reviewing with ${options.reviewModel.model}`);
+    onProgress(`Reviewing with ${options.reviewModel.model ?? "the provider's default model"}`);
 
     return await analyzeStage({ packet, checks, checkout: head.root, reviewModel: options.reviewModel });
   } finally {

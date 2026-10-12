@@ -17,12 +17,6 @@ function rulesetFixture(
     calls.push(input);
     const route = input.arguments.at(-1) ?? "";
 
-    if (input.arguments.includes("PUT") && ruleset) {
-      ruleset = { id: ruleset.id, ...JSON.parse(input.input ?? "{}") };
-
-      return JSON.stringify(ruleset);
-    }
-
     if (input.arguments.includes("POST")) {
       const created = { id: 8, ...JSON.parse(input.input ?? "{}") };
 
@@ -45,10 +39,10 @@ function rulesetFixture(
   return { calls, command };
 }
 
-test("fresh setup lets only people with write access update or delete the default branch", async () => {
+test("fresh setup lets only admins and maintainers update or delete the default branch, so the bot cannot", async () => {
   const fixture = rulesetFixture();
 
-  await protectDefaultBranch({ repository: setupRepository, identity: "app", command: fixture.command });
+  await protectDefaultBranch({ repository: setupRepository, command: fixture.command });
 
   const created = fixture.calls.find((call) => call.arguments.includes("POST"));
   const payload = JSON.parse(created?.input ?? "{}");
@@ -59,15 +53,14 @@ test("fresh setup lets only people with write access update or delete the defaul
   expect(payload.bypass_actors).toEqual([
     { actor_id: 5, actor_type: "RepositoryRole", bypass_mode: "exempt" },
     { actor_id: 2, actor_type: "RepositoryRole", bypass_mode: "exempt" },
-    { actor_id: 4, actor_type: "RepositoryRole", bypass_mode: "exempt" },
   ]);
   expect(fixture.calls.at(-1)?.arguments).toEqual(["api", "repos/sample/project/rulesets/8"]);
 });
 
 test("a matching ruleset from an earlier setup is reused", async () => {
-  const fixture = rulesetFixture({ existing: defaultBranchRuleset("app") });
+  const fixture = rulesetFixture({ existing: defaultBranchRuleset() });
 
-  await protectDefaultBranch({ repository: setupRepository, identity: "app", command: fixture.command });
+  await protectDefaultBranch({ repository: setupRepository, command: fixture.command });
 
   expect(fixture.calls.some((call) => call.arguments.includes("POST"))).toBeFalse();
 });
@@ -75,17 +68,19 @@ test("a matching ruleset from an earlier setup is reused", async () => {
 test("a changed ruleset with the same name stops setup", async () => {
   const fixture = rulesetFixture({
     existing: {
-      ...defaultBranchRuleset("app"),
+      ...defaultBranchRuleset(),
       bypass_actors: [
-        ...defaultBranchRuleset("app").bypass_actors,
+        ...defaultBranchRuleset().bypass_actors,
         { actor_id: 15368, actor_type: "Integration", bypass_mode: "always" },
       ],
     },
   });
 
   await expect(
-    protectDefaultBranch({ repository: setupRepository, identity: "app", command: fixture.command }),
-  ).rejects.toThrow("Review the existing shadowclone default branch ruleset");
+    protectDefaultBranch({ repository: setupRepository, command: fixture.command }),
+  ).rejects.toThrow(
+    "The shadowclone default branch ruleset differs from the rules that setup expects. Delete it or restore it, then run setup again: https://github.com/sample/project/settings/rules/7",
+  );
   expect(fixture.calls.some((call) => call.arguments.includes("POST"))).toBeFalse();
 });
 
@@ -95,7 +90,7 @@ test("setup stops when GitHub does not enforce the created ruleset", async () =>
   });
 
   await expect(
-    protectDefaultBranch({ repository: setupRepository, identity: "app", command: fixture.command }),
+    protectDefaultBranch({ repository: setupRepository, command: fixture.command }),
   ).rejects.toThrow("could not be verified");
 });
 
@@ -104,30 +99,7 @@ test("setup accepts the created ruleset when GitHub leaves out the default updat
     stored: (created) => ({ ...created, rules: [{ type: "update" }, { type: "deletion" }] }),
   });
 
-  await protectDefaultBranch({ repository: setupRepository, identity: "app", command: fixture.command });
+  await protectDefaultBranch({ repository: setupRepository, command: fixture.command });
 
   expect(fixture.calls.at(-1)?.arguments).toEqual(["api", "repos/sample/project/rulesets/8"]);
-});
-
-test("a machine account setup exempts only admins and maintainers, so the bot cannot update the default branch", async () => {
-  const fixture = rulesetFixture();
-
-  await protectDefaultBranch({ repository: setupRepository, identity: "account", command: fixture.command });
-
-  const created = fixture.calls.find((call) => call.arguments.includes("POST"));
-
-  expect(JSON.parse(created?.input ?? "{}").bypass_actors).toEqual([
-    { actor_id: 5, actor_type: "RepositoryRole", bypass_mode: "exempt" },
-    { actor_id: 2, actor_type: "RepositoryRole", bypass_mode: "exempt" },
-  ]);
-});
-
-test("switching an App setup to a machine account removes the write exemption from its own ruleset", async () => {
-  const fixture = rulesetFixture({ existing: defaultBranchRuleset("app") });
-
-  await protectDefaultBranch({ repository: setupRepository, identity: "account", command: fixture.command });
-
-  const updated = fixture.calls.find((call) => call.arguments.includes("PUT"));
-
-  expect(JSON.parse(updated?.input ?? "{}").bypass_actors).toEqual(defaultBranchRuleset("account").bypass_actors);
 });

@@ -4,8 +4,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./testing": "./src/testing.ts",
-    "./browser": "./src/browser.ts"
+    "./testing": "./src/testing.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -14,7 +13,6 @@
   "dependencies": {
     "@shadowclone/core": "workspace:*",
     "@shadowclone/environment": "workspace:*",
-    "@shadowclone/review": "workspace:*",
     "@shadowclone/sessions": "workspace:*",
     "zod": "^4.5.4"
   }

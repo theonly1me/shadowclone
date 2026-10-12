@@ -10,8 +10,9 @@ export const defaultCodexReviewModel = "gpt-6.1-sol";
 
 export type ReviewModel = {
   readonly runner: EngineRunner;
-  readonly engine?: "claude" | "codex";
-  readonly model: string;
+  readonly engine?: "claude" | "codex" | "cursor";
+  readonly model?: string;
+  readonly baseUrl?: string;
   readonly effort: ReasoningEffort | null;
   readonly network: boolean;
 };
@@ -45,7 +46,8 @@ export async function analyzeReview(options: {
       ? {}
       : { allowedTools: options.reviewModel.network ? [...reviewTools, ...reviewNetworkTools] : reviewTools }),
     permissionMode: "dontAsk",
-    model: options.reviewModel.model,
+    ...(options.reviewModel.model === undefined ? {} : { model: options.reviewModel.model }),
+    ...(options.reviewModel.baseUrl === undefined ? {} : { baseUrl: options.reviewModel.baseUrl }),
     ...(options.reviewModel.effort === null ? {} : { reasoningEffort: options.reviewModel.effort }),
     outputSchema: z.toJSONSchema(analysisSchema, { target: "draft-7" }),
   });

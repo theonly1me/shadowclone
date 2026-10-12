@@ -11,9 +11,7 @@ function blobSha(content: string): string {
 }
 
 function identityLine(clone: Clone): string {
-  return clone.identity.kind === "account"
-    ? `Commits, pull requests, and reviews come from the machine account ${clone.botLogin}. Mention @${clone.botLogin} to start work.`
-    : `Commits, pull requests, and reviews come from the App ${clone.botLogin}. Mention @shadowclone to start work.`;
+  return `Commits, pull requests, and reviews come from the machine account ${clone.botLogin}. Anyone with write access can mention @${clone.botLogin} to start work, or write \`@${clone.botLogin} review\` on a pull request.`;
 }
 
 function pullBody(options: { readonly clone: Clone; readonly update: boolean }): string {
@@ -32,11 +30,11 @@ ${identityLine(clone)}
 
 1. Review both workflows and the guard helpers.
 2. Check that the \`shadowclone\` environment has every secret that \`shadowclone bot status\` lists.
-3. Merge this pull request, then open a small issue and mention the bot in it.
+3. Merge this pull request, then run \`shadowclone bot status\`. Its check run accepts the bot's invitation and confirms the API key.
 
 ## Data handling
 
-The tokens and the deploy key are secrets in the \`shadowclone\` environment, which only ${clone.defaultBranch} can use. The default-branch workflows and the code that runs with those secrets remain trusted.
+The bot token, the API key, and the deploy key are secrets in the \`shadowclone\` environment, which only ${clone.defaultBranch} can use. The default-branch workflows and the code that runs with those secrets remain trusted.
 `;
 }
 

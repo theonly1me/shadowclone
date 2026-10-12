@@ -39,7 +39,7 @@ function printUsage(): void {
     "Behavior: learning probe <key> --agent claude-code|codex --task <synthetic task> --expect <exact response> [--model <model>] --yes; learning probe status; learning acknowledge <key>",
   );
   console.log(
-    "Cloud bot: bot setup [--bot login] [--app] [--repo owner/repository]; bot status [--repo owner/repository]; bot export",
+    "Cloud bot: bot setup --bot login [--provider anthropic|openai|openai-compatible|cursor] [--base-url url] [--model id] [--repo owner/repository]; bot status [--repo owner/repository]; bot export",
   );
   console.log(
     "Pull request review: review <pr-number> [--cloud] [--no-checks] [--repo owner/repository] [--output file.md] [--model <id>] [--effort <level>]; workflow stages: review prepare|checks|analyze|publish",

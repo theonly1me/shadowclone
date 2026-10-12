@@ -190,7 +190,7 @@ export async function analyzeStage(options: {
       candidates,
     }),
     candidates,
-    model: options.reviewModel.model,
+    model: options.reviewModel.model ?? "provider default",
     costUsd: sumCosts(reviews.flatMap((partReview) => partReview.costs)),
     correctionRound: mergedCorrectionRound(reviews),
     rejections: reviews.flatMap((partReview) => partReview.rejections),

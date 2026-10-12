@@ -1,4 +1,4 @@
-import { claudeWorkStep, codexWorkSteps, jobMinutes, saveWorkStep } from "./agentSteps";
+import { agentWorkSteps, jobMinutes, saveWorkStep } from "./agentSteps";
 import { botToken, botTokenSteps, skillsSteps } from "./identitySteps";
 import { reviewJobs, type ReviewPins, type ReviewVersions } from "./reviewJobs";
 import type { Clone } from "./types";
@@ -12,21 +12,23 @@ export function workerWorkflow(options: {
 }): string {
   const { clone, configured, pins } = options;
   const allowed = "steps.validate.outputs.allowed == 'true'";
-  const token = botToken(clone);
+  const token = botToken;
   const environment = [
     `          SHADOWCLONE_ENTITY: \${{ steps.validate.outputs.entity }}`,
     `          SHADOWCLONE_BRANCH: \${{ steps.validate.outputs.branch }}`,
     `          SHADOWCLONE_SOURCE: \${{ steps.validate.outputs.source }}`,
     `          SHADOWCLONE_IDENTIFIER: \${{ steps.validate.outputs.identifier }}`,
   ].join("\n");
-  const agent =
-    clone.engine === "codex"
-      ? codexWorkSteps({ clone, token, when: allowed, version: options.versions.codex, prompt: options.prompt, environment })
-      : claudeWorkStep({ clone, token, when: allowed, pin: pins.claude, prompt: options.prompt, environment });
-  const concurrencyGroup =
-    clone.engine === "codex" && clone.codexAuth === "plan"
-      ? `shadowclone-${clone.repositoryId}-codex-login`
-      : `shadowclone-${clone.repositoryId}-\${{ needs.guard.outputs.branch }}`;
+  const agent = agentWorkSteps({
+    clone,
+    token,
+    when: allowed,
+    claudePin: pins.claude,
+    codexVersion: options.versions.codex,
+    prompt: options.prompt,
+    environment,
+  });
+  const concurrencyGroup = `shadowclone-${clone.repositoryId}-\${{ needs.guard.outputs.branch }}`;
   const guard = `${configured}
             const { resolveTrigger } = require('./.github/shadowclone/guard/events.cjs');
             const { allowWorker } = require('./.github/shadowclone/guard/policy.cjs');
@@ -103,12 +105,7 @@ jobs:
         with:
           script: |
             ${guard}
-${botTokenSteps({
-  clone,
-  pins,
-  permissions: ["contents: write", "issues: write", "pull-requests: write", "actions: write", "checks: read", "workflows: write"],
-  when: allowed,
-})}
+${botTokenSteps({ clone, pins, when: allowed })}
       - uses: ${pins.script}
         if: ${allowed}
         with:

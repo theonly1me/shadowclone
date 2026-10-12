@@ -12,13 +12,11 @@ import { initializeCustomGeneration, customStatus } from "./customGeneration";
 import { perform, actionButton } from "./actions";
 import { initializeEditorDialogs } from "./editorDialogs";
 import { initializeLearningModels } from "./models";
-import { initializeBotSetup } from "./bot";
 import { initializeVoice } from "./voice";
 import { type BuildScope, buildScopeSchema } from "@shadowclone/environment/browser";
 
 initializeEditorDialogs();
 initializeLearningModels();
-initializeBotSetup();
 initializeVoice();
 
 function render(): void {

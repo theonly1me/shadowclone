@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { runnerEnvironment } from "./environment";
 import { validateEngineExecution } from "./execution";
+import { cursorReviewPermissions } from "./cursorReview";
 import { parseCursorStream } from "./parseCursor";
 import { buildEnginePrompt } from "./prompt";
 import type { EngineRun, EngineRunOptions, PermissionMode } from "./types";
@@ -23,7 +24,7 @@ function validateCursorOptions(options: EngineRunOptions): void {
     throw new Error("Cursor cannot enforce a granular tool denylist");
   }
 
-  if (options.allowedTools && options.allowedTools.length > 0) {
+  if (options.execution.purpose !== "review" && options.allowedTools && options.allowedTools.length > 0) {
     throw new Error("Cursor cannot enforce a granular tool allowlist");
   }
 
@@ -94,6 +95,10 @@ export async function runCursorAgent(
 ): Promise<EngineRun> {
   validateCursorOptions(options);
 
+  if (options.execution.purpose === "review") {
+    return runCursorReview(options);
+  }
+
   const requiresIsolation =
     options.execution.purpose === "learning" ||
     options.allowedTools?.length === 0;
@@ -150,5 +155,27 @@ export async function runCursorAgent(
     });
   } finally {
     await rm(directory, { recursive: true, force: true });
+  }
+}
+
+async function runCursorReview(options: EngineRunOptions): Promise<EngineRun> {
+  const configDirectory = await mkdtemp(path.join(os.tmpdir(), "shadowclone-cursor-review-"));
+
+  try {
+    await Bun.write(
+      path.join(configDirectory, "cli-config.json"),
+      JSON.stringify({ version: 1, editor: { vimMode: false }, permissions: cursorReviewPermissions(options) }),
+    );
+
+    return await runCursorProcess({
+      run: options,
+      workspace: options.cwd,
+      environment: {
+        ...runnerEnvironment({ engine: "cursor-agent" }),
+        CURSOR_CONFIG_DIR: configDirectory,
+      },
+    });
+  } finally {
+    await rm(configDirectory, { recursive: true, force: true });
   }
 }

@@ -1,10 +1,9 @@
 import type { GitRemoteReader } from "@shadowclone/sessions";
 import { exportGuidance } from "../export";
 import { saveInstallation } from "../status";
-import { defaultCodexReviewModel } from "@shadowclone/review";
-import { cloneSchema, type Clone } from "../types";
+import { cloneSchema, providerEngine, providerSettingsSchema, type Clone, type Provider } from "../types";
 import { inviteBot, readBotAccess, readBotAccount } from "./account";
-import { readCloudChecklist, type ChecklistItem } from "./checklist";
+import { environmentState, readCloudChecklist, type ChecklistItem } from "./checklist";
 import { configureEnvironment } from "./environment";
 import { githubApiThroughGh, type GhApiCall } from "./ghApi";
 import type { GhCommand } from "./github";
@@ -32,6 +31,7 @@ export type AccountSetupOutcome =
       readonly kind: "configured";
       readonly clone: Clone;
       readonly pullUrl: string | null;
+      readonly environmentUrl: string;
       readonly checklist: readonly ChecklistItem[];
       readonly warnings: readonly string[];
     };
@@ -44,20 +44,26 @@ export async function setUpAccountClone(
     readonly repository: string;
     readonly botLogin: string;
     readonly approveSkills: boolean;
-    readonly engine: "claude" | "codex";
-    readonly codexAuth: "api-key" | "plan";
+    readonly provider: Provider;
+    readonly baseUrl?: string;
+    readonly model?: string;
     readonly call: GhApiCall;
     readonly command: GhCommand;
     readonly readRemote?: GitRemoteReader;
   },
 ): Promise<AccountSetupOutcome> {
   const { call, command } = options;
+  const settings = providerSettingsSchema.safeParse({
+    provider: options.provider,
+    ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
+    ...(options.model === undefined ? {} : { model: options.model }),
+  });
 
-  await assertCloudPolicy({ paths: options.paths, engine: options.engine });
-
-  if (options.codexAuth === "plan" && options.engine !== "codex") {
-    throw new Error("A ChatGPT plan login works only with the Codex engine.");
+  if (!settings.success) {
+    throw new Error(settings.error.issues.map((issue) => issue.message).join(" "));
   }
+
+  await assertCloudPolicy({ paths: options.paths, engine: providerEngine(options.provider) });
 
   const { owner, repository } = await readSetupTarget(options);
   const bot = await readBotAccount({ call, login: options.botLogin });
@@ -93,7 +99,7 @@ export async function setUpAccountClone(
     };
   }
 
-  await protectDefaultBranch({ repository, identity: "account", command });
+  await protectDefaultBranch({ repository, command });
 
   const skillsRepository = await ensureSkillsRepository({ call, owner });
 
@@ -121,16 +127,12 @@ export async function setUpAccountClone(
     repository: repository.full_name,
     defaultBranch: repository.default_branch,
     owner,
-    identity: { kind: "account" },
     botId: bot.id,
     botLogin: bot.login,
     skillsRepository,
-    requesters: [owner],
     reviewerBots: ["coderabbitai[bot]", "github-actions[bot]"],
     maximumRuns: 10,
-    engine: options.engine,
-    codexAuth: options.codexAuth,
-    reviewModel: options.engine === "codex" ? defaultCodexReviewModel : "claude-opus-5-5",
+    ...settings.data,
   });
   const pullUrl = await openWorkflowChange({ clone, api: githubApiThroughGh(call) });
 
@@ -148,6 +150,7 @@ export async function setUpAccountClone(
     kind: "configured",
     clone,
     pullUrl,
+    environmentUrl: (await environmentState({ call, repository: clone.repository })).page,
     checklist: await readCloudChecklist({ call, clone, pullUrl }),
     warnings: repository.owner.type === "Organization" ? [organizationMergeWarning] : [],
   };

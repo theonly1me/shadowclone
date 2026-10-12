@@ -52,6 +52,7 @@ export type EngineRunOptions = {
   readonly thinking?: "off";
   readonly sessionId?: string;
   readonly model?: string;
+  readonly baseUrl?: string;
   readonly reasoningEffort?: ReasoningEffort;
   readonly allowedTools?: readonly string[];
   readonly disallowedTools?: readonly string[];

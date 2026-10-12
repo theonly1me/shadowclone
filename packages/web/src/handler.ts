@@ -16,7 +16,6 @@ export function createBrowserHandler(
     readonly token: string;
     readonly origin: () => string;
     readonly engine?: GenerationEngine;
-    readonly botHandler?: (request: Request) => Promise<Response>;
   },
 ) {
   const previews = new Map<string, BuildPlan>();
@@ -42,10 +41,6 @@ export function createBrowserHandler(
     const url = new URL(request.url);
 
     try {
-      if (url.pathname.startsWith("/api/bot/") && context.botHandler) {
-        return context.botHandler(request);
-      }
-
       if (request.method === "GET" && url.pathname === "/api/learning-models") {
         return browserJson({ body: await learningModelCatalog(context.paths) });
       }
