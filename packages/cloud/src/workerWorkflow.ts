@@ -77,6 +77,7 @@ jobs:
       identifier: \${{ steps.validate.outputs.identifier }}
       entity: \${{ steps.validate.outputs.entity }}
       head: \${{ steps.validate.outputs.head }}
+      fork: \${{ steps.validate.outputs.fork }}
     steps:
       - uses: ${pins.checkout}
         with:

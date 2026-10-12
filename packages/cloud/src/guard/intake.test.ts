@@ -126,7 +126,7 @@ test("the bot answers only to its own login", async () => {
   expect(keys).toEqual(["issue_comment:4:synthetic-version", null, null]);
 });
 
-test("tag requests reject the bot itself, other bots, and forks", async () => {
+test("work requests reject the bot itself, other bots, and fork pull requests", async () => {
   for (const user of [
     { login: fixtureClone.botLogin, type: "User" },
     { login: "helper[bot]", type: "Bot" },

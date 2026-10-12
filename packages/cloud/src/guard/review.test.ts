@@ -35,6 +35,24 @@ test("a first-line review command on a pull request starts a review, not work", 
   expect([trigger?.kind, trigger?.entity, trigger?.head]).toEqual(["review", 2, "b".repeat(40)]);
 });
 
+test("a review command on a fork pull request starts a review without the fork's toolchain", async () => {
+  const { request } = githubFixture({
+    "GET /repos/sample/project/issues/comments/4": {
+      user: { login: "sample", type: "User" },
+      body: "@sample-shadow review",
+      issue_url: "https://api.github.com/repos/sample/project/issues/2",
+      updated_at: "v1",
+    },
+    "GET /repos/sample/project/issues/2": { ...fixtureIssue, number: 2, pull_request: { url: "synthetic" } },
+    "GET /repos/sample/project/pulls/2": { ...ownerPull, head: { ...ownerPull.head, repo: { id: 999 } } },
+    ...ownerPermission,
+  });
+
+  const trigger = await resolveTrigger({ clone: fixtureClone, context: commentContext, request });
+
+  expect([trigger?.kind, trigger?.fork, trigger?.head]).toEqual(["review", true, "b".repeat(40)]);
+});
+
 test("any other tagged request on a pull request still starts work", async () => {
   const { request } = commentOnPull("@sample-shadow review the totals and fix them");
 

@@ -19,6 +19,7 @@ export type Trigger = {
   readonly head: string;
   readonly kind: "issue" | "pull" | "pause" | "review";
   readonly key: string;
+  readonly fork: boolean;
 };
 
 export async function resolveTrigger(options: {
@@ -78,6 +79,7 @@ export async function resolveTrigger(options: {
   let maintenance = false;
   let pause = false;
   let review = false;
+  let fork = false;
   let version = "";
 
   if (source === "workflow_run") {
@@ -226,7 +228,9 @@ export async function resolveTrigger(options: {
       route: `GET /repos/${clone.repository}/pulls/${entityNumber}`,
     });
 
-    if (task.state !== "open" || record(record(task.head).repo).id !== clone.repositoryId) {
+    fork = record(record(task.head).repo).id !== clone.repositoryId;
+
+    if (task.state !== "open" || (fork && !review)) {
       return null;
     }
 
@@ -281,5 +285,6 @@ export async function resolveTrigger(options: {
     head,
     key,
     kind: pause ? "pause" : review ? "review" : isPull ? "pull" : "issue",
+    fork,
   };
 }

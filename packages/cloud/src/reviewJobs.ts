@@ -62,6 +62,7 @@ export function reviewJobs(options: {
 }): string {
   const { clone, pins, versions } = options;
   const shadowclone = '"$RUNNER_TEMP/shadowclone/bin/shadowclone" review';
+  const network = clone.reviewNetwork ? `\${{ needs.guard.outputs.fork == 'true' && 'off' || 'on' }}` : "off";
   const stageEnvironment = `          ENTITY: \${{ needs.guard.outputs.entity }}
           HEAD_SHA: \${{ needs.guard.outputs.head }}`;
   const tokenSteps = () => botTokenSteps({ clone, pins, when: null });
@@ -123,11 +124,11 @@ ${installSteps({ pins, versions, claude: false })}
           GH_TOKEN: \${{ github.token }}
 ${stageEnvironment}
         run: |
-          ${shadowclone} prepare --repo '${clone.repository}' --pr "$ENTITY" --head "$HEAD_SHA" --network ${clone.reviewNetwork ? "on" : "off"} --checkout "$GITHUB_WORKSPACE/pull-request" --output "$RUNNER_TEMP/packet.json"
+          ${shadowclone} prepare --repo '${clone.repository}' --pr "$ENTITY" --head "$HEAD_SHA" --network ${network} --checkout "$GITHUB_WORKSPACE/pull-request" --output "$RUNNER_TEMP/packet.json"
 ${artifact({ pin: pins.uploadArtifact, name: "packet", upload: true })}
   review-checks:
     needs: [guard, review-prepare]
-    if: ${reviewCondition}
+    if: ${reviewCondition} && needs.guard.outputs.fork != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -163,7 +164,7 @@ ${engineEnvironment}
         run: |
           checks=()
           if [ -f "$RUNNER_TEMP/checks.json" ]; then checks=(--checks "$RUNNER_TEMP/checks.json"); fi
-          ${shadowclone} analyze --packet "$RUNNER_TEMP/packet.json" "\${checks[@]}" --checkout "$GITHUB_WORKSPACE/pull-request" ${analyzeOptions} --network ${clone.reviewNetwork ? "on" : "off"} --output "$RUNNER_TEMP/result.json"
+          ${shadowclone} analyze --packet "$RUNNER_TEMP/packet.json" "\${checks[@]}" --checkout "$GITHUB_WORKSPACE/pull-request" ${analyzeOptions} --network ${network} --output "$RUNNER_TEMP/result.json"
 ${artifact({ pin: pins.uploadArtifact, name: "result", upload: true })}
   review-publish:
     needs: [guard, review-analyze]

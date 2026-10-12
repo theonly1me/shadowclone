@@ -67,3 +67,15 @@ test("the toolchain job installs each review linter at its pinned hash before it
   expect(install).toContain("e7965f8146b53cfa7a4625ceecfea5c6aeb35add39132210aa60b11ae180b9f4");
   expect(install).toContain('$RUNNER_TEMP/linters\\" >> \\"$GITHUB_PATH');
 });
+
+test("a fork head skips the toolchain job and reviews with the network off", () => {
+  const rendered = jobs();
+  const worker = renderWorkflows(fixtureClone)[".github/workflows/shadowclone.yml"] ?? "";
+
+  expect(JSON.stringify(rendered["review-checks"])).toContain("needs.guard.outputs.fork != 'true'");
+  const forkNetwork = `--network \${{ needs.guard.outputs.fork == 'true' && 'off' || 'on' }}`;
+
+  expect(worker).toContain(`fork: \${{ steps.validate.outputs.fork }}`);
+  expect(JSON.stringify(rendered["review-prepare"])).toContain(forkNetwork);
+  expect(JSON.stringify(rendered["review-analyze"])).toContain(forkNetwork);
+});

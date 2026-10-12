@@ -31,10 +31,12 @@ Workflows never read a subscription login. A Bedrock, Vertex, or Foundry login w
 
 - An issue starts work only when its title or body tags `@<bot>`.
 - A comment starts work only when it tags `@<bot>`.
-- A comment whose first line is `@<bot> review` starts a review of that pull request.
+- A comment whose first line is `@<bot> review` starts a review of that pull request, also when the pull request comes from a fork.
 - A pull request that opens starts nothing.
 
-The bot, other bots, and forks cannot start work. Review feedback on a pull request that the bot owns still resumes work, as before.
+The bot and other bots cannot start work. Work on a fork pull request is refused, because the bot cannot push to a fork. Review feedback on a pull request that the bot owns still resumes work, as before.
+
+**Fork reviews run no fork code.** The relay starts the worker from the default branch, so the review jobs have the secrets, and the guard is the only gate. For a fork head, the review skips the job that runs the pull request's toolchain. It also turns the network off for the prepare and analyze steps. So code from the fork never runs, and the model has no network path to send data out.
 
 **Setup in one command.** `shadowclone bot setup --bot <login> [--provider <name>]` and the MCP tool `shadowclone_bot` do these steps:
 
@@ -66,7 +68,8 @@ The command prints the run link, or the step that failed. The CLI waits up to 8 
 ## Verification
 
 - Workflow tests render each provider and check that its files read only its own secret, plus the bot token and the skills key.
-- Guard tests: `write`, `maintain`, and `admin` can tag, and `triage`, `read`, and `none` cannot. An untagged issue starts nothing. The bot answers only to its own login.
+- Guard tests: `write`, `maintain`, and `admin` can tag, and `triage`, `read`, and `none` cannot. An untagged issue starts nothing. The bot answers only to its own login. A fork pull request gets a review and no work.
+- Workflow tests: a fork head skips the toolchain job and reviews with the network off.
 - Setup tests: settings fail before any write, and the outcome has the environment link.
 - Check tests: a run that started earlier does not count, a running check continues, and a failed run names its step.
 - Engine tests: a Cursor review gets the deny list and no GitHub token, and Codex gets the base URL.

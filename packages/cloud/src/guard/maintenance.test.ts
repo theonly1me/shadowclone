@@ -134,6 +134,7 @@ test("duplicate events and the daily branch budget prevent a worker", async () =
     head: "",
     key: "issues:1:",
     kind: "issue" as const,
+    fork: false,
   };
 
   for (const runs of [
