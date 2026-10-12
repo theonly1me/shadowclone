@@ -25,13 +25,18 @@ export async function skillPublication(options: {
   readonly updates: readonly FileUpdate[];
 }> {
   const metadata = parseSkillDocument(options.text).metadata;
-  const directories = skillDirectories(options.scope);
+  const copies = skillDirectories(options.scope).map((directory) =>
+    path.join(directory, options.name, "SKILL.md"),
+  );
+  const editsExistingRepositorySkill =
+    options.scope.repository !== null && options.skill?.root.owner === "user";
+  const existingCopies = editsExistingRepositorySkill
+    ? (await Promise.all(copies.map(async (filePath) => ((await Bun.file(filePath).exists()) ? [filePath] : [])))).flat()
+    : copies;
 
   const destinations = [
     ...new Set([
-      ...directories.map((directory) =>
-        path.join(directory, options.name, "SKILL.md"),
-      ),
+      ...existingCopies,
       ...(options.skill?.root.owner === "user"
         ? [path.join(options.skill.root.directory, options.skill.relativePath)]
         : []),

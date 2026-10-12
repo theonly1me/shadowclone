@@ -47,7 +47,7 @@ With `agent-context` on, learning reads `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.
 A repository rule waits until its repository has a destination. When you start a session in that repository, the agent asks you once:
 
 - `shadowclone learning repositories set . --private` keeps the rules in `~/.shadowclone/builds/` and changes no repository file. Sessions in that repository receive them at start.
-- `shadowclone learning repositories set . --repository` publishes them into the repository's `.agents/skills` and `.claude/skills` folders.
+- `shadowclone learning repositories set . --repository` publishes them into the repository's `.agents/skills` and `.claude/skills` folders. Other people use those files, so each rule waits as a proposal until you approve it. An edit to an existing repository skill changes only the copies that already exist.
 
 Setup and `learn --deep` still register the repository where they run, with the `--repository` destination.
 

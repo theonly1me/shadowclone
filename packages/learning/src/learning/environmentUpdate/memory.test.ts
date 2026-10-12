@@ -24,6 +24,7 @@ test("recurring memory is consented, redacted before the real planner, idempoten
     directory: setup.cwd,
     originDirectory: identity.origin.directoryName,
     repositoryName: identity.profileFileName,
+    privateSkillsDirectory: path.join(setup.paths.shadowcloneDirectory, "builds/learning-memory/skills"),
   };
   const state = {
     ...emptyEnvironment,

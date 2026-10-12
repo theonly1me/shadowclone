@@ -19,6 +19,8 @@ import {
 import { reconcileLearningBatch } from "./reconcile";
 import { heldLearningReason } from "./instructionScreen";
 
+const repositoryApprovalReason = "Publishing into shared repository files needs the user's approval";
+
 export async function updateLearningScope(options: {
   readonly paths: ProjectPaths;
   readonly execution: LearningExecution;
@@ -77,8 +79,10 @@ export async function updateLearningScope(options: {
           entry.inputFingerprint === recordFingerprint(record),
       ),
   );
+  const sharedRepository = scope.repository !== null && !scope.repository.privateSkillsDirectory;
   const held = candidates.flatMap((record) => {
-    const reason = heldLearningReason(record);
+    const reason = heldLearningReason(record) ??
+      (sharedRepository && options.learningKeys === undefined ? repositoryApprovalReason : null);
 
     return reason === null ? [] : [{ key: record.rule.key, reason, record }];
   });
