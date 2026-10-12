@@ -71,7 +71,7 @@ test("an override that the user made next to the team file stays the user's choi
   expect(await Bun.file(path.join(setup.cwd, "AGENTS.md")).text()).toBe(teamRules);
 });
 
-test("a reinstall reports an override that Shadowclone created before the team file existed", async () => {
+test("a reinstall reports an override that shadowclone created before the team file existed", async () => {
   const setup = await repository({ files: {} });
 
   await setup.install();

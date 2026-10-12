@@ -37,7 +37,7 @@ export async function writeVoiceFile(options: { readonly paths: ProjectPaths; re
 
   if (current.state !== "missing") {
     throw new Error(
-      `${current.path} already exists${current.target ? ` as a link to ${current.target}` : ""}, so Shadowclone did not change it`,
+      `${current.path} already exists${current.target ? ` as a link to ${current.target}` : ""}, so shadowclone did not change it`,
     );
   }
 

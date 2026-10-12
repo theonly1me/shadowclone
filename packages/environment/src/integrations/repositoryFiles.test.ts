@@ -7,7 +7,7 @@ import { updateManagedSection } from "./markdown";
 import { readIntegrations, saveIntegration } from "./state";
 
 const teamRules = "# Team rules\n\nRun the full test suite before you push.\n";
-const olderSection = "# Shadowclone\n\nA session hook loads this user's standing engineering preferences.";
+const olderSection = "# shadowclone\n\nA session hook loads this user's standing engineering preferences.";
 
 async function gitRepository() {
   const fixture = await integrationFixture();
@@ -100,7 +100,7 @@ test("an edited section from an older Pi install is kept and the install says wh
 
   await expect(
     installIntegration({ ...fixture, agent: "pi", scope: "repository" }),
-  ).rejects.toThrow("Shadowclone managed content was edited; preserving the file");
+  ).rejects.toThrow("shadowclone managed content was edited; preserving the file");
   expect(await Bun.file(path.join(fixture.cwd, "AGENTS.md")).text()).toBe(edited);
 });
 

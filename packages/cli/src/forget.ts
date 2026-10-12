@@ -18,7 +18,7 @@ export async function forgetAll(
 
   if ((await readdir(paths.worktreesDirectory).catch(() => [])).length > 0) {
     throw new Error(
-      `Worktrees from earlier delegated tasks remain in ${paths.worktreesDirectory}. Move or remove them yourself before forgetting Shadowclone data`,
+      `Worktrees from earlier delegated tasks remain in ${paths.worktreesDirectory}. Move or remove them yourself before forgetting shadowclone data`,
     );
   }
 

@@ -12,7 +12,7 @@ Separate capture consent, model-learning consent, and automatic publication auth
 
 Use session identities and content hashes to avoid processing unchanged evidence again. Share invocation, time, and supported cost limits across the run. Checkpoint completed work. If publication cannot finish, show the pending changes.
 
-Keep user edits and explicit choices authoritative. Record revisions, so Shadowclone can explain and undo learned changes. `remember` records direct user guidance with an explicit scope. It does not justify unrelated global promotion.
+Keep user edits and explicit choices authoritative. Record revisions, so shadowclone can explain and undo learned changes. `remember` records direct user guidance with an explicit scope. It does not justify unrelated global promotion.
 
 When you store explicit preferences, escape both `-->` and `--!>`, and also escape comment openings. Then comment delimiters stay literal guidance. Cover both forms through preference publication.
 

@@ -202,7 +202,7 @@ export function layoutConstellation(options: {
   const lastSource = sourceNodes.at(-1);
   const root: PositionedConstellationNode = {
     id: "constellation-root",
-    title: "Shadowclone",
+    title: "shadowclone",
     itemIds: [],
     kind: "root",
     parentId: null,

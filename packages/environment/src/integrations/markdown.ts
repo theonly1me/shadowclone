@@ -33,7 +33,7 @@ export function markedSection(options: {
     text.indexOf(markers.end, end + markers.end.length) >= 0
   ) {
     throw new Error(
-      "Malformed Shadowclone managed section; review the destination",
+      "Malformed shadowclone managed section; review the destination",
     );
   }
 

@@ -10,7 +10,7 @@ Installing the plugin also required users to install and configure the CLI thems
 
 Use a short default setup that covers source access, skill maintenance, and background learning. Advanced mode offers detailed source selection. After consent, allow a first learning pass capped at 12 calls and 90 seconds, with a $1 ceiling where supported.
 
-Deliver scoped context to spawned Claude agents through `SubagentStart` as well as the main-session path. Keep existing hook configuration. Keep session attribution separate from the guidance that Shadowclone supplies.
+Deliver scoped context to spawned Claude agents through `SubagentStart` as well as the main-session path. Keep existing hook configuration. Keep session attribution separate from the guidance that shadowclone supplies.
 
 Publish a dedicated plugin whose only active skill is `setup-shadowclone`. The skill does these steps:
 

@@ -15,7 +15,7 @@ export function initializeVoice(): void {
   const title = create({ tag: "h2", text: "Your writing voice" });
   const intro = create({
     tag: "p",
-    text: "Shadowclone can read your own pull requests, review comments, and commit messages through your gh login, and ask your model to describe how you write. You see only that description and invented examples, never your writing itself.",
+    text: "shadowclone can read your own pull requests, review comments, and commit messages through your gh login, and ask your model to describe how you write. You see only that description and invented examples, never your writing itself.",
   });
   const fileNote = create({ tag: "p", className: "voice-file" });
   const consent = create({ tag: "label", className: "voice-consent" });
@@ -34,7 +34,7 @@ export function initializeVoice(): void {
   status.setAttribute("role", "status");
   checkbox.type = "checkbox";
   checkbox.id = "voice-consent";
-  consent.append(checkbox, " Let Shadowclone read my GitHub writing for this");
+  consent.append(checkbox, " Let shadowclone read my GitHub writing for this");
   dialog.append(title, intro, fileNote, consent, capture, result, status, close);
   document.body.append(dialog);
 
@@ -61,9 +61,9 @@ export function initializeVoice(): void {
     fileNote.textContent = !current
       ? ""
       : !current.allowed
-        ? "Your managed policy does not allow Shadowclone to read GitHub writing."
+        ? "Your managed policy does not allow shadowclone to read GitHub writing."
         : blocked
-          ? `${current.voiceFile.path} already exists${current.voiceFile.target ? ` as a link to ${current.voiceFile.target}` : ""}. Shadowclone will not change it.`
+          ? `${current.voiceFile.path} already exists${current.voiceFile.target ? ` as a link to ${current.voiceFile.target}` : ""}. shadowclone will not change it.`
           : `Saving writes ${current.voiceFile.path}.`;
 
     for (const button of result.querySelectorAll<HTMLButtonElement>("[data-action=save]")) button.disabled = blocked;
@@ -163,7 +163,7 @@ export function initializeVoice(): void {
       message: checkbox.checked ? "Saving your consent…" : "Turning reading off…",
       action: async () => {
         current = await request({ path: "/api/voice/consent", schema: voiceStatusSchema, body: { enabled: checkbox.checked } });
-        status.textContent = current.consent ? "Shadowclone may read your GitHub writing." : "Reading is off. Collected writing was discarded.";
+        status.textContent = current.consent ? "shadowclone may read your GitHub writing." : "Reading is off. Collected writing was discarded.";
       },
     }),
   );

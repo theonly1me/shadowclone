@@ -10,7 +10,7 @@ This record covers five confirmed defects in repository scope, redaction, and ex
 | Redaction rules kept characters from the match that held the secret                             | Keep only prefixes that are explicitly public. Fixtures prove that no secret characters survive.                     |
 | Provider availability probes could wait indefinitely                                            | Limit the probe time. End the processes that time out.                                                               |
 | Learning could install an integration into an arbitrary working directory                       | Find and validate the intended repository before installation.                                                       |
-| The dispatch clean-exit requirement was unreachable through configuration                       | Make the configured requirement decide whether Shadowclone accepts a dispatch.                                       |
+| The dispatch clean-exit requirement was unreachable through configuration                       | Make the configured requirement decide whether shadowclone accepts a dispatch.                                       |
 
 ## Verification
 

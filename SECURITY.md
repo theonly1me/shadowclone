@@ -4,7 +4,7 @@ Report failures in consent, redaction, repository scope, file ownership, or exec
 
 ## What to report
 
-- Source content that Shadowclone read without consent, or sent outside an authorized provider request.
+- Source content that shadowclone read without consent, or sent outside an authorized provider request.
 - Secrets, excluded tool results, or private source that learning, logs, errors, or published files exposed.
 - Guidance that applied outside its repository or organization scope, or actions without the required authorization.
 - User configuration that overrode managed policy, or writes and deletions that bypassed ownership checks.

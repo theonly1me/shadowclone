@@ -1,6 +1,6 @@
 # Pull request reviews
 
-Shadowclone reviews a pull request against the standards of its own repository. Code collects the facts and runs the mechanical checks, and the `shadowclone-review` skill does the judgment.
+shadowclone reviews a pull request against the standards of its own repository. Code collects the facts and runs the mechanical checks, and the `shadowclone-review` skill does the judgment.
 
 ## Guided review with your agent
 
@@ -22,7 +22,7 @@ It leaves the reviewed code unchanged.
 5. Compare both reviews, then include or dismiss the agent's proposals.
 6. Choose Save review in Chrome or Edge and select the original HTML.
 
-A standalone document supports the guide and annotations without Shadowclone.
+A standalone document supports the guide and annotations without shadowclone.
 Saving requires permission to edit that file. The notes stay inside the original HTML.
 Keep the document outside public checkouts when it contains private code or comments.
 If permission fails, the page keeps your unsaved notes and reports the failure.
@@ -34,7 +34,7 @@ Attach the saved HTML to your existing chat and request staging.
 Your agent uses your configured staging workflow and posting preferences.
 It checks current code, resolves rough notes to actual changed lines, and merges duplicate concerns.
 The guide contains no staging engine. Generating or opening it posts nothing to GitHub.
-Shadowclone does not bundle a personal staging skill.
+shadowclone does not bundle a personal staging skill.
 
 ## Review on this machine
 

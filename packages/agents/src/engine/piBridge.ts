@@ -7,7 +7,7 @@ export default function (pi) {
   if (!process.env.SHADOWCLONE_PI_REQUEST) return;
   pi.registerCommand("shadowclone-request", { handler: async (_, context) => {
     const destination = process.env.SHADOWCLONE_PI_RESULT;
-    if (!destination) throw new Error("Missing Shadowclone result destination");
+    if (!destination) throw new Error("Missing shadowclone result destination");
     try {
       const input = await readFile(process.env.SHADOWCLONE_PI_REQUEST, "utf8");
       if (Buffer.byteLength(input) > 1048576) throw new Error("Request exceeds limit");

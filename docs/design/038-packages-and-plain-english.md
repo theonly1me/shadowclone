@@ -4,7 +4,7 @@
 
 All code was in one `src/` folder of about 59,000 lines. Its 30 modules formed one import cycle of 20 modules. No module had a clear boundary, and no part could ship as its own package. Tests were about 34,000 lines in 365 files, and some of them repeated other tests.
 
-The documentation was long, and parts of it were out of date. Agent lists left out Pi, cloud bot pages described only Claude, and no page described the MCP tools. A visitor did not see what Shadowclone does. Agents wrote prose in their own style, because the plain English skill loaded only when a user selected it.
+The documentation was long, and parts of it were out of date. Agent lists left out Pi, cloud bot pages described only Claude, and no page described the MCP tools. A visitor did not see what shadowclone does. Agents wrote prose in their own style, because the plain English skill loaded only when a user selected it.
 
 ## Decision
 
@@ -54,7 +54,7 @@ A generated facts block in each guide lists the package name, the dependencies, 
 
 **Plain English is always on.** The bundled skill `write-plain-english` gets the metadata `shadowclone-always-on: "true"`. Selection and routing include it whatever the build choices are, and both wizards show it as locked on. `shadowclone sync` adds it to existing builds. Its routing line is "before you write any text that a person reads".
 
-**Documentation.** Every Markdown file except `CHANGELOG.md` uses ASD-STE100 Simplified Technical English at about 80% strictness. The lint step runs `check-ste` and a relative link check on all Markdown (`tooling/src/prose.ts`). The bundled skills, the preferences, and test fixtures have their own checks. The README leads with what Shadowclone does, then a quick start, the bundled skills, results, privacy, and links to guides.
+**Documentation.** Every Markdown file except `CHANGELOG.md` uses ASD-STE100 Simplified Technical English at about 80% strictness. The lint step runs `check-ste` and a relative link check on all Markdown (`tooling/src/prose.ts`). The bundled skills, the preferences, and test fixtures have their own checks. The README leads with what shadowclone does, then a quick start, the bundled skills, results, privacy, and links to guides.
 
 **Tests stay only when they add value.** The cleanup removes a test that repeats another test or checks only a constant, a copied string, or mock calls. It also removes a test of an inner step that a higher test covers. Tests on privacy, consent, redaction, file ownership, migration, cloud secrets, and CLI output stay. The line coverage of each source file must not drop without a stated reason.
 

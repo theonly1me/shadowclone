@@ -33,7 +33,7 @@ async function agentsFindings(options: {
       error({
         rule: "agents-section",
         path: "AGENTS.md",
-        fix: `AGENTS.md lost its Shadowclone section; ${refresh}.`,
+        fix: `AGENTS.md lost its shadowclone section; ${refresh}.`,
       }),
     );
   } else if (fingerprint(section) !== options.manifest.artifacts["AGENTS.md"]) {
@@ -41,7 +41,7 @@ async function agentsFindings(options: {
       warning({
         rule: "agents-edited",
         path: "AGENTS.md",
-        fix: `The Shadowclone section in AGENTS.md was edited. Move team notes outside the markers, then ${refresh}.`,
+        fix: `The shadowclone section in AGENTS.md was edited. Move team notes outside the markers, then ${refresh}.`,
       }),
     );
   }

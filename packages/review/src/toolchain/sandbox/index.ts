@@ -66,7 +66,7 @@ async function execute(options: Options & { readonly deadline: number }): Promis
       return {
         kind: "sandbox-unavailable",
         detail:
-          "The sandbox Unix socket filter is missing. Reinstall Shadowclone before running checks.",
+          "The sandbox Unix socket filter is missing. Reinstall shadowclone before running checks.",
       };
     }
 

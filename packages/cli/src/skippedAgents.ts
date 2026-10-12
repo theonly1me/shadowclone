@@ -44,7 +44,7 @@ export function skippedAgentFrom(options: {
 export function describeSkippedAgent(skipped: SkippedAgent): string {
   if (skipped.kind === "hidden") {
     const problem = skipped.installed
-      ? `${skipped.override}, which Shadowclone created, hides the team file ${skipped.hidden}`
+      ? `${skipped.override}, which shadowclone created, hides the team file ${skipped.hidden}`
       : `${skipped.override} would hide the team file ${skipped.hidden}`;
     const action = skipped.installed
       ? "Run shadowclone uninstall --agent codex --local to remove it, and use shadowclone install --agent codex --global instead."
@@ -58,5 +58,5 @@ export function describeSkippedAgent(skipped: SkippedAgent): string {
       ? `${skipped.path} is not a regular file`
       : `${skipped.path} is a symbolic link to ${skipped.target}`;
 
-  return `Not installed for ${skipped.agent}: ${reason}. Shadowclone does not write through links, so ${skipped.agent} gets no Shadowclone guidance. Replace the link with a regular file, then run shadowclone install --agent ${skipped.agent}.`;
+  return `Not installed for ${skipped.agent}: ${reason}. shadowclone does not write through links, so ${skipped.agent} gets no shadowclone guidance. Replace the link with a regular file, then run shadowclone install --agent ${skipped.agent}.`;
 }

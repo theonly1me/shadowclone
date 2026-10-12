@@ -48,7 +48,7 @@ The CLI continues to bundle the same content. Workspace runtime packages stay pr
 
 ## Consequences
 
-The guide works without the Shadowclone CLI. An installed local coding agent performs investigation and authorized staging.
+The guide works without the shadowclone CLI. An installed local coding agent performs investigation and authorized staging.
 Reading works in ordinary browsers. Same-file saving requires supported browser file access and explicit permission.
 A missing permission cannot silently become a downloaded copy or a claim that the original file changed.
 Private reports and annotations stay outside public checkouts.

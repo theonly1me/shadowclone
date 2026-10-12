@@ -82,7 +82,7 @@ export async function runPreferenceTool(options: {
     });
 
     if (!policy.enabled) {
-      throw new Error("Shadowclone is disabled");
+      throw new Error("shadowclone is disabled");
     }
 
     let text: string;

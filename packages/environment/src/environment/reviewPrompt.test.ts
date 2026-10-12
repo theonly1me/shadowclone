@@ -31,12 +31,12 @@ test("session start asks the agent to show waiting proposals once, and again onl
       ...setup, id: integration.id, input: JSON.stringify({ cwd: setup.cwd, session_id: "synthetic-session" }),
     }));
 
-    expect(await start()).toContain("Shadowclone has 1 proposal(s) that need the user's decision.");
+    expect(await start()).toContain("shadowclone has 1 proposal(s) that need the user's decision.");
     expect(await start()).not.toContain("need the user's decision");
 
     const second = learningRecord({ key: "mined:second", body: "Keep release notes short." });
     await writeEnvironment({ paths: setup.paths, state: waitingForReview([first, second]) });
-    expect(await start()).toContain("Shadowclone has 2 proposal(s) that need the user's decision.");
+    expect(await start()).toContain("shadowclone has 2 proposal(s) that need the user's decision.");
 
     const skill = await Bun.file(path.join(setup.home, ".claude/skills/shadowclone-context/SKILL.md")).text();
     expect(skill).toContain("Ask with your multiple-choice question tool");

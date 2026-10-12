@@ -8,7 +8,7 @@ import ts from "typescript";
 export const fixedRuntime = { bun: Bun.version, typescript: ts.version };
 
 export async function fixedProductIdentity() {
-  if (!await Bun.file(path.join(import.meta.dir, "fixtures/tasks.ts")).exists()) throw new Error("Fixed branch evaluations require the source runner from a Shadowclone checkout");
+  if (!await Bun.file(path.join(import.meta.dir, "fixtures/tasks.ts")).exists()) throw new Error("Fixed branch evaluations require the source runner from a shadowclone checkout");
   const snapshot = await snapshotWorkspace({ cwd: path.resolve(import.meta.dir, "../..") });
   return { commit: snapshot.head, tree: snapshot.fingerprint, branch: snapshot.branch };
 }

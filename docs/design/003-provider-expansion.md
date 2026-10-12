@@ -10,11 +10,11 @@ Track observation, distillation, dispatch, and native integration independently 
 
 Learning requires authenticated execution with tools and ambient context disabled, bounded input and output, cancellation, and structured results. Dispatch additionally requires enforceable tool restrictions, repository isolation, and the action-policy controls used by the caller. Unsupported combinations fail before execution.
 
-Keep provider-specific argument construction and output parsing behind `src/engine/`. Shared callers check declared capabilities. Tests must distinguish a provider's advertised feature from a control Shadowclone can enforce.
+Keep provider-specific argument construction and output parsing behind `src/engine/`. Shared callers check declared capabilities. Tests must distinguish a provider's advertised feature from a control shadowclone can enforce.
 
 ## Antigravity boundary
 
-Session capture and native guidance do not qualify an inference engine. The available logging and cancellation surfaces did not establish an enforceable tool-free execution mode. Antigravity therefore remains a capture and native-integration provider until Shadowclone can demonstrate that boundary.
+Session capture and native guidance do not qualify an inference engine. The available logging and cancellation surfaces did not establish an enforceable tool-free execution mode. Antigravity therefore remains a capture and native-integration provider until shadowclone can demonstrate that boundary.
 
 ## Verification
 
@@ -22,7 +22,7 @@ Use synthetic fixtures for parsing, timeouts, cancellation, model selection, and
 
 ## Pi integration
 
-Pi remains the user's coding harness. Shadowclone installs portable skills, small native routing sections, and an owned lifecycle extension. Pi owns provider configuration, credentials, model selection, tools, and interactive sessions. Shadowclone does not add an agent loop or a model account.
+Pi remains the user's coding harness. shadowclone installs portable skills, small native routing sections, and an owned lifecycle extension. Pi owns provider configuration, credentials, model selection, tools, and interactive sessions. shadowclone does not add an agent loop or a model account.
 
 The integration reads Pi sessions only with a separate `pi` source consent, disabled by default. It keeps message ancestry and file cursors. It reads eligible user and assistant text through `resolveRedacted`. It excludes thinking, tools, system messages, injected messages, and generated summaries. Original sessions remain in Pi's storage.
 
@@ -51,4 +51,4 @@ Browser generation previews show the selected model and keep that selection for 
 
 The installed-harness checks used Pi 1.0.0 and synthetic material. Pi's existing coding loop wrote a requested function through Ollama. Its command bridge completed a prepared, tool-free model call with an exact provider/model selection. A later Pi session loaded the published native routing and found the shared skill after publication. The publication used valid synthetic learning responses.
 
-The complete Pi/Ollama learning cycle remains unqualified with the tested local models. `llama3.2:latest` produced invalid learning JSON or schema results, and Shadowclone rejected them. `deepseek-r1:8b` exceeded the bounded learning deadline, and Shadowclone cancelled it. These outcomes establish the rejection and cancellation behavior. They do not establish successful preference extraction with those models. Synthetic contracts cover successful learning publication, lifecycle deduplication, provider extensions, ancestry, redaction, and reversible installation. Dispatch and evaluation remain disabled.
+The complete Pi/Ollama learning cycle remains unqualified with the tested local models. `llama3.2:latest` produced invalid learning JSON or schema results, and shadowclone rejected them. `deepseek-r1:8b` exceeded the bounded learning deadline, and shadowclone cancelled it. These outcomes establish the rejection and cancellation behavior. They do not establish successful preference extraction with those models. Synthetic contracts cover successful learning publication, lifecycle deduplication, provider extensions, ancestry, redaction, and reversible installation. Dispatch and evaluation remain disabled.

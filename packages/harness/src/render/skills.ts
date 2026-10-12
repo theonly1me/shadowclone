@@ -40,7 +40,7 @@ export function renderFeatureWorkflowSkill(options: {
     body: [
       "# Feature workflow",
       "",
-      "Authored by Shadowclone for this repository. Your own additions outside the marked section are kept when Shadowclone refreshes it.",
+      "Authored by shadowclone for this repository. Your own additions outside the marked section are kept when shadowclone refreshes it.",
       "",
       "## Steps",
       "",
@@ -73,7 +73,7 @@ export function renderHarnessBuilderSkill(): AuthoredSkill {
     body: [
       "# Harness builder",
       "",
-      "Write the parts of `AGENTS.md` that Shadowclone cannot derive from manifests, above its marked section.",
+      "Write the parts of `AGENTS.md` that shadowclone cannot derive from manifests, above its marked section.",
       "",
       "1. Read `AGENTS.md`, `README.md`, and the top-level layout.",
       "2. Write or refresh three short sections: Purpose (what the repository does and for whom), Map (the main directories or modules and what each does), and Rules that outrank convenience (invariants a reviewer would reject a change for breaking, each with its reason).",

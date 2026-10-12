@@ -114,7 +114,7 @@ export function renderDetail(options: {
         tag: "p",
         className: "owner-note",
         text: item.alwaysOn
-          ? "Shadowclone always applies this skill. Your agent loads it before it writes any text that a person reads."
+          ? "shadowclone always applies this skill. Your agent loads it before it writes any text that a person reads."
           : "This choice belongs to the shared repository build. Switch to shared scope to propose a reviewed change.",
       }),
     );

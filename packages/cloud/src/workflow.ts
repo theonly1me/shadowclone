@@ -31,7 +31,7 @@ export function renderWorkflows(input: Clone): Record<string, string> {
     versions: reviewVersions,
     prompt: cloudPrompt(providerEngine(clone.provider)),
   });
-  const relay = `name: Shadowclone relay
+  const relay = `name: shadowclone relay
 on:
   issues:
     types: [opened, labeled, unlabeled]

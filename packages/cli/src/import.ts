@@ -38,7 +38,7 @@ export async function importRepositoryGuidanceCommand(
     ));
 
   if (!policy.enabled) {
-    throw new Error("Shadowclone is disabled by managed policy");
+    throw new Error("shadowclone is disabled by managed policy");
   }
 
   if (!policy.allowedSources.includes("declared-rules")) {

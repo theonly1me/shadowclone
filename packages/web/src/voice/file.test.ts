@@ -25,7 +25,7 @@ test("an existing voice file is never overwritten", async () => {
   await Bun.write(file, "# Mine\n");
 
   await expect(writeVoiceFile({ paths: fixture.paths, content: "# New\n" })).rejects.toThrow(
-    `${file} already exists, so Shadowclone did not change it`,
+    `${file} already exists, so shadowclone did not change it`,
   );
   expect(await Bun.file(file).text()).toBe("# Mine\n");
 });

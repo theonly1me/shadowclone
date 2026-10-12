@@ -12,7 +12,7 @@ Ask your agent: "Set up shadowclone cloud here with the bot octo-shadow." The ag
 shadowclone bot setup --bot octo-shadow
 ```
 
-You need the GitHub CLI (`gh auth login`), administration access to the repository, and an active Shadowclone skills environment.
+You need the GitHub CLI (`gh auth login`), administration access to the repository, and an active shadowclone skills environment.
 
 1. If the account does not exist, setup opens the GitHub signup page. Create the account, then run setup again.
 2. Approve the skill files that setup pushes to your private repository `<you>/shadowclone-skills`. An agent must ask you first.
@@ -22,7 +22,7 @@ You need the GitHub CLI (`gh auth login`), administration access to the reposito
 6. Merge the setup pull request.
 7. Run `shadowclone bot status --repo owner/repository`.
 
-The status command starts a check run. The run accepts the repository invitation as the bot and confirms the API key with one small request. The command prints the run link, or the step that failed. Shadowclone never reads your secrets. To update your skills, run setup again. It pushes only changed files and replaces the deploy key.
+The status command starts a check run. The run accepts the repository invitation as the bot and confirms the API key with one small request. The command prints the run link, or the step that failed. shadowclone never reads your secrets. To update your skills, run setup again. It pushes only changed files and replaces the deploy key.
 
 ## Choose a provider
 
@@ -86,7 +86,7 @@ Before it adds a secret, setup adds the `shadowclone default branch` ruleset, wh
 ## Stop and remove
 
 1. Pause the work and cancel the remaining Actions runs.
-2. Remove the three Shadowclone workflows and `.github/shadowclone/` in a pull request.
+2. Remove the three shadowclone workflows and `.github/shadowclone/` in a pull request.
 3. Delete the environment secrets, the ruleset, and the deploy key on your skills repository.
 4. Remove the bot from the collaborators.
 5. Remove `~/.shadowclone/cloud/installations/` if you do not need it.

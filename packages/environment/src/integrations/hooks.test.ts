@@ -21,7 +21,7 @@ test("redacts a learned secret before it reaches the native instructions", async
     path.join(fixture.home, ".claude/CLAUDE.md"),
   ).text();
 
-  expect(instructions).toContain("# Shadowclone guidance");
+  expect(instructions).toContain("# shadowclone guidance");
   expect(instructions).not.toContain(secret);
 });
 

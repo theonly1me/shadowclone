@@ -1,6 +1,6 @@
 # Pi setup
 
-Configure a model in Pi, then keep coding in Pi. Shadowclone supplies skills, native guidance, and consented learning. Pi owns the coding loop, tools, endpoints, credentials, and provider extensions, so Shadowclone works with any model that you configure in Pi, including local models.
+Configure a model in Pi, then keep coding in Pi. shadowclone supplies skills, native guidance, and consented learning. Pi owns the coding loop, tools, endpoints, credentials, and provider extensions, so shadowclone works with any model that you configure in Pi, including local models.
 
 The integration uses `@earendil-works/pi-coding-agent` 1.0.0 and needs its `agent_settled` event and `modelRegistry.streamSimple` extension API. The [provider design record](../design/003-provider-expansion.md#qualification-results) lists the checks.
 
@@ -37,12 +37,12 @@ model = "ollama/your-configured-model"
 
 Use the exact `provider/model` identifier that Pi offers. A saved model does not carry over to a different agent.
 
-Learning shares the call and time limits of Shadowclone. Pi enforces no dollar cap, and cost stays unknown when Pi does not report it. Learning rejects tool calls and malformed structured responses. A local model does not alone meet a managed `local-only` policy, because Pi can configure remote providers.
+Learning shares the call and time limits of shadowclone. Pi enforces no dollar cap, and cost stays unknown when Pi does not report it. Learning rejects tool calls and malformed structured responses. A local model does not alone meet a managed `local-only` policy, because Pi can configure remote providers.
 
 ## Capture and removal
 
-The setting `sources.pi` is false by default. After consent, Shadowclone reads records from the version 3 JSONL sessions in the Pi agent directory and leaves them untouched. Learning excludes tool results, thinking, injected messages, compaction, and branch summaries.
+The setting `sources.pi` is false by default. After consent, shadowclone reads records from the version 3 JSONL sessions in the Pi agent directory and leaves them untouched. Learning excludes tool results, thinking, injected messages, compaction, and branch summaries.
 
-`shadowclone uninstall --agent pi --global` or `--local` removes the files and sections that Shadowclone owns. An edited file blocks removal. Uninstall keeps your sessions, other integrations, and skills that you maintain yourself.
+`shadowclone uninstall --agent pi --global` or `--local` removes the files and sections that shadowclone owns. An edited file blocks removal. Uninstall keeps your sessions, other integrations, and skills that you maintain yourself.
 
 Pi evaluation is unavailable, because the Pi tools do not meet the isolation contract. Zed follows the agent that it hosts.

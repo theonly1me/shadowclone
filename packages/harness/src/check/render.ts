@@ -50,7 +50,7 @@ export function renderCheckReport(options: {
     return {
       stdout: "",
       stderr: [
-        `Shadowclone check found ${errors.length} problem(s) in this repository's changed files. Fix them before you finish:`,
+        `shadowclone check found ${errors.length} problem(s) in this repository's changed files. Fix them before you finish:`,
         ...listed,
         ...more,
       ].join("\n"),

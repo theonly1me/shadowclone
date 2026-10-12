@@ -1,6 +1,6 @@
 # Architecture
 
-Shadowclone turns durable guidance from consented sessions into skills that coding agents use. Local records keep evidence, scope, publication decisions, and revisions. Native instructions route tasks to skills.
+shadowclone turns durable guidance from consented sessions into skills that coding agents use. Local records keep evidence, scope, publication decisions, and revisions. Native instructions route tasks to skills.
 
 ## Packages
 
@@ -116,7 +116,7 @@ The code checks source authorization when it selects an event and again when it 
 
 ## Delegated work
 
-Outside the cloud bot, Shadowclone does not commit, push, or act on GitHub itself. Delegated work is the `shadowclone-work` skill. It acts through the tools and permissions of your agent session. See [delegated work](../guides/delegated-work.md).
+Outside the cloud bot, shadowclone does not commit, push, or act on GitHub itself. Delegated work is the `shadowclone-work` skill. It acts through the tools and permissions of your agent session. See [delegated work](../guides/delegated-work.md).
 
 The cloud bot is a separate contract. The owner reviews a frozen skills bundle and chooses the repositories. GitHub Actions run the same skill, and the owner merges. See the [cloud bot guide](../guides/cloud-bot.md).
 

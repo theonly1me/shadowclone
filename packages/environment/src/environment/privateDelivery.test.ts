@@ -62,7 +62,7 @@ test("the next session hears about triage changes once", async () => {
     const first = await start();
     expect(first).toContain("It applied 1: \\\"Use complete parameter names\\\"");
     expect(first).toContain("synthetic-revision");
-    expect(await start()).not.toContain("Shadowclone triaged");
+    expect(await start()).not.toContain("shadowclone triaged");
   } finally { await rm(setup.home, { recursive: true, force: true }); }
 });
 

@@ -1,6 +1,6 @@
 # Agent builds
 
-An Agent build is the set of workflow skills that your agents load. You pick the skills on a browser skill map, and Shadowclone installs them.
+An Agent build is the set of workflow skills that your agents load. You pick the skills on a browser skill map, and shadowclone installs them.
 
 ```bash
 shadowclone wizard
@@ -45,9 +45,9 @@ A saved build that you open shows **Name my build** and makes no request. If nam
 
 ## Your writing voice
 
-Skills that write for you read `~/.agents/voice.md`. To draft it, choose **My voice**, allow Shadowclone to read your GitHub writing through `gh`, and choose **Read my writing and describe my voice**. Your learning model describes your style and writes 3 invented examples. Edit the description, choose **Rewrite the samples**, then choose **Save my voice** or **Discard**.
+Skills that write for you read `~/.agents/voice.md`. To draft it, choose **My voice**, allow shadowclone to read your GitHub writing through `gh`, and choose **Read my writing and describe my voice**. Your learning model describes your style and writes 3 invented examples. Edit the description, choose **Rewrite the samples**, then choose **Save my voice** or **Discard**.
 
-Shadowclone does not change a `~/.agents/voice.md` that exists or is a link. [Data handling](../data-handling.md#execution) lists what capture reads, skips, and sends.
+shadowclone does not change a `~/.agents/voice.md` that exists or is a link. [Data handling](../data-handling.md#execution) lists what capture reads, skips, and sends.
 
 ## Shared files and links
 

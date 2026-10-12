@@ -62,7 +62,7 @@ export async function planHarness(options: {
   });
 
   if (details === null) {
-    throw new Error("Shadowclone is disabled by managed policy");
+    throw new Error("shadowclone is disabled by managed policy");
   }
 
   const authored = [
@@ -73,7 +73,7 @@ export async function planHarness(options: {
 
   if (options.skillNames.some((name) => authoredNames.has(name))) {
     throw new Error(
-      "A personal skill cannot replace a Shadowclone-authored skill",
+      "A personal skill cannot replace a shadowclone-authored skill",
     );
   }
 

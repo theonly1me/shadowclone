@@ -1,6 +1,6 @@
-# Working on Shadowclone
+# Working on shadowclone
 
-Shadowclone maintains portable coding-agent skills from consented sessions and memory. It delivers skills and small native instruction sections.
+shadowclone maintains portable coding-agent skills from consented sessions and memory. It delivers skills and small native instruction sections.
 
 Follow `CONTRIBUTING.md` when you edit code or prose. Read `.claude/skills/data-handling/SKILL.md` before you change capture, storage, model access, or user actions. Read a package `AGENTS.md` before you change that package.
 

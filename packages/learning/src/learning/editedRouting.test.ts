@@ -51,7 +51,7 @@ test("an edited routing section in one agent's instructions does not stop skill 
   expect(result.skill).toContain(result.body);
 });
 
-test("an edited Shadowclone hook in one agent's hook file does not stop skill publication", async () => {
+test("an edited shadowclone hook in one agent's hook file does not stop skill publication", async () => {
   const result = await publishAfterEditing({
     relativePath: ".codex/hooks.json",
     edit: (text) => text.replace("\"timeout\": 10", "\"additionalContextLimit\": 6000,\n            \"timeout\": 10"),

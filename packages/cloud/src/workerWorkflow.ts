@@ -45,8 +45,8 @@ export function workerWorkflow(options: {
               }
             }`;
 
-  return `name: Shadowclone
-run-name: 'Shadowclone \${{ inputs.branch }} [\${{ inputs.key }}]'
+  return `name: shadowclone
+run-name: 'shadowclone \${{ inputs.branch }} [\${{ inputs.key }}]'
 on:
   workflow_dispatch:
     inputs:

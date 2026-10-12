@@ -10,9 +10,9 @@ Each task checks one preference family. The score averages repetitions and tasks
 | ----------------------------------------- | ----------: | ---------: | ----------------: | --------------: |
 | Agent alone                               |       77.3% |      59.0% |             56.5% |           53.2% |
 | Existing user skills                      |       85.2% |      80.6% |             76.4% |           73.6% |
-| Existing skills + Shadowclone routing     |       86.1% |      72.7% |             76.9% |           75.9% |
+| Existing skills + shadowclone routing     |       86.1% |      72.7% |             76.9% |           75.9% |
 | Existing skills + handwritten preferences |       92.4% |      81.2% |             91.7% |           86.1% |
-| Existing skills + Shadowclone learning    |       89.4% |      83.3% |             90.0% |           82.9% |
+| Existing skills + shadowclone learning    |       89.4% |      83.3% |             90.0% |           82.9% |
 
 Learning beats existing user skills on all four models. Handwritten preferences score higher than learned ones on GPT 6.1 Sol, Sonnet, and Opus, but not on GPT 6 Luna. Learning delivery and model behavior affect this comparison.
 

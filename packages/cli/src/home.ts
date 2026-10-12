@@ -15,7 +15,7 @@ export async function showHome(options: {
   const writeLine = options.writeLine ?? console.log;
 
   if (!(await Bun.file(paths.configFile).exists())) {
-    writeLine("Shadowclone is not set up. Run shadowclone init to choose what it may read and install guidance.");
+    writeLine("shadowclone is not set up. Run shadowclone init to choose what it may read and install guidance.");
 
     return;
   }
@@ -35,7 +35,7 @@ export async function showHome(options: {
   const awaitingPublication = state === null
     ? 0 : pendingLearningRecords({ paths, state }).length;
 
-  writeLine(`Shadowclone: ${active} active learned rule(s), ${pending.rules.length} awaiting review, ${awaitingPublication} awaiting scope or publication, ${integrations.length} agent installation(s).`);
+  writeLine(`shadowclone: ${active} active learned rule(s), ${pending.rules.length} awaiting review, ${awaitingPublication} awaiting scope or publication, ${integrations.length} agent installation(s).`);
   writeLine(pending.rules.length > 0
     ? "Next: shadowclone learning pending"
     : awaitingPublication > 0

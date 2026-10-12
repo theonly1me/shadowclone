@@ -16,9 +16,9 @@ Organize every skill into a deterministic constellation. Derive it from the skil
 
 Render the constellation on a bounded canvas with measured pixel coordinates, so stars keep their shape. Support pan, zoom, fit, reset, search-and-center, hub focus, keyboard activation, and touch input. Provide an equivalent list view on narrow screens and as an explicit accessibility choice. Individual stars drift, twinkle, and fade independently. They do not restart when a skill changes. Ambient lighting stays consistent. Each equipped skill keeps its own illumination. The live build summary stays beside the constellation.
 
-Use the focused D3 hierarchy, selection, and zoom modules for tree layout and input transforms. These packages replace custom geometry and gesture handling. Grouping, identity, and saved build state stay in the typed modules of Shadowclone.
+Use the focused D3 hierarchy, selection, and zoom modules for tree layout and input transforms. These packages replace custom geometry and gesture handling. Grouping, identity, and saved build state stay in the typed modules of shadowclone.
 
-Derive the build identity and traits from the equipped hubs. The local fallback uses the strongest hub and never needs a model. An optional reviewed model action can refine the hub labels and the identity from redacted hub summaries and selected titles. It never receives skill bodies, file paths, repository names, or owner metadata. Its output is interface copy, never guidance that Shadowclone injects.
+Derive the build identity and traits from the equipped hubs. The local fallback uses the strongest hub and never needs a model. An optional reviewed model action can refine the hub labels and the identity from redacted hub summaries and selected titles. It never receives skill bodies, file paths, repository names, or owner metadata. Its output is interface copy, never guidance that shadowclone injects.
 
 The creation dialog offers Use AI alongside manual editing. It sends only the current form fields, after the user reviews the redacted payload, destination, and limits. Generated names, triggers, and instructions stay an editable draft until the user adds the skill and reviews publication. Failures and cancellation keep the original fields. Both model actions share bounded no-tools execution and reject duplicate submissions.
 

@@ -62,5 +62,5 @@ test("remembering a preference before setup says to run init", async () => {
 
   await expect(
     rememberPreference({ ...setup, text: "Prefer composition.", scope: "global" }),
-  ).rejects.toThrow("Shadowclone has no skills environment yet. Run shadowclone init first.");
+  ).rejects.toThrow("shadowclone has no skills environment yet. Run shadowclone init first.");
 });

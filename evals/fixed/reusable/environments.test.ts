@@ -56,10 +56,10 @@ test("offline routed and told environments preserve manual bytes and repository 
       expect(
         routing.files.some(
           (file) =>
-            /(?:AGENTS|CLAUDE)\.md$/.test(file.path) && file.content.includes("Shadowclone"),
+            /(?:AGENTS|CLAUDE)\.md$/.test(file.path) && file.content.includes("shadowclone"),
         ),
       ).toBe(true);
-      expect(told.files.some((file) => file.content.includes("# Shadowclone profile"))).toBe(false);
+      expect(told.files.some((file) => file.content.includes("# shadowclone profile"))).toBe(false);
     }
     const file = path.join(
       reusableLayout(directory).home("routing"),

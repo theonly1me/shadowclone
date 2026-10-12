@@ -1,6 +1,6 @@
 # Synthetic secret fixtures
 
-Shadowclone tests need credential-shaped inputs to verify redaction, capture boundaries, and local evaluation probes. The source scanner of the catalog treats literal strings with those shapes as possible credentials, even when they appear in tests. Moving fixtures outside the repository would make tests depend on an external store. It would also leave other scanned literals in place.
+shadowclone tests need credential-shaped inputs to verify redaction, capture boundaries, and local evaluation probes. The source scanner of the catalog treats literal strings with those shapes as possible credentials, even when they appear in tests. Moving fixtures outside the repository would make tests depend on an external store. It would also leave other scanned literals in place.
 
 Keep the fixtures in the repository. Build each deterministic value from meaningful parts, such as a provider prefix and a synthetic payload. Then no complete credential-shaped literal appears in source. Keep the value that each test observes, its assertions, and the redaction coverage. Local probes keep the same nonempty synthetic key for the CLI contract.
 

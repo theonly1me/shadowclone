@@ -18,7 +18,7 @@ export async function setRepositoryDelivery(arguments_: readonly string[]): Prom
   }
 
   if (!config.sources["git-metadata"] || !policy.allowedSources.includes("git-metadata")) {
-    throw new Error("Enable repository metadata consent so Shadowclone can identify this repository");
+    throw new Error("Enable repository metadata consent so shadowclone can identify this repository");
   }
 
   const workingDirectory = canonicalPath(path.resolve(directory));
@@ -43,7 +43,7 @@ export async function setRepositoryDelivery(arguments_: readonly string[]): Prom
   });
 
   if (registered === null) {
-    throw new Error(`Shadowclone cannot verify the Git remote of ${workingDirectory}, or managed policy blocks it. Nothing changed.`);
+    throw new Error(`shadowclone cannot verify the Git remote of ${workingDirectory}, or managed policy blocks it. Nothing changed.`);
   }
 
   console.log(registered.privateSkillsDirectory

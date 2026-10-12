@@ -32,7 +32,7 @@ Private learning records and evaluation evidence stay outside the public checkou
 
 Cover updates and creation, baseline routing, memory idempotency, scope, consent, redaction, resource preservation, symlinks, conflicts, interrupted publication, and undo. Keep original and maintained evaluation libraries distinct. Native delivery probes use synthetic sessions. Successful migration alone is not evidence of better agent behavior.
 
-Before you check execution support, validate the focused test paths and existing runtime directories. Unsafe links fail on every platform. On unsupported platforms, a valid snapshot stays unverified. Shadowclone creates no runtime directory and starts no process.
+Before you check execution support, validate the focused test paths and existing runtime directories. Unsafe links fail on every platform. On unsupported platforms, a valid snapshot stays unverified. shadowclone creates no runtime directory and starts no process.
 
 ## Publication quality
 

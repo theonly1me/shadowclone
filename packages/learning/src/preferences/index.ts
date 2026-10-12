@@ -70,7 +70,7 @@ export async function rememberPreference(options: {
   });
 
   if (!policy.enabled) {
-    throw new Error("Shadowclone is disabled by managed policy");
+    throw new Error("shadowclone is disabled by managed policy");
   }
 
   const repository = await resolveRepository({

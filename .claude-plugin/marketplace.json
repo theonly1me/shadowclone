@@ -1,9 +1,9 @@
 {
   "name": "shadowclone",
   "owner": {
-    "name": "Shadowclone"
+    "name": "shadowclone"
   },
-  "description": "Install Shadowclone with agent-led local setup and explicit consent.",
+  "description": "Install shadowclone with agent-led local setup and explicit consent.",
   "plugins": [
     {
       "name": "shadowclone",

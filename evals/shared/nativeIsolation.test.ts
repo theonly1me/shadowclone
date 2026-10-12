@@ -11,7 +11,7 @@ test("isolates generated sections from nested evaluation instructions before eit
 
   await Bun.write(
     filePath,
-    `${original}${managedStart}\n# Shadowclone profile\n\nGenerated rule\n${managedEnd}`,
+    `${original}${managedStart}\n# shadowclone profile\n\nGenerated rule\n${managedEnd}`,
   );
   await isolateNativeGuidance(fixture.cwd);
 

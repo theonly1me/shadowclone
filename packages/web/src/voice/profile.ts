@@ -101,7 +101,7 @@ export function voiceDocument(draft: VoiceDraft): string {
   return [
     "# My writing voice",
     "",
-    "Shadowclone wrote this file from a voice profile that I reviewed. The examples are invented.",
+    "shadowclone wrote this file from a voice profile that I reviewed. The examples are invented.",
     "",
     "## Traits",
     "",

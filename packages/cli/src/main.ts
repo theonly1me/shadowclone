@@ -157,11 +157,11 @@ async function main(arguments_: readonly string[]): Promise<void> {
 
 await main(Bun.argv.slice(2)).catch((error: unknown) => {
   const message =
-    error instanceof Error ? error.message : "Shadowclone could not complete this command";
+    error instanceof Error ? error.message : "shadowclone could not complete this command";
   console.error(
     message.length <= 1_000
       ? redactSecrets({ text: message })
-      : "Shadowclone could not complete this command. Run shadowclone doctor and inspect learning status.",
+      : "shadowclone could not complete this command. Run shadowclone doctor and inspect learning status.",
   );
   process.exitCode = 1;
 });

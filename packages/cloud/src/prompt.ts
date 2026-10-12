@@ -27,4 +27,4 @@ For an existing PR, continue on its current branch.
 Never push to the default branch.
 Before every push or GitHub write, re-read the issue and PR pause labels and current remote head.
 If paused, stop.
-Do not edit the Shadowclone workflows or their guard helpers unless the requester explicitly asks for that scope.`;
+Do not edit the shadowclone workflows or their guard helpers unless the requester explicitly asks for that scope.`;

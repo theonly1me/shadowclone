@@ -14,7 +14,7 @@ export function renderContextSkill(): string {
     "",
     "## Review proposals with the user",
     "",
-    "When session start says that Shadowclone proposals wait for a decision, show them to the user after you answer the first request. Do not wait for the user to ask.",
+    "When session start says that shadowclone proposals wait for a decision, show them to the user after you answer the first request. Do not wait for the user to ask.",
     "",
     "1. Run `shadowclone skills pending`. Read each item with `shadowclone learning show <key>` or `shadowclone skills show <id>`.",
     "2. For each item, state in two or three lines what it changes, which file it targets, and why it waits.",

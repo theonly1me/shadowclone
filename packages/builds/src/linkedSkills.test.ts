@@ -78,7 +78,7 @@ test("a skill folder that links somewhere else is skipped and named in the revie
 
   expect(plan.updates.some((update) => update.filePath.startsWith(setup.claudeLink))).toBeFalse();
   expect(plan.warnings).toContain(
-    `~/.claude/skills/careful-review is a link to ${elsewhere}. Shadowclone does not write through links, so the agent that reads ~/.claude/skills/careful-review does not get careful-review from this build.`,
+    `~/.claude/skills/careful-review is a link to ${elsewhere}. shadowclone does not write through links, so the agent that reads ~/.claude/skills/careful-review does not get careful-review from this build.`,
   );
 
   await applyBuild({ ...setup.context, plan });

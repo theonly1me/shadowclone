@@ -68,7 +68,7 @@ export async function runHarnessCheck(options: {
           rule: "harness-missing",
           path: ".shadowclone/harness.json",
           line: null,
-          fix: "This repository has no Shadowclone setup. Run `shadowclone init --repo` to create one.",
+          fix: "This repository has no shadowclone setup. Run `shadowclone init --repo` to create one.",
         },
       ],
     };

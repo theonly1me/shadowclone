@@ -47,7 +47,7 @@ The bot and other bots cannot start work. Work on a fork pull request is refused
 5. Create the `shadowclone` environment, limited to the default branch.
 6. Invite the bot, and open the setup pull request.
 
-Setup returns one environment link for the bot token and the API key, and the setup pull request link. It also names the page that creates each secret. Shadowclone never reads either secret.
+Setup returns one environment link for the bot token and the API key, and the setup pull request link. It also names the page that creates each secret. shadowclone never reads either secret.
 
 **A check run proves the setup.** The setup pull request adds `shadowclone-check.yml`, which starts only by dispatch. `shadowclone bot status --repo <owner/repository>` starts it after the secrets exist and the pull request merges. The run accepts the invitation as the bot, reads the repository with the bot token, and makes one request that the API key must authorize:
 

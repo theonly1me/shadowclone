@@ -7,7 +7,7 @@ import { learningRecord, skillEngineRun, skillFixture } from "@shadowclone/envir
 import { updateLearningEnvironment } from "./environmentUpdate/update";
 import { applyPreferencePreview, previewPreferenceEdit } from "./lifecycle";
 
-test("retiring the only learning behind a skill that Shadowclone created removes the skill", async () => {
+test("retiring the only learning behind a skill that shadowclone created removes the skill", async () => {
   const setup = await skillFixture();
   const record = learningRecord({ key: "mined:eval-harness", body: "Run evals locally and never push copies of third-party repositories." });
   const skillFolders = [".agents/skills/eval-harnesses", ".claude/skills/eval-harnesses"].map((folder) => path.join(setup.home, folder));

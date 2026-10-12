@@ -19,7 +19,7 @@ import { redactSecrets } from "@shadowclone/redact";
 import { learningRuleSchema, type LearningRecord } from "./types";
 
 export const missingEnvironmentMessage =
-  "Shadowclone has no skills environment yet. Run shadowclone init first.";
+  "shadowclone has no skills environment yet. Run shadowclone init first.";
 
 export function recordFingerprint(record: LearningRecord): string {
   return fingerprint(JSON.stringify({

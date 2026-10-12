@@ -55,14 +55,14 @@ export async function stageSkillPackage(options: {
   await Bun.write(
     path.join(output, "README.md"),
     [
-      "# Shadowclone skills",
+      "# shadowclone skills",
       "",
-      "Portable coding-agent skills. Choose skills without installing the Shadowclone CLI.",
+      "Portable coding-agent skills. Choose skills without installing the shadowclone CLI.",
       "",
       "Run `npx skills add theonly1me/shadowclone --list` to inspect the collection.",
       "Run `npx skills add theonly1me/shadowclone --skill guided-pr-review shadowclone-review` to install the guided review and its local reviewer.",
       "",
-      "The npm artifact contains the same skill folders and supporting files that Shadowclone ships.",
+      "The npm artifact contains the same skill folders and supporting files that shadowclone ships.",
       "",
       "Select prose or code to add notes. Save them into the original HTML in Chrome or Edge.",
       "Attach that HTML to your chat and request staging through your own workflow.",

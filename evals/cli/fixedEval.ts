@@ -20,7 +20,7 @@ export function parseFixedArguments(argumentsList: readonly string[]) {
   const command = new Command()
     .name("bun run eval")
     .exitOverride()
-    .description("Run fixed synthetic tasks against bare, handwritten profile, and Shadowclone skill delivery. No learning is required.")
+    .description("Run fixed synthetic tasks against bare, handwritten profile, and shadowclone skill delivery. No learning is required.")
     .requiredOption("--protocol <protocol>")
     .requiredOption("--phase <phase>", "prepare, validate, run, report, or compare")
     .option("--output-directory <path>", "new private run directory outside any repository")

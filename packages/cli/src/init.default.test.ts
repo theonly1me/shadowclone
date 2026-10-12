@@ -215,6 +215,6 @@ test("setup reports an agent it skipped and counts only the agents it installed"
 
   expect(lines).toContain("1 agents installed.");
   expect(output.at(-1)).toBe(
-    "Not installed for codex: /home/sample/.codex/AGENTS.md is a symbolic link to /home/sample/.agents/AGENTS.md. Shadowclone does not write through links, so codex gets no Shadowclone guidance. Replace the link with a regular file, then run shadowclone install --agent codex.",
+    "Not installed for codex: /home/sample/.codex/AGENTS.md is a symbolic link to /home/sample/.agents/AGENTS.md. shadowclone does not write through links, so codex gets no shadowclone guidance. Replace the link with a regular file, then run shadowclone install --agent codex.",
   );
 });

@@ -24,7 +24,7 @@ export function skillDestinationsWithoutLinks(options: {
       delivered.has(resolvedPath(destination))
         ? []
         : [
-            `${display(link.path)} is a link to ${display(link.target)}. Shadowclone does not write through links, so the agent that reads ${display(link.path)} does not get ${options.name} from this build.`,
+            `${display(link.path)} is a link to ${display(link.target)}. shadowclone does not write through links, so the agent that reads ${display(link.path)} does not get ${options.name} from this build.`,
           ],
     ),
   };
