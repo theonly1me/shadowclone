@@ -3,7 +3,7 @@ import product from "@shadowclone/core/product.json";
 import { handleMcpRequest } from "./server";
 import { preferenceTools } from "./preferences";
 import { botTools } from "./bot";
-import { sessionTools } from "./session";
+import { sessionTools } from "./sessionTools";
 
 test("responds to initialize with protocol version and serverInfo", () => {
   const response = handleMcpRequest({

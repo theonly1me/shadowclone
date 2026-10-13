@@ -1,7 +1,7 @@
 import product from "@shadowclone/core/product.json";
 import { preferenceTools } from "./preferences";
 import { botTools } from "./bot";
-import { sessionTools } from "./session";
+import { sessionTools } from "./sessionTools";
 
 type JsonRpcId = string | number | null;
 
