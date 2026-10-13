@@ -9,7 +9,7 @@ export async function requestCloudReview(options: {
   const clone = await readInstalledClone({ repository, token });
 
   if (clone === null) {
-    throw new Error(`${repository} has no Shadowclone bot yet. Run shadowclone bot setup --bot <login> in its checkout, and then run shadowclone review ${number} --cloud again.`);
+    throw new Error(`${repository} has no shadowclone bot yet. Run shadowclone bot setup --bot <login> in its checkout, and then run shadowclone review ${number} --cloud again.`);
   }
 
   await runGh({ arguments: ["pr", "comment", String(number), "--repo", repository, "--body", `@${clone.botLogin} review`] });

@@ -1,6 +1,6 @@
 # Documentation
 
-Start with the [README](../README.md) to install Shadowclone and pick your first skills.
+Start with the [README](../README.md) to install shadowclone and pick your first skills.
 
 ## Guides
 
@@ -12,14 +12,14 @@ Start with the [README](../README.md) to install Shadowclone and pick your first
 - [Delegated work](guides/delegated-work.md): take a change to ready for review.
 - [Cloud bot](guides/cloud-bot.md): set up a GitHub bot on a provider API key.
 - [Reviews](guides/reviews.md): follow a guided review, or review a PR locally or in the cloud.
-- [MCP server](guides/mcp.md): give a connected agent the Shadowclone tools.
+- [MCP server](guides/mcp.md): give a connected agent the shadowclone tools.
 - [Command reference](guides/commands.md): find every command.
 - [Enterprise controls](guides/enterprise.md): set scope and managed policy.
-- [Comparison](guides/comparison.md): compare Shadowclone with related tools.
+- [Comparison](guides/comparison.md): compare shadowclone with related tools.
 
 ## Privacy and results
 
-- [Privacy](../PRIVACY.md), [data handling](data-handling.md), and [security](../SECURITY.md): what Shadowclone reads, sends, stores, and removes, and how to report a vulnerability.
+- [Privacy](../PRIVACY.md), [data handling](data-handling.md), and [security](../SECURITY.md): what shadowclone reads, sends, stores, and removes, and how to report a vulnerability.
 - [Evaluation results](../evals.md): preference adherence for five setups and four models.
 
 ## Understand and contribute

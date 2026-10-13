@@ -6,7 +6,7 @@ Personal guidance alone did not give a project a repeatable setup or a way to ch
 
 ## Decision
 
-Build repository instructions and workflow skills from detected project checks and explicitly selected guidance. Read manifests only with the relevant consent. Preview `AGENTS.md`, the Claude import, portable skills, and the check configuration before Shadowclone writes them.
+Build repository instructions and workflow skills from detected project checks and explicitly selected guidance. Read manifests only with the relevant consent. Preview `AGENTS.md`, the Claude import, portable skills, and the check configuration before shadowclone writes them.
 
 Ask before including personal preferences in shared files. Keep repository requirements distinct from private personal guidance. Copy selected skill resources with ownership checks. Keep existing instruction text.
 

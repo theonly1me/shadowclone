@@ -49,7 +49,7 @@ export function cloneFromRelay(relay: string): Clone {
   const parsed = cloneSchema.safeParse(JSON.parse(configured));
 
   if (!parsed.success) {
-    throw new Error("This bot was set up with an earlier Shadowclone version. Run shadowclone bot setup again to update it.");
+    throw new Error("This bot was set up with an earlier shadowclone version. Run shadowclone bot setup again to update it.");
   }
 
   return parsed.data;

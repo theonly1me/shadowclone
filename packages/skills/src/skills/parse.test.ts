@@ -62,7 +62,7 @@ test("loads a formatted Agent Skill with blank lines before its title", () => {
   expect(skill.body).toContain("## Process");
 });
 
-test("rejects invalid Shadowclone metadata", () => {
+test("rejects invalid shadowclone metadata", () => {
   expect(() =>
     parseSeedAgentSkillDocument({
       directoryName: "focused-review",

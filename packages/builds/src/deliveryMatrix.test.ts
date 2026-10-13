@@ -91,7 +91,7 @@ async function routingFor(options: {
 
   return (
     stringsIn(output)
-      .find((text) => text.includes("# Shadowclone guidance"))
+      .find((text) => text.includes("# shadowclone guidance"))
       ?.trim() ?? ""
   );
 }

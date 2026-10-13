@@ -20,7 +20,7 @@ test("with consent off, collection makes no gh call", async () => {
   const github = fakeGitHub();
 
   await expect(collectWriting({ ...fixture, run: github.run })).rejects.toThrow(
-    "Allow Shadowclone to read your GitHub writing before you capture your voice",
+    "Allow shadowclone to read your GitHub writing before you capture your voice",
   );
   expect(github.calls).toEqual([]);
 });

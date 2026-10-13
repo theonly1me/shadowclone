@@ -18,7 +18,7 @@ test("routing preparation preserves synthetic skills, never learns, and starts d
       const original = preparation.starting[engine].original;
       expect(original.files.filter(file => file.path.includes("/personal-engineering/")).every(file => file.content === existingSkill)).toBeTrue();
       const routing = preparation.starting[engine]["first-time"];
-      expect(routing.files.some(file => file.content.includes("Shadowclone"))).toBeTrue();
+      expect(routing.files.some(file => file.content.includes("shadowclone"))).toBeTrue();
       for (const rule of workflowDefinition.profile.filter(rule => rule.group === "learned")) expect(routing.files.some(file => file.content.includes(rule.statement))).toBeFalse();
       expect(await captureWorkflowArm({ directory, arm: "deep", engine })).toEqual(routing);
     }

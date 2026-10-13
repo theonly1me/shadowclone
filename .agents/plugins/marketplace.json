@@ -1,7 +1,7 @@
 {
   "name": "shadowclone",
   "interface": {
-    "displayName": "Shadowclone"
+    "displayName": "shadowclone"
   },
   "plugins": [
     {

@@ -79,7 +79,7 @@ export async function harnessInitCommand(
   const policy = await readManagedPolicy(managedConfigPath);
 
   if (!policy.enabled) {
-    throw new Error("Shadowclone is disabled by managed policy");
+    throw new Error("shadowclone is disabled by managed policy");
   }
 
   if (!policy.allowedSources.includes("repository-manifests")) {

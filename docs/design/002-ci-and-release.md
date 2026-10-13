@@ -40,7 +40,7 @@ The workflow learning fixture prepares guidance and freezes it for both agents. 
 
 ## Maintainer source scan
 
-The catalog scans Shadowclone independently. A source change can pass the repository typecheck, lint, and tests and still fail that gate. Run the pinned HOL scanner action on pushes and pull requests, with a score floor of 80 and no high-severity findings. Give it read-only repository access. Keep checkout credentials out of the workspace. Leave PR comments, online probing, and SARIF upload disabled.
+The catalog scans shadowclone independently. A source change can pass the repository typecheck, lint, and tests and still fail that gate. Run the pinned HOL scanner action on pushes and pull requests, with a score floor of 80 and no high-severity findings. Give it read-only repository access. Keep checkout credentials out of the workspace. Leave PR comments, online probing, and SARIF upload disabled.
 
 Before you publish the workflow, do these steps:
 

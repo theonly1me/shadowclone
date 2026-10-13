@@ -99,7 +99,7 @@ export async function scanClaudeMemoryDirectory(
     });
 
     if (raw === null) {
-      throw new Error("Claude memory changed while Shadowclone read it");
+      throw new Error("Claude memory changed while shadowclone read it");
     }
 
     const hash = new Bun.CryptoHasher("sha256").update(raw).digest("hex");

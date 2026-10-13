@@ -49,7 +49,7 @@ test("init --repo previews first and writes nothing unless the owner confirms", 
   ).toContain("shadowclone check --changed --format claude-stop");
 });
 
-test("sync leaves a repository without Shadowclone files alone", async () => {
+test("sync leaves a repository without shadowclone files alone", async () => {
   const setup = await harnessTestSetup({ fixture: bunTaskList });
 
   expect(

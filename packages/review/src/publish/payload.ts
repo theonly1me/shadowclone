@@ -35,8 +35,8 @@ function summary(options: {
   const count = result.findings.length;
   const lines = [
     count === 0
-      ? `Shadowclone reviewed ${head} and found no defect that it could confirm.`
-      : `Shadowclone reviewed ${head} and confirmed ${count} ${count === 1 ? "finding" : "findings"}, ${inlineCount} inline.`,
+      ? `shadowclone reviewed ${head} and found no defect that it could confirm.`
+      : `shadowclone reviewed ${head} and confirmed ${count} ${count === 1 ? "finding" : "findings"}, ${inlineCount} inline.`,
   ];
 
   if (result.candidates.dropped.length > 0) {

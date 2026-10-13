@@ -98,7 +98,7 @@ test("an install skips codex when its override would hide the team file, and ins
   }
 });
 
-test("an override that Shadowclone created tells the user how to remove it", () => {
+test("an override that shadowclone created tells the user how to remove it", () => {
   expect(
     describeSkippedAgent({
       agent: "codex",
@@ -108,6 +108,6 @@ test("an override that Shadowclone created tells the user how to remove it", () 
       installed: true,
     }),
   ).toBe(
-    "Not installed for codex: /work/repo/AGENTS.override.md, which Shadowclone created, hides the team file /work/repo/AGENTS.md, because Codex reads one instruction file in each folder. Run shadowclone uninstall --agent codex --local to remove it, and use shadowclone install --agent codex --global instead.",
+    "Not installed for codex: /work/repo/AGENTS.override.md, which shadowclone created, hides the team file /work/repo/AGENTS.md, because Codex reads one instruction file in each folder. Run shadowclone uninstall --agent codex --local to remove it, and use shadowclone install --agent codex --global instead.",
   );
 });

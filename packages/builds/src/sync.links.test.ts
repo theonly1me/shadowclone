@@ -12,7 +12,7 @@ import {
 } from "@shadowclone/environment";
 import type { ProjectPaths } from "@shadowclone/core";
 
-const olderBody = "# Shadowclone guidance\n\n- when testing: an-old-skill\n";
+const olderBody = "# shadowclone guidance\n\n- when testing: an-old-skill\n";
 
 async function recordOlderSection(options: {
   readonly paths: ProjectPaths;

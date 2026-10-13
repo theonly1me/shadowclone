@@ -52,7 +52,7 @@ test("setup lists the skill files and waits for approval before it writes anythi
   }
 });
 
-test("an approved setup protects the branch first, keeps tokens off Shadowclone, and opens the setup pull request", async () => {
+test("an approved setup protects the branch first, keeps tokens off shadowclone, and opens the setup pull request", async () => {
   const fixture = await guidanceFixture();
   const github = githubState({ botExists: true });
 

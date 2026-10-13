@@ -1,10 +1,10 @@
 # Skill maintenance
 
-Skills are ordinary files that you can inspect and edit. Shadowclone reviews the consented library, updates a relevant workflow, or creates a skill when none exists. It keeps supporting files, unrelated instructions, and invocation settings. Run `shadowclone skills list`, `update`, or `pending`.
+Skills are ordinary files that you can inspect and edit. During maintenance, shadowclone reviews the consented library, updates a relevant workflow, or creates a skill when none exists. It keeps supporting files, unrelated instructions, and invocation settings. Run `shadowclone skills list`, `update`, or `pending`.
 
 Reading a library and allowing automatic edits are separate choices. Supported changes to authorized skills apply automatically. Conflicts and uncertain changes stay pending. Third-party packages stay unchanged and get local companions. Library review compares a third-party skill only with your own skills, so it never proposes a conflict between two third-party skills. With maintenance on, an update reviews the library of the selected agent, even without new learning.
 
-## Install skills without Shadowclone
+## Install skills without shadowclone
 
 Use the skills CLI to choose portable skills manually:
 
@@ -14,14 +14,15 @@ npx skills add theonly1me/shadowclone --skill guided-pr-review shadowclone-revie
 ```
 
 Use `--list` to inspect the available skills first.
-This installation does not enable Shadowclone learning or install its CLI.
+This installation does not enable shadowclone learning or install its CLI.
 The guided review skill works with a local coding agent and the full repository.
 Install its `shadowclone-review` companion to investigate locally before building the guide.
+The `@shadowclone/skills` npm package contains the same portable skills and supporting files.
 
 The separate `@shadowclone/skills` npm artifact contains the same root skills and their supporting files.
 The skills CLI accepts a repository, a local directory, or a direct tarball URL.
 Use the repository command above for selection, or extract the npm artifact and pass its directory.
-The Shadowclone CLI continues to bundle and equip the same content.
+The shadowclone CLI continues to bundle and equip the same content.
 
 ## Review pending work
 
@@ -41,7 +42,7 @@ Native routing lists each equipped skill as `- <moment>: <skill>`, with the mome
 
 `shadowclone sync` copies a changed maintained skill to its other locations, refreshes native routing, and keeps conflicting edits for your review. Only `sync` updates bundled skills, so run it after you upgrade.
 
-For bundled skills that you equipped, `sync` replaces a copy only if its text matches a version that Shadowclone shipped. It keeps and names any other copy, so you can review it in `shadowclone wizard`. It never replaces a skill that you changed in the build editor. If routing grows past the 4 KiB native limit, `sync` reports the overflow and keeps the existing instructions.
+For bundled skills that you equipped, `sync` replaces a copy only if its text matches a version that shadowclone shipped. It keeps and names any other copy, so you can review it in `shadowclone wizard`. It never replaces a skill that you changed in the build editor. If routing grows past the 4 KiB native limit, `sync` reports the overflow and keeps the existing instructions.
 
 If an agent's instruction file links to a regular file in your home folder, `sync` updates that file and keeps the link. For example, `~/.codex/AGENTS.md` can point to `~/.agents/AGENTS.md`. If the file links anywhere else, `sync` updates every other agent, names the link, and exits with status 1. That agent keeps its old routing until you replace the link with a regular file.
 

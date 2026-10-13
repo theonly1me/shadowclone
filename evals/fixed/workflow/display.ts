@@ -1,6 +1,6 @@
 import type { WorkflowReport } from "./report";
 
-const labels = { bare: "Bare", skills: "Existing user skills", routing: "Existing skills + Shadowclone routing", deep: "Existing skills + routing + deep learning" };
+const labels = { bare: "Bare", skills: "Existing user skills", routing: "Existing skills + shadowclone routing", deep: "Existing skills + routing + deep learning" };
 
 export function workflowReportText(report: WorkflowReport) {
   return [`Fixed four-setup eval: ${report.status}`, `${report.configuration.model} (${report.configuration.effort}) on ${report.configuration.engine}`,

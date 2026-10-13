@@ -38,7 +38,7 @@ test("the wizard asks for consent first, and capture without it reads nothing", 
     allowed: true,
     voiceFile: { path: voiceFilePath(fixture.paths), state: "missing", target: null },
   });
-  await expect(voice.capture(new AbortController().signal)).rejects.toThrow("Allow Shadowclone to read your GitHub writing");
+  await expect(voice.capture(new AbortController().signal)).rejects.toThrow("Allow shadowclone to read your GitHub writing");
   expect(github.calls).toEqual([]);
   expect(runs).toEqual([]);
 });
@@ -87,7 +87,7 @@ test("saving writes the voice file once and then refuses to overwrite it", async
 
   expect(await voice.save(invented)).toEqual({ path: voiceFilePath(fixture.paths) });
   expect(await Bun.file(voiceFilePath(fixture.paths)).text()).toContain("## Invented examples");
-  await expect(voice.save(invented)).rejects.toThrow("already exists, so Shadowclone did not change it");
+  await expect(voice.save(invented)).rejects.toThrow("already exists, so shadowclone did not change it");
 });
 
 test("turning consent off forgets the collected writing", async () => {

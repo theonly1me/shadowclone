@@ -1,6 +1,6 @@
 # Importing repository guidance
 
-Imported guidance stays evidence, as [skills delivery](023-skills-as-delivery.md) describes. Shadowclone does not republish instructions that the repository already supplies.
+Imported guidance stays evidence, as [skills delivery](023-skills-as-delivery.md) describes. shadowclone does not republish instructions that the repository already supplies.
 
 ## Problem
 

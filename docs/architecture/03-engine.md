@@ -1,6 +1,6 @@
 # Agent execution
 
-`packages/agents/src/engine/` is the model-process boundary for learning and evaluation. It invokes an installed, authenticated agent CLI. Shadowclone needs no model account or API key of its own.
+`packages/agents/src/engine/` is the model-process boundary for learning and evaluation. It invokes an installed, authenticated agent CLI. shadowclone needs no model account or API key of its own.
 
 ## Provider selection
 

@@ -28,7 +28,7 @@ test("reads the remaining backlog from learning output", () => {
   expect(remainingEpisodes(["Skill maintenance: 1 synced, 2 updated, 0 pending, 0 deferred, 0 conflicts."])).toBe(0);
 });
 
-test("copies the personal library without Shadowclone skills and freezes portable paths", async () => {
+test("copies the personal library without shadowclone skills and freezes portable paths", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "study-prepare-"));
 
   try {

@@ -13,7 +13,7 @@ async function activeContext(options: {
   readonly readRemote?: GitRemoteReader;
   readonly managedConfigPath?: string | null;
 }): Promise<string> {
-  return (await compileContext(options)) ?? "Shadowclone context is disabled.\n";
+  return (await compileContext(options)) ?? "shadowclone context is disabled.\n";
 }
 
 async function writeMessage(value: Readonly<Record<string, unknown>>): Promise<void> {

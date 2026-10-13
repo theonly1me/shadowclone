@@ -1,6 +1,6 @@
 # @shadowclone/mcp
 
-Serves the Shadowclone tools to a connected agent over the MCP protocol on standard input and output. The `shadowclone mcp` command starts it.
+Serves the shadowclone tools to a connected agent over the MCP protocol on standard input and output. The `shadowclone mcp` command starts it.
 
 <!-- package-facts:start -->
 
@@ -23,7 +23,7 @@ Serves the Shadowclone tools to a connected agent over the MCP protocol on stand
 ## Rules
 
 - Each tool parses its arguments with a strict schema. An invalid call returns an error.
-- `shadowclone_remember` fails when the managed policy disables Shadowclone.
+- `shadowclone_remember` fails when the managed policy disables shadowclone.
 - `shadowclone_bot` has no credential operation. The owner adds the bot token and the API key on GitHub.
 - `shadowclone_bot` status waits at most 45 seconds for the check run. A later status call continues a run that is still in progress.
 - The first `setup` call only lists the skill files. It pushes them after a second call with `approveSkills: true`.

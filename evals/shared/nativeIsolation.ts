@@ -42,11 +42,11 @@ export async function isolateNativeGuidance(directory: string): Promise<void> {
     const isolated = stripManagedGuidance(text);
 
     if (
-      isolated.includes("# Shadowclone profile") ||
+      isolated.includes("# shadowclone profile") ||
       isolated.includes("shadowclone hook")
     ) {
       throw new Error(
-        "Unmanaged Shadowclone injection prevents an isolated evaluation",
+        "Unmanaged shadowclone injection prevents an isolated evaluation",
       );
     }
 

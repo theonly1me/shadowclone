@@ -1,6 +1,6 @@
 # Data handling
 
-Shadowclone reads the sources that you enable and maintains local coding-agent guidance. It has no hosted collection service, analytics, crash reporting, or automatic upload of your environment. Model work uses your installed, authenticated agent CLI, under the account and retention terms of its provider.
+shadowclone reads the sources that you enable and maintains local coding-agent guidance. It has no hosted collection service, analytics, crash reporting, or automatic upload of your environment. Model work uses your installed, authenticated agent CLI, under the account and retention terms of its provider.
 
 ## Consent
 
@@ -8,7 +8,7 @@ Source settings live in `~/.shadowclone/config.toml` and default to off. Default
 
 Before consent, setup checks only whether a configured source root exists and has data. It keeps a temporary boolean and opens no source contents or entry names. Reading contents needs the matching setting.
 
-Source access does not authorize automatic skill edits. Disabling a source removes its indexed events from later learning selection, and Shadowclone checks authorization again before each text reference resolves. Pending approval checks its saved provenance against current consent. Disabling a source does not erase published guidance or requests that a provider kept. Review and retire existing guidance separately.
+Source access does not authorize automatic skill edits. Disabling a source removes its indexed events from later learning selection, and shadowclone checks authorization again before each text reference resolves. Pending approval checks its saved provenance against current consent. Disabling a source does not erase published guidance or requests that a provider kept. Review and retire existing guidance separately.
 
 ## Sources
 
@@ -29,9 +29,9 @@ Source access does not authorize automatic skill edits. Disabling a source remov
 | `github-writing`         | Through your `gh` login, for voice capture only: your 40 newest pull request titles and bodies, your 40 newest reviews with up to 10 comments each, and your 60 newest commit messages       |
 | `repository-manifests`   | Scripts and dependency names in `package.json`, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, CI workflow files, and top-level entry names, for repository setup |
 
-Shell history is not a source. Upgrading deletes indexed shell history events, cursors, and repository bindings, and Shadowclone ignores a `shell` setting left in an older `config.toml` or managed policy.
+Shell history is not a source. Upgrading deletes indexed shell history events, cursors, and repository bindings, and shadowclone ignores a `shell` setting left in an older `config.toml` or managed policy.
 
-Personal skill locations include `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`, and `~/.gemini/config/skills/`. Shadowclone may also review configured provider plugin caches. Codex paths follow `$CODEX_HOME` when set. Evaluation context can include `~/.claude/CLAUDE.md`, Codex `AGENTS.md` and `AGENTS.override.md`, and the selected skill catalog, which each study freezes.
+Personal skill locations include `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`, and `~/.gemini/config/skills/`. shadowclone may also review configured provider plugin caches. Codex paths follow `$CODEX_HOME` when set. Evaluation context can include `~/.claude/CLAUDE.md`, Codex `AGENTS.md` and `AGENTS.override.md`, and the selected skill catalog, which each study freezes.
 
 With `agent-context` on, learning also reads those three instruction files to find guidance that you already maintain. With `skill-library` on, it reads the names and descriptions of your personal skills for the same purpose. The text crosses the redaction boundary, and each instruction file has a 32 KB limit. Learning drops a new rule that this text already states, and triage discards a pending rule that it covers.
 
@@ -48,7 +48,7 @@ Pi transcript consent is separate from Git metadata and skill maintenance. Sessi
 | Skill maintenance           | Redacted catalogs, full instructions of overlapping workflows, and evidence for proposed updates. Supporting resources are checked locally     |
 | Browser editor              | Opening it makes no model request. Build naming sends redacted skill titles and summaries. Voice capture and skill drafts need a user action   |
 | Cloud bot                   | Reviewed skills from your private skills repository, the selected repository, and an authorized issue or PR task                               |
-| `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace. Shadowclone makes no model calls                                             |
+| `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace. shadowclone makes no model calls                                             |
 | Pull request review         | The PR title and description, diff, file history, base-commit standards, rule hits, toolchain diagnostics, and files that the reviewer reads   |
 | Evaluation                  | Synthetic task workspaces and the tested setup's skills and instructions. Judges receive generated code without redaction                      |
 
@@ -80,7 +80,7 @@ Eligible source text crosses the shared redaction boundary before learning or co
 | Agent skill and instruction directories | Published skills, resources, native routing, and hooks                                                                                                 |
 | Repository harness files                | Reviewed shared instructions, skills, and checks meant for version control                                                                             |
 
-Shadowclone does not copy whole transcripts into its store. The index holds references and event metadata. Learning records, checkpoints, and original-library snapshots can still hold sensitive derived content. State uses private directories and owner-only permissions where supported, and it is not encrypted. Processes with equivalent access, administrators, and backups may read it. Interrupted evaluation can leave temporary workspaces in its private study directory for manual cleanup.
+shadowclone does not copy whole transcripts into its store. The index holds references and event metadata. Learning records, checkpoints, and original-library snapshots can still hold sensitive derived content. State uses private directories and owner-only permissions where supported, and it is not encrypted. Processes with equivalent access, administrators, and backups may read it. Interrupted evaluation can leave temporary workspaces in its private study directory for manual cleanup.
 
 ## Scope and editing
 
@@ -99,9 +99,9 @@ A flagged rule stays pending with its reasons, and nothing publishes it. The che
 
 ## Execution
 
-Outside personal GitHub clone setup and pull request reviews, Shadowclone does not commit, push, or act on GitHub itself. The `shadowclone-work` skill acts through the host agent's own tools and permissions. A push sends Git objects, including repository code, without redaction. Review comment text is untrusted data and never becomes learning input.
+Outside personal GitHub clone setup and pull request reviews, shadowclone does not commit, push, or act on GitHub itself. The `shadowclone-work` skill acts through the host agent's own tools and permissions. A push sends Git objects, including repository code, without redaction. Review comment text is untrusted data and never becomes learning input.
 
-A local pull request review fetches the PR refs, reads them in temporary worktrees, and removes the worktrees afterwards. Its toolchain checks use Bubblewrap on Linux or Seatbelt on macOS. Every command reads only the worktree and required runtimes. Host file changes stay in the worktree and isolated review state. Each review side gets a fresh HOME, temporary folder, and caches. Host credentials and private user configuration stay outside. Dependency install scripts remain disabled. Downloads use a fixed public-registry allowlist through a restricted proxy. Direct networking, local services, and Unix sockets are blocked. If isolation cannot start, checks fail without executing the command. `--no-checks` skips them. The review model can read only files inside the head worktree. Unless you set `--offline`, it can search the web and fetch pages with GET requests. The skill tells it to put only public names in searches and URLs. Shadowclone fetches each cited documentation URL itself to check the quote, with GET only. It refuses private, loopback, and metadata addresses, including their mapped IPv6 forms. Unless `--offline` is set, the names and versions of packages that a changed lockfile adds or upgrades go to the OSV API, without code. `--cloud` posts one `@shadowclone review` comment as you, and the clone posts the review. Cloud review results pass between jobs as artifacts that expire after one day. Posted text is redacted, and mentions and cross-repository links are wrapped in code spans. Review output never becomes learning input.
+A local pull request review fetches the PR refs, reads them in temporary worktrees, and removes the worktrees afterwards. Its toolchain checks use Bubblewrap on Linux or Seatbelt on macOS. Every command reads only the worktree and required runtimes. Host file changes stay in the worktree and isolated review state. Each review side gets a fresh HOME, temporary folder, and caches. Host credentials and private user configuration stay outside. Dependency install scripts remain disabled. Downloads use a fixed public-registry allowlist through a restricted proxy. Direct networking, local services, and Unix sockets are blocked. If isolation cannot start, checks fail without executing the command. `--no-checks` skips them. The review model can read only files inside the head worktree. Unless you set `--offline`, it can search the web and fetch pages with GET requests. The skill tells it to put only public names in searches and URLs. To check a quote, shadowclone fetches each cited documentation URL itself, with GET only. It refuses private, loopback, and metadata addresses, including their mapped IPv6 forms. Unless `--offline` is set, the names and versions of packages that a changed lockfile adds or upgrades go to the OSV API, without code. `--cloud` posts one `@<bot> review` comment as you, and the bot posts the review. Cloud review results pass between jobs as artifacts that expire after one day. Posted text is redacted, and mentions and cross-repository links are wrapped in code spans. Review output never becomes learning input.
 
 The pull request review evaluation copies merged pull requests from a public repository into a public evaluation repository and keeps the source license. Copied descriptions lose mentions and links to the source threads, so no upstream author is notified. The evaluated reviewers run on that repository with the owner's accounts. Raw runs, judge verdicts, and the case list stay in private storage outside every checkout until publication.
 
@@ -125,7 +125,7 @@ Voice capture needs the `github-writing` setting, which the **My voice** dialog 
 
 Setup lists the exact skill files, resources, plugin metadata, and native rules that it will push to your private skills repository. The files pass through the redacted delivery boundary. They exclude transcripts, source history, receipts, and raw learning records. Setup pushes them only after your approval.
 
-You add the bot token and the provider API key on GitHub. Shadowclone never reads them. The GitHub CLI receives only the skills deploy key, through standard input. Non-secret installation metadata lives under `~/.shadowclone/cloud/installations/`. Explicit exports use owner-only files outside the checkout and stay until you delete them.
+You add the bot token and the provider API key on GitHub. shadowclone never reads them. The GitHub CLI receives only the skills deploy key, through standard input. Non-secret installation metadata lives under `~/.shadowclone/cloud/installations/`. Explicit exports use owner-only files outside the checkout and stay until you delete them.
 
 During a run, the provider receives the prompt, the skills, and the repository content that the agent reads. The check run sends one small request with the API key: a model list request, or one short prompt for Cursor. A review of a fork pull request runs no fork code and has no network access.
 
@@ -149,13 +149,13 @@ There is no automatic expiry policy. Use `learning disable` to stop background l
 
 `uninstall --global` removes recorded global integrations, and `uninstall --local` removes recorded integrations in the current repository. Ownership checks keep unrelated content and refuse conflicting managed edits.
 
-`shadowclone forget --all` restores or removes recorded managed files and deletes the local state of Shadowclone, including task worktrees and original snapshots. Preserve unfinished work first. A conflicting maintained file can stop the operation before it completes.
+`shadowclone forget --all` restores or removes recorded managed files and deletes the local state of shadowclone, including task worktrees and original snapshots. Preserve unfinished work first. A conflicting maintained file can stop the operation before it completes.
 
 Original transcripts, native memory, provider-retained requests, external repositories, backups, remote branches, PRs, Git history, and repository harness files remain. Use `undo` before you delete revision history, or remove harness files through version control. There are no source-specific or repository-specific forget flags.
 
 ## Managed installations and reports
 
-Root-owned managed policy can disable Shadowclone or restrict sources, engines, origins, and action tiers. It governs this installation, not other programs under the same account. `local-only` blocks hosted learning, and no local model engine exists.
+Root-owned managed policy can disable shadowclone or restrict sources, engines, origins, and action tiers. It governs this installation, not other programs under the same account. `local-only` blocks hosted learning, and no local model engine exists.
 
 Report exposures privately through [security reporting](../SECURITY.md). Public reports should hold synthetic examples and reviewed summaries, never raw transcripts, private receipts, credentials, or identifying paths.
 

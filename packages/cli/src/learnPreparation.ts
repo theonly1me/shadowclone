@@ -39,7 +39,7 @@ export async function prepareManualLearning(options: {
   });
 
   if (!policy.enabled) {
-    throw new Error("Shadowclone is disabled by managed policy");
+    throw new Error("shadowclone is disabled by managed policy");
   }
 
   if (process.stdin.isTTY && process.env.SHADOWCLONE_INTERNAL_RUN !== "1") {

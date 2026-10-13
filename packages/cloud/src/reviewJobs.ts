@@ -29,7 +29,7 @@ function installSteps(options: { readonly pins: ReviewPins; readonly versions: R
   return `      - uses: ${options.pins.setupBun}
         with:
           bun-version: ${options.versions.bun}
-      - name: Install Shadowclone
+      - name: Install shadowclone
         working-directory: \${{ runner.temp }}
         run: |
           npm install --global --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/shadowclone" "@shadowclone/cli@${options.versions.shadowclone}"${claude}`;

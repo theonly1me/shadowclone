@@ -63,7 +63,7 @@ test("closes an unfinished fence before profile metadata", () => {
   );
 });
 
-test("import never reads back the harness Shadowclone writes", () => {
+test("import never reads back the harness shadowclone writes", () => {
   const skill = renderFeatureWorkflowSkill({ gate: null });
 
   expect(

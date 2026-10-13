@@ -26,4 +26,4 @@ Raw receipts can contain repository code and personal guidance. Reduced reports 
 
 Use independently authored fixtures for scope collisions, changing source files, malformed profiles, unsafe archive entries, storage permissions, output caps, cancellation, and blocked host access. Run platform-specific enforcement tests on the platform that they claim to support.
 
-These controls constrain the processes and storage of Shadowclone. They do not make authorized provider requests offline. They do not guarantee perfect secret detection. They do not make private code safe to publish. [Data handling](../data-handling.md) describes what each operation can expose.
+These controls constrain the processes and storage of shadowclone. They do not make authorized provider requests offline. They do not guarantee perfect secret detection. They do not make private code safe to publish. [Data handling](../data-handling.md) describes what each operation can expose.

@@ -7,8 +7,8 @@ Maintainers run these suites from a source checkout. The published CLI does not 
 - **Preference benchmark** (`bun run eval --protocol preference-respect-v3`): how well learning keeps your rules and agents receive them. Earlier protocols `preference-respect-v1`, `preference-respect-v2`, and `preference-study-v1` still run.
 - **Routing experiment** (the same command with `--experiment routing`): whether native routing changes skill selection and compliance.
 - **Work suite** (`bun run eval:work`): whether `shadowclone-work` takes a case to a ready pull request.
-- **Workflow outcomes** (`bun run eval --protocol workflow-outcomes-v1`): frozen tasks under existing skills, current Shadowclone, and an evolved workflow.
-- **Code review** ([`code-review/README.md`](code-review/README.md)): Shadowclone, Greptile, and OpenQodex on 40 merged vite pull requests. The [code-review-bench](https://github.com/theonly1me/code-review-bench) harness is a separate repository, so anyone can clone it and run it.
+- **Workflow outcomes** (`bun run eval --protocol workflow-outcomes-v1`): frozen tasks under existing skills, current shadowclone, and an evolved workflow.
+- **Code review** ([`code-review/README.md`](code-review/README.md)): shadowclone, Greptile, and OpenQodex on 40 merged vite pull requests. The [code-review-bench](https://github.com/theonly1me/code-review-bench) harness is a separate repository, so anyone can clone it and run it.
 - **No-comments** ([`no-comments/README.md`](no-comments/README.md)): whether agents write more readable code without comments.
 
 ## Rules for paid runs
@@ -28,9 +28,9 @@ The benchmark has 24 synthetic tasks in eight preference families. They are comm
 
 - **Agent alone:** shared repository requirements.
 - **Existing user skills:** an unchanged handwritten code-style skill.
-- **Existing skills + Shadowclone routing:** the same library with production initialization and native startup guidance.
+- **Existing skills + shadowclone routing:** the same library with production initialization and native startup guidance.
 - **Existing skills + handwritten preferences:** the routed library plus independently handwritten intended guidance.
-- **Existing skills + Shadowclone learning:** the routed library plus the actual learning output.
+- **Existing skills + shadowclone learning:** the routed library plus the actual learning output.
 
 Handwritten and learned guidance share a delivery path and add no answers to task prompts. Saved receipts call them `told` and `deep`. Their gap measures how closely learning follows the intended guidance, and the gap between learning and routing measures its effect.
 

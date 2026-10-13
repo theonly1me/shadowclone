@@ -1,19 +1,19 @@
 # MCP server
 
-The MCP server gives a connected agent seven tools. It runs on your machine and needs no Shadowclone credentials.
+The MCP server gives a connected agent seven tools. It runs on your machine and needs no shadowclone credentials.
 
 ## Start the server
 
-The Shadowclone plugin registers the server and starts `shadowclone mcp` after you install the CLI. For another agent that supports stdio servers, add a server that runs `shadowclone mcp`, then restart the agent session.
+The shadowclone plugin registers the server and starts `shadowclone mcp` after you install the CLI. For another agent that supports stdio servers, add a server that runs `shadowclone mcp`, then restart the agent session.
 
-The server reads one JSON-RPC 2.0 message from standard input on each line. It uses MCP protocol version `2024-11-05` and the methods `initialize`, `tools/list`, and `tools/call`. The tools follow your consent settings and managed policy. If policy turns Shadowclone off, they return "Shadowclone context is disabled.", an error, or no results. Opening the server makes no model request.
+The server reads one JSON-RPC 2.0 message from standard input on each line. It uses MCP protocol version `2024-11-05` and the methods `initialize`, `tools/list`, and `tools/call`. The tools follow your consent settings and managed policy. If policy turns shadowclone off, they return "shadowclone context is disabled.", an error, or no results. Opening the server makes no model request.
 
 ## Tools
 
 - `shadowclone_context` returns the learned skills and native routing for the repository where the server runs, the same text as `shadowclone context`.
 - `shadowclone_remember` takes `text` (1 to 8,192 characters) and `scope` (`repository` or `global`). It records the preference locally and returns "Recorded preference" with its key. The tool description tells the agent never to infer consent from a task or an interruption.
 - `shadowclone_history` returns a JSON list of revision identifiers with their times and counts.
-- `shadowclone_skills_status` returns JSON with `roots` (the enabled skill roots), `managed` (the skills that Shadowclone maintains), and `pending` (the items that wait for review). It makes no model call.
+- `shadowclone_skills_status` returns JSON with `roots` (the enabled skill roots), `managed` (the skills that shadowclone maintains), and `pending` (the items that wait for review). It makes no model call.
 - `shadowclone_bot` configures the cloud bot or reads its status.
 
 Tools other than `shadowclone_context` reject unlisted input fields.

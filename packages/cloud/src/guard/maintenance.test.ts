@@ -95,12 +95,12 @@ test("a PR pause event cancels only that branch's active clone runs", async () =
         {
           id: 90,
           status: "in_progress",
-          display_title: "Shadowclone shadowclone/issue-1 [issues:1:]",
+          display_title: "shadowclone shadowclone/issue-1 [issues:1:]",
         },
         {
           id: 91,
           status: "in_progress",
-          display_title: "Shadowclone shadowclone/issue-3 [issues:3:]",
+          display_title: "shadowclone shadowclone/issue-3 [issues:3:]",
         },
       ],
     },
@@ -138,10 +138,10 @@ test("duplicate events and the daily branch budget prevent a worker", async () =
   };
 
   for (const runs of [
-    [{ id: 90, display_title: "Shadowclone shadowclone/issue-1 [issues:1:]" }],
+    [{ id: 90, display_title: "shadowclone shadowclone/issue-1 [issues:1:]" }],
     Array.from({ length: 10 }, (_, index) => ({
       id: index + 50,
-      display_title: `Shadowclone shadowclone/issue-1 [event:${index}]`,
+      display_title: `shadowclone shadowclone/issue-1 [event:${index}]`,
     })),
   ]) {
     const { request } = githubFixture({

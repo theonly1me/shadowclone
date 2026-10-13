@@ -23,4 +23,4 @@ For a shared skill build, use the **Shared · this repository** scope ([Agent bu
 
 Run `shadowclone check --changed` to check your uncommitted work, or `shadowclone check` for the whole repository. A local Claude Stop hook runs these checks before the agent finishes. Other agents get the checks through the repository instructions.
 
-`shadowclone sync` refreshes the setup. Your text outside the managed sections stays yours, and Shadowclone keeps an edited managed section for your review. A skill left out of the routing can still reach an agent through its global configuration.
+`shadowclone sync` refreshes the setup. Your text outside the managed sections stays yours, and shadowclone keeps an edited managed section for your review. A skill left out of the routing can still reach an agent through its global configuration.

@@ -98,7 +98,7 @@ export async function prepareIntegrationFiles(options: {
     } else {
       const prefix =
         previous === null && options.integration.agent === "cursor"
-          ? "---\ndescription: Personal engineering preferences from Shadowclone\nalwaysApply: true\n---\n"
+          ? "---\ndescription: Personal engineering preferences from shadowclone\nalwaysApply: true\n---\n"
           : previous;
       const importsPeer = importsPeerInstructions({
         integration: options.integration,
@@ -118,7 +118,7 @@ export async function prepareIntegrationFiles(options: {
       const empty =
         next.trim() === "" ||
         next ===
-          "---\ndescription: Personal engineering preferences from Shadowclone\nalwaysApply: true\n---\n";
+          "---\ndescription: Personal engineering preferences from shadowclone\nalwaysApply: true\n---\n";
 
       if (options.remove && recorded?.created && empty) {
         next = null;

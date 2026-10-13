@@ -27,7 +27,7 @@ New sources need integration tests proving the adapter-to-redaction path, includ
 
 Keep derived learning, revisions, backups, and private evaluation evidence in user-owned storage outside this public checkout. Use independently authored synthetic fixtures. Do not copy private material into ignored repository files.
 
-The index stores locators and metadata, without captured text. Shadowclone creates no raw transcript archive and does not upload or synchronize private learning state by default.
+The index stores locators and metadata, without captured text. No raw transcript archive exists, and shadowclone does not upload or synchronize private learning state by default.
 
 Preserve manual edits, ownership fingerprints, permissions, and supporting resources when publishing skills. Keep third-party packages and native memory read-only. Record reversible revisions and block overwrites when intervening edits conflict.
 

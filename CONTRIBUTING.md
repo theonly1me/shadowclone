@@ -4,7 +4,7 @@
 
 Install [Bun](https://bun.sh) 1.4.2, as `package.json` declares. Run `bun install` and `bun run check`.
 
-Use `bun run cli` to run Shadowclone from the checkout. A command that calls a model needs an installed and authenticated `claude`, `codex`, or `cursor-agent` CLI. Tests use synthetic fixtures and need no account. On Linux, install `bubblewrap`, `socat`, and `ripgrep` for the sandbox tests. Linux also needs usable unprivileged user namespaces. macOS uses the system `sandbox-exec` command. Run native sandbox tests outside an outer sandbox that blocks local proxy sockets. `bun run cli init` changes your local setup, so use isolated test paths for installation, learning, or removal tests.
+Use `bun run cli` to run shadowclone from the checkout. A command that calls a model needs an installed and authenticated `claude`, `codex`, or `cursor-agent` CLI. Tests use synthetic fixtures and need no account. On Linux, install `bubblewrap`, `socat`, and `ripgrep` for the sandbox tests. Linux also needs usable unprivileged user namespaces. macOS uses the system `sandbox-exec` command. Run native sandbox tests outside an outer sandbox that blocks local proxy sockets. `bun run cli init` changes your local setup, so use isolated test paths for installation, learning, or removal tests.
 
 ## Repository layout
 

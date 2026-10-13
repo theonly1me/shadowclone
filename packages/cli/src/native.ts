@@ -127,7 +127,7 @@ export async function handleNativeCommand(options: {
   if (options.command === "context" && options.arguments.length === 0) {
     console.log(
       (await compileContext({ cwd: process.cwd() })) ??
-        "Shadowclone guidance is disabled by policy.",
+        "shadowclone guidance is disabled by policy.",
     );
 
     return true;
@@ -167,7 +167,7 @@ export async function handleNativeCommand(options: {
     if (await syncLearningEnvironment(projectPaths, { onSkipped: (entries) => skipped.push(...entries) })) {
       for (const entry of skipped) {
         console.log(
-          `Did not update ${entry.agent}: ${entry.path} is ${entry.target === null ? "not a regular file" : `a symbolic link to ${entry.target}`}. Shadowclone does not write through links, so ${entry.agent} keeps its old routing. Replace the link with a regular file, then run shadowclone sync.`,
+          `Did not update ${entry.agent}: ${entry.path} is ${entry.target === null ? "not a regular file" : `a symbolic link to ${entry.target}`}. shadowclone does not write through links, so ${entry.agent} keeps its old routing. Replace the link with a regular file, then run shadowclone sync.`,
         );
       }
 

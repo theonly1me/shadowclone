@@ -49,7 +49,7 @@ export async function takeReviewPrompt(paths: ProjectPaths): Promise<string> {
   await replaceLocalText({ filePath, previous, next: `${JSON.stringify({ fingerprint: current })}\n` });
 
   return [
-    `Shadowclone has ${waiting.length} proposal(s) that need the user's decision.`,
+    `shadowclone has ${waiting.length} proposal(s) that need the user's decision.`,
     "After you answer the user's first request, load the shadowclone-context skill, show each proposal, and ask the user with your multiple-choice question tool.",
   ].join(" ");
 }

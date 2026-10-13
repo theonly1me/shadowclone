@@ -24,11 +24,11 @@ export async function allowWorker(options: {
     return false;
   }
 
-  const title = `Shadowclone ${trigger.branch} [${trigger.key}]`;
+  const title = `shadowclone ${trigger.branch} [${trigger.key}]`;
   const previous = runs.filter(
     (run) =>
       run.id !== context.runId &&
-      String(run.display_title).startsWith(`Shadowclone ${trigger.branch} [`),
+      String(run.display_title).startsWith(`shadowclone ${trigger.branch} [`),
   );
 
   if (previous.length >= clone.maximumRuns || previous.some((run) => run.display_title === title)) {
@@ -66,7 +66,7 @@ export async function cancelBranchWork(options: {
   for (const run of runs) {
     if (
       ["queued", "in_progress", "waiting", "pending"].includes(String(run.status)) &&
-      String(run.display_title).startsWith(`Shadowclone ${options.branch} [`)
+      String(run.display_title).startsWith(`shadowclone ${options.branch} [`)
     ) {
       await options.request(
         `POST /repos/${options.clone.repository}/actions/runs/${run.id}/cancel`,

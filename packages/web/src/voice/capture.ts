@@ -78,7 +78,7 @@ export function createVoiceCapture(
       exclusive(async () => {
         const writing = await collectWriting({ ...context, run: context.hostRunner, signal });
 
-        if (writing.length < 3) throw new Error("Shadowclone found too little writing of your own to describe a voice");
+        if (writing.length < 3) throw new Error("shadowclone found too little writing of your own to describe a voice");
 
         const connection = await generationEngine(context);
         const draft = await structuredCall({

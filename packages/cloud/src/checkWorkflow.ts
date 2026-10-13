@@ -26,7 +26,7 @@ export function checkWorkflow(options: {
 }): string {
   const { clone, pins } = options;
 
-  return `name: Shadowclone check
+  return `name: shadowclone check
 on:
   workflow_dispatch:
 permissions:

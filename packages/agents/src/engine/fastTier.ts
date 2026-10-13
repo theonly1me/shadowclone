@@ -9,7 +9,7 @@ export type FastTier = {
 };
 
 export const fastSystemPrompt =
-  "You answer requests from Shadowclone, a local tool. Reply with exactly the JSON that the request asks for. You have no tools.";
+  "You answer requests from shadowclone, a local tool. Reply with exactly the JSON that the request asks for. You have no tools.";
 
 const fastTiers: Readonly<Partial<Record<EngineId, FastTier>>> = {
   "claude-code": {

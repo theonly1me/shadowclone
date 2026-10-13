@@ -51,14 +51,14 @@ test("returns the scoped context through the context tool", () => {
       method: "tools/call",
       params: { name: "shadowclone_context", arguments: {} },
     },
-    context: "# Shadowclone guidance\n\n- Use Bun.",
+    context: "# shadowclone guidance\n\n- Use Bun.",
   });
 
   expect(response).toEqual({
     jsonrpc: "2.0",
     id: "call-1",
     result: {
-      content: [{ type: "text", text: "# Shadowclone guidance\n\n- Use Bun." }],
+      content: [{ type: "text", text: "# shadowclone guidance\n\n- Use Bun." }],
       isError: false,
     },
   });

@@ -19,7 +19,7 @@ export async function exportGuidance(options: {
   });
 
   if (!policy.enabled || !policy.allowedSources.includes("git-metadata")) {
-    throw new Error("Managed policy disables Shadowclone.");
+    throw new Error("Managed policy disables shadowclone.");
   }
 
   const repository = await resolveRepository({

@@ -8,12 +8,12 @@ That harness cannot support a public claim:
 
 - It has one kind of case: a merged pull request with at most one known defect.
 - It has no case with many planted defects in a large change.
-- It does not keep the cases that find Shadowclone bugs apart from the cases that score it.
+- It does not keep the cases that find shadowclone bugs apart from the cases that score it.
 - It runs each review once, so it shows no spread between runs.
 
 ## Decision
 
-The [code-review-bench](https://github.com/theonly1me/code-review-bench) repository replaces `evals/pr-review`. It has one case format, two suites, a set of arms, and two graders. It is separate from Shadowclone and runs each reviewer through its public CLI or bot, so anyone can clone it and run it.
+The [code-review-bench](https://github.com/theonly1me/code-review-bench) repository replaces `evals/pr-review`. It has one case format, two suites, a set of arms, and two graders. It is separate from shadowclone and runs each reviewer through its public CLI or bot, so anyone can clone it and run it.
 
 **Case.** A case is a local repository with `main` at the base and `case` at the head. The case also lists its known defects. Each defect has a summary, a fix, and its locations when they are known. A case with no known defect is a clean case. Each case belongs to the `dev` split or the `scored` split. The case repository has a neutral path, so no reviewer sees the case name.
 
@@ -35,7 +35,7 @@ The [code-review-bench](https://github.com/theonly1me/code-review-bench) reposit
 **Order.**
 
 1. Build the harness and pilot one case for each suite and arm.
-2. Fix Shadowclone bugs with the `dev` split only.
+2. Fix shadowclone bugs with the `dev` split only.
 3. Freeze the versions of each reviewer, Claude Code, and the model.
 4. Run every `scored` case once for each repeat, with 3 repeats for the local arms.
 5. Grade, then publish the results with the raw outputs.
@@ -43,7 +43,7 @@ The [code-review-bench](https://github.com/theonly1me/code-review-bench) reposit
 ## Consequences
 
 - The cloud arms review only cases that do not change a workflow.
-- Shadowclone shows the results in [`evals.md`](../../evals.md) and links to the harness.
+- shadowclone shows the results in [`evals.md`](../../evals.md) and links to the harness.
 - The first harness and its results stay in the history of this record and of [036](036-pull-request-review.md).
 
 ## Verification

@@ -133,8 +133,8 @@ export async function planOwnedFile(options: {
 
   const reason =
     options.recorded === undefined
-      ? "already exists and is not managed by Shadowclone"
-      : "was edited after Shadowclone wrote it";
+      ? "already exists and is not managed by shadowclone"
+      : "was edited after shadowclone wrote it";
 
   return {
     ...base,

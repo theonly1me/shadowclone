@@ -27,8 +27,8 @@ Sets up a repository harness: shared agent instructions, skills, and checks. It 
 - The plan holds each file's previous text. The write fails when a file changed after the plan.
 - The shared rule section is at most `harnessRuleByteBudget` (6144) bytes.
 - Personal guidance enters shared files only with the `personal` option.
-- A personal skill cannot replace a skill that Shadowclone authors.
-- Shadowclone rewrites only the text between its own markers. A symbolic link is `skipped`. A changed or malformed section is `preserved`.
+- A personal skill cannot replace a skill that shadowclone authors.
+- shadowclone rewrites only the text between its own markers. A symbolic link is `skipped`. A changed or malformed section is `preserved`.
 
 ## Tests
 

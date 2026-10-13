@@ -1,10 +1,10 @@
-# Compare Shadowclone with related tools
+# Compare shadowclone with related tools
 
 ## Problem
 
-A reader who finds Shadowclone already knows other agent tools. Some keep skills, some learn from sessions, and some run agents in parallel. The README does not say how Shadowclone differs from them. So a reader can file it as one more memory plugin or one more agent.
+A reader who finds shadowclone already knows other agent tools. Some keep skills, some learn from sessions, and some run agents in parallel. The README does not say how shadowclone differs from them. So a reader can file it as one more memory plugin or one more agent.
 
-The README also does not say that Shadowclone is not a separate agent. It gives skills to Claude Code, Codex, Cursor, Pi, and Antigravity. The cloud bot runs Claude Code or Codex with the same skills.
+The README also does not say that shadowclone is not a separate agent. It gives skills to Claude Code, Codex, Cursor, Pi, and Antigravity. The cloud bot runs Claude Code or Codex with the same skills.
 
 ## Decision
 
@@ -13,7 +13,7 @@ Lead the README with two promises:
 1. One set of skills and instructions reaches every supported agent, so the user does not copy rules between tools.
 2. The same skills reach the cloud bot, so code that the bot writes or reviews follows the same preferences.
 
-Keep learning, bundled skills, builds, and reviews. They are the way that Shadowclone keeps that set current.
+Keep learning, bundled skills, builds, and reviews. They are the way that shadowclone keeps that set current.
 
 Add a short comparison table to the README. It asks five questions about each tool:
 
@@ -31,9 +31,9 @@ Add a short comparison table to the README. It asks five questions about each to
 | Claude Subconscious     | A background agent that learns from Claude Code sessions |
 | imprint                 | A profile trained from Claude Code session history       |
 
-Agent workspaces, such as herdr, Orca, and cmux, stay out of the table. They run agents side by side and do not maintain guidance. A row for them suggests that they compete with Shadowclone, but they are a different category.
+Agent workspaces, such as herdr, Orca, and cmux, stay out of the table. They run agents side by side and do not maintain guidance. A row for them suggests that they compete with shadowclone, but they are a different category.
 
-Add `docs/guides/comparison.md` with one section for each tool. Each section says what the tool is, how it differs, whether it can run with Shadowclone, and its primary sources.
+Add `docs/guides/comparison.md` with one section for each tool. Each section says what the tool is, how it differs, whether it can run with shadowclone, and its primary sources.
 
 Use only facts from each project's own repository or documentation. Write "not stated" when those pages do not answer a question. Record the date of the check on the page.
 

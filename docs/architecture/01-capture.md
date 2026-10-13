@@ -14,7 +14,7 @@ After consent, repository instruction import accepts the three supported root in
 
 The event index holds no transcript text. A file reference selects a bounded byte range. A Cursor reference selects a text field in a content-addressed SQLite blob. `resolveRedacted` checks the reference and redacts the selected text before it becomes learning input.
 
-Only user-authored text is learning evidence. Learning removes Shadowclone guidance sections from user text, and it skips text that has an unmatched section marker. Tool results, tool-returned file contents, thinking blocks, and data-access results get no eligible reference. Agent responses, plans, and questions appear only as labeled context beside a user correction.
+Only user-authored text is learning evidence. Learning removes shadowclone guidance sections from user text, and it skips text that has an unmatched section marker. Tool results, tool-returned file contents, thinking blocks, and data-access results get no eligible reference. Agent responses, plans, and questions appear only as labeled context beside a user correction.
 
 ## Incremental reads
 

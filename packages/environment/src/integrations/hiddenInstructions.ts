@@ -13,7 +13,7 @@ export class HiddenInstructionsError extends Error {
   }) {
     super(
       options.installed
-        ? `${options.override}, which Shadowclone created, hides ${options.hidden} from Codex`
+        ? `${options.override}, which shadowclone created, hides ${options.hidden} from Codex`
         : `${options.override} would hide ${options.hidden} from Codex`,
     );
     this.name = "HiddenInstructionsError";

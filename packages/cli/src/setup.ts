@@ -53,8 +53,8 @@ export async function handleSetupCommand(options: {
         parsed.json
           ? JSON.stringify({ initialized })
           : initialized
-            ? "Shadowclone is initialized."
-            : "Shadowclone is not initialized.",
+            ? "shadowclone is initialized."
+            : "shadowclone is not initialized.",
       );
 
       return true;
@@ -62,7 +62,7 @@ export async function handleSetupCommand(options: {
 
     if (await Bun.file(projectPaths.configFile).exists()) {
       console.log(
-        "Shadowclone is already initialized; existing consent settings were preserved.",
+        "shadowclone is already initialized; existing consent settings were preserved.",
       );
 
       return true;

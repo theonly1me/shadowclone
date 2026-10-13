@@ -71,7 +71,7 @@ export async function takeLearningNotice(paths: ProjectPaths): Promise<string> {
   });
 
   return [
-    "Shadowclone triaged learned rules after the last session.",
+    "shadowclone triaged learned rules after the last session.",
     notice.applied.length > 0 ? `It applied ${notice.applied.length}: ${namedTitles(notice.applied)}.` : "",
     notice.discarded.length > 0 ? `It discarded ${notice.discarded.length} duplicate or covered rule(s): ${namedTitles(notice.discarded)}.` : "",
     "Tell the user once in your first reply.",

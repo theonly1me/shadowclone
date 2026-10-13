@@ -66,7 +66,7 @@ test("a credential quoted by the model is redacted before posting", () => {
 test("a review with no findings still says what it reviewed", () => {
   const payload = reviewPayload(result([]));
 
-  expect(payload.body).toStartWith("Shadowclone reviewed bbbbbbb and found no defect that it could confirm.");
+  expect(payload.body).toStartWith("shadowclone reviewed bbbbbbb and found no defect that it could confirm.");
   expect(payload.body).toEndWith(reviewMarker);
 });
 

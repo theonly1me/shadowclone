@@ -120,7 +120,7 @@ export async function collectWriting(options: {
   readonly signal?: AbortSignal;
 }): Promise<readonly Writing[]> {
   if (!(await githubWritingAllowed(options))) {
-    throw new Error("Allow Shadowclone to read your GitHub writing before you capture your voice");
+    throw new Error("Allow shadowclone to read your GitHub writing before you capture your voice");
   }
 
   const run = options.run ?? runHostCommand;

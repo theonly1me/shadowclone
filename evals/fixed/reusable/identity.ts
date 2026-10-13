@@ -4,7 +4,7 @@ import { fixedGraderFingerprint } from "../identity";
 
 export async function graderFingerprint() {
   if (!(await Bun.file(path.join(import.meta.dir, "grading.ts")).exists()))
-    throw new Error("This contributor evaluation requires a Shadowclone source checkout.");
+    throw new Error("This contributor evaluation requires a shadowclone source checkout.");
   const sources: [string, string][] = [];
   for (const name of [
     "grading.ts",

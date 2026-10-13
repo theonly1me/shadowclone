@@ -35,7 +35,7 @@ Skills group first by source: bundled skills, working preferences, custom skills
 
 ### Horizontal star map
 
-- The Shadowclone root sits at the left. Each hub has its own row, and its skills form a wrapping constellation to the right.
+- The shadowclone root sits at the left. Each hub has its own row, and its skills form a wrapping constellation to the right.
 - All hubs stay expanded. The page scrolls vertically. There is no pan, no zoom, and no Fit or Reset button.
 - The map uses the full width, and the character sheet stays visible on the right.
 - Each skill is a button with a target of at least 44 px and a label of 13 to 14 px.
@@ -108,7 +108,7 @@ Many users keep one copy of their instructions and skills in `~/.agents` and lin
 Decisions:
 
 - Skill copies: a destination folder can link to the skill's own source or to another destination of the same skill. Then the agent already reads that file. The wizard does not write or track it. The wizard skips a link to anything else, and the review names the link and its target.
-- Instruction files: a global instruction file can link to a regular file inside the home folder. Then Shadowclone keeps the link and writes its block into that real file. The review shows the real path, and undo restores it. Shadowclone skips a link to anything else, as before.
+- Instruction files: a global instruction file can link to a regular file inside the home folder. Then shadowclone keeps the link and writes its block into that real file. The review shows the real path, and undo restores it. shadowclone skips a link to anything else, as before.
 - One block per agent: `~/.claude/CLAUDE.md` can import, with `@`, the file that the instruction file of another agent resolves to. Then Claude Code gets no block of its own. It reads the shared block through the import.
 - `integrationFilePath` resolves the link, so install, sync, the wizard, and removal agree on one path.
 

@@ -19,7 +19,7 @@ function pullBody(options: { readonly clone: Clone; readonly update: boolean }):
 
   return `## What changed
 
-- [x] ${options.update ? "Render" : "Add"} the Shadowclone workflows for ${clone.botLogin}.
+- [x] ${options.update ? "Render" : "Add"} the shadowclone workflows for ${clone.botLogin}.
 - [x] Read the reviewed skills from the private repository ${clone.skillsRepository} with a read-only deploy key.
 
 ## Why

@@ -1,6 +1,6 @@
 # Learning
 
-Shadowclone learns reusable instructions and corrections from the sources that you enable. Learning with a model needs an installed and configured `claude`, `codex`, `cursor-agent`, or `pi` CLI. Antigravity supports capture and native guidance only. For Pi, see [Pi setup](pi.md). Run `shadowclone init --advanced` to choose the sources that Shadowclone can read.
+shadowclone learns reusable instructions and corrections from the sources that you enable. Learning with a model needs an installed and configured `claude`, `codex`, `cursor-agent`, or `pi` CLI. Antigravity supports capture and native guidance only. For Pi, see [Pi setup](pi.md). Run `shadowclone init --advanced` to choose the sources that shadowclone can read.
 
 ## Run deep learning
 
@@ -8,11 +8,11 @@ Shadowclone learns reusable instructions and corrections from the sources that y
 shadowclone learn --deep
 ```
 
-Shadowclone compares eligible evidence with your existing guidance and proposes changes for you to review. The model merges overlapping rules, and each new rule ends up merged, kept, or dropped with a reason. Press Enter at the review prompt to leave rules pending.
+shadowclone compares eligible evidence with your existing guidance and proposes changes for you to review. The model merges overlapping rules, and each new rule ends up merged, kept, or dropped with a reason. Press Enter at the review prompt to leave rules pending.
 
 Each run allows up to 20 model calls and 5 minutes. The first pass in interactive setup allows 12 calls and 90 seconds. Run it again if the result says that more history remains. `--dry-run` previews and still calls the model. `--apply` skips the confirmation prompt. `--engine`, `--model`, and `--reasoning-effort` choose the engine, model, and effort. `--max-calls <n>` sets the call ceiling.
 
-Plain `shadowclone learn` indexes and reports on your machine, with no model call. On Linux, Claude Code learning needs `bwrap` and `socat`, and Shadowclone names any missing command.
+Plain `shadowclone learn` indexes and reports on your machine, with no model call. On Linux, Claude Code learning needs `bwrap` and `socat`, and shadowclone names any missing command.
 
 ## Review learned rules
 
@@ -22,17 +22,17 @@ Approval records the rule and tries to publish it in its scope, within the learn
 
 - If a skill draft fails validation, the model gets one repair turn with the exact error. If the repair fails or no learning call is left, the rule stays pending with both errors.
 - If a source that supports the rule is now disabled, the rule stays pending.
-- If a learned rule reads like an instruction to an agent, such as "ignore all previous instructions", Shadowclone holds it before any model sees it. `learn` prints the count. Rewrite it with `learning replace`, or remove it with `learning retire`.
+- If a learned rule reads like an instruction to an agent, such as "ignore all previous instructions", shadowclone holds it before any model sees it. `learn` prints the count. Rewrite it with `learning replace`, or remove it with `learning retire`.
 
 `learning status` shows the latest private attempt receipt. Start a new agent session after a rule becomes active. Publication confirms installation, not compliance.
 
 ## Background learning
 
-Background learning has its own consent. After `shadowclone learning enable`, Shadowclone classifies eligible steering inside the same bounded execution as manual learning. A temporary exception or an interruption alone never becomes a standing preference, and cue words need not be English. `learning disable` turns it off.
+Background learning has its own consent. After `shadowclone learning enable`, shadowclone classifies eligible steering inside the same bounded execution as manual learning. A temporary exception or an interruption alone never becomes a standing preference, and cue words need not be English. `learning disable` turns it off.
 
 ## Triage after each session
 
-After each background run, Shadowclone triages the learned rules that wait for publication, in one model call inside the same budget. Each rule gets one result:
+After each background run, shadowclone triages the learned rules that wait for publication, in one model call inside the same budget. Each rule gets one result:
 
 - **Discard** a rule that repeats another rule, published guidance, your instruction files, or your skills. Also discard a rule that names a missing skill or that applied to one task only. The rule becomes a rejection, so it does not return.
 - **Apply** durable guidance that nothing covers. Triage publishes it only when automatic maintenance is on (`shadowclone skills automatic on`).
@@ -65,7 +65,7 @@ Preview each change:
 
 - `learning narrow <key>` moves global or owner-wide guidance into the current verified repository. It never widens a scope.
 - `learning replace <key> "Use complete words in release notes."` makes the typed guidance your direct decision and clears the conflicting proposal.
-- `learning retire <key>` retires the rule. If you retire every rule in a skill that Shadowclone created, Shadowclone removes that skill. It keeps a skill that you wrote or edited.
+- `learning retire <key>` retires the rule. If you retire every rule in a skill that shadowclone created, shadowclone removes that skill. It keeps a skill that you wrote or edited.
 - `learning remove-source codex` retires records that only that source supports and rejects pending proposals with that provenance. Mixed-source and unresolved records stay for single review. Original transcripts, memory, and skills stay.
 
 These commands write nothing until you repeat them with `--apply --expected <fingerprint>` and the printed fingerprint. If learning changed in the meantime, apply stops so that you can review again. Each decision has a revision that you can read with `history` and reverse with `undo`.

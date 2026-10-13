@@ -6,7 +6,7 @@ A personal agent environment can hold guidance from several employers, clients, 
 
 Learning records carry their origin and scope:
 
-- **Project guidance** goes only to its registered repository, after Shadowclone verifies its identity.
+- **Project guidance** goes only to its registered repository, after shadowclone verifies its identity.
 - **Organization guidance** applies inside a matching normalized remote owner.
 - **Global guidance** needs explicit global evidence or a direct instruction from you. Repetition across owners does not make guidance global.
 
@@ -30,8 +30,8 @@ An administrator can place a policy file that root owns at `/Library/Application
 
 User settings can narrow these permissions and cannot widen them.
 
-- `enabled: false` turns Shadowclone off.
-- `local-only` prevents learning with a hosted model. Shadowclone has no local model runner.
+- `enabled: false` turns shadowclone off.
+- `local-only` prevents learning with a hosted model. shadowclone has no local model runner.
 - A `draft` action ceiling prevents remote publishing, even when repository policy allows it.
 
 `shadowclone doctor` reports the effective managed policy. Ownership checks protect the policy file from replacement by ordinary user configuration. These controls govern this installation, not other programs under the same account.
@@ -40,4 +40,4 @@ User settings can narrow these permissions and cannot widen them.
 
 Review the enabled sources, global guidance, approved providers, access to local state, and retention together. Provider access does not authorize you to send every repository or transcript.
 
-Shadowclone does not encrypt local files. Deleting them does not remove data that a provider or a backup keeps. The project claims neither anonymity nor regulatory compliance. Check the implementation and provider agreements against your requirements. Use [private security reporting](../../SECURITY.md) for failures.
+shadowclone does not encrypt local files. Deleting them does not remove data that a provider or a backup keeps. The project claims neither anonymity nor regulatory compliance. Check the implementation and provider agreements against your requirements. Use [private security reporting](../../SECURITY.md) for failures.

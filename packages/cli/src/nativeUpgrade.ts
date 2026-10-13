@@ -38,7 +38,7 @@ export async function offerNativeUpgrade(options: {
   }
 
   const accepted = await (options.ask ?? promptConfirmation)(
-    "Set up Shadowclone's global main-agent context and session hooks now?",
+    "Set up shadowclone's global main-agent context and session hooks now?",
   );
 
   if (accepted) {
