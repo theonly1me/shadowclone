@@ -32,10 +32,24 @@ export type ProjectPaths = {
   readonly cursorChatsDirectory: string;
   readonly piAgentDirectory: string;
   readonly piSessionsDirectory: string;
+  readonly opencodeConfigDirectory: string;
+  readonly opencodeDataDirectory: string;
+  readonly opencodeDatabaseFile: string;
   readonly managedConfigFile: string | null;
   readonly runDirectory: (runId: string) => string;
   readonly worktreeDirectory: (runId: string) => string;
 };
+
+type OpencodeEnvironment = {
+  readonly configDirectory?: string;
+  readonly configHome?: string;
+  readonly dataHome?: string;
+  readonly databaseFile?: string;
+};
+
+function nonEmpty(value: string | undefined): string | undefined {
+  return value === undefined || value === "" ? undefined : value;
+}
 
 function getManagedConfigFile(platform: NodeJS.Platform): string | null {
   if (platform === "darwin") {
@@ -54,7 +68,13 @@ export function createProjectPaths(options: {
   readonly platform: NodeJS.Platform;
   readonly codexHomeDirectory?: string;
   readonly piAgentDirectory?: string;
+  readonly opencode?: OpencodeEnvironment;
 }): ProjectPaths {
+  const opencodeDataDirectory = path.join(
+    nonEmpty(options.opencode?.dataHome) ?? path.join(options.homeDirectory, ".local", "share"),
+    "opencode",
+  );
+
   const shadowcloneDirectory = path.join(
     canonicalPath(options.homeDirectory),
     ".shadowclone",
@@ -97,6 +117,17 @@ export function createProjectPaths(options: {
     cursorChatsDirectory: path.join(options.homeDirectory, ".cursor", "chats"),
     piAgentDirectory: options.piAgentDirectory ?? path.join(options.homeDirectory, ".pi", "agent"),
     piSessionsDirectory: path.join(options.piAgentDirectory ?? path.join(options.homeDirectory, ".pi", "agent"), "sessions"),
+    opencodeConfigDirectory:
+      nonEmpty(options.opencode?.configDirectory) ??
+      path.join(
+        nonEmpty(options.opencode?.configHome) ?? path.join(options.homeDirectory, ".config"),
+        "opencode",
+      ),
+    opencodeDataDirectory,
+    opencodeDatabaseFile: path.resolve(
+      opencodeDataDirectory,
+      nonEmpty(options.opencode?.databaseFile) ?? "opencode.db",
+    ),
     managedConfigFile: getManagedConfigFile(options.platform),
     runDirectory: (runId) => path.join(shadowcloneDirectory, "runs", runId),
     worktreeDirectory: (runId) =>
@@ -109,4 +140,10 @@ export const projectPaths = createProjectPaths({
   platform: process.platform,
   codexHomeDirectory: process.env.CODEX_HOME,
   piAgentDirectory: process.env.PI_CODING_AGENT_DIR,
+  opencode: {
+    configDirectory: process.env.OPENCODE_CONFIG_DIR,
+    configHome: process.env.XDG_CONFIG_HOME,
+    dataHome: process.env.XDG_DATA_HOME,
+    databaseFile: process.env.OPENCODE_DB,
+  },
 });

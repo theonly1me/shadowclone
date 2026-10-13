@@ -98,6 +98,7 @@ export function applyManagedPolicy(options: {
       codex: options.config.sources.codex && sourceAllowed("codex"),
       cursor: options.config.sources.cursor && sourceAllowed("cursor"),
       pi: options.config.sources.pi && sourceAllowed("pi"),
+      opencode: options.config.sources.opencode && sourceAllowed("opencode"),
       "declared-rules":
         options.config.sources["declared-rules"] &&
         sourceAllowed("declared-rules"),

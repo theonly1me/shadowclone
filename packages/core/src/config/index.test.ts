@@ -62,6 +62,7 @@ test("renders named source settings as TOML", () => {
       "codex = false",
       "cursor = false",
       "pi = false",
+      "opencode = false",
       "declared-rules = false",
       "git-metadata = false",
       "github-writing = false",
@@ -86,6 +87,7 @@ test("migrates an existing config with git metadata disabled", async () => {
     .replace("antigravity = false\n", "")
     .replace("declared-rules = false\n", "")
     .replace("pi = false\n", "")
+    .replace("opencode = false\n", "")
     .replace("git-metadata = false\n", "")
     .replace("github-writing = false\n", "");
 
@@ -97,6 +99,7 @@ test("migrates an existing config with git metadata disabled", async () => {
   expect(migrated.sources["git-metadata"]).toBeFalse();
   expect(migrated.sources["github-writing"]).toBeFalse();
   expect(migrated.sources.pi).toBeFalse();
+  expect(migrated.sources.opencode).toBeFalse();
 });
 
 test("migrates an existing config with Antigravity disabled", async () => {
