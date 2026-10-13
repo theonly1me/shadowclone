@@ -81,7 +81,7 @@ export async function materializeSkillDelivery(options: {
     )
   ).flatMap((skill) => (skill === null ? [] : [skill]));
 
-  const skills = [
+  const candidates = [
     ...new Map([
       ...published.map(
         (skill) =>
@@ -91,6 +91,7 @@ export async function materializeSkillDelivery(options: {
               filePath: skill.filePath,
               name: skill.name,
               description: skill.description,
+              repository: skill.scope !== "global",
             },
           ] as const,
       ),
@@ -102,11 +103,23 @@ export async function materializeSkillDelivery(options: {
               filePath: path.join(skill.root.directory, skill.relativePath),
               name: skill.name,
               description: skill.description,
+              repository: skill.root.scope === "repository",
             },
           ] as const,
       ),
     ]).values(),
   ];
+  const chosen = new Map<string, (typeof candidates)[number]>();
+
+  for (const skill of candidates) {
+    const current = chosen.get(skill.name);
+
+    if (!current || (skill.repository && !current.repository)) {
+      chosen.set(skill.name, skill);
+    }
+  }
+
+  const skills = [...chosen.values()];
 
   const catalog = [];
   let bytes = 0;

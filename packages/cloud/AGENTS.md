@@ -27,7 +27,7 @@ Sets up the GitHub bot, writes its workflows, exports reviewed guidance, and che
 - Secrets reach GitHub only through the standard input of `gh secret set`. Workflows name a secret and never hold its value.
 - Setup refuses a `shadowclone` environment that allows a branch other than the default branch.
 - `exportGuidance` refuses an unknown or blocked repository origin. It requires the `shadowclone-work` skill.
-- Setup leaves out a selected skill that has no copy on disk, and the setup output names it. Delivery uses any recorded copy that still exists.
+- Setup leaves out a selected skill that has no copy on disk, and the setup output names it. Delivery uses any recorded copy that still exists, and it keeps one copy of each skill name.
 - Files in `src/guard/` and `react.ts` run inside the generated workflow. They import only each other and types.
 - The guard starts work or a review only when a person with write, maintain, or admin access tags the bot. It checks the live entity, the pause label, and the run budget before a worker starts.
 - Workflows read only the API key of the chosen provider. They never read a subscription login.
