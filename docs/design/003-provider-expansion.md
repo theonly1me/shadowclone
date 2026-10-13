@@ -52,3 +52,34 @@ Browser generation previews show the selected model and keep that selection for 
 The installed-harness checks used Pi 1.0.0 and synthetic material. Pi's existing coding loop wrote a requested function through Ollama. Its command bridge completed a prepared, tool-free model call with an exact provider/model selection. A later Pi session loaded the published native routing and found the shared skill after publication. The publication used valid synthetic learning responses.
 
 The complete Pi/Ollama learning cycle remains unqualified with the tested local models. `llama3.2:latest` produced invalid learning JSON or schema results, and shadowclone rejected them. `deepseek-r1:8b` exceeded the bounded learning deadline, and shadowclone cancelled it. These outcomes establish the rejection and cancellation behavior. They do not establish successful preference extraction with those models. Synthetic contracts cover successful learning publication, lifecycle deduplication, provider extensions, ancestry, redaction, and reversible installation. Dispatch and evaluation remain disabled.
+
+## OpenCode integration
+
+OpenCode is a capture and native-integration provider. It is not an inference engine. Shadowclone supports the OpenCode 1.x line (`opencode-ai`) and the 2.x line (`@opencode/cli`). Both lines use the `opencode` program, the same configuration folder, and the same database file.
+
+OpenCode has no run mode that turns off tools, instruction files, and skills together. Version 2.x also has no switch for `.claude` skills. A run therefore cannot meet the learning contract. Session-end learning uses the other engine that the user configured. Add a runner only after a live probe proves a tool-free run.
+
+The id `opencode` names the source, the provider, the engine, and the integration agent. The native-end hook and the capture adapter must produce the same session key, so these ids must match.
+
+### Capture
+
+The source `sources.opencode` is false by default. The adapter opens `opencode.db` read-only. The file is in `$XDG_DATA_HOME/opencode` or `~/.local/share/opencode`, and an absolute `OPENCODE_DB` replaces it.
+
+1. The adapter reads the 2.x tables `session_v2` and `session_message` first.
+2. It reads the 1.x tables `session`, `message`, and `part` only for sessions that are not in `session_v2`. Version 2.x copies 1.x sessions with the same id, so a session is read once.
+3. Learning text is text that the user typed. In 1.x, that is a `text` part of a user message without `synthetic` or `ignored`. In 2.x, that is a `user` message.
+4. The adapter skips subagent sessions, because a model wrote their first prompt. Reasoning and tool parts become events with no text pointer.
+
+A row text pointer names the database, the table, the row id, and a JSON path. `resolveRedacted` reads only the `part` and `session_message` tables. Sessions from before OpenCode 1.2.0 are JSON files, and the adapter does not read them.
+
+### Delivery
+
+A global install manages a section in the global `AGENTS.md`, a plugin file, and the shared `~/.agents/skills/shadowclone-context` skill. The configuration folder is `$OPENCODE_CONFIG_DIR`, else `$XDG_CONFIG_HOME/opencode`, else `~/.config/opencode`. A repository install writes `.opencode/plugins/shadowclone.js` and the repository skill. It does not write the repository `AGENTS.md`, which a team can share.
+
+The plugin is one JavaScript file with no imports. It exports the 2.x `setup` form and the 1.x `server` form. When a session starts, the plugin runs `shadowclone hook native-start` and keeps the context that it returns. Before each model call, it adds that context to the system prompt through the 1.x `experimental.chat.system.transform` hook or the 2.x `context` hook. When a session becomes idle, it runs `shadowclone hook native-end`. The `AGENTS.md` section keeps the routing text if the experimental 1.x hook changes.
+
+In 1.x, OpenCode reads `~/.claude/CLAUDE.md` only when the global `AGENTS.md` does not exist. A new global `AGENTS.md` therefore hides that file from OpenCode 1.x. The OpenCode guide states this. OpenCode reads both `~/.agents/skills` and `~/.claude/skills`, so each global skill reaches it twice with the same content.
+
+Shadowclone writes no `opencode.json`. A write that makes the global configuration invalid makes OpenCode drop all of it. The MCP guide shows the entry to add by hand.
+
+The integration targets OpenCode 1.19.0 and 2.0.28.
