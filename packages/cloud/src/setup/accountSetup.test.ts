@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { guidanceFixture } from "../fixtures";
 import { githubState } from "./accountFixture";
+import { readEnvironment, writeEnvironment } from "@shadowclone/environment";
 import { organizationMergeWarning, setUpAccountClone } from "./accountSetup";
 
 test("setup opens the signup page when the bot account does not exist, and changes nothing", async () => {
@@ -124,6 +125,56 @@ test("an OpenAI-compatible setup without a base URL stops before it writes anyth
       model: "sample-model",
       ...github,
     })).rejects.toThrow("An OpenAI-compatible provider needs an https base URL, and other providers take none.");
+    expect(github.events).toEqual([]);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test("setup names a build skill that has no copy left before it asks for approval", async () => {
+  const fixture = await guidanceFixture();
+  const github = githubState({ botExists: true });
+  const state = await readEnvironment(fixture.paths);
+
+  if (!state) {
+    throw new Error("Expected the synthetic environment");
+  }
+
+  await writeEnvironment({
+    paths: fixture.paths,
+    state: {
+      ...state,
+      builds: [{ scope: "global", choices: {}, edits: {}, custom: [], directory: fixture.root, id: "global" }],
+      artifacts: [
+        ...state.artifacts,
+        {
+          filePath: `${fixture.root}/home/.agents/skills/deleted-review/SKILL.md`,
+          fingerprint: "synthetic",
+          original: null,
+          kind: "skill",
+          scope: "global",
+          name: "deleted-review",
+          description: "Synthetic skill.",
+          learningKeys: [],
+          buildId: "global",
+        },
+      ],
+    },
+  });
+
+  try {
+    const outcome = await setUpAccountClone({
+      ...fixture,
+      repository: "sample/project",
+      botLogin: "sample-shadow",
+      approveSkills: false,
+      provider: "anthropic",
+      ...github,
+    });
+
+    expect(outcome.kind === "needs-approval" ? outcome.warnings : null).toEqual([
+      "Left out deleted-review: no copy exists on this machine. Restore the skill files, or remove the skills from your build.",
+    ]);
     expect(github.events).toEqual([]);
   } finally {
     await fixture.cleanup();

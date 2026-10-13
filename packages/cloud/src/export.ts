@@ -7,6 +7,8 @@ import { readEffectiveConfig, ownedDirectory } from "@shadowclone/core";
 import { deliveryFingerprint } from "./deliveryFiles";
 import type { Delivery } from "./types";
 
+const identifyingPath = /\/Users\/|\/home\/|\/private\/|(?<!\w)[A-Za-z]:\\/u;
+
 export async function exportGuidance(options: {
   readonly paths: ProjectPaths;
   readonly cwd: string;
@@ -75,7 +77,7 @@ export async function exportGuidance(options: {
         const text = content.toString("utf8");
 
         if (
-          /\/Users\/|\/home\/|\/private\/|[A-Za-z]:\\/u.test(text) ||
+          identifyingPath.test(text) ||
           text.includes(options.cwd)
         ) {
           throw new Error(
@@ -114,7 +116,7 @@ export async function exportGuidance(options: {
 
     if (
       !native ||
-      /\/Users\/|\/home\/|\/private\/|[A-Za-z]:\\/u.test(native) ||
+      identifyingPath.test(native) ||
       native.includes(options.cwd)
     ) {
       throw new Error("The native rules contain identifying paths or are disabled.");

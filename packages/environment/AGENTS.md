@@ -29,6 +29,7 @@ Holds what agents receive: the environment record, skill publication, native ins
 - Native routing text is at most 4096 bytes. A longer text is an error, and the old section stays.
 - shadowclone rewrites only the text between the `<shadowclone-guidance>` markers. Malformed markers are an error.
 - shadowclone replaces an installed file only when its fingerprint matches the install record. A manual edit stays.
+- `materializeSkillDelivery` keeps one copy of each skill name. A repository copy wins over a personal copy, and a missing published copy falls back to a copy that exists.
 - Initialization copies the original skills and native instructions to `environment-baselines/` before it publishes.
 - The skills environment is the only store for learned rules. Without `environment.json`, learning and `remember` stop and say to run `shadowclone init`, and context delivery is empty.
 - A repository with `privateSkillsDirectory` publishes skills only under `~/.shadowclone/builds/`. Its routing names each skill by its file path, and no repository file changes.

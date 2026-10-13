@@ -26,6 +26,7 @@ export type AccountSetupOutcome =
       readonly kind: "needs-approval";
       readonly skillsRepository: string;
       readonly files: readonly { readonly path: string; readonly bytes: number }[];
+      readonly warnings: readonly string[];
     }
   | {
       readonly kind: "configured";
@@ -35,6 +36,10 @@ export type AccountSetupOutcome =
       readonly checklist: readonly ChecklistItem[];
       readonly warnings: readonly string[];
     };
+
+export function leftOutWarning(names: readonly string[]): string {
+  return `Left out ${names.join(", ")}: no copy exists on this machine. Restore the skill files, or remove the skills from your build.`;
+}
 
 export const organizationMergeWarning =
   "In this organization repository, only admins and maintainers can now update the default branch, because the bot has the write role. Write-role members need one of them to merge.";
@@ -80,7 +85,8 @@ export async function setUpAccountClone(
     throw new Error("The bot needs its own GitHub account. Create a machine account for it.");
   }
 
-  const { skills } = await setupSelection(options);
+  const { skills, leftOut } = await setupSelection(options);
+  const selectionWarnings = leftOut.length === 0 ? [] : [leftOutWarning(leftOut)];
   const delivery = await exportGuidance({
     paths: options.paths,
     cwd: options.cwd,
@@ -96,6 +102,7 @@ export async function setUpAccountClone(
         path: file.path,
         bytes: Buffer.from(file.content, "base64").length,
       })),
+      warnings: selectionWarnings,
     };
   }
 
@@ -152,6 +159,9 @@ export async function setUpAccountClone(
     pullUrl,
     environmentUrl: (await environmentState({ call, repository: clone.repository })).page,
     checklist: await readCloudChecklist({ call, clone, pullUrl }),
-    warnings: repository.owner.type === "Organization" ? [organizationMergeWarning] : [],
+    warnings: [
+      ...selectionWarnings,
+      ...(repository.owner.type === "Organization" ? [organizationMergeWarning] : []),
+    ],
   };
 }

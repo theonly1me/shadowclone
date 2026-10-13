@@ -62,6 +62,10 @@ export async function setUpBotInTerminal(options: {
   }
 
   if (first.kind === "needs-approval") {
+    for (const warning of first.warnings) {
+      console.log(warning);
+    }
+
     console.log(`Setup pushes these ${first.files.length} files to the private repository ${first.skillsRepository}:`);
     console.log(first.files.map((file) => `  ${file.path} (${file.bytes} bytes)`).join("\n"));
 

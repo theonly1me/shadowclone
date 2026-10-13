@@ -102,3 +102,22 @@ test("a delivery path that leaves its folder is refused before any file is writt
     await fixture.cleanup();
   }
 });
+
+test("a skill script with a regular expression for a field name still exports", async () => {
+  const fixture = await guidanceFixture();
+
+  try {
+    await Bun.write(
+      path.join(fixture.directory, "scripts", "check.mjs"),
+      "const description = /^description:\\s*(.*)$/.exec(line);\n",
+    );
+
+    const delivery = await exportGuidance({ ...fixture, skills: selection });
+
+    expect(delivery.files.map((file) => file.path)).toContain(
+      "plugins/shadowclone-personal/skills/shadowclone-work/scripts/check.mjs",
+    );
+  } finally {
+    await fixture.cleanup();
+  }
+});

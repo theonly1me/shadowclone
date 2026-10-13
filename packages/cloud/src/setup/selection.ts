@@ -2,7 +2,6 @@ import path from "node:path";
 import {
   type BuildContext,
   learningScopes,
-  publishedSkills,
   readRedactedEnvironment,
 } from "@shadowclone/environment";
 import { resolveRepository, type GitRemoteReader } from "@shadowclone/sessions";
@@ -23,7 +22,7 @@ export async function setupSelection(
     : null;
 
   if (state?.phase !== "active" || !repository) {
-    return { repository: repositoryName, skills: [] };
+    return { repository: repositoryName, skills: [], leftOut: [] };
   }
 
   const scopes = learningScopes({ paths: context.paths, state }).filter(
@@ -37,15 +36,25 @@ export async function setupSelection(
   const personalBuilds = new Set(
     state.builds.filter((build) => build.scope === "global").map((build) => build.id),
   );
-  const names = new Set([
-    "shadowclone-work",
-    ...publishedSkills({ state, scopes: new Set(scopes.map((scope) => scope.key)) }).map(
-      (skill) => skill.name,
-    ),
-    ...state.artifacts
-      .filter((artifact) => artifact.kind === "skill" && personalBuilds.has(artifact.buildId ?? ""))
-      .map((artifact) => artifact.name),
-  ]);
+  const scopeKeys = new Set(scopes.map((scope) => scope.key));
+  const selected = state.artifacts.filter(
+    (artifact) =>
+      artifact.kind === "skill" &&
+      (artifact.buildId ? personalBuilds.has(artifact.buildId) : scopeKeys.has(artifact.scope)),
+  );
+  const available = new Set<string>();
 
-  return { repository: repositoryName, skills: [...names].sort() };
+  for (const artifact of selected) {
+    if (await Bun.file(artifact.filePath).exists()) {
+      available.add(artifact.name);
+    }
+  }
+
+  return {
+    repository: repositoryName,
+    skills: [...new Set(["shadowclone-work", ...available])].sort(),
+    leftOut: [...new Set(selected.map((artifact) => artifact.name))]
+      .filter((name) => !available.has(name) && name !== "shadowclone-work")
+      .sort(),
+  };
 }

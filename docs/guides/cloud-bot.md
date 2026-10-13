@@ -15,7 +15,7 @@ shadowclone bot setup --bot octo-shadow
 You need the GitHub CLI (`gh auth login`), administration access to the repository, and an active shadowclone skills environment.
 
 1. If the account does not exist, setup opens the GitHub signup page. Create the account, then run setup again.
-2. Approve the skill files that setup pushes to your private repository `<you>/shadowclone-skills`. An agent must ask you first.
+2. Approve the skill files that setup pushes to your private repository `<you>/shadowclone-skills`. An agent must ask you first. If a skill in your build has no copy on this machine, setup leaves it out and names it.
 3. Setup protects the default branch, pushes the skills, and adds a read-only deploy key. Then it invites the bot and opens the setup pull request.
 4. Setup prints one link to the `shadowclone` environment page, and the pages that create each secret.
 5. On the environment page, add `SHADOWCLONE_BOT_TOKEN` and the API key of your provider. Make the bot token while you are signed in as the bot: a classic token with only the `repo` scope.
