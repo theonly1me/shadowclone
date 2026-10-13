@@ -93,6 +93,12 @@ The agent prepares the skills repository and workflows. Then it gives you one li
 
 **Keep your key on GitHub.** The bot reads the API key from a GitHub environment, and shadowclone never sees it. Anyone with write access can tag the bot, so set a spending limit in your provider console.
 
+### Cloud sessions on your own machine
+
+**Work as you, on your subscription.** Comment `/shadowclone <task>` on an issue, and Claude Code or Codex works on a spare machine that you own. It uses your Claude or ChatGPT plan, or a key, Ollama, or Foundry. Only your own comment starts a session.
+
+**Ask the agent on the spare machine.** "Set up shadowclone cloud sessions here." Sessions run in Docker, commit as you with a `Co-authored-by` trailer, and never push to the default branch. See the [cloud sessions guide](docs/guides/cloud-sessions.md).
+
 ## How shadowclone compares to other tools
 
 shadowclone gives one set of skills to the agents that you already use, on your machine and on GitHub. The table uses each project's own pages, checked on 12 October 2026. "Not stated" means that those pages do not answer the question.
@@ -151,6 +157,7 @@ Read the [privacy policy](PRIVACY.md) and [data handling](docs/data-handling.md)
 | [OpenCode setup](docs/guides/opencode.md)        | Use OpenCode          |
 | [Delegated work](docs/guides/delegated-work.md)  | Ready a pull request  |
 | [Cloud bot](docs/guides/cloud-bot.md)            | Set up the GitHub bot |
+| [Cloud sessions](docs/guides/cloud-sessions.md)  | Work as you elsewhere |
 | [Reviews](docs/guides/reviews.md)                | Review a pull request |
 | [MCP server](docs/guides/mcp.md)                 | Give agents the tools |
 | [Command reference](docs/guides/commands.md)     | Find every command    |
