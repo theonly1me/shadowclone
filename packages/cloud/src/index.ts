@@ -20,6 +20,7 @@ export { openPage, pendingPages } from "./setup/openPage";
 
 export { setupSelection } from "./setup/selection";
 
+export { ensureSkillsRepository, pushSkills } from "./setup/skillsRepository";
 
 export { cloneStatus, readInstallation } from "./status";
 
