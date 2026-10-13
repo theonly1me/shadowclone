@@ -1,6 +1,6 @@
 # Learning
 
-shadowclone learns reusable instructions and corrections from the sources that you enable. Learning with a model needs an installed and configured `claude`, `codex`, `cursor-agent`, or `pi` CLI. Antigravity supports capture and native guidance only. For Pi, see [Pi setup](pi.md). Run `shadowclone init --advanced` to choose the sources that shadowclone can read.
+shadowclone learns reusable instructions and corrections from the sources that you enable. Learning with a model needs an installed and configured `claude`, `codex`, `cursor-agent`, or `pi` CLI. Antigravity and OpenCode support capture and native guidance only. For Pi, see [Pi setup](pi.md). For OpenCode, see [OpenCode setup](opencode.md). Run `shadowclone init --advanced` to choose the sources that shadowclone can read.
 
 ## Run deep learning
 

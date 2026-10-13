@@ -1,6 +1,6 @@
 ---
 name: setup-shadowclone
-description: Install and configure shadowclone for the user from start to finish. Use it when the user asks to "set up", install, configure, or start shadowclone with Claude Code, Codex, Cursor, Pi, Antigravity, or another coding agent.
+description: Install and configure shadowclone for the user from start to finish. Use it when the user asks to "set up", install, configure, or start shadowclone with Claude Code, Codex, Cursor, Pi, Antigravity, OpenCode, or another agent.
 license: MIT
 ---
 
@@ -34,14 +34,14 @@ If the answer to question 1 is no, the answer to question 3 is no. Do not infer 
 2. Install the plugin for the agent that you run in, if it is not installed. The plugin adds this skill and the shadowclone MCP server.
    - Claude Code: `claude plugin install shadowclone --marketplace theonly1me/shadowclone`
    - Codex: `codex plugin marketplace add theonly1me/shadowclone`, then `codex plugin add shadowclone@shadowclone`
-   - Cursor, Pi, and Antigravity have no plugin step.
+   - Cursor, Pi, Antigravity, and OpenCode have no plugin step.
 3. If a plugin command asks for input or fails, give the user the command, and continue the setup.
 4. Start one `shadowclone init` command in the background. Pass exactly one flag from each pair, from the answers:
    - `--learn` or `--no-learn`
    - `--skill-maintenance` or `--no-skill-maintenance`
    - `--background-learning` or `--no-background-learning`
 
-The command detects Claude Code, Codex, Cursor, Pi, and Antigravity, and installs their native guidance. With `--learn`, it also runs the first learning pass.
+The command detects Claude Code, Codex, Cursor, Pi, Antigravity, and OpenCode, and installs their native guidance. With `--learn`, it also runs the first learning pass.
 
 ## 4. Open the skill wizard (while init runs)
 

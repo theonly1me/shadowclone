@@ -6,6 +6,17 @@ The MCP server gives a connected agent seven tools. It runs on your machine and 
 
 The shadowclone plugin registers the server and starts `shadowclone mcp` after you install the CLI. For another agent that supports stdio servers, add a server that runs `shadowclone mcp`, then restart the agent session.
 
+For OpenCode, add this entry to `~/.config/opencode/opencode.json`. OpenCode 1.x and 2.x both accept this shape.
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "shadowclone": { "type": "local", "command": ["shadowclone", "mcp"], "enabled": true }
+  }
+}
+```
+
 The server reads one JSON-RPC 2.0 message from standard input on each line. It uses MCP protocol version `2024-11-05` and the methods `initialize`, `tools/list`, and `tools/call`. The tools follow your consent settings and managed policy. If policy turns shadowclone off, they return "shadowclone context is disabled.", an error, or no results. Opening the server makes no model request.
 
 ## Tools
