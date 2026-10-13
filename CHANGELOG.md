@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.34](https://github.com/theonly1me/shadowclone/compare/v0.0.33...v0.0.34) (2026-10-13)
+
+
+### Features
+
+* add opencode capture, skills, and session context ([#210](https://github.com/theonly1me/shadowclone/issues/210)) ([93eeaec](https://github.com/theonly1me/shadowclone/commit/93eeaecebd04898182ea9f022f069cf6cb56c9f6))
+* **clones:** run cloud sessions from the owner's /shadowclone comment ([#212](https://github.com/theonly1me/shadowclone/issues/212)) ([1fb932e](https://github.com/theonly1me/shadowclone/commit/1fb932e987901afae1fe88abc418403ef190b608))
+* **clones:** run cloud sessions on cloudflare, vercel, modal, daytona, and e2b ([#213](https://github.com/theonly1me/shadowclone/issues/213)) ([ad2b5e8](https://github.com/theonly1me/shadowclone/commit/ad2b5e81dbdd38df1c3f1bb6288dd0700f512add))
+
 ## [0.0.33](https://github.com/theonly1me/shadowclone/compare/v0.0.32...v0.0.33) (2026-10-13)
 
 
