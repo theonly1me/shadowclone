@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.33](https://github.com/theonly1me/shadowclone/compare/v0.0.32...v0.0.33) (2026-10-13)
+
+
+### Fixes
+
+* **cloud:** make setup work with missing and duplicate skills ([#208](https://github.com/theonly1me/shadowclone/issues/208)) ([70ea3e3](https://github.com/theonly1me/shadowclone/commit/70ea3e3a964a05b52a2bfb3594ee7502e0d9d96b))
+
 ## [0.0.32](https://github.com/theonly1me/shadowclone/compare/v0.0.31...v0.0.32) (2026-10-13)
 
 
