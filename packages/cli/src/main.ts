@@ -18,7 +18,7 @@ import { botCommand } from "./bot";
 import { reviewCommand } from "./review";
 
 const usage =
-  "Usage: shadowclone <init [--advanced]|init --status [--json]|init (--learn|--no-learn) (--skill-maintenance|--no-skill-maintenance) (--background-learning|--no-background-learning)|init --repo [--personal|--no-personal] [--skill <name>] [--no-enforce]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|install [--agent claude-code|codex|cursor|antigravity|pi|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain]|sync|mcp|forget --all>";
+  "Usage: shadowclone <init [--advanced]|init --status [--json]|init (--learn|--no-learn) (--skill-maintenance|--no-skill-maintenance) (--background-learning|--no-background-learning)|init --repo [--personal|--no-personal] [--skill <name>] [--no-enforce]|check [--changed] [--format human|json|claude-stop]|import|wizard|skills|learn [--deep] [--dry-run] [--apply] [--engine <id>] [--model <id>] [--reasoning-effort <level>] [--max-calls <n>]|doctor|install [--agent claude-code|codex|cursor|antigravity|pi|opencode|all] [--global|--local] [--subagent] [--auto-delegate]|uninstall [--agent <agent>] [--global|--local]|context [--explain]|sync|mcp|forget --all>";
 
 function printUsage(): void {
   console.log(usage);

@@ -59,7 +59,7 @@ OpenCode is a capture and native-integration provider. It is not an inference en
 
 OpenCode has no run mode that turns off tools, instruction files, and skills together. Version 2.x also has no switch for `.claude` skills. A run therefore cannot meet the learning contract. Session-end learning uses the other engine that the user configured. Add a runner only after a live probe proves a tool-free run.
 
-The id `opencode` names the source, the provider, the engine, and the integration agent. The native-end hook and the capture adapter must produce the same session key, so these ids must match.
+The id `opencode` names the source, the provider, and the integration agent. The native-end hook and the capture adapter must produce the same session key, so these ids must match. The provider has no engine entry, so managed policy and engine selection cannot name OpenCode.
 
 ### Capture
 

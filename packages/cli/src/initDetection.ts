@@ -48,8 +48,14 @@ export async function detectedIntegrationAgents(
     directoryHasEntry(path.join(homeDirectory, ".gemini", "antigravity-cli")),
     directoryHasEntry(path.join(homeDirectory, ".antigravity-ide")),
   ]);
+  const opencode =
+    Bun.which("opencode") !== null || (await directoryHasEntry(paths.opencodeConfigDirectory));
 
-  return antigravity.some(Boolean) ? [...detected, "antigravity"] : detected;
+  return [
+    ...detected,
+    ...(antigravity.some(Boolean) ? (["antigravity"] as const) : []),
+    ...(opencode ? (["opencode"] as const) : []),
+  ];
 }
 
 export async function detectPersonalSkills(
@@ -73,6 +79,7 @@ function detectedSourcePaths(options: {
     codex: [options.paths.codexSessionsDirectory],
     cursor: [options.paths.cursorChatsDirectory],
     pi: [options.paths.piSessionsDirectory],
+    opencode: [options.paths.opencodeDatabaseFile],
   };
   const homeDirectory = path.dirname(
     path.dirname(options.paths.claudeProjectsDirectory),

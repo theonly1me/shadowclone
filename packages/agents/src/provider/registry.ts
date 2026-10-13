@@ -82,6 +82,12 @@ export const providerDefinitions: readonly ProviderDefinition[] = [
       },
     },
   },
+  {
+    id: "opencode",
+    captureSource: "opencode",
+    transcriptFormat: "sqlite",
+    engine: null,
+  },
 ];
 
 export function getProvider(providerId: ProviderId): ProviderDefinition {

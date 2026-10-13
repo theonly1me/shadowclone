@@ -20,7 +20,7 @@ Runs the installed `claude`, `codex`, `cursor-agent`, and `pi` programs without 
 - `src/engine/execution.ts`: the checks for each run purpose (`learning`, `review`, `evaluation`).
 - `src/engine/fastTier.ts`: `fastTier`, the small model setting for short generations.
 - `src/engine/native/` and `evaluationIsolation/`: native runs and the file system limits for evaluation.
-- `src/provider/`: the capability registry (`getProviderByEngine`).
+- `src/provider/`: the capability registry (`getProviderByEngine`). Antigravity and OpenCode have no runner, so learning for their sessions uses another engine.
 
 ## Rules
 

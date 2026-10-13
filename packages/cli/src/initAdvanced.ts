@@ -33,6 +33,7 @@ const captureSources: readonly {
   { id: "codex", question: "Enable Codex transcripts?" },
   { id: "cursor", question: "Enable Cursor CLI chat stores?" },
   { id: "pi", question: "Enable Pi transcripts?" },
+  { id: "opencode", question: "Enable OpenCode transcripts?" },
 ];
 
 function promptForConsent(question: string): boolean {

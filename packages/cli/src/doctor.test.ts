@@ -8,6 +8,7 @@ test("reports provider support as two independent levels", () => {
     "cursor: observe=yes, distill=yes",
     "antigravity: observe=yes, distill=no",
     "pi: observe=yes, distill=yes",
+    "opencode: observe=yes, distill=no",
   ]);
 });
 
