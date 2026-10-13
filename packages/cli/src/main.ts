@@ -15,6 +15,7 @@ import { handleSkillMaintenance } from "./skillMaintenance";
 import { showHome } from "./home";
 import { redactSecrets } from "@shadowclone/redact";
 import { botCommand } from "./bot";
+import { serveCommand, sessionCommand, sessionUsage } from "./session";
 import { reviewCommand } from "./review";
 
 const usage =
@@ -35,6 +36,7 @@ function printUsage(): void {
   console.log(
     "Cloud bot: bot setup --bot login [--provider anthropic|openai|openai-compatible|cursor] [--base-url url] [--model id] [--repo owner/repository]; bot status [--repo owner/repository]; bot export",
   );
+  console.log(sessionUsage);
   console.log(
     "Pull request review: review <pr-number> [--cloud] [--no-checks] [--repo owner/repository] [--output file.md] [--model <id>] [--effort <level>]; workflow stages: review prepare|checks|analyze|publish",
   );
@@ -132,6 +134,18 @@ async function main(arguments_: readonly string[]): Promise<void> {
 
   if (command === "bot") {
     await botCommand(rest);
+
+    return;
+  }
+
+  if (command === "session") {
+    await sessionCommand(rest);
+
+    return;
+  }
+
+  if (command === "serve") {
+    await serveCommand();
 
     return;
   }

@@ -66,6 +66,7 @@
         "@shadowclone/agents": "workspace:*",
         "@shadowclone/builds": "workspace:*",
         "@shadowclone/changes": "workspace:*",
+        "@shadowclone/clones": "workspace:*",
         "@shadowclone/cloud": "workspace:*",
         "@shadowclone/core": "workspace:*",
         "@shadowclone/environment": "workspace:*",
@@ -80,6 +81,15 @@
         "@shadowclone/web": "workspace:*",
         "bun": "^1.4.2",
         "commander": "^15.0.0",
+        "smol-toml": "^1.8.0",
+        "zod": "^4.5.4",
+      },
+    },
+    "packages/clones": {
+      "name": "@shadowclone/clones",
+      "dependencies": {
+        "@shadowclone/cloud": "workspace:*",
+        "@shadowclone/core": "workspace:*",
         "smol-toml": "^1.8.0",
         "zod": "^4.5.4",
       },
@@ -144,6 +154,7 @@
       "name": "@shadowclone/mcp",
       "dependencies": {
         "@shadowclone/changes": "workspace:*",
+        "@shadowclone/clones": "workspace:*",
         "@shadowclone/cloud": "workspace:*",
         "@shadowclone/core": "workspace:*",
         "@shadowclone/environment": "workspace:*",
@@ -358,6 +369,8 @@
     "@shadowclone/changes": ["@shadowclone/changes@workspace:packages/changes"],
 
     "@shadowclone/cli": ["@shadowclone/cli@workspace:packages/cli"],
+
+    "@shadowclone/clones": ["@shadowclone/clones@workspace:packages/clones"],
 
     "@shadowclone/cloud": ["@shadowclone/cloud@workspace:packages/cloud"],
 
