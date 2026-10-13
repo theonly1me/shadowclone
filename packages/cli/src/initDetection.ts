@@ -14,6 +14,7 @@ const agentNames: Record<IntegrationAgent, string> = {
   cursor: "Cursor",
   antigravity: "Antigravity",
   pi: "Pi",
+  opencode: "OpenCode",
 };
 
 async function directoryHasEntry(directoryPath: string): Promise<boolean> {

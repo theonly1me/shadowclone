@@ -175,19 +175,20 @@ test("the recorded delivery gaps still hold, so closing one means updating the t
       Bun.file(path.join(delivered.home, folder, privateSkill, "SKILL.md")).exists(),
     ),
   );
-  const cursor = hostDiscovery.find((host) => host.agent === "cursor");
   const [firstSkill = ""] = delivered.selected;
-  const cursorCopies = await Promise.all(
-    (cursor?.skillFolders ?? []).map((folder) =>
-      Bun.file(path.join(delivered.home, folder, firstSkill, "SKILL.md")).exists(),
-    ),
+  const duplicateCopies = await Promise.all(
+    hostDiscovery
+      .filter((host) => host.agent === "cursor" || host.agent === "opencode")
+      .flatMap((host) => host.skillFolders)
+      .map((folder) => Bun.file(path.join(delivered.home, folder, firstSkill, "SKILL.md")).exists()),
   );
 
   expect(knownDeliveryGaps.map((gap) => gap.id)).toEqual([
     "private-builds",
     "cursor-duplicate-global-skills",
+    "opencode-duplicate-global-skills",
   ]);
   expect(privateCopies).toHaveLength(1);
   expect(hostCopies.every((exists) => !exists)).toBeTrue();
-  expect(cursorCopies).toEqual([true, true]);
+  expect(duplicateCopies).toEqual([true, true, true, true]);
 });

@@ -8,6 +8,7 @@ export const integrationAgentSchema = z.enum([
   "cursor",
   "antigravity",
   "pi",
+  "opencode",
 ]);
 export type IntegrationAgent = z.infer<typeof integrationAgentSchema>;
 export const integrationScopeSchema = z.enum(["global", "repository"]);

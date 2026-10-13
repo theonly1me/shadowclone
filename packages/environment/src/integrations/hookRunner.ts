@@ -3,8 +3,11 @@ import { z } from "zod";
 import { commitLocalChanges } from "@shadowclone/changes";
 import { fingerprint, readLocalText } from "@shadowclone/core";
 import type { ProjectPaths } from "@shadowclone/core";
+import type { IntegrationAgent } from "./types";
 
 const ownerSchema = z.strictObject({ fingerprint: z.string() });
+
+export const hookRunnerAgents: readonly IntegrationAgent[] = ["claude-code", "codex", "pi", "opencode"];
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;

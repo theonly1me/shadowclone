@@ -14,7 +14,8 @@ import type {
   IntegrationOptions,
   IntegrationScope,
 } from "./types";
-import { ensureHookRunner } from "./hookRunner";
+import { ensureHookRunner, hookRunnerAgents } from "./hookRunner";
+import { globalIntegrationDirectory } from "./globalDirectory";
 import { assertCodexOverrideHidesNothing } from "./hiddenInstructions";
 
 export async function installIntegration(
@@ -27,26 +28,10 @@ export async function installIntegration(
   const paths = options.paths ?? projectPaths;
   const cwd = canonicalPath(options.cwd ?? process.cwd());
   const home = path.dirname(paths.shadowcloneDirectory);
-  const providerDirectory =
-    options.agent === "pi"
-      ? ".pi/agent"
-      : options.agent === "claude-code"
-      ? ".claude"
-      : options.agent === "codex"
-        ? ".codex"
-        : options.agent === "cursor"
-          ? ".cursor"
-          : ".gemini/config";
   const directory =
     options.scope === "repository"
       ? cwd
-      : canonicalPath(
-          options.agent === "pi"
-            ? paths.piAgentDirectory
-            : options.agent === "codex"
-            ? path.dirname(paths.codexSessionsDirectory)
-            : path.join(home, providerDirectory),
-        );
+      : canonicalPath(globalIntegrationDirectory({ agent: options.agent, paths }));
 
   const integrations = await readIntegrations(paths);
   const previous = integrations.find(
@@ -60,7 +45,7 @@ export async function installIntegration(
     await assertCodexOverrideHidesNothing({ directory, previous });
   }
 
-  if (options.agent === "claude-code" || options.agent === "codex" || options.agent === "pi") {
+  if (hookRunnerAgents.includes(options.agent)) {
     await ensureHookRunner({ paths });
   }
 

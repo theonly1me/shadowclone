@@ -12,7 +12,7 @@ import {
 } from "./markdown";
 import { integrationFilePath, integrationTargets, retiredIntegrationTargets } from "./targets";
 import type { Integration, IntegrationFile } from "./types";
-import { renderPiExtension } from "./piExtension";
+import { renderIntegrationExtension } from "./extensions";
 import { readIntegrations } from "./state";
 import { importsPeerInstructions } from "./sharedInstructions";
 import { preservedFileMessages } from "./preserved";
@@ -92,7 +92,7 @@ export async function prepareIntegrationFiles(options: {
 
       next = options.remove
         ? null
-        : target.kind === "extension" ? renderPiExtension(options.integration)
+        : target.kind === "extension" ? renderIntegrationExtension(options.integration)
         : `${renderContextSkill()}\n`;
       digest = fingerprint(next ?? "");
     } else {

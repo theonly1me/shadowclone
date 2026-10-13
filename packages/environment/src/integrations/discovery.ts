@@ -33,6 +33,11 @@ export const hostDiscovery: readonly HostDiscovery[] = [
     skillFolders: [".agents/skills"],
     routing: { kind: "instructions", file: ".pi/agent/AGENTS.md" },
   },
+  {
+    agent: "opencode",
+    skillFolders: [".agents/skills", ".claude/skills"],
+    routing: { kind: "instructions", file: ".config/opencode/AGENTS.md" },
+  },
 ];
 
 export const knownDeliveryGaps = [
@@ -44,5 +49,10 @@ export const knownDeliveryGaps = [
     id: "cursor-duplicate-global-skills",
     summary:
       "Cursor reads ~/.agents/skills and ~/.claude/skills, so each global skill reaches it twice.",
+  },
+  {
+    id: "opencode-duplicate-global-skills",
+    summary:
+      "OpenCode reads ~/.agents/skills and ~/.claude/skills, so each global skill reaches it twice.",
   },
 ] as const;

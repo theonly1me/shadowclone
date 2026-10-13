@@ -26,6 +26,10 @@ function hookEntries(options: {
   const command = `${options.launcher} hook native-start ${integration.id}`;
   const endCommand = `${options.launcher} hook native-end ${integration.id}`;
 
+  if (integration.agent === "pi" || integration.agent === "opencode") {
+    throw new Error(`${integration.agent} has no hook configuration file`);
+  }
+
   if (integration.agent === "antigravity") {
     return {
       PreInvocation: [
@@ -37,6 +41,8 @@ function hookEntries(options: {
       Stop: [{ hooks: [{ type: "command", command: endCommand, timeout: 3 }] }],
     };
   }
+
+  integration.agent satisfies "cursor" | "claude-code" | "codex";
 
   return integration.agent === "cursor"
     ? { sessionStart: [{ command }], sessionEnd: [{ command: endCommand }] }

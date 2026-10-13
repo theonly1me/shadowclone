@@ -38,7 +38,7 @@ With `agent-context` on, learning also reads those three instruction files to fi
 
 Transcript parsers can meet prompts, assistant responses, tool results, and thinking blocks in an enabled file. Only user-authored text counts as learning evidence. Tool results, tool-returned file contents, thinking, and data-access results never enter learning. Agent responses, plans, and questions reach the model only as labeled context beside a user correction. Eligible text can still hold sensitive information.
 
-Pi transcript consent is separate from Git metadata and skill maintenance. Session start records repository identity only when both Pi capture and Git metadata are on. See [capture](architecture/01-capture.md) for what each adapter excludes.
+Pi and OpenCode transcript consent is separate from Git metadata and skill maintenance. For these agents, session start records repository identity only when both their capture and Git metadata are on. See [capture](architecture/01-capture.md) for what each adapter excludes.
 
 ## What reaches a model
 
