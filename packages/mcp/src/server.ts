@@ -1,6 +1,7 @@
 import { handleMcpRequest, isRecord, parseRequest } from "./protocol";
 import { runPreferenceTool } from "./preferences";
 import { createBotTool } from "./bot";
+import { createSessionTool } from "./session";
 import { compileContext } from "@shadowclone/environment";
 import { projectPaths } from "@shadowclone/core";
 import type { ProjectPaths } from "@shadowclone/core";
@@ -40,6 +41,7 @@ export async function serveMcp(
   let buffer = "";
   const decoder = new TextDecoder();
   const bot = createBotTool({ cwd, paths: botPaths });
+  const session = createSessionTool({ cwd, paths: botPaths });
 
   for await (const chunk of Bun.stdin.stream()) {
     buffer += decoder.decode(chunk, { stream: true });
@@ -78,6 +80,7 @@ export async function serveMcp(
             const toolResult =
               request.method === "tools/call"
                 ? ((await bot.run(request.params)) ??
+                  (await session.run(request.params)) ??
                   (await runPreferenceTool({
                     params: request.params,
                     cwd,

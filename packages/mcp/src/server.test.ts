@@ -3,6 +3,7 @@ import product from "@shadowclone/core/product.json";
 import { handleMcpRequest } from "./server";
 import { preferenceTools } from "./preferences";
 import { botTools } from "./bot";
+import { sessionTools } from "./session";
 
 test("responds to initialize with protocol version and serverInfo", () => {
   const response = handleMcpRequest({
@@ -21,7 +22,7 @@ test("responds to initialize with protocol version and serverInfo", () => {
   });
 });
 
-test("advertises the context, preference, and bot tools without the removed profile alias", () => {
+test("advertises the context, preference, bot, and session tools without the removed profile alias", () => {
   const response = handleMcpRequest({
     request: { id: 1, method: "tools/list", params: {} },
     context: "",
@@ -34,6 +35,7 @@ test("advertises the context, preference, and bot tools without the removed prof
       tools: [
         ...preferenceTools,
         ...botTools,
+        ...sessionTools,
         {
           name: "shadowclone_context",
           description: "Inspect applicable learned skills and native routing for this repository",

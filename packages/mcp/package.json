@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@shadowclone/changes": "workspace:*",
+    "@shadowclone/clones": "workspace:*",
     "@shadowclone/cloud": "workspace:*",
     "@shadowclone/core": "workspace:*",
     "@shadowclone/environment": "workspace:*",

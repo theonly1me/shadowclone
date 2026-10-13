@@ -49,6 +49,7 @@ Pi and OpenCode transcript consent is separate from Git metadata and skill maint
 | Skill maintenance           | Redacted catalogs, full instructions of overlapping workflows, and evidence for proposed updates. Supporting resources are checked locally     |
 | Browser editor              | Opening it makes no model request. Build naming sends redacted skill titles and summaries. Voice capture and skill drafts need a user action   |
 | Cloud bot                   | Reviewed skills from your private skills repository, the selected repository, and an authorized issue or PR task                               |
+| Cloud session               | Reviewed skills from your private skills repository, the selected repository, and the owner's `/shadowclone` task                              |
 | `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace. shadowclone makes no model calls                                             |
 | Pull request review         | The PR title and description, diff, file history, base-commit standards, rule hits, toolchain diagnostics, and files that the reviewer reads   |
 | Evaluation                  | Synthetic task workspaces and the tested setup's skills and instructions. Judges receive generated code without redaction                      |
@@ -131,6 +132,16 @@ You add the bot token and the provider API key on GitHub. shadowclone never read
 During a run, the provider receives the prompt, the skills, and the repository content that the agent reads. The check run sends one small request with the API key: a model list request, or one short prompt for Cursor. A review of a fork pull request runs no fork code and has no network access.
 
 Cloud tasks and exported guidance are not new learning sources. Local guidance changes do not update the frozen cloud bundle. The [cloud bot guide](guides/cloud-bot.md) covers secrets, the default-branch ruleset, who can start work, pausing, limits, and removal.
+
+## Cloud sessions
+
+`session skills` uses the same reviewed delivery as the cloud bot, and pushes the files to your private skills repository only after your approval. `session setup` reads your GitHub login, the repository, and Docker state. It writes `~/.shadowclone/clones/`: the session config, the poll cursors, the logs, and `secrets.env` (mode 0600).
+
+You paste the GitHub token and the model login into `secrets.env`. shadowclone never reads the file. It gives Docker only the path. A ChatGPT login stays in the Docker volume `shadowclone-codex-login`.
+
+`shadowclone serve` polls GitHub with your GitHub CLI login. It reads the comments of the configured repositories and keeps only the identifiers of matching comments. A session runs in a fresh container. The provider receives the prompt, the skills, and the repository content that the agent reads. The container keeps nothing after it stops, and each log stays on the spare machine.
+
+GitHub holds the session state. Claim refs under `refs/shadowclone/claims/` stay for two days. Session refs under `refs/shadowclone/sessions/` point at the last pushed commit. One status comment holds the state and the branch. The status comment holds no transcript text. Session tasks are not learning sources. See [cloud sessions](guides/cloud-sessions.md).
 
 ## Boundaries that a change must keep
 

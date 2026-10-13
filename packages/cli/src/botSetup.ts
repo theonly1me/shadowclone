@@ -9,7 +9,7 @@ import {
 } from "@shadowclone/cloud";
 import { promptConfirmation } from "./confirm";
 
-async function currentRepository(cwd: string): Promise<string> {
+export async function currentRepository(cwd: string): Promise<string> {
   const child = Bun.spawn(
     ["gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"],
     { cwd, stdout: "pipe", stderr: "ignore" },
@@ -52,7 +52,9 @@ export async function setUpBotInTerminal(options: {
   const first = await setup(false);
 
   if (first.kind === "needs-account") {
-    console.log(`Create the GitHub account ${first.login} for the bot, then run this command again: ${first.signupUrl}`);
+    console.log(
+      `Create the GitHub account ${first.login} for the bot, then run this command again: ${first.signupUrl}`,
+    );
 
     if (options.open) {
       await openPage(first.signupUrl);
@@ -66,7 +68,9 @@ export async function setUpBotInTerminal(options: {
       console.log(warning);
     }
 
-    console.log(`Setup pushes these ${first.files.length} files to the private repository ${first.skillsRepository}:`);
+    console.log(
+      `Setup pushes these ${first.files.length} files to the private repository ${first.skillsRepository}:`,
+    );
     console.log(first.files.map((file) => `  ${file.path} (${file.bytes} bytes)`).join("\n"));
 
     if (!options.yes && !promptConfirmation("Push them?")) {
@@ -81,10 +85,17 @@ export async function setUpBotInTerminal(options: {
     throw new Error("Setup stopped before it configured the repository. Run it again.");
   }
 
-  console.log([
-    ...outcome.warnings,
-    nextStepsText({ repository, environmentUrl: outcome.environmentUrl, pullUrl: outcome.pullUrl, checklist: outcome.checklist }),
-  ].join("\n\n"));
+  console.log(
+    [
+      ...outcome.warnings,
+      nextStepsText({
+        repository,
+        environmentUrl: outcome.environmentUrl,
+        pullUrl: outcome.pullUrl,
+        checklist: outcome.checklist,
+      }),
+    ].join("\n\n"),
+  );
 
   if (options.open) {
     await openPage(outcome.environmentUrl);
