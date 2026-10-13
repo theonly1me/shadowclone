@@ -15,7 +15,7 @@ Run `shadowclone --help` for the full command shape. Run `shadowclone` with no a
 - `shadowclone doctor`: check the installation and the effective policy.
 - `shadowclone forget --all`: remove all shadowclone state and the files that it owns.
 
-Agent identifiers are `claude-code`, `codex`, `cursor`, `antigravity`, and `pi`. Add `--subagent` to install an optional local Claude subagent. Add `--auto-delegate` to allow automatic delegation.
+Agent identifiers are `claude-code`, `codex`, `cursor`, `antigravity`, `pi`, and `opencode`. Add `--subagent` to install an optional local Claude subagent. Add `--auto-delegate` to allow automatic delegation.
 
 ## Learn
 

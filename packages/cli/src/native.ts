@@ -100,7 +100,7 @@ export async function handleNativeCommand(options: {
 
     if (!parsed) {
       throw new Error(
-        "Use --agent claude-code|codex|cursor|antigravity|pi|all and --global or --local; subagents require local Claude installation",
+        "Use --agent claude-code|codex|cursor|antigravity|pi|opencode|all and --global or --local; subagents require local Claude installation",
       );
     }
 

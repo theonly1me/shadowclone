@@ -10,6 +10,7 @@ The registry in `packages/agents/src/provider/` records capabilities apart from 
 - `codex` and `cursor-agent`: structured output (prompted for Cursor) and isolated no-tools execution. These adapters have no native dollar ceiling.
 - `pi`: learning only, through an owned extension. It passes prepared model input and an empty tool set through the Pi registry, with exact model selection and no dollar ceiling.
 - `antigravity`: no engine. Capture and native guidance do not depend on engine support.
+- `opencode`: no engine entry. OpenCode has no run mode that turns off tools, instruction files, and skills together. Capture and native guidance work without it.
 - `anthropic-api`, `openai-compatible`: reserved identifiers, not implemented.
 
 Observation support does not allow learning or evaluation. An unsupported security option fails before the process starts.

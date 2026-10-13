@@ -11,13 +11,13 @@
 
 </div>
 
-**shadowclone keeps your engineering preferences the same in every coding agent.** It maintains one set of skills and instructions for Claude Code, Codex, Cursor, Pi, and Antigravity. You do not copy rules from one tool to the next. shadowclone can also learn new preferences from the sessions that you allow.
+**shadowclone keeps your engineering preferences the same in every coding agent.** It maintains one set of skills and instructions for Claude Code, Codex, Cursor, Pi, Antigravity, and OpenCode. You do not copy rules from one tool to the next. shadowclone can also learn new preferences from the sessions that you allow.
 
 **The same skills reach your cloud agent.** A GitHub bot runs Claude Code, Codex, or Cursor with your selected skills. So the bot writes and reviews code with the preferences that your local agents use. shadowclone is not a separate agent. It equips the agent that you already use. See [how it compares to other tools](#how-shadowclone-compares-to-other-tools).
 
 ## Quick start
 
-Paste this into Claude Code, Codex, Cursor, Pi, or Antigravity:
+Paste this into Claude Code, Codex, Cursor, Pi, Antigravity, or OpenCode:
 
 ```text
 Set up shadowclone: https://raw.githubusercontent.com/theonly1me/shadowclone/main/plugins/shadowclone/skills/setup-shadowclone/SKILL.md
@@ -55,7 +55,7 @@ To add the plugin, run `/plugin install shadowclone@shadowclone` after `/plugin 
 
 **Start with a build.** shadowclone includes 15 workflow skills for planning, debugging, implementation, verification, and review. New users can pick skills immediately. Learning from past sessions is optional. Browse the skills in [`skills/`](skills/), or [install them without the CLI](docs/guides/skills.md#install-skills-without-shadowclone).
 
-**Choose where skills apply.** The browser wizard supports a personal build, a private build for one repository, or a shared build that a team commits. The same skills reach all five agents. Pi can use any model it supports. See [Agent builds](docs/guides/agent-builds.md).
+**Choose where skills apply.** The browser wizard supports a personal build, a private build for one repository, or a shared build that a team commits. The same skills reach all six agents. Pi can use any model it supports. See [Agent builds](docs/guides/agent-builds.md).
 
 ![The Skill constellation in the build wizard, with skills grouped by source and category, a named build, and skill details](docs/assets/agent-builds.jpg)
 
@@ -97,14 +97,14 @@ The agent prepares the skills repository and workflows. Then it gives you one li
 
 shadowclone gives one set of skills to the agents that you already use, on your machine and on GitHub. The table uses each project's own pages, checked on 12 October 2026. "Not stated" means that those pages do not answer the question.
 
-| Tool                                                                   | What it is                                                                                 | Agents                                      | Learns from your sessions              | Same guidance in the cloud      | Reviews pull requests                 |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------- | -------------------------------------- | ------------------------------- | ------------------------------------- |
-| shadowclone                                                            | Skills, instructions, learning, and a GitHub cloud bot for the agents that you already use | Claude Code, Codex, Cursor, Pi, Antigravity | Yes, from the sessions that you allow  | Yes, a GitHub Actions bot       | Yes, locally, guided, and on GitHub   |
-| [pstack](https://github.com/cursor/plugins/tree/main/pstack)           | A skill and principle pack                                                                 | Cursor                                      | No. You run `/reflect` to edit a skill | Not stated                      | Yes, `/interrogate` and Comment Sicko |
-| [Hermes Agent](https://github.com/NousResearch/hermes-agent)           | Its own agent with a learning loop                                                         | Hermes only                                 | Yes, it writes skills after tasks      | Yes, on a server with chat apps | Not stated                            |
-| [Claude Code auto memory](https://code.claude.com/docs/en/memory)      | Built-in notes from corrections                                                            | Claude Code                                 | Yes, notes from your corrections       | No. Memory stays on one machine | No                                    |
-| [Claude Subconscious](https://github.com/letta-ai/claude-subconscious) | A background Letta agent                                                                   | Claude Code                                 | Yes, through a Letta agent             | Not stated                      | No                                    |
-| [imprint](https://github.com/n33kos/imprint)                           | A plugin that trains one profile                                                           | Claude Code                                 | Yes, when you run `/imprint:train`     | Not stated                      | No                                    |
+| Tool                                                                   | What it is                                                                                 | Agents                                                | Learns from your sessions              | Same guidance in the cloud      | Reviews pull requests                 |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------- | -------------------------------------- | ------------------------------- | ------------------------------------- |
+| shadowclone                                                            | Skills, instructions, learning, and a GitHub cloud bot for the agents that you already use | Claude Code, Codex, Cursor, Pi, Antigravity, OpenCode | Yes, from the sessions that you allow  | Yes, a GitHub Actions bot       | Yes, locally, guided, and on GitHub   |
+| [pstack](https://github.com/cursor/plugins/tree/main/pstack)           | A skill and principle pack                                                                 | Cursor                                                | No. You run `/reflect` to edit a skill | Not stated                      | Yes, `/interrogate` and Comment Sicko |
+| [Hermes Agent](https://github.com/NousResearch/hermes-agent)           | Its own agent with a learning loop                                                         | Hermes only                                           | Yes, it writes skills after tasks      | Yes, on a server with chat apps | Not stated                            |
+| [Claude Code auto memory](https://code.claude.com/docs/en/memory)      | Built-in notes from corrections                                                            | Claude Code                                           | Yes, notes from your corrections       | No. Memory stays on one machine | No                                    |
+| [Claude Subconscious](https://github.com/letta-ai/claude-subconscious) | A background Letta agent                                                                   | Claude Code                                           | Yes, through a Letta agent             | Not stated                      | No                                    |
+| [imprint](https://github.com/n33kos/imprint)                           | A plugin that trains one profile                                                           | Claude Code                                           | Yes, when you run `/imprint:train`     | Not stated                      | No                                    |
 
 Claude Code loads its auto memory beside shadowclone skills, so you can use both. See the [comparison guide](docs/guides/comparison.md) for each tool and its sources.
 
@@ -148,6 +148,7 @@ Read the [privacy policy](PRIVACY.md) and [data handling](docs/data-handling.md)
 | [Skill maintenance](docs/guides/skills.md)       | Review updates, undo  |
 | [Repository setup](docs/guides/repositories.md)  | Share checks          |
 | [Pi setup](docs/guides/pi.md)                    | Use Pi models         |
+| [OpenCode setup](docs/guides/opencode.md)        | Use OpenCode          |
 | [Delegated work](docs/guides/delegated-work.md)  | Ready a pull request  |
 | [Cloud bot](docs/guides/cloud-bot.md)            | Set up the GitHub bot |
 | [Reviews](docs/guides/reviews.md)                | Review a pull request |

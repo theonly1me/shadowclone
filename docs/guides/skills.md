@@ -34,7 +34,7 @@ A conflict proposal holds the supporting passages and the decision it needs. It 
 
 ## Skill locations and routing
 
-Personal skills live in `~/.agents/skills`. Claude and Antigravity get copies. Codex, Cursor, and Pi read that folder, and Cursor also reads `~/.claude/skills`. Repository skills live under `.agents/skills` and `.claude/skills`.
+Personal skills live in `~/.agents/skills`. Claude and Antigravity get copies. Codex, Cursor, Pi, and OpenCode read that folder, and Cursor and OpenCode also read `~/.claude/skills`. Repository skills live under `.agents/skills` and `.claude/skills`.
 
 Native routing lists each equipped skill as `- <moment>: <skill>`, with the moment from the `shadowclone-applies-when` metadata of the skill. Skills with no such metadata share one line: `- when the task matches the skill's own description: <skill>, <skill>`.
 

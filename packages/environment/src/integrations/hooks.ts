@@ -23,6 +23,8 @@ const inputSchema = z
   .passthrough();
 type NativeInput = z.infer<typeof inputSchema>;
 
+const instructionRoutedAgents: readonly Integration["agent"][] = ["claude-code", "codex", "pi", "opencode"];
+
 function parseInput(input: string): NativeInput {
   try {
     return inputSchema.parse(JSON.parse(input || "{}"));
@@ -87,8 +89,7 @@ export async function nativeSessionStart(
     return {};
   }
 
-  const scopedDelivery =
-    integration.agent === "claude-code" || integration.agent === "codex" || integration.agent === "pi";
+  const scopedDelivery = instructionRoutedAgents.includes(integration.agent);
   const profile = await compileContext({
     ...options,
     paths,
@@ -131,7 +132,7 @@ export async function nativeSessionStart(
     integration: { ...integration, deliveredAt: Date.now() },
   });
 
-  if (integration.agent === "pi") return { additionalContext };
+  if (integration.agent === "pi" || integration.agent === "opencode") return { additionalContext };
 
   if (integration.agent === "cursor") {
     return { additional_context: additionalContext };
@@ -146,6 +147,8 @@ export async function nativeSessionStart(
       },
     };
   }
+
+  integration.agent satisfies "claude-code" | "codex";
 
   return {
     hookSpecificOutput: {
@@ -174,12 +177,12 @@ export async function nativeSessionEnd(
   }
 
   const input = parseInput(options.input);
-  if (integration.agent === "pi") {
+  if (integration.agent === "pi" || integration.agent === "opencode") {
     const integrations = await readIntegrations(paths);
     if (!activeIntegration({ integration, integrations, cwd: canonicalPath(input.cwd ?? process.cwd()) })) return null;
     const { config } = await readEffectiveConfig({ configPath: options.configPath ?? paths.configFile,
       managedConfigPath: options.managedConfigPath === undefined ? paths.managedConfigFile : options.managedConfigPath });
-    if (!config.sources.pi) return null;
+    if (!config.sources[integration.agent]) return null;
   }
   const nativeId = nativeSessionId(input);
 

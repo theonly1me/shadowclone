@@ -1,6 +1,7 @@
 import path from "node:path";
 import { maximumTextBytes } from "@shadowclone/core";
 import type { SourceId } from "@shadowclone/core";
+import { parseSqliteRowTextRef, type SqliteRowTextRef } from "./sqliteRowRef";
 
 export type FileTextRef = {
   readonly contentHash?: string;
@@ -19,7 +20,7 @@ export type SqliteTextRef = {
   readonly unwrap: "user-query" | null;
 };
 
-export type TextRef = FileTextRef | SqliteTextRef;
+export type TextRef = FileTextRef | SqliteTextRef | SqliteRowTextRef;
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -61,6 +62,10 @@ export function parseTextRef(value: unknown): TextRef | null {
         ? { fileIdentity: value.fileIdentity }
         : {}),
     };
+  }
+
+  if (value.type === "sqlite-row") {
+    return parseSqliteRowTextRef({ value, sourcePath: value.sourcePath });
   }
 
   if (

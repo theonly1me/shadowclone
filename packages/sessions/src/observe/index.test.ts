@@ -166,6 +166,9 @@ test("does not touch paths for disabled sources", async () => {
     get cursorChatsDirectory(): string {
       throw new Error("Disabled Cursor path was accessed");
     },
+    get opencodeDatabaseFile(): string {
+      throw new Error("Disabled OpenCode path was accessed");
+    },
   };
 
   let cursorLookups = 0;

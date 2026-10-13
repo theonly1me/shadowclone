@@ -10,6 +10,7 @@ import {
 import { observeClaudePromptsFile } from "./adapters/claudePrompts";
 import { discoverCodexFiles, observeCodexFile } from "./adapters/codex";
 import { discoverCursorFiles, observeCursorFile } from "./adapters/cursor";
+import { observeOpencodeDatabase } from "./adapters/opencode";
 import { discoverPiFiles, observePiFile } from "./adapters/pi";
 import type { CursorLookup, ObservationBatch } from "./types";
 
@@ -53,6 +54,12 @@ export async function* observeAll(options: {
       const batch = await observePiFile({ sourcePath, cursor: await options.getCursor(sourcePath) });
       if (batch) yield batch;
     }
+  }
+  if (options.config.sources.opencode) {
+    yield* await observeOpencodeDatabase({
+      sourcePath: options.paths.opencodeDatabaseFile,
+      getCursor: options.getCursor,
+    });
   }
   if (options.config.sources.antigravity) {
     const sourcePaths = await discoverAntigravityFiles(

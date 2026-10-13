@@ -17,6 +17,7 @@ test("all installs every supported main-agent adapter", () => {
     "cursor",
     "antigravity",
     "pi",
+    "opencode",
   ]);
 });
 

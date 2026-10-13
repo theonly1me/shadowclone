@@ -9,6 +9,7 @@ Start with the [README](../README.md) to install shadowclone and pick your first
 - [Skill maintenance](guides/skills.md): review updates and conflicts, and undo a change.
 - [Repository setup](guides/repositories.md): share checks and skills with a repository.
 - [Pi setup](guides/pi.md): use Pi models, including local models.
+- [OpenCode setup](guides/opencode.md): use shadowclone with OpenCode 1.x and 2.x.
 - [Delegated work](guides/delegated-work.md): take a change to ready for review.
 - [Cloud bot](guides/cloud-bot.md): set up a GitHub bot on a provider API key.
 - [Reviews](guides/reviews.md): follow a guided review, or review a PR locally or in the cloud.

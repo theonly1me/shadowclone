@@ -2,7 +2,7 @@ import path from "node:path";
 import { canonicalPath, readLocalText } from "@shadowclone/core";
 import { readIntegrations } from "../../integrations/state";
 import { prepareIntegrationFiles, savedRecords } from "../../integrations/files";
-import type { Integration } from "../../integrations/types";
+import { integrationAgentSchema, type Integration, type IntegrationAgent } from "../../integrations/types";
 import { sharedIntegrationUpdates } from "../../integrations/sharedUpdates";
 import type { BuildContext } from "./definition";
 
@@ -17,12 +17,13 @@ export async function buildIntegrations(
 
   const homeDirectory = path.dirname(context.paths.shadowcloneDirectory);
 
-  const directories = {
+  const directories: Readonly<Record<IntegrationAgent, string>> = {
     "claude-code": path.join(homeDirectory, ".claude"),
     codex: canonicalPath(path.dirname(context.paths.codexSessionsDirectory)),
     cursor: path.join(homeDirectory, ".cursor"),
     antigravity: path.join(homeDirectory, ".gemini/config"),
     pi: canonicalPath(context.paths.piAgentDirectory),
+    opencode: canonicalPath(context.paths.opencodeConfigDirectory),
   };
 
   const overrideExists = await Bun.file(
@@ -31,7 +32,7 @@ export async function buildIntegrations(
 
   return [
     ...current,
-    ...(["claude-code", "codex", "cursor", "antigravity", "pi"] as const).map(
+    ...integrationAgentSchema.options.map(
       (agent): Integration => ({
         id: crypto.randomUUID(),
         agent,

@@ -82,6 +82,24 @@ export function integrationTargets(
     ];
   }
 
+  if (integration.agent === "opencode") {
+    return [
+      ...(global ? [{ relativePath: "AGENTS.md", kind: "instructions" as const }] : []),
+      {
+        relativePath: global ? "plugins/shadowclone.js" : ".opencode/plugins/shadowclone.js",
+        kind: "extension",
+      },
+      {
+        relativePath: global
+          ? path.relative(integration.directory, path.join(integration.userDirectory, ".agents/skills/shadowclone-context/SKILL.md"))
+          : ".agents/skills/shadowclone-context/SKILL.md",
+        kind: "skill",
+      },
+    ];
+  }
+
+  integration.agent satisfies "cursor";
+
   return [
     ...(global
       ? []

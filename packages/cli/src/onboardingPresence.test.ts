@@ -43,6 +43,7 @@ test("detects non-empty file sources without returning their metadata", async ()
 
   await Promise.all([
     Bun.write(paths.claudePromptHistoryFile, "fixture"),
+    Bun.write(paths.opencodeDatabaseFile, "fixture"),
     Bun.write(path.join(homeDirectory, ".zsh_history"), "fixture"),
   ]);
 
@@ -51,7 +52,7 @@ test("detects non-empty file sources without returning their metadata", async ()
     workingDirectory: homeDirectory,
   });
 
-  expect([...presence.presentCaptureSources]).toEqual(["claude-prompts"]);
+  expect([...presence.presentCaptureSources]).toEqual(["claude-prompts", "opencode"]);
 });
 
 test("reduces a non-empty repository skill root to one boolean", async () => {

@@ -28,6 +28,9 @@ test("holds every user path under the selected home directory", () => {
     cursorChatsDirectory: "/Users/example/.cursor/chats",
     piAgentDirectory: "/Users/example/.pi/agent",
     piSessionsDirectory: "/Users/example/.pi/agent/sessions",
+    opencodeConfigDirectory: "/Users/example/.config/opencode",
+    opencodeDataDirectory: "/Users/example/.local/share/opencode",
+    opencodeDatabaseFile: "/Users/example/.local/share/opencode/opencode.db",
     managedConfigFile: "/Library/Application Support/shadowclone/managed.json",
     runDirectory: "/Users/example/.shadowclone/runs/run-1",
     worktreeDirectory: "/Users/example/.shadowclone/worktrees/run-1",
@@ -50,4 +53,30 @@ test("has no managed policy path on unsupported platforms", () => {
   });
 
   expect(paths.managedConfigFile).toBeNull();
+});
+
+test("follows the OpenCode configuration and data overrides", () => {
+  const paths = createProjectPaths({
+    homeDirectory: "/home/example",
+    platform: "linux",
+    opencode: { configHome: "/xdg/config", dataHome: "/xdg/data", databaseFile: "custom.db" },
+  });
+
+  expect(paths.opencodeConfigDirectory).toBe("/xdg/config/opencode");
+  expect(paths.opencodeDatabaseFile).toBe("/xdg/data/opencode/custom.db");
+});
+
+test("prefers the OpenCode configuration folder and an absolute database file", () => {
+  const paths = createProjectPaths({
+    homeDirectory: "/home/example",
+    platform: "linux",
+    opencode: {
+      configDirectory: "/custom/opencode-config",
+      configHome: "/xdg/config",
+      databaseFile: "/elsewhere/sessions.db",
+    },
+  });
+
+  expect(paths.opencodeConfigDirectory).toBe("/custom/opencode-config");
+  expect(paths.opencodeDatabaseFile).toBe("/elsewhere/sessions.db");
 });

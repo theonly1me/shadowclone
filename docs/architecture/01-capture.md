@@ -12,7 +12,7 @@ After consent, repository instruction import accepts the three supported root in
 
 `AgentEvent` records source, session and event identity, order, timestamp, working directory, kind, tool metadata, and an optional `TextRef`. See `packages/sessions/src/observe/types.ts`.
 
-The event index holds no transcript text. A file reference selects a bounded byte range. A Cursor reference selects a text field in a content-addressed SQLite blob. `resolveRedacted` checks the reference and redacts the selected text before it becomes learning input.
+The event index holds no transcript text. A file reference selects a bounded byte range. A Cursor reference selects a text field in a content-addressed SQLite blob. An OpenCode reference selects a text field in one row of the `part` or `session_message` table. `resolveRedacted` checks the reference and redacts the selected text before it becomes learning input.
 
 Only user-authored text is learning evidence. Learning removes shadowclone guidance sections from user text, and it skips text that has an unmatched section marker. Tool results, tool-returned file contents, thinking blocks, and data-access results get no eligible reference. Agent responses, plans, and questions appear only as labeled context beside a user correction.
 
@@ -28,6 +28,7 @@ Oversized records and databases are skipped with diagnostics. SQLite chat source
 - **Codex:** message and event streams can describe the same turn, so adapters count one. Codex also writes the `AGENTS.md` text that it loads as a user message that starts with `# AGENTS.md instructions for`. That message is not evidence.
 - **Pi:** version 3 JSONL keeps parent links. Each correction has its own ancestor context, without tools, thinking, injected messages, or summaries.
 - **Cursor:** chat databases hold JSON messages and opaque blobs. Adapters read only supported records.
+- **OpenCode:** one SQLite database holds every session. The adapter reads the 2.x tables first and reads a 1.x session only when 2.x has no copy. Each session has its own cursor. Subagent sessions, messages that a fork copied, and text that OpenCode injected, such as file contents from `@file`, get no reference.
 - **Antigravity:** generated logs give conversation records and cancellation signals. Capture queries no live daemon and writes no sidecars.
 
 Interruption markers have no stable schema, so marker-health diagnostics report suspicious gaps.
