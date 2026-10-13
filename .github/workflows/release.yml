@@ -90,3 +90,60 @@ jobs:
       - name: Publish skills to npm
         if: needs.prepare.outputs.skills_missing == 'true'
         run: npm publish ./packages/skills/out/package --access public --provenance
+
+  image:
+    needs: [prepare, publish]
+    if: needs.prepare.outputs.tag != ''
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Wait for the CLI version on npm
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          for attempt in $(seq 1 30); do
+            if npm view "@shadowclone/cli@${TAG#v}" version >/dev/null 2>&1; then exit 0; fi
+            echo "Waiting for @shadowclone/cli@${TAG#v} on npm ($attempt)"
+            sleep 20
+          done
+          exit 1
+
+      - name: Build and push the clone image for ${{ matrix.arch }}
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+          ARCH: ${{ matrix.arch }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER}/shadowclone-clone:${TAG#v}-$ARCH"
+          printenv GH_TOKEN | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker build --build-arg "SHADOWCLONE_VERSION=${TAG#v}" --tag "$image" packages/clones/image
+          docker push "$image"
+
+  image-manifest:
+    needs: [prepare, image]
+    if: needs.prepare.outputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      packages: write
+    steps:
+      - name: Join the clone images into one tag
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER}/shadowclone-clone:${TAG#v}"
+          printenv GH_TOKEN | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker buildx imagetools create --tag "$image" "$image-amd64" "$image-arm64"
