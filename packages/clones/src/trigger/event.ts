@@ -22,27 +22,6 @@ export const sessionEventSchema = z.discriminatedUnion("kind", [
 
 export type SessionEvent = z.infer<typeof sessionEventSchema>;
 
-export type SessionCommand =
-  { readonly kind: "work"; readonly task: string } | { readonly kind: "review" };
-
-const commandPattern = /^\s*\/shadowclone(?=$|\s)/i;
-
-export function parseSessionCommand(body: string): SessionCommand | null {
-  const [firstLine = "", ...rest] = body.split(/\r?\n/);
-
-  if (!commandPattern.test(firstLine)) {
-    return null;
-  }
-
-  const firstLineTask = firstLine.replace(commandPattern, "").trim();
-
-  if (/^review$/i.test(firstLineTask)) {
-    return { kind: "review" };
-  }
-
-  return { kind: "work", task: [firstLineTask, ...rest].join("\n").trim() };
-}
-
 export type SessionRequest = {
   readonly kind: "work" | "review" | "continue";
   readonly source: CommentSource | "workflow_run";

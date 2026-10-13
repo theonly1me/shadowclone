@@ -2,6 +2,7 @@ import { z } from "zod";
 import { githubData, type GithubCall } from "../github";
 import type { SessionConfig } from "../session/config";
 import { readSessionHead } from "../state/sessionRef";
+import { sessionRunning } from "../state/statusComment";
 import { issuePaused, readEntity } from "./entity";
 import { ignored, type Resolution } from "./event";
 
@@ -27,6 +28,7 @@ export async function resolveCi(options: {
   readonly github: GithubCall;
   readonly config: SessionConfig;
   readonly runId: number;
+  readonly now: Date;
 }): Promise<Resolution> {
   const { github, config } = options;
   const run = runSchema.parse(
@@ -85,6 +87,10 @@ export async function resolveCi(options: {
 
   if (entity.paused || (await issuePaused({ github, config, branch }))) {
     return ignored("The work is paused.");
+  }
+
+  if (await sessionRunning({ github, config, entity: pull.number, now: options.now })) {
+    return ignored("A session is already working on this pull request.");
   }
 
   return {

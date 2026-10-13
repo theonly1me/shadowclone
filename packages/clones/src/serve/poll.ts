@@ -2,7 +2,8 @@ import { z } from "zod";
 import { githubData, type GithubCall } from "../github";
 import type { SessionConfig } from "../session/config";
 import { listSessionHeads } from "../state/sessionRef";
-import { parseSessionCommand, sessionLabel, type SessionEvent } from "../trigger/event";
+import { parseSessionCommand } from "../trigger/command";
+import { sessionLabel, type SessionEvent } from "../trigger/event";
 
 export const repositoryCursorSchema = z.strictObject({
   since: z.string(),

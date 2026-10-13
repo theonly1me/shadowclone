@@ -11,6 +11,19 @@ const foundryEndpointPattern =
 
 export const defaultCloneImage = `ghcr.io/theonly1me/shadowclone-clone:${product.version}`;
 
+export const sessionHosts = ["local", "cloudflare", "vercel", "modal", "daytona", "e2b"] as const;
+
+export type SessionHost = (typeof sessionHosts)[number];
+
+export const sessionReceivers = ["cloudflare", "vercel", "supabase", "deno"] as const;
+
+export type SessionReceiver = (typeof sessionReceivers)[number];
+
+const hostsWithOwnReceiver: readonly SessionHost[] = ["local", "cloudflare", "vercel", "modal"];
+
+export const cloudChatgptRefusal =
+  "A ChatGPT plan login rotates its file after each refresh, so it works only on a spare machine host in this version.";
+
 export const defaultReviewerBots = ["coderabbitai[bot]", "github-actions[bot]"];
 
 export const publicChatgptRefusal =
@@ -47,7 +60,12 @@ export const sessionConfigSchema = z
       .string()
       .regex(/^[\w.:/-]+$/, "The model name can use only letters, digits, and . : / - _")
       .optional(),
-    host: z.literal("local"),
+    host: z.enum(sessionHosts),
+    receiver: z.enum(sessionReceivers).optional(),
+    receiverUrl: z
+      .string()
+      .regex(/^https:\/\/[^\s]+$/)
+      .optional(),
     image: z
       .string()
       .regex(/^[\w.-]+(?::\d+)?(?:\/[\w.-]+)*(?::[\w.-]+)?(?:@sha256:[a-f0-9]{64})?$/)
@@ -85,6 +103,18 @@ export const sessionConfigSchema = z
         path: ["model"],
         message: `The ${config.provider} provider needs a model name.`,
       });
+    }
+
+    if (hostsWithOwnReceiver.includes(config.host) !== (config.receiver === undefined)) {
+      context.addIssue({
+        code: "custom",
+        path: ["receiver"],
+        message: `The ${config.host} host ${hostsWithOwnReceiver.includes(config.host) ? "takes no receiver" : "needs a receiver: cloudflare, vercel, supabase, or deno"}.`,
+      });
+    }
+
+    if (config.provider === "chatgpt-subscription" && config.host !== "local") {
+      context.addIssue({ code: "custom", path: ["host"], message: cloudChatgptRefusal });
     }
 
     if (config.provider === "chatgpt-subscription" && config.visibility === "public") {
