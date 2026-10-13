@@ -14,6 +14,7 @@ import {
 import { resolveSessionRequest } from ".";
 
 const config = sampleConfig();
+const now = new Date("2026-10-14T12:00:00Z");
 
 async function resolveIssueComment(options: {
   readonly user: typeof owner;
@@ -28,6 +29,7 @@ async function resolveIssueComment(options: {
   return resolveSessionRequest({
     github,
     config,
+    now,
     event: { kind: "comment", source: "issue_comment", id: 501, entity: 12 },
   });
 }
@@ -104,6 +106,7 @@ describe("who starts a session", () => {
     const resolution = await resolveSessionRequest({
       github,
       config,
+      now,
       event: { kind: "comment", source: "issue_comment", id: 501, entity: 12 },
     });
 
@@ -135,7 +138,7 @@ describe("pull requests", () => {
   test("/shadowclone review on a fork pull request is a review of the fork head", async () => {
     const github = prComment({ user: owner, body: "/shadowclone review", repositoryId: 99 });
 
-    expect(await resolveSessionRequest({ github, config, event })).toMatchObject({
+    expect(await resolveSessionRequest({ github, config, event, now })).toMatchObject({
       kind: "accepted",
       request: { kind: "review", fork: true, head: sha("a"), branch: "feature" },
     });
@@ -144,7 +147,7 @@ describe("pull requests", () => {
   test("work on a fork pull request is refused because a session cannot push there", async () => {
     const github = prComment({ user: owner, body: "/shadowclone fix it", repositoryId: 99 });
 
-    expect(await resolveSessionRequest({ github, config, event })).toEqual({
+    expect(await resolveSessionRequest({ github, config, event, now })).toEqual({
       kind: "ignored",
       reason: "A session cannot push to a fork.",
     });
@@ -158,7 +161,7 @@ describe("pull requests", () => {
       sessionHead: sha("a"),
     });
 
-    expect(await resolveSessionRequest({ github, config, event })).toMatchObject({
+    expect(await resolveSessionRequest({ github, config, event, now })).toMatchObject({
       kind: "accepted",
       request: { kind: "continue" },
     });
@@ -167,6 +170,6 @@ describe("pull requests", () => {
   test("an allowed reviewer bot on a pull request that no session made starts nothing", async () => {
     const github = prComment({ user: reviewerBot, body: "Nit: rename this." });
 
-    expect((await resolveSessionRequest({ github, config, event })).kind).toBe("ignored");
+    expect((await resolveSessionRequest({ github, config, event, now })).kind).toBe("ignored");
   });
 });

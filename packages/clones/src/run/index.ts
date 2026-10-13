@@ -87,7 +87,12 @@ export async function runSession(
   options: RunContext & { readonly event: SessionEvent },
 ): Promise<SessionOutcome> {
   const { config, github, processes } = options;
-  const resolution = await resolveSessionRequest({ github, config, event: options.event });
+  const resolution = await resolveSessionRequest({
+    github,
+    config,
+    event: options.event,
+    now: options.now(),
+  });
 
   if (resolution.kind === "ignored") {
     return resolution;

@@ -3,6 +3,7 @@ import { fakeGithub, pullRoutes, sampleConfig, sessionHeadRoute, sha } from "../
 import { resolveSessionRequest } from ".";
 
 const config = sampleConfig();
+const now = new Date("2026-10-14T12:00:00Z");
 const branch = "shadowclone/issue-12";
 
 function ciGithub(options: {
@@ -60,7 +61,7 @@ describe("CI continues a session", () => {
   test("a finished CI run on the commit that the session pushed last continues the session pull request", async () => {
     const github = ciGithub({ sessionHead: sha("a"), runHead: sha("a") });
 
-    expect(await resolveSessionRequest({ github, config, event })).toMatchObject({
+    expect(await resolveSessionRequest({ github, config, event, now })).toMatchObject({
       kind: "accepted",
       request: { kind: "continue", entity: 40, branch, key: `workflow_run:${sha("a")}` },
     });
@@ -69,7 +70,7 @@ describe("CI continues a session", () => {
   test("a CI run on a commit that the owner pushed by hand does not continue the session", async () => {
     const github = ciGithub({ sessionHead: sha("a"), runHead: sha("b") });
 
-    expect(await resolveSessionRequest({ github, config, event })).toEqual({
+    expect(await resolveSessionRequest({ github, config, event, now })).toEqual({
       kind: "ignored",
       reason: "The session did not push this commit last.",
     });
@@ -82,6 +83,6 @@ describe("CI continues a session", () => {
       siblingStatus: "in_progress",
     });
 
-    expect((await resolveSessionRequest({ github, config, event })).kind).toBe("ignored");
+    expect((await resolveSessionRequest({ github, config, event, now })).kind).toBe("ignored");
   });
 });

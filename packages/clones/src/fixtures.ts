@@ -64,6 +64,10 @@ export function issueRoutes(options: {
   readonly pull?: boolean;
 }): FakeRoutes {
   return {
+    [`GET repos/sample/project/issues/${options.number}/comments?per_page=100&page=1`]: {
+      status: 200,
+      data: [],
+    },
     [`GET repos/sample/project/issues/${options.number}`]: {
       status: 200,
       data: {

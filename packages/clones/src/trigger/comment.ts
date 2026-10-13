@@ -2,6 +2,7 @@ import { z } from "zod";
 import { githubData, type GithubCall } from "../github";
 import type { SessionConfig } from "../session/config";
 import { readSessionHead } from "../state/sessionRef";
+import { sessionRunning } from "../state/statusComment";
 import { entityBranch, issuePaused, readEntity } from "./entity";
 import {
   ignored,
@@ -80,6 +81,7 @@ export async function resolveComment(options: {
   readonly source: CommentSource;
   readonly id: number;
   readonly entity: number;
+  readonly now: Date;
 }): Promise<Resolution> {
   const { github, config, source } = options;
   const comment = commentSchema.parse(
@@ -116,6 +118,13 @@ export async function resolveComment(options: {
 
   if (kind !== "review" && entity.pull?.fork === true) {
     return ignored("A session cannot push to a fork.");
+  }
+
+  if (
+    kind !== "continue" &&
+    (await sessionRunning({ github, config, entity: entityNumber, now: options.now }))
+  ) {
+    return ignored("A session is already working on this issue or pull request.");
   }
 
   if (

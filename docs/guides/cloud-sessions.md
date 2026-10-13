@@ -54,7 +54,7 @@ Anthropic allows you to sign in to the unmodified Claude Code with your own subs
 - `/shadowclone review` on a pull request posts a review as you.
 - `shadowclone session start --repo owner/repository --issue 12 "fix the parser"` posts the comment for you, from any machine.
 
-The command must be the first line of a comment that you wrote. A comment from anyone else starts nothing, even if it copies the command.
+The command must be the first line of a comment that you wrote. A comment from anyone else starts nothing, even if it copies the command. While a session works on an issue or pull request, a new command there starts nothing, because the agent comments with your name too.
 
 The session reacts with eyes and keeps one status comment on the issue or pull request. The status comment says when the session works, finishes, stops, or reaches a usage limit. `shadowclone session list --repo owner/repository` reads these comments, and `shadowclone session logs` shows the last log on the spare machine.
 

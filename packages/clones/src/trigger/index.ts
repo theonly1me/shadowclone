@@ -8,6 +8,7 @@ export async function resolveSessionRequest(options: {
   readonly github: GithubCall;
   readonly config: SessionConfig;
   readonly event: SessionEvent;
+  readonly now: Date;
 }): Promise<Resolution> {
   const { event } = options;
 

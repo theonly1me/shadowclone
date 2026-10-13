@@ -95,6 +95,22 @@ export async function findStatusComment(options: {
   return null;
 }
 
+export const runningWindowMilliseconds = 3 * 3_600_000;
+
+export async function sessionRunning(options: {
+  readonly github: GithubCall;
+  readonly config: SessionConfig;
+  readonly entity: number;
+  readonly now: Date;
+}): Promise<boolean> {
+  const status = (await findStatusComment(options))?.status;
+
+  return (
+    status?.state === "working" &&
+    options.now.getTime() - Date.parse(status.updatedAt) < runningWindowMilliseconds
+  );
+}
+
 export async function writeStatus(options: {
   readonly github: GithubCall;
   readonly config: SessionConfig;
