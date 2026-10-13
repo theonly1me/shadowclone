@@ -11,7 +11,7 @@ shadowclone init
 shadowclone install --agent opencode --global
 ```
 
-`shadowclone init` installs the integration when it finds the `opencode` program or the OpenCode configuration folder. `shadowclone init --advanced` has a separate OpenCode transcript choice. Installing alone turns on no capture source.
+`shadowclone init` installs the integration when it finds the `opencode` program or the OpenCode data folder. `shadowclone init --advanced` has a separate OpenCode transcript choice. Installing alone turns on no capture source.
 
 - A global install manages a section in `~/.config/opencode/AGENTS.md`, the plugin `~/.config/opencode/plugins/shadowclone.js`, and the shared skill `~/.agents/skills/shadowclone-context`.
 - `shadowclone install --agent opencode --local` writes `.opencode/plugins/shadowclone.js` and `.agents/skills/shadowclone-context` in one repository. It does not write the repository `AGENTS.md`, which your team may share.

@@ -49,7 +49,7 @@ export async function detectedIntegrationAgents(
     directoryHasEntry(path.join(homeDirectory, ".antigravity-ide")),
   ]);
   const opencode =
-    Bun.which("opencode") !== null || (await directoryHasEntry(paths.opencodeConfigDirectory));
+    Bun.which("opencode") !== null || (await directoryHasEntry(paths.opencodeDataDirectory));
 
   return [
     ...detected,
