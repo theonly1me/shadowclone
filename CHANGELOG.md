@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.0.32](https://github.com/theonly1me/shadowclone/compare/v0.0.31...v0.0.32) (2026-10-13)
+
+
+### Features
+
+* run the cloud bot on provider api keys and remove legacy profiles ([#206](https://github.com/theonly1me/shadowclone/issues/206)) ([83db886](https://github.com/theonly1me/shadowclone/commit/83db8868adf03ba8393781bf625e082b09376dc7))
+
+
+### Fixes
+
+* **learning:** keep background learning running and show waiting proposals to the user ([#203](https://github.com/theonly1me/shadowclone/issues/203)) ([64bdf7d](https://github.com/theonly1me/shadowclone/commit/64bdf7d3e696a54c913c36e2ec9108a83a97907a))
+
+
+### Documentation
+
+* compare shadowclone with related tools ([#205](https://github.com/theonly1me/shadowclone/issues/205)) ([a609d7e](https://github.com/theonly1me/shadowclone/commit/a609d7e2b581ab32b9424f830e0383297782068d))
+* simplify the readme and write shadowclone in lowercase ([#207](https://github.com/theonly1me/shadowclone/issues/207)) ([cbd7ed5](https://github.com/theonly1me/shadowclone/commit/cbd7ed596b0f1ac164979990e041942428427877))
+
 ## [0.0.31](https://github.com/theonly1me/shadowclone/compare/v0.0.30...v0.0.31) (2026-10-12)
 
 
