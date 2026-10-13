@@ -8,5 +8,6 @@ export function captureRoots(paths: ProjectPaths): readonly string[] {
     paths.codexSessionsDirectory,
     paths.cursorChatsDirectory,
     paths.piSessionsDirectory,
+    paths.opencodeDatabaseFile,
   ];
 }

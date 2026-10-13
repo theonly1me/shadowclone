@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 import { readBoundedFile, safeFilePath, maximumTextBytes, projectPaths } from "@shadowclone/core";
 import { redactSecrets } from "@shadowclone/redact";
 import { captureRoots } from "./roots";
+import { readSqliteRowText } from "./sqliteRowRef";
 import { parseTextRef, type TextRef } from "./types";
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -96,6 +97,14 @@ export async function resolveRedacted(options: {
   }
 
   const roots = options.roots ?? captureRoots(projectPaths);
+
+  if (ref.type === "sqlite-row") {
+    const sourcePath = await safeFilePath({ filePath: ref.sourcePath, roots });
+
+    return sourcePath === null
+      ? ""
+      : redactSecrets({ text: readSqliteRowText({ ...ref, sourcePath }) });
+  }
 
   if (ref.type === "sqlite-blob") {
     const sourcePath = await safeFilePath({ filePath: ref.sourcePath, roots });
