@@ -26,7 +26,7 @@ Restart OpenCode after the install.
 
 One plugin file works on both OpenCode lines. Before the first model call of a session, the plugin runs `shadowclone hook native-start` and adds the context that it returns to the system prompt. OpenCode 1.x calls the plugin through the experimental `experimental.chat.system.transform` hook, and OpenCode 2.x calls it through the `context` hook. The `AGENTS.md` section still routes your skills if a later OpenCode 1.x release changes the experimental hook.
 
-When a session becomes idle, the plugin runs `shadowclone hook native-end`. With background learning and OpenCode capture on, this can schedule a bounded learning run for that session.
+When a turn ends, the plugin runs `shadowclone hook native-end`. With background learning and OpenCode capture on, this can schedule a bounded learning run for that session. OpenCode 2.x does not run this step for `opencode run --standalone`, because that command stops its private server first.
 
 ## Capture and removal
 

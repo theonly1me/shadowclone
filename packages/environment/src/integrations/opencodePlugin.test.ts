@@ -25,7 +25,7 @@ const stop = await plugin.setup({
   event: {
     subscribe: () => (async function* () {
       await gate;
-      yield { type: "session.status", data: { sessionID: "ses_two", status: { type: "idle" } } };
+      yield { id: "evt_1", created: 1, type: "session.execution.succeeded", durable: {}, data: { sessionID: "ses_two" } };
       drained();
     })(),
   },

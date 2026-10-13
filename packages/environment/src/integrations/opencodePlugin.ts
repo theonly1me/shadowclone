@@ -43,15 +43,18 @@ const sessionContext = ({ sessionID, directory }) => {
   return contexts.get(sessionID);
 };
 
-const idleSessionId = event => {
-  const data = event?.properties ?? event?.data;
-  const idle = event?.type === "session.idle" ||
-    (event?.type === "session.status" && data?.status?.type === "idle");
-  return idle ? data?.sessionID : undefined;
-};
+const turnEndEvents = new Set([
+  "session.idle",
+  "session.execution.succeeded",
+  "session.execution.failed",
+  "session.execution.interrupted",
+]);
+
+const endedSessionId = event =>
+  turnEndEvents.has(event?.type) ? (event.properties ?? event.data)?.sessionID : undefined;
 
 const sessionEnd = ({ event, directory }) => {
-  const sessionID = idleSessionId(event);
+  const sessionID = endedSessionId(event);
   if (!sessionID || !active.delete(sessionID)) return Promise.resolve();
   return invoke({ event: "native-end", input: sessionInput({ sessionID, directory }) });
 };

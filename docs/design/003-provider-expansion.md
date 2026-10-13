@@ -76,10 +76,20 @@ A row text pointer names the database, the table, the row id, and a JSON path. `
 
 A global install manages a section in the global `AGENTS.md`, a plugin file, and the shared `~/.agents/skills/shadowclone-context` skill. The configuration folder is `$OPENCODE_CONFIG_DIR`, else `$XDG_CONFIG_HOME/opencode`, else `~/.config/opencode`. A repository install writes `.opencode/plugins/shadowclone.js` and the repository skill. It does not write the repository `AGENTS.md`, which a team can share.
 
-The plugin is one JavaScript file with no imports. It exports the 2.x `setup` form and the 1.x `server` form. When a session starts, the plugin runs `shadowclone hook native-start` and keeps the context that it returns. Before each model call, it adds that context to the system prompt through the 1.x `experimental.chat.system.transform` hook or the 2.x `context` hook. When a session becomes idle, it runs `shadowclone hook native-end`. The `AGENTS.md` section keeps the routing text if the experimental 1.x hook changes.
+The plugin is one JavaScript file with no imports. It exports the 2.x `setup` form and the 1.x `server` form. When a session starts, the plugin runs `shadowclone hook native-start` and keeps the context that it returns. Before each model call, it adds that context to the system prompt through the 1.x `experimental.chat.system.transform` hook or the 2.x `context` hook. When a turn ends, it runs `shadowclone hook native-end`. Version 1.x signals the end with `session.idle`. Version 2.x sends no idle event to plugins, so the plugin uses `session.execution.succeeded`, `failed`, and `interrupted`. The `AGENTS.md` section keeps the routing text if the experimental 1.x hook changes.
 
 In 1.x, OpenCode reads `~/.claude/CLAUDE.md` only when the global `AGENTS.md` does not exist. A new global `AGENTS.md` therefore hides that file from OpenCode 1.x. The OpenCode guide states this. OpenCode reads both `~/.agents/skills` and `~/.claude/skills`, so each global skill reaches it twice with the same content.
 
 Shadowclone writes no `opencode.json`. A write that makes the global configuration invalid makes OpenCode drop all of it. The MCP guide shows the entry to add by hand.
 
 The integration targets OpenCode 1.19.0 and 2.0.28.
+
+### OpenCode qualification results
+
+Installed-harness checks used OpenCode 1.19.0 and 2.0.28 in an isolated home, with a local OpenAI-compatible test server and synthetic prompts. No request left the machine.
+
+1. Both versions loaded the plugin and ran `native-start` once for each session, before the first model call.
+2. In both versions, the main model request held the plugin context and the managed `AGENTS.md` section. Version 1.x also adds the plugin context to its title request.
+3. Version 1.x ran `native-end` when `opencode run` finished. Version 2.x ran it through the shared background service. With `opencode run --standalone`, version 2.x stops its private server before the plugin can run `native-end`.
+4. Capture read both real databases. It redacted a synthetic secret in a typed prompt and returned assistant text.
+5. After version 2.x migrated a 1.x database, capture read each of the three sessions once.
