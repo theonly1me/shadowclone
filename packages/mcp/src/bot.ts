@@ -76,6 +76,7 @@ async function outcomeText(outcome: AccountSetupOutcome): Promise<string> {
 
   if (outcome.kind === "needs-approval") {
     return [
+      ...outcome.warnings,
       `Setup pushes these ${outcome.files.length} files to the private repository ${outcome.skillsRepository}:`,
       ...outcome.files.map((file) => `- ${file.path} (${file.bytes} bytes)`),
       "Show this list to the owner. Call setup again with approveSkills true only after the owner agrees.",

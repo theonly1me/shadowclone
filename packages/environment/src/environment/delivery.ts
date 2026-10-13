@@ -6,9 +6,35 @@ import { readRedactedEnvironment } from "./store";
 import { learningScopes } from "./scope";
 import { renderSkillRouting } from "./context";
 import { publishedSkills } from "./catalog";
+import type { EnvironmentArtifact, EnvironmentState } from "./types";
 import { assertRegularDestination } from "@shadowclone/core";
 import { discoverDeliverySkills, readMaintenanceState } from "@shadowclone/skills";
 import type { RepositoryIdentity } from "@shadowclone/sessions";
+
+async function availableCopy(options: {
+  readonly state: EnvironmentState;
+  readonly skill: EnvironmentArtifact;
+}): Promise<EnvironmentArtifact | null> {
+  const copies = [
+    options.skill,
+    ...options.state.artifacts.filter(
+      (artifact) =>
+        artifact.kind === "skill" &&
+        !artifact.buildId &&
+        artifact.scope === options.skill.scope &&
+        artifact.name === options.skill.name &&
+        artifact.filePath !== options.skill.filePath,
+    ),
+  ];
+
+  for (const copy of copies) {
+    if (await Bun.file(copy.filePath).exists()) {
+      return copy;
+    }
+  }
+
+  return null;
+}
 
 export async function materializeSkillDelivery(options: {
   readonly paths: ProjectPaths;
@@ -49,10 +75,15 @@ export async function materializeSkillDelivery(options: {
   );
 
   const library = await discoverDeliverySkills(roots);
+  const published = (
+    await Promise.all(
+      publishedSkills({ state, scopes: scopeKeys }).map((skill) => availableCopy({ state, skill })),
+    )
+  ).flatMap((skill) => (skill === null ? [] : [skill]));
 
   const skills = [
     ...new Map([
-      ...publishedSkills({ state, scopes: scopeKeys }).map(
+      ...published.map(
         (skill) =>
           [
             skill.filePath,
