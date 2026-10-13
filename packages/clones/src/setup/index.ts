@@ -1,149 +1,70 @@
-import { z } from "zod";
 import { ownedDirectory } from "@shadowclone/core";
-import { githubData, type GithubCall } from "../github";
+import type { GithubCall } from "../github";
 import type { Processes } from "../run/processes";
-import {
-  publicChatgptRefusal,
-  sessionConfigSchema,
-  type SessionConfig,
-  type SessionConfigInput,
-} from "../session/config";
-import type { SessionProvider } from "../session/providers";
+import type { SessionConfig } from "../session/config";
 import { saveSessionConfig, type ClonesPaths } from "../session/store";
 import { installService, type ServiceOutcome } from "../serve/service";
-import { ensureSessionsRuleset, sessionsRulesetSummary } from "./ruleset";
+import { setUpCloudHost, type CloudSetupOutcome } from "./cloud";
+import {
+  organizationWarning,
+  prepareSessions,
+  type Preparation,
+  type SetupRequest,
+} from "./prepare";
 import { createSecretsFile, secretLines, type SecretLine } from "./secrets";
+
+export type LocalSetupOutcome = {
+  readonly kind: "configured";
+  readonly config: SessionConfig;
+  readonly secretsFile: string;
+  readonly secretsFileCreated: boolean;
+  readonly secrets: readonly SecretLine[];
+  readonly service: ServiceOutcome;
+  readonly imageReady: boolean;
+  readonly warnings: readonly string[];
+};
 
 export type SessionSetupOutcome =
   | { readonly kind: "needs-docker"; readonly detail: string }
-  | { readonly kind: "needs-skills"; readonly skillsRepository: string }
-  | {
-      readonly kind: "needs-ruleset-approval";
-      readonly repository: string;
-      readonly summary: string;
-    }
-  | {
-      readonly kind: "configured";
-      readonly config: SessionConfig;
-      readonly secretsFile: string;
-      readonly secretsFileCreated: boolean;
-      readonly secrets: readonly SecretLine[];
-      readonly service: ServiceOutcome;
-      readonly imageReady: boolean;
-      readonly warnings: readonly string[];
-    };
+  | Exclude<Preparation, { readonly kind: "ready" }>
+  | LocalSetupOutcome
+  | (CloudSetupOutcome & { readonly warnings?: readonly string[] });
 
-const userSchema = z.object({ id: z.number().int().positive(), login: z.string() });
-
-const repositorySchema = z.object({
-  id: z.number().int().positive(),
-  full_name: z.string(),
-  default_branch: z.string(),
-  visibility: z.enum(["public", "private", "internal"]),
-  owner: z.object({ type: z.string() }),
-  permissions: z.object({ admin: z.boolean() }).optional(),
-});
-
-export async function setUpSessions(options: {
+type SetupHost = {
   readonly github: GithubCall;
   readonly processes: Processes;
   readonly paths: ClonesPaths;
-  readonly repository: string;
-  readonly provider: SessionProvider;
-  readonly baseUrl?: string;
-  readonly model?: string;
-  readonly image?: string;
-  readonly attribution: boolean;
-  readonly approveRuleset: boolean;
   readonly executable: string;
   readonly pathVariable: string;
-}): Promise<SessionSetupOutcome> {
-  const { github, processes, paths } = options;
+  readonly environment: Readonly<Record<string, string | undefined>>;
+  readonly supabaseProject?: string;
+  readonly denoOrganization?: string;
+};
 
-  await ownedDirectory(paths.directory);
+async function imageReady(options: {
+  readonly processes: Processes;
+  readonly paths: ClonesPaths;
+  readonly image: string;
+}): Promise<boolean> {
+  const run = (command: readonly string[]) =>
+    options.processes.run({ arguments: command, cwd: options.paths.directory });
 
-  const docker = await processes.run({
-    arguments: ["docker", "info", "--format", "{{.ServerVersion}}"],
-    cwd: paths.directory,
-  });
-
-  if (docker.exitCode !== 0) {
-    return {
-      kind: "needs-docker",
-      detail: docker.stderr.trim().split("\n").at(-1) ?? "docker info failed.",
-    };
-  }
-
-  const owner = userSchema.parse(await githubData({ github, route: "user" }));
-  const repository = repositorySchema.parse(
-    await githubData({ github, route: `repos/${options.repository}` }),
+  return (
+    (await run(["docker", "image", "inspect", options.image])).exitCode === 0 ||
+    (await run(["docker", "pull", "--quiet", options.image])).exitCode === 0
   );
+}
 
-  if (repository.permissions?.admin !== true) {
-    throw new Error(
-      `Setup needs administration access to ${repository.full_name}, to add the default branch ruleset.`,
-    );
-  }
+async function setUpLocal(
+  options: SetupHost & { readonly config: SessionConfig; readonly organization: boolean },
+): Promise<LocalSetupOutcome> {
+  const { config, paths, processes } = options;
 
-  if (options.provider === "chatgpt-subscription" && repository.visibility === "public") {
-    throw new Error(publicChatgptRefusal);
-  }
-
-  const skillsRepository = `${owner.login}/shadowclone-skills`;
-
-  if ((await github({ route: `repos/${skillsRepository}` })).status === 404) {
-    return { kind: "needs-skills", skillsRepository };
-  }
-
-  const input: SessionConfigInput = {
-    version: 1,
-    repository: repository.full_name,
-    repositoryId: repository.id,
-    defaultBranch: repository.default_branch,
-    visibility: repository.visibility,
-    ownerId: owner.id,
-    ownerLogin: owner.login,
-    skillsRepository,
-    provider: options.provider,
-    host: "local",
-    attribution: options.attribution,
-    ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
-    ...(options.model === undefined ? {} : { model: options.model }),
-    ...(options.image === undefined ? {} : { image: options.image }),
-  };
-  const parsed = sessionConfigSchema.safeParse(input);
-
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues.map((issue) => issue.message).join(" "));
-  }
-
-  if (!options.approveRuleset) {
-    return {
-      kind: "needs-ruleset-approval",
-      repository: repository.full_name,
-      summary: sessionsRulesetSummary,
-    };
-  }
-
-  const config = parsed.data;
-
-  await ensureSessionsRuleset({ github, repository: repository.full_name });
   await saveSessionConfig({ paths, config });
 
   const secrets = secretLines(config);
   const created = await createSecretsFile({ paths, lines: secrets });
-  const present = await processes.run({
-    arguments: ["docker", "image", "inspect", config.image],
-    cwd: paths.directory,
-  });
-  const imageReady =
-    present.exitCode === 0 ||
-    (
-      await processes.run({
-        arguments: ["docker", "pull", "--quiet", config.image],
-        cwd: paths.directory,
-      })
-    ).exitCode === 0;
+  const ready = await imageReady({ processes, paths, image: config.image });
   const service = await installService({
     paths,
     processes,
@@ -158,16 +79,48 @@ export async function setUpSessions(options: {
     secretsFileCreated: created === "created",
     secrets,
     service,
-    imageReady,
+    imageReady: ready,
     warnings: [
-      ...(repository.owner.type === "Organization"
-        ? [
-            "The ruleset applies to every member of the organization: each change to the default branch needs a pull request.",
-          ]
-        : []),
-      ...(imageReady
+      ...(options.organization ? [organizationWarning] : []),
+      ...(ready
         ? []
         : [`Docker could not pull ${config.image}. Sessions cannot start until the image exists.`]),
     ],
   };
+}
+
+export async function setUpSessions(
+  options: SetupHost & SetupRequest,
+): Promise<SessionSetupOutcome> {
+  const { processes, paths } = options;
+
+  await ownedDirectory(paths.directory);
+
+  if (options.host === "local") {
+    const docker = await processes.run({
+      arguments: ["docker", "info", "--format", "{{.ServerVersion}}"],
+      cwd: paths.directory,
+    });
+
+    if (docker.exitCode !== 0) {
+      return {
+        kind: "needs-docker",
+        detail: docker.stderr.trim().split("\n").at(-1) ?? "docker info failed.",
+      };
+    }
+  }
+
+  const prepared = await prepareSessions(options);
+
+  if (prepared.kind !== "ready") {
+    return prepared;
+  }
+
+  if (prepared.config.host === "local") {
+    return setUpLocal({ ...options, config: prepared.config, organization: prepared.organization });
+  }
+
+  const cloud = await setUpCloudHost({ ...options, config: prepared.config });
+
+  return { ...cloud, warnings: prepared.organization ? [organizationWarning] : [] };
 }

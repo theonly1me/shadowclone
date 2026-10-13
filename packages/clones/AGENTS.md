@@ -20,7 +20,9 @@ Runs cloud sessions: Claude Code or Codex works for the owner, as the owner, on 
 - `src/state/`: the GitHub state: claim refs and the daily budget, the session head ref, and the status comment.
 - `src/run/`: the run program inside the clone image (`runSession`), with the workspace, git hooks, engine, review stages, save, and finish steps.
 - `src/serve/`: the local server on a spare machine: the poller, the Docker launcher, the queue, and the launchd or systemd service.
-- `src/setup/`: host setup, the default branch ruleset, the secrets file, and the check.
+- `src/receivers/`: the Web-standard webhook receiver (`receiveWebhook`), its runtime settings, and the Daytona and E2B launchers. These files run inside the user's host, so they use only Web APIs and import only each other and `trigger/command.ts`.
+- `src/hosts/`: the receiver bundle macro, the project files for Cloudflare, Vercel, Supabase, Deno Deploy, and Modal, the deploy steps, and the repository webhook.
+- `src/setup/`: host setup, the default branch ruleset, the secrets file and host secrets, the summary, and the checks.
 - `image/Dockerfile`: the clone image that `release.yml` publishes to GHCR.
 
 ## Rules
@@ -33,7 +35,9 @@ Runs cloud sessions: Claude Code or Codex works for the owner, as the owner, on 
 - GitHub holds the state. A claim ref stops a second run of one request, and the claim refs of a day are the budget.
 - A session never pushes to the default branch. The pre-push hook refuses it, and setup adds a ruleset with no bypass.
 - A review runs the toolchain only on a pull request that the owner wrote in this repository. Other reviews turn the network off.
-- Setup refuses a ChatGPT plan login on a public repository.
+- Setup refuses a ChatGPT plan login on a public repository, and on every host except `local`.
+- A receiver checks the signature, the repository ID, and the sender before it starts a sandbox. It passes only the secrets that `SHADOWCLONE_FORWARD` names.
+- `hosts/bundle.ts` lists the receiver sources in dependency order. Add a new receiver file to that list, and keep its top-level names unique.
 
 ## Tests
 

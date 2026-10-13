@@ -2,15 +2,10 @@ import { z } from "zod";
 import { githubData, type GithubCall } from "../github";
 import type { SessionConfig } from "../session/config";
 import { readSessionHead } from "../state/sessionRef";
+import { parseSessionCommand, type SessionCommand } from "./command";
 import { sessionRunning } from "../state/statusComment";
 import { entityBranch, issuePaused, readEntity } from "./entity";
-import {
-  ignored,
-  parseSessionCommand,
-  type CommentSource,
-  type Resolution,
-  type SessionCommand,
-} from "./event";
+import { ignored, type CommentSource, type Resolution } from "./event";
 
 const commentSchema = z.object({
   id: z.number().int().positive(),
@@ -120,10 +115,7 @@ export async function resolveComment(options: {
     return ignored("A session cannot push to a fork.");
   }
 
-  if (
-    kind !== "continue" &&
-    (await sessionRunning({ github, config, entity: entityNumber, now: options.now }))
-  ) {
+  if (await sessionRunning({ github, config, entity: entityNumber, now: options.now })) {
     return ignored("A session is already working on this issue or pull request.");
   }
 

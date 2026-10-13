@@ -65,7 +65,9 @@ export async function pollOnce(options: {
   const cursors = await readCursors(options.paths);
   let queued = 0;
 
-  for (const config of await listSessionConfigs(options.paths)) {
+  for (const config of (await listSessionConfigs(options.paths)).filter(
+    (entry) => entry.host === "local",
+  )) {
     try {
       const result = await pollRepository({
         github: options.github,

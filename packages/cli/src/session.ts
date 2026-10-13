@@ -1,84 +1,26 @@
 import {
-  checkSessionHost,
   chatgptLoginArguments,
   clonesPaths,
   dockerLauncher,
   githubThroughGh,
-  hostProcesses,
   latestSessionLog,
   listSessions,
-  readSessionConfig,
   runContainerCheckFromEnvironment,
   runContainerSession,
   serveSessions,
-  sessionProviders,
   startSession,
 } from "@shadowclone/clones";
-import { pushSkillsInTerminal, setUpSessionsInTerminal } from "./sessionSetup";
+import {
+  configuredRepository,
+  flagValue,
+  secretsCommand,
+  sessionSetupUsage,
+  setupCommand,
+  statusCommand,
+} from "./sessionHosts";
+import { pushSkillsInTerminal } from "./sessionSetup";
 
-export const sessionUsage =
-  "Cloud sessions: session setup [--repo owner/repository] [--provider claude-subscription|anthropic|chatgpt-subscription|openai|openai-compatible|ollama|foundry] [--base-url url] [--model id] [--image name] [--no-attribution] [--yes]; session skills [--yes]; session login|status|list --repo owner/repository; session start --repo owner/repository --issue <number> [task]; session logs; serve";
-
-function flagValue(options: {
-  readonly arguments: readonly string[];
-  readonly flag: string;
-}): string | null {
-  const index = options.arguments.indexOf(options.flag);
-
-  return index < 0 ? null : (options.arguments[index + 1] ?? "");
-}
-
-async function configuredRepository(arguments_: readonly string[]) {
-  const repository = flagValue({ arguments: arguments_, flag: "--repo" });
-  const config =
-    repository === null ? null : await readSessionConfig({ paths: clonesPaths(), repository });
-
-  if (config === null) {
-    throw new Error(
-      `Name a repository that has cloud sessions on this machine with --repo owner/repository. ${sessionUsage}`,
-    );
-  }
-
-  return config;
-}
-
-async function setup(arguments_: readonly string[]): Promise<void> {
-  const provider = sessionProviders.find(
-    (entry) =>
-      entry === (flagValue({ arguments: arguments_, flag: "--provider" }) ?? "claude-subscription"),
-  );
-  const baseUrl = flagValue({ arguments: arguments_, flag: "--base-url" });
-  const model = flagValue({ arguments: arguments_, flag: "--model" });
-  const image = flagValue({ arguments: arguments_, flag: "--image" });
-
-  if (provider === undefined) {
-    throw new Error(sessionUsage);
-  }
-
-  await setUpSessionsInTerminal({
-    repository: flagValue({ arguments: arguments_, flag: "--repo" }),
-    provider,
-    ...(baseUrl === null ? {} : { baseUrl }),
-    ...(model === null ? {} : { model }),
-    ...(image === null ? {} : { image }),
-    attribution: !arguments_.includes("--no-attribution"),
-    yes: arguments_.includes("--yes"),
-  });
-}
-
-async function status(arguments_: readonly string[]): Promise<void> {
-  const lines = await checkSessionHost({
-    config: await configuredRepository(arguments_),
-    paths: clonesPaths(),
-    processes: hostProcesses,
-  });
-
-  for (const line of lines) {
-    console.log(`${line.passed ? "pass" : "fail"} ${line.name}: ${line.detail}`);
-  }
-
-  process.exitCode = lines.every((line) => line.passed) ? 0 : 1;
-}
+export const sessionUsage = `Cloud sessions: ${sessionSetupUsage}; session skills [--yes]; session login|status|secrets|list --repo owner/repository; session start --repo owner/repository --issue <number> [task]; session logs; serve`;
 
 async function login(arguments_: readonly string[]): Promise<void> {
   const config = await configuredRepository(arguments_);
@@ -162,9 +104,12 @@ export async function serveCommand(): Promise<void> {
 }
 
 const operations: Readonly<Record<string, (arguments_: readonly string[]) => Promise<void>>> = {
-  setup,
-  skills: (arguments_) => pushSkillsInTerminal({ yes: arguments_.includes("--yes") }),
-  status,
+  setup: setupCommand,
+  skills: async (arguments_) => {
+    await pushSkillsInTerminal({ yes: arguments_.includes("--yes") });
+  },
+  status: statusCommand,
+  secrets: secretsCommand,
   login,
   start,
   list,

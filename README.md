@@ -7,13 +7,13 @@
 [![license](https://img.shields.io/github/license/theonly1me/shadowclone)](LICENSE)
 [![HOL Guard](https://img.shields.io/endpoint?url=https%3A%2F%2Fhol.org%2Fapi%2Fregistry%2Fbadges%2Fplugin%3Fslug%3Dtheonly1me%252Fshadowclone%26metric%3Dtrust)](https://hol.org/registry/plugins/theonly1me%2Fshadowclone)
 
-[Quick start](#quick-start) · [What shadowclone offers](#what-shadowclone-offers) · [Compare](#how-shadowclone-compares-to-other-tools) · [How it works](#how-it-works) · [Eval and Results](#eval-and-results) · [Docs](#docs)
+[Quick start](#quick-start) · [Cloud sessions](#your-clone-works-while-you-are-away) · [What shadowclone offers](#what-shadowclone-offers) · [Compare](#how-shadowclone-compares-to-other-tools) · [How it works](#how-it-works) · [Eval and Results](#eval-and-results) · [Docs](#docs)
 
 </div>
 
 **shadowclone keeps your engineering preferences the same in every coding agent.** It maintains one set of skills and instructions for Claude Code, Codex, Cursor, Pi, Antigravity, and OpenCode. You do not copy rules from one tool to the next. shadowclone can also learn new preferences from the sessions that you allow.
 
-**The same skills reach your cloud agent.** A GitHub bot runs Claude Code, Codex, or Cursor with your selected skills. So the bot writes and reviews code with the preferences that your local agents use. shadowclone is not a separate agent. It equips the agent that you already use. See [how it compares to other tools](#how-shadowclone-compares-to-other-tools).
+**It works as you while you are away.** Comment `/shadowclone <task>` on a GitHub issue. Claude Code or Codex works with your skills, on your own subscription, in your own cloud account. It opens a draft pull request as you. shadowclone is not a separate agent. It equips the agent that you already use. See [how it compares to other tools](#how-shadowclone-compares-to-other-tools).
 
 ## Quick start
 
@@ -44,6 +44,20 @@ To add the plugin, run `/plugin install shadowclone@shadowclone` after `/plugin 
 </details>
 
 ## What shadowclone offers
+
+### Your clone works while you are away
+
+**Comment, and it works as you.** `/shadowclone fix the flaky date parser test` on an issue starts Claude Code or Codex with your skills, on your Claude or ChatGPT plan or a key. It opens a draft pull request with your name on it. Only your own comment starts it.
+
+```text
+you        /shadowclone fix the flaky date parser test
+session    shadowclone session is working on this.  Branch shadowclone/issue-42 | Claude Code
+session    shadowclone session finished.  Pull request #43
+```
+
+**Runs in your account.** Sessions run on Cloudflare, Vercel, Modal, Daytona, E2B, or a spare machine. There is no shadowclone server, and your tokens stay with the host that you choose. Sessions never push to the default branch, and each commit names the agent.
+
+**Set it up with one sentence.** Ask your agent to "set up shadowclone cloud sessions on Cloudflare." You approve your skills and a default branch ruleset, and paste two tokens. See the [cloud sessions guide](docs/guides/cloud-sessions.md).
 
 ### Preferences that evolve with your work
 
@@ -79,9 +93,9 @@ The agent creates an HTML guide with actual diffs, behavior traces, and a readin
 
 **Review in the cloud.** Comment `@<bot> review` on a pull request, also on one from a fork. The cloud bot posts its findings on GitHub under its own identity. See [cloud review](docs/guides/reviews.md#review-in-the-cloud).
 
-### A cloud bot with your skills
+### A cloud bot for your team
 
-**Delegate GitHub work.** A bot runs in GitHub Actions with your selected skills and one provider API key: Anthropic, OpenAI, an OpenAI-compatible endpoint, or Cursor. Anyone with write access can tag it. It works on issues, opens pull requests, and follows checks and review feedback. You decide when to merge.
+**Share an agent with your team.** A bot runs in GitHub Actions with your selected skills and one provider API key: Anthropic, OpenAI, an OpenAI-compatible endpoint, or Cursor. Anyone with write access can tag it. It works on issues, opens pull requests, and follows checks and review feedback. You decide when to merge.
 
 **Ask the agent to configure it.** After local setup, ask:
 
@@ -93,19 +107,13 @@ The agent prepares the skills repository and workflows. Then it gives you one li
 
 **Keep your key on GitHub.** The bot reads the API key from a GitHub environment, and shadowclone never sees it. Anyone with write access can tag the bot, so set a spending limit in your provider console.
 
-### Cloud sessions on your own machine
-
-**Work as you, on your subscription.** Comment `/shadowclone <task>` on an issue, and Claude Code or Codex works on a spare machine that you own. It uses your Claude or ChatGPT plan, or a key, Ollama, or Foundry. Only your own comment starts a session.
-
-**Ask the agent on the spare machine.** "Set up shadowclone cloud sessions here." Sessions run in Docker, commit as you with a `Co-authored-by` trailer, and never push to the default branch. See the [cloud sessions guide](docs/guides/cloud-sessions.md).
-
 ## How shadowclone compares to other tools
 
 shadowclone gives one set of skills to the agents that you already use, on your machine and on GitHub. The table uses each project's own pages, checked on 12 October 2026. "Not stated" means that those pages do not answer the question.
 
 | Tool                                                                   | What it is                                                                                 | Agents                                                | Learns from your sessions              | Same guidance in the cloud      | Reviews pull requests                 |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------- | -------------------------------------- | ------------------------------- | ------------------------------------- |
-| shadowclone                                                            | Skills, instructions, learning, and a GitHub cloud bot for the agents that you already use | Claude Code, Codex, Cursor, Pi, Antigravity, OpenCode | Yes, from the sessions that you allow  | Yes, a GitHub Actions bot       | Yes, locally, guided, and on GitHub   |
+| shadowclone                                                            | Skills, instructions, learning, and a GitHub cloud bot for the agents that you already use | Claude Code, Codex, Cursor, Pi, Antigravity, OpenCode | Yes, from the sessions that you allow  | Yes, cloud sessions and a bot   | Yes, locally, guided, and on GitHub   |
 | [pstack](https://github.com/cursor/plugins/tree/main/pstack)           | A skill and principle pack                                                                 | Cursor                                                | No. You run `/reflect` to edit a skill | Not stated                      | Yes, `/interrogate` and Comment Sicko |
 | [Hermes Agent](https://github.com/NousResearch/hermes-agent)           | Its own agent with a learning loop                                                         | Hermes only                                           | Yes, it writes skills after tasks      | Yes, on a server with chat apps | Not stated                            |
 | [Claude Code auto memory](https://code.claude.com/docs/en/memory)      | Built-in notes from corrections                                                            | Claude Code                                           | Yes, notes from your corrections       | No. Memory stays on one machine | No                                    |
@@ -121,7 +129,8 @@ flowchart LR
   A[Consented sessions] --> B[Learning]
   B --> C[Skills and native instructions]
   C --> D[Agents on your machine]
-  C --> E[Cloud bot on GitHub]
+  C --> E[Cloud sessions that work as you]
+  C --> F[Cloud bot on GitHub]
 ```
 
 shadowclone indexes references to enabled sessions and copies no transcript. It redacts text and learns rules. One session can give an explicit rule, and an inferred pattern needs three independent sessions. Rules become skills that you can read, edit, and undo. shadowclone changes the guidance, not the model. See the [architecture](docs/architecture/README.md).
@@ -157,7 +166,7 @@ Read the [privacy policy](PRIVACY.md) and [data handling](docs/data-handling.md)
 | [OpenCode setup](docs/guides/opencode.md)        | Use OpenCode          |
 | [Delegated work](docs/guides/delegated-work.md)  | Ready a pull request  |
 | [Cloud bot](docs/guides/cloud-bot.md)            | Set up the GitHub bot |
-| [Cloud sessions](docs/guides/cloud-sessions.md)  | Work as you elsewhere |
+| [Cloud sessions](docs/guides/cloud-sessions.md)  | Work as you, anywhere |
 | [Reviews](docs/guides/reviews.md)                | Review a pull request |
 | [MCP server](docs/guides/mcp.md)                 | Give agents the tools |
 | [Command reference](docs/guides/commands.md)     | Find every command    |

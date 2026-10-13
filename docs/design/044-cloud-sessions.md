@@ -47,9 +47,19 @@ shadowclone gets a second mode next to the bot. A **cloud session** runs Claude 
 
 Anthropic allows a person to sign in to "the unmodified Claude Code binary with their own Claude subscription, including where a platform hosts Claude Code". It does not allow tools that "collect, store, or intermediate" Claude credentials. So the owner pastes each token into the host's own secret store, and shadowclone never reads it. OpenAI says not to use a ChatGPT plan login for automation on public repositories, and to use one `auth.json` copy from one serialized job stream. So setup refuses `chatgpt-subscription` on a public repository, and a host runs one session at a time for that login.
 
-**Hosts.** The first host is a spare machine with Docker. `shadowclone serve` polls GitHub every 60 seconds and runs as a launchd or systemd service. It runs one session at a time. Each session runs in a fresh container from `ghcr.io/theonly1me/shadowclone-clone:<version>`. The container gets the tokens through `docker run --env-file ~/.shadowclone/clones/secrets.env`. The network is open, so web search and page fetches work.
+**Hosts.** The `local` host is a spare machine with Docker. `shadowclone serve` polls GitHub every 60 seconds and runs as a launchd or systemd service. It runs one session at a time. Each session runs in a fresh container from `ghcr.io/theonly1me/shadowclone-clone:<version>`. The container gets the tokens through `docker run --env-file ~/.shadowclone/clones/secrets.env`. The network is open, so web search and page fetches work.
 
-Later parts add cloud hosts. A thin receiver checks the webhook signature and the sender ID, and starts a sandbox. It runs on Cloudflare Workers, Vercel, Supabase, or Deno Deploy. The sandboxes are Cloudflare Containers, Vercel Sandbox, Modal, Daytona, and E2B. Setup picks the pair that needs the fewest new accounts.
+Cloud hosts use a thin receiver. It checks the webhook signature, the repository ID, and the sender ID, and it starts a sandbox. It calls no GitHub API and keeps no state. The run program in the sandbox resolves the request again.
+
+| Host         | Receiver                                       | Sandbox                                                                    |
+| ------------ | ---------------------------------------------- | -------------------------------------------------------------------------- |
+| `cloudflare` | Worker                                         | A Container in a Durable Object for each issue, with a 4-hour idle timeout |
+| `vercel`     | Function with `waitUntil`                      | Vercel Sandbox from the clone image in the Vercel Container Registry       |
+| `modal`      | Python endpoint, because Modal has no HTTP API | Modal Sandbox from the registry image                                      |
+| `daytona`    | Cloudflare, Vercel, Supabase, or Deno Deploy   | Daytona sandbox from a snapshot, with auto-stop off                        |
+| `e2b`        | Cloudflare, Vercel, Supabase, or Deno Deploy   | E2B sandbox from a template, started over the envd process API             |
+
+The receiver code is one Web-standard `fetch` handler. A Bun macro joins its TypeScript sources into one module at build time, because Bun cannot run `Bun.build` inside a macro. Setup writes that module and a short entry file for the host, deploys them with the host's CLI, and registers the repository webhook. Cloudflare and Vercel do not pull from GHCR, so their deploy builds a one-line `FROM` image with Docker. A ChatGPT login stays on `local`, because it needs one writable copy of its rotating file.
 
 **Setup.** The `setup-cloud-sessions` skill in the `shadowclone` plugin drives setup on the host. It calls the `shadowclone_session` MCP tool, which shares one engine with `shadowclone session setup`. Setup does each step that the owner's logins allow. The owner pastes the tokens and approves the default branch rule.
 
