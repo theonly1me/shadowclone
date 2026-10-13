@@ -17,7 +17,7 @@ import {
 import { pushSkillsInTerminal, setUpSessionsInTerminal } from "./sessionSetup";
 
 export const sessionUsage =
-  "Cloud sessions: session setup [--repo owner/repository] [--provider claude-subscription|anthropic|chatgpt-subscription|openai|openai-compatible|ollama|foundry] [--base-url url] [--model id] [--no-attribution] [--yes]; session skills [--yes]; session login|status|list --repo owner/repository; session start --repo owner/repository --issue <number> [task]; session logs; serve";
+  "Cloud sessions: session setup [--repo owner/repository] [--provider claude-subscription|anthropic|chatgpt-subscription|openai|openai-compatible|ollama|foundry] [--base-url url] [--model id] [--image name] [--no-attribution] [--yes]; session skills [--yes]; session login|status|list --repo owner/repository; session start --repo owner/repository --issue <number> [task]; session logs; serve";
 
 function flagValue(options: {
   readonly arguments: readonly string[];
@@ -49,6 +49,7 @@ async function setup(arguments_: readonly string[]): Promise<void> {
   );
   const baseUrl = flagValue({ arguments: arguments_, flag: "--base-url" });
   const model = flagValue({ arguments: arguments_, flag: "--model" });
+  const image = flagValue({ arguments: arguments_, flag: "--image" });
 
   if (provider === undefined) {
     throw new Error(sessionUsage);
@@ -59,6 +60,7 @@ async function setup(arguments_: readonly string[]): Promise<void> {
     provider,
     ...(baseUrl === null ? {} : { baseUrl }),
     ...(model === null ? {} : { model }),
+    ...(image === null ? {} : { image }),
     attribution: !arguments_.includes("--no-attribution"),
     yes: arguments_.includes("--yes"),
   });

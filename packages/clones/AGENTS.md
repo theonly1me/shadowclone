@@ -39,4 +39,6 @@ Runs cloud sessions: Claude Code or Codex works for the owner, as the owner, on 
 
 Run `bun test` in this folder, or `bun test packages/clones` from the root. `src/fixtures.ts` has a fake GitHub and a sample config. The hook tests use real `git` in a temporary folder. No test needs an account or Docker.
 
+To try a branch in Docker, run `bun run stage`, then `npm pack` in `packages/cli/out/package` with `--pack-destination packages/clones/image`. Build with `--build-arg SHADOWCLONE_PACKAGE=/tmp/shadowclone-build/<file>.tgz`, and pass the tag to `session setup --image`.
+
 Update this file in the same commit when you change the package purpose, public exports, dependencies, or a rule above.

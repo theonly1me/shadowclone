@@ -29,7 +29,7 @@ export type SessionSetupOutcome =
       readonly secretsFileCreated: boolean;
       readonly secrets: readonly SecretLine[];
       readonly service: ServiceOutcome;
-      readonly imagePulled: boolean;
+      readonly imageReady: boolean;
       readonly warnings: readonly string[];
     };
 
@@ -52,6 +52,7 @@ export async function setUpSessions(options: {
   readonly provider: SessionProvider;
   readonly baseUrl?: string;
   readonly model?: string;
+  readonly image?: string;
   readonly attribution: boolean;
   readonly approveRuleset: boolean;
   readonly executable: string;
@@ -108,6 +109,7 @@ export async function setUpSessions(options: {
     attribution: options.attribution,
     ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
     ...(options.model === undefined ? {} : { model: options.model }),
+    ...(options.image === undefined ? {} : { image: options.image }),
   };
   const parsed = sessionConfigSchema.safeParse(input);
 
@@ -130,10 +132,18 @@ export async function setUpSessions(options: {
 
   const secrets = secretLines(config);
   const created = await createSecretsFile({ paths, lines: secrets });
-  const pulled = await processes.run({
-    arguments: ["docker", "pull", "--quiet", config.image],
+  const present = await processes.run({
+    arguments: ["docker", "image", "inspect", config.image],
     cwd: paths.directory,
   });
+  const imageReady =
+    present.exitCode === 0 ||
+    (
+      await processes.run({
+        arguments: ["docker", "pull", "--quiet", config.image],
+        cwd: paths.directory,
+      })
+    ).exitCode === 0;
   const service = await installService({
     paths,
     processes,
@@ -148,14 +158,14 @@ export async function setUpSessions(options: {
     secretsFileCreated: created === "created",
     secrets,
     service,
-    imagePulled: pulled.exitCode === 0,
+    imageReady,
     warnings: [
       ...(repository.owner.type === "Organization"
         ? [
             "The ruleset applies to every member of the organization: each change to the default branch needs a pull request.",
           ]
         : []),
-      ...(pulled.exitCode === 0
+      ...(imageReady
         ? []
         : [`Docker could not pull ${config.image}. Sessions cannot start until the image exists.`]),
     ],

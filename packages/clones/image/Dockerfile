@@ -1,6 +1,7 @@
 FROM node:24-bookworm-slim
 
 ARG SHADOWCLONE_VERSION
+ARG SHADOWCLONE_PACKAGE
 ARG CLAUDE_CODE_VERSION=2.1.286
 ARG CODEX_VERSION=0.159.0
 ARG BUN_VERSION=1.4.2
@@ -15,13 +16,16 @@ RUN apt-get update \
   && apt-get install --yes --no-install-recommends gh \
   && rm -rf /var/lib/apt/lists/*
 
-RUN test -n "$SHADOWCLONE_VERSION" \
+COPY Dockerfile *.tgz /tmp/shadowclone-build/
+
+RUN test -n "${SHADOWCLONE_PACKAGE:-$SHADOWCLONE_VERSION}" \
   && npm install --global --no-audit --no-fund \
     "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
     "@openai/codex@${CODEX_VERSION}" \
     "bun@${BUN_VERSION}" \
-    "@shadowclone/cli@${SHADOWCLONE_VERSION}" \
-  && npm cache clean --force
+    "${SHADOWCLONE_PACKAGE:-@shadowclone/cli@${SHADOWCLONE_VERSION}}" \
+  && npm cache clean --force \
+  && rm -rf /tmp/shadowclone-build
 
 RUN useradd --create-home --shell /bin/bash clone \
   && mkdir -p /home/clone/.codex-login \

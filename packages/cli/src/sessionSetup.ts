@@ -15,6 +15,7 @@ export async function setUpSessionsInTerminal(options: {
   readonly provider: SessionProvider;
   readonly baseUrl?: string;
   readonly model?: string;
+  readonly image?: string;
   readonly attribution: boolean;
   readonly yes: boolean;
 }): Promise<void> {
@@ -36,6 +37,7 @@ export async function setUpSessionsInTerminal(options: {
       provider: options.provider,
       ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
       ...(options.model === undefined ? {} : { model: options.model }),
+      ...(options.image === undefined ? {} : { image: options.image }),
       attribution: options.attribution,
       approveRuleset,
       executable,
