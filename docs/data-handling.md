@@ -141,6 +141,8 @@ You paste the GitHub token and the model login into `secrets.env`. shadowclone n
 
 `shadowclone serve` polls GitHub with your GitHub CLI login. It reads the comments of the configured repositories and keeps only the identifiers of matching comments. A session runs in a fresh container. The provider receives the prompt, the skills, and the repository content that the agent reads. The container keeps nothing after it stops, and each log stays on the spare machine.
 
+On a cloud host, setup writes the receiver project under `~/.shadowclone/clones/hosts/` and deploys it to your account with the host's own CLI. Setup creates a random webhook secret and sends it to the host and to GitHub through standard input, or through the host's secret command. You add the GitHub token, the model login, and the Daytona or E2B key in the host's secret store. `session secrets` runs the host's own prompt, so shadowclone never reads those values. The receiver passes only the named secrets to the sandbox. GitHub sends the event payloads of the configured repository to the receiver.
+
 GitHub holds the session state. Claim refs under `refs/shadowclone/claims/` stay for two days. Session refs under `refs/shadowclone/sessions/` point at the last pushed commit. One status comment holds the state and the branch. The status comment holds no transcript text. Session tasks are not learning sources. See [cloud sessions](guides/cloud-sessions.md).
 
 ## Boundaries that a change must keep

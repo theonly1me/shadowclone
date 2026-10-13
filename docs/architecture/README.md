@@ -88,7 +88,7 @@ flowchart LR
   Judge -- "diff and read-only file access" --> Provider
   Sandbox -- "restricted proxy" --> Registries["Allowed public package registries"]
   Delivery -- "reviewed skills" --> Bot["cloud: GitHub bot"]
-  Delivery -- "reviewed skills" --> Session["clones: session in Docker on your spare machine"]
+  Delivery -- "reviewed skills" --> Session["clones: session in your cloud account or on your spare machine"]
   Session -- "prompt, skills, files that the agent reads" --> Provider
   subgraph GitHub["GitHub"]
     Bot --> Pulls["Draft pull requests and review comments"]
@@ -110,7 +110,7 @@ flowchart LR
 | PR code to host          | Toolchain installs, scripts, and configs  | Bubblewrap or Seatbelt. Worktree and isolated state writes only. No host credentials or local sockets           |
 | Toolchain to network     | Dependency downloads                      | A fixed public-registry allowlist through a restricted proxy                                                    |
 | Machine to GitHub        | Reviewed skills, secrets, review text     | Owner approval of an exact preview. Secrets use standard input                                                  |
-| Owner comment to session | A task that starts work as the owner      | The owner's numeric user ID, a claim ref, and a container with secrets from a file that shadowclone never reads |
+| Owner comment to session | A task that starts work as the owner      | A signed webhook or a poll, the owner's numeric user ID, a claim ref, and a sandbox with only the named secrets |
 | Evaluation               | Synthetic tasks, receipts, held-out cases | Private storage outside checkouts. Approved scope per paid run                                                  |
 
 ## How the packages work together
@@ -127,7 +127,7 @@ Outside the cloud bot, shadowclone does not commit, push, or act on GitHub itsel
 
 The cloud bot is a separate contract. The owner reviews a frozen skills bundle and chooses the repositories. GitHub Actions run the same skill, and the owner merges. See the [cloud bot guide](../guides/cloud-bot.md).
 
-Cloud sessions are a third contract. Only the owner's own `/shadowclone` comment starts one. The session runs the same skill in Docker on a host that the owner owns, and acts as the owner. See [cloud sessions](../guides/cloud-sessions.md) and [design record 044](../design/044-cloud-sessions.md).
+Cloud sessions are a third contract. Only the owner's own `/shadowclone` comment starts one. The session runs the same skill in the owner's cloud account or on the owner's spare machine. It acts as the owner. See [cloud sessions](../guides/cloud-sessions.md) and [design record 044](../design/044-cloud-sessions.md).
 
 Design records [029](../design/029-narrow-the-surface.md) and [030](../design/030-shadowclone-work-eval.md) explain the removed `run` command and task harness. A review comment, a merge, a deletion, or a successful agent result does not establish a preference.
 
