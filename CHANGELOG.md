@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.35](https://github.com/theonly1me/shadowclone/compare/v0.0.34...v0.0.35) (2026-10-15)
+
+
+### Fixes
+
+* **learning:** ask about waiting proposals only after the user's task is done ([#214](https://github.com/theonly1me/shadowclone/issues/214)) ([c25a314](https://github.com/theonly1me/shadowclone/commit/c25a31434f3145a1d14fd9f8235a19db89fc141f))
+
 ## [0.0.34](https://github.com/theonly1me/shadowclone/compare/v0.0.33...v0.0.34) (2026-10-13)
 
 
