@@ -50,6 +50,7 @@ export async function takeReviewPrompt(paths: ProjectPaths): Promise<string> {
 
   return [
     `shadowclone has ${waiting.length} proposal(s) that need the user's decision.`,
-    "After you answer the user's first request, load the shadowclone-context skill, show each proposal, and ask the user with your multiple-choice question tool.",
+    "Do not mention them while the user's task is in progress.",
+    "When the task is done, load the shadowclone-context skill and follow its steps to review proposals.",
   ].join(" ");
 }

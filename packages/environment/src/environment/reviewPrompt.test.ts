@@ -21,7 +21,7 @@ function waitingForReview(records: readonly LearningRecord[]) {
   };
 }
 
-test("session start asks the agent to show waiting proposals once, and again only when they change", async () => {
+test("session start defers waiting proposals until the task is done, once, and again only when they change", async () => {
   const setup = await skillFixture();
   try {
     const first = learningRecord({ key: "mined:first", body: "Run the tally checks before you push." });
@@ -31,7 +31,10 @@ test("session start asks the agent to show waiting proposals once, and again onl
       ...setup, id: integration.id, input: JSON.stringify({ cwd: setup.cwd, session_id: "synthetic-session" }),
     }));
 
-    expect(await start()).toContain("shadowclone has 1 proposal(s) that need the user's decision.");
+    const announced = await start();
+    expect(announced).toContain("shadowclone has 1 proposal(s) that need the user's decision.");
+    expect(announced).toContain("Do not mention them while the user's task is in progress.");
+    expect(announced).not.toContain("first request");
     expect(await start()).not.toContain("need the user's decision");
 
     const second = learningRecord({ key: "mined:second", body: "Keep release notes short." });
@@ -39,6 +42,8 @@ test("session start asks the agent to show waiting proposals once, and again onl
     expect(await start()).toContain("shadowclone has 2 proposal(s) that need the user's decision.");
 
     const skill = await Bun.file(path.join(setup.home, ".claude/skills/shadowclone-context/SKILL.md")).text();
-    expect(skill).toContain("Ask with your multiple-choice question tool");
+    expect(skill).toContain("Never add a proposal to a question about the user's task.");
+    expect(skill).toContain("\"shadowclone proposed learnings from its findings. Do you want to review and approve them in this session?\"");
+    expect(skill).toContain("If the user says no or does not answer, do not mention the proposals again in this session.");
   } finally { await rm(setup.home, { recursive: true, force: true }); }
 });
