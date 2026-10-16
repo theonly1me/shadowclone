@@ -10,7 +10,7 @@ test("the live Pi bridge uses a session-registered provider, authenticates reque
   const modulePath = path.join(directory, "server.mjs");
   await Bun.write(modulePath, `${renderPiServer()}\nexport { serveShadowcloneModels };\n`);
   const module = await import(modulePath);
-  let cancelled = false;
+  const serverCancelled = Promise.withResolvers<true>();
   let calls = 0;
   let prepared: unknown = null;
   const model = { provider: "session-extension", id: "local", name: "Synthetic local" };
@@ -23,7 +23,7 @@ test("the live Pi bridge uses a session-registered provider, authenticates reque
       if (typeof value !== "object" || value === null || !("signal" in value) || !(value.signal instanceof AbortSignal)) throw new Error("Missing cancellation signal");
       const signal = value.signal;
       const stream = (async function* () {
-        if (calls > 1) await new Promise(resolve => signal.addEventListener("abort", () => { cancelled = true; resolve(null); }, { once: true }));
+        if (calls > 1) await new Promise(resolve => signal.addEventListener("abort", () => { serverCancelled.resolve(true); resolve(null); }, { once: true }));
         yield { type: "text_delta", delta: "Synthetic response" };
       })();
       return Object.assign(stream, { result: async () => ({ stopReason: "stop", content: [{ type: "text", text: "Synthetic response" }] }) });
@@ -41,7 +41,6 @@ test("the live Pi bridge uses a session-registered provider, authenticates reque
     expect(await requestPiSocket({ socketPath, token, signal: AbortSignal.timeout(500), request: { model: "session-extension/missing", prompt: "Synthetic" } })).toHaveProperty("error");
     expect(calls).toBe(1);
     await expect(requestPiSocket({ socketPath, token, request: { prompt: "Synthetic" }, signal: AbortSignal.timeout(80) })).rejects.toThrow("cancelled");
-    await new Promise(resolve => setTimeout(resolve, 20));
-    expect(cancelled).toBeTrue();
+    expect(await Promise.race([serverCancelled.promise, Bun.sleep(2_000).then(() => false)])).toBeTrue();
   } finally { await bridge.close(); await rm(directory, { recursive: true, force: true }); }
 });
