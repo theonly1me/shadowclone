@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.38](https://github.com/theonly1me/shadowclone/compare/v0.0.37...v0.0.38) (2026-10-16)
+
+
+### Fixes
+
+* **sync:** name preserved files, replace them on request, and stop false edit reports ([#220](https://github.com/theonly1me/shadowclone/issues/220)) ([abacfa7](https://github.com/theonly1me/shadowclone/commit/abacfa719f87bf6e18f7e7e698973b306bea3ed5))
+
 ## [0.0.37](https://github.com/theonly1me/shadowclone/compare/v0.0.36...v0.0.37) (2026-10-16)
 
 
