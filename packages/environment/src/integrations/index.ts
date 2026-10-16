@@ -57,3 +57,4 @@ export { resolveInstallTarget } from "./installation/installTarget";
 export { learningSessionKey } from "./sessionKey";
 
 export { integrationFilePath } from "./targets";
+export type { PreservedReason } from "./preserved";

@@ -74,7 +74,7 @@ export { initializeSkillEnvironment } from "./initialize";
 
 export { coveredLearningState, pendingLearningState } from "./learningDisposition";
 
-export { nativePublication, type SkippedRouting } from "./native";
+export { nativePublication, type ReplacedRouting, type SkippedRouting } from "./native";
 
 export { pendingLearningRecords } from "./pending";
 

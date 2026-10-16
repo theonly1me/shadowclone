@@ -1,5 +1,5 @@
 import { fingerprint } from "@shadowclone/core";
-import { preservedFileMessages } from "./preserved";
+import { PreservedFileError, type PreservedReason } from "./preserved";
 
 export type SectionMarkers = { readonly start: string; readonly end: string };
 
@@ -84,22 +84,23 @@ export function updateMarkedSection(options: {
   readonly body: string | null;
   readonly expected?: string;
   readonly markers: SectionMarkers;
-}): { readonly text: string; readonly fingerprint: string } {
+  readonly replaceEdited?: boolean;
+}): { readonly text: string; readonly fingerprint: string; readonly replacedEdit: boolean } {
   const previous = options.previous ?? "";
   const section = markedSection({ text: previous, markers: options.markers });
 
   const recordedEmpty = options.expected === fingerprint("") && section === null;
-
-  if (
+  const preserved: PreservedReason | null =
     options.expected !== undefined &&
     !recordedEmpty &&
     (!section || fingerprint(section) !== options.expected)
-  ) {
-    throw new Error(preservedFileMessages.editedManagedContent);
-  }
+      ? "editedManagedContent"
+      : section && options.expected === undefined
+        ? "untrackedManagedContent"
+        : null;
 
-  if (section && options.expected === undefined) {
-    throw new Error(preservedFileMessages.untrackedManagedContent);
+  if (preserved !== null && !options.replaceEdited) {
+    throw new PreservedFileError({ reason: preserved });
   }
 
   const next =
@@ -108,13 +109,14 @@ export function updateMarkedSection(options: {
       : `${options.markers.start}\n${options.body.trim()}\n${options.markers.end}`;
   const text = section ? previous.replace(section, next) : `${previous}${next}`;
 
-  return { text, fingerprint: fingerprint(next) };
+  return { text, fingerprint: fingerprint(next), replacedEdit: preserved !== null };
 }
 
 export function updateManagedSection(options: {
   readonly previous: string | null;
   readonly body: string | null;
   readonly expected?: string;
-}): { readonly text: string; readonly fingerprint: string } {
+  readonly replaceEdited?: boolean;
+}): { readonly text: string; readonly fingerprint: string; readonly replacedEdit: boolean } {
   return updateMarkedSection({ ...options, markers: guidanceMarkers });
 }

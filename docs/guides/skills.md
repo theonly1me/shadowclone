@@ -53,6 +53,8 @@ For bundled skills that you equipped, `sync` replaces a copy only if its text ma
 
 If an agent's instruction file links to a regular file in your home folder, `sync` updates that file and keeps the link. For example, `~/.codex/AGENTS.md` can point to `~/.agents/AGENTS.md`. If the file links anywhere else, `sync` updates every other agent, names the link, and exits with status 1. That agent keeps its old routing until you replace the link with a regular file.
 
+If the shadowclone section, hooks, or files of an agent changed after shadowclone wrote them, `sync` keeps them. It names the file and the reason, and exits with status 1. To take the new routing, run `shadowclone sync --replace-edited`. It replaces only the content that shadowclone owns, keeps the rest of each file, and names each file that it replaced. `shadowclone undo` restores the edit. A hook file that is not valid JSON stays unchanged until you fix it.
+
 When a release retires a bundled skill, `sync` replaces it with its successor in each build that selected it. If you edited the retired skill, it stays selected and `sync` names it. If `sync` cannot install the successor, it names the build and the reason, changes nothing in that build, and exits with status 1.
 
 ## History and undo

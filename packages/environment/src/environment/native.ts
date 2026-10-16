@@ -8,7 +8,7 @@ import {
 } from "@shadowclone/core";
 import type { ProjectPaths } from "@shadowclone/core";
 import { prepareIntegrationFiles, savedRecords } from "../integrations/files";
-import { isPreservedFileError } from "../integrations/preserved";
+import { PreservedFileError, type PreservedReason } from "../integrations/preserved";
 import { readIntegrations } from "../integrations/state";
 import { sharedIntegrationUpdates } from "../integrations/sharedUpdates";
 import { learningScopes } from "./scope";
@@ -21,17 +21,23 @@ import {
   type GitRemoteReader,
 } from "@shadowclone/sessions";
 
-export type SkippedRouting = { readonly agent: string; readonly path: string; readonly target: string | null };
+export type SkippedRouting =
+  | { readonly kind: "link"; readonly agent: string; readonly path: string; readonly target: string | null }
+  | { readonly kind: "preserved"; readonly agent: string; readonly path: string; readonly reason: PreservedReason };
+
+export type ReplacedRouting = { readonly agent: string; readonly path: string };
 
 export async function nativePublication(options: {
   readonly paths: ProjectPaths;
   readonly state: EnvironmentState;
   readonly readRemote?: GitRemoteReader;
   readonly skipLinkedFiles?: boolean;
+  readonly replaceEdited?: boolean;
 }): Promise<{
   readonly state: EnvironmentState;
   readonly updates: readonly FileUpdate[];
   readonly skipped: readonly SkippedRouting[];
+  readonly replaced: readonly ReplacedRouting[];
 }> {
   const scopes = learningScopes(options);
   const { config, policy } = await readEffectiveConfig({
@@ -75,6 +81,7 @@ export async function nativePublication(options: {
   const updatedIntegrations = [];
   const updates: FileUpdate[] = [];
   const skipped: SkippedRouting[] = [];
+  const replaced: ReplacedRouting[] = [];
 
   for (const integration of integrations) {
     const applicable = scopes.filter(
@@ -87,16 +94,22 @@ export async function nativePublication(options: {
     const changes = await prepareIntegrationFiles({
       integration,
       profile: renderSkillRouting({ state: options.state, scopes: applicable }),
+      replaceEdited: options.replaceEdited,
     }).catch((error: unknown) => {
-      if (isPreservedFileError(error)) {
-        skipped.push({ agent: integration.agent, path: integration.directory, target: null });
+      if (error instanceof PreservedFileError) {
+        skipped.push({
+          kind: "preserved",
+          agent: integration.agent,
+          path: error.filePath ?? integration.directory,
+          reason: error.reason,
+        });
 
         return null;
       }
 
       if (!options.skipLinkedFiles || !(error instanceof UnsafeDestinationError)) throw error;
 
-      skipped.push({ agent: integration.agent, path: error.path, target: error.target });
+      skipped.push({ kind: "link", agent: integration.agent, path: error.path, target: error.target });
 
       return null;
     });
@@ -106,6 +119,11 @@ export async function nativePublication(options: {
       continue;
     }
 
+    replaced.push(
+      ...changes
+        .filter((change) => change.replacedEdit)
+        .map((change) => ({ agent: integration.agent, path: change.filePath })),
+    );
     updates.push(
       ...changes.map(({ filePath, previous, next }) => ({
         filePath,
@@ -133,6 +151,7 @@ export async function nativePublication(options: {
   return {
     state: options.state,
     skipped,
+    replaced,
     updates: sharedIntegrationUpdates(updates).filter(
       ({ previous, next }) =>
         fingerprint(previous ?? "") !== fingerprint(next ?? ""),

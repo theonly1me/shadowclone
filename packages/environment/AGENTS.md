@@ -28,6 +28,7 @@ Holds what agents receive: the environment record, skill publication, native ins
 - `undoRevision` takes the write lock. It refuses an unauthorized root and a revision that conflicts with later edits.
 - Native routing text is at most 4096 bytes. A longer text is an error, and the old section stays.
 - shadowclone rewrites only the text between the `<shadowclone-guidance>` markers. Malformed markers are an error.
+- A preserved integration file throws `PreservedFileError` with its path and reason. Only `replaceEdited` from `shadowclone sync --replace-edited` replaces the shadowclone content in it.
 - shadowclone replaces an installed file only when its fingerprint matches the install record. A manual edit stays.
 - `materializeSkillDelivery` keeps one copy of each skill name. A repository copy wins over a personal copy, and a missing published copy falls back to a copy that exists.
 - Initialization copies the original skills and native instructions to `environment-baselines/` before it publishes.
