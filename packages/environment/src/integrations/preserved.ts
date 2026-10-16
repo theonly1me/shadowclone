@@ -6,8 +6,30 @@ export const preservedFileMessages = {
   editedIntegrationFile: "Integration skill or extension was edited or already exists; preserving it",
 } as const;
 
-const messages: ReadonlySet<string> = new Set(Object.values(preservedFileMessages));
+export type PreservedReason = keyof typeof preservedFileMessages;
 
-export function isPreservedFileError(error: unknown): boolean {
-  return error instanceof Error && messages.has(error.message);
+export class PreservedFileError extends Error {
+  readonly reason: PreservedReason;
+  readonly filePath: string | null;
+
+  constructor(options: { readonly reason: PreservedReason; readonly filePath?: string }) {
+    super(preservedFileMessages[options.reason]);
+    this.reason = options.reason;
+    this.filePath = options.filePath ?? null;
+  }
+}
+
+export function preservedAt<Result>(options: {
+  readonly filePath: string;
+  readonly prepare: () => Result;
+}): Result {
+  try {
+    return options.prepare();
+  } catch (error) {
+    if (error instanceof PreservedFileError && error.filePath === null) {
+      throw new PreservedFileError({ reason: error.reason, filePath: options.filePath });
+    }
+
+    throw error;
+  }
 }

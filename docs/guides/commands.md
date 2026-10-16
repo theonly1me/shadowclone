@@ -11,7 +11,7 @@ Run `shadowclone --help` for the full command shape. Run `shadowclone` with no a
 - `shadowclone wizard`: pick skills in the browser. `--repo` opens it for this repository, `--no-open` prints the local URL, and `--cli` configures a build in the terminal.
 - `shadowclone install --agent all --global`: install native guidance for every agent. `--agent <agent> --local` installs it for this repository only.
 - `shadowclone uninstall --global` or `--local`: remove the integrations that shadowclone owns in that scope.
-- `shadowclone sync`: refresh maintained skills, bundled skills, and native routing.
+- `shadowclone sync`: refresh maintained skills, bundled skills, and native routing. `--replace-edited` also replaces shadowclone content that changed after shadowclone wrote it.
 - `shadowclone doctor`: check the installation and the effective policy.
 - `shadowclone forget --all`: remove all shadowclone state and the files that it owns.
 

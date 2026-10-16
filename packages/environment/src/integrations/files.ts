@@ -4,7 +4,7 @@ import {
   replaceLocalText,
   createProjectPaths,
 } from "@shadowclone/core";
-import { emptyHookConfig, hasOwnedHooks, updateHookConfig } from "./hookConfig";
+import { prepareHookTarget } from "./hookTarget";
 import {
   guidanceMarkers,
   markedSection,
@@ -15,7 +15,7 @@ import type { Integration, IntegrationFile } from "./types";
 import { renderIntegrationExtension } from "./extensions";
 import { readIntegrations } from "./state";
 import { importsPeerInstructions } from "./sharedInstructions";
-import { preservedFileMessages } from "./preserved";
+import { PreservedFileError, preservedAt } from "./preserved";
 import { renderContextSkill } from "./contextSkill";
 
 export type IntegrationFileChange = {
@@ -24,6 +24,7 @@ export type IntegrationFileChange = {
   readonly next: string | null;
   readonly record: IntegrationFile;
   readonly retired?: boolean;
+  readonly replacedEdit?: boolean;
 };
 
 export function savedRecords(changes: readonly IntegrationFileChange[]): IntegrationFile[] {
@@ -35,6 +36,7 @@ export async function prepareIntegrationFiles(options: {
   readonly profile: string;
   readonly remove?: boolean;
   readonly peers?: readonly Integration[];
+  readonly replaceEdited?: boolean;
 }): Promise<readonly IntegrationFileChange[]> {
   const changes: IntegrationFileChange[] = [];
   const integrations = await readIntegrations(createProjectPaths({ homeDirectory: options.integration.userDirectory, platform: process.platform }));
@@ -59,36 +61,28 @@ export async function prepareIntegrationFiles(options: {
 
     let next: string | null;
     let digest: string;
+    let replacedEdit = false;
 
     if (target.kind === "hooks") {
-      if (
-        recorded &&
-        previous !== null &&
-        !hasOwnedHooks({ text: previous, integration: options.integration })
-      ) {
-        throw new Error(preservedFileMessages.editedHooks);
-      }
-
-      const changed = updateHookConfig({
+      ({ next, digest, replacedEdit } = prepareHookTarget({
+        filePath,
         previous,
+        recorded,
         integration: options.integration,
         remove: options.remove,
-      });
-
-      next = changed.text;
-      digest = changed.fingerprint;
-
-      if (options.remove && recorded?.created && emptyHookConfig(next)) {
-        next = null;
-      }
+        replaceEdited: options.replaceEdited,
+      }));
     } else if (target.kind === "skill" || target.kind === "extension") {
-      if (
+      const editedFile =
         previous !== null &&
         (!recorded || (fingerprint(previous) !== recorded.fingerprint &&
-          !shared.some(file => file.kind === target.kind && file.fingerprint === fingerprint(previous))))
-      ) {
-        throw new Error(preservedFileMessages.editedIntegrationFile);
+          !shared.some(file => file.kind === target.kind && file.fingerprint === fingerprint(previous))));
+
+      if (editedFile && !options.replaceEdited) {
+        throw new PreservedFileError({ reason: "editedIntegrationFile", filePath });
       }
+
+      replacedEdit = editedFile;
 
       next = options.remove
         ? null
@@ -106,14 +100,20 @@ export async function prepareIntegrationFiles(options: {
         text: previous,
         peers: options.peers ?? integrations,
       });
-      const changed = updateManagedSection({
-        previous: prefix,
-        body: options.remove || importsPeer ? null : options.profile,
-        expected: recorded?.fingerprint,
+      const changed = preservedAt({
+        filePath,
+        prepare: () =>
+          updateManagedSection({
+            previous: prefix,
+            body: options.remove || importsPeer ? null : options.profile,
+            expected: recorded?.fingerprint,
+            replaceEdited: options.replaceEdited,
+          }),
       });
 
       next = changed.text;
       digest = changed.fingerprint;
+      replacedEdit = changed.replacedEdit;
 
       const empty =
         next.trim() === "" ||
@@ -134,6 +134,7 @@ export async function prepareIntegrationFiles(options: {
         fingerprint: digest,
         created: recorded?.created ?? previous === null,
       },
+      ...(replacedEdit ? { replacedEdit } : {}),
     });
   }
 
@@ -152,7 +153,10 @@ export async function prepareIntegrationFiles(options: {
       continue;
     }
 
-    const changed = updateManagedSection({ previous, body: null, expected: recorded.fingerprint });
+    const changed = preservedAt({
+      filePath,
+      prepare: () => updateManagedSection({ previous, body: null, expected: recorded.fingerprint }),
+    });
 
     changes.push({
       filePath,

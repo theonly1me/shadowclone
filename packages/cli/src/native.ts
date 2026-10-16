@@ -7,6 +7,7 @@ import {
   nativeSessionStart,
   readIntegrations,
   refreshIntegrations,
+  type ReplacedRouting,
   type SkippedRouting,
   syncLearningEnvironment,
   uninstallIntegration,
@@ -21,6 +22,7 @@ import { installLiveClone } from "./install";
 import { uninstallLiveClone } from "./uninstall";
 import { scheduleLearning, runAutomaticLearning } from "@shadowclone/learning";
 import { harnessSyncCommand } from "./harnessSync";
+import { syncReportLines } from "./syncReport";
 import { nativeModelSchema } from "./automaticLearning";
 
 export async function installNativeCommand(
@@ -148,7 +150,11 @@ export async function handleNativeCommand(options: {
     return true;
   }
 
-  if (options.command === "sync" && options.arguments.length === 0) {
+  if (
+    options.command === "sync" &&
+    (options.arguments.length === 0 ||
+      (options.arguments.length === 1 && options.arguments[0] === "--replace-edited"))
+  ) {
     const bundled = await updateBundledSkills(projectPaths);
 
     for (const line of bundled ? renderBundledSkillReport(bundled) : []) {
@@ -163,29 +169,20 @@ export async function handleNativeCommand(options: {
     }
 
     const skipped: SkippedRouting[] = [];
+    const replaced: ReplacedRouting[] = [];
     const removed: string[] = [];
 
     if (
       await syncLearningEnvironment(projectPaths, {
         onSkipped: (entries) => skipped.push(...entries),
+        onReplaced: (entries) => replaced.push(...entries),
         onRemovedRepositories: (directories) => removed.push(...directories),
+        replaceEdited: options.arguments[0] === "--replace-edited",
       })
     ) {
-      for (const directory of removed) {
-        console.log(`Removed the registered repository ${directory}, because the folder no longer exists.`);
+      for (const line of syncReportLines({ removed, replaced, skipped })) {
+        console.log(line);
       }
-
-      for (const entry of skipped) {
-        console.log(
-          `Did not update ${entry.agent}: ${entry.path} is ${entry.target === null ? "not a regular file" : `a symbolic link to ${entry.target}`}. shadowclone does not write through links, so ${entry.agent} keeps its old routing. Replace the link with a regular file, then run shadowclone sync.`,
-        );
-      }
-
-      console.log(
-        skipped.length === 0
-          ? "Synchronized learned skills and native routing."
-          : `Synchronized learned skills and native routing for every agent except ${skipped.map((entry) => entry.agent).join(", ")}.`,
-      );
 
       if (skipped.length > 0) process.exitCode = 1;
 

@@ -2,7 +2,7 @@ import path from "node:path";
 import { z } from "zod";
 import { canonicalPath, projectPaths, readEffectiveConfig } from "@shadowclone/core";
 import { compileContext } from "./compile";
-import { readIntegrations, saveIntegration } from "./state";
+import { markIntegrationDelivered, readIntegrations } from "./state";
 import type { Integration, IntegrationOptions } from "./types";
 import { bindNativeSessionOrigin, nativeBindingTimestamp } from "./bindings";
 import { takeLearningNotice } from "../environment/learningNotice";
@@ -127,10 +127,7 @@ export async function nativeSessionStart(
     return {};
   }
 
-  await saveIntegration({
-    paths,
-    integration: { ...integration, deliveredAt: Date.now() },
-  });
+  await markIntegrationDelivered({ paths, id: integration.id, deliveredAt: Date.now() });
 
   if (integration.agent === "pi" || integration.agent === "opencode") return { additionalContext };
 

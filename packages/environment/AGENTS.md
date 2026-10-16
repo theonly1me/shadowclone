@@ -28,7 +28,10 @@ Holds what agents receive: the environment record, skill publication, native ins
 - `undoRevision` takes the write lock. It refuses an unauthorized root and a revision that conflicts with later edits.
 - Native routing text is at most 4096 bytes. A longer text is an error, and the old section stays.
 - shadowclone rewrites only the text between the `<shadowclone-guidance>` markers. Malformed markers are an error.
+- A preserved integration file throws `PreservedFileError` with its path and reason. Only `replaceEdited` from `shadowclone sync --replace-edited` replaces the shadowclone content in it.
 - shadowclone replaces an installed file only when its fingerprint matches the install record. A manual edit stays.
+- Session start sets only `deliveredAt` on the current integration record. It never saves the copy that it read earlier.
+- Hook entries match by value. The key order in a hook file does not matter.
 - `materializeSkillDelivery` keeps one copy of each skill name. A repository copy wins over a personal copy, and a missing published copy falls back to a copy that exists.
 - Initialization copies the original skills and native instructions to `environment-baselines/` before it publishes.
 - The skills environment is the only store for learned rules. Without `environment.json`, learning and `remember` stop and say to run `shadowclone init`, and context delivery is empty.

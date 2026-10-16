@@ -95,7 +95,7 @@ test("sync skips and reports a linked instruction file whose target is outside t
     "Destination must be a regular file without symbolic links",
   );
   expect(await syncLearningEnvironment(setup.paths, { onSkipped: (entries) => skipped.push(...entries) })).toBeTrue();
-  expect(skipped).toEqual([{ agent: "codex", path: setup.codex, target: setup.shared }]);
+  expect(skipped).toEqual([{ kind: "link", agent: "codex", path: setup.codex, target: setup.shared }]);
   expect(await Bun.file(setup.shared).text()).toBe(setup.sharedText);
   expect(await readlink(setup.codex)).toBe(setup.shared);
 });
