@@ -1,0 +1,90 @@
+version = 1
+
+[code."."]
+powers = ["exec"]
+
+[code.evals]
+powers = ["exec"]
+
+[code."packages/agents"]
+powers = [
+    "exec",
+    "network",
+]
+
+[code."packages/cli"]
+powers = ["exec"]
+
+[code."packages/clones"]
+powers = [
+    "exec",
+    "network",
+]
+
+[code."packages/cloud"]
+powers = [
+    "exec",
+    "network",
+]
+
+[code."packages/core"]
+powers = ["exec"]
+
+[code."packages/learning"]
+powers = ["exec"]
+
+[code."packages/review"]
+powers = [
+    "exec",
+    "network",
+]
+
+[code."packages/skills"]
+powers = ["exec"]
+
+[code."packages/web"]
+powers = ["network"]
+risks = ["network:packages/web/src/client/api.request:fetch:untrusted"]
+
+[code.tooling]
+powers = [
+    "exec",
+    "network",
+]
+
+[ci.".github/workflows"]
+powers = [
+    "third_party_action:anthropics/claude-code-action",
+    "third_party_action:googleapis/release-please-action",
+    "third_party_action:hashgraph-online/ai-plugin-scanner-action",
+    "third_party_action:oven-sh/setup-bun",
+    "third_party_action:theonly1me/vigilante",
+]
+
+[ci.".github/workflows/release.yml"]
+powers = [
+    "token_write:contents",
+    "token_write:packages",
+    "token_write:pull-requests",
+    "oidc",
+]
+
+[ci.".github/workflows/shadowclone-relay.yml"]
+powers = [
+    "token_write:actions",
+    "untrusted_trigger:pull_request_target",
+    "untrusted_trigger:workflow_run",
+]
+
+[ci.".github/workflows/shadowclone.yml"]
+powers = [
+    "secret:CLAUDE_CODE_OAUTH_TOKEN",
+    "secret:SHADOWCLONE_APP_PRIVATE_KEY",
+    "secret:SHADOWCLONE_GUIDANCE",
+]
+
+[agent.".mcp.json"]
+powers = ["mcp_server:shadowclone: bun run ./packages/mcp/src/server.ts"]
+
+[agent."plugins/shadowclone/.mcp.json"]
+powers = ["mcp_server:shadowclone: shadowclone mcp"]
