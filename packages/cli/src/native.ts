@@ -163,8 +163,18 @@ export async function handleNativeCommand(options: {
     }
 
     const skipped: SkippedRouting[] = [];
+    const removed: string[] = [];
 
-    if (await syncLearningEnvironment(projectPaths, { onSkipped: (entries) => skipped.push(...entries) })) {
+    if (
+      await syncLearningEnvironment(projectPaths, {
+        onSkipped: (entries) => skipped.push(...entries),
+        onRemovedRepositories: (directories) => removed.push(...directories),
+      })
+    ) {
+      for (const directory of removed) {
+        console.log(`Removed the registered repository ${directory}, because the folder no longer exists.`);
+      }
+
       for (const entry of skipped) {
         console.log(
           `Did not update ${entry.agent}: ${entry.path} is ${entry.target === null ? "not a regular file" : `a symbolic link to ${entry.target}`}. shadowclone does not write through links, so ${entry.agent} keeps its old routing. Replace the link with a regular file, then run shadowclone sync.`,

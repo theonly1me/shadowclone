@@ -12,6 +12,7 @@ import { isPreservedFileError } from "../integrations/preserved";
 import { readIntegrations } from "../integrations/state";
 import { sharedIntegrationUpdates } from "../integrations/sharedUpdates";
 import { learningScopes } from "./scope";
+import { isMissingFolder } from "./missingRepositories";
 import { renderSkillRouting } from "./context";
 import type { EnvironmentState } from "./types";
 import {
@@ -47,6 +48,12 @@ export async function nativePublication(options: {
       continue;
     }
 
+    if (await isMissingFolder(scope.directory)) {
+      throw new Error(
+        `The registered repository folder ${scope.directory} no longer exists. Run shadowclone sync to remove it.`,
+      );
+    }
+
     const repository = await resolveRepository({
       cwd: scope.directory,
       enabled: config.sources["git-metadata"],
@@ -59,7 +66,7 @@ export async function nativePublication(options: {
       repository.profileFileName !== scope.repository.repositoryName
     ) {
       throw new Error(
-        "A registered repository identity changed or is blocked; native files were preserved",
+        `The registered repository at ${scope.directory} changed its Git origin or is blocked. shadowclone kept the native files.`,
       );
     }
   }

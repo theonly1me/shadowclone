@@ -5,10 +5,14 @@ import { environmentFile, readEnvironment, renderEnvironment } from "./store";
 import { nativePublication, type SkippedRouting } from "./native";
 import { publishEnvironmentRevision } from "./revision";
 import { synchronizePublishedSkills } from "./synchronize";
+import { withoutMissingRepositories } from "./missingRepositories";
 
 export async function syncLearningEnvironment(
   paths: ProjectPaths,
-  options: { readonly onSkipped?: (skipped: readonly SkippedRouting[]) => void } = {},
+  options: {
+    readonly onSkipped?: (skipped: readonly SkippedRouting[]) => void;
+    readonly onRemovedRepositories?: (directories: readonly string[]) => void;
+  } = {},
 ): Promise<boolean> {
   const state = await readEnvironment(paths);
 
@@ -40,9 +44,10 @@ export async function syncLearningEnvironment(
       return false;
     }
 
+    const registered = await withoutMissingRepositories(current);
     const synchronized = config.sources["skill-library"]
-      ? await synchronizePublishedSkills({ paths, state: current })
-      : { state: current, updates: [], routingBlocked: false };
+      ? await synchronizePublishedSkills({ paths, state: registered.state })
+      : { state: registered.state, updates: [], routingBlocked: false };
     const publication = synchronized.routingBlocked
       ? { state: synchronized.state, updates: [], skipped: [] }
       : await nativePublication({
@@ -65,6 +70,7 @@ export async function syncLearningEnvironment(
       ],
     });
 
+    options.onRemovedRepositories?.(registered.removed);
     options.onSkipped?.(publication.skipped);
 
     return true;
