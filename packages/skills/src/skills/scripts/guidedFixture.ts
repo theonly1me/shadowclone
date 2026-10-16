@@ -67,9 +67,9 @@ export async function fixture() {
   );
   const third = await commit("notify");
   const revisions = [
-    { base, head: first },
-    { base: first, head: second },
-    { base: second, head: third },
+    { base, head: first, role: "Retries a failed job up to three times." },
+    { base: first, head: second, role: "Documents the retries and renames a support file." },
+    { base: second, head: third, role: "Sends a notification after the job finishes." },
   ];
   const pulls = await Promise.all(
     revisions.map(async (revision, index) => {
@@ -88,6 +88,7 @@ export async function fixture() {
         number: index + 1,
         url: "https://github.com/example/project/pull/" + (index + 1),
         title: "Change " + (index + 1),
+        role: revision.role,
         checkout: directory,
         baseSha: revision.base,
         headSha: revision.head,
@@ -99,6 +100,12 @@ export async function fixture() {
   const input = {
     title: "Review retries and notifications",
     summary: "Follow one connected behavior across three PRs.",
+    overview: {
+      problem: "A failed job loses its work, and nobody hears about it.",
+      outcome: "The job retries three times and then notifies its owner.",
+      approach: "A retry count wraps the job. A notify flag runs after the last attempt.",
+      terms: [{ term: "Attempt", meaning: "One run of the job callback." }],
+    },
     pulls,
     evidence: [
       {

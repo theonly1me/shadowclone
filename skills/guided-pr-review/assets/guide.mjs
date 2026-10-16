@@ -5,6 +5,8 @@ let showFindings = false;
 let currentStep = 0;
 let currentPr = review.combined ? "stack" : review.pulls[0].id;
 let mode = "guide";
+const pages = [...document.querySelectorAll(".reading-step")];
+const pageTitle = (index) => pages[index].querySelector("h1").textContent;
 
 function renderFileList() {
   const search = document.getElementById("file-search").value.toLowerCase();
@@ -38,7 +40,7 @@ function refreshGuide() {
     .forEach((button) =>
       button.classList.toggle("selected", Number(button.dataset.step) === currentStep),
     );
-  document.querySelectorAll(".reading-step").forEach((element, index) => {
+  pages.forEach((element, index) => {
     element.hidden = index !== currentStep;
     element.querySelectorAll(".file-card").forEach((card) => {
       const file = getFile(card.dataset.file);
@@ -50,12 +52,10 @@ function refreshGuide() {
   const previous = document.getElementById("previous");
   const next = document.getElementById("next");
   previous.disabled = currentStep === 0;
-  next.disabled = currentStep === review.groups.length - 1;
-  previous.textContent = currentStep ? "← " + review.groups[currentStep - 1].title : "First step";
+  next.disabled = currentStep === pages.length - 1;
+  previous.textContent = currentStep ? "← " + pageTitle(currentStep - 1) : "First step";
   next.textContent =
-    currentStep < review.groups.length - 1
-      ? review.groups[currentStep + 1].title + " →"
-      : "Last step";
+    currentStep < pages.length - 1 ? pageTitle(currentStep + 1) + " →" : "Last step";
   document.querySelectorAll("[data-reviewed]").forEach((input) => {
     input.checked = review.annotations.reviewed.includes(input.dataset.reviewed);
   });
@@ -64,12 +64,11 @@ function refreshGuide() {
 }
 
 function selectStep(index) {
-  currentStep = Math.max(0, Math.min(review.groups.length - 1, index));
+  currentStep = Math.max(0, Math.min(pages.length - 1, index));
   mode = "guide";
   document.getElementById("selection-comment").hidden = true;
   refreshGuide();
-  const step = document.getElementById("step-" + review.groups[currentStep].id);
-  step.scrollIntoView({ block: "start" });
+  pages[currentStep].scrollIntoView({ block: "start" });
 }
 
 function showSource(id) {

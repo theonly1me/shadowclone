@@ -11,6 +11,12 @@ Use these fields:
 {
   "title": "Review the job retry",
   "summary": "Follow the result and notification through failures.",
+  "overview": {
+    "problem": "A failed export job loses its result. The user must start the export again.",
+    "outcome": "The job retries up to three times. The user gets a notification after a saved result.",
+    "approach": "A retry boundary wraps the job callback. The notification starts after the result write.",
+    "terms": [{ "term": "Retry boundary", "meaning": "The code that repeats a failed callback." }]
+  },
   "pulls": [
     {
       "id": "pr-1",
@@ -18,6 +24,7 @@ Use these fields:
       "number": 1,
       "url": "<PR HTTPS URL>",
       "title": "Retry the job",
+      "role": "Adds the retry boundary around the job callback.",
       "checkout": "<private local checkout>",
       "baseSha": "<full SHA>",
       "headSha": "<full SHA>",
@@ -76,6 +83,23 @@ steps.definitions lists evidence identifiers for signature excerpts shown beside
 steps.files orders the actual diffs after that passage. Each file must belong to the group's files list.
 Without steps.files, the builder follows changed files in steps.evidence order.
 The group's remaining files follow its main passages. Every file starts expanded and links to its exact PR diff.
+
+## Overview
+
+The guide opens on the overview page, before the first reading step. Write it for a reader who has not opened the PRs.
+Use the PR descriptions, linked issues, discussions, and the code at the pinned heads as sources.
+
+- problem: the gap or failure that the change answers, and who sees it.
+- outcome: what works after the change merges, for users and for the system.
+- approach: the main mechanism and design choice, in a few sentences.
+- terms: optional. Explain each domain word that the reading steps use without a definition.
+- pulls.role: required for a stack. Say what that PR adds and what it builds on. List the pulls in merge order.
+
+The summary stays the reading plan: where to start and what the route covers.
+Do not put the reading plan in the overview, and do not copy a description that the code contradicts.
+If a description and the code disagree, follow the code and state the difference.
+The builder refuses an input without problem, outcome, and approach, or a stack PR without a role.
+Human notes can attach to the overview text. Their anchors start with `overview:`.
 
 ## Complete coverage
 

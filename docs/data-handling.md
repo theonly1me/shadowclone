@@ -175,7 +175,7 @@ Report exposures privately through [security reporting](../SECURITY.md). Public 
 
 ## Guided review documents
 
-The guided review skill puts pinned code, explanations, findings, and human notes in a local HTML document.
+The guided review skill puts pinned code, a summary of the PR descriptions, explanations, findings, and human notes in a local HTML document.
 Keep private reports outside public checkouts. Generating or opening the guide makes no GitHub review write.
 With browser file permission, Save review writes annotations into the original HTML.
 The user can attach that file to a coding agent and explicitly request staging through their own workflow.

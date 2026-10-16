@@ -83,6 +83,7 @@ try {
     id,
     title: input.title,
     summary: input.summary,
+    overview: input.overview,
     status: input.status ?? "complete",
     pulls,
     groups,
