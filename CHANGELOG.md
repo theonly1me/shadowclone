@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.37](https://github.com/theonly1me/shadowclone/compare/v0.0.36...v0.0.37) (2026-10-16)
+
+
+### Fixes
+
+* **sync:** remove registered repository folders that no longer exist ([#218](https://github.com/theonly1me/shadowclone/issues/218)) ([e1d052a](https://github.com/theonly1me/shadowclone/commit/e1d052acc5b37d593cce0606eb7f28733260c12b))
+
 ## [0.0.36](https://github.com/theonly1me/shadowclone/compare/v0.0.35...v0.0.36) (2026-10-16)
 
 
