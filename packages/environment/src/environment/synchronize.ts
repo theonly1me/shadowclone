@@ -2,13 +2,20 @@ import path from "node:path";
 import { fingerprint, readLocalText } from "@shadowclone/core";
 import type { FileUpdate } from "@shadowclone/changes";
 import type { ProjectPaths } from "@shadowclone/core";
-import type { EnvironmentState } from "./types";
+import type { EnvironmentArtifact, EnvironmentState } from "./types";
 import { learningScopes } from "./scope";
 import { skillPublication } from "./publication";
 import { materializeSnapshot } from "@shadowclone/redact";
 import { parseSkillDocument } from "@shadowclone/skills";
 import { validateRouting } from "./routingValidation";
 import { pendingLearningState } from "./learningDisposition";
+
+function missingSkillMessage(copies: readonly EnvironmentArtifact[]): string {
+  const name = [...new Set(copies.map((copy) => copy.name))].join(", ");
+  const files = copies.map((copy) => copy.filePath).join(", ");
+
+  return `Every copy of the maintained skill ${name} is missing: ${files}. Restore one copy, then run shadowclone sync again.`;
+}
 
 export async function synchronizePublishedSkills(options: {
   readonly paths: ProjectPaths;
@@ -49,9 +56,7 @@ export async function synchronizePublishedSkills(options: {
     const authority = changed[0] ?? current.find(({ text }) => text !== null);
 
     if (!authority?.text) {
-      throw new Error(
-        "Every copy of a maintained skill is missing; restore a revision first",
-      );
+      throw new Error(missingSkillMessage(artifacts));
     }
 
     const { artifact, text } = authority;
