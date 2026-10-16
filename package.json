@@ -1,7 +1,7 @@
 {
   "name": "shadowclone",
   "private": true,
-  "version": "0.0.36",
+  "version": "0.0.37",
   "packageManager": "bun@1.4.2",
   "workspaces": [
     "packages/*",
