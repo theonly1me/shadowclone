@@ -92,3 +92,35 @@ test("after a replacement, the next sync updates the agent without skipping it",
     replaced: [],
   });
 });
+
+function withSortedKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withSortedKeys);
+  if (value === null || typeof value !== "object") return value;
+
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, withSortedKeys(Reflect.get(value, key))]),
+  );
+}
+
+test("hooks that another tool rewrote with sorted keys still belong to shadowclone", async () => {
+  const setup = await installedBuild();
+
+  await installIntegration({ paths: setup.paths, cwd: setup.cwd, agent: "antigravity", scope: "global" });
+
+  const hooksFile = path.join(setup.home, ".gemini/config/hooks.json");
+  const installed: unknown = JSON.parse(await Bun.file(hooksFile).text());
+
+  await Bun.write(hooksFile, `${JSON.stringify(withSortedKeys(installed), null, 2)}\n`);
+
+  expect(await syncReporting({ paths: setup.paths })).toEqual({
+    synchronized: true,
+    skipped: [],
+    replaced: [],
+  });
+
+  const commands = (await Bun.file(hooksFile).text()).match(/hook native-start/g) ?? [];
+
+  expect(commands).toHaveLength(1);
+});

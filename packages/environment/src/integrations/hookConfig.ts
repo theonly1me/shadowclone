@@ -9,6 +9,24 @@ const documentSchema = z
 
 const keyOrderSchema = z.record(z.string(), z.unknown());
 
+function withSortedKeys(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(withSortedKeys);
+  }
+
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([first], [second]) => first.localeCompare(second))
+        .map(([key, nested]) => [key, withSortedKeys(nested)]),
+    );
+  }
+
+  return value;
+}
+
+const hookIdentity = (entry: unknown): string => JSON.stringify(withSortedKeys(entry));
+
 function parseDocument(text: string | null) {
   try {
     return documentSchema.parse(text === null ? {} : JSON.parse(text));
@@ -101,9 +119,9 @@ export function updateHookConfig(options: {
 
   for (const event of new Set([...Object.keys(owned), ...Object.keys(legacy)])) {
     const entries = owned[event] ?? [];
-    const identities = [...entries, ...(legacy[event] ?? [])].map((entry) => JSON.stringify(entry));
+    const identities = [...entries, ...(legacy[event] ?? [])].map(hookIdentity);
     const retained = (hooks[event] ?? []).filter(
-      (entry) => !identities.includes(JSON.stringify(entry)),
+      (entry) => !identities.includes(hookIdentity(entry)),
     );
     const next = options.remove ? retained : [...retained, ...entries];
 
@@ -130,7 +148,7 @@ export function hasOwnedHooks(options: {
     Object.entries(entries).every(([event, eventEntries]) =>
       eventEntries.every((entry) =>
         (document.hooks[event] ?? []).some((installed) =>
-          JSON.stringify(installed) === JSON.stringify(entry)
+          hookIdentity(installed) === hookIdentity(entry)
         )
       )
     );
