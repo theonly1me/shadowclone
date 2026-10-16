@@ -51,6 +51,11 @@ p { margin: 10px 0; }
 .flow-proof, .sources { margin: 8px 0 18px; color: var(--muted); font-size: 12px; }
 .source-link { padding: 0; border: 0; background: none; font-size: 12px; text-decoration: underline; }
 .passage { margin: 20px 0; }
+.pr-roles { padding-left: 22px; }
+.pr-roles .passage { margin: 12px 0; }
+.pr-roles p, .terms p { margin: 4px 0; }
+.terms dt { margin-top: 12px; font-weight: 600; }
+.terms dd { margin: 0; color: var(--muted); }
 .step-files { margin: 24px 0; }
 .file-card { margin: 16px 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .file-card > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; background: var(--panel); font: 12px/1.5 ui-monospace, monospace; overflow-wrap: anywhere; }

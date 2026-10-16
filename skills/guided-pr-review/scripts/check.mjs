@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
+import { checkOverview } from "./overview.mjs";
 
 function requireText(value, label) {
   if (typeof value !== "string" || !value.trim()) throw new Error(label + " must contain text.");
@@ -88,6 +89,7 @@ export function checkInput(input) {
     for (const edge of group.diagram?.edges ?? [])
       if (!edge.evidence?.length) throw new Error("Every diagram transition needs code evidence.");
   }
+  checkOverview(input);
 }
 
 export function checkCoverage(review) {

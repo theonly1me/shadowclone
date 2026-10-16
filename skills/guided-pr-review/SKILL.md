@@ -14,14 +14,16 @@ metadata:
 
 A human needs to understand a PR and compare their observations with an agent's findings.
 The guide explains related behavior and exposes the actual code. It must account for the complete change.
+The reader may not know what the change is for. The guide must tell them before the first reading step.
 
 ## Gates
 
 1. Does the route account for every changed file, with accessible diffs and truthful coverage?
-2. Did shadowclone-review investigate locally without posting feedback or repeating CI checks?
-3. Do claims, visuals, and dry runs cite committed code and distinguish reasoning from executed checks?
-4. Can the human select prose or code, attach a comment, and save it into the original HTML?
-5. Are agent findings hidden until comparison, with inclusion and dismissal choices preserved?
+2. Can a reader who never opened the PR descriptions learn the problem, the result, and the approach?
+3. Did shadowclone-review investigate locally without posting feedback or repeating CI checks?
+4. Do claims, visuals, and dry runs cite committed code and distinguish reasoning from executed checks?
+5. Can the human select prose or code, attach a comment, and save it into the original HTML?
+6. Are agent findings hidden until comparison, with inclusion and dismissal choices preserved?
 
 ## Process
 
@@ -35,13 +37,16 @@ Write in the user's voice. Before you write, read `~/.agents/voice.md`. If it do
 6. With another supported engine, use the existing local prepare and analyze stages without the checks or publish stages.
 7. Without the CLI, follow shadowclone-review in the host agent and save its pinned findings locally.
 8. Follow surrounding callers, writes, consumers, and failure paths to explain how the change affects existing behavior.
-9. Group all changed files into a connected reading route. Start with the main contracts and their signatures.
-10. Connect related PRs and label ownership. Claim combined behavior only when Git establishes a combined head.
-11. Show each definition before its callers and effects. Pair each passage with its actual diffs and visible signature excerpts.
-12. Run a focused check only when it answers a named uncertainty. Record its actual result and limits.
-13. Write the input outside the public checkout, then run `node scripts/build.mjs <input.json> <review.html>`.
-14. Run `node scripts/check.mjs <review.html>` and inspect the real document before delivering it.
-15. Verify the reading order, complete file view, selection comments, and a same-file save and reopen cycle.
+9. Read each PR description, its linked issues, and its discussions. Compare their claims with the code.
+10. Write the overview: the problem, what changes, and how it works. For a stack, give each PR its role.
+11. If a description and the code disagree, follow the code and state the difference in the overview.
+12. Group all changed files into a connected reading route. Start with the main contracts and their signatures.
+13. Connect related PRs and label ownership. Claim combined behavior only when Git establishes a combined head.
+14. Show each definition before its callers and effects. Pair each passage with its actual diffs and visible signature excerpts.
+15. Run a focused check only when it answers a named uncertainty. Record its actual result and limits.
+16. Write the input outside the public checkout, then run `node scripts/build.mjs <input.json> <review.html>`.
+17. Run `node scripts/check.mjs <review.html>` and inspect the real document before delivering it.
+18. Verify the overview, the reading order, complete file view, selection comments, and a same-file save and reopen cycle.
 
 The script paths are relative to this skill. Node and Bun can run them.
 Place supporting files after the main behavior. Keep every file expanded, including the complete file view.

@@ -15,6 +15,15 @@ Group every changed file into the reading route or an explained supporting group
 Expose each actual diff and label its PR. Use combined views only when Git ancestry establishes a stack.
 Keep findings hidden until the human chooses comparison. Each visual and claim links to pinned evidence.
 
+The guide opens with an overview page before the first reading step.
+A reader who has not read the PR descriptions learns the problem, the result, and the approach there.
+For a stack, the page lists each PR in merge order with the part of the work that it owns.
+Optional terms explain the domain words that the reading steps use.
+The agent writes the overview from the PR descriptions, linked issues, discussions, and the pinned code.
+If a description and the code disagree, the overview follows the code and states the difference.
+The builder refuses an input without the overview, or a stack without a role for each PR.
+The summary above every page stays a short reading plan.
+
 Start with the main definitions and their signatures, then follow their callers and effects.
 Pair each passage with its related diffs. Put supporting changes after that part of the story.
 Expand every file by default. The findings button opens the findings list immediately.
@@ -58,5 +67,6 @@ Private reports and annotations stay outside public checkouts.
 Use synthetic Git fixtures for actual diffs, source ranges, stack ownership, Markdown, and complete coverage.
 Verify selection comments and same-file saving in a supported browser, then inspect that saved HTML as an agent.
 Check the portable scripts, personal routing separately, both staged npm artifacts, and the repository gate.
+Check that the guide opens on the overview, and that a stack lists each PR role in merge order.
 Check definition order, inline signatures, expanded files, the findings panel, and exact GitHub file links.
 Check route filenames, forced Git colors, selection changes during a draft, and Escape from the source view.
