@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.36](https://github.com/theonly1me/shadowclone/compare/v0.0.35...v0.0.36) (2026-10-16)
+
+
+### Features
+
+* **skills:** open guided reviews with what the change does ([#216](https://github.com/theonly1me/shadowclone/issues/216)) ([4718e1b](https://github.com/theonly1me/shadowclone/commit/4718e1b87a757da4dcf40c63988854b148a63be2))
+
 ## [0.0.35](https://github.com/theonly1me/shadowclone/compare/v0.0.34...v0.0.35) (2026-10-15)
 
 
