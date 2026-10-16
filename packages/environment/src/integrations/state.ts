@@ -89,3 +89,18 @@ export async function saveIntegration(options: {
     next: `${JSON.stringify({ version: 1, integrations: updated }, null, 2)}\n`,
   });
 }
+
+export async function markIntegrationDelivered(options: {
+  readonly paths: ProjectPaths;
+  readonly id: string;
+  readonly deliveredAt: number;
+}): Promise<void> {
+  const current = (await readIntegrations(options.paths)).find((entry) => entry.id === options.id);
+
+  if (current) {
+    await saveIntegration({
+      paths: options.paths,
+      integration: { ...current, deliveredAt: options.deliveredAt },
+    });
+  }
+}

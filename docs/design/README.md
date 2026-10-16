@@ -42,3 +42,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [043: Cloud bot on API keys](043-cloud-bot-api-keys.md)                        | One machine account on one provider API key, tags from anyone with write access, and a check run after setup            |
 | [044: Cloud sessions](044-cloud-sessions.md)                                   | The owner's own subscription on a host that the owner owns, started only by the owner, with state in GitHub             |
 | [045: Missing repository folders](045-missing-repository-folders.md)           | Sync removes the registration of a folder that no longer exists, and sync errors name the skill or folder               |
+| [046: Preserved integration files](046-preserved-integration-files.md)         | Sync names each preserved file and its reason, replaces it on request, and stops false edit reports                     |
