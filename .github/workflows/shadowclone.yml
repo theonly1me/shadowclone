@@ -113,7 +113,7 @@ jobs:
                 core.setOutput(name, String(value));
               }
             }
-      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
         id: app
         if: steps.validate.outputs.allowed == 'true'
         with:
@@ -161,7 +161,7 @@ jobs:
                 labels: ['shadowclone:managed'],
               });
             }
-      - uses: anthropics/claude-code-action@6fed3ca145920b639991cb756090506e1bcaf515
+      - uses: anthropics/claude-code-action@a26b07d8c778b0c43f64618e5fd29fd0f8af72e8
         if: steps.validate.outputs.allowed == 'true'
         env:
           SHADOWCLONE_ENTITY: ${{ steps.validate.outputs.entity }}
