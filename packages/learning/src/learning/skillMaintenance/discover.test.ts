@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { symlink } from "node:fs/promises";
 import path from "node:path";
 import { defaultConfig, writeConfig } from "@shadowclone/core";
+import { emptyEnvironment, writeEnvironment } from "@shadowclone/environment";
 import { skillFixture } from "@shadowclone/environment/testing";
 import { inspectSkillLibrary } from "./lifecycle";
 import { fixtureSkill } from "@shadowclone/skills/testing";
@@ -65,4 +66,15 @@ test("symlinked content is ignored and identical portable copies collapse", asyn
 
   expect(discovered.skills).toHaveLength(1);
   expect(discovered.duplicates).toBe(0);
+});
+
+test("the library lists skills while native routing is over its size limit", async () => {
+  const setup = await skillFixture();
+
+  await writeEnvironment({
+    paths: setup.paths,
+    state: { ...emptyEnvironment, phase: "active", facts: [{ scope: "global", text: "x".repeat(4096), learningKeys: ["fact"] }] },
+  });
+
+  expect((await inspectSkillLibrary(setup)).skills.map(({ name }) => name)).toEqual(["typed-changes"]);
 });

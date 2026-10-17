@@ -8,9 +8,7 @@ type ContextOptions = IntegrationOptions & {
   readonly scope?: "global" | "scoped" | "combined";
 };
 
-export async function compileContextDetails(
-  options: ContextOptions,
-): Promise<ContextCompilation | null> {
+async function contextAccess(options: ContextOptions) {
   const paths = options.paths ?? projectPaths;
   const { config, policy } = await readEffectiveConfig({
     configPath: options.configPath ?? paths.configFile,
@@ -40,13 +38,29 @@ export async function compileContextDetails(
     return null;
   }
 
+  return { paths, repository };
+}
+
+export async function isContextBlocked(options: ContextOptions): Promise<boolean> {
+  return (await contextAccess(options)) === null;
+}
+
+export async function compileContextDetails(
+  options: ContextOptions,
+): Promise<ContextCompilation | null> {
+  const access = await contextAccess(options);
+
+  if (!access) {
+    return null;
+  }
+
   return (
     (await environmentCompilation({
-      paths,
+      paths: access.paths,
       cwd: options.cwd,
       scope: options.scope,
-      originDirectory: repository?.origin.directoryName ?? null,
-      repositoryName: repository?.profileFileName ?? null,
+      originDirectory: access.repository?.origin.directoryName ?? null,
+      repositoryName: access.repository?.profileFileName ?? null,
     })) ?? emptyCompilation
   );
 }
