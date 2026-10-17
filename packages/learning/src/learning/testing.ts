@@ -12,17 +12,22 @@ export const requiredTable = "Include a dependency table in release notes.";
 export const forbiddenTable = "Never include a dependency table in release notes.";
 export const syntheticSecret = ["sk", "proj", "abcdefghijklmnopqrstuvwxyz0123456789"].join("-");
 
-export async function conflictFixture() {
+export async function conflictFixture(options: { readonly thirdParty?: boolean } = {}) {
   const setup = await skillFixture();
   const personal = `---\nname: typed-changes\ndescription: Prepare release notes\n---\n\n${requiredTable}\n\nToken: ${syntheticSecret}\n`;
-  const thirdParty = `---\nname: release-notes\ndescription: Write release notes\n---\n\n${forbiddenTable}\n`;
-  const thirdPartyPath = path.join(setup.home, ".codex/plugins/cache/synthetic/publisher/1.0/skills/release-notes/SKILL.md");
+  const otherSkill = `---\nname: release-notes\ndescription: Write release notes\n---\n\n${forbiddenTable}\n`;
+  const otherSkillPath = path.join(
+    setup.home,
+    options.thirdParty
+      ? ".codex/plugins/cache/synthetic/publisher/1.0/skills/release-notes/SKILL.md"
+      : ".agents/skills/release-notes/SKILL.md",
+  );
 
   await Bun.write(setup.filePath, personal);
-  await Bun.write(thirdPartyPath, thirdParty);
+  await Bun.write(otherSkillPath, otherSkill);
   await writeEnvironment({ paths: setup.paths, state: { ...emptyEnvironment, phase: "active", automatic: true } });
 
-  return { ...setup, personal, thirdParty, thirdPartyPath };
+  return { ...setup, personal, otherSkill, otherSkillPath };
 }
 
 const catalogSchema = z.object({

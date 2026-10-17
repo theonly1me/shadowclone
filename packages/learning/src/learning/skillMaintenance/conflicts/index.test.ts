@@ -26,7 +26,7 @@ test("active updates review the whole library without new learning and queue a s
     expect(await showSkillProposal({ paths: setup.paths, id: proposal.id })).toContain("Writing release notes");
     await expect(applySkillProposal({ ...setup, id: proposal.id })).rejects.toThrow("precedence decision");
     expect(await Bun.file(setup.filePath).text()).toBe(setup.personal);
-    expect(await Bun.file(setup.thirdPartyPath).text()).toBe(setup.thirdParty);
+    expect(await Bun.file(setup.otherSkillPath).text()).toBe(setup.otherSkill);
     expect(prompts.join("\n")).not.toContain(syntheticSecret);
     expect(prompts.join("\n")).not.toContain(setup.home);
     for (const source of proposal.sources) {

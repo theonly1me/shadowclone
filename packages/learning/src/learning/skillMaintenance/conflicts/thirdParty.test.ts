@@ -6,7 +6,7 @@ import { createLearningExecution } from "@shadowclone/agents";
 import { skillEngineRun } from "@shadowclone/environment/testing";
 import { listSkillProposals } from "@shadowclone/skills";
 import { updateLearningEnvironment } from "../../environmentUpdate/update";
-import { conflictFixture, forbiddenTable } from "../../testing";
+import { conflictFixture, forbiddenTable, requiredTable } from "../../testing";
 
 const requiredChecklist = "Always include a dependency table in the release checklist.";
 const catalogSchema = z.object({
@@ -15,15 +15,17 @@ const catalogSchema = z.object({
 });
 const documentsSchema = z.object({ left: z.object({ document: z.string() }), right: z.object({ document: z.string() }) });
 
-const checklistLocations = [
-  { label: "two third-party skills", relativePath: ".codex/plugins/cache/synthetic/other-publisher/1.0/skills/release-checklist/SKILL.md" },
-  { label: "a skill in ~/.claude/skills/synced and a third-party skill", relativePath: ".claude/skills/synced/workspace-1/release-checklist/SKILL.md" },
+const comparisons = [
+  { label: "my own skill and a third-party skill", names: ["typed-changes", "release-notes"], checklistPath: null },
+  { label: "two third-party skills", names: ["release-notes", "release-checklist"], checklistPath: ".codex/plugins/cache/synthetic/other-publisher/1.0/skills/release-checklist/SKILL.md" },
+  { label: "a skill in ~/.claude/skills/synced and a third-party skill", names: ["release-notes", "release-checklist"], checklistPath: ".claude/skills/synced/workspace-1/release-checklist/SKILL.md" },
 ];
 
-for (const location of checklistLocations) test(`${location.label} that disagree never become a conflict proposal`, async () => {
-  const setup = await conflictFixture();
-  const checklistPath = path.join(setup.home, location.relativePath);
-  await Bun.write(checklistPath, `---\nname: release-checklist\ndescription: Prepare a release checklist\n---\n\n${requiredChecklist}\n`);
+for (const comparison of comparisons) test(`${comparison.label} that disagree never become a conflict proposal`, async () => {
+  const setup = await conflictFixture({ thirdParty: true });
+  if (comparison.checklistPath) {
+    await Bun.write(path.join(setup.home, comparison.checklistPath), `---\nname: release-checklist\ndescription: Prepare a release checklist\n---\n\n${requiredChecklist}\n`);
+  }
   let conflictAssessments = 0;
   const execution = createLearningExecution({
     engine: "claude-code",
@@ -33,13 +35,14 @@ for (const location of checklistLocations) test(`${location.label} that disagree
       if (run.prompt.includes("Review skill catalog overlap")) {
         const catalog = catalogSchema.parse(input);
         const entries = [...catalog.left, ...catalog.right];
-        const left = entries.find(({ name }) => name === "release-notes");
-        const right = entries.find(({ name }) => name === "release-checklist");
+        const left = entries.find(({ name }) => name === comparison.names[0]);
+        const right = entries.find(({ name }) => name === comparison.names[1]);
         return skillEngineRun({ overlaps: left && right ? [{ left: left.token, right: right.token }] : [] });
       }
       conflictAssessments += 1;
       const documents = documentsSchema.parse(input);
-      const passage = (document: string) => document.includes(forbiddenTable) ? forbiddenTable : requiredChecklist;
+      const passage = (document: string) =>
+        [forbiddenTable, requiredTable].find((text) => document.includes(text)) ?? requiredChecklist;
       return skillEngineRun({
         conflict: true, workflow: "Writing release notes",
         leftPassage: passage(documents.left.document), rightPassage: passage(documents.right.document),
