@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.39](https://github.com/theonly1me/shadowclone/compare/v0.0.38...v0.0.39) (2026-10-17)
+
+
+### Fixes
+
+* **builds:** name the edited file that stops a build preview ([#225](https://github.com/theonly1me/shadowclone/issues/225)) ([3468d29](https://github.com/theonly1me/shadowclone/commit/3468d296cd910ba751d9e3113dab510b2f735fc1))
+* **builds:** stop routing or restoring a build skill whose copies were deleted ([#224](https://github.com/theonly1me/shadowclone/issues/224)) ([51cc604](https://github.com/theonly1me/shadowclone/commit/51cc60461f920299113a611e7785403de9de5797))
+
 ## [0.0.38](https://github.com/theonly1me/shadowclone/compare/v0.0.37...v0.0.38) (2026-10-16)
 
 
