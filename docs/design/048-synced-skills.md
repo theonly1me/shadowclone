@@ -28,8 +28,10 @@ shadowclone does not treat the synced folder as a third-party root that gets loc
 
 A rule that shadowclone already published into a synced skill stays, with its copies, until the user retires it with `shadowclone learning retire`. Discovery no longer offers the synced skill as a target, so learning puts a new rule into a skill that the user owns.
 
-Retirement also reaches a skill record outside the copies that discovery finds. If the file still has the text that shadowclone wrote, retirement writes back the earlier text and drops the record. If the file changed, retirement keeps the file and its record.
+Retirement and sync also release a skill record when every rule behind it is retired, even outside the copies that discovery finds. They drop the record, so routing no longer names the skill. They delete a copy that shadowclone made only when the copy still has its recorded text. They keep a file that shadowclone edited in place.
+
+They do not write back the text from before the edit. Sync copies a user's edit into the record, so a file that matches the record can still hold later edits. A newer version from the product that syncs the skill can also match the record.
 
 ## Verification
 
-A synthetic test puts a skill in `~/.claude/skills/synced/` and routes a rule to it. Without the check, learning rewrites the synced file. Another test puts a synced skill next to a plugin skill that disagrees with it, and checks that review makes no conflict proposal. Two more tests retire a rule that shadowclone wrote into a synced skill. The file gets its earlier text back, unless it changed after the edit.
+A synthetic test puts a skill in `~/.claude/skills/synced/` and routes a rule to it. Without the check, learning rewrites the synced file. Another test puts a synced skill next to a plugin skill that disagrees with it, and checks that review makes no conflict proposal. Another test retires a rule that shadowclone wrote into a synced skill, and checks that the file keeps its text. A sync test checks that sync drops the records of a retired rule, deletes an unchanged copy, and keeps an edited copy.

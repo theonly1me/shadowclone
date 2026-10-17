@@ -6,6 +6,7 @@ import { nativePublication, type ReplacedRouting, type SkippedRouting } from "./
 import { publishEnvironmentRevision } from "./revision";
 import { synchronizePublishedSkills } from "./synchronize";
 import { withoutMissingRepositories } from "./missingRepositories";
+import { releaseRetiredSkills } from "./unreachedSkills";
 import type { MissingBuildSkill } from "./builds/missingSkills";
 
 export async function syncLearningEnvironment(
@@ -49,9 +50,10 @@ export async function syncLearningEnvironment(
     }
 
     const registered = await withoutMissingRepositories(current);
+    const retired = await releaseRetiredSkills(registered.state);
     const synchronized = config.sources["skill-library"]
-      ? await synchronizePublishedSkills({ paths, state: registered.state })
-      : { state: registered.state, updates: [], routingBlocked: false };
+      ? await synchronizePublishedSkills({ paths, state: retired.state })
+      : { state: retired.state, updates: [], routingBlocked: false };
     const publication = synchronized.routingBlocked
       ? { state: synchronized.state, updates: [], skipped: [], replaced: [], missing: [] }
       : await nativePublication({
@@ -65,6 +67,7 @@ export async function syncLearningEnvironment(
     await publishEnvironmentRevision({
       paths,
       updates: [
+        ...retired.updates,
         ...synchronized.updates,
         ...publication.updates,
         {

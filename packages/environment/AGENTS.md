@@ -37,7 +37,7 @@ Holds what agents receive: the environment record, skill publication, native ins
 - The skills environment is the only store for learned rules. Without `environment.json`, learning and `remember` stop and say to run `shadowclone init`, and context delivery is empty.
 - `syncLearningEnvironment` removes a registered repository whose folder no longer exists, with the skills and instructions published inside it, and reports each folder.
 - Native publication, session-start context, and skill delivery render routing through `withoutMissingBuildSkills`. Routing leaves out a build skill with no copy left. Sync reports it when its build selects it, and keeps its records.
-- Skill publication releases each skill record of the same name and scope that no active rule uses, also outside its destinations. It writes back `original` when the file still has the text that it wrote, and it keeps an edited file and its record.
+- Skill publication and sync release a skill record when every rule behind it is retired, also outside the destinations. They drop the record and delete an unchanged copy that shadowclone made. They never write `original` back, because a file that matches the record can hold edits that sync copied into it.
 - A repository with `privateSkillsDirectory` publishes skills only under `~/.shadowclone/builds/`. Its routing names each skill by its file path, and no repository file changes.
 
 ## Tests
