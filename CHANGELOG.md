@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.42](https://github.com/theonly1me/shadowclone/compare/v0.0.41...v0.0.42) (2026-10-17)
+
+
+### Fixes
+
+* **learning:** release the records of a retired rule on sync and never write old text back ([#240](https://github.com/theonly1me/shadowclone/issues/240)) ([cfce63f](https://github.com/theonly1me/shadowclone/commit/cfce63fc3c59529dcd197d2c345e95c3b6ba52e8))
+
 ## [0.0.41](https://github.com/theonly1me/shadowclone/compare/v0.0.40...v0.0.41) (2026-10-17)
 
 
