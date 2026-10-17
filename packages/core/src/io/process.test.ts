@@ -47,3 +47,15 @@ test("timeout kills descendants before they can write a later sentinel", async (
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("a process that exits without reading its input still returns its result", async () => {
+  const result = await runProcess({
+    arguments: ["/bin/sh", "-c", "echo done"],
+    cwd: os.tmpdir(),
+    environment: { PATH: "/usr/bin:/bin" },
+    input: "x".repeat(4 * 1024 * 1024),
+    timeoutMilliseconds: 5000,
+  });
+
+  expect(result).toEqual({ exitCode: 0, stdout: "done\n", stderr: "" });
+});
