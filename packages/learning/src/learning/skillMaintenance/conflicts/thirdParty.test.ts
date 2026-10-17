@@ -15,9 +15,14 @@ const catalogSchema = z.object({
 });
 const documentsSchema = z.object({ left: z.object({ document: z.string() }), right: z.object({ document: z.string() }) });
 
-test("two third-party skills that disagree never become a conflict proposal", async () => {
+const checklistLocations = [
+  { label: "two third-party skills", relativePath: ".codex/plugins/cache/synthetic/other-publisher/1.0/skills/release-checklist/SKILL.md" },
+  { label: "a skill in ~/.claude/skills/synced and a third-party skill", relativePath: ".claude/skills/synced/workspace-1/release-checklist/SKILL.md" },
+];
+
+for (const location of checklistLocations) test(`${location.label} that disagree never become a conflict proposal`, async () => {
   const setup = await conflictFixture();
-  const checklistPath = path.join(setup.home, ".codex/plugins/cache/synthetic/other-publisher/1.0/skills/release-checklist/SKILL.md");
+  const checklistPath = path.join(setup.home, location.relativePath);
   await Bun.write(checklistPath, `---\nname: release-checklist\ndescription: Prepare a release checklist\n---\n\n${requiredChecklist}\n`);
   let conflictAssessments = 0;
   const execution = createLearningExecution({
