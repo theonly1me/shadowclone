@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.41](https://github.com/theonly1me/shadowclone/compare/v0.0.40...v0.0.41) (2026-10-17)
+
+
+### Fixes
+
+* **core:** await each stdin write so a broken pipe never escapes as an unhandled rejection ([#236](https://github.com/theonly1me/shadowclone/issues/236)) ([e5e1c45](https://github.com/theonly1me/shadowclone/commit/e5e1c45f4b0a45aadb7bc33156aeb74c4904b029))
+* ignore a broken pipe when a child exits before it reads stdin ([#233](https://github.com/theonly1me/shadowclone/issues/233)) ([ac9256a](https://github.com/theonly1me/shadowclone/commit/ac9256adddef93fba503898a824008640e8b7a9f))
+* **learning:** compare only the user's own skills in library review ([#238](https://github.com/theonly1me/shadowclone/issues/238)) ([2510710](https://github.com/theonly1me/shadowclone/commit/2510710406be5fd69349684dbb1ec8208b395d86))
+* **learning:** restore a synced skill when its rule is retired ([#234](https://github.com/theonly1me/shadowclone/issues/234)) ([fdee9e1](https://github.com/theonly1me/shadowclone/commit/fdee9e13d05873cf7f7a71c820a0f57aa5a55f28))
+* **skills:** let bundled skills rewrite pushed history when the code stays correct ([#237](https://github.com/theonly1me/shadowclone/issues/237)) ([d09c538](https://github.com/theonly1me/shadowclone/commit/d09c5387685ea2dcb9d234145a8df8eb63eef078))
+
 ## [0.0.40](https://github.com/theonly1me/shadowclone/compare/v0.0.39...v0.0.40) (2026-10-17)
 
 
