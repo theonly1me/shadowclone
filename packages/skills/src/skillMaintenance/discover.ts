@@ -3,6 +3,7 @@ import path from "node:path";
 import { fingerprint, readLocalText, canonicalPath } from "@shadowclone/core";
 import { resolveRedacted } from "@shadowclone/sessions";
 import { parseSkillDocument, validateSkillReferences } from "./document";
+import { isSkippedSkill } from "./skippedSkills";
 import { skillTarget } from "./state";
 import type { DiscoveredSkill, SkillRoot } from "./types";
 
@@ -49,16 +50,7 @@ async function inspectSkills(options: {
       followSymlinks: false,
       dot: false,
     })) {
-      if (
-        relativePath
-          .split(path.sep)
-          .some(
-            (segment) =>
-              segment === "shadowclone-context" ||
-              (!options.includeCompanions &&
-                segment.startsWith("shadowclone-local-")),
-          )
-      ) {
+      if (isSkippedSkill({ root, relativePath, includeCompanions: options.includeCompanions })) {
         continue;
       }
 

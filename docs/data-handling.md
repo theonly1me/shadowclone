@@ -32,7 +32,7 @@ Source access does not authorize automatic skill edits. Disabling a source remov
 
 Shell history is not a source. Upgrading deletes indexed shell history events, cursors, and repository bindings, and shadowclone ignores a `shell` setting left in an older `config.toml` or managed policy.
 
-Personal skill locations include `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`, and `~/.gemini/config/skills/`. shadowclone may also review configured provider plugin caches. Codex paths follow `$CODEX_HOME` when set. Evaluation context can include `~/.claude/CLAUDE.md`, Codex `AGENTS.md` and `AGENTS.override.md`, and the selected skill catalog, which each study freezes.
+Personal skill locations include `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`, and `~/.gemini/config/skills/`. shadowclone may also review configured provider plugin caches. It skips `~/.claude/skills/synced/`, where another product syncs its own skills. Codex paths follow `$CODEX_HOME` when set. Evaluation context can include `~/.claude/CLAUDE.md`, Codex `AGENTS.md` and `AGENTS.override.md`, and the selected skill catalog, which each study freezes.
 
 With `agent-context` on, learning also reads those three instruction files to find guidance that you already maintain. With `skill-library` on, it reads the names and descriptions of your personal skills for the same purpose. The text crosses the redaction boundary, and each instruction file has a 32 KB limit. Learning drops a new rule that this text already states, and triage discards a pending rule that it covers.
 

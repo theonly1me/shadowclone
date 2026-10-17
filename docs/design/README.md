@@ -44,3 +44,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [045: Missing repository folders](045-missing-repository-folders.md)           | Sync removes the registration of a folder that no longer exists, and sync errors name the skill or folder               |
 | [046: Preserved integration files](046-preserved-integration-files.md)         | Sync names each preserved file and its reason, replaces it on request, and stops false edit reports                     |
 | [047: Missing build skills](047-missing-build-skills.md)                       | Routing leaves out a build skill that has no copy, and sync names it and exits with status 1                            |
+| [048: Synced skills](048-synced-skills.md)                                     | Discovery skips the skills that another product syncs into `~/.claude/skills/synced/`                                   |
