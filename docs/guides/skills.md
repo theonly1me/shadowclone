@@ -49,7 +49,7 @@ Native routing lists each equipped skill as `- <moment>: <skill>`, with the mome
 
 If a registered repository folder no longer exists, such as a removed Codex worktree, `sync` removes its registration and names the folder. It also stops tracking the skills that shadowclone published inside that folder. Automatic learning does the same without output. `shadowclone undo` restores the registration.
 
-If you delete every copy of a skill that a build selects, routing stops naming that skill. `sync` names the skill and its missing files, and exits with status 1. The build still selects the skill. Restore a copy to route it again, or remove the skill from the build in `shadowclone wizard`.
+If you delete every copy of a skill that a build selects, routing stops naming that skill. `sync` names the skill and its missing files, and exits with status 1. The build still selects the skill. Restore a copy to route it again, or remove the skill from the build in `shadowclone wizard`. The removal does not write the deleted files back.
 
 For bundled skills that you equipped, `sync` replaces a copy only if its text matches a version that shadowclone shipped. It keeps and names any other copy, so you can review it in `shadowclone wizard`. It never replaces a skill that you changed in the build editor. If routing grows past the 4 KiB native limit, `sync` reports the overflow and keeps the existing instructions.
 

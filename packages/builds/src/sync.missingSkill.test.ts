@@ -162,3 +162,18 @@ test("a removed skill whose kept copy is later deleted is not reported as select
   expect(report.missing).toEqual([]);
   expect(report.routing).not.toContain("careful-review");
 });
+
+test("removing a deleted user skill from the build does not write it back", async () => {
+  const setup = await buildWithUserSkill();
+
+  await deleteEveryCopy(setup);
+
+  const input = buildInput({ choices: { "verify-and-review": true, [setup.entryId]: false } });
+
+  await applyBuild({ ...setup, plan: await previewBuild({ ...setup, input }) });
+
+  const state = await readEnvironment(setup.paths);
+
+  expect(await Bun.file(setup.skillFile).exists()).toBeFalse();
+  expect(state?.artifacts.some(({ name }) => name === "careful-review")).toBeFalse();
+});
