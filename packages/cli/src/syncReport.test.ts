@@ -6,6 +6,7 @@ test("an edited instruction file names the file, the reason, and the option that
     syncReportLines({
       removed: [],
       replaced: [],
+      missing: [],
       skipped: [
         { kind: "preserved", agent: "codex", path: "/home/ada/.codex/AGENTS.md", reason: "editedManagedContent" },
       ],
@@ -21,6 +22,7 @@ test("invalid hook JSON asks for a JSON fix, and a replaced file says how to res
     syncReportLines({
       removed: [],
       replaced: [{ agent: "pi", path: "/home/ada/.pi/agent/AGENTS.md" }],
+      missing: [],
       skipped: [
         { kind: "preserved", agent: "antigravity", path: "/home/ada/.gemini/config/hooks.json", reason: "invalidHookConfiguration" },
         { kind: "link", agent: "antigravity", path: "/home/ada/.gemini/GEMINI.md", target: "/srv/shared/AGENTS.md" },
@@ -31,5 +33,24 @@ test("invalid hook JSON asks for a JSON fix, and a replaced file says how to res
     "Did not update antigravity: shadowclone kept /home/ada/.gemini/config/hooks.json, because its hook configuration is not valid JSON. antigravity keeps its old routing. Fix the JSON, then run shadowclone sync.",
     "Did not update antigravity: /home/ada/.gemini/GEMINI.md is a symbolic link to /srv/shared/AGENTS.md. shadowclone does not write through links, so antigravity keeps its old routing. Replace the link with a regular file, then run shadowclone sync.",
     "Synchronized learned skills and native routing for every agent except antigravity.",
+  ]);
+});
+
+test("a missing build skill names its files, and the summary counts it", () => {
+  expect(
+    syncReportLines({
+      removed: [],
+      replaced: [],
+      skipped: [{ kind: "preserved", agent: "pi", path: "/home/ada/.pi/agent/AGENTS.md", reason: "editedManagedContent" }],
+      missing: [
+        {
+          name: "careful-review",
+          filePaths: ["/home/ada/.agents/skills/careful-review/SKILL.md", "/home/ada/.claude/skills/careful-review/SKILL.md"],
+        },
+      ],
+    }).slice(1),
+  ).toEqual([
+    "Did not route careful-review: every copy of the skill is missing (/home/ada/.agents/skills/careful-review/SKILL.md, /home/ada/.claude/skills/careful-review/SKILL.md). The build still selects it. Restore a copy, or remove the skill from the build in shadowclone wizard.",
+    "Synchronized learned skills and native routing for every agent except pi. Did not route 1 missing build skill.",
   ]);
 });

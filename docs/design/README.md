@@ -43,3 +43,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [044: Cloud sessions](044-cloud-sessions.md)                                   | The owner's own subscription on a host that the owner owns, started only by the owner, with state in GitHub             |
 | [045: Missing repository folders](045-missing-repository-folders.md)           | Sync removes the registration of a folder that no longer exists, and sync errors name the skill or folder               |
 | [046: Preserved integration files](046-preserved-integration-files.md)         | Sync names each preserved file and its reason, replaces it on request, and stops false edit reports                     |
+| [047: Missing build skills](047-missing-build-skills.md)                       | Routing leaves out a build skill that has no copy, and sync names it and exits with status 1                            |

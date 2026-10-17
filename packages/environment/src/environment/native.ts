@@ -14,6 +14,7 @@ import { sharedIntegrationUpdates } from "../integrations/sharedUpdates";
 import { learningScopes } from "./scope";
 import { isMissingFolder } from "./missingRepositories";
 import { renderSkillRouting } from "./context";
+import { type MissingBuildSkill, withoutMissingBuildSkills } from "./builds/missingSkills";
 import type { EnvironmentState } from "./types";
 import {
   isOriginBlocked,
@@ -38,6 +39,7 @@ export async function nativePublication(options: {
   readonly updates: readonly FileUpdate[];
   readonly skipped: readonly SkippedRouting[];
   readonly replaced: readonly ReplacedRouting[];
+  readonly missing: readonly MissingBuildSkill[];
 }> {
   const scopes = learningScopes(options);
   const { config, policy } = await readEffectiveConfig({
@@ -77,6 +79,7 @@ export async function nativePublication(options: {
     }
   }
 
+  const routed = await withoutMissingBuildSkills(options.state);
   const integrations = await readIntegrations(options.paths);
   const updatedIntegrations = [];
   const updates: FileUpdate[] = [];
@@ -93,7 +96,7 @@ export async function nativePublication(options: {
 
     const changes = await prepareIntegrationFiles({
       integration,
-      profile: renderSkillRouting({ state: options.state, scopes: applicable }),
+      profile: renderSkillRouting({ state: routed.state, scopes: applicable }),
       replaceEdited: options.replaceEdited,
     }).catch((error: unknown) => {
       if (error instanceof PreservedFileError) {
@@ -152,6 +155,7 @@ export async function nativePublication(options: {
     state: options.state,
     skipped,
     replaced,
+    missing: routed.missing,
     updates: sharedIntegrationUpdates(updates).filter(
       ({ previous, next }) =>
         fingerprint(previous ?? "") !== fingerprint(next ?? ""),

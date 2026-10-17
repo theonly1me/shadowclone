@@ -6,6 +6,7 @@ import { nativePublication, type ReplacedRouting, type SkippedRouting } from "./
 import { publishEnvironmentRevision } from "./revision";
 import { synchronizePublishedSkills } from "./synchronize";
 import { withoutMissingRepositories } from "./missingRepositories";
+import type { MissingBuildSkill } from "./builds/missingSkills";
 
 export async function syncLearningEnvironment(
   paths: ProjectPaths,
@@ -13,6 +14,7 @@ export async function syncLearningEnvironment(
     readonly onSkipped?: (skipped: readonly SkippedRouting[]) => void;
     readonly onReplaced?: (replaced: readonly ReplacedRouting[]) => void;
     readonly onRemovedRepositories?: (directories: readonly string[]) => void;
+    readonly onMissingSkills?: (skills: readonly MissingBuildSkill[]) => void;
     readonly replaceEdited?: boolean;
   } = {},
 ): Promise<boolean> {
@@ -51,7 +53,7 @@ export async function syncLearningEnvironment(
       ? await synchronizePublishedSkills({ paths, state: registered.state })
       : { state: registered.state, updates: [], routingBlocked: false };
     const publication = synchronized.routingBlocked
-      ? { state: synchronized.state, updates: [], skipped: [], replaced: [] }
+      ? { state: synchronized.state, updates: [], skipped: [], replaced: [], missing: [] }
       : await nativePublication({
           paths,
           state: synchronized.state,
@@ -76,6 +78,7 @@ export async function syncLearningEnvironment(
     options.onRemovedRepositories?.(registered.removed);
     options.onReplaced?.(publication.replaced);
     options.onSkipped?.(publication.skipped);
+    options.onMissingSkills?.(publication.missing);
 
     return true;
   } finally {

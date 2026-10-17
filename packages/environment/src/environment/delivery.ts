@@ -5,6 +5,7 @@ import { materializeSnapshot } from "@shadowclone/redact";
 import { readRedactedEnvironment } from "./store";
 import { learningScopes } from "./scope";
 import { renderSkillRouting } from "./context";
+import { withoutMissingBuildSkills } from "./builds/missingSkills";
 import { publishedSkills } from "./catalog";
 import type { EnvironmentArtifact, EnvironmentState } from "./types";
 import { assertRegularDestination } from "@shadowclone/core";
@@ -65,7 +66,7 @@ export async function materializeSkillDelivery(options: {
   );
 
   const scopeKeys = new Set(scopes.map(({ key }) => key));
-  let routing = renderSkillRouting({ state, scopes });
+  let routing = renderSkillRouting({ state: (await withoutMissingBuildSkills(state)).state, scopes });
 
   const roots = (await readMaintenanceState(options.paths)).roots.filter(
     (root) =>
