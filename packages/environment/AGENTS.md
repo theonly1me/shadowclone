@@ -36,6 +36,7 @@ Holds what agents receive: the environment record, skill publication, native ins
 - Initialization copies the original skills and native instructions to `environment-baselines/` before it publishes.
 - The skills environment is the only store for learned rules. Without `environment.json`, learning and `remember` stop and say to run `shadowclone init`, and context delivery is empty.
 - `syncLearningEnvironment` removes a registered repository whose folder no longer exists, with the skills and instructions published inside it, and reports each folder.
+- Native publication, session-start context, and skill delivery render routing through `withoutMissingBuildSkills`. Routing leaves out a build skill with no copy left. Sync reports it when its build selects it, and keeps its records.
 - A repository with `privateSkillsDirectory` publishes skills only under `~/.shadowclone/builds/`. Its routing names each skill by its file path, and no repository file changes.
 
 ## Tests

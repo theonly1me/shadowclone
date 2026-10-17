@@ -7,6 +7,7 @@ import {
   nativeSessionStart,
   readIntegrations,
   refreshIntegrations,
+  type MissingBuildSkill,
   type ReplacedRouting,
   type SkippedRouting,
   syncLearningEnvironment,
@@ -171,20 +172,22 @@ export async function handleNativeCommand(options: {
     const skipped: SkippedRouting[] = [];
     const replaced: ReplacedRouting[] = [];
     const removed: string[] = [];
+    const missing: MissingBuildSkill[] = [];
 
     if (
       await syncLearningEnvironment(projectPaths, {
         onSkipped: (entries) => skipped.push(...entries),
         onReplaced: (entries) => replaced.push(...entries),
         onRemovedRepositories: (directories) => removed.push(...directories),
+        onMissingSkills: (skills) => missing.push(...skills),
         replaceEdited: options.arguments[0] === "--replace-edited",
       })
     ) {
-      for (const line of syncReportLines({ removed, replaced, skipped })) {
+      for (const line of syncReportLines({ removed, replaced, skipped, missing })) {
         console.log(line);
       }
 
-      if (skipped.length > 0) process.exitCode = 1;
+      if (skipped.length > 0 || missing.length > 0) process.exitCode = 1;
 
       return true;
     }

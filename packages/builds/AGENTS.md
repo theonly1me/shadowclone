@@ -26,7 +26,7 @@ Plans and applies agent builds: the skills and preferences that a person or a re
 - `applyBuild` takes the environment write lock. It fails when the managed policy is off.
 - `applyBuild` fails when a file changed after the preview. Preview again before you apply.
 - A private build cannot change a choice that a shared build locks.
-- Retire removes a skill file only when its fingerprint matches the record. An edited copy stays, with a warning.
+- Retire removes a skill file only when its fingerprint matches the record. An edited copy stays, with a warning. A deleted copy stays deleted, and retire drops its record.
 - Every write goes through `publishEnvironmentRevision`, so `undo` can reverse it.
 
 ## Tests
