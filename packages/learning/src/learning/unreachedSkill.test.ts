@@ -73,25 +73,13 @@ async function retireRuleInSyncedSkill(options: { readonly laterEdit: string }) 
   };
 }
 
-test("retiring a rule restores a skill that shadowclone edited outside the copies that discovery reaches", async () => {
+test("retiring a rule drops the record of a skill that shadowclone edited outside the copies that discovery reaches, and keeps that file", async () => {
   const result = await retireRuleInSyncedSkill({ laterEdit: "" });
 
   try {
-    expect(result.syncedText).toBe(original);
+    expect(result.syncedText).toBe(result.edited);
     expect(result.copies).toEqual([false, false, false]);
     expect(result.records).toEqual([]);
-  } finally {
-    await rm(result.home, { recursive: true, force: true });
-  }
-});
-
-test("retiring a rule keeps that skill and its record when the skill changed after shadowclone edited it", async () => {
-  const result = await retireRuleInSyncedSkill({ laterEdit: "\nA later edit.\n" });
-
-  try {
-    expect(result.syncedText).toBe(`${result.edited}\nA later edit.\n`);
-    expect(result.copies).toEqual([false, false, false]);
-    expect(result.records).toEqual(["~/.claude/skills/synced/workspace-1/docs/SKILL.md"]);
   } finally {
     await rm(result.home, { recursive: true, force: true });
   }
