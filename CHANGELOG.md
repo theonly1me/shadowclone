@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.40](https://github.com/theonly1me/shadowclone/compare/v0.0.39...v0.0.40) (2026-10-17)
+
+
+### Fixes
+
+* **skills:** list and apply skills while native routing is over its size limit ([#231](https://github.com/theonly1me/shadowclone/issues/231)) ([54d00d8](https://github.com/theonly1me/shadowclone/commit/54d00d82de40aa84ee0f8a9e709dd7fa2df27401))
+* **skills:** skip the skills that another product syncs into ~/.claude/skills/synced ([#230](https://github.com/theonly1me/shadowclone/issues/230)) ([9215cc4](https://github.com/theonly1me/shadowclone/commit/9215cc4f4c601468a3356f2af7fee4bf0951aaaf))
+
 ## [0.0.39](https://github.com/theonly1me/shadowclone/compare/v0.0.38...v0.0.39) (2026-10-17)
 
 
