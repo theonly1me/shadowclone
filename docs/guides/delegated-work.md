@@ -29,4 +29,4 @@ It posts no other words and adds no attribution to titles, bodies, or commits.
 
 ## Branches and limits
 
-Outside a stack, the skill merges the base branch in and never force pushes. In a [`gh stack`](https://gh.io/stacks) stack, it restacks with `gh stack rebase`, resolves conflicts, and pushes with `gh stack push`. It fixes a finding in the lowest pull request that owns the code. It never merges, closes, or approves a pull request.
+Outside a stack, the skill merges the base branch in. It can rewrite pushed history when the code stays correct, and it pushes that change with `--force-with-lease`. In a [`gh stack`](https://gh.io/stacks) stack, it restacks with `gh stack rebase`, resolves conflicts, and pushes with `gh stack push`. It fixes a finding in the lowest pull request that owns the code. It never merges, closes, or approves a pull request.

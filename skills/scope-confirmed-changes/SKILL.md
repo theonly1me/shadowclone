@@ -52,7 +52,7 @@ Write in the user's voice. Before you write, read `~/.agents/voice.md`. If it do
 - Do not widen a public contract to fit an internal shortcut.
 - Refactor only when the fix or its proof needs it.
 - Do not add a guard for a case that cannot happen. Fix the cause of a case that can.
-- Put each later review round in its own commit. Never rewrite pushed history.
+- Put each later review round in its own commit.
 
 ## Completion
 
