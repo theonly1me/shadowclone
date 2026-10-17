@@ -52,19 +52,25 @@ function isBrokenPipe(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "EPIPE";
 }
 
+async function ignoreBrokenPipe(operation: () => number | Promise<number>): Promise<void> {
+  try {
+    await operation();
+  } catch (error) {
+    if (!isBrokenPipe(error)) {
+      throw error;
+    }
+  }
+}
+
 async function writeInput(options: {
   readonly stdin: Bun.FileSink;
   readonly input: string;
 }): Promise<void> {
   try {
-    options.stdin.write(options.input);
-    await options.stdin.flush();
-  } catch (error) {
-    if (!isBrokenPipe(error)) {
-      throw error;
-    }
+    await ignoreBrokenPipe(() => options.stdin.write(options.input));
+    await ignoreBrokenPipe(() => options.stdin.flush());
   } finally {
-    options.stdin.end();
+    await ignoreBrokenPipe(() => options.stdin.end());
   }
 }
 
