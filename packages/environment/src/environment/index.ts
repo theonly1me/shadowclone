@@ -33,6 +33,8 @@ export { planBuildIntegrations } from "./builds/integrations";
 
 export { renderBuildRouting } from "./builds/routing";
 
+export type { MissingBuildSkill } from "./builds/missingSkills";
+
 export { publishedSkills } from "./catalog";
 
 export { removeLearningEnvironment } from "./cleanup";

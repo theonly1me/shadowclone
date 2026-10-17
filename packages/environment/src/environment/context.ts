@@ -7,6 +7,7 @@ import { publishedSkills } from "./catalog";
 import { recordFingerprint } from "./records";
 import { renderBuildRouting } from "./builds/routing";
 import { repositoryDeliveryQuestion } from "./repositoryQuestion";
+import { withoutMissingBuildSkills } from "./builds/missingSkills";
 
 export type ContextCompilation = {
   readonly markdown: string;
@@ -129,7 +130,7 @@ export async function environmentCompilation(options: {
   }
 
   const routing = renderSkillRouting({
-    state,
+    state: (await withoutMissingBuildSkills(state)).state,
     scopes,
     cwd: options.cwd,
     includeGlobalBuild: options.scope !== "scoped",

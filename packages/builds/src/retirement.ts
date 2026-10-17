@@ -27,7 +27,13 @@ export async function retireBuildSkills(options: {
     const encoding = artifact.kind === "resource" ? "base64" : "utf8";
     const previous = await readLocalFile({ filePath: artifact.filePath, encoding });
 
-    if (previous !== null && fingerprint(previous) !== artifact.fingerprint) {
+    if (previous === null) {
+      removed.add(artifact.filePath);
+
+      continue;
+    }
+
+    if (fingerprint(previous) !== artifact.fingerprint) {
       warnings.push(
         `Preserved an externally edited copy of ${artifact.name}; it remains discoverable by its harness.`,
       );
