@@ -17,6 +17,6 @@
     "@shadowclone/skills": "workspace:*",
     "commander": "^15.0.0",
     "typescript": "~5.9",
-    "zod": "^4.5.4"
+    "zod": "^4.6.7"
   }
 }

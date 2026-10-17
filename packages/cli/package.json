@@ -62,9 +62,9 @@
     "@shadowclone/sessions": "workspace:*",
     "@shadowclone/skills": "workspace:*",
     "@shadowclone/web": "workspace:*",
-    "bun": "^1.4.2",
+    "bun": "^1.4.3",
     "commander": "^15.0.0",
-    "smol-toml": "^1.8.0",
-    "zod": "^4.5.4"
+    "smol-toml": "^1.9.1",
+    "zod": "^4.6.7"
   }
 }
