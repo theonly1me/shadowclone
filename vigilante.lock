@@ -26,6 +26,7 @@ powers = [
     "exec",
     "network",
 ]
+risks = ["exec:packages/cloud/src/setup/openPage.openPage:Bun.spawn:untrusted"]
 
 [code."packages/core"]
 powers = ["exec"]
