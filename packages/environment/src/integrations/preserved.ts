@@ -8,6 +8,14 @@ export const preservedFileMessages = {
 
 export type PreservedReason = keyof typeof preservedFileMessages;
 
+export const preservedFileReasons: Readonly<Record<PreservedReason, string>> = {
+  editedManagedContent: "its shadowclone section changed after shadowclone wrote it",
+  untrackedManagedContent: "it has a shadowclone section that shadowclone has no record of",
+  invalidHookConfiguration: "its hook configuration is not valid JSON",
+  editedHooks: "its shadowclone hooks changed after shadowclone wrote them",
+  editedIntegrationFile: "it changed after shadowclone wrote it",
+};
+
 export class PreservedFileError extends Error {
   readonly reason: PreservedReason;
   readonly filePath: string | null;
