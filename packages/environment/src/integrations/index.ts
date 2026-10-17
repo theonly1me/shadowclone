@@ -1,4 +1,4 @@
-export { compileContext, compileContextDetails } from "./compile";
+export { compileContext, compileContextDetails, isContextBlocked } from "./compile";
 export { installIntegration, uninstallIntegration } from "./install";
 export { nativeSessionEnd, nativeSessionStart } from "./hooks";
 export { integrationHealth, refreshIntegrations } from "./refresh";

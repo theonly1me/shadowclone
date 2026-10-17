@@ -6,7 +6,7 @@ import {
   readLocalText,
   acquireLocalLock,
 } from "@shadowclone/core";
-import { compileContext } from "@shadowclone/environment";
+import { isContextBlocked } from "@shadowclone/environment";
 import type { GitRemoteReader } from "@shadowclone/sessions";
 import type { ProjectPaths } from "@shadowclone/core";
 import { parseSkillDocument, validateSkillReferences } from "@shadowclone/skills";
@@ -59,11 +59,11 @@ async function applySkillProposalUnlocked(
   }
 
   if (
-    (await compileContext({
+    await isContextBlocked({
       ...options,
       cwd: root.cwd,
       scope: root.scope === "global" ? "global" : "combined",
-    })) === null
+    })
   ) {
     throw new Error("Skill scope is blocked by managed policy");
   }
