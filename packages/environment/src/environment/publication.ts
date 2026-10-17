@@ -12,6 +12,7 @@ import { activeLearningKeys, skillDestinations } from "./skillDestinations";
 import { recordFingerprint } from "./records";
 import type { EnvironmentState, LearningRecord } from "./types";
 import { publishSkillResources } from "./resources";
+import { releaseUnreachedSkills } from "./unreachedSkills";
 
 export async function skillPublication(options: {
   readonly paths: ProjectPaths;
@@ -148,13 +149,20 @@ export async function skillPublication(options: {
     }
   }
 
+  const released = await releaseUnreachedSkills({
+    artifacts,
+    destinations,
+    scope: options.scope.key,
+    name: options.name,
+    activeKeys,
+  });
   const learnedKeys = new Set(options.records.map(({ rule }) => rule.key));
 
   return {
-    updates,
+    updates: [...updates, ...released.updates],
     state: {
       ...options.state,
-      artifacts,
+      artifacts: released.artifacts,
       facts: options.state.facts.filter(
         (fact) =>
           fact.scope !== options.scope.key ||
