@@ -31,6 +31,7 @@ Handles skill files without any model call. It loads the bundled skills, checks 
 - After you change a file in `skills/`, run `bun run tooling/src/skillVersions.ts --record`. Lint fails until you do.
 - `syncPortableSkills` refuses a symbolic link. It fails when another skill already holds a portable destination.
 - A root inside a plugin cache is third-party. Learning writes a local companion for it with `renderCompanionSkill`.
+- Discovery skips each skill under `synced/` in the global `~/.claude/skills` root, because another product owns those skills.
 
 ## Tests
 
