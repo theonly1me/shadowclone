@@ -25,6 +25,8 @@ shadowclone does not treat the synced folder as a third-party root that gets loc
 
 A rule that shadowclone already published into a synced skill stays, with its copies, until the user retires it with `shadowclone learning retire`. Discovery no longer offers the synced skill as a target, so learning puts a new rule into a skill that the user owns.
 
+Retirement also reaches a skill record outside the copies that discovery finds. If the file still has the text that shadowclone wrote, retirement writes back the earlier text and drops the record. If the file changed, retirement keeps the file and its record.
+
 ## Verification
 
-A synthetic test puts a skill in `~/.claude/skills/synced/` and routes a rule to it. Without the check, learning rewrites the synced file. Another test puts a synced skill next to a plugin skill that disagrees with it, and checks that review makes no conflict proposal.
+A synthetic test puts a skill in `~/.claude/skills/synced/` and routes a rule to it. Without the check, learning rewrites the synced file. Another test puts a synced skill next to a plugin skill that disagrees with it, and checks that review makes no conflict proposal. Two more tests retire a rule that shadowclone wrote into a synced skill. The file gets its earlier text back, unless it changed after the edit.
