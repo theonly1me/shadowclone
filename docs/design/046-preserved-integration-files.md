@@ -8,7 +8,7 @@ Two of the three reports were false. Antigravity had rewritten its `hooks.json` 
 
 ## Decision
 
-**Report the real file and reason.** A preserved file throws `PreservedFileError` with the reason and the file path. Sync reports it as a preserved entry, separate from a linked file. The CLI names the file and the reason, and says how to take the new routing.
+**Report the real file and reason.** A preserved file throws `PreservedFileError` with the reason and the file path. Sync reports it as a preserved entry, separate from a linked file. The CLI names the file and the reason, and says how to take the new routing. A build preview that meets a preserved file stops with the same file and reason, and says to run `shadowclone sync --replace-edited` first.
 
 **Replace on request.** `shadowclone sync --replace-edited` replaces only the content that shadowclone owns: the guidance section, the shadowclone hooks, and the integration skill or extension. The rest of each file stays. Sync names each replaced file, and its revision lets `shadowclone undo` restore the edit. A hook file that is not valid JSON stays preserved.
 
@@ -20,4 +20,4 @@ Sync still exits with status 1 when it keeps a file, so a script sees the skippe
 
 ## Verification
 
-Synthetic tests cover the preserved report, the replacement and its undo, and a hook file with sorted keys. Another test saves a record while session start runs. A CLI test checks the printed lines.
+Synthetic tests cover the preserved report, the replacement and its undo, and a hook file with sorted keys. Another test saves a record while session start runs. A CLI test checks the printed lines. A build test checks the preview message for an edited section.

@@ -1,12 +1,4 @@
-import type { PreservedReason, ReplacedRouting, SkippedRouting } from "@shadowclone/environment";
-
-const preservedReasons: Readonly<Record<PreservedReason, string>> = {
-  editedManagedContent: "its shadowclone section changed after shadowclone wrote it",
-  untrackedManagedContent: "it has a shadowclone section that shadowclone has no record of",
-  invalidHookConfiguration: "its hook configuration is not valid JSON",
-  editedHooks: "its shadowclone hooks changed after shadowclone wrote them",
-  editedIntegrationFile: "it changed after shadowclone wrote it",
-};
+import { preservedFileReasons, type ReplacedRouting, type SkippedRouting } from "@shadowclone/environment";
 
 function skippedLine(entry: SkippedRouting): string {
   if (entry.kind === "link") {
@@ -18,7 +10,7 @@ function skippedLine(entry: SkippedRouting): string {
       ? "Fix the JSON, then run shadowclone sync."
       : "To replace the shadowclone content in it, run shadowclone sync --replace-edited.";
 
-  return `Did not update ${entry.agent}: shadowclone kept ${entry.path}, because ${preservedReasons[entry.reason]}. ${entry.agent} keeps its old routing. ${next}`;
+  return `Did not update ${entry.agent}: shadowclone kept ${entry.path}, because ${preservedFileReasons[entry.reason]}. ${entry.agent} keeps its old routing. ${next}`;
 }
 
 export function syncReportLines(options: {

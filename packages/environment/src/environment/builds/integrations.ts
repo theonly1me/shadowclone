@@ -4,6 +4,7 @@ import { readIntegrations } from "../../integrations/state";
 import { prepareIntegrationFiles, savedRecords } from "../../integrations/files";
 import { integrationAgentSchema, type Integration, type IntegrationAgent } from "../../integrations/types";
 import { sharedIntegrationUpdates } from "../../integrations/sharedUpdates";
+import { PreservedFileError, preservedFileReasons } from "../../integrations/preserved";
 import type { BuildContext } from "./definition";
 
 export async function buildIntegrations(
@@ -48,6 +49,18 @@ export async function buildIntegrations(
   ];
 }
 
+function preservedBuildMessage(options: {
+  readonly error: PreservedFileError;
+  readonly integration: Integration;
+}): string {
+  const next =
+    options.error.reason === "invalidHookConfiguration"
+      ? "Fix the JSON, then try the build again."
+      : "To replace the shadowclone content in it, run shadowclone sync --replace-edited, then try the build again.";
+
+  return `Did not plan the build: shadowclone kept ${options.error.filePath ?? options.integration.directory}, because ${preservedFileReasons[options.error.reason]}. ${next}`;
+}
+
 export async function planBuildIntegrations(
   options: BuildContext & { readonly routing: string },
 ) {
@@ -66,6 +79,8 @@ export async function planBuildIntegrations(
       integration,
       profile: options.routing,
       peers: integrations,
+    }).catch((error: unknown) => {
+      throw error instanceof PreservedFileError ? new Error(preservedBuildMessage({ error, integration })) : error;
     });
 
     updates.push(

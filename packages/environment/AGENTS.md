@@ -28,7 +28,7 @@ Holds what agents receive: the environment record, skill publication, native ins
 - `undoRevision` takes the write lock. It refuses an unauthorized root and a revision that conflicts with later edits.
 - Native routing text is at most 4096 bytes. A longer text is an error, and the old section stays.
 - shadowclone rewrites only the text between the `<shadowclone-guidance>` markers. Malformed markers are an error.
-- A preserved integration file throws `PreservedFileError` with its path and reason. Only `replaceEdited` from `shadowclone sync --replace-edited` replaces the shadowclone content in it.
+- A preserved integration file throws `PreservedFileError` with its path and reason. Only `replaceEdited` from `shadowclone sync --replace-edited` replaces the shadowclone content in it. A build plan that meets one stops with an error that names the file, the reason, and that command.
 - shadowclone replaces an installed file only when its fingerprint matches the install record. A manual edit stays.
 - Session start sets only `deliveredAt` on the current integration record. It never saves the copy that it read earlier.
 - Hook entries match by value. The key order in a hook file does not matter.
