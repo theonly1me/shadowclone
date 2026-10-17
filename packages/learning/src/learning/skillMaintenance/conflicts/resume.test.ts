@@ -58,7 +58,7 @@ test("rejecting a conflict does not rewrite its sources or recreate the same pro
       .toMatchObject({ pending: 0, libraryReviewed: 0 });
     expect(await listSkillProposals(setup.paths)).toHaveLength(1);
     expect(await Bun.file(setup.filePath).text()).toBe(setup.personal);
-    expect(await Bun.file(setup.thirdPartyPath).text()).toBe(setup.thirdParty);
+    expect(await Bun.file(setup.otherSkillPath).text()).toBe(setup.otherSkill);
   } finally {
     await rm(setup.home, { recursive: true, force: true });
   }

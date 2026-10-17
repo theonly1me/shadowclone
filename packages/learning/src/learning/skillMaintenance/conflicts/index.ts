@@ -16,7 +16,8 @@ export async function reviewSkillConflicts(options: {
   try {
     const state = await readMaintenanceState(options.paths);
     const discovered = await discoverDeliverySkills(state.roots.filter((root) =>
-      root.enabled && (root.scope === "global" || options.repositoryDirectories.includes(root.cwd)),
+      root.enabled && root.owner === "user" &&
+      (root.scope === "global" || options.repositoryDirectories.includes(root.cwd)),
     ));
     const result = await reviewDiscoveredSkills({
       ...options,
