@@ -48,6 +48,26 @@ async function readOutput(options: {
   }
 }
 
+function isBrokenPipe(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "EPIPE";
+}
+
+async function writeInput(options: {
+  readonly stdin: Bun.FileSink;
+  readonly input: string;
+}): Promise<void> {
+  try {
+    options.stdin.write(options.input);
+    await options.stdin.flush();
+  } catch (error) {
+    if (!isBrokenPipe(error)) {
+      throw error;
+    }
+  } finally {
+    options.stdin.end();
+  }
+}
+
 export async function runProcess(options: {
   readonly arguments: readonly string[];
   readonly cwd: string;
@@ -111,14 +131,7 @@ export async function runProcess(options: {
         overflow: terminate,
       }),
       child.exited,
-      (async () => {
-        try {
-          child.stdin.write(options.input ?? "");
-          await child.stdin.flush();
-        } finally {
-          child.stdin.end();
-        }
-      })(),
+      writeInput({ stdin: child.stdin, input: options.input ?? "" }),
     ]);
 
     if (signal.aborted) {
