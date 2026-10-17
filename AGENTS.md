@@ -33,7 +33,7 @@ bun run build
 bun run stage
 ```
 
-`bun run check` runs typecheck, lint, knip, and tests. Run focused checks while you edit and the full gate before handoff. Before you open a pull request, run `npx @theonly1me/vigilante@0.2.1 diff --base origin/main`. If it lists an intended new power, run `npx @theonly1me/vigilante@0.2.1 lock` and commit `vigilante.lock`. Report earlier failures separately. Tests use synthetic fixtures. An authenticated run or paid evaluation needs an explicitly authorized scope.
+`bun run check` runs typecheck, lint, knip, and tests. Run focused checks while you edit and the full gate before handoff. Before you open a pull request, run `npx @theonly1me/vigilante@0.3.0 diff --base origin/main`. If it lists an intended new power, run `npx @theonly1me/vigilante@0.3.0 lock` and commit `vigilante.lock`. Report earlier failures separately. Tests use synthetic fixtures. An authenticated run or paid evaluation needs an explicitly authorized scope.
 
 ## Data boundaries
 

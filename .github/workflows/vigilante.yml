@@ -21,4 +21,4 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: theonly1me/vigilante@92e2ebba9adb2068079e49e5da3e7b7c0bda0fe1
+      - uses: theonly1me/vigilante@6f7e8eafe434beab3eaf6e5f204c1845a7f4c925

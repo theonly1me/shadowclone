@@ -14,7 +14,7 @@ The repository is a Bun workspace. Each package in `packages/` is `@shadowclone/
 
 Describe the problem and the approach in `docs/` before you implement. For a new product or architecture decision, use the [design template](docs/design/template.md) and add the record to the [index](docs/design/README.md).
 
-Keep changes focused and add tests for behavior that can regress. Before you submit, run `bun run check`: typecheck, lint, the knip unused-file check, and tests. Turborepo caches `typecheck` and `test`. CI also runs the tests on Linux and macOS. The [plugin security scan](.github/workflows/plugin-security-scan.yml) needs a score of at least 80 and no high-severity finding. The [Vigilante check](.github/workflows/vigilante.yml) fails when a change adds a power that `vigilante.lock` does not list. Examples are a new process call, a network call, a workflow secret, and an MCP server. If you add a power on purpose, run `npx @theonly1me/vigilante@0.2.1 lock` and commit `vigilante.lock`.
+Keep changes focused and add tests for behavior that can regress. Before you submit, run `bun run check`: typecheck, lint, the knip unused-file check, and tests. Turborepo caches `typecheck` and `test`. CI also runs the tests on Linux and macOS. The [plugin security scan](.github/workflows/plugin-security-scan.yml) needs a score of at least 80 and no high-severity finding. The [Vigilante check](.github/workflows/vigilante.yml) fails when a change adds a power that `vigilante.lock` does not list. Examples are a new process call, a network call, a workflow secret, and an MCP server. If you add a power on purpose, run `npx @theonly1me/vigilante@0.3.0 lock` and commit `vigilante.lock`.
 
 ## Add a package
 
