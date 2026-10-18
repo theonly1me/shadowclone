@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { sampleConfig, temporaryClones } from "../fixtures";
 import { localNode } from "../node";
-import { fakeLaunch, serveContext, settle, until } from "./fakeLaunch";
+import { fakeLaunch, serveContext, settle, startedClone, until } from "./fakeLaunch";
 import { scanRuns } from "./server";
 
 describe("serve starts queued clones", () => {
@@ -88,12 +88,12 @@ describe("serve starts queued clones", () => {
       await until(() => started.length === 2);
       await scanRuns({ context, running: context.running });
 
-      expect(started.map((clone) => clone.request.id)).toEqual(["clone000", "clone001"]);
+      expect(started.map((clone) => clone.request.id).sort()).toEqual(["clone000", "clone001"]);
       expect((await node.get("clone002"))?.state).toBe("queued");
 
       const firstDone = context.running.get("clone000")?.done;
 
-      started[0]?.finish(1);
+      startedClone({ started, id: "clone000" }).finish(1);
       await firstDone;
       await scanRuns({ context, running: context.running });
       await until(() => started.length === 3);

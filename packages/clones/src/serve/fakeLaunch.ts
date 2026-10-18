@@ -11,6 +11,19 @@ export type StartedClone = {
   readonly finish: (exitCode: number) => void;
 };
 
+export function startedClone(options: {
+  readonly started: readonly StartedClone[];
+  readonly id: string;
+}): StartedClone {
+  const clone = options.started.find((entry) => entry.request.id === options.id);
+
+  if (clone === undefined) {
+    throw new Error(`Clone ${options.id} did not start.`);
+  }
+
+  return clone;
+}
+
 export function fakeLaunch(): { readonly launch: Launch; readonly started: StartedClone[] } {
   const started: StartedClone[] = [];
   const launch: Launch = (options) =>

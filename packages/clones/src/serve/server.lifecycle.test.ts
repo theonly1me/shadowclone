@@ -3,7 +3,7 @@ import { temporaryClones } from "../fixtures";
 import { localNode } from "../node";
 import { startedRecord } from "../node/record";
 import { writeRecord } from "../node/store";
-import { fakeLaunch, serveContext, settle, until } from "./fakeLaunch";
+import { fakeLaunch, serveContext, settle, startedClone, until } from "./fakeLaunch";
 import { scanRuns, serveClones } from "./server";
 
 describe("serve stops clones and recovers", () => {
@@ -26,11 +26,14 @@ describe("serve stops clones and recovers", () => {
       await node.stop("clone002");
       await scanRuns({ context, running: context.running });
 
-      expect(started[0]?.signal.aborted).toBe(true);
-      expect(started[1]?.signal.aborted).toBe(false);
+      const first = startedClone({ started, id: "clone000" });
+      const second = startedClone({ started, id: "clone001" });
 
-      started[0]?.finish(143);
-      started[1]?.finish(1);
+      expect(first.signal.aborted).toBe(true);
+      expect(second.signal.aborted).toBe(false);
+
+      first.finish(143);
+      second.finish(1);
       await settle(context.running);
       await scanRuns({ context, running: context.running });
 
