@@ -7,9 +7,11 @@ import {
   hubPaths,
   lockLine,
   nodeLines,
+  notifyLines,
   pairLines,
   removeNodeLine,
   revokeLine,
+  sendNtfy,
   serveHub,
   statusLines,
 } from "@shadowclone/hub";
@@ -19,7 +21,7 @@ import { print, runAsService, stopSignal, timestamped, withStore } from "./hubCo
 import { nodeOperations } from "./hubNode";
 
 export const hubUsage =
-  "Hub: hub serve [--port <n>]; hub service; hub expose [--url https://host | --tailnet | --off]; hub pair [--node]; hub clients [revoke <id>]; hub nodes [remove <name>]; hub lock|unlock; hub allow [anthropic|tailnet|loopback|<range>]... | hub allow --any; hub status; hub join <hub URL> --code <code> [--name <name>] [--no-service]; hub link; hub leave";
+  "Hub: hub serve [--port <n>]; hub service; hub expose [--url https://host | --tailnet | --off]; hub pair [--node]; hub clients [revoke <id>]; hub nodes [remove <name>]; hub notify [--url <ntfy topic URL>] [--text | --no-text] [--off] | hub notify test; hub lock|unlock; hub allow [anthropic|tailnet|loopback|<range>]... | hub allow --any; hub status; hub join <hub URL> --code <code> [--name <name>] [--no-service]; hub link; hub leave";
 
 function portFlag(arguments_: readonly string[]): number | undefined {
   const value = flagValue({ arguments: arguments_, flag: "--port" });
@@ -112,6 +114,40 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
         operation === "remove" && name !== undefined
           ? [removeNodeLine({ store, name })]
           : nodeLines(store),
+      );
+    }),
+  notify: (arguments_) =>
+    withStore(async (store) => {
+      if (arguments_[0] === "test") {
+        const url = store.settings().notifyUrl;
+
+        if (url === null) {
+          throw new Error("Pushes are off. Run shadowclone hub notify first.");
+        }
+
+        await sendNtfy({
+          url,
+          push: { title: "shadowclone hub", body: "Pushes from your hub work.", urgent: false },
+        });
+        print(["Sent a test push."]);
+
+        return;
+      }
+
+      const url = flagValue({ arguments: arguments_, flag: "--url" });
+      const text = arguments_.includes("--text")
+        ? { text: true }
+        : arguments_.includes("--no-text")
+          ? { text: false }
+          : {};
+
+      print(
+        notifyLines({
+          store,
+          ...(url === null ? {} : { url }),
+          ...text,
+          off: arguments_.includes("--off"),
+        }),
       );
     }),
   lock: () => withStore((store) => print([lockLine({ store, locked: true })])),

@@ -8,6 +8,8 @@ const settingsSchema = z.object({
   publicUrl: z.string().optional(),
   locked: z.enum(["yes", "no"]).default("no"),
   allow: z.string().default("[]"),
+  notifyUrl: z.string().optional(),
+  notifyText: z.enum(["yes", "no"]).default("no"),
 });
 
 export type HubSettings = {
@@ -15,9 +17,11 @@ export type HubSettings = {
   readonly publicUrl: string | null;
   readonly locked: boolean;
   readonly allow: readonly string[];
+  readonly notifyUrl: string | null;
+  readonly notifyText: boolean;
 };
 
-export type SettingKey = "port" | "publicUrl" | "locked" | "allow";
+export type SettingKey = "port" | "publicUrl" | "locked" | "allow" | "notifyUrl" | "notifyText";
 
 export function readSettings(database: Database): HubSettings {
   const rows = database
@@ -32,6 +36,8 @@ export function readSettings(database: Database): HubSettings {
     publicUrl: settings.publicUrl ?? null,
     locked: settings.locked === "yes",
     allow: z.array(z.string()).parse(JSON.parse(settings.allow)),
+    notifyUrl: settings.notifyUrl ?? null,
+    notifyText: settings.notifyText === "yes",
   };
 }
 

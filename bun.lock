@@ -146,6 +146,7 @@
         "@shadowclone/core": "workspace:*",
         "@shadowclone/live": "workspace:*",
         "@shadowclone/mcp": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
         "zod": "^4.6.7",
       },
     },

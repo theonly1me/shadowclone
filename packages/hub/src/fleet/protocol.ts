@@ -3,13 +3,15 @@ import { z } from "zod";
 export const toNodeSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("tool"), id: z.string(), params: z.unknown() }),
   z.object({ type: z.literal("has"), id: z.string(), clone: z.string() }),
+  z.object({ type: z.literal("states"), id: z.string() }),
 ]);
 
 export type ToNode = z.infer<typeof toNodeSchema>;
 
 export type NodeRequest =
   | { readonly type: "tool"; readonly params: unknown }
-  | { readonly type: "has"; readonly clone: string };
+  | { readonly type: "has"; readonly clone: string }
+  | { readonly type: "states" };
 
 export const fromNodeSchema = z.object({
   type: z.literal("result"),

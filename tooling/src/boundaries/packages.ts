@@ -64,7 +64,7 @@ export const packageLayout: PackageLayout = {
       "clones",
       "live",
     ],
-    hub: ["core", "clones", "live", "mcp"],
+    hub: ["core", "redact", "clones", "live", "mcp"],
     cli: [
       "core",
       "redact",
