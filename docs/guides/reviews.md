@@ -63,7 +63,7 @@ Without a number, the review reads the commits on the current branch since it le
 shadowclone review 123 --cloud
 ```
 
-This posts the comment `@<bot> review` with your GitHub login. Anyone with write access can also post it as the first line of a comment. Your [cloud bot](cloud-bot.md) posts one review as itself and never approves or requests changes.
+This posts the comment `@<bot> review` with your GitHub login. Anyone with write access can also post it as the first line of a comment. Your [Actions bot](actions-bot.md) posts one review as itself and never approves or requests changes.
 
 A pull request gets a review only when someone tags the bot. A pull request from a fork gets a review too. For a fork, the review skips the toolchain job and turns off web search and page fetches. If the repository has no bot, `--cloud` says to run `shadowclone bot setup` first.
 

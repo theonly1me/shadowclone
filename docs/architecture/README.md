@@ -20,7 +20,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`builds`](../../packages/builds/AGENTS.md)           | Agent builds                                         |
 | [`learning`](../../packages/learning/AGENTS.md)       | Distillation, reconciliation, probes, `remember`     |
 | [`harness`](../../packages/harness/AGENTS.md)         | Repository harness for `init --repo` and `check`     |
-| [`cloud`](../../packages/cloud/AGENTS.md)             | GitHub bot setup and workflows                       |
+| [`bot`](../../packages/bot/AGENTS.md)                 | GitHub Actions bot setup and workflows               |
 | [`clones`](../../packages/clones/AGENTS.md)           | Clones on a machine that the owner owns              |
 | [`web`](../../packages/web/AGENTS.md)                 | Wizard, voice capture, and skill drafts              |
 | [`mcp`](../../packages/mcp/AGENTS.md)                 | MCP server                                           |
@@ -49,11 +49,11 @@ graph BT
   learning --> environment
   harness --> environment
   review --> agents
-  cloud --> environment
+  bot --> environment
   web --> builds
   web --> learning
   mcp --> learning
-  clones --> cloud
+  clones --> bot
   mcp --> clones
   cli --> mcp
   cli --> web
@@ -87,7 +87,7 @@ flowchart LR
   Learning -- "redacted excerpts, no tools" --> Provider["Model provider via your agent CLI"]
   Judge -- "diff and read-only file access" --> Provider
   Sandbox -- "restricted proxy" --> Registries["Allowed public package registries"]
-  Delivery -- "reviewed skills" --> Bot["cloud: GitHub bot"]
+  Delivery -- "reviewed skills" --> Bot["bot: GitHub Actions bot"]
   Delivery -- "reviewed skills" --> Session["clones: a clone in Docker on a machine that you own"]
   Start["Owner's task from the CLI or an MCP agent"] --> Session
   Session -- "prompt, skills, files that the agent reads" --> Provider
@@ -123,9 +123,9 @@ The code checks source authorization when it selects an event and again when it 
 
 ## Delegated work
 
-Outside the cloud bot, shadowclone does not commit, push, or act on GitHub itself. Delegated work is the `shadowclone-work` skill. It acts through the tools and permissions of your agent session. See [delegated work](../guides/delegated-work.md).
+Outside the Actions bot, shadowclone does not commit, push, or act on GitHub itself. Delegated work is the `shadowclone-work` skill. It acts through the tools and permissions of your agent session. See [delegated work](../guides/delegated-work.md).
 
-The cloud bot is a separate contract. The owner reviews a frozen skills bundle and chooses the repositories. GitHub Actions run the same skill, and the owner merges. See the [cloud bot guide](../guides/cloud-bot.md).
+The Actions bot is a separate contract. The owner reviews a frozen skills bundle and chooses the repositories. GitHub Actions run the same skill, and the owner merges. See the [Actions bot guide](../guides/actions-bot.md).
 
 Clones are a third contract. The owner starts a clone from the CLI or an MCP agent on the machine that runs it. The clone runs the same skill in Docker on that machine and acts as the owner. See [clones](../guides/clones.md) and [design record 049](../design/049-clones.md).
 

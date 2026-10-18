@@ -25,14 +25,14 @@ The server reads one JSON-RPC 2.0 message from standard input on each line. It u
 - `shadowclone_remember` takes `text` (1 to 8,192 characters) and `scope` (`repository` or `global`). It records the preference locally and returns "Recorded preference" with its key. The tool description tells the agent never to infer consent from a task or an interruption.
 - `shadowclone_history` returns a JSON list of revision identifiers with their times and counts.
 - `shadowclone_skills_status` returns JSON with `roots` (the enabled skill roots), `managed` (the skills that shadowclone maintains), and `pending` (the items that wait for review). It makes no model call.
-- `shadowclone_bot` configures the cloud bot or reads its status.
+- `shadowclone_bot` configures the Actions bot or reads its status.
 - `shadowclone_clone_setup` pushes skills for clones, sets them up on this machine, or checks them.
 - `shadowclone_sessions` lists the clones on this machine, or returns one clone. It is read only.
 - `shadowclone_clone` starts, steers, answers, or stops a clone.
 
 Tools other than `shadowclone_context` reject unlisted input fields.
 
-## Configure the cloud bot
+## Configure the Actions bot
 
 `shadowclone_bot` takes these inputs:
 
@@ -49,7 +49,7 @@ The behavior depends on the inputs:
 - `setup` with `bot` and `repository` sets up a machine account bot, and opens the GitHub signup page if the account does not exist. The first call returns the skill files that setup will push. Show the list to the owner, and call again with `approveSkills` set to `true` only after the owner agrees. The last answer gives one environment link for the bot token and the API key, and the setup pull request link.
 - `setup` without `bot` or `repository` returns an error that asks for them.
 
-The owner adds the bot token and the API key on GitHub, never in the tool. See the [cloud bot guide](cloud-bot.md).
+The owner adds the bot token and the API key on GitHub, never in the tool. See the [Actions bot guide](actions-bot.md).
 
 ## Set up clones
 

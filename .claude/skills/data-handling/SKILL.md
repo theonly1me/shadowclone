@@ -1,6 +1,6 @@
 ---
 name: data-handling
-description: Read before changing capture, indexing, redaction, learning, skill publication, engine execution, cloud bot setup, or any path that stores or sends user data.
+description: Read before changing capture, indexing, redaction, learning, skill publication, engine execution, Actions bot setup, or any path that stores or sends user data.
 ---
 
 # Data handling

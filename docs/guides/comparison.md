@@ -6,14 +6,14 @@ Each section below uses only the project's own repository or documentation. The 
 
 ## Summary
 
-| Tool                    | What it is                                                                                 | Runs in the agent that you use | Agents                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------- |
-| shadowclone             | Skills, instructions, learning, and a GitHub cloud bot for the agents that you already use | Yes                            | Claude Code, Codex, Cursor, Pi, Antigravity |
-| pstack                  | A skill and principle pack                                                                 | Yes                            | Cursor                                      |
-| Hermes Agent            | Its own agent with a learning loop                                                         | No, you run Hermes             | Hermes only                                 |
-| Claude Code auto memory | Built-in notes from corrections                                                            | Yes                            | Claude Code                                 |
-| Claude Subconscious     | A background Letta agent                                                                   | Yes                            | Claude Code                                 |
-| imprint                 | A plugin that trains one profile                                                           | Yes                            | Claude Code                                 |
+| Tool                    | What it is                                                                                   | Runs in the agent that you use | Agents                                      |
+| ----------------------- | -------------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------- |
+| shadowclone             | Skills, instructions, learning, and a GitHub Actions bot for the agents that you already use | Yes                            | Claude Code, Codex, Cursor, Pi, Antigravity |
+| pstack                  | A skill and principle pack                                                                   | Yes                            | Cursor                                      |
+| Hermes Agent            | Its own agent with a learning loop                                                           | No, you run Hermes             | Hermes only                                 |
+| Claude Code auto memory | Built-in notes from corrections                                                              | Yes                            | Claude Code                                 |
+| Claude Subconscious     | A background Letta agent                                                                     | Yes                            | Claude Code                                 |
+| imprint                 | A plugin that trains one profile                                                             | Yes                            | Claude Code                                 |
 
 Agent workspaces, such as herdr, Orca, and cmux, are not in this guide. They run several agents side by side and do not maintain guidance, so they are a different category. They can run an agent that has shadowclone skills.
 
@@ -47,7 +47,7 @@ Auto memory is part of Claude Code. Claude saves notes from your corrections and
 - **Storage.** Notes are Markdown files in `~/.claude/projects/<project>/memory/`, with a `MEMORY.md` index. Claude loads the first 200 lines or 25 KB of the index in each session.
 - **Scope.** Each repository has one memory directory. The documentation says that memory is machine-local and does not go to other machines or cloud environments.
 - **Agents.** Claude Code only. Subagents do not load the main memory, except a fork.
-- **With shadowclone.** Both load in the same Claude Code session. shadowclone also carries rules to other agents and to the cloud bot.
+- **With shadowclone.** Both load in the same Claude Code session. shadowclone also carries rules to other agents and to the Actions bot.
 
 Sources: [Claude Code memory documentation](https://code.claude.com/docs/en/memory).
 

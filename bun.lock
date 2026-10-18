@@ -37,6 +37,15 @@
         "zod": "^4.6.7",
       },
     },
+    "packages/bot": {
+      "name": "@shadowclone/bot",
+      "dependencies": {
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/environment": "workspace:*",
+        "@shadowclone/sessions": "workspace:*",
+        "zod": "^4.6.7",
+      },
+    },
     "packages/builds": {
       "name": "@shadowclone/builds",
       "dependencies": {
@@ -64,10 +73,10 @@
       "dependencies": {
         "@anthropic-ai/sandbox-runtime": "0.0.79",
         "@shadowclone/agents": "workspace:*",
+        "@shadowclone/bot": "workspace:*",
         "@shadowclone/builds": "workspace:*",
         "@shadowclone/changes": "workspace:*",
         "@shadowclone/clones": "workspace:*",
-        "@shadowclone/cloud": "workspace:*",
         "@shadowclone/core": "workspace:*",
         "@shadowclone/environment": "workspace:*",
         "@shadowclone/harness": "workspace:*",
@@ -88,19 +97,10 @@
     "packages/clones": {
       "name": "@shadowclone/clones",
       "dependencies": {
-        "@shadowclone/cloud": "workspace:*",
+        "@shadowclone/bot": "workspace:*",
         "@shadowclone/core": "workspace:*",
         "@shadowclone/redact": "workspace:*",
         "smol-toml": "^1.9.1",
-        "zod": "^4.6.7",
-      },
-    },
-    "packages/cloud": {
-      "name": "@shadowclone/cloud",
-      "dependencies": {
-        "@shadowclone/core": "workspace:*",
-        "@shadowclone/environment": "workspace:*",
-        "@shadowclone/sessions": "workspace:*",
         "zod": "^4.6.7",
       },
     },
@@ -154,9 +154,9 @@
     "packages/mcp": {
       "name": "@shadowclone/mcp",
       "dependencies": {
+        "@shadowclone/bot": "workspace:*",
         "@shadowclone/changes": "workspace:*",
         "@shadowclone/clones": "workspace:*",
-        "@shadowclone/cloud": "workspace:*",
         "@shadowclone/core": "workspace:*",
         "@shadowclone/environment": "workspace:*",
         "@shadowclone/learning": "workspace:*",
@@ -365,6 +365,8 @@
 
     "@shadowclone/agents": ["@shadowclone/agents@workspace:packages/agents"],
 
+    "@shadowclone/bot": ["@shadowclone/bot@workspace:packages/bot"],
+
     "@shadowclone/builds": ["@shadowclone/builds@workspace:packages/builds"],
 
     "@shadowclone/changes": ["@shadowclone/changes@workspace:packages/changes"],
@@ -372,8 +374,6 @@
     "@shadowclone/cli": ["@shadowclone/cli@workspace:packages/cli"],
 
     "@shadowclone/clones": ["@shadowclone/clones@workspace:packages/clones"],
-
-    "@shadowclone/cloud": ["@shadowclone/cloud@workspace:packages/cloud"],
 
     "@shadowclone/core": ["@shadowclone/core@workspace:packages/core"],
 

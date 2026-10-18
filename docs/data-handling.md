@@ -48,7 +48,7 @@ Pi and OpenCode transcript consent is separate from Git metadata and skill maint
 | Deep or background learning | Selected redacted steering, supporting context, guidance needed for reconciliation, and redacted coverage text for duplicate checks and triage |
 | Skill maintenance           | Redacted catalogs, full instructions of overlapping workflows, and evidence for proposed updates. Supporting resources are checked locally     |
 | Browser editor              | Opening it makes no model request. Build naming sends redacted skill titles and summaries. Voice capture and skill drafts need a user action   |
-| Cloud bot                   | Reviewed skills from your private skills repository, the selected repository, and an authorized issue or PR task                               |
+| Actions bot                 | Reviewed skills from your private skills repository, the selected repository, and an authorized issue or PR task                               |
 | Clone                       | Reviewed skills from your private skills repository, the selected repository, and the owner's task                                             |
 | `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace. shadowclone makes no model calls                                             |
 | Pull request review         | The PR title and description, diff, file history, base-commit standards, rule hits, toolchain diagnostics, and files that the reviewer reads   |
@@ -121,7 +121,7 @@ Voice capture needs the `github-writing` setting, which the **My voice** dialog 
 
 **Use AI** in the skill editor sends only the typed form fields and reads no repository file. The request uses the learning execution contract with no tools, one call, and a 60-second deadline. Providers with dollar-cap support get a $0.25 limit. Other providers show that no cap can be enforced. Cancellation aborts the request, but usage already incurred may still be charged. Generated drafts stay editable and need the usual build review before publication.
 
-## Cloud bot
+## Actions bot
 
 `bot setup` authorizes a read of the current repository origin for that setup. It does not turn on ongoing Git metadata capture. Managed source, engine, blocked-origin, and action restrictions still apply.
 
@@ -131,11 +131,11 @@ You add the bot token and the provider API key on GitHub. shadowclone never read
 
 During a run, the provider receives the prompt, the skills, and the repository content that the agent reads. The check run sends one small request with the API key: a model list request, or one short prompt for Cursor. A review of a fork pull request runs no fork code and has no network access.
 
-Cloud tasks and exported guidance are not new learning sources. Local guidance changes do not update the frozen cloud bundle. The [cloud bot guide](guides/cloud-bot.md) covers secrets, the default-branch ruleset, who can start work, pausing, limits, and removal.
+Actions bot tasks and exported guidance are not new learning sources. Local guidance changes do not update the frozen bundle. The [Actions bot guide](guides/actions-bot.md) covers secrets, the default-branch ruleset, who can start work, pausing, limits, and removal.
 
 ## Clones
 
-`clone skills` uses the same reviewed delivery as the cloud bot, and pushes the files to your private skills repository only after your approval. `clone setup` reads your GitHub login, the repository, and Docker state. It writes `~/.shadowclone/clones/`: the clone config, the logs, and `secrets.env` (mode 0600).
+`clone skills` uses the same reviewed delivery as the Actions bot, and pushes the files to your private skills repository only after your approval. `clone setup` reads your GitHub login, the repository, and Docker state. It writes `~/.shadowclone/clones/`: the clone config, the logs, and `secrets.env` (mode 0600).
 
 You paste the GitHub token and the model login into `secrets.env`. shadowclone never reads the file. It gives Docker only the path. A ChatGPT login stays in the Docker volume `shadowclone-codex-login`.
 

@@ -35,7 +35,7 @@ export async function exportGuidance(options: {
   }
 
   if (!options.skills.includes("shadowclone-work")) {
-    throw new Error("Select shadowclone-work for cloud work.");
+    throw new Error("Select shadowclone-work for Actions bot work.");
   }
 
   await ownedDirectory(path.join(options.paths.shadowcloneDirectory, "cloud"));
