@@ -105,11 +105,20 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Tools.** `shadowclone_sessions` lists live sessions after the clones, with `live-<hash>` ids, and `get` returns one. `shadowclone_clone` accepts only `send` for a live session.
 
+## Step 6: pushes
+
+**Topic.** `shadowclone hub notify` saves an ntfy topic URL in the hub database. With no `--url`, it makes a topic on `ntfy.sh` with 30 random hexadecimal characters. The topic name is the only secret, so the guide tells the owner to keep it private. `--off` removes it.
+
+**Watch.** Every 15 seconds, the hub reads the states of its own clones and live sessions, and asks each connected node for its states. A push goes out when a clone or a live session starts to need the owner, and when a clone ends `done`, `failed`, or `limited`. Each event pushes once. The first scan after the hub starts pushes nothing. A node that joins later, or comes back, pushes nothing for states that it already had.
+
+**Text.** By default a push names the clone or live session, its state, and its machine. `hub notify --text` adds the repository and the question, through `redactSecrets`, at most 500 characters. `hub notify test` sends one push to check the topic.
+
 ## Consequences
 
 - An owner can start a clone from any agent on the node without GitHub. A phone needs the hub from step 3.
 - The hub is a public endpoint that starts agents that act as the owner. A flaw in sign-in would give a stranger the owner's GitHub. The pairing code, short tokens, revocation, the lock, and the allowlist limit this risk.
 - With live sessions on, the last message of each live session leaves the machine through the hub. It can hold code or plans from that session.
+- With pushes on, ntfy receives clone ids, states, and machine names. Anyone who knows the topic can read them.
 - A message to an idle session becomes a prompt in that session, with the owner's permissions.
 - A node token gives the same clone tools as an approved client. `hub nodes remove <name>` revokes it.
 - A local program can send a false `X-Forwarded-For` header. A local program already runs as the owner, so the allowlist guards only remote callers.
@@ -127,6 +136,7 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - Run tests use a fake GitHub and a fake engine. They check the hooks, the trailer switch, the label, the body line, the save after SIGTERM, and the final state.
 - Config tests: a version 1 config fails with the setup message.
 - Hub tests send HTTP requests to the handler with a real database. They cover the `401`, a sign-in through to a tool call, plain PKCE, a wrong, used, or expired code, and the fifth wrong try. They also cover a code exchanged twice, refresh token reuse, revocation, expiry, the lock, the allowlist, the origin check, the protocol version, and loopback redirects.
+- Push tests: a push has no question text or repository by default. The first scan pushes nothing, and a new question pushes once. A node that returns, or joins later, does not push its old states. With no topic, nothing is sent.
 - Live tests: with consent off, a hook writes nothing and `list` is empty. A stop keeps a redacted summary and no tool output. The `Stop` hook delivers a queued message once, and `PostToolUse` delivers one during a turn. An idle tmux pane gets the message, a refused terminal keeps it, and a working session queues it. Install keeps the owner's own hooks.
 - Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine.
 
@@ -139,3 +149,5 @@ In step 3, the hub sends clone lists and clone details to each approved client. 
 In step 4, a node sends the hub the text of its clone tool answers over the tailnet. `link.json` on the node holds the hub URL, the node name, and the node token. The hub database holds a hash of each node token.
 
 In step 5, live sessions are a new consent flag, off by default. The hub sends each approved client the redacted last message of each live session. The live state stays in `~/.shadowclone/live/` until the session ends, and `live disable` deletes it.
+
+In step 6, pushes are off until the owner runs `hub notify`. A push goes to the ntfy server of the topic. It holds no question text or repository unless the owner turns text on.

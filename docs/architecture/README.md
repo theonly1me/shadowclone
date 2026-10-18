@@ -100,6 +100,7 @@ flowchart LR
   Node["Another machine: hub link"] -- "WebSocket over the tailnet" --> Hub
   Agents -- "live hooks, with consent" --> Live["live: session state and inbox"]
   Live -- "redacted last message" --> Hub
+  Hub -- "optional push, no question text by default" --> Ntfy["ntfy topic"]
   Session -- "prompt, skills, files that the agent reads" --> Provider
   subgraph GitHub["GitHub"]
     Bot --> Pulls["Draft pull requests and review comments"]

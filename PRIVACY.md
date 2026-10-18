@@ -13,6 +13,7 @@ The wizard and the local MCP server send nothing to shadowclone. These features 
 - **Pull request review:** the pull request, its diff, and related files. `--offline` stops web search and the OSV lookup of lockfile package names.
 - **Actions bot:** your reviewed skills, the repository, and the task. You enter tokens on GitHub, and shadowclone never reads them.
 - **Hub:** clone lists and details go to each client that you approve with a pairing code. For the Claude app, Anthropic receives them.
+- **Pushes:** after you run `shadowclone hub notify`, the ntfy server of your topic receives clone ids, states, and machine names. `--text` adds the repository and the question.
 - **Live sessions:** after you run `shadowclone live enable`, the hub also sends the redacted last message of your own Claude Code and Codex sessions.
 
 The provider and GitHub govern retention of what they receive. [Data handling](docs/data-handling.md) lists every source, request, and file.

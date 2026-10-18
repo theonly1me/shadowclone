@@ -73,6 +73,7 @@ See [skill maintenance](skills.md).
 - `shadowclone hub leave`: remove the link of this machine.
 - `shadowclone hub nodes` and `hub nodes remove <name>`: list the joined machines, or remove one.
 - `shadowclone hub clients` and `hub clients revoke <id>`: list the approved clients, or stop one at once.
+- `shadowclone hub notify`: send ntfy pushes when a clone or a live session needs you, and when a clone ends. With no `--url`, it makes a private topic on `ntfy.sh`. `--text` adds the repository and the question, `--no-text` removes them, `--off` stops the pushes, and `hub notify test` sends one push.
 - `shadowclone hub lock` and `hub unlock`: refuse every request, or allow them again.
 - `shadowclone hub allow <source>...`: accept requests only from `anthropic`, `tailnet`, `loopback`, or address ranges. `--any` removes the limit.
 - `shadowclone hub status`: show the URL, the lock, the allowed sources, and the number of clients.
