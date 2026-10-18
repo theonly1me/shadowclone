@@ -47,10 +47,10 @@
   "dependencies": {
     "@anthropic-ai/sandbox-runtime": "0.0.79",
     "@shadowclone/agents": "workspace:*",
+    "@shadowclone/bot": "workspace:*",
     "@shadowclone/builds": "workspace:*",
     "@shadowclone/changes": "workspace:*",
     "@shadowclone/clones": "workspace:*",
-    "@shadowclone/cloud": "workspace:*",
     "@shadowclone/core": "workspace:*",
     "@shadowclone/environment": "workspace:*",
     "@shadowclone/harness": "workspace:*",

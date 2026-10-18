@@ -6,7 +6,7 @@ import {
   type Provider,
   runGh,
   setUpAccountClone,
-} from "@shadowclone/cloud";
+} from "@shadowclone/bot";
 import { promptConfirmation } from "./confirm";
 
 export async function currentRepository(cwd: string): Promise<string> {

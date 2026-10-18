@@ -14,6 +14,6 @@ export async function assertCloudPolicy(options: {
     managedConfigPath: options.paths.managedConfigFile,
   });
   if (!policy.enabled || !policy.allowedEngines.includes(policyEngines[options.engine]) || policy.maxActionTier !== "act") {
-    throw new Error(`Managed policy does not permit a ${engineNames[options.engine]} cloud bot with repository writes.`);
+    throw new Error(`Managed policy does not permit a ${engineNames[options.engine]} Actions bot with repository writes.`);
   }
 }

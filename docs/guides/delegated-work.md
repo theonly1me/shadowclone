@@ -1,6 +1,6 @@
 # Delegated work
 
-The `shadowclone-work` skill takes a request, an issue, or a pull request to a ready pull request. It works in your Claude Code or Codex session, with the permissions of that agent. The [cloud bot](cloud-bot.md) follows the same skill.
+The `shadowclone-work` skill takes a request, an issue, or a pull request to a ready pull request. It works in your Claude Code or Codex session, with the permissions of that agent. The [Actions bot](actions-bot.md) follows the same skill.
 
 ## Equip and invoke
 

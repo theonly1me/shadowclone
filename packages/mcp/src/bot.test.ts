@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { createBotTool } from "./bot";
-import { guidanceFixture } from "@shadowclone/cloud/testing";
+import { guidanceFixture } from "@shadowclone/bot/testing";
 
 test("MCP offers setup and saved status but rejects credential and activation operations", async () => {
   const fixture = await guidanceFixture();
@@ -33,7 +33,7 @@ test("MCP status for a repository without a saved setup says to set it up first"
     const result = await bot.run({ name: "shadowclone_bot", arguments: { operation: "status", repository: "sample/project" } });
 
     expect(result).toEqual({
-      content: [{ type: "text", text: "No cloud bot setup is saved for sample/project. Call setup first." }],
+      content: [{ type: "text", text: "No Actions bot setup is saved for sample/project. Call setup first." }],
       isError: true,
     });
   } finally {

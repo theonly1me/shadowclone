@@ -11,7 +11,7 @@ $ shadowclone clone list
 k3x9m2qa working you/app shadowclone/k3x9m2qa - 2026-10-18T13:40:02Z fix the flaky date parser test
 ```
 
-Clones are separate from the [Actions bot](cloud-bot.md). The bot runs in GitHub Actions on an API key, and anyone with write access can tag it.
+Clones are separate from the [Actions bot](actions-bot.md). The bot runs in GitHub Actions on an API key, and anyone with write access can tag it.
 
 | Mode        | Runs on                     | Model login                 | Who starts it                   | Commits show |
 | ----------- | --------------------------- | --------------------------- | ------------------------------- | ------------ |
