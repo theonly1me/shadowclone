@@ -4,7 +4,23 @@ import path from "node:path";
 import type { Processes } from "../run/processes";
 import type { ClonesPaths } from "../config/store";
 
-export const serviceLabel = "dev.shadowclone.sessions";
+export type ServiceDefinition = {
+  readonly label: string;
+  readonly unit: string;
+  readonly description: string;
+  readonly command: readonly string[];
+  readonly log: string;
+};
+
+export function cloneServeService(paths: ClonesPaths): ServiceDefinition {
+  return {
+    label: "dev.shadowclone.sessions",
+    unit: "shadowclone-sessions.service",
+    description: "shadowclone clones",
+    command: ["serve"],
+    log: path.join(paths.logsDirectory, "serve.log"),
+  };
+}
 
 function escapeXml(value: string): string {
   return value
@@ -19,36 +35,44 @@ function systemdQuoted(value: string): string {
 }
 
 export function launchdPlist(options: {
+  readonly service: ServiceDefinition;
   readonly executable: string;
   readonly pathVariable: string;
-  readonly log: string;
 }): string {
+  const { service } = options;
+  const programArguments = [options.executable, ...service.command]
+    .map((argument) => `<string>${escapeXml(argument)}</string>`)
+    .join("");
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>${serviceLabel}</string>
-  <key>ProgramArguments</key><array><string>${escapeXml(options.executable)}</string><string>serve</string></array>
+  <key>Label</key><string>${escapeXml(service.label)}</string>
+  <key>ProgramArguments</key><array>${programArguments}</array>
   <key>EnvironmentVariables</key><dict><key>PATH</key><string>${escapeXml(options.pathVariable)}</string></dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
-  <key>StandardOutPath</key><string>${escapeXml(options.log)}</string>
-  <key>StandardErrorPath</key><string>${escapeXml(options.log)}</string>
+  <key>StandardOutPath</key><string>${escapeXml(service.log)}</string>
+  <key>StandardErrorPath</key><string>${escapeXml(service.log)}</string>
 </dict>
 </plist>
 `;
 }
 
 export function systemdUnit(options: {
+  readonly service: ServiceDefinition;
   readonly executable: string;
   readonly pathVariable: string;
 }): string {
+  const { service } = options;
+
   return `[Unit]
-Description=shadowclone clones
+Description=${service.description}
 After=network-online.target
 
 [Service]
-ExecStart=${systemdQuoted(options.executable)} serve
+ExecStart=${[options.executable, ...service.command].map(systemdQuoted).join(" ")}
 Environment=${systemdQuoted(`PATH=${options.pathVariable}`)}
 Restart=always
 RestartSec=30
@@ -64,31 +88,29 @@ export type ServiceOutcome =
   | { readonly kind: "unsupported"; readonly platform: string };
 
 export async function installService(options: {
-  readonly paths: ClonesPaths;
+  readonly service: ServiceDefinition;
   readonly processes: Processes;
   readonly executable: string;
   readonly pathVariable: string;
   readonly platform?: NodeJS.Platform;
   readonly home?: string;
 }): Promise<ServiceOutcome> {
+  const { service } = options;
   const platform = options.platform ?? process.platform;
   const home = options.home ?? os.homedir();
   const run = (command: readonly string[]) =>
     options.processes.run({ arguments: command, cwd: home });
 
   if (platform === "darwin") {
-    const file = path.join(home, "Library", "LaunchAgents", `${serviceLabel}.plist`);
-    const log = path.join(options.paths.logsDirectory, "serve.log");
+    const file = path.join(home, "Library", "LaunchAgents", `${service.label}.plist`);
+    const domain = `gui/${process.getuid?.() ?? 0}`;
 
     await mkdir(path.dirname(file), { recursive: true });
-    await mkdir(options.paths.logsDirectory, { recursive: true, mode: 0o700 });
-    await writeFile(
-      file,
-      launchdPlist({ executable: options.executable, pathVariable: options.pathVariable, log }),
-    );
-    await run(["launchctl", "bootout", `gui/${process.getuid?.() ?? 0}`, file]);
+    await mkdir(path.dirname(service.log), { recursive: true, mode: 0o700 });
+    await writeFile(file, launchdPlist(options));
+    await run(["launchctl", "bootout", domain, file]);
 
-    const started = await run(["launchctl", "bootstrap", `gui/${process.getuid?.() ?? 0}`, file]);
+    const started = await run(["launchctl", "bootstrap", domain, file]);
 
     return started.exitCode === 0
       ? { kind: "installed", file, warnings: [] }
@@ -96,28 +118,19 @@ export async function installService(options: {
   }
 
   if (platform === "linux") {
-    const file = path.join(home, ".config", "systemd", "user", "shadowclone-sessions.service");
+    const file = path.join(home, ".config", "systemd", "user", service.unit);
 
     await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(
-      file,
-      systemdUnit({ executable: options.executable, pathVariable: options.pathVariable }),
-    );
+    await writeFile(file, systemdUnit(options));
     await run(["systemctl", "--user", "daemon-reload"]);
 
-    const started = await run([
-      "systemctl",
-      "--user",
-      "enable",
-      "--now",
-      "shadowclone-sessions.service",
-    ]);
+    const started = await run(["systemctl", "--user", "enable", "--now", service.unit]);
 
     if (started.exitCode !== 0) {
       return { kind: "failed", file, detail: started.stderr.trim() };
     }
 
-    await run(["systemctl", "--user", "restart", "shadowclone-sessions.service"]);
+    await run(["systemctl", "--user", "restart", service.unit]);
 
     const linger = await run(["loginctl", "enable-linger"]);
     const warnings =
