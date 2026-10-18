@@ -65,3 +65,9 @@ export function parseJson(text: string): unknown {
     return undefined;
   }
 }
+
+export function bearerToken(request: Request): string | null {
+  const match = /^Bearer\s+(\S+)$/i.exec(request.headers.get("Authorization") ?? "");
+
+  return match?.[1] ?? null;
+}

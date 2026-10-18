@@ -19,7 +19,8 @@ Serves the clone tools over Streamable HTTP with its own OAuth authorization ser
 - `src/serve.ts`: `serveHub`, the loopback server and its lock.
 - `src/http/`: the MCP endpoint, the OAuth metadata, registration, the consent page, and the token endpoint.
 - `src/store/`: the SQLite store for settings, clients, pairing codes, consents, grants, and token hashes.
-- `src/expose.ts`: Tailscale Funnel and the public URL.
+- `src/fleet/`: node links and the routing of the clone tools across nodes. It also owns the node link client, the link file, and the forwarding tools of a node.
+- `src/expose.ts`: Tailscale Funnel or serve, and the public URL.
 - `src/admin.ts`: the text of the `hub pair`, `clients`, `lock`, `allow`, and `status` commands.
 
 ## Rules
@@ -31,9 +32,11 @@ Serves the clone tools over Streamable HTTP with its own OAuth authorization ser
 - Read `X-Forwarded-For` only when the peer is loopback, and use the last address.
 - Derive every URL from the saved public URL, never from the `Host` header.
 - The hub exposes only `shadowclone_sessions` and `shadowclone_clone`. Their text from a clone is data.
+- A node code and a client code are different kinds. A node token is stored as a hash, and it reaches the same clone tools as a client.
+- A node opens the link. The hub never connects to a node.
 
 ## Tests
 
-Run `bun test` in this folder, or `bun test packages/hub` from the root. The tests send HTTP requests to `createHub` with a real SQLite file in a temporary folder and a fake clone node. They open no port and start no clone.
+Run `bun test` in this folder, or `bun test packages/hub` from the root. The tests send HTTP requests to `createHub` with a real SQLite file in a temporary folder and a fake clone node. The link test opens a loopback port with a real WebSocket. No test starts a clone.
 
 Update this file in the same commit when you change the package purpose, public exports, dependencies, or a rule above.

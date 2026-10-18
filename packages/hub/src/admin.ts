@@ -14,19 +14,47 @@ export function connectorUrl(store: HubStore): string {
   return `${issuerOf(store.settings())}/mcp`;
 }
 
-export function pairLines(store: HubStore): readonly string[] {
-  const { code } = store.createPairingCode("client");
+export function pairLines(options: {
+  readonly store: HubStore;
+  readonly node: boolean;
+}): readonly string[] {
+  const { store } = options;
+  const { code } = store.createPairingCode(options.node ? "node" : "client");
+  const publicUrl = store.settings().publicUrl;
 
   return [
     `Pairing code: ${code}`,
     `It works once, for ${pairingMinutes} minutes, and locks after ${pairingTries} wrong tries.`,
-    `Connector URL: ${connectorUrl(store)}`,
-    ...(store.settings().publicUrl === null
+    ...(options.node
       ? [
-          "The hub has no public URL yet. Run shadowclone hub expose to reach it from the Claude app.",
+          `On the other machine, run: shadowclone hub join ${publicUrl ?? "<hub URL>"} --code ${code}`,
+        ]
+      : [`Connector URL: ${connectorUrl(store)}`]),
+    ...(publicUrl === null
+      ? [
+          "The hub has no public URL yet. Run shadowclone hub expose so that other machines can reach it.",
         ]
       : []),
   ];
+}
+
+export function nodeLines(store: HubStore): readonly string[] {
+  const nodes = store.listNodes();
+
+  return nodes.length === 0
+    ? ["No other machine joined this hub. Run shadowclone hub pair --node to add one."]
+    : nodes.map(
+        (node) => `${node.name}  joined ${node.createdAt}  last seen ${node.lastSeenAt ?? "never"}`,
+      );
+}
+
+export function removeNodeLine(options: {
+  readonly store: HubStore;
+  readonly name: string;
+}): string {
+  return options.store.removeNode(options.name)
+    ? `Removed node ${options.name}. It cannot connect again until it joins with a new code.`
+    : `No node ${options.name} joined this hub.`;
 }
 
 export function clientLines(store: HubStore): readonly string[] {
@@ -93,5 +121,6 @@ export async function statusLines(options: {
     `Locked: ${settings.locked ? "yes" : "no"}`,
     `Allowed sources: ${settings.allow.length === 0 ? "any" : settings.allow.join(", ")}`,
     `Connected clients: ${options.store.listClients().length}`,
+    `Joined nodes: ${options.store.listNodes().length}`,
   ];
 }

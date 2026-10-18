@@ -1,6 +1,5 @@
 #!/usr/bin/env bun
 import product from "@shadowclone/core/product.json";
-import { serveMcp } from "@shadowclone/mcp";
 import { doctor } from "./doctor";
 import { forgetAll } from "./forget";
 import { handleSetupCommand } from "./setup";
@@ -17,6 +16,7 @@ import { redactSecrets } from "@shadowclone/redact";
 import { botCommand } from "./bot";
 import { cloneCommand, cloneUsage, serveCommand } from "./clone";
 import { hubCommand, hubUsage } from "./hub";
+import { mcpCommand } from "./hubNode";
 import { reviewCommand } from "./review";
 
 const usage =
@@ -129,7 +129,7 @@ async function main(arguments_: readonly string[]): Promise<void> {
   }
 
   if (command === "mcp") {
-    await serveMcp();
+    await mcpCommand();
 
     return;
   }

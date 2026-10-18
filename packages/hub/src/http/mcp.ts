@@ -1,5 +1,5 @@
 import { resourceMetadataUrl } from "./metadata";
-import { jsonResponse, parseJson } from "./responses";
+import { bearerToken, jsonResponse, parseJson } from "./responses";
 import { answerRequest, messageSchema, protocolVersions, type RpcTools } from "./rpc";
 import type { HubStore } from "../store";
 
@@ -16,12 +16,6 @@ function rpcError(options: {
     status: options.status,
     body: { jsonrpc: "2.0", error: { code: options.code, message: options.message } },
   });
-}
-
-function bearer(request: Request): string | null {
-  const match = /^Bearer\s+(\S+)$/i.exec(request.headers.get("Authorization") ?? "");
-
-  return match?.[1] ?? null;
 }
 
 function unauthorized(options: { readonly issuer: string; readonly tokenSent: boolean }): Response {
@@ -49,9 +43,12 @@ export async function mcpEndpoint(options: {
     return rpcError({ status: 403, code: -32600, message: "The hub does not accept this origin." });
   }
 
-  const token = bearer(request);
+  const token = bearerToken(request);
 
-  if (token === null || options.store.authenticate(token) === null) {
+  if (
+    token === null ||
+    (options.store.authenticate(token) === null && options.store.authenticateNode(token) === null)
+  ) {
     return unauthorized({ issuer, tokenSent: token !== null });
   }
 

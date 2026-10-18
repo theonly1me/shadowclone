@@ -1,45 +1,24 @@
-import { clonesPaths, hostProcesses, installService, localNode } from "@shadowclone/clones";
+import path from "node:path";
+import { clonesPaths, hostProcesses, localNode } from "@shadowclone/clones";
 import {
   allowLine,
   clientLines,
   exposeHub,
   hubPaths,
   lockLine,
-  openHub,
+  nodeLines,
   pairLines,
+  removeNodeLine,
   revokeLine,
   serveHub,
   statusLines,
-  type HubStore,
 } from "@shadowclone/hub";
-import path from "node:path";
 import { flagValue } from "./cloneOptions";
+import { print, runAsService, stopSignal, timestamped, withStore } from "./hubCommon";
+import { nodeOperations } from "./hubNode";
 
 export const hubUsage =
-  "Hub: hub serve [--port <n>]; hub service; hub expose [--url https://host | --off]; hub pair; hub clients [revoke <id>]; hub lock|unlock; hub allow [anthropic|tailnet|loopback|<range>]... | hub allow --any; hub status";
-
-function stopSignal(): AbortSignal {
-  const controller = new AbortController();
-
-  process.on("SIGTERM", () => controller.abort());
-  process.on("SIGINT", () => controller.abort());
-
-  return controller.signal;
-}
-
-function print(lines: readonly string[]): void {
-  console.log(lines.join("\n"));
-}
-
-async function withStore(run: (store: HubStore) => Promise<void> | void): Promise<void> {
-  const store = openHub(hubPaths());
-
-  try {
-    await run(store);
-  } finally {
-    store.close();
-  }
-}
+  "Hub: hub serve [--port <n>]; hub service; hub expose [--url https://host | --tailnet | --off]; hub pair [--node]; hub clients [revoke <id>]; hub nodes [remove <name>]; hub lock|unlock; hub allow [anthropic|tailnet|loopback|<range>]... | hub allow --any; hub status; hub join <hub URL> --code <code> [--name <name>] [--no-service]; hub link; hub leave";
 
 function portFlag(arguments_: readonly string[]): number | undefined {
   const value = flagValue({ arguments: arguments_, flag: "--port" });
@@ -64,7 +43,7 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
       paths: hubPaths(),
       node: localNode({ paths: clonesPaths() }),
       signal: stopSignal(),
-      log: (line) => console.log(`${new Date().toISOString()} ${line}`),
+      log: timestamped,
       ...(port === undefined ? {} : { port }),
     });
 
@@ -73,58 +52,46 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
       process.exitCode = 1;
     }
   },
-  service: async () => {
-    const paths = hubPaths();
-    const outcome = await installService({
+  service: () =>
+    runAsService({
       service: {
         label: "dev.shadowclone.hub",
         unit: "shadowclone-hub.service",
         description: "shadowclone hub",
         command: ["hub", "serve"],
-        log: path.join(paths.logsDirectory, "hub.log"),
+        log: path.join(hubPaths().logsDirectory, "hub.log"),
       },
-      processes: hostProcesses,
-      executable: Bun.which("shadowclone") ?? "shadowclone",
-      pathVariable: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
-    });
-
-    if (outcome.kind === "installed") {
-      print([`The hub runs as a service from ${outcome.file}.`, ...outcome.warnings]);
-    } else {
-      print([
-        outcome.kind === "failed"
-          ? outcome.detail
-          : `Services do not support ${outcome.platform}. Run shadowclone hub serve.`,
-      ]);
-      process.exitCode = 1;
-    }
-  },
+      what: "hub",
+    }),
   expose: (arguments_) =>
     withStore(async (store) => {
       const url = flagValue({ arguments: arguments_, flag: "--url" });
+      const tailnetOnly = arguments_.includes("--tailnet");
       const outcome = await exposeHub({
         store,
         processes: hostProcesses,
         ...(url === null ? {} : { url }),
         off: arguments_.includes("--off"),
+        tailnetOnly,
       });
 
       if (outcome.kind === "failed") {
         print([outcome.detail]);
         process.exitCode = 1;
+      } else if (outcome.kind === "hidden") {
+        print(["Tailscale no longer serves the hub."]);
       } else {
-        print(
-          outcome.kind === "hidden"
-            ? ["Tailscale Funnel no longer serves the hub."]
-            : [
-                `Public URL: ${outcome.publicUrl}`,
-                `Connector URL: ${outcome.publicUrl}/mcp`,
-                "Run shadowclone hub pair, then add the connector URL in Claude.",
-              ],
-        );
+        print([
+          `Public URL: ${outcome.publicUrl}`,
+          `Connector URL: ${outcome.publicUrl}/mcp`,
+          tailnetOnly
+            ? "Only machines on your tailnet reach this URL. Run shadowclone hub pair --node to add one."
+            : "Run shadowclone hub pair, then add the connector URL in Claude.",
+        ]);
       }
     }),
-  pair: () => withStore((store) => print(pairLines(store))),
+  pair: (arguments_) =>
+    withStore((store) => print(pairLines({ store, node: arguments_.includes("--node") }))),
   clients: (arguments_) =>
     withStore((store) => {
       const [operation, id] = arguments_;
@@ -135,6 +102,16 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
           : clientLines(store),
       );
     }),
+  nodes: (arguments_) =>
+    withStore((store) => {
+      const [operation, name] = arguments_;
+
+      print(
+        operation === "remove" && name !== undefined
+          ? [removeNodeLine({ store, name })]
+          : nodeLines(store),
+      );
+    }),
   lock: () => withStore((store) => print([lockLine({ store, locked: true })])),
   unlock: () => withStore((store) => print([lockLine({ store, locked: false })])),
   allow: (arguments_) =>
@@ -142,6 +119,7 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
       print([allowLine({ store, entries: arguments_.includes("--any") ? [] : arguments_ })]),
     ),
   status: () => withStore(async (store) => print(await statusLines({ store, paths: hubPaths() }))),
+  ...nodeOperations,
 };
 
 export async function hubCommand(arguments_: readonly string[]): Promise<void> {
