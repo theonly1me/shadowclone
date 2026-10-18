@@ -12,13 +12,6 @@ powers = [
     "network",
 ]
 
-[code."packages/cli"]
-powers = ["exec"]
-
-[code."packages/clones"]
-powers = ["exec"]
-risks = ["exec:packages/clones/src/run/processes.spawnRequest:Bun.spawn:untrusted"]
-
 [code."packages/bot"]
 powers = [
     "exec",
@@ -26,8 +19,18 @@ powers = [
 ]
 risks = ["exec:packages/bot/src/setup/openPage.openPage:Bun.spawn:untrusted"]
 
+[code."packages/cli"]
+powers = ["exec"]
+
+[code."packages/clones"]
+powers = ["exec"]
+risks = ["exec:packages/clones/src/run/processes.spawnRequest:Bun.spawn:untrusted"]
+
 [code."packages/core"]
 powers = ["exec"]
+
+[code."packages/hub"]
+powers = ["network"]
 
 [code."packages/learning"]
 powers = ["exec"]
