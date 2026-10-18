@@ -1,6 +1,6 @@
 ---
 name: verify-review-findings
-description: 'Use when a pull request has review comments or bot findings to check. Also use it when the user says "are these comments right?", "triage the review", or "check what the bot found". Checks each finding against the code at the head of the pull request, and confirms the file, the line, and the claim. Asks what each suggested fix would break, reports a verdict for each finding, and waits. Not for writing the fix (use `scope-confirmed-changes`).'
+description: 'Use when a pull request has review comments or bot findings to check. Also use it when the user says "are these comments right?", "triage the review", "check the PR comments", or "check what the bot found". Checks each finding against the code at the head of the pull request, and confirms the file, the line, and the claim. Asks what each suggested fix would break, reports a verdict for each finding, and waits. Not for writing the fix (use `scope-confirmed-changes`).'
 metadata:
   shadowclone-category: review
   shadowclone-section: workflow
@@ -16,24 +16,33 @@ A pull request has review comments, bot findings, or a list of issues from anoth
 ## Gates
 
 1. Did you read each finding at the head commit of the pull request? A finding about an older commit can be stale.
-2. For each finding, do the file and the line exist, and does the code there do what the finding says?
+2. For each finding, do the file and the line exist, and does the code around them do what the finding says? A finding can be right about the problem and wrong about the place.
 3. Can you show the claim with a test, a command, or the code itself? If not, label it as not verified.
 4. Did you ask what each suggested fix would break, such as a caller, a test, or a documented behavior?
-5. Does each finding have a verdict: confirmed, partly right, wrong, stale, or not verified?
+5. Does each finding have a verdict: confirmed, partly right, pre-existing, wrong, stale, or not verified?
 6. Did you wait for the user before you changed code or replied to a reviewer?
 
 ## Process
 
 Write in the user's voice. Before you write, read `~/.agents/voice.md`. If it does not exist, build it once from the user's merged pull requests, review comments, and commit messages. Use only text that the user wrote, and name those sources in your handoff. Never overwrite an existing or linked `voice.md`.
 
-1. Fetch the pull request, and check out its head commit. Write down the commit hash.
-2. List each finding in one table, with its source, its `file:line`, and its claim.
-3. For each finding, read the code at that location and its callers. Compare the claim with the real behavior.
-4. When the claim is about behavior, run a focused test or a command that shows it.
-5. For each suggested fix, list what it changes for callers, tests, and users. A fix that is right in one place can break another place.
-6. Give each finding a verdict, with the evidence that supports it.
-7. Put the confirmed findings first, with the highest risk at the top.
-8. Report the table, and wait. Change code or reply only after the user decides.
+1. Fetch the head of the pull request from `origin`, because the local tree can be on another branch. Write down the commit hash.
+2. Read the comments without their analysis blocks. Bot comments hold long `<details>` blocks. Remove them with `perl -0pe 's{<details>.*?</details>}{[analysis omitted]}gs'`. Inline comments come from `gh api repos/<owner>/<repo>/pulls/<number>/comments` and carry `path` and `line`.
+3. List each finding in one table, with its source, its `file:line`, and its claim.
+4. For each finding, read the code at that location and its callers. Compare the claim with the real behavior.
+5. When the claim is about behavior, run a focused test or a command that shows it.
+6. For each suggested fix, list what it changes for callers, tests, and users. A fix that is right in one place can break another place.
+7. If a finding is true but the same problem existed before this change, give it the verdict pre-existing. Leave it out of the fix.
+8. Give each finding a verdict, with the evidence that supports it.
+9. Put the confirmed findings first, with the highest risk at the top.
+10. Report the table, and wait. Change code or reply only after the user decides.
+
+### After the user decides
+
+1. Fix each finding that the user accepts. Use `scope-confirmed-changes` to keep the fix small.
+2. On a bot thread that you fixed, reply with the short commit hash only. Then resolve the thread with the `resolveReviewThread` mutation in `gh api graphql`.
+3. Post no reply on a human thread, and no reply on a declined bot thread. The author writes those replies.
+4. Count the open threads again. List each thread that stays open with its reason, because an open thread blocks the merge when the repository requires resolved conversations.
 
 ## Example
 
@@ -50,6 +59,8 @@ Write in the user's voice. Before you write, read `~/.agents/voice.md`. If it do
 - Quote the code that proves each verdict. Do not paraphrase it.
 - Keep each finding separate. Do not merge two findings into one verdict.
 - A finding that you cannot check stays "not verified" in the report.
+- A resolved or addressed marker is not proof. A bot can mark a finding as addressed because the commit was in the range it reviewed. Check the head.
+- Give each decline a reason in one or two sentences. If the reason is a claim about behavior, run a command that tests the claim.
 
 ## Completion
 

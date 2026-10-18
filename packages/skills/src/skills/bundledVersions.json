@@ -169,7 +169,11 @@
     "scripts/validate-page.mjs": [
       "b73ec4a524a8ba274087cd293061b3dda3658e63533e9c43b621ecf116018d3f"
     ],
-    "SKILL.md": ["786f6b8ef45eeb97a483b9172d02595d84ce6f6c01f50439d6b9b5689551e4ea"]
+    "SKILL.md": [
+      "786f6b8ef45eeb97a483b9172d02595d84ce6f6c01f50439d6b9b5689551e4ea",
+      "bd0f6c69b21d74a5b3853a4342d025fe2d542d066e50f1b6bbb50edb2ff974f8",
+      "076d417928449529368d294703708efce6c07ee7a4f17b501f230434581d0788"
+    ]
   },
   "prove-regression-tests": {
     "SKILL.md": [
@@ -200,7 +204,8 @@
       "21e9fa9bfde94c2cde863272061210a2b021cff3f62b8bb87451273f7e4528cf",
       "742b8af277f9ed5aa362b632f2e00ea9d94be85f4709c461708253accb1f17cb",
       "6a02591b3cf96b2e26e90f3087d352c8c3b679941e93e2190ce397df34cfb582",
-      "18e7d4a655210223719cf5f76aae0f6b93538345b1ed60b03d1a3dd46384bb53"
+      "18e7d4a655210223719cf5f76aae0f6b93538345b1ed60b03d1a3dd46384bb53",
+      "8eb18f10d932c672d2989f8df7e6abc0b9bdc9b854d62fe84bcb121711d1ba79"
     ]
   },
   "shadowclone-review": {
@@ -260,7 +265,10 @@
     ]
   },
   "verify-review-findings": {
-    "SKILL.md": ["6d484e0627b5a14e65ad4707dbf5a2cb368ea1e4786c83091de6c37aff8c0f89"]
+    "SKILL.md": [
+      "6d484e0627b5a14e65ad4707dbf5a2cb368ea1e4786c83091de6c37aff8c0f89",
+      "0bf61a034bd9b8604842e4aeb8a9899144b88dcc3450a9a73c92835725d6c586"
+    ]
   },
   "write-plain-english": {
     "scripts/check-ste.mjs": [
