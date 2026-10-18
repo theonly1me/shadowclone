@@ -44,6 +44,9 @@ export type ShadowcloneConfig = {
     readonly engine?: EngineId;
     readonly model?: string;
   };
+  readonly remote?: {
+    readonly liveSessions: boolean;
+  };
 };
 
 export const defaultConfig: ShadowcloneConfig = {
@@ -163,7 +166,22 @@ const configSchema = z.strictObject({
   sources: z.unknown(),
   distillation: z.unknown(),
   repo: z.unknown().optional(),
+  remote: z.unknown().optional(),
 });
+
+const remoteSchema = z.strictObject({
+  "live-sessions": z.boolean().optional().default(false),
+});
+
+function parseRemote(value: unknown): ShadowcloneConfig["remote"] {
+  const result = remoteSchema.safeParse(value);
+
+  if (!result.success) {
+    throw new Error("Config remote must contain only a live-sessions boolean");
+  }
+
+  return { liveSessions: result.data["live-sessions"] };
+}
 
 export function parseConfig(value: unknown): ShadowcloneConfig {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -190,5 +208,8 @@ export function parseConfig(value: unknown): ShadowcloneConfig {
     schemaVersion: 1,
     sources: parseSources(result.data.sources),
     distillation: parseDistillation(result.data.distillation),
+    ...(result.data.remote === undefined
+      ? {}
+      : { remote: parseRemote(result.data.remote) }),
   };
 }
