@@ -76,5 +76,5 @@ export function sendText(options: {
 }): string {
   return options.outcome.kind === "refused"
     ? options.outcome.reason
-    : `Sent the ${options.what} to clone ${options.outcome.clone.id}. It reaches the clone within a few seconds.`;
+    : `Sent the ${options.what} to clone ${options.outcome.clone.id}. ${options.outcome.clone.state === "queued" ? "It reaches the clone when the clone starts." : "It reaches the clone within a few seconds."}`;
 }
