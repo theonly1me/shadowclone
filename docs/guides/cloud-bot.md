@@ -53,7 +53,7 @@ The issue's stated scope lets the bot plan, change files, run checks, commit, pu
 
 When the last Actions run on the head of a managed pull request finishes, the bot continues the work once. Events from approved reviewers can continue it too. The default reviewers are `coderabbitai[bot]` and `github-actions[bot]`, and comments from people with write access count. To change the reviewers or the limits, edit both workflow configurations in a reviewed pull request.
 
-The bot answers review threads as [delegated work](delegated-work.md#review-comments) describes. It never merges, releases, or force pushes.
+The bot answers review threads as [delegated work](delegated-work.md#review-comments) describes. It never merges or releases.
 
 ## Review pull requests
 

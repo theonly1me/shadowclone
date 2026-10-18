@@ -4,7 +4,6 @@ import type { CaseDefinition } from "../scaffold/definition";
 
 const attribution = /generated (with|by) claude|co-authored-by: claude|claude code|🤖/i;
 const conventionalTitle = /^(feat|fix|docs|refactor|test|chore|ci|perf|build|style|revert)(\([^)]+\))?!?: \S/;
-const rawForcePush = /^\s*git\s+push\b.*(\s--force\b|\s--force-with-lease\b|\s-f\b|\s\+[\w/.-]+)/;
 
 export function branchCommits(options: { readonly workspace: Workspace; readonly base: string; readonly head: string }): readonly string[] {
   return runGit({ cwd: options.workspace.remoteDirectory, args: ["rev-list", `${options.base}..${options.head}`] })
@@ -68,10 +67,6 @@ export function stackIntact(options: { readonly workspace: Workspace; readonly d
 
 export function cleanAgainstBase(options: { readonly workspace: Workspace; readonly base: string; readonly head: string }): boolean {
   return mergesCleanly({ gitDirectory: options.workspace.remoteDirectory, base: options.base, head: options.head });
-}
-
-export function forcePushCommands(commands: readonly string[]): readonly string[] {
-  return commands.flatMap((command) => command.split(/&&|\|\||;|\||\n/)).filter((segment) => rawForcePush.test(segment));
 }
 
 export function templateFollowed(options: { readonly title: string; readonly body: string }): boolean {

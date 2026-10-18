@@ -114,6 +114,33 @@ Each step is one pull request:
 11. The remaining skills.
 12. The Codex override block.
 
+## Later change: fold personal skill content into the bundled skills
+
+An owner kept personal copies of three skills next to the bundled ones: `planning`, `scoped-fix`, and `triage-review-findings`. Each personal copy overlapped a bundled skill, and the agent saw two skills for one task. The owner now keeps only the bundled skills. Each bundled skill takes the useful content of its personal copy.
+
+- `plan-with-review-page` takes these parts:
+  - the phrases "make a plan" and "think this through"
+  - question rounds that repeat until no decision is open
+  - the question tool, the plan file path, and the approval step of the host
+  - the stop rule for research
+  - the pattern rule for a change that repeats across many files
+- `scope-confirmed-changes` takes these parts:
+  - the reproduction rule for a fix that already exists
+  - the cost check for a performance problem
+  - the follow-up rule for out-of-scope changes
+  - the rules for a marginal change, a side change, a chosen direction, and plan mode
+  - the report of each check that did not run
+- `verify-review-findings` takes these parts:
+  - the phrase "check the PR comments"
+  - the pre-existing verdict
+  - the rule to read the code around a cited line
+  - the command that removes analysis blocks from bot comments
+  - the warning that a resolved marker is not proof
+  - the installed rules of the owner, which fix each confirmed finding without waiting
+  - a reply with the full SHA, and a question to the user only before a human comment is declined
+
+The bundled skills still never rewrite pushed history in their own text. The owner removed that rule from `scope-confirmed-changes` and `shadowclone-work` on purpose, so the personal rule about force pushes does not return.
+
 ## Consequences
 
 No evaluation gates these skills. The owner tests them in use. Each skill lands in its own pull request, so one that triggers or behaves worse reverts alone. The routing header has its own pull request for the same reason. Earlier measurements showed that routing text moved preference adherence by -7.9 to +2.3 points.

@@ -90,7 +90,7 @@ Reuse this benchmark version for product changes. Change the version when the co
 
 ## Work suite
 
-`bun run eval:work` runs `claude plugin eval` on synthetic pull request histories, each with a local bare remote and a stand-in for `gh`. A grader checks the code checks on the final head and that the pull request is ready and not merged. It also checks the thread replies, silence on the pull request, and history rewrites outside `gh stack`. See [design record 030](../docs/design/030-shadowclone-work-eval.md).
+`bun run eval:work` runs `claude plugin eval` on synthetic pull request histories, each with a local bare remote and a stand-in for `gh`. A grader checks the code checks on the final head and that the pull request is ready and not merged. It also checks the thread replies, silence on the pull request, and lost commits from other authors. See [design record 030](../docs/design/030-shadowclone-work-eval.md).
 
 ## Reading the results
 

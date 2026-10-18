@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { latestRuns } from "../fakeGh/checks";
-import { isAncestor, remoteHead, runGit } from "../fakeGh/git";
+import { remoteHead, runGit } from "../fakeGh/git";
 import { type FakeState, readState, workspaceFor } from "../fakeGh/state";
 import type { CaseDefinition } from "../scaffold/definition";
 import {
@@ -9,7 +9,6 @@ import {
   branchCommits,
   cleanAgainstBase,
   emptyCommits,
-  forcePushCommands,
   outOfScope,
   stackIntact,
   templateFollowed,
@@ -104,10 +103,7 @@ export function gradeRun(options: {
     "the agent posted words on the pull request or added attribution",
     state.topLevelComments.every((comment) => comment.author !== state.viewer) && !log.some((line) => line.operation === "api-new-review-comment") && !attributionFound({ workspace, state, commits }),
   );
-  const rewrites = definition.stack === null
-    ? state.pullRequests.filter((pullRequest) => pullRequest.initialHead !== null && definition.pullRequests.some((seeded) => seeded.number === pullRequest.number) && !isAncestor({ gitDirectory: workspace.remoteDirectory, ancestor: pullRequest.initialHead ?? "", descendant: remoteHead({ remoteDirectory: workspace.remoteDirectory, branch: pullRequest.head }) ?? "" }))
-    : [];
-  const history = check("history was rewritten, force-pushed outside gh stack, or lost another author's commit", rewrites.length === 0 && forcePushCommands(options.commands).length === 0 && upstreamKept({ workspace, definition }));
+  const history = check("history lost another author's commit", upstreamKept({ workspace, definition }));
   const scope = check("files outside the pull request's scope changed", present && pairs.every((pair) => outOfScope({ workspace, base: pair.base, head: pair.head, scopePaths: definition.outcome.scopePaths }).length === 0));
   const hygiene = check(
     "a pull request was merged or closed, an empty commit was pushed, or the agent touched the fake GitHub's files",

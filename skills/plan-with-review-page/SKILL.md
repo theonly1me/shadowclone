@@ -1,6 +1,6 @@
 ---
 name: plan-with-review-page
-description: 'Use before a change that touches many files, needs many steps, or has open design choices. Also use it when the user says "plan this first", "what is your approach?", or "do not code yet". Explores the code read-only, asks one round of decisions with the recommended option first, and writes one plan. Builds a self-contained HTML review page from a template, and checks the page with a validator. Not for checking finished work (use `verify-and-review`).'
+description: 'Use before a change that touches many files, needs many steps, or has open design choices. Also use it when the user says "plan this first", "make a plan", "think this through", or "do not code yet". Explores the code read-only, asks the open decisions with the recommended option first, and writes one plan. Builds a self-contained HTML review page from a template, and checks the page with a validator. Not for checking finished work (use `verify-and-review`).'
 metadata:
   shadowclone-category: workflow
   shadowclone-section: workflow
@@ -16,8 +16,8 @@ A change touches many files, needs many steps, or has a design choice that belon
 
 1. Are you read-only until the user approves? Before approval, write only the plan file and the review page.
 2. Did you read the code, the documents, and the history before you asked? Never ask what the code can answer.
-3. Did you ask one round of at most 4 questions, each with 2 to 4 options and the recommended option first?
-4. Is each risky behavior choice in that round, such as a skip, a block, a fallback, or a default?
+3. Did you ask in rounds until no decision was open? Each round has at most 4 questions, each with 2 to 4 options and the recommended option first.
+4. Is each risky behavior choice in a round, such as a skip, a block, a fallback, or a default?
 5. Is there one plan file for this conversation, with each skipped step still visible and its reason?
 6. Does the review page pass `scripts/validate-page.mjs` with 0 errors?
 
@@ -27,21 +27,24 @@ A change touches many files, needs many steps, or has a design choice that belon
 
 1. Read the code that the request touches, and the instructions of the repository for that code.
 2. Find the functions and patterns that the change can use again.
+3. For a broad search, use a read-only subagent if the host has one.
+4. Stop when you can name the change, its tests, and what users would see break. Write each follow-up as one line in the plan. Do not research a follow-up first.
 
 ### Ask
 
 1. List each open decision about scope, behavior, edge cases, data, release, and tests.
-2. Ask the decisions in one round of at most 4 questions. Put the recommended option first, with one reason.
-3. If an answer is not clear, ask again. Do not guess.
+2. Ask at most 4 questions in each round. Put the recommended option first, with one reason.
+3. Use the question tool of the host if it has one. If not, use a numbered list in the chat.
+4. If an answer is not clear or opens a new decision, ask another round. Do not guess.
 
 ### Write
 
-1. Put the plan at `/tmp/agent-artifacts/<repo>/<date>-<slug>/plan.md`. If the sandbox blocks `/tmp`, use the temporary folder of the agent.
-2. Write the context, the decisions with their source, the approach, the files, the steps, and the verification commands.
+1. Put the plan at `/tmp/agent-artifacts/<repo>/<date>-<slug>/plan.md`. If the sandbox blocks `/tmp`, use the temporary folder of the agent. If the host gives a plan file path, use it for the plan and keep the review page in `/tmp/agent-artifacts/`.
+2. Write the status (draft, approved, in progress, or done), the context, the decisions with their source, and the approach. Then write the files, the steps, and the verification commands. Name the files to change. For a change that repeats across many files, describe the pattern once and list a few example paths.
 3. Copy `assets/review-page.html` to the same folder as `index.html`. Edit only the JSON block with the id `plan`, and replace each value that starts with `TEMPLATE:`.
 4. Add Mermaid source in `diagram` when the change has more than two parts. The page shows the source as text, and draws it when the pinned Mermaid file loads.
 5. Run `node scripts/validate-page.mjs <page>`. If Node is not available, run the script with `bun`. Fix each error.
-6. Give the user both paths, the approach, and the main risk. Wait for approval.
+6. Give the user both paths, the approach, and the main risk. If the host has a plan approval step, use it. If not, ask "Do you approve this plan?" Wait for approval in this conversation.
 
 ### Execute
 
@@ -69,5 +72,5 @@ A change touches many files, needs many steps, or has a design choice that belon
 
 - The plan path and the review page path.
 - The validator command and its result line.
-- The question round, with the recommended option first in each question.
+- Each question round, with the recommended option first in each question.
 - Each step with its status, and each skipped step with its reason.
