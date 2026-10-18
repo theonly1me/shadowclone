@@ -24,6 +24,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`clones`](../../packages/clones/AGENTS.md)           | Clones on a machine that the owner owns              |
 | [`web`](../../packages/web/AGENTS.md)                 | Wizard, voice capture, and skill drafts              |
 | [`mcp`](../../packages/mcp/AGENTS.md)                 | MCP server                                           |
+| [`hub`](../../packages/hub/AGENTS.md)                 | Remote MCP server with OAuth for clones              |
 | [`cli`](../../packages/cli/AGENTS.md)                 | Commands, build, and publish                         |
 | [`evals`](../../evals/AGENTS.md)                      | Private evaluation suites                            |
 | [`tooling`](../../tooling/AGENTS.md)                  | Repository checks that `bun run lint` runs           |
@@ -55,7 +56,8 @@ graph BT
   mcp --> learning
   clones --> bot
   mcp --> clones
-  cli --> mcp
+  hub --> mcp
+  cli --> hub
   cli --> web
   cli --> harness
   cli --> review
@@ -90,6 +92,8 @@ flowchart LR
   Delivery -- "reviewed skills" --> Bot["bot: GitHub Actions bot"]
   Delivery -- "reviewed skills" --> Session["clones: a clone in Docker on a machine that you own"]
   Start["Owner's task from the CLI or an MCP agent"] --> Session
+  Phone["Claude app or another MCP client"] -- "OAuth through Tailscale Funnel" --> Hub["hub: MCP over HTTPS on loopback"]
+  Hub --> Session
   Session -- "prompt, skills, files that the agent reads" --> Provider
   subgraph GitHub["GitHub"]
     Bot --> Pulls["Draft pull requests and review comments"]
@@ -111,6 +115,7 @@ flowchart LR
 | Toolchain to network    | Dependency downloads                      | A fixed public-registry allowlist through a restricted proxy                                                            |
 | Machine to GitHub       | Reviewed skills, secrets, review text     | Owner approval of an exact preview. Secrets use standard input                                                          |
 | Owner task to clone     | A task that starts work as the owner      | A local CLI or MCP call on the owner's machine, a run folder with mode 0700, and a container with only the secrets file |
+| Internet to hub         | Clone tool calls from approved clients    | OAuth with PKCE, a single-use pairing code, hashed tokens, revocation, the lock, and an optional source allowlist       |
 | Evaluation              | Synthetic tasks, receipts, held-out cases | Private storage outside checkouts. Approved scope per paid run                                                          |
 
 ## How the packages work together

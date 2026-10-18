@@ -12,6 +12,7 @@ Start with the [README](../README.md) to install shadowclone and pick your first
 - [OpenCode setup](guides/opencode.md): use shadowclone with OpenCode 1.x and 2.x.
 - [Delegated work](guides/delegated-work.md): take a change to ready for review.
 - [Actions bot](guides/actions-bot.md): set up a GitHub bot on a provider API key.
+- [Hub](guides/hub.md): reach your clones from the Claude app or any MCP client.
 - [Clones](guides/clones.md): run Claude Code or Codex as you on a machine that you own, with your own subscription.
 - [Reviews](guides/reviews.md): follow a guided review, or review a PR locally or in the cloud.
 - [MCP server](guides/mcp.md): give a connected agent the shadowclone tools.

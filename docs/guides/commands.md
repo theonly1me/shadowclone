@@ -65,6 +65,13 @@ See [skill maintenance](skills.md).
 - `shadowclone clone stop <id>`: stop a clone. A running clone pushes its unfinished work first.
 - `shadowclone clone send <id> <message>` and `clone answer <id> <question-id> <answer>`: give a running clone a message, or answer its open question. See [clones](clones.md#steer-a-clone-and-answer-it).
 - `shadowclone serve`: start queued clones in Docker, up to 2 at a time. Setup installs it as a service. A second `serve` on the same machine exits with status 1.
+- `shadowclone hub serve [--port <n>]`: serve the [hub](hub.md) on `127.0.0.1`, port 4517 by default. A second hub on the same machine exits with status 1. `hub service` installs it as a service.
+- `shadowclone hub expose`: put the hub behind Tailscale Funnel and save its public URL. `--url https://<host>` saves the URL of your own proxy instead, and `--off` turns Funnel off.
+- `shadowclone hub pair`: print a pairing code for a new client. A code works once, for 10 minutes.
+- `shadowclone hub clients` and `hub clients revoke <id>`: list the approved clients, or stop one at once.
+- `shadowclone hub lock` and `hub unlock`: refuse every request, or allow them again.
+- `shadowclone hub allow <source>...`: accept requests only from `anthropic`, `tailnet`, `loopback`, or address ranges. `--any` removes the limit.
+- `shadowclone hub status`: show the URL, the lock, the allowed sources, and the number of clients.
 - `shadowclone check [--changed]`: run the repository checks. `--format` accepts `human`, `json`, or `claude-stop`.
 
 ## Serve
