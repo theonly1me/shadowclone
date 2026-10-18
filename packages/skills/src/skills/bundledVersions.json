@@ -267,7 +267,9 @@
   "verify-review-findings": {
     "SKILL.md": [
       "6d484e0627b5a14e65ad4707dbf5a2cb368ea1e4786c83091de6c37aff8c0f89",
-      "0bf61a034bd9b8604842e4aeb8a9899144b88dcc3450a9a73c92835725d6c586"
+      "0bf61a034bd9b8604842e4aeb8a9899144b88dcc3450a9a73c92835725d6c586",
+      "279e843e5eef97eecfbebcc15aa5a92079d0a4e6c328d2f1c6dac9be38ef4177",
+      "9873bf750fc9ea2f062c2f62ce5e8d284ab46ade7bb90cba10a3b1e6f11ab4e5"
     ]
   },
   "write-plain-english": {

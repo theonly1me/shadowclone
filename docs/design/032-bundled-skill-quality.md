@@ -136,7 +136,8 @@ An owner kept personal copies of three skills next to the bundled ones: `plannin
   - the rule to read the code around a cited line
   - the command that removes analysis blocks from bot comments
   - the warning that a resolved marker is not proof
-  - a new step that lists the thread rules after the user decides
+  - the installed rules of the owner, which fix each confirmed finding without waiting
+  - a reply with the full SHA, and a question to the user only before a human comment is declined
 
 The bundled skills still never rewrite pushed history in their own text. The owner removed that rule from `scope-confirmed-changes` and `shadowclone-work` on purpose, so the personal rule about force pushes does not return.
 
