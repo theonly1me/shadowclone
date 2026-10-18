@@ -1,5 +1,6 @@
 import { acquireLocalLock } from "@shadowclone/core";
 import type { CloneNode } from "@shadowclone/clones";
+import type { LiveSessions } from "@shadowclone/live";
 import { hubHostName } from "./fleet/hostName";
 import { nodeLinks, type NodeSocket } from "./fleet/links";
 import { nodeProtocol } from "./fleet/protocol";
@@ -16,6 +17,7 @@ type LinkData = { readonly name: string; socket?: NodeSocket };
 export function startHubServer(options: {
   readonly store: HubStore;
   readonly node: CloneNode;
+  readonly live?: LiveSessions;
   readonly port: number;
   readonly log: (line: string) => void;
   readonly hostName?: string;
@@ -25,6 +27,7 @@ export function startHubServer(options: {
   const hub = createHub({
     store,
     node: options.node,
+    ...(options.live === undefined ? {} : { live: options.live }),
     hostName: options.hostName ?? hubHostName(),
     links,
     log,
@@ -76,6 +79,7 @@ export function startHubServer(options: {
 export async function serveHub(options: {
   readonly paths: HubPaths;
   readonly node: CloneNode;
+  readonly live?: LiveSessions;
   readonly port?: number;
   readonly signal: AbortSignal;
   readonly log: (line: string) => void;
@@ -99,6 +103,7 @@ export async function serveHub(options: {
   const server = startHubServer({
     store,
     node: options.node,
+    ...(options.live === undefined ? {} : { live: options.live }),
     port: settings.port,
     log: options.log,
   });

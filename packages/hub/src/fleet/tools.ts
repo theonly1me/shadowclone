@@ -1,5 +1,7 @@
 import { z } from "zod";
 import type { CloneNode } from "@shadowclone/clones";
+import type { LiveSessions } from "@shadowclone/live";
+import { holds } from "./holds";
 import { createSessionsTools, sessionsTools } from "@shadowclone/mcp";
 import type { HubStore } from "../store";
 import { nodeNamePattern } from "../store/nodes";
@@ -33,6 +35,7 @@ const routingSchema = z.object({
 export type Fleet = {
   readonly hostName: string;
   readonly local: CloneNode;
+  readonly live?: LiveSessions;
   readonly links: NodeLinks;
   readonly store: HubStore;
 };
@@ -45,7 +48,10 @@ async function runOn(options: {
   const { fleet, node, params } = options;
 
   if (node === fleet.hostName) {
-    const result = await createSessionsTools({ node: fleet.local }).run(params);
+    const result = await createSessionsTools({
+      node: fleet.local,
+      ...(fleet.live === undefined ? {} : { live: fleet.live }),
+    }).run(params);
     const parsed = toolResultSchema.safeParse(result);
 
     return parsed.success ? parsed.data : textResult({ value: "Unknown tool.", isError: true });
@@ -76,7 +82,7 @@ async function ownerOf(options: {
 }): Promise<string | null> {
   const { fleet, id } = options;
 
-  if ((await fleet.local.get(id)) !== null) {
+  if (await holds({ node: fleet.local, live: fleet.live, id })) {
     return fleet.hostName;
   }
 

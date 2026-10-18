@@ -1,4 +1,6 @@
 import type { CloneNode } from "@shadowclone/clones";
+import type { LiveSessions } from "@shadowclone/live";
+import { holds } from "./holds";
 import { createSessionsTools } from "@shadowclone/mcp";
 import { nodeProtocols, parseMessage, textResult, toNodeSchema, type ToNode } from "./protocol";
 
@@ -7,22 +9,25 @@ export type NodeLink = { readonly hubUrl: string; readonly name: string; readonl
 export async function answerHub(options: {
   readonly message: ToNode;
   readonly node: CloneNode;
+  readonly live?: LiveSessions;
 }): Promise<unknown> {
-  const { message, node } = options;
+  const { message, node, live } = options;
 
   if (message.type === "has") {
-    return (await node.get(message.clone)) !== null;
+    return holds({ node, live, id: message.clone });
   }
 
   return (
-    (await createSessionsTools({ node }).run(message.params)) ??
-    textResult({ value: "Unknown tool.", isError: true })
+    (await createSessionsTools({ node, ...(live === undefined ? {} : { live }) }).run(
+      message.params,
+    )) ?? textResult({ value: "Unknown tool.", isError: true })
   );
 }
 
 function connectOnce(options: {
   readonly link: NodeLink;
   readonly node: CloneNode;
+  readonly live?: LiveSessions;
   readonly signal: AbortSignal;
   readonly log: (line: string) => void;
 }): Promise<boolean> {
@@ -43,7 +48,11 @@ function connectOnce(options: {
       const message = toNodeSchema.safeParse(parseMessage(String(event.data)));
 
       if (message.success) {
-        answerHub({ message: message.data, node })
+        answerHub({
+          message: message.data,
+          node,
+          ...(options.live === undefined ? {} : { live: options.live }),
+        })
           .then((result) =>
             socket.send(JSON.stringify({ type: "result", id: message.data.id, result })),
           )
@@ -76,6 +85,7 @@ function connectOnce(options: {
 export async function runNodeLink(options: {
   readonly link: NodeLink;
   readonly node: CloneNode;
+  readonly live?: LiveSessions;
   readonly signal: AbortSignal;
   readonly log: (line: string) => void;
   readonly wait?: (milliseconds: number) => Promise<void>;

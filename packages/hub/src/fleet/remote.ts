@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { CloneNode } from "@shadowclone/clones";
+import type { LiveSessions } from "@shadowclone/live";
 import { createSessionsTools } from "@shadowclone/mcp";
 import type { NodeLink } from "./client";
 import {
@@ -46,9 +47,13 @@ async function askHub(options: {
 export function forwardedSessionTools(options: {
   readonly link: NodeLink;
   readonly local: CloneNode;
+  readonly live?: LiveSessions;
   readonly fetch?: FetchCall;
 }) {
-  const local = createSessionsTools({ node: options.local });
+  const local = createSessionsTools({
+    node: options.local,
+    ...(options.live === undefined ? {} : { live: options.live }),
+  });
 
   return {
     list: fleetToolList,

@@ -10,6 +10,7 @@ import {
   removeLink,
   runNodeLink,
 } from "@shadowclone/hub";
+import { machineLive } from "@shadowclone/live";
 import { serveMcp } from "@shadowclone/mcp";
 import { flagValue } from "./cloneOptions";
 import { print, runAsService, stopSignal, timestamped } from "./hubCommon";
@@ -29,7 +30,11 @@ export async function mcpCommand(): Promise<void> {
     link === null
       ? {}
       : {
-          sessionTools: forwardedSessionTools({ link, local: localNode({ paths: clonesPaths() }) }),
+          sessionTools: forwardedSessionTools({
+            link,
+            local: localNode({ paths: clonesPaths() }),
+            live: machineLive(),
+          }),
         },
   );
 }
@@ -71,6 +76,7 @@ export const nodeOperations: Readonly<
     await runNodeLink({
       link,
       node: localNode({ paths: clonesPaths() }),
+      live: machineLive(),
       signal: stopSignal(),
       log: timestamped,
     });

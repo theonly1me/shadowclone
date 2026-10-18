@@ -1,0 +1,17 @@
+{
+  "name": "@shadowclone/live",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@shadowclone/core": "workspace:*",
+    "@shadowclone/redact": "workspace:*",
+    "zod": "^4.6.7"
+  }
+}

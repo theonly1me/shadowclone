@@ -12,6 +12,7 @@
   "dependencies": {
     "@shadowclone/clones": "workspace:*",
     "@shadowclone/core": "workspace:*",
+    "@shadowclone/live": "workspace:*",
     "@shadowclone/mcp": "workspace:*",
     "zod": "^4.6.7"
   }
