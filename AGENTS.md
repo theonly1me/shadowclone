@@ -55,7 +55,7 @@ bun run stage
 
 Explain what changed, how you verified it, and the remaining limits. Commit, push, and open a draft pull request without a diff review. Before you push to a branch that has a pull request, run `gh pr view --json state`.
 
-Commit messages and pull request titles use one lowercase conventional-commit subject, such as `fix: keep cursors after a failed index`, with no body and no co-author trailer. A squash merge uses the title as the subject on `main`, and Release Please creates releases only from conventional commits. Never force push or amend a pushed commit.
+Commit messages and pull request titles use one lowercase conventional-commit subject, such as `fix: keep cursors after a failed index`, with no body and no co-author trailer. A squash merge uses the title as the subject on `main`, and Release Please creates releases only from conventional commits.
 
 <shadowclone-guidance>
 ## Your agent build
