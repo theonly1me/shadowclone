@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { temporaryClones } from "../fixtures";
 import { localNode } from "../node";
-import { startedRecord } from "../node/record";
+import { startedRecord } from "../node/transitions";
 import { writeRecord } from "../node/store";
 import { fakeLaunch, serveContext, settle, startedClone, until } from "./fakeLaunch";
 import { scanRuns, serveClones } from "./server";

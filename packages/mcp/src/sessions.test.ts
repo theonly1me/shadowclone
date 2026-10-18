@@ -8,7 +8,10 @@ import { sessionsTools } from "./sessionsTools";
 
 function textOf(result: unknown): string {
   const parsed =
-    typeof result === "object" && result !== null && "content" in result && Array.isArray(result.content)
+    typeof result === "object" &&
+    result !== null &&
+    "content" in result &&
+    Array.isArray(result.content)
       ? result.content
       : [];
   const [first] = parsed;
@@ -108,7 +111,7 @@ describe("the clone tools", () => {
     });
 
     expect(textOf(result)).toBe(
-      "Use operation start with a repository and a task, or stop with a clone id.",
+      "Use operation start with a repository and a task, send or answer with a clone id and text, or stop with a clone id.",
     );
   });
 });

@@ -12,6 +12,7 @@
   "dependencies": {
     "@shadowclone/cloud": "workspace:*",
     "@shadowclone/core": "workspace:*",
+    "@shadowclone/redact": "workspace:*",
     "smol-toml": "^1.9.1",
     "zod": "^4.6.7"
   }

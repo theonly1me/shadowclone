@@ -1,7 +1,8 @@
 import type { CloneConfig } from "../config/config";
 import type { ClonesPaths } from "../config/store";
 import { finalStates, type Progress } from "../node/progress";
-import { endedRecord, progressedRecord, startedRecord } from "../node/record";
+import type { InboxEntry } from "../node/inbox";
+import { deliveredRecord, endedRecord, progressedRecord, startedRecord } from "../node/transitions";
 import { writeRecord, type CloneRecord, type StoredRun } from "../node/store";
 import type { Launch } from "./docker";
 
@@ -16,6 +17,7 @@ export type Running = {
   readonly provider: CloneConfig["provider"];
   readonly controller: AbortController;
   readonly done: Promise<void>;
+  readonly forward: (entries: readonly InboxEntry[]) => Promise<void>;
 };
 
 export function errorText(error: unknown): string {
@@ -32,7 +34,30 @@ export function launchClone(options: {
   const controller = new AbortController();
   let record: CloneRecord = startedRecord(context.now());
   let reported = false;
-  const save = () => writeRecord({ paths: context.paths, id, record });
+  let saving: Promise<void> = Promise.resolve();
+  let deliver: ((line: string) => void) | null = null;
+  let delivered = 0;
+  const save = () => {
+    saving = saving.then(() => writeRecord({ paths: context.paths, id, record }));
+
+    return saving;
+  };
+  const forward = async (entries: readonly InboxEntry[]) => {
+    for (const entry of entries.slice(delivered)) {
+      if (deliver === null) {
+        return;
+      }
+
+      deliver(JSON.stringify(entry));
+      delivered++;
+      record = deliveredRecord({
+        record,
+        delivery: entry.kind === "message" ? { kind: "message" } : entry,
+        now: context.now(),
+      });
+      await save();
+    }
+  };
   const onProgress = async (progress: Progress) => {
     record = progressedRecord({ record, progress, now: context.now() });
     reported = finalStates.includes(progress.state);
@@ -48,7 +73,12 @@ export function launchClone(options: {
         request: run.request,
         signal: controller.signal,
         onProgress,
+        attach: (send) => {
+          deliver = send;
+        },
       });
+
+      deliver = null;
 
       if (!reported) {
         record = endedRecord({
@@ -73,7 +103,7 @@ export function launchClone(options: {
     await save();
   })();
 
-  return { provider: config.provider, controller, done };
+  return { provider: config.provider, controller, done, forward };
 }
 
 export async function failBeforeStart(options: {
@@ -86,6 +116,11 @@ export async function failBeforeStart(options: {
   await writeRecord({
     paths: options.context.paths,
     id: options.id,
-    record: endedRecord({ record: startedRecord(now), state: "failed", detail: options.detail, now }),
+    record: endedRecord({
+      record: startedRecord(now),
+      state: "failed",
+      detail: options.detail,
+      now,
+    }),
   });
 }

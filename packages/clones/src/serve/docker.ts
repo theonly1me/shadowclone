@@ -28,12 +28,14 @@ export function dockerRunArguments(options: {
   readonly label: string;
   readonly command: readonly string[];
   readonly environment: Readonly<Record<string, string>>;
+  readonly interactive?: boolean;
 }): readonly string[] {
   return [
     "docker",
     "run",
     "--rm",
     "--init",
+    ...(options.interactive === true ? ["--interactive"] : []),
     "--name",
     options.name,
     "--label",
@@ -57,6 +59,7 @@ export type Launch = (options: {
   readonly request: CloneRequest;
   readonly signal: AbortSignal;
   readonly onProgress: (progress: Progress) => Promise<void>;
+  readonly attach: (send: (line: string) => void) => void;
 }) => Promise<number>;
 
 async function relayOutput(options: {
@@ -92,7 +95,7 @@ async function relayOutput(options: {
 }
 
 export function dockerLauncher(options: { readonly paths: ClonesPaths }): Launch {
-  return async ({ config, request, signal, onProgress }) => {
+  return async ({ config, request, signal, onProgress, attach }) => {
     const descriptor = openSync(containerLog({ paths: options.paths, id: request.id }), "a", 0o600);
     const child = Bun.spawn({
       cmd: [
@@ -102,15 +105,21 @@ export function dockerLauncher(options: { readonly paths: ClonesPaths }): Launch
           name: `shadowclone-${request.id}`,
           label: `dev.shadowclone.clone=${request.id}`,
           command: ["shadowclone", "clone", "run"],
+          interactive: true,
           environment: {
             [cloneConfigVariable]: JSON.stringify(config),
             [cloneRequestVariable]: JSON.stringify(request),
           },
         }),
       ],
-      stdin: "ignore",
+      stdin: "pipe",
       stdout: "pipe",
       stderr: descriptor,
+    });
+
+    attach((line) => {
+      child.stdin.write(`${line}\n`);
+      child.stdin.flush();
     });
     const stop = () => child.kill("SIGTERM");
 

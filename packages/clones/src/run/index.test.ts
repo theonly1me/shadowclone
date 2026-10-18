@@ -6,6 +6,7 @@ import { fakeGithub, pullRoute, sampleConfig, sha, type FakeRoutes } from "../fi
 import type { Progress } from "../node/progress";
 import type { CloneRequest } from "../node/request";
 import { runClone } from ".";
+import { fakeEngine } from "./drive/fakeEngine";
 import type { ProcessRequest, Processes } from "./processes";
 
 const branch = "shadowclone/clone000";
@@ -32,6 +33,7 @@ function pullRequestRoutes(): FakeRoutes {
 function fakeProcesses(options: { readonly unpushed: boolean }) {
   const commands: string[] = [];
   const streamed: ProcessRequest[] = [];
+  const prompts: unknown[] = [];
   const processes: Processes = {
     run: async (request) => {
       const command = request.arguments.join(" ");
@@ -64,9 +66,21 @@ function fakeProcesses(options: { readonly unpushed: boolean }) {
       streamed.push(request);
       return { exitCode: 0, tail: "Done." };
     },
+    open: (request) => {
+      streamed.push(request);
+
+      const fake = fakeEngine({
+        onWrite: (value, emit) => {
+          prompts.push(value);
+          emit({ type: "result", subtype: "success", result: "Fixed the parser." });
+        },
+      });
+
+      return fake.engine;
+    },
   };
 
-  return { processes, commands, streamed };
+  return { processes, commands, streamed, prompts };
 }
 
 async function runWith(options: {
@@ -77,7 +91,7 @@ async function runWith(options: {
 }) {
   const root = await mkdtemp(path.join(os.tmpdir(), "shadowclone-clone-"));
   const github = fakeGithub(options.routes);
-  const { processes, commands, streamed } = fakeProcesses({ unpushed: options.unpushed });
+  const { processes, commands, streamed, prompts } = fakeProcesses({ unpushed: options.unpushed });
   const reports: Progress[] = [];
 
   try {
@@ -89,10 +103,11 @@ async function runWith(options: {
       root,
       environment: {},
       signal: options.aborted ? AbortSignal.abort() : new AbortController().signal,
+      inbox: { [Symbol.asyncIterator]: async function* () {} },
       report: (progress) => reports.push(progress),
     });
 
-    return { final, reports, github, commands, streamed };
+    return { final, reports, github, commands, streamed, prompts };
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -100,7 +115,7 @@ async function runWith(options: {
 
 describe("a clone run in the container", () => {
   test("a new task runs Claude Code on its own branch, then labels the pull request and adds the body line", async () => {
-    const { final, reports, github, streamed } = await runWith({
+    const { final, reports, github, streamed, prompts } = await runWith({
       request: newTask,
       routes: pullRequestRoutes(),
       unpushed: false,
@@ -108,19 +123,21 @@ describe("a clone run in the container", () => {
     });
     const [engine] = streamed;
 
-    expect(engine?.arguments.slice(0, 4)).toEqual([
+    expect(engine?.arguments.slice(0, 5)).toEqual([
       "claude",
       "-p",
-      "--permission-mode",
-      "bypassPermissions",
+      "--input-format",
+      "stream-json",
+      "--output-format",
     ]);
-    expect(engine?.input).toContain("fix the parser");
-    expect(engine?.input).toContain(`Work on the branch ${branch}.`);
+    expect(JSON.stringify(prompts[0])).toContain("fix the parser");
+    expect(JSON.stringify(prompts[0])).toContain(`Work on the branch ${branch}.`);
     expect(final).toEqual({
       state: "done",
       branch,
       engine: "claude",
       pull: 40,
+      summary: "Fixed the parser.",
       detail: "The clone finished.",
     });
     expect(reports.at(-1)).toEqual(final);

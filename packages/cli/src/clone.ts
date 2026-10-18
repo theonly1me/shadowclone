@@ -2,8 +2,10 @@ import {
   chatgptLoginArguments,
   clonesPaths,
   dockerLauncher,
+  questionsFileVariable,
   runContainerCheckFromEnvironment,
   runContainerClone,
+  serveAskTool,
   serveClones,
 } from "@shadowclone/clones";
 import { cloneControlUsage, controlOperations } from "./cloneControl";
@@ -72,6 +74,19 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
     const final = await runContainerClone({ environment: process.env, signal: stopSignal() });
 
     process.exitCode = final.state === "done" ? 0 : 1;
+  },
+  "ask-server": async () => {
+    const file = process.env[questionsFileVariable];
+
+    if (file === undefined || file === "") {
+      throw new Error(`${questionsFileVariable} names no questions file.`);
+    }
+
+    await serveAskTool({
+      file,
+      input: Bun.stdin.stream(),
+      write: (line) => Bun.write(Bun.stdout, line),
+    });
   },
   check: async () => {
     const lines = await runContainerCheckFromEnvironment(process.env);

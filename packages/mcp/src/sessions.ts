@@ -2,6 +2,7 @@ import type { z } from "zod";
 import {
   cloneDetailLines,
   cloneListLine,
+  sendText,
   startText,
   stopText,
   type CloneNode,
@@ -45,6 +46,26 @@ async function controlClone(options: {
   readonly input: z.infer<typeof cloneInputSchema>;
 }): Promise<{ readonly value: string; readonly isError: boolean }> {
   const { node, input } = options;
+
+  if (input.operation === "send" || input.operation === "answer") {
+    if (input.id === undefined || input.text === undefined) {
+      throw new Error("Name the clone id and give the owner's text.");
+    }
+
+    if (input.operation === "answer" && input.question === undefined) {
+      throw new Error("Name the question id from shadowclone_sessions get.");
+    }
+
+    const outcome =
+      input.operation === "send"
+        ? await node.send({ id: input.id, text: input.text })
+        : await node.answer({ id: input.id, question: input.question ?? "", text: input.text });
+
+    return {
+      value: sendText({ outcome, what: input.operation === "send" ? "message" : "answer" }),
+      isError: outcome.kind === "refused",
+    };
+  }
 
   if (input.operation === "stop") {
     if (input.id === undefined) {
@@ -99,11 +120,10 @@ export function createSessionsTools(context: { readonly node: CloneNode }) {
         const input = cloneInputSchema.safeParse(params.arguments);
 
         return input.success
-          ? controlClone({ node: context.node, input: input.data })
-              .then(toolText)
-              .catch(failure)
+          ? controlClone({ node: context.node, input: input.data }).then(toolText).catch(failure)
           : toolText({
-              value: "Use operation start with a repository and a task, or stop with a clone id.",
+              value:
+                "Use operation start with a repository and a task, send or answer with a clone id and text, or stop with a clone id.",
               isError: true,
             });
       }

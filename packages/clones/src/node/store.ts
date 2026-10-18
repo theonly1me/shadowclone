@@ -3,7 +3,7 @@ import path from "node:path";
 import { ownedDirectory, ownedWrite } from "@shadowclone/core";
 import { z } from "zod";
 import type { ClonesPaths } from "../config/store";
-import { cloneStates } from "./progress";
+import { askedQuestionSchema, cloneStates } from "./progress";
 import { cloneIdPattern, cloneRequestSchema, type CloneRequest } from "./request";
 
 export const maximumEvents = 50;
@@ -14,6 +14,14 @@ const eventSchema = z.strictObject({
   detail: z.string(),
 });
 
+const questionRecordSchema = askedQuestionSchema.extend({
+  askedAt: z.string(),
+  status: z.enum(["open", "answered", "expired"]),
+  answer: z.string().max(4000).nullable(),
+});
+
+export type QuestionRecord = z.infer<typeof questionRecordSchema>;
+
 export const cloneRecordSchema = z.strictObject({
   state: z.enum(cloneStates),
   branch: z.string().nullable(),
@@ -23,6 +31,8 @@ export const cloneRecordSchema = z.strictObject({
   updatedAt: z.string(),
   detail: z.string(),
   events: z.array(eventSchema).max(maximumEvents),
+  questions: z.array(questionRecordSchema).max(50).default([]),
+  summary: z.string().max(4000).nullable().default(null),
 });
 
 export type CloneRecord = z.infer<typeof cloneRecordSchema>;
@@ -33,7 +43,10 @@ export type StoredRun = {
   readonly stopRequested: boolean;
 };
 
-export function runDirectory(options: { readonly paths: ClonesPaths; readonly id: string }): string {
+export function runDirectory(options: {
+  readonly paths: ClonesPaths;
+  readonly id: string;
+}): string {
   if (!cloneIdPattern.test(options.id)) {
     throw new Error(`${options.id} is not a clone id.`);
   }
@@ -41,7 +54,10 @@ export function runDirectory(options: { readonly paths: ClonesPaths; readonly id
   return path.join(options.paths.runsDirectory, options.id);
 }
 
-export function containerLog(options: { readonly paths: ClonesPaths; readonly id: string }): string {
+export function containerLog(options: {
+  readonly paths: ClonesPaths;
+  readonly id: string;
+}): string {
   return path.join(runDirectory(options), "container.log");
 }
 

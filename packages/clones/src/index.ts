@@ -2,11 +2,7 @@ export { githubThroughGh } from "./github";
 
 export { hostProcesses } from "./run/processes";
 
-export {
-  cloneMinutes,
-  runContainerCheckFromEnvironment,
-  runContainerClone,
-} from "./run/container";
+export { cloneMinutes, runContainerCheckFromEnvironment, runContainerClone } from "./run/container";
 
 export { cloneProviders, type CloneProvider } from "./config/providers";
 
@@ -17,6 +13,7 @@ export {
   type CloneList,
   type CloneNode,
   type CloneStartInput,
+  type SendOutcome,
   type StartOutcome,
   type StopOutcome,
 } from "./node";
@@ -43,4 +40,12 @@ export { setupSummary } from "./setup/summary";
 
 export { pushCloneSkills, type SkillsPushOutcome } from "./setup/skills";
 
-export { cloneDetailLines, cloneListLine, startText, stopText } from "./node/text";
+export { cloneDetailLines, cloneListLine, sendText, startText, stopText } from "./node/text";
+
+export { maximumMessageLength } from "./node/inbox";
+
+export { questionIdPattern } from "./node/progress";
+
+export { serveAskTool } from "./run/ask/server";
+
+export { questionsFileVariable } from "./run/ask/questions";

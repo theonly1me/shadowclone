@@ -1,7 +1,7 @@
 import type { CloneEngine } from "../config/providers";
-import type { CloneState, Progress } from "./progress";
+import type { CloneState } from "./progress";
 import { requestSummary, type CloneRequest } from "./request";
-import { maximumEvents, type CloneRecord, type StoredRun } from "./store";
+import type { CloneRecord, QuestionRecord, StoredRun } from "./store";
 
 export type CloneEvent = CloneRecord["events"][number];
 
@@ -20,6 +20,9 @@ export type CloneView = {
   readonly updatedAt: string;
   readonly detail: string;
   readonly events: readonly CloneEvent[];
+  readonly questions: readonly QuestionRecord[];
+  readonly needsYou: boolean;
+  readonly report: string | null;
 };
 
 export function cloneState(run: StoredRun): CloneState {
@@ -29,12 +32,24 @@ export function cloneState(run: StoredRun): CloneState {
 export function isActive(run: StoredRun): boolean {
   const state = cloneState(run);
 
-  return state === "queued" || state === "working";
+  return state === "queued" || state === "working" || state === "waiting";
+}
+
+export function openQuestion(options: {
+  readonly run: StoredRun;
+  readonly question: string;
+}): QuestionRecord | null {
+  return (
+    options.run.record?.questions.find(
+      (entry) => entry.id === options.question && entry.status === "open",
+    ) ?? null
+  );
 }
 
 export function cloneView(run: StoredRun): CloneView {
   const { request, record } = run;
   const state = cloneState(run);
+  const questions = record?.questions ?? [];
 
   return {
     id: request.id,
@@ -55,73 +70,8 @@ export function cloneView(run: StoredRun): CloneView {
         ? "You stopped the clone before it started."
         : "The clone waits for shadowclone serve to start it."),
     events: record?.events ?? [],
-  };
-}
-
-function withEvent(options: {
-  readonly record: CloneRecord;
-  readonly state: CloneState;
-  readonly detail: string;
-  readonly now: Date;
-}): CloneRecord["events"] {
-  const { record } = options;
-  const last = record.events.at(-1);
-
-  if (last?.state === options.state && last.detail === options.detail) {
-    return record.events;
-  }
-
-  return [
-    ...record.events,
-    { at: options.now.toISOString(), state: options.state, detail: options.detail },
-  ].slice(-maximumEvents);
-}
-
-export function startedRecord(now: Date): CloneRecord {
-  const detail = "Starting the container.";
-
-  return {
-    state: "working",
-    branch: null,
-    pull: null,
-    engine: null,
-    startedAt: now.toISOString(),
-    updatedAt: now.toISOString(),
-    detail,
-    events: [{ at: now.toISOString(), state: "working", detail }],
-  };
-}
-
-export function progressedRecord(options: {
-  readonly record: CloneRecord;
-  readonly progress: Progress;
-  readonly now: Date;
-}): CloneRecord {
-  const { record, progress } = options;
-
-  return {
-    ...record,
-    state: progress.state,
-    branch: progress.branch ?? record.branch,
-    pull: progress.pull ?? record.pull,
-    engine: progress.engine ?? record.engine,
-    updatedAt: options.now.toISOString(),
-    detail: progress.detail,
-    events: withEvent({ ...options, state: progress.state, detail: progress.detail }),
-  };
-}
-
-export function endedRecord(options: {
-  readonly record: CloneRecord;
-  readonly state: CloneState;
-  readonly detail: string;
-  readonly now: Date;
-}): CloneRecord {
-  return {
-    ...options.record,
-    state: options.state,
-    updatedAt: options.now.toISOString(),
-    detail: options.detail,
-    events: withEvent(options),
+    questions,
+    needsYou: isActive(run) && questions.some((entry) => entry.status === "open"),
+    report: record?.summary ?? null,
   };
 }
