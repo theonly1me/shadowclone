@@ -66,8 +66,12 @@ See [skill maintenance](skills.md).
 - `shadowclone clone send <id> <message>` and `clone answer <id> <question-id> <answer>`: give a running clone a message, or answer its open question. See [clones](clones.md#steer-a-clone-and-answer-it).
 - `shadowclone serve`: start queued clones in Docker, up to 2 at a time. Setup installs it as a service. A second `serve` on the same machine exits with status 1.
 - `shadowclone hub serve [--port <n>]`: serve the [hub](hub.md) on `127.0.0.1`, port 4517 by default. A second hub on the same machine exits with status 1. `hub service` installs it as a service.
-- `shadowclone hub expose`: put the hub behind Tailscale Funnel and save its public URL. `--url https://<host>` saves the URL of your own proxy instead, and `--off` turns Funnel off.
-- `shadowclone hub pair`: print a pairing code for a new client. A code works once, for 10 minutes.
+- `shadowclone hub expose`: put the hub behind Tailscale Funnel and save its public URL. `--url https://<host>` saves the URL of your own proxy instead. `--tailnet` uses `tailscale serve`, so only your tailnet reaches the hub. `--off` turns it off.
+- `shadowclone hub pair`: print a pairing code for a new client. A code works once, for 10 minutes. `--node` prints a code for another machine.
+- `shadowclone hub join <hub URL> --code <code>`: join this machine to a hub as a node, and start the node link as a service. `--name <name>` sets the node name, and `--no-service` skips the service.
+- `shadowclone hub link`: keep the node connected to the hub. The service runs it.
+- `shadowclone hub leave`: remove the link of this machine.
+- `shadowclone hub nodes` and `hub nodes remove <name>`: list the joined machines, or remove one.
 - `shadowclone hub clients` and `hub clients revoke <id>`: list the approved clients, or stop one at once.
 - `shadowclone hub lock` and `hub unlock`: refuse every request, or allow them again.
 - `shadowclone hub allow <source>...`: accept requests only from `anthropic`, `tailnet`, `loopback`, or address ranges. `--any` removes the limit.

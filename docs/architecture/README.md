@@ -94,6 +94,7 @@ flowchart LR
   Start["Owner's task from the CLI or an MCP agent"] --> Session
   Phone["Claude app or another MCP client"] -- "OAuth through Tailscale Funnel" --> Hub["hub: MCP over HTTPS on loopback"]
   Hub --> Session
+  Node["Another machine: hub link"] -- "WebSocket over the tailnet" --> Hub
   Session -- "prompt, skills, files that the agent reads" --> Provider
   subgraph GitHub["GitHub"]
     Bot --> Pulls["Draft pull requests and review comments"]

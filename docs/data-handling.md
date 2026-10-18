@@ -147,7 +147,9 @@ A clone runs in a fresh container. The provider receives the prompt, the skills,
 
 `shadowclone hub serve` listens on `127.0.0.1` only. `hub expose` asks Tailscale Funnel to forward public HTTPS requests to it. Each approved client receives the clone lists and clone details that it asks for. For the Claude app, that text passes through Anthropic, which sends it to the model.
 
-The hub writes `~/.shadowclone/hub/` (mode 0700). `hub.db` (mode 0600) holds the client names and redirect URIs, the settings, and SHA-256 hashes of pairing codes, authorization codes, and tokens. The hub never stores a code or a token itself. The log names client ids and redirect hosts. `hub clients revoke` ends a client's tokens, and deleting the folder ends all of them. See the [hub guide](guides/hub.md).
+The hub writes `~/.shadowclone/hub/` (mode 0700). `hub.db` (mode 0600) holds the client names and redirect URIs, the settings, and SHA-256 hashes of pairing codes, authorization codes, and tokens. The hub never stores a code or a token itself. The log names client ids and redirect hosts. `hub clients revoke` ends a client's tokens, and deleting the folder ends all of them.
+
+A machine that joins a hub writes `~/.shadowclone/hub/link.json` (mode 0600) with the hub URL, its node name, and its node token. Its link sends the hub the text of its clone tool answers. On that machine, `shadowclone mcp` sends clone tool calls to the hub. The hub stores a hash of each node token. See the [hub guide](guides/hub.md).
 
 ## Boundaries that a change must keep
 

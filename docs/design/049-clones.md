@@ -79,10 +79,23 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Not now.** The hub does not accept a Client ID Metadata Document. Claude uses DCR when the metadata does not advertise CIMD. CIMD would also make the public hub fetch URLs that a caller names. The hub has no rate limit other than the pairing tries.
 
+## Step 4: more machines
+
+**Join.** `shadowclone hub pair --node` on the hub prints a node code. `shadowclone hub join <hub URL> --code <code>` on another machine sends the code and a name to `/nodes/pair`. The hub stores a hash of a new node token, and the machine saves the token in `~/.shadowclone/hub/link.json` (mode 0600). A node code cannot approve a client, and a client code cannot join a node. A node cannot take the name of the hub machine.
+
+**Link.** `shadowclone hub link` runs as a service on the node. It opens a WebSocket to `/nodes/link` and reconnects with a backoff of 1 to 60 seconds. The token goes in the `Sec-WebSocket-Protocol` header, because the WebSocket client of Bun has no typed header option when the DOM types load. The hub answers with the `shadowclone-node` protocol. The node opens no port.
+
+**Routing.** The hub tools take an optional `node`. `list` with no node shows each node in its own section, and an offline node with the time that the hub last saw it. `start` with no node runs on the hub machine. An operation on a clone id with no node goes to the node that has the clone. The hub sends a node the same tool call, and the node answers with its own `localNode`. A node that does not answer in 15 seconds gives an error.
+
+**Local agents.** On a node, `shadowclone mcp` sends the two clone tools to the hub with the node token. So Claude Code and Codex on that machine see every node with no OAuth. If the hub does not answer, the tools answer for that machine and say so.
+
+**Reach.** A node reaches the hub at its `ts.net` URL inside the tailnet. `hub expose --tailnet` uses `tailscale serve` for a hub that only nodes reach. With `hub allow`, add `tailnet` so that nodes still reach the hub.
+
 ## Consequences
 
 - An owner can start a clone from any agent on the node without GitHub. A phone needs the hub from step 3.
 - The hub is a public endpoint that starts agents that act as the owner. A flaw in sign-in would give a stranger the owner's GitHub. The pairing code, short tokens, revocation, the lock, and the allowlist limit this risk.
+- A node token gives the same clone tools as an approved client. `hub nodes remove <name>` revokes it.
 - A local program can send a false `X-Forwarded-For` header. A local program already runs as the owner, so the allowlist guards only remote callers.
 - A clone that exits before CI finishes does not continue. The owner starts it again on its pull request.
 - A node that is off runs nothing. Queued clones wait in their folders until `serve` starts again.
@@ -98,9 +111,12 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - Run tests use a fake GitHub and a fake engine. They check the hooks, the trailer switch, the label, the body line, the save after SIGTERM, and the final state.
 - Config tests: a version 1 config fails with the setup message.
 - Hub tests send HTTP requests to the handler with a real database. They cover the `401`, a sign-in through to a tool call, plain PKCE, a wrong, used, or expired code, and the fifth wrong try. They also cover a code exchanged twice, refresh token reuse, revocation, expiry, the lock, the allowlist, the origin check, the protocol version, and loopback redirects.
+- Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine.
 
 ## Data handling
 
 The run folder holds the owner's task text, the progress lines, and the container log. The folder has mode 0700 and its files mode 0600. `serve` removes a finished run folder after 30 days. Nothing in the run folder leaves the machine in step 1. The container sends the repository, the skills, and the prompt to the chosen model provider, as in 044.
 
 In step 3, the hub sends clone lists and clone details to each approved client. For the Claude app, that text passes through Anthropic. The hub database holds client names, redirect URIs, settings, and hashes of codes and tokens. The hub log names client ids and redirect hosts, never a token.
+
+In step 4, a node sends the hub the text of its clone tool answers over the tailnet. `link.json` on the node holds the hub URL, the node name, and the node token. The hub database holds a hash of each node token.
