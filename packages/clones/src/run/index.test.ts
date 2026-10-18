@@ -160,4 +160,18 @@ describe("a clone run in the container", () => {
     });
     expect(commands.filter((command) => command.startsWith("git clone"))).toEqual([]);
   });
+
+  test("a pull request branch that starts with a dash is refused, so git never reads it as an option", async () => {
+    const { final } = await runWith({
+      request: { ...newTask, target: { kind: "pull", number: 9 } },
+      routes: pullRoute({ number: 9, branch: "--orphan", head: sha("c") }),
+      unpushed: false,
+      aborted: false,
+    });
+
+    expect(final).toMatchObject({
+      state: "failed",
+      detail: "The branch name of pull request #9 is not safe to use.",
+    });
+  });
 });

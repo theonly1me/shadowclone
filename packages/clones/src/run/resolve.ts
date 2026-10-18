@@ -28,7 +28,7 @@ export type Resolution =
   | { readonly kind: "resolved"; readonly clone: ResolvedClone }
   | { readonly kind: "refused"; readonly reason: string };
 
-const branchPattern = /^[A-Za-z0-9._/-]+$/;
+const branchPattern = /^[A-Za-z0-9_][A-Za-z0-9._/-]*$/;
 
 const issueSchema = z.object({
   number: z.number().int().positive(),
