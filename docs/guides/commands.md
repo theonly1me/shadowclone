@@ -63,6 +63,7 @@ See [skill maintenance](skills.md).
 - `shadowclone clone start --repo owner/repository [--issue <number> | --pull <number> | --review <number>] [task]`: queue a clone. It exits with status 1 when the node refuses the clone, and the output names the reason.
 - `shadowclone clone list [--repo owner/repository]`, `clone show <id>`, and `clone logs <id>`: show the clones on this machine, one clone, and the end of its container log.
 - `shadowclone clone stop <id>`: stop a clone. A running clone pushes its unfinished work first.
+- `shadowclone clone send <id> <message>` and `clone answer <id> <question-id> <answer>`: give a running clone a message, or answer its open question. See [clones](clones.md#steer-a-clone-and-answer-it).
 - `shadowclone serve`: start queued clones in Docker, up to 2 at a time. Setup installs it as a service. A second `serve` on the same machine exits with status 1.
 - `shadowclone check [--changed]`: run the repository checks. `--format` accepts `human`, `json`, or `claude-stop`.
 

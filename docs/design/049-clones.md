@@ -33,7 +33,7 @@ Cloud sandbox hosts come back later as workers that the hub starts. Other tunnel
 
 Each clone runs in a fresh container from the clone image, as in 044. The run program prints progress lines on standard output. `serve` reads them and writes `record.json` and `events.jsonl` in the run folder. So `serve` is the only writer of the state, and the container needs no host folder.
 
-**States.** `queued`, `working`, `done`, `failed`, `limited`, and `stopped`. The run program decides the final state from the exit code, a usage limit, or a stop. If the container exits with no final progress line, the clone is `failed`.
+**States.** `queued`, `working`, `waiting` (from step 2), `done`, `failed`, `limited`, and `stopped`. The run program decides the final state from the exit code, a usage limit, or a stop. If the container exits with no final progress line, the clone is `failed`.
 
 **Stop.** `shadowclone clone stop <id>` and `stop` in the tool write a stop marker. `serve` stops the container with SIGTERM, and the run program commits and pushes the unfinished work, as in 044. A queued clone that has a stop marker never starts.
 
@@ -49,6 +49,20 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Module.** `@shadowclone/clones` exports `localNode`. Its `start`, `list`, `get`, and `stop` operations own the run folders, the budget, and the state rules. The CLI and the MCP server call only these operations. A later remote node gives the hub the same operations.
 
+## Step 2: steer a clone and answer its questions
+
+**Messages.** `shadowclone clone send <id> <message>` and `send` in `shadowclone_clone` add a line to `inbox.jsonl` in the run folder. `serve` writes each new line to the standard input of the container once, and records an event.
+
+**Claude Code.** The run program starts `claude -p` with `--input-format stream-json` and `--output-format stream-json`. A message sent during a turn arrives inside a tool result. In a test run, Claude Code 2.1.302 ignored it as a possible prompt injection. So the run program sends an `interrupt` control request, waits for the turn to end, and sends the message as a new user turn. The interrupted tool call runs again.
+
+**Codex.** The run program starts `codex app-server`. A message during a turn goes through `turn/steer` with the turn id, and a message after a turn starts a new turn. Codex 0.159.0 and 0.163.0 have the same shapes for these methods.
+
+**Questions.** The run program gives the agent one MCP tool, `shadowclone_ask`, with a question, options, and a recommended option. The tool returns at once. The agent keeps working on the parts that do not depend on the answer. It does not take a destructive or outward step that the question covers.
+
+**Answers and the deadline.** `clone answer <id> <question> <answer>` and `answer` in the tool accept only an open question. If a turn ends with an open question, the clone waits in the `waiting` state for up to 30 minutes. With no answer, the question expires. The clone then takes its recommended options, skips each destructive step, and lists it.
+
+**Report.** The final progress line carries the agent's last message, through `redactSecrets`, at most 4000 characters. `clones` now depends on `redact` for this.
+
 ## Consequences
 
 - An owner can start a clone from any agent on the node without GitHub. A phone needs the hub from step 3.
@@ -60,7 +74,9 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 ## Verification
 
 - Node tests: `start` writes a queued request and refuses an unknown repository. It also refuses the clone over the daily budget and a second clone for one issue.
-- Serve tests: a queued clone starts, its progress lines become its state, and a third clone waits while two run. A stop marker stops a working clone and keeps a queued clone from starting. A second `serve` stops at the lock.
+- Driver tests: a Claude message interrupts and arrives as a new turn, and a Codex message steers the running turn.
+- Supervisor tests: a turn with an open question waits, an answer continues it, and the deadline expires it.
+- Serve tests: a message reaches the clone once, and an answer closes its question. A queued clone starts, its progress lines become its state, and a third clone waits while two run. A stop marker stops a working clone and keeps a queued clone from starting. A second `serve` stops at the lock.
 - Run tests use a fake GitHub and a fake engine. They check the hooks, the trailer switch, the label, the body line, the save after SIGTERM, and the final state.
 - Config tests: a version 1 config fails with the setup message.
 

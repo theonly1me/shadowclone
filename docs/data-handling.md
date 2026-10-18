@@ -139,9 +139,9 @@ Cloud tasks and exported guidance are not new learning sources. Local guidance c
 
 You paste the GitHub token and the model login into `secrets.env`. shadowclone never reads the file. It gives Docker only the path. A ChatGPT login stays in the Docker volume `shadowclone-codex-login`.
 
-`clone start` and the `shadowclone_clone` MCP tool write the owner's task to a run folder under `~/.shadowclone/clones/runs/` (mode 0700, files 0600). `shadowclone serve` writes the state, the recent events, and the container log to the same folder, and removes a finished run folder after 30 days. Nothing in a run folder leaves the machine.
+`clone start` and the `shadowclone_clone` MCP tool write the owner's task to a run folder under `~/.shadowclone/clones/runs/` (mode 0700, files 0600). `clone send` and `clone answer` add the owner's messages and answers to `inbox.jsonl` in the same folder. `shadowclone serve` writes the state, the recent events, the clone's questions, its final report, and the container log to the same folder. It removes a finished run folder after 30 days. Nothing in a run folder leaves the machine.
 
-A clone runs in a fresh container. The provider receives the prompt, the skills, and the repository content that the agent reads. The container keeps nothing after it stops. The `shadowclone_sessions` MCP tool returns the task and the events to the connected agent, which sends them to its own model provider. Clone tasks are not learning sources. See [clones](guides/clones.md).
+A clone runs in a fresh container. The provider receives the prompt, the skills, and the repository content that the agent reads. The container keeps nothing after it stops. The final report is the agent's last message, through `redactSecrets`, at most 4000 characters. The `shadowclone_sessions` MCP tool returns the task and the events to the connected agent, which sends them to its own model provider. Clone tasks are not learning sources. See [clones](guides/clones.md).
 
 ## Boundaries that a change must keep
 
