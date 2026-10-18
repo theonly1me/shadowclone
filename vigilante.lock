@@ -16,10 +16,8 @@ powers = [
 powers = ["exec"]
 
 [code."packages/clones"]
-powers = [
-    "exec",
-    "network",
-]
+powers = ["exec"]
+risks = ["exec:packages/clones/src/run/processes.spawnRequest:Bun.spawn:untrusted"]
 
 [code."packages/cloud"]
 powers = [
