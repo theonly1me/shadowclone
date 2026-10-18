@@ -29,6 +29,7 @@ Serves the shadowclone tools to a connected agent over the MCP protocol on stand
 - `shadowclone_bot` has no credential operation. The owner adds the bot token and the API key on GitHub.
 - `shadowclone_bot` status waits at most 45 seconds for the check run. A later status call continues a run that is still in progress.
 - `shadowclone_clone_setup` has no token field. The owner pastes tokens into the secrets file. Setup and skills pushes need `approve: true` after the owner agrees.
+- The package exports `sessionsTools` and `createSessionsTools`, so the hub serves the same clone tools.
 - `shadowclone_sessions` only reads, and carries `readOnlyHint`. `shadowclone_clone` starts, steers, answers, and stops clones through `localNode`. The `get` answer marks clone text as data.
 - The first `setup` call only lists the skill files. It pushes them after a second call with `approveSkills: true`.
 - Context comes from `compileContext`, so it follows the same consent and scope as native delivery.

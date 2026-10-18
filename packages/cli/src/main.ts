@@ -16,6 +16,7 @@ import { showHome } from "./home";
 import { redactSecrets } from "@shadowclone/redact";
 import { botCommand } from "./bot";
 import { cloneCommand, cloneUsage, serveCommand } from "./clone";
+import { hubCommand, hubUsage } from "./hub";
 import { reviewCommand } from "./review";
 
 const usage =
@@ -37,6 +38,7 @@ function printUsage(): void {
     "Actions bot: bot setup --bot login [--provider anthropic|openai|openai-compatible|cursor] [--base-url url] [--model id] [--repo owner/repository]; bot status [--repo owner/repository]; bot export",
   );
   console.log(cloneUsage);
+  console.log(hubUsage);
   console.log(
     "Pull request review: review <pr-number> [--cloud] [--no-checks] [--repo owner/repository] [--output file.md] [--model <id>] [--effort <level>]; workflow stages: review prepare|checks|analyze|publish",
   );
@@ -140,6 +142,12 @@ async function main(arguments_: readonly string[]): Promise<void> {
 
   if (command === "clone") {
     await cloneCommand(rest);
+
+    return;
+  }
+
+  if (command === "hub") {
+    await hubCommand(rest);
 
     return;
   }
