@@ -35,6 +35,9 @@ powers = ["network"]
 [code."packages/learning"]
 powers = ["exec"]
 
+[code."packages/live"]
+powers = ["exec"]
+
 [code."packages/review"]
 powers = [
     "exec",
