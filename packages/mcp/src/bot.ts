@@ -21,7 +21,7 @@ export const botTools = [
   {
     name: "shadowclone_bot",
     description:
-      "Set up the shadowclone cloud bot for a GitHub repository, or check it. The bot is a " +
+      "Set up the shadowclone Actions bot for a GitHub repository, or check it. The bot is a " +
       "GitHub machine account that runs on a provider API key. Setup invites the bot, protects " +
       "the default branch, pushes the owner's skills to a private repository, and opens the " +
       "setup pull request. It returns one environment link where the owner adds the bot token " +
@@ -125,7 +125,7 @@ export function createBotTool(context: BuildContext & { readonly call?: GhApiCal
           const installation = await readInstallation({ paths: context.paths, repository });
 
           if (!installation) {
-            return text({ value: `No cloud bot setup is saved for ${repository}. Call setup first.`, isError: true });
+            return text({ value: `No Actions bot setup is saved for ${repository}. Call setup first.`, isError: true });
           }
 
           const check = await runCloneCheck({

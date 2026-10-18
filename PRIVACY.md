@@ -11,7 +11,7 @@ The wizard and the local MCP server send nothing to shadowclone. These features 
 - **Learning, skill maintenance, and build naming:** selected redacted text, or skill titles and redacted summaries.
 - **Voice capture:** your redacted GitHub writing, after you turn on `github-writing`.
 - **Pull request review:** the pull request, its diff, and related files. `--offline` stops web search and the OSV lookup of lockfile package names.
-- **Cloud bot:** your reviewed skills, the repository, and the task. You enter tokens on GitHub, and shadowclone never reads them.
+- **Actions bot:** your reviewed skills, the repository, and the task. You enter tokens on GitHub, and shadowclone never reads them.
 
 The provider and GitHub govern retention of what they receive. [Data handling](docs/data-handling.md) lists every source, request, and file.
 

@@ -4,7 +4,7 @@ I want to trust coding agents with large changes in large repositories, and I wa
 
 I kept repeating the same preferences. The agent could often do the task, but I had to explain how I wanted it done. Instruction files and skills helped, but keeping them current was the hard part. Some described preferences that I had changed. Others missed guidance that came up only when I corrected an agent. Each new tool meant another copy to maintain.
 
-shadowclone maintains that setup across the agents that I use. It learns from the sessions that I enable, updates the relevant skills, and carries them between agents. Evidence and revisions stay on my machine. The same skills drive a cloud bot on GitHub. The skills and instructions stay as files that I can read and change. A change of agent should not restart that work. I decide what becomes a lasting rule.
+shadowclone maintains that setup across the agents that I use. It learns from the sessions that I enable, updates the relevant skills, and carries them between agents. Evidence and revisions stay on my machine. The same skills drive an Actions bot on GitHub. The skills and instructions stay as files that I can read and change. A change of agent should not restart that work. I decide what becomes a lasting rule.
 
 ## Built entirely with agents
 

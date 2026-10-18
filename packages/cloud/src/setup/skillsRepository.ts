@@ -31,7 +31,7 @@ export async function ensureSkillsRepository(options: {
         name: skillsRepositoryName,
         private: true,
         auto_init: true,
-        description: "Engineering skills for my shadowclone cloud bot",
+        description: "Engineering skills for my shadowclone Actions bot",
       },
     });
 

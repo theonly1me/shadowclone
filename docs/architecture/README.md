@@ -123,9 +123,9 @@ The code checks source authorization when it selects an event and again when it 
 
 ## Delegated work
 
-Outside the cloud bot, shadowclone does not commit, push, or act on GitHub itself. Delegated work is the `shadowclone-work` skill. It acts through the tools and permissions of your agent session. See [delegated work](../guides/delegated-work.md).
+Outside the Actions bot, shadowclone does not commit, push, or act on GitHub itself. Delegated work is the `shadowclone-work` skill. It acts through the tools and permissions of your agent session. See [delegated work](../guides/delegated-work.md).
 
-The cloud bot is a separate contract. The owner reviews a frozen skills bundle and chooses the repositories. GitHub Actions run the same skill, and the owner merges. See the [cloud bot guide](../guides/cloud-bot.md).
+The Actions bot is a separate contract. The owner reviews a frozen skills bundle and chooses the repositories. GitHub Actions run the same skill, and the owner merges. See the [Actions bot guide](../guides/actions-bot.md).
 
 Cloud sessions are a third contract. Only the owner's own `/shadowclone` comment starts one. The session runs the same skill in the owner's cloud account or on the owner's spare machine. It acts as the owner. See [cloud sessions](../guides/cloud-sessions.md) and [design record 044](../design/044-cloud-sessions.md).
 

@@ -1,6 +1,6 @@
-# Cloud bot
+# GitHub Actions bot
 
-A cloud bot is a coding agent that runs in GitHub Actions on your repository, with your engineering skills. People with write access tag it on issues and pull requests. It works on issues, answers tags, and reviews pull requests. You merge. Live installation qualification is pending.
+An Actions bot is a coding agent that runs in GitHub Actions on your repository, with your engineering skills. People with write access tag it on issues and pull requests. It works on issues, answers tags, and reviews pull requests. You merge. Live installation qualification is pending.
 
 The bot is a **machine account**: a GitHub account that you create and name, such as `octo-shadow`. GitHub allows one free machine account for each person. The bot runs on one provider API key that you add on GitHub.
 
@@ -8,7 +8,7 @@ To use your own Claude or ChatGPT subscription, use [cloud sessions](cloud-sessi
 
 ## Set up the bot
 
-Ask your agent: "Set up shadowclone cloud here with the bot octo-shadow." The agent calls the `shadowclone_bot` MCP tool. Or run this in the checkout:
+Ask your agent: "Set up the shadowclone Actions bot here with the account octo-shadow." The agent calls the `shadowclone_bot` MCP tool. Or run this in the checkout:
 
 ```bash
 shadowclone bot setup --bot octo-shadow
