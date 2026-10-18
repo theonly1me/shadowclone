@@ -12,23 +12,24 @@ Source access does not authorize automatic skill edits. Disabling a source remov
 
 ## Sources
 
-| Setting                  | What may be read                                                                                                                                                                             |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `claude-code`            | Session JSONL under `~/.claude/projects/`                                                                                                                                                    |
-| `claude-prompts`         | `~/.claude/history.jsonl`                                                                                                                                                                    |
-| `codex`                  | Sessions under `~/.codex/sessions/`, or `$CODEX_HOME/sessions/`                                                                                                                              |
-| `cursor`                 | Chat databases and metadata under `~/.cursor/chats/`                                                                                                                                         |
-| `pi`                     | Version 3 session JSONL under `~/.pi/agent/sessions/`, or `$PI_CODING_AGENT_DIR/sessions/`. Original files stay untouched                                                                    |
-| `opencode`               | User and assistant rows in `opencode.db` under `~/.local/share/opencode/`, `$XDG_DATA_HOME/opencode/`, or `$OPENCODE_DB`. The database stays untouched                                       |
-| `antigravity`            | Generated conversation logs under `~/.gemini/antigravity-cli/brain/`                                                                                                                         |
-| `antigravity-workspaces` | `~/.gemini/antigravity-cli/history.jsonl`, for workspace attribution                                                                                                                         |
-| `declared-rules`         | Repository-root `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, and direct `SKILL.md` files under `.claude/skills/` and `.agents/skills/`                                                          |
-| `claude-memory`          | Claude memory under `~/.claude/projects/<repo>/memory/`. Recurring extraction needs registered repositories with verified identity                                                           |
-| `agent-context`          | Selected-agent personal instructions and skills, kept as an original baseline and copied into evaluation arms                                                                                |
-| `skill-library`          | Consented personal, repository, custom, and third-party skill roots                                                                                                                          |
-| `git-metadata`           | Local repository remote names, to determine scope                                                                                                                                            |
-| `github-writing`         | Through your `gh` login, for voice capture only: your 40 newest pull request titles and bodies, your 40 newest reviews with up to 10 comments each, and your 60 newest commit messages       |
-| `repository-manifests`   | Scripts and dependency names in `package.json`, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, CI workflow files, and top-level entry names, for repository setup |
+| Setting                  | What may be read                                                                                                                                                                                      |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `claude-code`            | Session JSONL under `~/.claude/projects/`                                                                                                                                                             |
+| `claude-prompts`         | `~/.claude/history.jsonl`                                                                                                                                                                             |
+| `codex`                  | Sessions under `~/.codex/sessions/`, or `$CODEX_HOME/sessions/`                                                                                                                                       |
+| `cursor`                 | Chat databases and metadata under `~/.cursor/chats/`                                                                                                                                                  |
+| `pi`                     | Version 3 session JSONL under `~/.pi/agent/sessions/`, or `$PI_CODING_AGENT_DIR/sessions/`. Original files stay untouched                                                                             |
+| `opencode`               | User and assistant rows in `opencode.db` under `~/.local/share/opencode/`, `$XDG_DATA_HOME/opencode/`, or `$OPENCODE_DB`. The database stays untouched                                                |
+| `antigravity`            | Generated conversation logs under `~/.gemini/antigravity-cli/brain/`                                                                                                                                  |
+| `antigravity-workspaces` | `~/.gemini/antigravity-cli/history.jsonl`, for workspace attribution                                                                                                                                  |
+| `declared-rules`         | Repository-root `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, and direct `SKILL.md` files under `.claude/skills/` and `.agents/skills/`                                                                   |
+| `claude-memory`          | Claude memory under `~/.claude/projects/<repo>/memory/`. Recurring extraction needs registered repositories with verified identity                                                                    |
+| `agent-context`          | Selected-agent personal instructions and skills, kept as an original baseline and copied into evaluation arms                                                                                         |
+| `skill-library`          | Consented personal, repository, custom, and third-party skill roots                                                                                                                                   |
+| `git-metadata`           | Local repository remote names, to determine scope                                                                                                                                                     |
+| `github-writing`         | Through your `gh` login, for voice capture only: your 40 newest pull request titles and bodies, your 40 newest reviews with up to 10 comments each, and your 60 newest commit messages                |
+| `live-sessions`          | With `remote.live-sessions` on, hooks in Claude Code and Codex record each session's repository, branch, folder name, state, terminal, and redacted last message. No prompt, tool output, or thinking |
+| `repository-manifests`   | Scripts and dependency names in `package.json`, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, CI workflow files, and top-level entry names, for repository setup          |
 
 Shell history is not a source. Upgrading deletes indexed shell history events, cursors, and repository bindings, and shadowclone ignores a `shell` setting left in an older `config.toml` or managed policy.
 
@@ -150,6 +151,12 @@ A clone runs in a fresh container. The provider receives the prompt, the skills,
 The hub writes `~/.shadowclone/hub/` (mode 0700). `hub.db` (mode 0600) holds the client names and redirect URIs, the settings, and SHA-256 hashes of pairing codes, authorization codes, and tokens. The hub never stores a code or a token itself. The log names client ids and redirect hosts. `hub clients revoke` ends a client's tokens, and deleting the folder ends all of them.
 
 A machine that joins a hub writes `~/.shadowclone/hub/link.json` (mode 0600) with the hub URL, its node name, and its node token. Its link sends the hub the text of its clone tool answers. On that machine, `shadowclone mcp` sends clone tool calls to the hub. The hub stores a hash of each node token. See the [hub guide](guides/hub.md).
+
+## Live sessions
+
+`shadowclone live enable` sets `remote.live-sessions` in `config.toml` and adds hooks to `~/.claude/settings.json` and `~/.codex/hooks.json`. It keeps your own hooks. The hooks write one file for each session in `~/.shadowclone/live/` (mode 0700, files 0600). The summary is the last assistant message through `redactSecrets`, at most 2 KB. A permission prompt adds its redacted notification text.
+
+The hub and joined machines send the list and the summaries to each approved client. A message that you send waits in `live-<id>.inbox.jsonl` until a hook delivers it. For an idle session, shadowclone types it into the tmux pane or cmux surface instead. A finished session record stays for 1 day. `live disable` removes the hooks and the folder.
 
 ## Boundaries that a change must keep
 

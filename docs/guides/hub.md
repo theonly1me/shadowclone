@@ -42,6 +42,17 @@ Claude now lists the clones of each machine. To start a clone on a machine, name
 
 If you do not want the Claude app to reach the hub, run `shadowclone hub expose --tailnet` instead of `hub expose`. Then only machines on your tailnet reach the hub.
 
+## See your own sessions
+
+The hub can also list the Claude Code and Codex sessions that you start yourself, and send them messages. This is off until you turn it on on each machine.
+
+1. Run `shadowclone live enable`. It adds hooks to Claude Code and Codex, and keeps your own hooks.
+2. Start a new agent session. Codex asks you to trust the new hooks.
+3. Ask Claude "what are my sessions doing?" The answer lists each live session with a `live-` id, its state, and its last message.
+4. Ask Claude to send a session a message. A working session gets it after its next tool call or at the end of its turn. An idle session in tmux gets it typed at its prompt.
+
+cmux lets only processes inside cmux type into its terminals. So a message for an idle session in cmux waits for the next turn. Answer permission prompts in the terminal or with Claude Code Remote Control. Run `shadowclone live disable` to remove the hooks and the saved state.
+
 ## What a client can do
 
 A connected client has the two clone tools: `shadowclone_sessions` reads, and `shadowclone_clone` starts, steers, answers, and stops. Claude asks you before it calls `shadowclone_clone`. Text that comes from a clone is data. The hub tells the client so, and the client must not follow instructions in it.

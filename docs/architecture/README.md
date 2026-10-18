@@ -25,6 +25,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`web`](../../packages/web/AGENTS.md)                 | Wizard, voice capture, and skill drafts              |
 | [`mcp`](../../packages/mcp/AGENTS.md)                 | MCP server                                           |
 | [`hub`](../../packages/hub/AGENTS.md)                 | Remote MCP server with OAuth for clones              |
+| [`live`](../../packages/live/AGENTS.md)               | Live session hooks, state, and messages              |
 | [`cli`](../../packages/cli/AGENTS.md)                 | Commands, build, and publish                         |
 | [`evals`](../../evals/AGENTS.md)                      | Private evaluation suites                            |
 | [`tooling`](../../tooling/AGENTS.md)                  | Repository checks that `bun run lint` runs           |
@@ -57,6 +58,8 @@ graph BT
   clones --> bot
   mcp --> clones
   hub --> mcp
+  live --> redact
+  mcp --> live
   cli --> hub
   cli --> web
   cli --> harness
@@ -95,6 +98,8 @@ flowchart LR
   Phone["Claude app or another MCP client"] -- "OAuth through Tailscale Funnel" --> Hub["hub: MCP over HTTPS on loopback"]
   Hub --> Session
   Node["Another machine: hub link"] -- "WebSocket over the tailnet" --> Hub
+  Agents -- "live hooks, with consent" --> Live["live: session state and inbox"]
+  Live -- "redacted last message" --> Hub
   Session -- "prompt, skills, files that the agent reads" --> Provider
   subgraph GitHub["GitHub"]
     Bot --> Pulls["Draft pull requests and review comments"]
