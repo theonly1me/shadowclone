@@ -1,14 +1,14 @@
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { stringify } from "smol-toml";
-import type { SessionConfig } from "../session/config";
+import type { CloneConfig } from "../config/config";
 import { mustRun, type Processes } from "./processes";
 import type { Workspace } from "./workspace";
 
 export const codexLoginHomeVariable = "SHADOWCLONE_CODEX_LOGIN_HOME";
 
 function codexSettings(options: {
-  readonly config: SessionConfig;
+  readonly config: CloneConfig;
   readonly environment: Readonly<Record<string, string | undefined>>;
 }): Record<string, unknown> {
   const { config } = options;
@@ -55,13 +55,13 @@ function codexSettings(options: {
   return {};
 }
 
-const loginSecrets: Partial<Record<SessionConfig["provider"], string>> = {
+const loginSecrets: Partial<Record<CloneConfig["provider"], string>> = {
   openai: "OPENAI_API_KEY",
   "openai-compatible": "OPENAI_COMPATIBLE_API_KEY",
 };
 
 export async function prepareCodexHome(options: {
-  readonly config: SessionConfig;
+  readonly config: CloneConfig;
   readonly workspace: Workspace;
   readonly processes: Processes;
   readonly environment: Readonly<Record<string, string | undefined>>;
@@ -71,7 +71,7 @@ export async function prepareCodexHome(options: {
 
   if (config.provider === "chatgpt-subscription" && (loginHome === undefined || loginHome === "")) {
     throw new Error(
-      "The ChatGPT login needs its volume. Run shadowclone session login on the host.",
+      "The ChatGPT login needs its volume. Run shadowclone clone login on the host.",
     );
   }
 

@@ -1,15 +1,16 @@
-import { closeSync, openSync } from "node:fs";
-import { mkdir } from "node:fs/promises";
-import path from "node:path";
-import type { SessionConfig } from "../session/config";
-import type { ClonesPaths } from "../session/store";
+import { closeSync, openSync, writeSync } from "node:fs";
+import type { CloneConfig } from "../config/config";
+import type { ClonesPaths } from "../config/store";
+import { parseProgressLine, type Progress } from "../node/progress";
+import type { CloneRequest } from "../node/request";
+import { containerLog } from "../node/store";
 import { codexLoginHomeVariable } from "../run/codexHome";
-import type { SessionEvent } from "../trigger/event";
+import { cloneConfigVariable, cloneRequestVariable } from "../run/container";
 
 export const codexLoginVolume = "shadowclone-codex-login";
 export const codexLoginMount = "/home/clone/.codex-login";
 
-export function codexLoginArguments(config: SessionConfig): readonly string[] {
+export function codexLoginArguments(config: CloneConfig): readonly string[] {
   return config.provider === "chatgpt-subscription"
     ? [
         "--volume",
@@ -21,9 +22,10 @@ export function codexLoginArguments(config: SessionConfig): readonly string[] {
 }
 
 export function dockerRunArguments(options: {
-  readonly config: SessionConfig;
+  readonly config: CloneConfig;
   readonly paths: ClonesPaths;
   readonly name: string;
+  readonly label: string;
   readonly command: readonly string[];
   readonly environment: Readonly<Record<string, string>>;
 }): readonly string[] {
@@ -35,7 +37,7 @@ export function dockerRunArguments(options: {
     "--name",
     options.name,
     "--label",
-    "dev.shadowclone.session=1",
+    options.label,
     "--add-host",
     "host.docker.internal:host-gateway",
     "--env-file",
@@ -50,55 +52,80 @@ export function dockerRunArguments(options: {
   ];
 }
 
-export function sessionContainerName(options: {
-  readonly config: SessionConfig;
-  readonly now: Date;
-}): string {
-  const stamp = options.now
-    .toISOString()
-    .replace(/[^0-9]/g, "")
-    .slice(0, 14);
-
-  return `shadowclone-${options.config.repository.replace(/[^A-Za-z0-9]+/g, "-").toLowerCase()}-${stamp}`;
-}
-
 export type Launch = (options: {
-  readonly config: SessionConfig;
-  readonly event: SessionEvent;
+  readonly config: CloneConfig;
+  readonly request: CloneRequest;
+  readonly signal: AbortSignal;
+  readonly onProgress: (progress: Progress) => Promise<void>;
 }) => Promise<number>;
 
-export function dockerLauncher(options: {
-  readonly paths: ClonesPaths;
-  readonly now: () => Date;
-}): Launch {
-  return async ({ config, event }) => {
-    const name = sessionContainerName({ config, now: options.now() });
-    const log = path.join(options.paths.logsDirectory, `${name}.log`);
+async function relayOutput(options: {
+  readonly stream: ReadableStream<Uint8Array>;
+  readonly descriptor: number;
+  readonly onProgress: (progress: Progress) => Promise<void>;
+}): Promise<void> {
+  const decoder = new TextDecoder();
+  let pending = "";
 
-    await mkdir(options.paths.logsDirectory, { recursive: true, mode: 0o700 });
+  for await (const chunk of options.stream) {
+    writeSync(options.descriptor, chunk);
+    pending += decoder.decode(chunk, { stream: true });
 
-    const descriptor = openSync(log, "a", 0o600);
+    const lines = pending.split("\n");
+
+    pending = lines.pop() ?? "";
+
+    for (const line of lines) {
+      const progress = parseProgressLine(line);
+
+      if (progress !== null) {
+        await options.onProgress(progress);
+      }
+    }
+  }
+
+  const last = parseProgressLine(pending);
+
+  if (last !== null) {
+    await options.onProgress(last);
+  }
+}
+
+export function dockerLauncher(options: { readonly paths: ClonesPaths }): Launch {
+  return async ({ config, request, signal, onProgress }) => {
+    const descriptor = openSync(containerLog({ paths: options.paths, id: request.id }), "a", 0o600);
     const child = Bun.spawn({
       cmd: [
         ...dockerRunArguments({
           config,
           paths: options.paths,
-          name,
-          command: ["shadowclone", "session", "run"],
+          name: `shadowclone-${request.id}`,
+          label: `dev.shadowclone.clone=${request.id}`,
+          command: ["shadowclone", "clone", "run"],
           environment: {
-            SHADOWCLONE_SESSION_CONFIG: JSON.stringify(config),
-            SHADOWCLONE_SESSION_EVENT: JSON.stringify(event),
+            [cloneConfigVariable]: JSON.stringify(config),
+            [cloneRequestVariable]: JSON.stringify(request),
           },
         }),
       ],
       stdin: "ignore",
-      stdout: descriptor,
+      stdout: "pipe",
       stderr: descriptor,
     });
+    const stop = () => child.kill("SIGTERM");
+
+    signal.addEventListener("abort", stop, { once: true });
+
+    if (signal.aborted) {
+      stop();
+    }
 
     try {
+      await relayOutput({ stream: child.stdout, descriptor, onProgress });
+
       return await child.exited;
     } finally {
+      signal.removeEventListener("abort", stop);
       closeSync(descriptor);
     }
   };

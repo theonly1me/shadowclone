@@ -80,7 +80,7 @@ export const hostProcesses: Processes = {
 
     try {
       await Promise.all([
-        relay({ stream: child.stdout, sink: process.stdout, tail }),
+        relay({ stream: child.stdout, sink: process.stderr, tail }),
         relay({ stream: child.stderr, sink: process.stderr, tail }),
       ]);
 

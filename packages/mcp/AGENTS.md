@@ -19,7 +19,8 @@ Serves the shadowclone tools to a connected agent over the MCP protocol on stand
 - `src/protocol.ts`: request parsing and the context tool `shadowclone_context`.
 - `src/preferences.ts`: `shadowclone_remember`, `shadowclone_history`, and `shadowclone_skills_status`.
 - `src/bot.ts`: `shadowclone_bot`.
-- `src/session.ts` and `sessionText.ts`: `shadowclone_session`.
+- `src/cloneSetup.ts`, `cloneSetupTools.ts`, and `cloneSetupText.ts`: `shadowclone_clone_setup`.
+- `src/sessions.ts` and `sessionsTools.ts`: `shadowclone_sessions` and `shadowclone_clone`.
 
 ## Rules
 
@@ -27,7 +28,8 @@ Serves the shadowclone tools to a connected agent over the MCP protocol on stand
 - `shadowclone_remember` fails when the managed policy disables shadowclone.
 - `shadowclone_bot` has no credential operation. The owner adds the bot token and the API key on GitHub.
 - `shadowclone_bot` status waits at most 45 seconds for the check run. A later status call continues a run that is still in progress.
-- `shadowclone_session` has no token field. The owner pastes tokens into the secrets file. Setup and skills pushes need `approve: true` after the owner agrees.
+- `shadowclone_clone_setup` has no token field. The owner pastes tokens into the secrets file. Setup and skills pushes need `approve: true` after the owner agrees.
+- `shadowclone_sessions` only reads, and carries `readOnlyHint`. `shadowclone_clone` starts and stops clones through `localNode`. The `get` answer marks clone text as data.
 - The first `setup` call only lists the skill files. It pushes them after a second call with `approveSkills: true`.
 - Context comes from `compileContext`, so it follows the same consent and scope as native delivery.
 

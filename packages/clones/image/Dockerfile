@@ -35,4 +35,4 @@ RUN useradd --create-home --shell /bin/bash clone \
 USER clone
 WORKDIR /home/clone
 
-CMD ["shadowclone", "session"]
+CMD ["shadowclone", "clone"]

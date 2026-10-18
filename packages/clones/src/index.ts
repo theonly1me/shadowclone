@@ -1,32 +1,46 @@
-export {
-  latestSessionLog,
-  listSessions,
-  runContainerCheckFromEnvironment,
-  runContainerSession,
-  sessionMinutes,
-  startSession,
-} from "./commands";
-
 export { githubThroughGh } from "./github";
 
 export { hostProcesses } from "./run/processes";
 
-export { sessionProviders, type SessionProvider } from "./session/providers";
+export {
+  cloneMinutes,
+  runContainerCheckFromEnvironment,
+  runContainerClone,
+} from "./run/container";
 
-export { sessionHosts, sessionReceivers } from "./session/config";
+export { cloneProviders, type CloneProvider } from "./config/providers";
 
-export { clonesPaths, readSessionConfig } from "./session/store";
+export { clonesPaths, readCloneConfig, type ClonesPaths } from "./config/store";
+
+export {
+  localNode,
+  type CloneList,
+  type CloneNode,
+  type CloneStartInput,
+  type StartOutcome,
+  type StopOutcome,
+} from "./node";
+
+export type { CloneView } from "./node/record";
+
+export { cloneStates, type CloneState } from "./node/progress";
+
+export { cloneIdPattern, maximumTaskLength } from "./node/request";
+
+export { containerLog } from "./node/store";
 
 export { dockerLauncher } from "./serve/docker";
 
-export { serveSessions } from "./serve/server";
+export { serveClones } from "./serve/server";
 
-export { checkSessionHost, chatgptLoginArguments } from "./setup/host";
+export { checkCloneHost, chatgptLoginArguments } from "./setup/host";
 
-export { setUpSessions, type SessionSetupOutcome } from "./setup";
+export { setUpClones, type CloneSetupOutcome } from "./setup";
 
-export { checkCloudHost, secretEntry } from "./setup/hostSecrets";
+export { secretLines } from "./setup/secrets";
 
 export { setupSummary } from "./setup/summary";
 
-export { pushSessionSkills, type SkillsPushOutcome } from "./setup/skills";
+export { pushCloneSkills, type SkillsPushOutcome } from "./setup/skills";
+
+export { cloneDetailLines, cloneListLine, startText, stopText } from "./node/text";

@@ -1,129 +1,146 @@
-import { z } from "zod";
-import { ownedWrite } from "@shadowclone/core";
-import type { GithubCall } from "../github";
-import type { SessionConfig } from "../session/config";
-import { listSessionConfigs, type ClonesPaths } from "../session/store";
-import type { SessionEvent } from "../trigger/event";
-import type { Launch } from "./docker";
-import {
-  pollRepository,
-  repositoryCursorSchema,
-  startingCursor,
-  type RepositoryCursor,
-} from "./poll";
+import { acquireLocalLock } from "@shadowclone/core";
+import { readCloneConfig } from "../config/store";
+import { finalStates } from "../node/progress";
+import { cloneState, endedRecord } from "../node/record";
+import { listRuns, removeRun, writeRecord, type StoredRun } from "../node/store";
+import { errorText, failBeforeStart, launchClone, type Running, type ServeContext } from "./clone";
 
-export const pollMilliseconds = 60_000;
+export const scanMilliseconds = 2_000;
 
-const cursorsSchema = z.record(z.string(), repositoryCursorSchema);
+export const parallelClones = 2;
 
-async function readCursors(paths: ClonesPaths): Promise<Record<string, RepositoryCursor>> {
-  const file = Bun.file(paths.cursorsFile);
+export const keepFinishedMilliseconds = 30 * 86_400_000;
 
-  return (await file.exists()) ? cursorsSchema.parse(await file.json()) : {};
+async function settleEarlierRuns(options: {
+  readonly context: ServeContext;
+  readonly runs: readonly StoredRun[];
+}): Promise<void> {
+  const { context } = options;
+  const now = context.now();
+
+  for (const run of options.runs) {
+    const { record } = run;
+    const id = run.request.id;
+
+    if (record?.state === "working") {
+      await writeRecord({
+        paths: context.paths,
+        id,
+        record: endedRecord({
+          record,
+          state: "stopped",
+          detail: "The node stopped while the clone ran. Its work is on the branch if the save finished.",
+          now,
+        }),
+      });
+    } else if (
+      record !== null &&
+      finalStates.includes(record.state) &&
+      now.getTime() - Date.parse(record.updatedAt) > keepFinishedMilliseconds
+    ) {
+      await removeRun({ paths: context.paths, id });
+    }
+  }
 }
 
-export type SessionQueue = {
-  readonly add: (options: { readonly config: SessionConfig; readonly event: SessionEvent }) => void;
-  readonly idle: () => Promise<void>;
-};
+export async function scanRuns(options: {
+  readonly context: ServeContext;
+  readonly running: Map<string, Running>;
+}): Promise<void> {
+  const { context, running } = options;
+  const { runs } = await listRuns(context.paths);
 
-export function sessionQueue(options: {
-  readonly launch: Launch;
-  readonly log: (line: string) => void;
-}): SessionQueue {
-  let tail: Promise<void> = Promise.resolve();
+  for (const run of runs) {
+    const active = running.get(run.request.id);
 
-  return {
-    add: (entry) => {
-      tail = tail.then(async () => {
-        options.log(
-          `Starting a session for ${entry.config.repository}: ${JSON.stringify(entry.event)}`,
-        );
-
-        try {
-          const exitCode = await options.launch(entry);
-
-          options.log(`The session for ${entry.config.repository} exited with code ${exitCode}.`);
-        } catch (error) {
-          options.log(
-            `The session for ${entry.config.repository} could not start: ${error instanceof Error ? error.message : String(error)}`,
-          );
-        }
-      });
-    },
-    idle: () => tail,
-  };
-}
-
-export async function pollOnce(options: {
-  readonly paths: ClonesPaths;
-  readonly github: GithubCall;
-  readonly queue: SessionQueue;
-  readonly now: Date;
-  readonly log: (line: string) => void;
-}): Promise<number> {
-  const cursors = await readCursors(options.paths);
-  let queued = 0;
-
-  for (const config of (await listSessionConfigs(options.paths)).filter(
-    (entry) => entry.host === "local",
-  )) {
-    try {
-      const result = await pollRepository({
-        github: options.github,
-        config,
-        cursor: cursors[config.repository] ?? startingCursor(options.now),
-        now: options.now,
-      });
-
-      for (const event of result.events) {
-        options.queue.add({ config, event });
-        queued++;
-      }
-
-      cursors[config.repository] = result.cursor;
-    } catch (error) {
-      options.log(
-        `Polling ${config.repository} failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
+    if (active !== undefined && run.stopRequested && !active.controller.signal.aborted) {
+      context.log(`Stopping clone ${run.request.id}.`);
+      active.controller.abort();
     }
   }
 
-  await ownedWrite({
-    path: options.paths.cursorsFile,
-    content: `${JSON.stringify(cursors, null, 2)}\n`,
-  });
+  const queued = runs
+    .filter((run) => cloneState(run) === "queued" && !running.has(run.request.id))
+    .sort((left, right) => left.request.createdAt.localeCompare(right.request.createdAt));
 
-  return queued;
+  for (const run of queued) {
+    if (running.size >= parallelClones) {
+      return;
+    }
+
+    const id = run.request.id;
+    const config = await readCloneConfig({
+      paths: context.paths,
+      repository: run.request.repository,
+    }).catch(errorText);
+
+    if (config === null || typeof config === "string") {
+      await failBeforeStart({
+        context,
+        id,
+        detail: config ?? `${run.request.repository} has no clone setup on this machine.`,
+      });
+      continue;
+    }
+
+    const loginBusy =
+      config.provider === "chatgpt-subscription" &&
+      [...running.values()].some((entry) => entry.provider === "chatgpt-subscription");
+
+    if (!loginBusy) {
+      const entry = launchClone({ context, run, config });
+
+      running.set(id, entry);
+      entry.done.finally(() => running.delete(id)).catch(context.log);
+    }
+  }
 }
 
-export async function serveSessions(options: {
-  readonly paths: ClonesPaths;
-  readonly github: GithubCall;
-  readonly launch: Launch;
-  readonly signal: AbortSignal;
-  readonly now: () => Date;
-  readonly log: (line: string) => void;
-}): Promise<void> {
-  const queue = sessionQueue(options);
+function pause(options: { readonly milliseconds: number; readonly signal: AbortSignal }) {
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, options.milliseconds);
 
-  options.log(`shadowclone serve polls GitHub every ${pollMilliseconds / 1000} seconds.`);
+    options.signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
+  });
+}
 
-  while (!options.signal.aborted) {
-    await pollOnce({ ...options, queue, now: options.now() });
-    await new Promise<void>((resolve) => {
-      const timer = setTimeout(resolve, pollMilliseconds);
+export async function serveClones(
+  options: ServeContext & { readonly signal: AbortSignal; readonly scanEvery?: number },
+): Promise<"stopped" | "already-running"> {
+  const lock = await acquireLocalLock(options.paths.serveLockFile);
 
-      options.signal.addEventListener(
-        "abort",
-        () => {
-          clearTimeout(timer);
-          resolve();
-        },
-        { once: true },
-      );
-    });
+  if (lock === null) {
+    return "already-running";
   }
 
-  await queue.idle();
+  const running = new Map<string, Running>();
+
+  try {
+    await settleEarlierRuns({ context: options, runs: (await listRuns(options.paths)).runs });
+    options.log("shadowclone serve starts queued clones on this machine.");
+
+    while (!options.signal.aborted) {
+      await scanRuns({ context: options, running }).catch((error: unknown) =>
+        options.log(`The scan failed: ${errorText(error)}`),
+      );
+      await pause({ milliseconds: options.scanEvery ?? scanMilliseconds, signal: options.signal });
+    }
+
+    for (const entry of running.values()) {
+      entry.controller.abort();
+    }
+
+    await Promise.all([...running.values()].map((entry) => entry.done));
+  } finally {
+    lock.release();
+  }
+
+  return "stopped";
 }

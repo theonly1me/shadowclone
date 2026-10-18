@@ -1,40 +1,26 @@
-import type { GithubCall } from "../github";
-import type { SessionConfig } from "../session/config";
-import { issuePaused, readEntity } from "../trigger/entity";
-import type { SessionRequest } from "../trigger/event";
+import type { CloneConfig } from "../config/config";
+import type { ResolvedClone } from "./resolve";
 import type { Processes } from "./processes";
 import type { Workspace } from "./workspace";
 
 export const saveCommitMessage = "chore: save unfinished shadowclone work";
 
-export type SaveOutcome = "saved" | "clean" | "paused" | "skipped" | "push-failed";
+export type SaveOutcome = "saved" | "clean" | "skipped" | "push-failed";
 
 export async function saveUnfinishedWork(options: {
-  readonly github: GithubCall;
-  readonly config: SessionConfig;
-  readonly request: SessionRequest;
+  readonly config: CloneConfig;
+  readonly clone: ResolvedClone;
   readonly workspace: Workspace;
   readonly processes: Processes;
 }): Promise<SaveOutcome> {
-  const { github, config, request, processes } = options;
+  const { config, clone, processes } = options;
   const cwd = options.workspace.repository;
   const current = (
     await processes.run({ arguments: ["git", "branch", "--show-current"], cwd })
   ).stdout.trim();
 
-  if (
-    request.kind === "review" ||
-    request.branch === config.defaultBranch ||
-    current !== request.branch
-  ) {
+  if (clone.kind === "review" || clone.branch === config.defaultBranch || current !== clone.branch) {
     return "skipped";
-  }
-
-  if (
-    (await readEntity({ github, config, entity: request.entity })).paused ||
-    (await issuePaused({ github, config, branch: request.branch }))
-  ) {
-    return "paused";
   }
 
   await processes.run({ arguments: ["git", "add", "-A"], cwd });
@@ -46,11 +32,11 @@ export async function saveUnfinishedWork(options: {
   }
 
   const tracked = await processes.run({
-    arguments: ["git", "rev-parse", "--verify", "--quiet", `origin/${request.branch}`],
+    arguments: ["git", "rev-parse", "--verify", "--quiet", `origin/${clone.branch}`],
     cwd,
   });
   const upstream =
-    tracked.exitCode === 0 ? `origin/${request.branch}` : `origin/${config.defaultBranch}`;
+    tracked.exitCode === 0 ? `origin/${clone.branch}` : `origin/${config.defaultBranch}`;
   const ahead = await processes.run({
     arguments: ["git", "rev-list", "--count", `${upstream}..HEAD`],
     cwd,
@@ -61,7 +47,7 @@ export async function saveUnfinishedWork(options: {
   }
 
   const pushed = await processes.run({
-    arguments: ["git", "push", "--quiet", "origin", `HEAD:refs/heads/${request.branch}`],
+    arguments: ["git", "push", "--quiet", "origin", `HEAD:refs/heads/${clone.branch}`],
     cwd,
   });
 
