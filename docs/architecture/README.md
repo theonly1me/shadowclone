@@ -20,7 +20,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`builds`](../../packages/builds/AGENTS.md)           | Agent builds                                         |
 | [`learning`](../../packages/learning/AGENTS.md)       | Distillation, reconciliation, probes, `remember`     |
 | [`harness`](../../packages/harness/AGENTS.md)         | Repository harness for `init --repo` and `check`     |
-| [`cloud`](../../packages/cloud/AGENTS.md)             | GitHub bot setup and workflows                       |
+| [`bot`](../../packages/bot/AGENTS.md)                 | GitHub Actions bot setup and workflows               |
 | [`clones`](../../packages/clones/AGENTS.md)           | Cloud sessions on a host that the owner owns         |
 | [`web`](../../packages/web/AGENTS.md)                 | Wizard, voice capture, and skill drafts              |
 | [`mcp`](../../packages/mcp/AGENTS.md)                 | MCP server                                           |
@@ -49,11 +49,11 @@ graph BT
   learning --> environment
   harness --> environment
   review --> agents
-  cloud --> environment
+  bot --> environment
   web --> builds
   web --> learning
   mcp --> learning
-  clones --> cloud
+  clones --> bot
   mcp --> clones
   cli --> mcp
   cli --> web
@@ -87,7 +87,7 @@ flowchart LR
   Learning -- "redacted excerpts, no tools" --> Provider["Model provider via your agent CLI"]
   Judge -- "diff and read-only file access" --> Provider
   Sandbox -- "restricted proxy" --> Registries["Allowed public package registries"]
-  Delivery -- "reviewed skills" --> Bot["cloud: GitHub bot"]
+  Delivery -- "reviewed skills" --> Bot["bot: GitHub Actions bot"]
   Delivery -- "reviewed skills" --> Session["clones: session in your cloud account or on your spare machine"]
   Session -- "prompt, skills, files that the agent reads" --> Provider
   subgraph GitHub["GitHub"]

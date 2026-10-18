@@ -21,12 +21,12 @@ powers = [
     "network",
 ]
 
-[code."packages/cloud"]
+[code."packages/bot"]
 powers = [
     "exec",
     "network",
 ]
-risks = ["exec:packages/cloud/src/setup/openPage.openPage:Bun.spawn:untrusted"]
+risks = ["exec:packages/bot/src/setup/openPage.openPage:Bun.spawn:untrusted"]
 
 [code."packages/core"]
 powers = ["exec"]

@@ -13,7 +13,7 @@ import {
   runCloneCheck,
   runGh,
   setUpAccountClone,
-} from "@shadowclone/cloud";
+} from "@shadowclone/bot";
 import { isRecord } from "./protocol";
 import type { BuildContext } from "@shadowclone/environment";
 

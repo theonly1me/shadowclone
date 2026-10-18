@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { createBotTool } from "./bot";
-import { guidanceFixture } from "@shadowclone/cloud/testing";
+import { guidanceFixture } from "@shadowclone/bot/testing";
 
 test("MCP offers setup and saved status but rejects credential and activation operations", async () => {
   const fixture = await guidanceFixture();

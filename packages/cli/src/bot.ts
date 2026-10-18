@@ -9,7 +9,7 @@ import {
   readInstallation,
   runCloneCheck,
   writeDeliveryFiles,
-} from "@shadowclone/cloud";
+} from "@shadowclone/bot";
 import { setUpBotInTerminal } from "./botSetup";
 
 const setupSyntax =

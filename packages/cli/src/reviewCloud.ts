@@ -1,4 +1,4 @@
-import { readInstalledClone, runGh } from "@shadowclone/cloud";
+import { readInstalledClone, runGh } from "@shadowclone/bot";
 
 export async function requestCloudReview(options: {
   readonly repository: string;
