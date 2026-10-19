@@ -11,7 +11,7 @@ Start with the [README](../README.md) to install shadowclone and pick your first
 - [Pi setup](guides/pi.md): use Pi models, including local models.
 - [OpenCode setup](guides/opencode.md): use shadowclone with OpenCode 1.x and 2.x.
 - [Delegated work](guides/delegated-work.md): take a change to ready for review.
-- [Cloud bot](guides/cloud-bot.md): set up a GitHub bot on a provider API key.
+- [Actions bot](guides/actions-bot.md): set up a GitHub bot on a provider API key.
 - [Cloud sessions](guides/cloud-sessions.md): run Claude Code or Codex as you on a spare machine, with your own subscription.
 - [Reviews](guides/reviews.md): follow a guided review, or review a PR locally or in the cloud.
 - [MCP server](guides/mcp.md): give a connected agent the shadowclone tools.
@@ -37,7 +37,7 @@ Coding assistants start with [AGENTS.md](../AGENTS.md). Each package also has an
 ## Open work
 
 - Test setup, conflict recovery, and removal on real installations with explicit source consent.
-- Qualify the cloud bot on a live repository for each provider.
+- Qualify the Actions bot on a live repository for each provider.
 - Measure whether maintained guidance reduces the effort of repeated tasks. Preference scores do not measure productivity.
 - Add a model runner for Antigravity, which has capture and native guidance only. No API or local-endpoint engine exists.
 - Define evidence and action boundaries for merge outcomes, issue-tracker intake, and concurrent clones. The learning workflow excludes them.

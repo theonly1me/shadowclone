@@ -5,7 +5,7 @@ import {
   ghApiCall,
   pushSkills,
   setupSelection,
-} from "@shadowclone/cloud";
+} from "@shadowclone/bot";
 import { z } from "zod";
 
 export type SkillsPushOutcome =

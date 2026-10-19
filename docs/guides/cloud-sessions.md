@@ -10,11 +10,11 @@ session    shadowclone session is working on this.  Branch shadowclone/issue-42 
 session    shadowclone session finished.  Pull request #43
 ```
 
-Cloud sessions are separate from the [cloud bot](cloud-bot.md). The bot runs in GitHub Actions on an API key, and anyone with write access can tag it.
+Cloud sessions are separate from the [Actions bot](actions-bot.md). The bot runs in GitHub Actions on an API key, and anyone with write access can tag it.
 
 | Mode           | Runs on                         | Model login                 | Who starts it            | Commits show |
 | -------------- | ------------------------------- | --------------------------- | ------------------------ | ------------ |
-| Cloud bot      | GitHub Actions                  | An API key                  | Anyone with write access | The bot      |
+| Actions bot    | GitHub Actions                  | An API key                  | Anyone with write access | The bot      |
 | Cloud sessions | Your cloud account or a machine | Your subscription, or a key | Only you                 | You          |
 
 ## Set up with your agent

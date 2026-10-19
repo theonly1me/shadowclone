@@ -9,7 +9,7 @@ import {
   readInstallation,
   runCloneCheck,
   writeDeliveryFiles,
-} from "@shadowclone/cloud";
+} from "@shadowclone/bot";
 import { setUpBotInTerminal } from "./botSetup";
 
 const setupSyntax =
@@ -63,7 +63,7 @@ async function status(arguments_: readonly string[]): Promise<void> {
   const installation = await readInstallation({ paths: projectPaths, repository });
 
   if (installation === null) {
-    throw new Error(`No cloud bot setup is saved for ${repository}. Run shadowclone bot setup first.`);
+    throw new Error(`No Actions bot setup is saved for ${repository}. Run shadowclone bot setup first.`);
   }
 
   const check = await runCloneCheck({

@@ -91,19 +91,19 @@ Use guided-pr-review to review PRs 1, 2, and 3.
 
 The agent creates an HTML guide with actual diffs, behavior traces, and a reading order across the PRs. It supports inline notes and lets the reader reveal agent findings after forming a review. The guide stays local. See [reviews](docs/guides/reviews.md).
 
-**Review in the cloud.** Comment `@<bot> review` on a pull request, also on one from a fork. The cloud bot posts its findings on GitHub under its own identity. See [cloud review](docs/guides/reviews.md#review-in-the-cloud).
+**Review in the cloud.** Comment `@<bot> review` on a pull request, also on one from a fork. The Actions bot posts its findings on GitHub under its own identity. See [cloud review](docs/guides/reviews.md#review-in-the-cloud).
 
-### A cloud bot for your team
+### An Actions bot for your team
 
 **Share an agent with your team.** A bot runs in GitHub Actions with your selected skills and one provider API key: Anthropic, OpenAI, an OpenAI-compatible endpoint, or Cursor. Anyone with write access can tag it. It works on issues, opens pull requests, and follows checks and review feedback. You decide when to merge.
 
 **Ask the agent to configure it.** After local setup, ask:
 
 ```text
-Set up shadowclone cloud here with the bot octo-shadow.
+Set up the shadowclone Actions bot here with the account octo-shadow.
 ```
 
-The agent prepares the skills repository and workflows. Then it gives you one link where you add the bot token and the API key on GitHub. Merge the setup PR, and the agent runs a check. The [cloud bot guide](docs/guides/cloud-bot.md) covers providers, setup, and pausing work to continue locally.
+The agent prepares the skills repository and workflows. Then it gives you one link where you add the bot token and the API key on GitHub. Merge the setup PR, and the agent runs a check. The [Actions bot guide](docs/guides/actions-bot.md) covers providers, setup, and pausing work to continue locally.
 
 **Keep your key on GitHub.** The bot reads the API key from a GitHub environment, and shadowclone never sees it. Anyone with write access can tag the bot, so set a spending limit in your provider console.
 
@@ -111,14 +111,14 @@ The agent prepares the skills repository and workflows. Then it gives you one li
 
 shadowclone gives one set of skills to the agents that you already use, on your machine and on GitHub. The table uses each project's own pages, checked on 12 October 2026. "Not stated" means that those pages do not answer the question.
 
-| Tool                                                                   | What it is                                                                                 | Agents                                                | Learns from your sessions              | Same guidance in the cloud      | Reviews pull requests                 |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------- | -------------------------------------- | ------------------------------- | ------------------------------------- |
-| shadowclone                                                            | Skills, instructions, learning, and a GitHub cloud bot for the agents that you already use | Claude Code, Codex, Cursor, Pi, Antigravity, OpenCode | Yes, from the sessions that you allow  | Yes, cloud sessions and a bot   | Yes, locally, guided, and on GitHub   |
-| [pstack](https://github.com/cursor/plugins/tree/main/pstack)           | A skill and principle pack                                                                 | Cursor                                                | No. You run `/reflect` to edit a skill | Not stated                      | Yes, `/interrogate` and Comment Sicko |
-| [Hermes Agent](https://github.com/NousResearch/hermes-agent)           | Its own agent with a learning loop                                                         | Hermes only                                           | Yes, it writes skills after tasks      | Yes, on a server with chat apps | Not stated                            |
-| [Claude Code auto memory](https://code.claude.com/docs/en/memory)      | Built-in notes from corrections                                                            | Claude Code                                           | Yes, notes from your corrections       | No. Memory stays on one machine | No                                    |
-| [Claude Subconscious](https://github.com/letta-ai/claude-subconscious) | A background Letta agent                                                                   | Claude Code                                           | Yes, through a Letta agent             | Not stated                      | No                                    |
-| [imprint](https://github.com/n33kos/imprint)                           | A plugin that trains one profile                                                           | Claude Code                                           | Yes, when you run `/imprint:train`     | Not stated                      | No                                    |
+| Tool                                                                   | What it is                                                                                   | Agents                                                | Learns from your sessions              | Same guidance in the cloud      | Reviews pull requests                 |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------- | ------------------------------- | ------------------------------------- |
+| shadowclone                                                            | Skills, instructions, learning, and a GitHub Actions bot for the agents that you already use | Claude Code, Codex, Cursor, Pi, Antigravity, OpenCode | Yes, from the sessions that you allow  | Yes, cloud sessions and a bot   | Yes, locally, guided, and on GitHub   |
+| [pstack](https://github.com/cursor/plugins/tree/main/pstack)           | A skill and principle pack                                                                   | Cursor                                                | No. You run `/reflect` to edit a skill | Not stated                      | Yes, `/interrogate` and Comment Sicko |
+| [Hermes Agent](https://github.com/NousResearch/hermes-agent)           | Its own agent with a learning loop                                                           | Hermes only                                           | Yes, it writes skills after tasks      | Yes, on a server with chat apps | Not stated                            |
+| [Claude Code auto memory](https://code.claude.com/docs/en/memory)      | Built-in notes from corrections                                                              | Claude Code                                           | Yes, notes from your corrections       | No. Memory stays on one machine | No                                    |
+| [Claude Subconscious](https://github.com/letta-ai/claude-subconscious) | A background Letta agent                                                                     | Claude Code                                           | Yes, through a Letta agent             | Not stated                      | No                                    |
+| [imprint](https://github.com/n33kos/imprint)                           | A plugin that trains one profile                                                             | Claude Code                                           | Yes, when you run `/imprint:train`     | Not stated                      | No                                    |
 
 Claude Code loads its auto memory beside shadowclone skills, so you can use both. See the [comparison guide](docs/guides/comparison.md) for each tool and its sources.
 
@@ -130,7 +130,7 @@ flowchart LR
   B --> C[Skills and native instructions]
   C --> D[Agents on your machine]
   C --> E[Cloud sessions that work as you]
-  C --> F[Cloud bot on GitHub]
+  C --> F[Actions bot on GitHub]
 ```
 
 shadowclone indexes references to enabled sessions and copies no transcript. It redacts text and learns rules. One session can give an explicit rule, and an inferred pattern needs three independent sessions. Rules become skills that you can read, edit, and undo. shadowclone changes the guidance, not the model. See the [architecture](docs/architecture/README.md).
@@ -165,7 +165,7 @@ Read the [privacy policy](PRIVACY.md) and [data handling](docs/data-handling.md)
 | [Pi setup](docs/guides/pi.md)                    | Use Pi models         |
 | [OpenCode setup](docs/guides/opencode.md)        | Use OpenCode          |
 | [Delegated work](docs/guides/delegated-work.md)  | Ready a pull request  |
-| [Cloud bot](docs/guides/cloud-bot.md)            | Set up the GitHub bot |
+| [Actions bot](docs/guides/actions-bot.md)        | Set up the GitHub bot |
 | [Cloud sessions](docs/guides/cloud-sessions.md)  | Work as you, anywhere |
 | [Reviews](docs/guides/reviews.md)                | Review a pull request |
 | [MCP server](docs/guides/mcp.md)                 | Give agents the tools |
