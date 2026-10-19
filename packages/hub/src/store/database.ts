@@ -17,6 +17,9 @@ const schema = [
   `CREATE TABLE IF NOT EXISTS grants (
     id TEXT PRIMARY KEY, client_id TEXT NOT NULL, scope TEXT NOT NULL,
     created_at TEXT NOT NULL, revoked_at TEXT)`,
+  `CREATE TABLE IF NOT EXISTS nodes (
+    name TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL,
+    last_seen_at TEXT)`,
   `CREATE TABLE IF NOT EXISTS secrets (
     hash TEXT PRIMARY KEY, kind TEXT NOT NULL, grant_id TEXT NOT NULL, redirect_uri TEXT,
     code_challenge TEXT, expires_at TEXT NOT NULL, used_at TEXT)`,

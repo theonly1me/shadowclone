@@ -1,4 +1,4 @@
-export { handleMcpRequest, serveMcp } from "./server";
+export { handleMcpRequest, serveMcp, type SessionTools } from "./server";
 
 export { createSessionsTools } from "./sessions";
 

@@ -6,6 +6,7 @@ export type HubPaths = {
   readonly database: string;
   readonly lockFile: string;
   readonly logsDirectory: string;
+  readonly linkFile: string;
 };
 
 export function hubPaths(home: string = os.homedir()): HubPaths {
@@ -16,5 +17,6 @@ export function hubPaths(home: string = os.homedir()): HubPaths {
     database: path.join(directory, "hub.db"),
     lockFile: path.join(directory, "hub.lock"),
     logsDirectory: path.join(directory, "logs"),
+    linkFile: path.join(directory, "link.json"),
   };
 }

@@ -30,6 +30,7 @@ export function handleMcpRequest(options: {
   readonly request: JsonRpcRequest;
   readonly context: string;
   readonly toolResult?: Readonly<Record<string, unknown>> | null;
+  readonly sessionToolList?: readonly unknown[];
 }): Readonly<Record<string, unknown>> | null {
   const base = { jsonrpc: "2.0", id: options.request.id };
 
@@ -52,7 +53,7 @@ export function handleMcpRequest(options: {
           ...preferenceTools,
           ...botTools,
           ...cloneSetupTools,
-          ...sessionsTools,
+          ...(options.sessionToolList ?? sessionsTools),
           {
             name: "shadowclone_context",
             description: "Inspect applicable learned skills and native routing for this repository",

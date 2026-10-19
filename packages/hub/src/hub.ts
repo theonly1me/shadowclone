@@ -1,10 +1,12 @@
-import { createSessionsTools, sessionsTools } from "@shadowclone/mcp";
 import type { CloneNode } from "@shadowclone/clones";
 import type { HubStore } from "./store";
 import { issuerOf } from "./store/settings";
+import { fleetTools } from "./fleet/tools";
+import type { NodeLinks } from "./fleet/links";
 import { answerAuthorization, authorizationPage } from "./http/authorize";
 import { mcpEndpoint } from "./http/mcp";
 import { authorizationServerMetadata, protectedResourceMetadata } from "./http/metadata";
+import { linkNode, pairNode } from "./http/nodes";
 import { registerEndpoint } from "./http/register";
 import { jsonResponse, lockedDescription, oauthError } from "./http/responses";
 import { sourceAddress, sourceAllowed } from "./http/source";
@@ -14,23 +16,27 @@ export type Hub = {
   readonly handle: (options: {
     readonly request: Request;
     readonly peer: string | null;
-  }) => Promise<Response>;
+    readonly upgrade?: (name: string) => boolean;
+  }) => Promise<Response | undefined>;
 };
 
 type Route = (options: {
   readonly request: Request;
   readonly url: URL;
   readonly issuer: string;
-}) => Promise<Response> | Response;
+  readonly upgrade?: (name: string) => boolean;
+}) => Promise<Response | undefined> | Response | undefined;
 
 export function createHub(options: {
   readonly store: HubStore;
   readonly node: CloneNode;
+  readonly hostName: string;
+  readonly links: NodeLinks;
   readonly log: (line: string) => void;
 }): Hub {
-  const { store, log } = options;
-  const sessions = createSessionsTools({ node: options.node });
-  const tools = { list: sessionsTools, call: sessions.run };
+  const { store, log, hostName } = options;
+  const fleet = fleetTools({ hostName, local: options.node, links: options.links, store });
+  const tools = { list: fleet.list, call: fleet.call };
   const routes: Readonly<Record<string, Route>> = {
     "GET /.well-known/oauth-protected-resource": ({ issuer }) => protectedResourceMetadata(issuer),
     "GET /.well-known/oauth-protected-resource/mcp": ({ issuer }) =>
@@ -43,10 +49,13 @@ export function createHub(options: {
       answerAuthorization({ request, store, issuer, log }),
     "POST /token": ({ request }) => tokenEndpoint({ request, store }),
     "POST /mcp": ({ request, issuer }) => mcpEndpoint({ request, store, issuer, tools }),
+    "POST /nodes/pair": ({ request }) => pairNode({ request, store, hostName, log }),
+    "GET /nodes/link": ({ request, upgrade }) =>
+      linkNode({ request, store, ...(upgrade === undefined ? {} : { upgrade }) }),
   };
 
   return {
-    handle: async ({ request, peer }) => {
+    handle: async ({ request, peer, upgrade }) => {
       const settings = store.settings();
       const url = new URL(request.url);
       const source = sourceAddress({ peer, forwardedFor: request.headers.get("X-Forwarded-For") });
@@ -77,7 +86,12 @@ export function createHub(options: {
           : jsonResponse({ status: 404, body: { error: "not_found" } });
       }
 
-      return route({ request, url, issuer: issuerOf(settings) });
+      return route({
+        request,
+        url,
+        issuer: issuerOf(settings),
+        ...(upgrade === undefined ? {} : { upgrade }),
+      });
     },
   };
 }

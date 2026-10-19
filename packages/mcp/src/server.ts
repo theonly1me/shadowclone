@@ -23,8 +23,14 @@ async function writeMessage(value: Readonly<Record<string, unknown>>): Promise<v
   await Bun.stdout.write(`${JSON.stringify(value)}\n`);
 }
 
+export type SessionTools = {
+  readonly list: readonly unknown[];
+  readonly run: (params: unknown) => Promise<Readonly<Record<string, unknown>> | null>;
+};
+
 export async function serveMcp(
   options: {
+    readonly sessionTools?: SessionTools;
     readonly cwd?: string;
     readonly configPath?: string;
     readonly paths?: ProjectPaths;
@@ -44,7 +50,8 @@ export async function serveMcp(
   const decoder = new TextDecoder();
   const bot = createBotTool({ cwd, paths: botPaths });
   const cloneSetup = createCloneSetupTool({ cwd, paths: botPaths });
-  const sessions = createSessionsTools({ node: localNode({ paths: clonesPaths() }) });
+  const sessions =
+    options.sessionTools ?? createSessionsTools({ node: localNode({ paths: clonesPaths() }) });
 
   for await (const chunk of Bun.stdin.stream()) {
     buffer += decoder.decode(chunk, { stream: true });
@@ -94,7 +101,14 @@ export async function serveMcp(
                   })))
                 : null;
 
-            const response = handleMcpRequest({ request, context, toolResult });
+            const response = handleMcpRequest({
+              request,
+              context,
+              toolResult,
+              ...(options.sessionTools === undefined
+                ? {}
+                : { sessionToolList: options.sessionTools.list }),
+            });
 
             if (response !== null) {
               await writeMessage(response);

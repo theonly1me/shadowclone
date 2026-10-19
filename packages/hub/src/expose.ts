@@ -49,7 +49,9 @@ export async function exposeHub(options: {
   readonly processes: Processes;
   readonly url?: string;
   readonly off?: boolean;
+  readonly tailnetOnly?: boolean;
 }): Promise<ExposeOutcome> {
+  const mode = options.tailnetOnly === true ? "serve" : "funnel";
   const { store, processes } = options;
   const target = `http://127.0.0.1:${store.settings().port}`;
 
@@ -71,7 +73,7 @@ export async function exposeHub(options: {
   if (options.off === true) {
     const stopped = await tailscale({
       processes,
-      arguments: ["funnel", "--https=443", target, "off"],
+      arguments: [mode, "--https=443", target, "off"],
     });
 
     store.setSetting({ key: "publicUrl", value: null });
@@ -83,7 +85,7 @@ export async function exposeHub(options: {
 
   const funnel = await tailscale({
     processes,
-    arguments: ["funnel", "--bg", "--https=443", target],
+    arguments: [mode, "--bg", "--https=443", target],
   });
 
   if (funnel.exitCode !== 0) {

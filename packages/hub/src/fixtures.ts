@@ -1,7 +1,8 @@
 import { mkdtemp, realpath, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { CloneNode, CloneStartInput } from "@shadowclone/clones";
+import type { CloneNode, CloneStartInput, CloneView } from "@shadowclone/clones";
+import { nodeLinks, type NodeLinks } from "./fleet/links";
 import { createHub } from "./hub";
 import { hubStore, type HubStore } from "./store";
 import { openHubDatabase } from "./store/database";
@@ -12,7 +13,9 @@ export const issuer = "https://hub.example.ts.net";
 
 export const verifier = "v".repeat(43);
 
-function fakeNode(started: CloneStartInput[]): CloneNode {
+export function fakeNode(started: CloneStartInput[], clones: readonly CloneView[] = []): CloneNode {
+  const find = (id: string) => clones.find((clone) => clone.id === id) ?? null;
+
   return {
     start: async (input) => {
       started.push(input);
@@ -21,14 +24,21 @@ function fakeNode(started: CloneStartInput[]): CloneNode {
     },
     send: async () => ({ kind: "refused", reason: "No clone." }),
     answer: async () => ({ kind: "refused", reason: "No clone." }),
-    list: async () => ({ clones: [], unreadable: [] }),
-    get: async () => null,
-    stop: async () => ({ kind: "unknown" }),
+    list: async () => ({ clones, unreadable: [] }),
+    get: async (id) => find(id),
+    stop: async (id) => {
+      const clone = find(id);
+
+      return clone === null ? { kind: "unknown" } : { kind: "stopping", clone };
+    },
   };
 }
 
+export const hubHost = "studio";
+
 export type TestHub = {
   readonly store: HubStore;
+  readonly links: NodeLinks;
   readonly started: CloneStartInput[];
   readonly logs: string[];
   readonly advance: (minutes: number) => void;
@@ -38,6 +48,7 @@ export type TestHub = {
     readonly headers?: Readonly<Record<string, string>>;
     readonly body?: string;
     readonly peer?: string;
+    readonly upgrade?: (name: string) => boolean;
   }) => Promise<Response>;
   readonly remove: () => Promise<void>;
 };
@@ -51,26 +62,37 @@ export async function testHub(): Promise<TestHub> {
   });
   const started: CloneStartInput[] = [];
   const logs: string[] = [];
-  const hub = createHub({ store, node: fakeNode(started), log: (line) => logs.push(line) });
+  const links = nodeLinks({ timeoutMilliseconds: 500 });
+  const hub = createHub({
+    store,
+    node: fakeNode(started),
+    hostName: hubHost,
+    links,
+    log: (line) => logs.push(line),
+  });
 
   store.setSetting({ key: "publicUrl", value: issuer });
 
   return {
     store,
+    links,
     started,
     logs,
     advance: (minutes) => {
       now = new Date(now.getTime() + minutes * 60_000);
     },
     call: (options) =>
-      hub.handle({
-        request: new Request(`http://127.0.0.1:4517${options.path}`, {
-          method: options.method ?? "GET",
-          headers: options.headers ?? {},
-          ...(options.body === undefined ? {} : { body: options.body }),
-        }),
-        peer: options.peer ?? "127.0.0.1",
-      }),
+      hub
+        .handle({
+          request: new Request(`http://127.0.0.1:4517${options.path}`, {
+            method: options.method ?? "GET",
+            headers: options.headers ?? {},
+            ...(options.body === undefined ? {} : { body: options.body }),
+          }),
+          peer: options.peer ?? "127.0.0.1",
+          ...(options.upgrade === undefined ? {} : { upgrade: options.upgrade }),
+        })
+        .then((response) => response ?? new Response(null, { status: 101 })),
     remove: async () => {
       store.close();
       await rm(directory, { recursive: true, force: true });

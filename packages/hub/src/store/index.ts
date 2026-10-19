@@ -8,6 +8,14 @@ import {
   type HubClient,
 } from "./clients";
 import { createConsent, findConsent, removeConsent, type Consent } from "./consents";
+import {
+  authenticateNode,
+  joinNode,
+  listNodes,
+  removeNode,
+  touchNode,
+  type HubNode,
+} from "./nodes";
 import { createPairingCode, redeemPairingCode, type PairingKind } from "./pairing";
 import { readSettings, writeSetting, type HubSettings, type SettingKey } from "./settings";
 import { authenticate, exchangeCode, issueCode, refreshTokens, type TokenOutcome } from "./tokens";
@@ -48,6 +56,11 @@ export type HubStore = {
     readonly clientId: string;
   }) => TokenOutcome;
   readonly authenticate: (accessToken: string) => { readonly clientId: string } | null;
+  readonly joinNode: (name: string) => string;
+  readonly authenticateNode: (token: string) => string | null;
+  readonly listNodes: () => readonly HubNode[];
+  readonly removeNode: (name: string) => boolean;
+  readonly touchNode: (name: string) => void;
   readonly close: () => void;
 };
 
@@ -97,6 +110,11 @@ export function hubStore(options: {
 
       return caller;
     },
+    joinNode: (name) => joinNode({ database, now: now(), name }),
+    authenticateNode: (token) => authenticateNode({ database, token }),
+    listNodes: () => listNodes(database),
+    removeNode: (name) => removeNode({ database, name }),
+    touchNode: (name) => touchNode({ database, name, now: now() }),
     close: () => database.close(),
   };
 }
