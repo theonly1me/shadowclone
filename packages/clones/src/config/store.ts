@@ -9,6 +9,7 @@ export type ClonesPaths = {
   readonly runsDirectory: string;
   readonly secretsFile: string;
   readonly serveLockFile: string;
+  readonly startLockFile: string;
   readonly logsDirectory: string;
 };
 
@@ -21,6 +22,7 @@ export function clonesPaths(home: string = os.homedir()): ClonesPaths {
     runsDirectory: path.join(directory, "runs"),
     secretsFile: path.join(directory, "secrets.env"),
     serveLockFile: path.join(directory, "serve.lock"),
+    startLockFile: path.join(directory, "start.lock"),
     logsDirectory: path.join(directory, "logs"),
   };
 }
