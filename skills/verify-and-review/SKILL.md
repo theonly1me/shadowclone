@@ -47,7 +47,7 @@ You are about to say that a change is done, fixed, or ready for review. A questi
 - Report each failure that existed before your change apart from new failures, with the evidence that it existed before.
 - Keep captured user content and secrets out of the report.
 - Keep unrelated work in the worktree. A worktree with other changes is not a reason to delete them.
-- When a pull request exists, put the full command output in its verification section, not in the chat reply.
+- Report execution evidence and agent limitations in chat or local handoff notes. Do not add them to a pull request description unless the user asks for them.
 
 ## Completion
 
