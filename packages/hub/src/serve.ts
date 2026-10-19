@@ -2,7 +2,8 @@ import { acquireLocalLock } from "@shadowclone/core";
 import type { CloneNode } from "@shadowclone/clones";
 import type { LiveSessions } from "@shadowclone/live";
 import { hubHostName } from "./fleet/hostName";
-import { nodeLinks, type NodeSocket } from "./fleet/links";
+import { nodeLinks, type NodeLinks, type NodeSocket } from "./fleet/links";
+import { watchSessions } from "./notify/schedule";
 import { nodeProtocol } from "./fleet/protocol";
 import { createHub } from "./hub";
 import type { HubPaths } from "./paths";
@@ -21,9 +22,10 @@ export function startHubServer(options: {
   readonly port: number;
   readonly log: (line: string) => void;
   readonly hostName?: string;
+  readonly links?: NodeLinks;
 }) {
   const { store, log } = options;
-  const links = nodeLinks();
+  const links = options.links ?? nodeLinks();
   const hub = createHub({
     store,
     node: options.node,
@@ -100,13 +102,18 @@ export async function serveHub(options: {
   }
 
   const settings = store.settings();
+  const links = nodeLinks();
+  const hostName = hubHostName();
   const server = startHubServer({
     store,
     node: options.node,
     ...(options.live === undefined ? {} : { live: options.live }),
     port: settings.port,
     log: options.log,
+    links,
+    hostName,
   });
+  const watching = watchSessions({ ...options, store, links, hostName });
 
   options.log(`The hub listens on http://127.0.0.1:${settings.port}.`);
   options.log(`Connector URL: ${issuerOf(settings)}/mcp`);
@@ -119,6 +126,7 @@ export async function serveHub(options: {
     options.signal.addEventListener("abort", () => resolve(), { once: true });
   });
 
+  watching.stop();
   await server.stop(true);
   store.close();
   lock.release();

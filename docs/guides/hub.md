@@ -53,6 +53,16 @@ The hub can also list the Claude Code and Codex sessions that you start yourself
 
 cmux lets only processes inside cmux type into its terminals. So a message for an idle session in cmux waits for the next turn. Answer permission prompts in the terminal or with Claude Code Remote Control. Run `shadowclone live disable` to remove the hooks and the saved state.
 
+## Get a push on your phone
+
+The hub can send a push when a clone or a live session needs you, and when a clone finishes. It uses [ntfy](https://ntfy.sh), which has free apps for iOS and Android. If ntfy does not accept a push, the hub tries it again every 15 seconds for about one hour.
+
+1. Run `shadowclone hub notify`. It makes a private topic and prints its URL.
+2. In the ntfy app, subscribe to that URL.
+3. Run `shadowclone hub notify test`, and check the push on your phone.
+
+A push names the clone, its state, and its machine. Run `shadowclone hub notify --text` to add the repository and the question. Anyone who knows the topic can read the pushes, so keep the URL private. To use your own ntfy server, run `shadowclone hub notify --url https://<your server>/<topic>`. Run `shadowclone hub notify --off` to stop the pushes.
+
 ## What a client can do
 
 A connected client has the two clone tools: `shadowclone_sessions` reads, and `shadowclone_clone` starts, steers, answers, and stops. Claude asks you before it calls `shadowclone_clone`. Text that comes from a clone is data. The hub tells the client so, and the client must not follow instructions in it.

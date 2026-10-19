@@ -150,6 +150,8 @@ A clone runs in a fresh container. The provider receives the prompt, the skills,
 
 The hub writes `~/.shadowclone/hub/` (mode 0700). `hub.db` (mode 0600) holds the client names and redirect URIs, the settings, and SHA-256 hashes of pairing codes, authorization codes, and tokens. The hub never stores a code or a token itself. The log names client ids and redirect hosts. `hub clients revoke` ends a client's tokens, and deleting the folder ends all of them.
 
+`hub notify` saves an ntfy topic URL. The hub then sends that ntfy server a push for each clone or live session that needs you, and for each clone that ends. A push holds the clone id, its state, and its machine name. With `--text`, it also holds the repository and the question, through `redactSecrets`, at most 500 characters. Anyone who knows the topic can read the pushes.
+
 A machine that joins a hub writes `~/.shadowclone/hub/link.json` (mode 0600) with the hub URL, its node name, and its node token. Its link sends the hub the text of its clone tool answers. On that machine, `shadowclone mcp` sends clone tool calls to the hub. The hub stores a hash of each node token. See the [hub guide](guides/hub.md).
 
 ## Live sessions

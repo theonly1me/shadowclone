@@ -1,6 +1,7 @@
 import type { CloneNode } from "@shadowclone/clones";
 import type { LiveSessions } from "@shadowclone/live";
 import { holds } from "./holds";
+import { nodeStates } from "../notify/states";
 import { createSessionsTools } from "@shadowclone/mcp";
 import { nodeProtocols, parseMessage, textResult, toNodeSchema, type ToNode } from "./protocol";
 
@@ -15,6 +16,10 @@ export async function answerHub(options: {
 
   if (message.type === "has") {
     return holds({ node, live, id: message.clone });
+  }
+
+  if (message.type === "states") {
+    return nodeStates({ node, live });
   }
 
   return (
