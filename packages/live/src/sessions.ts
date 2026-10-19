@@ -1,8 +1,8 @@
 import type { LivePaths } from "./paths";
 import type { LiveRecord } from "./record";
-import { appendInbox, listRecords, readRecord, takeInbox } from "./store";
-import { oneLine, type TypeText } from "./terminal";
-import { liveOwnerMessage } from "./messages";
+import { appendInbox, listRecords, readRecord } from "./store";
+import type { TypeText } from "./terminal";
+import { typeInbox } from "./typing";
 
 export type LiveSendOutcome =
   | { readonly kind: "typed" | "queued"; readonly detail: string }
@@ -67,22 +67,19 @@ export function localLive(options: {
         };
       }
 
-      const pending = await takeInbox({ paths, id });
+      const typing = await typeInbox({
+        paths,
+        id,
+        surface: record.surface,
+        typeText: options.typeText,
+        now: now(),
+      });
 
-      if (
-        await options.typeText({
-          surface: record.surface,
-          text: oneLine(liveOwnerMessage(pending)),
-        })
-      ) {
+      if (typing !== "kept") {
         return {
           kind: "typed",
           detail: `shadowclone typed it into the ${record.surface.kind} terminal of the session.`,
         };
-      }
-
-      for (const message of pending) {
-        await appendInbox({ paths, id, text: message, now: now() });
       }
 
       return {

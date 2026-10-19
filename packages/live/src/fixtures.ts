@@ -21,13 +21,21 @@ export function hookContext(options: {
   readonly paths: LivePaths;
   readonly environment?: Readonly<Record<string, string>>;
   readonly engine?: "claude" | "codex";
+  readonly typed?: TypedText[];
 }): HookContext {
+  const { typed } = options;
+
   return {
     paths: options.paths,
     engine: options.engine ?? "claude",
     now: new Date("2026-10-18T12:00:00Z"),
     environment: options.environment ?? {},
     gitFacts: async () => ({ repository: "you/app", branch: "fix/parser" }),
+    typeText: async (entry) => {
+      typed?.push(entry);
+
+      return typed !== undefined;
+    },
   };
 }
 
