@@ -2,6 +2,7 @@ import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { stringify } from "smol-toml";
 import type { CloneConfig } from "../config/config";
+import { questionsFileVariable } from "./ask/questions";
 import { mustRun, type Processes } from "./processes";
 import type { Workspace } from "./workspace";
 
@@ -55,6 +56,21 @@ function codexSettings(options: {
   return {};
 }
 
+function askSettings(questionsFile: string | undefined): Record<string, unknown> {
+  return questionsFile === undefined
+    ? {}
+    : {
+        shell_environment_policy: { inherit: "all" },
+        mcp_servers: {
+          shadowclone: {
+            command: "shadowclone",
+            args: ["clone", "ask-server"],
+            env: { [questionsFileVariable]: questionsFile },
+          },
+        },
+      };
+}
+
 const loginSecrets: Partial<Record<CloneConfig["provider"], string>> = {
   openai: "OPENAI_API_KEY",
   "openai-compatible": "OPENAI_COMPATIBLE_API_KEY",
@@ -65,14 +81,13 @@ export async function prepareCodexHome(options: {
   readonly workspace: Workspace;
   readonly processes: Processes;
   readonly environment: Readonly<Record<string, string | undefined>>;
+  readonly askQuestionsFile?: string;
 }): Promise<string> {
   const { config, workspace, processes } = options;
   const loginHome = options.environment[codexLoginHomeVariable];
 
   if (config.provider === "chatgpt-subscription" && (loginHome === undefined || loginHome === "")) {
-    throw new Error(
-      "The ChatGPT login needs its volume. Run shadowclone clone login on the host.",
-    );
+    throw new Error("The ChatGPT login needs its volume. Run shadowclone clone login on the host.");
   }
 
   const home =
@@ -87,7 +102,9 @@ export async function prepareCodexHome(options: {
     recursive: true,
   });
   await cp(path.join(workspace.skills, "native.md"), path.join(home, "AGENTS.md"));
-  await writeFile(path.join(home, "config.toml"), stringify(codexSettings(options)), {
+  const settings = { ...codexSettings(options), ...askSettings(options.askQuestionsFile) };
+
+  await writeFile(path.join(home, "config.toml"), stringify(settings), {
     mode: 0o600,
   });
 

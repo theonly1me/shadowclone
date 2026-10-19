@@ -4,13 +4,14 @@ import {
   clonesPaths,
   containerLog,
   localNode,
+  sendText,
   startText,
   stopText,
 } from "@shadowclone/clones";
 import { flagValue } from "./cloneOptions";
 
 export const cloneControlUsage =
-  "clone start --repo owner/repository [--issue <number> | --pull <number> | --review <number>] [task]; clone list [--repo owner/repository]; clone show|stop|logs <id>";
+  "clone start --repo owner/repository [--issue <number> | --pull <number> | --review <number>] [task]; clone list [--repo owner/repository]; clone show|stop|logs <id>; clone send <id> <message>; clone answer <id> <question-id> <answer>";
 
 const valueFlags = ["--repo", "--issue", "--pull", "--review"];
 
@@ -38,7 +39,9 @@ function taskText(arguments_: readonly string[]): string {
     .filter((argument, index) => {
       const previous = arguments_[index - 1];
 
-      return !valueFlags.includes(argument) && (previous === undefined || !valueFlags.includes(previous));
+      return (
+        !valueFlags.includes(argument) && (previous === undefined || !valueFlags.includes(previous))
+      );
     })
     .join(" ");
 }
@@ -71,7 +74,9 @@ async function list(arguments_: readonly string[]): Promise<void> {
     repository === null ? {} : { repository },
   );
 
-  console.log(clones.length === 0 ? "No clones on this machine." : clones.map(cloneListLine).join("\n"));
+  console.log(
+    clones.length === 0 ? "No clones on this machine." : clones.map(cloneListLine).join("\n"),
+  );
 
   if (unreadable.length > 0) {
     console.log(`These run folders could not be read: ${unreadable.join(", ")}`);
@@ -130,6 +135,34 @@ async function logs(arguments_: readonly string[]): Promise<void> {
   console.log(`${file.name}\n${(await file.text()).split("\n").slice(-200).join("\n")}`);
 }
 
+async function send(arguments_: readonly string[]): Promise<void> {
+  const [id, ...words] = arguments_;
+  const text = words.join(" ").trim();
+
+  if (id === undefined || text === "") {
+    throw new Error(`Use shadowclone ${cloneControlUsage}.`);
+  }
+
+  const outcome = await localNode({ paths: clonesPaths() }).send({ id, text });
+
+  console.log(sendText({ outcome, what: "message" }));
+  process.exitCode = outcome.kind === "sent" ? 0 : 1;
+}
+
+async function answer(arguments_: readonly string[]): Promise<void> {
+  const [id, question, ...words] = arguments_;
+  const text = words.join(" ").trim();
+
+  if (id === undefined || question === undefined || text === "") {
+    throw new Error(`Use shadowclone ${cloneControlUsage}.`);
+  }
+
+  const outcome = await localNode({ paths: clonesPaths() }).answer({ id, question, text });
+
+  console.log(sendText({ outcome, what: "answer" }));
+  process.exitCode = outcome.kind === "sent" ? 0 : 1;
+}
+
 export const controlOperations: Readonly<
   Record<string, (arguments_: readonly string[]) => Promise<void>>
-> = { start, list, show, stop, logs };
+> = { start, list, show, stop, logs, send, answer };

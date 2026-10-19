@@ -48,7 +48,7 @@ export const packageLayout: PackageLayout = {
     ],
     harness: ["core", "redact", "sessions", "changes", "skills", "environment"],
     bot: ["core", "sessions", "environment"],
-    clones: ["core", "bot"],
+    clones: ["core", "redact", "bot"],
     web: ["core", "redact", "agents", "skills", "environment", "builds", "learning"],
     mcp: ["core", "sessions", "changes", "skills", "environment", "learning", "bot", "clones"],
     cli: [

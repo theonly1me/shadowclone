@@ -72,7 +72,14 @@ From an agent with the shadowclone MCP tools, ask for a clone in plain words. Th
 - `shadowclone clone logs <id>` prints the end of the container log.
 - `shadowclone clone stop <id>` stops a clone. A running clone first commits its unfinished work and pushes it to its branch. A queued clone never starts.
 
-The states are `queued`, `working`, `done`, `failed`, `limited` (the model login reached a usage limit), and `stopped`.
+The states are `queued`, `working`, `waiting` (for your answer), `done`, `failed`, `limited` (the model login reached a usage limit), and `stopped`. `clone show` also prints the clone's final report.
+
+## Steer a clone and answer it
+
+- `shadowclone clone send <id> <message>` gives a running clone a new instruction. Claude Code stops its current step and reads the message as a new turn. Codex reads it in the running turn.
+- When a clone needs your decision, it asks a question with a recommended option and keeps working on the rest. `clone list` shows `needs-you` for that clone, and `clone show` prints the question id.
+- `shadowclone clone answer <id> <question-id> <answer>` answers it.
+- If the clone has nothing else to do, it waits up to 30 minutes for your answer. Then it takes its recommended option, skips each destructive step, and lists that step in its report.
 
 ## What a clone can do
 

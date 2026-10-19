@@ -9,6 +9,7 @@ export type StartedClone = {
   readonly signal: AbortSignal;
   readonly onProgress: (progress: Progress) => Promise<void>;
   readonly finish: (exitCode: number) => void;
+  readonly delivered: string[];
 };
 
 export function startedClone(options: {
@@ -28,7 +29,10 @@ export function fakeLaunch(): { readonly launch: Launch; readonly started: Start
   const started: StartedClone[] = [];
   const launch: Launch = (options) =>
     new Promise<number>((resolve) => {
-      started.push({ ...options, finish: resolve });
+      const delivered: string[] = [];
+
+      options.attach((line) => delivered.push(line));
+      started.push({ ...options, finish: resolve, delivered });
     });
 
   return { launch, started };

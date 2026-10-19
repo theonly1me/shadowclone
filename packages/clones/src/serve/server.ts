@@ -1,7 +1,9 @@
 import { acquireLocalLock } from "@shadowclone/core";
 import { readCloneConfig } from "../config/store";
-import { finalStates } from "../node/progress";
-import { cloneState, endedRecord } from "../node/record";
+import { finalStates, type CloneState } from "../node/progress";
+import { cloneState } from "../node/record";
+import { endedRecord } from "../node/transitions";
+import { readInbox } from "../node/inbox";
 import { listRuns, removeRun, writeRecord, type StoredRun } from "../node/store";
 import { errorText, failBeforeStart, launchClone, type Running, type ServeContext } from "./clone";
 
@@ -10,6 +12,8 @@ export const scanMilliseconds = 2_000;
 export const parallelClones = 2;
 
 export const keepFinishedMilliseconds = 30 * 86_400_000;
+
+const interruptedStates: readonly CloneState[] = ["working", "waiting"];
 
 async function settleEarlierRuns(options: {
   readonly context: ServeContext;
@@ -22,14 +26,15 @@ async function settleEarlierRuns(options: {
     const { record } = run;
     const id = run.request.id;
 
-    if (record?.state === "working") {
+    if (record !== null && interruptedStates.includes(record.state)) {
       await writeRecord({
         paths: context.paths,
         id,
         record: endedRecord({
           record,
           state: "stopped",
-          detail: "The node stopped while the clone ran. Its work is on the branch if the save finished.",
+          detail:
+            "The node stopped while the clone ran. Its work is on the branch if the save finished.",
           now,
         }),
       });
@@ -56,6 +61,10 @@ export async function scanRuns(options: {
     if (active !== undefined && run.stopRequested && !active.controller.signal.aborted) {
       context.log(`Stopping clone ${run.request.id}.`);
       active.controller.abort();
+    }
+
+    if (active !== undefined && !active.controller.signal.aborted) {
+      await active.forward(await readInbox({ paths: context.paths, id: run.request.id }));
     }
   }
 

@@ -28,7 +28,7 @@ The server reads one JSON-RPC 2.0 message from standard input on each line. It u
 - `shadowclone_bot` configures the Actions bot or reads its status.
 - `shadowclone_clone_setup` pushes skills for clones, sets them up on this machine, or checks them.
 - `shadowclone_sessions` lists the clones on this machine, or returns one clone. It is read only.
-- `shadowclone_clone` starts or stops a clone.
+- `shadowclone_clone` starts, steers, answers, or stops a clone.
 
 Tools other than `shadowclone_context` reject unlisted input fields.
 
@@ -66,11 +66,13 @@ The tool rejects a token field. The owner adds tokens in the secrets file that s
 `shadowclone_clone` takes `operation`:
 
 - `start` with `repository` and `task`, the owner's task or the plan that the owner approved. Add `issue` or `pull` to work on one, or `review: true` with `pull` to review a pull request. The answer gives the clone id, or the reason that the node refused it.
+- `send` with `id` and `text` gives a running clone the owner's message.
+- `answer` with `id`, `question`, and `text` answers an open question of the clone.
 - `stop` with `id` stops the clone. A running clone pushes its unfinished work first.
 
 `shadowclone_sessions` takes `operation`:
 
 - `list`, with an optional `repository`, returns each clone with its state, branch, and pull request.
-- `get` with `id` returns one clone with its task and recent events. The answer starts with a line that marks the clone text as data.
+- `get` with `id` returns one clone with its task, questions, report, and recent events. The answer starts with a line that marks the clone text as data.
 
 `shadowclone_sessions` carries the `readOnlyHint` annotation, so a client can run it without a question. `shadowclone_clone` does not.

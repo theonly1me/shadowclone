@@ -2,6 +2,7 @@ import { acquireLocalLock } from "@shadowclone/core";
 import { providerLogins } from "../config/providers";
 import { readCloneConfig, type ClonesPaths } from "../config/store";
 import { cloneRequest, refusal } from "./admission";
+import { sendToClone, type SendOutcome } from "./messaging";
 import { cloneView, isActive, type CloneView } from "./record";
 import { newCloneId } from "./request";
 import { createRun, listRuns, readRun, writeStopMarker } from "./store";
@@ -27,8 +28,16 @@ export type CloneList = {
   readonly unreadable: readonly string[];
 };
 
+export type { SendOutcome } from "./messaging";
+
 export type CloneNode = {
   readonly start: (input: CloneStartInput) => Promise<StartOutcome>;
+  readonly send: (options: { readonly id: string; readonly text: string }) => Promise<SendOutcome>;
+  readonly answer: (options: {
+    readonly id: string;
+    readonly question: string;
+    readonly text: string;
+  }) => Promise<SendOutcome>;
   readonly list: (options: { readonly repository?: string }) => Promise<CloneList>;
   readonly get: (id: string) => Promise<CloneView | null>;
   readonly stop: (id: string) => Promise<StopOutcome>;
@@ -83,7 +92,10 @@ async function startClone(options: StartOptions): Promise<StartOutcome> {
   }
 
   if (input.review === true && !providerLogins[config.provider].reviews) {
-    return { kind: "refused", reason: `Reviews do not support the ${config.provider} provider yet.` };
+    return {
+      kind: "refused",
+      reason: `Reviews do not support the ${config.provider} provider yet.`,
+    };
   }
 
   const lock = await startLock(paths);
@@ -144,12 +156,19 @@ export function localNode(options: {
 
   return {
     start: (input) => startClone({ paths, now, newId: options.newId ?? newCloneId, input }),
+    send: ({ id, text }) => sendToClone({ paths, id, now: now(), message: { text } }),
+    answer: ({ id, question, text }) =>
+      sendToClone({ paths, id, now: now(), message: { question, text } }),
     list: async ({ repository }) => {
       const { runs, unreadable } = await listRuns(paths);
       const clones = runs
         .filter((run) => repository === undefined || run.request.repository === repository)
         .map(cloneView)
-        .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+        .sort(
+          (left, right) =>
+            Number(right.needsYou) - Number(left.needsYou) ||
+            right.createdAt.localeCompare(left.createdAt),
+        );
 
       return { clones, unreadable };
     },

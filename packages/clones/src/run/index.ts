@@ -1,15 +1,21 @@
+import path from "node:path";
 import { cloneEngine, type CloneConfig } from "../config/config";
 import { providerLogins } from "../config/providers";
 import type { GithubCall } from "../github";
 import type { Progress } from "../node/progress";
 import type { CloneRequest } from "../node/request";
+import { claudeDriver } from "./drive/claude";
+import { codexDriver } from "./drive/codex";
+import { superviseEngine } from "./drive/supervise";
 import { prepareEngine } from "./engine";
 import { finishWork } from "./finish";
+import { boundedSummary, finalDetail, finalState, type EngineOutcome } from "./outcome";
 import type { Processes } from "./processes";
+import type { WorkClone } from "./prompt";
 import { resolveClone } from "./resolve";
 import { runReview } from "./review";
-import { saveUnfinishedWork, type SaveOutcome } from "./save";
-import { prepareWorkspace } from "./workspace";
+import { saveUnfinishedWork } from "./save";
+import { prepareWorkspace, type Workspace } from "./workspace";
 
 export type RunContext = {
   readonly config: CloneConfig;
@@ -18,50 +24,40 @@ export type RunContext = {
   readonly root: string;
   readonly environment: Readonly<Record<string, string | undefined>>;
   readonly signal: AbortSignal;
+  readonly inbox: AsyncIterable<string>;
   readonly report: (progress: Progress) => void;
+  readonly waitMilliseconds?: number;
 };
-
-type FinalState = Exclude<Progress["state"], "working">;
-
-const usageLimitPattern = /usage limit|rate limit reached|limit will reset|You've hit your limit/i;
 
 const detailLimit = 2000;
 
-function finalState(options: {
-  readonly exitCode: number;
-  readonly tail: string;
-  readonly aborted: boolean;
-}): FinalState {
-  if (options.exitCode !== 0 && usageLimitPattern.test(options.tail)) {
-    return "limited";
-  }
+async function runWork(
+  options: RunContext & { readonly clone: WorkClone; readonly workspace: Workspace },
+): Promise<EngineOutcome> {
+  const questionsFile = path.join(options.root, "questions.jsonl");
+  const launch = await prepareEngine({ ...options, questionsFile });
+  const engine = options.processes.open({
+    arguments: launch.arguments,
+    environment: launch.environment,
+    cwd: options.workspace.repository,
+  });
+  const driver =
+    launch.codex === null
+      ? claudeDriver({ engine, prompt: launch.prompt })
+      : codexDriver({ engine, prompt: launch.prompt, thread: launch.codex });
+  const supervision = await superviseEngine({
+    driver,
+    inbox: options.inbox,
+    questionsFile,
+    report: options.report,
+    base: { branch: options.clone.branch, engine: cloneEngine(options.config) },
+    signal: options.signal,
+    ...(options.waitMilliseconds === undefined
+      ? {}
+      : { waitMilliseconds: options.waitMilliseconds }),
+  });
 
-  if (options.aborted) {
-    return "stopped";
-  }
-
-  return options.exitCode === 0 ? "done" : "failed";
-}
-
-function finalDetail(options: {
-  readonly state: FinalState;
-  readonly saved: SaveOutcome;
-  readonly exitCode: number;
-}): string {
-  const saved =
-    options.saved === "saved"
-      ? " The unfinished work is on the branch."
-      : options.saved === "push-failed"
-        ? " The unfinished work could not be pushed."
-        : "";
-  const details: Readonly<Record<FinalState, string>> = {
-    done: "The clone finished.",
-    limited: "The model login reached a usage limit. Start the clone again after the limit resets.",
-    stopped: "The clone stopped before it finished, from a stop request or its time limit.",
-    failed: `The agent exited with code ${options.exitCode}.`,
-  };
-
-  return `${details[options.state]}${saved}`;
+  return { outcome: supervision.outcome, tail: engine.tail(), summary: supervision.summary };
 }
 
 export async function runClone(
@@ -108,24 +104,26 @@ export async function runClone(
       detail: clone.kind === "review" ? "Reviewing the pull request." : "The agent is working.",
     });
 
-    const result =
+    const result: EngineOutcome =
       clone.kind === "review"
-        ? await runReview({ ...options, pull: clone.pull, workspace })
-        : await processes.stream({
-            ...(await prepareEngine({ ...options, clone, workspace })),
-            cwd: workspace.repository,
-            signal: options.signal,
-          });
+        ? await runReview({ ...options, pull: clone.pull, workspace }).then((review) => ({
+            outcome: review.exitCode === 0 ? "completed" : "failed",
+            tail: review.tail,
+            summary: "",
+          }))
+        : await runWork({ ...options, clone, workspace });
     const saved = await saveUnfinishedWork({ config, clone, workspace, processes });
     const { pull } = await finishWork({ github, config, clone, workspace, processes });
-    const state = finalState({ ...result, aborted: options.signal.aborted });
+    const state = finalState({ result, aborted: options.signal.aborted });
+    const summary = boundedSummary(result.summary);
 
     return finish({
       state,
       branch,
       engine,
       ...(pull === null ? {} : { pull }),
-      detail: finalDetail({ state, saved, exitCode: result.exitCode }),
+      ...(summary === undefined ? {} : { summary }),
+      detail: finalDetail({ state, saved }),
     });
   } catch (error) {
     return finish({

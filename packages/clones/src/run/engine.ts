@@ -1,20 +1,40 @@
 import path from "node:path";
 import { cloneEngine, type CloneConfig } from "../config/config";
+import { questionsFileVariable } from "./ask/questions";
 import { prepareCodexHome } from "./codexHome";
+import type { CodexThread } from "./drive/codex";
 import type { Processes } from "./processes";
 import { clonePrompt, type WorkClone } from "./prompt";
 import type { Workspace } from "./workspace";
 
-export type EngineInvocation = {
+export type EngineLaunch = {
   readonly arguments: readonly string[];
   readonly environment: Readonly<Record<string, string>>;
-  readonly input: string;
+  readonly prompt: string;
+  readonly codex: CodexThread | null;
 };
 
 export const claudeSettings = { includeCoAuthoredBy: false, attribution: { commit: "", pr: "" } };
 
+export const askServerCommand = ["shadowclone", "clone", "ask-server"] as const;
+
 function modelArguments(config: CloneConfig): readonly string[] {
   return config.model === undefined ? [] : ["--model", config.model];
+}
+
+export function claudeMcpConfig(questionsFile: string): string {
+  const [command, ...args] = askServerCommand;
+
+  return JSON.stringify({
+    mcpServers: {
+      shadowclone: {
+        type: "stdio",
+        command,
+        args,
+        env: { [questionsFileVariable]: questionsFile },
+      },
+    },
+  });
 }
 
 export async function prepareEngine(options: {
@@ -23,16 +43,22 @@ export async function prepareEngine(options: {
   readonly workspace: Workspace;
   readonly processes: Processes;
   readonly environment: Readonly<Record<string, string | undefined>>;
-}): Promise<EngineInvocation> {
+  readonly questionsFile: string;
+}): Promise<EngineLaunch> {
   const { config, workspace } = options;
   const engine = cloneEngine(config);
-  const input = clonePrompt({ config, engine, clone: options.clone });
+  const prompt = clonePrompt({ config, engine, clone: options.clone });
 
   if (engine === "claude") {
     return {
       arguments: [
         "claude",
         "-p",
+        "--input-format",
+        "stream-json",
+        "--output-format",
+        "stream-json",
+        "--verbose",
         "--permission-mode",
         "bypassPermissions",
         "--plugin-dir",
@@ -41,30 +67,25 @@ export async function prepareEngine(options: {
         path.join(workspace.skills, "native.md"),
         "--settings",
         JSON.stringify(claudeSettings),
+        "--mcp-config",
+        claudeMcpConfig(options.questionsFile),
         ...modelArguments(config),
       ],
       environment: {},
-      input,
+      prompt,
+      codex: null,
     };
   }
 
-  const home = await prepareCodexHome(options);
+  const home = await prepareCodexHome({ ...options, askQuestionsFile: options.questionsFile });
 
   return {
-    arguments: [
-      "codex",
-      "exec",
-      "-",
-      "--skip-git-repo-check",
-      "--sandbox",
-      "danger-full-access",
-      "-c",
-      'approval_policy="never"',
-      "-c",
-      'shell_environment_policy.inherit="all"',
-      ...modelArguments(config),
-    ],
+    arguments: ["codex", "app-server"],
     environment: { CODEX_HOME: home },
-    input,
+    prompt,
+    codex: {
+      cwd: workspace.repository,
+      ...(config.model === undefined ? {} : { model: config.model }),
+    },
   };
 }

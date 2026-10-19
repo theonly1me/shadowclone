@@ -11,8 +11,18 @@ export type ProcessRequest = {
   readonly input?: string;
 };
 
+export type EngineProcess = {
+  readonly write: (line: string) => void;
+  readonly end: () => void;
+  readonly lines: AsyncIterable<string>;
+  readonly exited: Promise<number>;
+  readonly terminate: () => void;
+  readonly tail: () => string;
+};
+
 export type Processes = {
   readonly run: (options: ProcessRequest) => Promise<ProcessResult>;
+  readonly open: (options: Omit<ProcessRequest, "input">) => EngineProcess;
   readonly stream: (options: ProcessRequest & { readonly signal: AbortSignal }) => Promise<{
     readonly exitCode: number;
     readonly tail: string;
@@ -50,7 +60,77 @@ function spawnRequest(options: ProcessRequest) {
   });
 }
 
+function keepTail(options: { readonly tail: string[]; readonly text: string }): void {
+  options.tail.push(options.text);
+
+  while (options.tail.join("").length > tailBytes && options.tail.length > 1) {
+    options.tail.shift();
+  }
+}
+
+async function* outputLines(options: {
+  readonly stream: ReadableStream<Uint8Array>;
+  readonly tail: string[];
+}): AsyncGenerator<string> {
+  const decoder = new TextDecoder();
+  let pending = "";
+
+  for await (const chunk of options.stream) {
+    process.stderr.write(chunk);
+
+    const text = decoder.decode(chunk, { stream: true });
+
+    keepTail({ tail: options.tail, text });
+    pending += text;
+
+    const lines = pending.split("\n");
+
+    pending = lines.pop() ?? "";
+    yield* lines;
+  }
+
+  if (pending !== "") {
+    yield pending;
+  }
+}
+
+function openEngine(options: Omit<ProcessRequest, "input">): EngineProcess {
+  const child = Bun.spawn({
+    cmd: [...options.arguments],
+    cwd: options.cwd,
+    env: { ...process.env, ...options.environment },
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "pipe",
+    detached: true,
+  });
+  const tail: string[] = [];
+
+  relay({ stream: child.stderr, sink: process.stderr, tail }).catch(() => undefined);
+
+  return {
+    write: (line) => {
+      child.stdin.write(`${line}\n`);
+      child.stdin.flush();
+    },
+    end: () => {
+      child.stdin.end();
+    },
+    lines: outputLines({ stream: child.stdout, tail }),
+    exited: child.exited,
+    terminate: () => {
+      try {
+        process.kill(-child.pid, "SIGTERM");
+      } catch {
+        child.kill("SIGTERM");
+      }
+    },
+    tail: () => tail.join(""),
+  };
+}
+
 export const hostProcesses: Processes = {
+  open: openEngine,
   run: async (options) => {
     const child = spawnRequest(options);
     const [stdout, stderr, exitCode] = await Promise.all([

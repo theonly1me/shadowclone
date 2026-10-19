@@ -17,6 +17,20 @@ export const cloneRequestVariable = "SHADOWCLONE_CLONE_REQUEST";
 
 type Environment = Readonly<Record<string, string | undefined>>;
 
+async function* standardInputLines(): AsyncGenerator<string> {
+  const decoder = new TextDecoder();
+  let pending = "";
+
+  for await (const chunk of Bun.stdin.stream()) {
+    pending += decoder.decode(chunk, { stream: true });
+
+    const lines = pending.split("\n");
+
+    pending = lines.pop() ?? "";
+    yield* lines;
+  }
+}
+
 function configFromEnvironment(environment: Environment): CloneConfig {
   return cloneConfigSchema.parse(JSON.parse(environment[cloneConfigVariable] ?? "null"));
 }
@@ -37,6 +51,7 @@ export async function runContainerClone(options: {
     root: await mkdtemp(path.join(os.tmpdir(), "shadowclone-clone-")),
     environment: options.environment,
     signal: AbortSignal.any([options.signal, AbortSignal.timeout(cloneMinutes * 60_000)]),
+    inbox: standardInputLines(),
     report: (progress) => {
       process.stdout.write(`${progressLine(progress)}\n`);
     },
