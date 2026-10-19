@@ -152,8 +152,8 @@ export async function reconcileSkillLearning(options: {
       name,
       text,
     });
-  } catch {
-    return pending("Publication needs review of destination ownership or supporting files. Resolve the target conflict and retry this learning.");
+  } catch (error) {
+    return pending(`Publication needs review: ${messageOf(error)}. Resolve the target conflict and retry this learning.`);
   }
 
   try {
