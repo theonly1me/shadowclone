@@ -72,7 +72,6 @@ async function runOperation(options: {
       ...(input.baseUrl === undefined ? {} : { baseUrl: input.baseUrl }),
       ...(input.model === undefined ? {} : { model: input.model }),
       attribution: input.attribution,
-      approveRuleset: input.approve,
       executable: Bun.which("shadowclone") ?? "shadowclone",
       pathVariable: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
     }),

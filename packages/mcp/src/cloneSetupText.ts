@@ -9,10 +9,6 @@ export function setupText(outcome: CloneSetupOutcome): string {
     return `${outcome.skillsRepository} does not exist. Call skills in the repository checkout on the machine that has the owner's skills. Then call setup again.`;
   }
 
-  if (outcome.kind === "needs-ruleset-approval") {
-    return `${outcome.summary}\nShow this to the owner. Call setup again with approve true only after the owner agrees.`;
-  }
-
   return [
     ...setupSummary(outcome),
     "",

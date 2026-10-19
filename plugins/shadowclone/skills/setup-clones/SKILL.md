@@ -6,14 +6,14 @@ license: MIT
 
 # Set Up Clones
 
-Do the whole setup for the user. The user answers questions in chat, pastes tokens into a file, and approves two changes. Run the steps in order. Do not explain a step that works.
+Do the whole setup for the user. The user answers questions in chat, pastes tokens into a file, and approves the skill files. Run the steps in order. Do not explain a step that works.
 
 A clone runs Claude Code or Codex as the user, on the user's own subscription or key, in Docker on this machine. The user starts it from the CLI or from an agent that has the shadowclone MCP tools.
 
 ## Rules
 
 - Never ask for a token in chat, and never read the secrets file. The user pastes each token into the secrets file.
-- Show the skill files and the ruleset summary to the user. Call the next step with `approve: true` only after the user agrees.
+- Show the skill files to the user. Call the next step with `approve: true` only after the user agrees.
 - If a step fails, show the exact error, fix what you can, and run the step again.
 
 ## 1. Check the machine (1 minute)
@@ -33,7 +33,6 @@ Ask these in one message. Use your question tool if you have one. Put the recomm
 
 1. Call the `shadowclone_clone_setup` tool with `operation: "setup"`, the repository, `provider`, and `baseUrl` or `model` when they apply.
 2. If the skills repository is missing, call `operation: "skills"` in the repository checkout. Show the files, and call it again with `approve: true` after the user agrees. Then call setup again.
-3. Setup returns the ruleset summary. The ruleset makes each change to the default branch go through a pull request, with no bypass. Show it to the user. After the user agrees, call setup again with `approve: true`.
 
 If the tool is not available, run `shadowclone clone setup --repo <owner/repository>` in a terminal instead.
 

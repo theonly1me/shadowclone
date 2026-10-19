@@ -58,7 +58,7 @@ k3x9m2qa done you/app shadowclone/k3x9m2qa #43 2026-10-18T14:02:11Z fix the flak
 
 **Runs on your machine.** Each clone runs in a fresh Docker container on a machine that you own. There is no shadowclone server, and your tokens stay in a file on that machine. Clones never push to the default branch, and each commit names the agent.
 
-**Set it up with one sentence.** Ask your agent to "set up shadowclone clones for this repository." You approve your skills and a default branch ruleset, and paste two tokens. See the [clones guide](docs/guides/clones.md).
+**Set it up with one sentence.** Ask your agent to "set up shadowclone clones for this repository." You approve your skills and paste two tokens. See the [clones guide](docs/guides/clones.md).
 
 **Reach them from your phone.** The hub puts your clones behind Tailscale Funnel as an MCP connector. Ask Claude on your phone what your clones are doing, and answer their questions there. See the [hub guide](docs/guides/hub.md).
 

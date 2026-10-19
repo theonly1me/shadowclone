@@ -41,7 +41,9 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **CI.** The poller is gone, so nothing starts a clone again after it exits. The prompt tells the clone to watch the CI of its pull request and fix each failure before it stops, within its 170-minute limit.
 
-**Kept from 044.** The owner's fine-grained token, the pre-push hook, the commit trailer, and the default branch ruleset stay. So do the `shadowclone` label, the line in the pull request body, the save after SIGTERM, and the review stages.
+**Kept from 044.** The owner's fine-grained token, the pre-push hook, and the commit trailer stay. So do the `shadowclone` label, the line in the pull request body, the save after SIGTERM, and the review stages.
+
+**Repository settings.** Setup changes none of the repository settings. The 044 setup added a default branch ruleset with no bypass. So the owner could not push to the default branch either, and in an organization the rule bound every member. The pre-push hook in the container keeps a clone off the default branch. An owner who wants GitHub to enforce that adds a ruleset. Setup needs write access, and it refuses a repository that the owner cannot push to.
 
 **Removed.** The `/shadowclone` command, the reviewer bot trigger, claim refs, session refs, status comments, and the `shadowclone:paused` label go. So do the poller, the receivers, and the Cloudflare, Vercel, Modal, Daytona, and E2B hosts. The config format changes to version 2. A saved config from 044 does not parse, and the message tells the owner to run setup again.
 

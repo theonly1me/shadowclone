@@ -26,7 +26,7 @@ Ask your agent in the repository checkout, on the machine that runs the clones:
 Set up shadowclone clones for this repository with my Claude subscription.
 ```
 
-The agent uses the `setup-clones` skill. You answer two questions, approve the skill files and the default branch ruleset, and paste your tokens into the secrets file. The agent runs a check and tells you how to start your first clone. Setup takes about 5 minutes.
+The agent uses the `setup-clones` skill. You answer two questions, approve the skill files, and paste your tokens into the secrets file. The agent runs a check and tells you how to start your first clone. Setup takes about 5 minutes.
 
 Without an agent, run the same steps in a terminal:
 
@@ -89,7 +89,7 @@ A clone works as you, through your fine-grained token. Its commits and pull requ
 - The line "Made by a shadowclone clone for @you." in the pull request body.
 - A `Co-authored-by` trailer for Claude or Codex on each commit. Setup with `--no-attribution` turns off the trailer.
 
-A clone never pushes to the default branch. A git hook refuses the push. Setup also adds the ruleset `shadowclone sessions default branch`. With it, every change to the default branch goes through a pull request, with no bypass for anyone, including you. In an organization, the ruleset applies to every member.
+A clone never pushes to the default branch. A git hook in the container refuses the push. Setup needs write access to the repository, and it changes none of the repository settings. If you want GitHub to block the push too, add a ruleset for the default branch yourself. Earlier versions of setup added the ruleset `shadowclone sessions default branch`. You can delete it in the repository settings.
 
 A review runs the repository's toolchain only on a pull request that you wrote in this repository. For a fork or a pull request from another person, the review runs none of its code and turns off web search.
 
@@ -98,7 +98,7 @@ Each repository has a daily limit of 20 clones, and one issue or pull request ha
 ## Stop and remove
 
 1. To stop all clones, stop the service: `launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/dev.shadowclone.sessions.plist` on macOS, or `systemctl --user disable --now shadowclone-sessions.service` on Linux.
-2. To remove the setup, delete `~/.shadowclone/clones/`, the ruleset, and the fine-grained token. Run `docker volume rm shadowclone-codex-login` if you used a ChatGPT login.
+2. To remove the setup, delete `~/.shadowclone/clones/` and the fine-grained token. Run `docker volume rm shadowclone-codex-login` if you used a ChatGPT login.
 
 The run folders in `~/.shadowclone/clones/runs/` keep each task, its events, and its container log. `shadowclone serve` removes a finished run folder after 30 days.
 
