@@ -22,7 +22,7 @@ Runs clones: Claude Code or Codex works for the owner, as the owner, in Docker o
 - `src/run/drive/`: the Claude Code and Codex drivers and `superviseEngine`, which delivers messages and answers and waits for an answer.
 - `src/run/ask/`: the `shadowclone_ask` MCP server that runs inside the clone.
 - `src/serve/`: `serveClones`, the Docker launcher, and the launchd or systemd service.
-- `src/setup/`: setup on this machine, the default branch ruleset, the secrets file, the summary, and the checks.
+- `src/setup/`: setup on this machine, the secrets file, the summary, and the checks.
 - `image/Dockerfile`: the clone image that `release.yml` publishes to GHCR.
 
 ## Rules
@@ -37,9 +37,9 @@ Runs clones: Claude Code or Codex works for the owner, as the owner, in Docker o
 - The final report passes through `redactSecrets` before it leaves the container.
 - `start` refuses a repository with no setup and a setup from an earlier config version. It also refuses a clone over `dailyClones` and a second active clone for one issue or pull request. It holds the `start.lock` lock from the check to the written request.
 - shadowclone never reads a model login or the GitHub token. The owner pastes them into the secrets file. Docker gets the secrets file path only.
-- A clone never pushes to the default branch. The pre-push hook refuses it, and setup adds a ruleset with no bypass.
+- A clone never pushes to the default branch. The pre-push hook refuses it. Setup changes none of the repository settings.
 - A review runs the toolchain only on a pull request that the owner wrote in this repository. Other reviews turn the network off.
-- Setup refuses a ChatGPT plan login on a public repository.
+- Setup refuses a ChatGPT plan login on a public repository, and a repository that the owner cannot push to.
 
 ## Tests
 

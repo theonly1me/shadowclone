@@ -8,7 +8,6 @@ import {
   type CloneConfigInput,
 } from "../config/config";
 import type { CloneProvider } from "../config/providers";
-import { ensureSessionsRuleset, sessionsRulesetSummary } from "./ruleset";
 
 export type SetupRequest = {
   readonly repository: string;
@@ -17,17 +16,11 @@ export type SetupRequest = {
   readonly model?: string;
   readonly image?: string;
   readonly attribution: boolean;
-  readonly approveRuleset: boolean;
 };
 
 export type Preparation =
   | { readonly kind: "needs-skills"; readonly skillsRepository: string }
-  | {
-      readonly kind: "needs-ruleset-approval";
-      readonly repository: string;
-      readonly summary: string;
-    }
-  | { readonly kind: "ready"; readonly config: CloneConfig; readonly organization: boolean };
+  | { readonly kind: "ready"; readonly config: CloneConfig };
 
 const userSchema = z.object({ id: z.number().int().positive(), login: z.string() });
 
@@ -36,12 +29,8 @@ const repositorySchema = z.object({
   full_name: z.string(),
   default_branch: z.string(),
   visibility: z.enum(["public", "private", "internal"]),
-  owner: z.object({ type: z.string() }),
-  permissions: z.object({ admin: z.boolean() }).optional(),
+  permissions: z.object({ push: z.boolean() }).optional(),
 });
-
-export const organizationWarning =
-  "The ruleset applies to every member of the organization: each change to the default branch needs a pull request.";
 
 export async function prepareClones(
   options: SetupRequest & { readonly github: GithubCall },
@@ -52,9 +41,9 @@ export async function prepareClones(
     await githubData({ github, route: `repos/${options.repository}` }),
   );
 
-  if (repository.permissions?.admin !== true) {
+  if (repository.permissions?.push !== true) {
     throw new Error(
-      `Setup needs administration access to ${repository.full_name}, to add the default branch ruleset.`,
+      `Setup needs write access to ${repository.full_name}, because each clone pushes its branch there.`,
     );
   }
 
@@ -89,19 +78,5 @@ export async function prepareClones(
     throw new Error(parsed.error.issues.map((issue) => issue.message).join(" "));
   }
 
-  if (!options.approveRuleset) {
-    return {
-      kind: "needs-ruleset-approval",
-      repository: repository.full_name,
-      summary: sessionsRulesetSummary,
-    };
-  }
-
-  await ensureSessionsRuleset({ github, repository: repository.full_name });
-
-  return {
-    kind: "ready",
-    config: parsed.data,
-    organization: repository.owner.type === "Organization",
-  };
+  return { kind: "ready", config: parsed.data };
 }

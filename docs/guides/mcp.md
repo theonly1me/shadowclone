@@ -58,7 +58,7 @@ The owner adds the bot token and the API key on GitHub, never in the tool. See t
 `shadowclone_clone_setup` takes `operation` and these inputs:
 
 - `skills`: push the equipped skills of the current checkout. The first call returns the files. Call again with `approve` set to `true` only after the owner agrees.
-- `setup` with `repository` and `provider`. Add `baseUrl` and `model` when the provider needs them. The first call returns the default branch ruleset. Call again with `approve` set to `true` only after the owner agrees. `attribution: false` turns off the trailer.
+- `setup` with `repository` and `provider`. Add `baseUrl` and `model` when the provider needs them. `attribution: false` turns off the trailer.
 - `status` with `repository` runs the check in Docker.
 
 The tool rejects a token field. The owner adds tokens in the secrets file that setup names. See [clones](clones.md).

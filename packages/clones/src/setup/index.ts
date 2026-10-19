@@ -4,12 +4,7 @@ import type { Processes } from "../run/processes";
 import type { CloneConfig } from "../config/config";
 import { saveCloneConfig, type ClonesPaths } from "../config/store";
 import { cloneServeService, installService, type ServiceOutcome } from "../serve/service";
-import {
-  organizationWarning,
-  prepareClones,
-  type Preparation,
-  type SetupRequest,
-} from "./prepare";
+import { prepareClones, type Preparation, type SetupRequest } from "./prepare";
 import { createSecretsFile, secretLines, type SecretLine } from "./secrets";
 
 export type LocalSetupOutcome = {
@@ -51,7 +46,7 @@ async function imageReady(options: {
 }
 
 async function setUpLocal(
-  options: SetupHost & { readonly config: CloneConfig; readonly organization: boolean },
+  options: SetupHost & { readonly config: CloneConfig },
 ): Promise<LocalSetupOutcome> {
   const { config, paths, processes } = options;
 
@@ -75,12 +70,9 @@ async function setUpLocal(
     secrets,
     service,
     imageReady: ready,
-    warnings: [
-      ...(options.organization ? [organizationWarning] : []),
-      ...(ready
-        ? []
-        : [`Docker could not pull ${config.image}. Clones cannot start until the image exists.`]),
-    ],
+    warnings: ready
+      ? []
+      : [`Docker could not pull ${config.image}. Clones cannot start until the image exists.`],
   };
 }
 
@@ -103,7 +95,5 @@ export async function setUpClones(options: SetupHost & SetupRequest): Promise<Cl
 
   const prepared = await prepareClones(options);
 
-  return prepared.kind === "ready"
-    ? setUpLocal({ ...options, config: prepared.config, organization: prepared.organization })
-    : prepared;
+  return prepared.kind === "ready" ? setUpLocal({ ...options, config: prepared.config }) : prepared;
 }

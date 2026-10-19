@@ -8,8 +8,7 @@ export const cloneSetupTools = [
       "Set up shadowclone clones on this machine. A clone runs Claude Code or Codex as the owner, " +
       "on the owner's subscription or key, in Docker on this machine. Operations: skills pushes the " +
       "owner's skills (show the file list and call again with approve true only after the owner " +
-      "agrees). setup adds the default branch ruleset (show its summary and call again with approve " +
-      "true only after the owner agrees) and installs shadowclone serve as a service. Tokens never " +
+      "agrees). setup saves the clone settings and installs shadowclone serve as a service. Tokens never " +
       "pass through this tool: the owner pastes them into the secrets file that setup names. status " +
       "checks the tokens and the model login in a container.",
     inputSchema: {
@@ -33,7 +32,7 @@ export const cloneSetupTools = [
         attribution: { type: "boolean", description: "false turns off the Co-authored-by trailer" },
         approve: {
           type: "boolean",
-          description: "true only after the owner approved the listed files or the ruleset",
+          description: "true only after the owner approved the listed files",
         },
       },
       required: ["operation"],

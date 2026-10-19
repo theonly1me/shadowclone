@@ -13,13 +13,7 @@ import { promptConfirmation } from "./confirm";
 
 type SetupOptions = Omit<
   Parameters<typeof setUpClones>[0],
-  | "github"
-  | "processes"
-  | "paths"
-  | "repository"
-  | "approveRuleset"
-  | "executable"
-  | "pathVariable"
+  "github" | "processes" | "paths" | "repository" | "executable" | "pathVariable"
 > & {
   readonly repository: string | null;
   readonly yes: boolean;
@@ -68,18 +62,17 @@ export async function setUpClonesInTerminal(options: SetupOptions): Promise<void
   const { yes, ...request } = options;
   const repository = options.repository ?? (await currentRepository(process.cwd()));
   const executable = Bun.which("shadowclone") ?? "shadowclone";
-  const setup = (approveRuleset: boolean): Promise<CloneSetupOutcome> =>
+  const setup = (): Promise<CloneSetupOutcome> =>
     setUpClones({
       ...request,
       github: githubThroughGh,
       processes: hostProcesses,
       paths: clonesPaths(),
       repository,
-      approveRuleset,
       executable,
       pathVariable: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
     });
-  let outcome = await setup(false);
+  let outcome = await setup();
 
   if (outcome.kind === "needs-skills") {
     console.log(
@@ -93,20 +86,7 @@ export async function setUpClonesInTerminal(options: SetupOptions): Promise<void
       return;
     }
 
-    outcome = await setup(false);
-  }
-
-  if (outcome.kind === "needs-ruleset-approval") {
-    console.log(outcome.summary);
-
-    if (!yes && !promptConfirmation(`Add it to ${outcome.repository}?`)) {
-      console.log(
-        "Nothing changed. Clones need this ruleset, because a clone works with your own token.",
-      );
-      return;
-    }
-
-    outcome = await setup(true);
+    outcome = await setup();
   }
 
   if (outcome.kind === "needs-docker") {
