@@ -1,6 +1,6 @@
 import { acquireLocalLock } from "@shadowclone/core";
 import { readCloneConfig } from "../config/store";
-import { finalStates } from "../node/progress";
+import { finalStates, type CloneState } from "../node/progress";
 import { cloneState } from "../node/record";
 import { endedRecord } from "../node/transitions";
 import { readInbox } from "../node/inbox";
@@ -13,6 +13,8 @@ export const parallelClones = 2;
 
 export const keepFinishedMilliseconds = 30 * 86_400_000;
 
+const interruptedStates: readonly CloneState[] = ["working", "waiting"];
+
 async function settleEarlierRuns(options: {
   readonly context: ServeContext;
   readonly runs: readonly StoredRun[];
@@ -24,7 +26,7 @@ async function settleEarlierRuns(options: {
     const { record } = run;
     const id = run.request.id;
 
-    if (record?.state === "working") {
+    if (record !== null && interruptedStates.includes(record.state)) {
       await writeRecord({
         paths: context.paths,
         id,

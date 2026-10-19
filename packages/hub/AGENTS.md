@@ -37,6 +37,7 @@ Serves the clone tools over Streamable HTTP with its own OAuth authorization ser
 - A node opens the link. The hub never connects to a node.
 - A push has no question text or repository unless the owner turns text on. Each event pushes once, and the first scan pushes nothing.
 - Each machine answers for its own live sessions. A `live-` id goes to the machine that has it.
+- When the hub does not answer, the forwarding tools of a node act only on that node. A `start` with no node or with another node runs nothing.
 
 ## Tests
 

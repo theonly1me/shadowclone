@@ -49,7 +49,7 @@ The hub can also list the Claude Code and Codex sessions that you start yourself
 1. Run `shadowclone live enable`. It adds hooks to Claude Code and Codex, and keeps your own hooks.
 2. Start a new agent session. Codex asks you to trust the new hooks.
 3. Ask Claude "what are my sessions doing?" The answer lists each live session with a `live-` id, its state, and its last message.
-4. Ask Claude to send a session a message. A working session gets it after its next tool call or at the end of its turn. An idle session in tmux gets it typed at its prompt.
+4. Ask Claude to send a session a message. A working session gets it after its next tool call or at the end of its turn. An idle session in tmux gets it typed at its prompt. This includes a Claude Code session whose turn ended with an API error.
 
 cmux lets only processes inside cmux type into its terminals. So a message for an idle session in cmux waits for the next turn. Answer permission prompts in the terminal or with Claude Code Remote Control. Run `shadowclone live disable` to remove the hooks and the saved state.
 

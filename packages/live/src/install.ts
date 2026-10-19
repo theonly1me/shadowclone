@@ -15,7 +15,14 @@ const ownedEntrySchema = z.object({
 
 const marker = " live hook ";
 
-const claudeEvents = ["SessionStart", "UserPromptSubmit", "Notification", "Stop", "SessionEnd"];
+const claudeEvents = [
+  "SessionStart",
+  "UserPromptSubmit",
+  "Notification",
+  "Stop",
+  "StopFailure",
+  "SessionEnd",
+];
 
 const codexEvents = ["SessionStart", "UserPromptSubmit", "PermissionRequest", "Stop", "SessionEnd"];
 

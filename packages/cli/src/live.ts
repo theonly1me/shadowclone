@@ -6,6 +6,7 @@ import {
   machineLive,
   readGitFacts,
   switchLiveSessions,
+  terminalTyper,
   type LiveEngine,
 } from "@shadowclone/live";
 
@@ -30,6 +31,7 @@ async function hook(arguments_: readonly string[]): Promise<void> {
       now: new Date(),
       environment: process.env,
       gitFacts: readGitFacts,
+      typeText: terminalTyper(),
     },
     input: await Bun.stdin.text(),
   }).catch(() => null);

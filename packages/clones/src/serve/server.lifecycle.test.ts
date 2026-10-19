@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { temporaryClones } from "../fixtures";
 import { localNode } from "../node";
-import { startedRecord } from "../node/transitions";
+import { progressedRecord, startedRecord } from "../node/transitions";
 import { writeRecord } from "../node/store";
 import { fakeLaunch, serveContext, settle, startedClone, until } from "./fakeLaunch";
 import { scanRuns, serveClones } from "./server";
@@ -91,6 +91,42 @@ describe("serve stops clones and recovers", () => {
         detail:
           "The node stopped while the clone ran. Its work is on the branch if the save finished.",
       });
+    } finally {
+      await remove();
+    }
+  });
+  test("a clone that waited for an answer when the node stopped is marked stopped, so its issue is free again", async () => {
+    const { paths, remove } = await temporaryClones();
+
+    try {
+      let next = 0;
+      const node = localNode({ paths, newId: () => `clone00${next++}` });
+
+      await node.start({ repository: "sample/project", task: "", issue: 12 });
+      await writeRecord({
+        paths,
+        id: "clone000",
+        record: progressedRecord({
+          record: startedRecord(new Date()),
+          progress: {
+            state: "waiting",
+            detail: "The clone asks a question.",
+            question: { id: "qabc123", text: "Keep the old API?", options: [], recommended: "yes" },
+          },
+          now: new Date(),
+        }),
+      });
+
+      const { launch, started } = fakeLaunch();
+
+      expect(
+        await serveClones({ ...serveContext({ paths, launch }), signal: AbortSignal.abort() }),
+      ).toBe("stopped");
+      expect(started).toHaveLength(0);
+      expect(await node.get("clone000")).toMatchObject({ state: "stopped", needsYou: false });
+      expect((await node.start({ repository: "sample/project", task: "", issue: 12 })).kind).toBe(
+        "queued",
+      );
     } finally {
       await remove();
     }

@@ -15,10 +15,12 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 
 ## Owns
 
-- `src/hook.ts`: `handleLiveHook` and `runLiveHook`, the hook events and their output.
+- `src/hook.ts`: `handleLiveHook` and `runLiveHook`, which write the session file for each hook event.
+- `src/hookChange.ts`: the state change and the output for each hook event.
 - `src/store.ts`: the session files, the inbox, and the `pending` marker.
 - `src/sessions.ts`: `localLive`, the `list`, `get`, and `send` operations.
 - `src/terminal.ts`: typing into a tmux pane or a cmux surface.
+- `src/typing.ts`: `typeInbox`, which types the waiting messages and keeps them if the terminal refuses.
 - `src/install.ts`: the hook entries in `~/.claude/settings.json` and `~/.codex/hooks.json`.
 - `src/consent.ts`: `liveSessionsEnabled` and `switchLiveSessions`.
 
@@ -28,6 +30,7 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - Store only the repository, the branch, the folder name, the state, the times, the terminal, and the redacted last message. Never store a prompt, a tool input or output, or thinking.
 - Bound the summary to 2 KB after `redactSecrets`.
 - Deliver each queued message once. Never type into a session that waits for a permission answer.
+- A Claude turn that ends with `StopFailure`, and an `idle_prompt` notification, make the session idle and type its waiting messages.
 - Prefer a tmux pane over a cmux surface, because tmux can run inside cmux.
 - Keep the owner's own hooks. Find shadowclone's hooks by the `live hook` text in their command.
 - A hook never fails the agent. An error gives no output.

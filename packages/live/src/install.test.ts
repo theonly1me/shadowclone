@@ -28,6 +28,9 @@ describe("installing the live session hooks", () => {
         own,
         { hooks: [{ type: "command", command: `${launcher} live hook claude`, timeout: 10 }] },
       ]);
+      expect(installed.hooks.StopFailure).toEqual([
+        { hooks: [{ type: "command", command: `${launcher} live hook claude`, timeout: 10 }] },
+      ]);
       expect(installed.hooks.PostToolUse[0].hooks[0].command).toBe(
         `[ -e "$HOME/.shadowclone/live/pending" ] && ${launcher} live hook claude || true`,
       );
