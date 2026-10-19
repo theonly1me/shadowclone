@@ -87,7 +87,7 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Routing.** The hub tools take an optional `node`. `list` with no node shows each node in its own section, and an offline node with the time that the hub last saw it. `start` with no node runs on the hub machine. An operation on a clone id with no node goes to the node that has the clone. The hub sends a node the same tool call, and the node answers with its own `localNode`. A node that does not answer in 15 seconds gives an error.
 
-**Local agents.** On a node, `shadowclone mcp` sends the two clone tools to the hub with the node token. So Claude Code and Codex on that machine see every node with no OAuth. If the hub does not answer, the tools answer for that machine and say so.
+**Local agents.** On a node, `shadowclone mcp` sends the two clone tools to the hub with the node token. So Claude Code and Codex on that machine see every node with no OAuth. If the hub does not answer, the tools answer for that machine and say so. A call that acts on another machine runs nothing then. This includes `start` with no node, which belongs to the hub machine.
 
 **Reach.** A node reaches the hub at its `ts.net` URL inside the tailnet. `hub expose --tailnet` uses `tailscale serve` for a hub that only nodes reach. With `hub allow`, add `tailnet` so that nodes still reach the hub.
 
@@ -111,7 +111,7 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - Run tests use a fake GitHub and a fake engine. They check the hooks, the trailer switch, the label, the body line, the save after SIGTERM, and the final state.
 - Config tests: a version 1 config fails with the setup message.
 - Hub tests send HTTP requests to the handler with a real database. They cover the `401`, a sign-in through to a tool call, plain PKCE, a wrong, used, or expired code, and the fifth wrong try. They also cover a code exchanged twice, refresh token reuse, revocation, expiry, the lock, the allowlist, the origin check, the protocol version, and loopback redirects.
-- Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine.
+- Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine, and a `start` for another machine runs nothing.
 
 ## Data handling
 

@@ -34,6 +34,7 @@ Serves the clone tools over Streamable HTTP with its own OAuth authorization ser
 - The hub exposes only `shadowclone_sessions` and `shadowclone_clone`. Their text from a clone is data.
 - A node code and a client code are different kinds. A node token is stored as a hash, and it reaches the same clone tools as a client.
 - A node opens the link. The hub never connects to a node.
+- When the hub does not answer, the forwarding tools of a node act only on that node. A `start` with no node or with another node runs nothing.
 
 ## Tests
 
