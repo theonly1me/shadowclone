@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.0.43](https://github.com/theonly1me/shadowclone/compare/v0.0.42...v0.0.43) (2026-10-19)
+
+
+### Features
+
+* **clones:** start clones from the cli and mcp instead of github comments ([#245](https://github.com/theonly1me/shadowclone/issues/245)) ([5f26fa0](https://github.com/theonly1me/shadowclone/commit/5f26fa0bd4e2e7405213cfcedbfa841b5e2a0829))
+* **clones:** steer a running clone and answer its questions ([#246](https://github.com/theonly1me/shadowclone/issues/246)) ([70916fe](https://github.com/theonly1me/shadowclone/commit/70916fe2c3a0a489be2cb6c63b123334b5becb6a))
+* **hub:** join more machines to one hub ([#248](https://github.com/theonly1me/shadowclone/issues/248)) ([955bc11](https://github.com/theonly1me/shadowclone/commit/955bc114d50736c8471a64a9fefaedd280d13a31))
+* **hub:** list and steer live claude code and codex sessions ([#249](https://github.com/theonly1me/shadowclone/issues/249)) ([f7b4bbb](https://github.com/theonly1me/shadowclone/commit/f7b4bbbef44786b7481fed2882bcc05d91637185))
+* **hub:** notify your phone when a clone needs you ([#250](https://github.com/theonly1me/shadowclone/issues/250)) ([ab11986](https://github.com/theonly1me/shadowclone/commit/ab119865cd910c909aa202ba098f190f57aaac78))
+* **hub:** reach your clones from any mcp client ([#247](https://github.com/theonly1me/shadowclone/issues/247)) ([287bc1d](https://github.com/theonly1me/shadowclone/commit/287bc1d39309eed3ed5a5d4b2f305be9c696ae01))
+* **skills:** fold the content of personal skills into the bundled skills ([#242](https://github.com/theonly1me/shadowclone/issues/242)) ([7be4fab](https://github.com/theonly1me/shadowclone/commit/7be4fab9ffd01863e061cda35713d16eb8632512))
+
+
+### Fixes
+
+* **learning:** name the error when a skill publication fails ([#251](https://github.com/theonly1me/shadowclone/issues/251)) ([7dbbd08](https://github.com/theonly1me/shadowclone/commit/7dbbd0869b74a8bddbf858ff72b3191f470e19de))
+* **skills:** keep command output out of pull request descriptions and update the repository skill copies ([#252](https://github.com/theonly1me/shadowclone/issues/252)) ([61ac16e](https://github.com/theonly1me/shadowclone/commit/61ac16e315f08fa656d6822d39f5073e1180d57a))
+
 ## [0.0.42](https://github.com/theonly1me/shadowclone/compare/v0.0.41...v0.0.42) (2026-10-17)
 
 
