@@ -64,8 +64,8 @@ afterAll(async () => {
   await rm(root, { recursive: true, force: true });
 });
 
-describe("session git hooks", () => {
-  test("the pre-push hook refuses the default branch and allows the session branch", async () => {
+describe("clone git hooks", () => {
+  test("the pre-push hook refuses the default branch and allows the clone branch", async () => {
     const repository = await repositoryWithOrigin("push");
 
     await hook({ repository, name: "pre-push", content: prePushHook("main") });
@@ -84,7 +84,7 @@ describe("session git hooks", () => {
     });
 
     expect(toMain.exitCode).not.toBe(0);
-    expect(toMain.stderr).toContain("a session never pushes to main");
+    expect(toMain.stderr).toContain("a clone never pushes to main");
     expect(toBranch.exitCode).toBe(0);
   });
 

@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { Processes } from "../run/processes";
-import type { ClonesPaths } from "../session/store";
+import type { ClonesPaths } from "../config/store";
 
 export const serviceLabel = "dev.shadowclone.sessions";
 
@@ -44,7 +44,7 @@ export function systemdUnit(options: {
   readonly pathVariable: string;
 }): string {
   return `[Unit]
-Description=shadowclone cloud sessions
+Description=shadowclone clones
 After=network-online.target
 
 [Service]

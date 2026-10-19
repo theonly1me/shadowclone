@@ -1,6 +1,7 @@
 import type { Processes } from "../run/processes";
-import type { SessionConfig } from "../session/config";
-import type { ClonesPaths } from "../session/store";
+import type { CloneConfig } from "../config/config";
+import type { ClonesPaths } from "../config/store";
+import { cloneConfigVariable } from "../run/container";
 import { codexLoginArguments, dockerRunArguments } from "../serve/docker";
 import { checkLineSchema, type CheckLine } from "./check";
 
@@ -14,8 +15,8 @@ export function parseCheckLine(text: string): CheckLine | null {
   }
 }
 
-export async function checkSessionHost(options: {
-  readonly config: SessionConfig;
+export async function checkCloneHost(options: {
+  readonly config: CloneConfig;
   readonly paths: ClonesPaths;
   readonly processes: Processes;
 }): Promise<readonly CheckLine[]> {
@@ -24,8 +25,9 @@ export async function checkSessionHost(options: {
       config: options.config,
       paths: options.paths,
       name: `shadowclone-check-${Date.now()}`,
-      command: ["shadowclone", "session", "check"],
-      environment: { SHADOWCLONE_SESSION_CONFIG: JSON.stringify(options.config) },
+      label: "dev.shadowclone.check=1",
+      command: ["shadowclone", "clone", "check"],
+      environment: { [cloneConfigVariable]: JSON.stringify(options.config) },
     }),
     cwd: options.paths.directory,
   });
@@ -42,7 +44,7 @@ export async function checkSessionHost(options: {
       ];
 }
 
-export function chatgptLoginArguments(config: SessionConfig): readonly string[] {
+export function chatgptLoginArguments(config: CloneConfig): readonly string[] {
   return [
     "docker",
     "run",

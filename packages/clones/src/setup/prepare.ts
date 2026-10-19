@@ -1,21 +1,18 @@
 import { z } from "zod";
 import { githubData, type GithubCall } from "../github";
 import {
+  cloneConfigSchema,
+  cloneConfigVersion,
   publicChatgptRefusal,
-  sessionConfigSchema,
-  type SessionConfig,
-  type SessionConfigInput,
-  type SessionHost,
-  type SessionReceiver,
-} from "../session/config";
-import type { SessionProvider } from "../session/providers";
+  type CloneConfig,
+  type CloneConfigInput,
+} from "../config/config";
+import type { CloneProvider } from "../config/providers";
 import { ensureSessionsRuleset, sessionsRulesetSummary } from "./ruleset";
 
 export type SetupRequest = {
   readonly repository: string;
-  readonly provider: SessionProvider;
-  readonly host: SessionHost;
-  readonly receiver?: SessionReceiver;
+  readonly provider: CloneProvider;
   readonly baseUrl?: string;
   readonly model?: string;
   readonly image?: string;
@@ -30,7 +27,7 @@ export type Preparation =
       readonly repository: string;
       readonly summary: string;
     }
-  | { readonly kind: "ready"; readonly config: SessionConfig; readonly organization: boolean };
+  | { readonly kind: "ready"; readonly config: CloneConfig; readonly organization: boolean };
 
 const userSchema = z.object({ id: z.number().int().positive(), login: z.string() });
 
@@ -46,7 +43,7 @@ const repositorySchema = z.object({
 export const organizationWarning =
   "The ruleset applies to every member of the organization: each change to the default branch needs a pull request.";
 
-export async function prepareSessions(
+export async function prepareClones(
   options: SetupRequest & { readonly github: GithubCall },
 ): Promise<Preparation> {
   const { github } = options;
@@ -71,8 +68,8 @@ export async function prepareSessions(
     return { kind: "needs-skills", skillsRepository };
   }
 
-  const input: SessionConfigInput = {
-    version: 1,
+  const input: CloneConfigInput = {
+    version: cloneConfigVersion,
     repository: repository.full_name,
     repositoryId: repository.id,
     defaultBranch: repository.default_branch,
@@ -81,14 +78,12 @@ export async function prepareSessions(
     ownerLogin: owner.login,
     skillsRepository,
     provider: options.provider,
-    host: options.host,
     attribution: options.attribution,
-    ...(options.receiver === undefined ? {} : { receiver: options.receiver }),
     ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
     ...(options.model === undefined ? {} : { model: options.model }),
     ...(options.image === undefined ? {} : { image: options.image }),
   };
-  const parsed = sessionConfigSchema.safeParse(input);
+  const parsed = cloneConfigSchema.safeParse(input);
 
   if (!parsed.success) {
     throw new Error(parsed.error.issues.map((issue) => issue.message).join(" "));

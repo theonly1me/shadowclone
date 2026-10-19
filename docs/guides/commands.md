@@ -55,14 +55,15 @@ See [skill maintenance](skills.md).
 - `shadowclone bot setup --bot <login>`: set up the machine account bot. `--provider` is `anthropic` (default), `openai`, `openai-compatible`, or `cursor`. `openai-compatible` needs `--base-url <https url>` and `--model <id>`. Other options are `--model <id>`, `--repo owner/repository`, `--yes`, and `--no-open`. See the [Actions bot guide](actions-bot.md).
 - `shadowclone bot status --repo owner/repository`: list the open setup steps, or start the check run and wait up to 8 minutes for its result. It exits with status 1 until the check passes. Without `--repo`, it prints the saved setups as JSON.
 - `shadowclone bot export --skill <name> --output <private-folder>`: save skills to a folder outside the checkout, with no upload.
-- `shadowclone session skills`: push the equipped skills of the current checkout to your private repository `<you>/shadowclone-skills`, after you approve the file list. `--yes` skips the question.
-- `shadowclone session setup --repo owner/repository`: configure cloud sessions. `--host` is `local` (default), `cloudflare`, `vercel`, `modal`, `daytona`, or `e2b`. `daytona` and `e2b` need `--receiver cloudflare`, `vercel`, `supabase` (with `--supabase-project <ref>`), or `deno` (with `--deno-org <name>`). `--provider` is `claude-subscription` (default), `anthropic`, `chatgpt-subscription`, `openai`, `openai-compatible`, `ollama`, or `foundry`. The endpoint providers need `--base-url <url>` and `--model <id>`. `--no-attribution` turns off the `Co-authored-by` trailer, `--image <name>` uses another clone image, and `--yes` approves the default branch ruleset. See [cloud sessions](cloud-sessions.md).
-- `shadowclone session secrets --repo owner/repository`: add the tokens. On Cloudflare and Vercel, it runs the host's own prompt for each one. For other hosts, it names the place.
-- `shadowclone session status --repo owner/repository`: run the check in Docker, or send a signed ping to a cloud receiver. It exits with status 1 until every line passes.
-- `shadowclone session login --repo owner/repository`: sign in to Codex with a ChatGPT plan through a device code.
-- `shadowclone session start --repo owner/repository --issue <number> [task]`: comment `/shadowclone <task>` on the issue or pull request.
-- `shadowclone session list --repo owner/repository` and `shadowclone session logs`: show the sessions from their status comments, and the last log on this machine.
-- `shadowclone serve`: poll GitHub and run sessions in Docker. Setup installs it as a service.
+- `shadowclone clone skills`: push the equipped skills of the current checkout to your private repository `<you>/shadowclone-skills`, after you approve the file list. `--yes` skips the question.
+- `shadowclone clone setup --repo owner/repository`: set up clones on this machine. `--provider` is `claude-subscription` (default), `anthropic`, `chatgpt-subscription`, `openai`, `openai-compatible`, `ollama`, or `foundry`. The endpoint providers need `--base-url <url>` and `--model <id>`. `--no-attribution` turns off the `Co-authored-by` trailer, `--image <name>` uses another clone image, and `--yes` approves the default branch ruleset. See [clones](clones.md).
+- `shadowclone clone secrets --repo owner/repository`: name the secrets file and the values to paste into it.
+- `shadowclone clone status --repo owner/repository`: run the check in Docker. It exits with status 1 until every line passes.
+- `shadowclone clone login --repo owner/repository`: sign in to Codex with a ChatGPT plan through a device code.
+- `shadowclone clone start --repo owner/repository [--issue <number> | --pull <number> | --review <number>] [task]`: queue a clone. It exits with status 1 when the node refuses the clone, and the output names the reason.
+- `shadowclone clone list [--repo owner/repository]`, `clone show <id>`, and `clone logs <id>`: show the clones on this machine, one clone, and the end of its container log.
+- `shadowclone clone stop <id>`: stop a clone. A running clone pushes its unfinished work first.
+- `shadowclone serve`: start queued clones in Docker, up to 2 at a time. Setup installs it as a service. A second `serve` on the same machine exits with status 1.
 - `shadowclone check [--changed]`: run the repository checks. `--format` accepts `human`, `json`, or `claude-stop`.
 
 ## Serve

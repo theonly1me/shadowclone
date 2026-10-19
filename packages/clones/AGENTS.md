@@ -1,6 +1,6 @@
 # @shadowclone/clones
 
-Runs cloud sessions: Claude Code or Codex works for the owner, as the owner, on a host that the owner owns. Only the owner's `/shadowclone` comment starts a session. The CLI and the MCP server call it. [Design record 044](../../docs/design/044-cloud-sessions.md) explains the design.
+Runs clones: Claude Code or Codex works for the owner, as the owner, in Docker on a machine that the owner owns. The owner starts a clone from the CLI or the MCP server on that machine. The CLI and the MCP server call it. [Design record 049](../../docs/design/049-clones.md) explains the design.
 
 <!-- package-facts:start -->
 
@@ -15,34 +15,29 @@ Runs cloud sessions: Claude Code or Codex works for the owner, as the owner, on 
 
 ## Owns
 
-- `src/session/`: the session config schema, the providers and their secrets, and the host paths.
-- `src/trigger/`: the events, the `/shadowclone` command, and the rules that accept a request (`resolveSessionRequest`).
-- `src/state/`: the GitHub state: claim refs and the daily budget, the session head ref, and the status comment.
-- `src/run/`: the run program inside the clone image (`runSession`), with the workspace, git hooks, engine, review stages, save, and finish steps.
-- `src/serve/`: the local server on a spare machine: the poller, the Docker launcher, the queue, and the launchd or systemd service.
-- `src/receivers/`: the Web-standard webhook receiver (`receiveWebhook`), its runtime settings, and the Daytona and E2B launchers. These files run inside the user's host, so they use only Web APIs and import only each other and `trigger/command.ts`.
-- `src/hosts/`: the receiver bundle macro, the project files for Cloudflare, Vercel, Supabase, Deno Deploy, and Modal, the deploy steps, and the repository webhook.
-- `src/setup/`: host setup, the default branch ruleset, the secrets file and host secrets, the summary, and the checks.
+- `src/config/`: the clone config schema, the providers and their secrets, and the host paths.
+- `src/node/`: `localNode` and its `start`, `list`, `get`, and `stop` operations, the run folders, the request and record schemas, the progress lines, and the admission rules.
+- `src/run/`: the run program inside the clone image (`runClone`), with target resolution, the workspace, git hooks, engine, review stages, save, and finish steps.
+- `src/serve/`: `serveClones`, the Docker launcher, and the launchd or systemd service.
+- `src/setup/`: setup on this machine, the default branch ruleset, the secrets file, the summary, and the checks.
 - `image/Dockerfile`: the clone image that `release.yml` publishes to GHCR.
 
 ## Rules
 
-- A session starts only in three cases:
-  - a comment from the owner's numeric user ID whose first line is `/shadowclone`,
-  - a CI run on the commit that the session pushed last,
-  - an allowed reviewer bot on a session pull request.
-- shadowclone never reads a model login or the GitHub token. The owner pastes them into the host's secret store. Docker gets the secrets file path only.
-- GitHub holds the state. A claim ref stops a second run of one request, and the claim refs of a day are the budget.
-- A session never pushes to the default branch. The pre-push hook refuses it, and setup adds a ruleset with no bypass.
+- A clone starts only from a request in its run folder, which `localNode().start` writes. Nothing on GitHub starts a clone.
+- `serveClones` is the only writer of `record.json`. It holds the `serve.lock` lock, so one machine runs one `serve`.
+- `serve` runs at most `parallelClones` clones, and one clone at a time for a ChatGPT plan login.
+- A container that exits with no final progress line is `failed`. A queued clone with a stop marker never starts.
+- `start` refuses a repository with no setup and a setup from an earlier config version. It also refuses a clone over `dailyClones` and a second active clone for one issue or pull request. It holds the `start.lock` lock from the check to the written request.
+- shadowclone never reads a model login or the GitHub token. The owner pastes them into the secrets file. Docker gets the secrets file path only.
+- A clone never pushes to the default branch. The pre-push hook refuses it, and setup adds a ruleset with no bypass.
 - A review runs the toolchain only on a pull request that the owner wrote in this repository. Other reviews turn the network off.
-- Setup refuses a ChatGPT plan login on a public repository, and on every host except `local`.
-- A receiver checks the signature, the repository ID, and the sender before it starts a sandbox. It passes only the secrets that `SHADOWCLONE_FORWARD` names.
-- `hosts/bundle.ts` lists the receiver sources in dependency order. Add a new receiver file to that list, and keep its top-level names unique.
+- Setup refuses a ChatGPT plan login on a public repository.
 
 ## Tests
 
-Run `bun test` in this folder, or `bun test packages/clones` from the root. `src/fixtures.ts` has a fake GitHub and a sample config. The hook tests use real `git` in a temporary folder. No test needs an account or Docker.
+Run `bun test` in this folder, or `bun test packages/clones` from the root. `src/fixtures.ts` has a fake GitHub, a sample config, and a temporary clones folder. `src/serve/fakeLaunch.ts` replaces Docker in the serve tests. The hook tests use real `git` in a temporary folder. No test needs an account or Docker.
 
-To try a branch in Docker, run `bun run stage`, then `npm pack` in `packages/cli/out/package` with `--pack-destination packages/clones/image`. Build with `--build-arg SHADOWCLONE_PACKAGE=/tmp/shadowclone-build/<file>.tgz`, and pass the tag to `session setup --image`.
+To try a branch in Docker, run `bun run stage`, then `npm pack` in `packages/cli/out/package` with `--pack-destination packages/clones/image`. Build with `--build-arg SHADOWCLONE_PACKAGE=/tmp/shadowclone-build/<file>.tgz`, and pass the tag to `clone setup --image`.
 
 Update this file in the same commit when you change the package purpose, public exports, dependencies, or a rule above.

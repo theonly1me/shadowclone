@@ -1,69 +1,37 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fakeGithub, issueCommentRoute, issueRoutes, owner, sampleConfig, sha } from "../fixtures";
-import { parseStatus } from "../state/statusComment";
-import { runSession } from ".";
+import { fakeGithub, pullRoute, sampleConfig, sha, type FakeRoutes } from "../fixtures";
+import type { Progress } from "../node/progress";
+import type { CloneRequest } from "../node/request";
+import { runClone } from ".";
 import type { ProcessRequest, Processes } from "./processes";
 
-const roots: string[] = [];
-const branch = "shadowclone/issue-12";
+const branch = "shadowclone/clone000";
 
-afterEach(async () => {
-  await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
-});
+const newTask: CloneRequest = {
+  version: 1,
+  id: "clone000",
+  repository: "sample/project",
+  createdAt: "2026-10-18T12:00:00Z",
+  kind: "work",
+  task: "fix the parser",
+  target: { kind: "new" },
+};
 
-function bodyText(body: unknown): string {
-  return typeof body === "object" && body !== null && "body" in body ? String(body.body) : "";
-}
-
-function sessionGithub() {
-  const comments: { id: number; body: string; user: { id: number } }[] = [];
-  const fake = fakeGithub({
-    ...issueCommentRoute({ id: 501, entity: 12, user: owner, body: "/shadowclone fix the parser" }),
-    ...issueRoutes({ number: 12 }),
-    "GET repos/sample/project/git/matching-refs/shadowclone/claims/": { status: 200, data: [] },
-    "GET repos/sample/project/git/ref/heads/main": {
-      status: 200,
-      data: { object: { sha: sha("a") } },
-    },
-    "POST repos/sample/project/git/refs": { status: 201, data: {} },
-    "POST repos/sample/project/issues/comments/501/reactions": { status: 201, data: {} },
-    "GET repos/sample/project/issues/12/comments?per_page=100&page=1": () => ({
-      status: 200,
-      data: comments,
-    }),
-    "POST repos/sample/project/issues/12/comments": (body) => {
-      comments.push({ id: 700, body: bodyText(body), user: { id: 11 } });
-      return { status: 201, data: {} };
-    },
-    "PATCH repos/sample/project/issues/comments/700": (body) => {
-      const [first] = comments;
-
-      if (first) {
-        first.body = bodyText(body);
-      }
-
-      return { status: 200, data: {} };
-    },
+function pullRequestRoutes(): FakeRoutes {
+  return {
     [`GET repos/sample/project/pulls?state=open&head=${encodeURIComponent(`sample:${branch}`)}&per_page=100`]:
-      {
-        status: 200,
-        data: [{ number: 40, body: "Fixes the parser.", head: { ref: branch } }],
-      },
+      { status: 200, data: [{ number: 40, body: "Fixes the parser.", head: { ref: branch } }] },
     "POST repos/sample/project/issues/40/labels": { status: 200, data: [] },
     "PATCH repos/sample/project/pulls/40": { status: 200, data: {} },
-  });
-
-  return { ...fake, comments };
+  };
 }
 
-function fakeProcesses(options: {
-  readonly unpushed: boolean;
-  readonly onStream: (request: ProcessRequest) => void;
-}) {
+function fakeProcesses(options: { readonly unpushed: boolean }) {
   const commands: string[] = [];
+  const streamed: ProcessRequest[] = [];
   const processes: Processes = {
     run: async (request) => {
       const command = request.arguments.join(" ");
@@ -93,47 +61,51 @@ function fakeProcesses(options: {
       return { stderr: "", ...(outputs[command] ?? { exitCode: 0, stdout: "" }) };
     },
     stream: async (request) => {
-      options.onStream(request);
+      streamed.push(request);
       return { exitCode: 0, tail: "Done." };
     },
   };
 
-  return { processes, commands };
+  return { processes, commands, streamed };
 }
 
-async function start(options: { readonly unpushed: boolean; readonly aborted: boolean }) {
-  const root = await mkdtemp(path.join(os.tmpdir(), "shadowclone-session-"));
-  const github = sessionGithub();
-  const streamed: ProcessRequest[] = [];
-  const { processes, commands } = fakeProcesses({
-    unpushed: options.unpushed,
-    onStream: (request) => streamed.push(request),
-  });
-  const controller = new AbortController();
+async function runWith(options: {
+  readonly request: CloneRequest;
+  readonly routes: FakeRoutes;
+  readonly unpushed: boolean;
+  readonly aborted: boolean;
+}) {
+  const root = await mkdtemp(path.join(os.tmpdir(), "shadowclone-clone-"));
+  const github = fakeGithub(options.routes);
+  const { processes, commands, streamed } = fakeProcesses({ unpushed: options.unpushed });
+  const reports: Progress[] = [];
 
-  roots.push(root);
+  try {
+    const final = await runClone({
+      config: sampleConfig(),
+      request: options.request,
+      github: github.github,
+      processes,
+      root,
+      environment: {},
+      signal: options.aborted ? AbortSignal.abort() : new AbortController().signal,
+      report: (progress) => reports.push(progress),
+    });
 
-  if (options.aborted) {
-    controller.abort();
+    return { final, reports, github, commands, streamed };
+  } finally {
+    await rm(root, { recursive: true, force: true });
   }
-
-  const outcome = await runSession({
-    config: sampleConfig(),
-    github: github.github,
-    processes,
-    root,
-    environment: {},
-    signal: controller.signal,
-    now: () => new Date("2026-10-14T12:00:00Z"),
-    event: { kind: "comment", source: "issue_comment", id: 501, entity: 12 },
-  });
-
-  return { outcome, github, streamed, commands };
 }
 
-describe("a session from the owner's comment", () => {
-  test("runs Claude Code on the task, marks the pull request, and records the pushed head", async () => {
-    const { outcome, github, streamed } = await start({ unpushed: false, aborted: false });
+describe("a clone run in the container", () => {
+  test("a new task runs Claude Code on its own branch, then labels the pull request and adds the body line", async () => {
+    const { final, reports, github, streamed } = await runWith({
+      request: newTask,
+      routes: pullRequestRoutes(),
+      unpushed: false,
+      aborted: false,
+    });
     const [engine] = streamed;
 
     expect(engine?.arguments.slice(0, 4)).toEqual([
@@ -143,28 +115,63 @@ describe("a session from the owner's comment", () => {
       "bypassPermissions",
     ]);
     expect(engine?.input).toContain("fix the parser");
-    expect(outcome).toMatchObject({ kind: "finished", status: { state: "done", pull: 40 } });
+    expect(engine?.input).toContain(`Work on the branch ${branch}.`);
+    expect(final).toEqual({
+      state: "done",
+      branch,
+      engine: "claude",
+      pull: 40,
+      detail: "The clone finished.",
+    });
+    expect(reports.at(-1)).toEqual(final);
     expect(
       github.calls.find((call) => call.route === "repos/sample/project/pulls/40")?.body,
-    ).toEqual({
-      body: "Fixes the parser.\n\nMade in a shadowclone session for @sample.",
-    });
-    expect(
-      github.calls
-        .filter((call) => call.method === "POST" && call.route === "repos/sample/project/git/refs")
-        .map((call) => call.body),
-    ).toContainEqual({
-      ref: expect.stringMatching(/^refs\/shadowclone\/sessions\/[a-f0-9]{16}$/),
-      sha: sha("b"),
-    });
-    expect(parseStatus(github.comments[0]?.body ?? "")?.state).toBe("done");
+    ).toEqual({ body: "Fixes the parser.\n\nMade by a shadowclone clone for @sample." });
   });
 
-  test("a session that the host stops pushes the unfinished work and says so in the status comment", async () => {
-    const { outcome, commands, github } = await start({ unpushed: true, aborted: true });
+  test("a stopped clone pushes the unfinished work and reports stopped", async () => {
+    const { final, commands } = await runWith({
+      request: newTask,
+      routes: pullRequestRoutes(),
+      unpushed: true,
+      aborted: true,
+    });
 
     expect(commands).toContain(`git push --quiet origin HEAD:refs/heads/${branch}`);
-    expect(outcome).toMatchObject({ kind: "finished", status: { state: "saved" } });
-    expect(github.comments[0]?.body).toContain("The unfinished work is on the branch.");
+    expect(final).toMatchObject({
+      state: "stopped",
+      detail:
+        "The clone stopped before it finished, from a stop request or its time limit. The unfinished work is on the branch.",
+    });
+  });
+
+  test("work on a fork pull request is refused before anything is cloned", async () => {
+    const { final, commands } = await runWith({
+      request: { ...newTask, target: { kind: "pull", number: 9 } },
+      routes: pullRoute({ number: 9, branch: "feature", head: sha("c"), repositoryId: 99 }),
+      unpushed: false,
+      aborted: false,
+    });
+
+    expect(final).toEqual({
+      state: "failed",
+      engine: "claude",
+      detail: "A clone cannot push to a fork. Start a review of the pull request instead.",
+    });
+    expect(commands.filter((command) => command.startsWith("git clone"))).toEqual([]);
+  });
+
+  test("a pull request branch that starts with a dash is refused, so git never reads it as an option", async () => {
+    const { final } = await runWith({
+      request: { ...newTask, target: { kind: "pull", number: 9 } },
+      routes: pullRoute({ number: 9, branch: "--orphan", head: sha("c") }),
+      unpushed: false,
+      aborted: false,
+    });
+
+    expect(final).toMatchObject({
+      state: "failed",
+      detail: "The branch name of pull request #9 is not safe to use.",
+    });
   });
 });

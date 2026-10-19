@@ -1,28 +1,22 @@
 import { describe, expect, test } from "bun:test";
 import { sampleConfig, sha } from "../fixtures";
-import type { SessionRequest } from "../trigger/event";
+import type { PullFacts } from "./resolve";
 import { reviewStages } from "./review";
 
-const request: SessionRequest = {
-  kind: "review",
-  source: "issue_comment",
-  identifier: 502,
-  entity: 30,
-  pull: true,
+const pull: PullFacts = {
+  number: 30,
   branch: "feature",
   head: sha("a"),
   ownerAuthored: true,
   fork: false,
-  key: "issue_comment:502:x",
-  task: "",
 };
 const workspace = { root: "/work", repository: "/work/repository", skills: "/work/skills" };
 
-function stages(overrides: Partial<SessionRequest>) {
-  return reviewStages({ config: sampleConfig(), request: { ...request, ...overrides }, workspace });
+function stages(overrides: Partial<PullFacts>) {
+  return reviewStages({ config: sampleConfig(), pull: { ...pull, ...overrides }, workspace });
 }
 
-describe("session reviews", () => {
+describe("clone reviews", () => {
   test("the owner's own pull request runs the toolchain checks with the network on", () => {
     const result = stages({});
 

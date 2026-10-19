@@ -3,7 +3,8 @@ import product from "@shadowclone/core/product.json";
 import { handleMcpRequest } from "./server";
 import { preferenceTools } from "./preferences";
 import { botTools } from "./bot";
-import { sessionTools } from "./sessionTools";
+import { cloneSetupTools } from "./cloneSetupTools";
+import { sessionsTools } from "./sessionsTools";
 
 test("responds to initialize with protocol version and serverInfo", () => {
   const response = handleMcpRequest({
@@ -35,7 +36,8 @@ test("advertises the context, preference, bot, and session tools without the rem
       tools: [
         ...preferenceTools,
         ...botTools,
-        ...sessionTools,
+        ...cloneSetupTools,
+        ...sessionsTools,
         {
           name: "shadowclone_context",
           description: "Inspect applicable learned skills and native routing for this repository",

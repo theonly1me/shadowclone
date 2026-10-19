@@ -21,7 +21,7 @@ export type SkillsPushOutcome =
       readonly leftOut: readonly string[];
     };
 
-export async function pushSessionSkills(options: {
+export async function pushCloneSkills(options: {
   readonly paths: ProjectPaths;
   readonly cwd: string;
   readonly approve: boolean;

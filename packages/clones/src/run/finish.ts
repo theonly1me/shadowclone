@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { githubData, type GithubCall } from "../github";
-import type { SessionConfig } from "../session/config";
-import { recordSessionHead } from "../state/sessionRef";
-import { sessionLabel, type SessionRequest } from "../trigger/event";
+import type { CloneConfig } from "../config/config";
+import { cloneLabel, type ResolvedClone } from "./resolve";
 import type { Processes } from "./processes";
 import type { Workspace } from "./workspace";
 
@@ -12,8 +11,8 @@ const pullSchema = z.object({
   head: z.object({ ref: z.string() }),
 });
 
-export function sessionBodyLine(config: SessionConfig): string {
-  return `Made in a shadowclone session for @${config.ownerLogin}.`;
+export function cloneBodyLine(config: CloneConfig): string {
+  return `Made by a shadowclone clone for @${config.ownerLogin}.`;
 }
 
 export async function remoteHead(options: {
@@ -32,7 +31,7 @@ export async function remoteHead(options: {
 
 async function markPull(options: {
   readonly github: GithubCall;
-  readonly config: SessionConfig;
+  readonly config: CloneConfig;
   readonly branch: string;
 }): Promise<number | null> {
   const { github, config } = options;
@@ -53,11 +52,11 @@ async function markPull(options: {
     github,
     method: "POST",
     route: `repos/${config.repository}/issues/${pull.number}/labels`,
-    body: { labels: [sessionLabel] },
+    body: { labels: [cloneLabel] },
   });
 
   const body = pull.body ?? "";
-  const line = sessionBodyLine(config);
+  const line = cloneBodyLine(config);
 
   if (!body.includes(line)) {
     await githubData({
@@ -73,24 +72,22 @@ async function markPull(options: {
 
 export async function finishWork(options: {
   readonly github: GithubCall;
-  readonly config: SessionConfig;
-  readonly request: SessionRequest;
+  readonly config: CloneConfig;
+  readonly clone: ResolvedClone;
   readonly workspace: Workspace;
   readonly processes: Processes;
 }): Promise<{ readonly pull: number | null }> {
-  const { github, config, request } = options;
+  const { github, config, clone } = options;
 
-  if (request.kind === "review") {
-    return { pull: request.entity };
+  if (clone.kind === "review") {
+    return { pull: clone.pull.number };
   }
 
-  const head = await remoteHead({ ...options, branch: request.branch });
+  const head = await remoteHead({ ...options, branch: clone.branch });
 
   if (head === null) {
-    return { pull: request.pull ? request.entity : null };
+    return { pull: clone.pull?.number ?? null };
   }
 
-  await recordSessionHead({ github, config, branch: request.branch, sha: head });
-
-  return { pull: await markPull({ github, config, branch: request.branch }) };
+  return { pull: await markPull({ github, config, branch: clone.branch }) };
 }

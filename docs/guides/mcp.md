@@ -1,6 +1,6 @@
 # MCP server
 
-The MCP server gives a connected agent seven tools. It runs on your machine and needs no shadowclone credentials.
+The MCP server gives a connected agent eight tools. It runs on your machine and needs no shadowclone credentials.
 
 ## Start the server
 
@@ -26,7 +26,9 @@ The server reads one JSON-RPC 2.0 message from standard input on each line. It u
 - `shadowclone_history` returns a JSON list of revision identifiers with their times and counts.
 - `shadowclone_skills_status` returns JSON with `roots` (the enabled skill roots), `managed` (the skills that shadowclone maintains), and `pending` (the items that wait for review). It makes no model call.
 - `shadowclone_bot` configures the Actions bot or reads its status.
-- `shadowclone_session` pushes skills for cloud sessions, sets them up on a cloud host or this machine, checks them, or starts one.
+- `shadowclone_clone_setup` pushes skills for clones, sets them up on this machine, or checks them.
+- `shadowclone_sessions` lists the clones on this machine, or returns one clone. It is read only.
+- `shadowclone_clone` starts or stops a clone.
 
 Tools other than `shadowclone_context` reject unlisted input fields.
 
@@ -49,13 +51,26 @@ The behavior depends on the inputs:
 
 The owner adds the bot token and the API key on GitHub, never in the tool. See the [Actions bot guide](actions-bot.md).
 
-## Set up cloud sessions
+## Set up clones
 
-`shadowclone_session` takes `operation` and these inputs:
+`shadowclone_clone_setup` takes `operation` and these inputs:
 
 - `skills`: push the equipped skills of the current checkout. The first call returns the files. Call again with `approve` set to `true` only after the owner agrees.
-- `setup` with `repository`, `host`, and `provider`. Add `receiver` for `daytona` and `e2b`, `supabaseProject` or `denoOrganization` for those receivers, and `baseUrl` and `model` when the provider needs them. The first call returns the default branch ruleset. Call again with `approve` set to `true` only after the owner agrees. `attribution: false` turns off the trailer.
-- `status` with `repository` runs the check in Docker for `local`, and sends a signed ping to the receiver for a cloud host.
-- `start` with `repository`, `issue`, and `task` comments `/shadowclone <task>`.
+- `setup` with `repository` and `provider`. Add `baseUrl` and `model` when the provider needs them. The first call returns the default branch ruleset. Call again with `approve` set to `true` only after the owner agrees. `attribution: false` turns off the trailer.
+- `status` with `repository` runs the check in Docker.
 
-The tool rejects a token field. The owner adds tokens with `shadowclone session secrets`, the host's page, or the secrets file. See [cloud sessions](cloud-sessions.md).
+The tool rejects a token field. The owner adds tokens in the secrets file that setup names. See [clones](clones.md).
+
+## Start and follow clones
+
+`shadowclone_clone` takes `operation`:
+
+- `start` with `repository` and `task`, the owner's task or the plan that the owner approved. Add `issue` or `pull` to work on one, or `review: true` with `pull` to review a pull request. The answer gives the clone id, or the reason that the node refused it.
+- `stop` with `id` stops the clone. A running clone pushes its unfinished work first.
+
+`shadowclone_sessions` takes `operation`:
+
+- `list`, with an optional `repository`, returns each clone with its state, branch, and pull request.
+- `get` with `id` returns one clone with its task and recent events. The answer starts with a line that marks the clone text as data.
+
+`shadowclone_sessions` carries the `readOnlyHint` annotation, so a client can run it without a question. `shadowclone_clone` does not.

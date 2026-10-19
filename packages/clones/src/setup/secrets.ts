@@ -1,8 +1,8 @@
 import { open } from "node:fs/promises";
 import { ownedDirectory } from "@shadowclone/core";
-import type { SessionConfig } from "../session/config";
-import { githubTokenSecret, providerLogins } from "../session/providers";
-import type { ClonesPaths } from "../session/store";
+import type { CloneConfig } from "../config/config";
+import { githubTokenSecret, providerLogins } from "../config/providers";
+import type { ClonesPaths } from "../config/store";
 
 export type SecretLine = {
   readonly name: string;
@@ -10,10 +10,10 @@ export type SecretLine = {
   readonly required: boolean;
 };
 
-export function tokenPageUrl(config: Pick<SessionConfig, "ownerLogin">): string {
+export function tokenPageUrl(config: Pick<CloneConfig, "ownerLogin">): string {
   const parameters = new URLSearchParams({
-    name: "shadowclone sessions",
-    description: "Cloud sessions that work as me",
+    name: "shadowclone clones",
+    description: "Clones that work as me",
     target_name: config.ownerLogin,
     expires_in: "366",
     contents: "write",
@@ -26,7 +26,7 @@ export function tokenPageUrl(config: Pick<SessionConfig, "ownerLogin">): string 
   return `https://github.com/settings/personal-access-tokens/new?${parameters.toString()}`;
 }
 
-export function secretLines(config: SessionConfig): readonly SecretLine[] {
+export function secretLines(config: CloneConfig): readonly SecretLine[] {
   const login = providerLogins[config.provider];
 
   return [

@@ -21,7 +21,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`learning`](../../packages/learning/AGENTS.md)       | Distillation, reconciliation, probes, `remember`     |
 | [`harness`](../../packages/harness/AGENTS.md)         | Repository harness for `init --repo` and `check`     |
 | [`bot`](../../packages/bot/AGENTS.md)                 | GitHub Actions bot setup and workflows               |
-| [`clones`](../../packages/clones/AGENTS.md)           | Cloud sessions on a host that the owner owns         |
+| [`clones`](../../packages/clones/AGENTS.md)           | Clones on a machine that the owner owns              |
 | [`web`](../../packages/web/AGENTS.md)                 | Wizard, voice capture, and skill drafts              |
 | [`mcp`](../../packages/mcp/AGENTS.md)                 | MCP server                                           |
 | [`cli`](../../packages/cli/AGENTS.md)                 | Commands, build, and publish                         |
@@ -88,11 +88,11 @@ flowchart LR
   Judge -- "diff and read-only file access" --> Provider
   Sandbox -- "restricted proxy" --> Registries["Allowed public package registries"]
   Delivery -- "reviewed skills" --> Bot["bot: GitHub Actions bot"]
-  Delivery -- "reviewed skills" --> Session["clones: session in your cloud account or on your spare machine"]
+  Delivery -- "reviewed skills" --> Session["clones: a clone in Docker on a machine that you own"]
+  Start["Owner's task from the CLI or an MCP agent"] --> Session
   Session -- "prompt, skills, files that the agent reads" --> Provider
   subgraph GitHub["GitHub"]
     Bot --> Pulls["Draft pull requests and review comments"]
-    Command["Owner's /shadowclone comment"] --> Session
     Session -- "commits and pull requests as the owner" --> Pulls
   end
   Judge -- "redacted COMMENT review" --> Pulls
@@ -101,17 +101,17 @@ flowchart LR
 
 ## Trust boundaries
 
-| Boundary                 | What crosses it                           | Control                                                                                                         |
-| ------------------------ | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Source files to index    | Pointers and event metadata, no text      | A default-off consent flag for each source. Policy can only narrow it                                           |
-| Index to model           | Redacted user text, labeled agent context | `resolveRedacted`, then a run with no tools and fixed limits                                                    |
-| Model output to files    | Proposed skill and native edits           | Reversible revisions, ownership fingerprints, kept manual edits                                                 |
-| Browser to local server  | Wizard actions                            | Loopback, ephemeral token, origin check                                                                         |
-| PR code to host          | Toolchain installs, scripts, and configs  | Bubblewrap or Seatbelt. Worktree and isolated state writes only. No host credentials or local sockets           |
-| Toolchain to network     | Dependency downloads                      | A fixed public-registry allowlist through a restricted proxy                                                    |
-| Machine to GitHub        | Reviewed skills, secrets, review text     | Owner approval of an exact preview. Secrets use standard input                                                  |
-| Owner comment to session | A task that starts work as the owner      | A signed webhook or a poll, the owner's numeric user ID, a claim ref, and a sandbox with only the named secrets |
-| Evaluation               | Synthetic tasks, receipts, held-out cases | Private storage outside checkouts. Approved scope per paid run                                                  |
+| Boundary                | What crosses it                           | Control                                                                                                                 |
+| ----------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Source files to index   | Pointers and event metadata, no text      | A default-off consent flag for each source. Policy can only narrow it                                                   |
+| Index to model          | Redacted user text, labeled agent context | `resolveRedacted`, then a run with no tools and fixed limits                                                            |
+| Model output to files   | Proposed skill and native edits           | Reversible revisions, ownership fingerprints, kept manual edits                                                         |
+| Browser to local server | Wizard actions                            | Loopback, ephemeral token, origin check                                                                                 |
+| PR code to host         | Toolchain installs, scripts, and configs  | Bubblewrap or Seatbelt. Worktree and isolated state writes only. No host credentials or local sockets                   |
+| Toolchain to network    | Dependency downloads                      | A fixed public-registry allowlist through a restricted proxy                                                            |
+| Machine to GitHub       | Reviewed skills, secrets, review text     | Owner approval of an exact preview. Secrets use standard input                                                          |
+| Owner task to clone     | A task that starts work as the owner      | A local CLI or MCP call on the owner's machine, a run folder with mode 0700, and a container with only the secrets file |
+| Evaluation              | Synthetic tasks, receipts, held-out cases | Private storage outside checkouts. Approved scope per paid run                                                          |
 
 ## How the packages work together
 
@@ -127,7 +127,7 @@ Outside the Actions bot, shadowclone does not commit, push, or act on GitHub its
 
 The Actions bot is a separate contract. The owner reviews a frozen skills bundle and chooses the repositories. GitHub Actions run the same skill, and the owner merges. See the [Actions bot guide](../guides/actions-bot.md).
 
-Cloud sessions are a third contract. Only the owner's own `/shadowclone` comment starts one. The session runs the same skill in the owner's cloud account or on the owner's spare machine. It acts as the owner. See [cloud sessions](../guides/cloud-sessions.md) and [design record 044](../design/044-cloud-sessions.md).
+Clones are a third contract. The owner starts a clone from the CLI or an MCP agent on the machine that runs it. The clone runs the same skill in Docker on that machine and acts as the owner. See [clones](../guides/clones.md) and [design record 049](../design/049-clones.md).
 
 Design records [029](../design/029-narrow-the-surface.md) and [030](../design/030-shadowclone-work-eval.md) explain the removed `run` command and task harness. A review comment, a merge, a deletion, or a successful agent result does not establish a preference.
 

@@ -1,9 +1,8 @@
 import path from "node:path";
-import { sessionEngine, type SessionConfig } from "../session/config";
-import type { SessionRequest } from "../trigger/event";
+import { cloneEngine, type CloneConfig } from "../config/config";
 import { prepareCodexHome } from "./codexHome";
 import type { Processes } from "./processes";
-import { sessionPrompt } from "./prompt";
+import { clonePrompt, type WorkClone } from "./prompt";
 import type { Workspace } from "./workspace";
 
 export type EngineInvocation = {
@@ -14,20 +13,20 @@ export type EngineInvocation = {
 
 export const claudeSettings = { includeCoAuthoredBy: false, attribution: { commit: "", pr: "" } };
 
-function modelArguments(config: SessionConfig): readonly string[] {
+function modelArguments(config: CloneConfig): readonly string[] {
   return config.model === undefined ? [] : ["--model", config.model];
 }
 
 export async function prepareEngine(options: {
-  readonly config: SessionConfig;
-  readonly request: SessionRequest;
+  readonly config: CloneConfig;
+  readonly clone: WorkClone;
   readonly workspace: Workspace;
   readonly processes: Processes;
   readonly environment: Readonly<Record<string, string | undefined>>;
 }): Promise<EngineInvocation> {
   const { config, workspace } = options;
-  const engine = sessionEngine(config);
-  const input = sessionPrompt({ config, engine, request: options.request });
+  const engine = cloneEngine(config);
+  const input = clonePrompt({ config, engine, clone: options.clone });
 
   if (engine === "claude") {
     return {

@@ -1,6 +1,6 @@
 import path from "node:path";
-import { sessionEngine, type SessionConfig } from "../session/config";
-import type { SessionRequest } from "../trigger/event";
+import { cloneEngine, type CloneConfig } from "../config/config";
+import type { PullFacts } from "./resolve";
 import { prepareCodexHome } from "./codexHome";
 import type { Processes } from "./processes";
 import type { Workspace } from "./workspace";
@@ -11,18 +11,18 @@ export type ReviewStage = {
 };
 
 export function reviewStages(options: {
-  readonly config: SessionConfig;
-  readonly request: SessionRequest;
+  readonly config: CloneConfig;
+  readonly pull: PullFacts;
   readonly workspace: Workspace;
 }): readonly ReviewStage[] {
-  const { config, request, workspace } = options;
-  const trusted = !request.fork && request.ownerAuthored;
+  const { config, pull, workspace } = options;
+  const trusted = !pull.fork && pull.ownerAuthored;
   const network = trusted ? "on" : "off";
   const file = (name: string) => path.join(workspace.root, name);
   const checkout = file("pull-request");
   const engineOptions = [
     "--engine",
-    sessionEngine(config),
+    cloneEngine(config),
     ...(config.model === undefined ? [] : ["--model", config.model]),
     ...(config.provider === "openai-compatible" && config.baseUrl !== undefined
       ? ["--base-url", config.baseUrl]
@@ -37,9 +37,9 @@ export function reviewStages(options: {
       "--repo",
       config.repository,
       "--pr",
-      String(request.entity),
+      String(pull.number),
       "--head",
-      request.head,
+      pull.head,
       "--network",
       network,
       "--checkout",
@@ -89,15 +89,15 @@ export function reviewStages(options: {
 }
 
 export async function runReview(options: {
-  readonly config: SessionConfig;
-  readonly request: SessionRequest;
+  readonly config: CloneConfig;
+  readonly pull: PullFacts;
   readonly workspace: Workspace;
   readonly processes: Processes;
   readonly environment: Readonly<Record<string, string | undefined>>;
   readonly signal: AbortSignal;
 }): Promise<{ readonly exitCode: number; readonly tail: string }> {
   const engineEnvironment: Readonly<Record<string, string>> =
-    sessionEngine(options.config) === "codex"
+    cloneEngine(options.config) === "codex"
       ? { CODEX_HOME: await prepareCodexHome(options) }
       : {};
   let last = { exitCode: 0, tail: "" };

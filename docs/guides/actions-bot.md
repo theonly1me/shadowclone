@@ -4,7 +4,7 @@ An Actions bot is a coding agent that runs in GitHub Actions on your repository,
 
 The bot is a **machine account**: a GitHub account that you create and name, such as `octo-shadow`. GitHub allows one free machine account for each person. The bot runs on one provider API key that you add on GitHub.
 
-To use your own Claude or ChatGPT subscription, use [cloud sessions](cloud-sessions.md) instead. They run on a spare machine that you own, and only you can start them.
+To use your own Claude or ChatGPT subscription, use [clones](clones.md) instead. They run on a machine that you own, and only you can start them.
 
 ## Set up the bot
 

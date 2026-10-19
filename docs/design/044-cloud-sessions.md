@@ -1,5 +1,7 @@
 # Cloud sessions on your own host
 
+This record is history. [049](049-clones.md) replaces its triggers, its GitHub state, and its cloud hosts.
+
 ## Problem
 
 [043](043-cloud-bot-api-keys.md) moved the GitHub bot to API keys, because anyone with write access can tag the bot. A subscription login belongs to one person, so other people must not spend it. Owners still want Claude Code or Codex to work on their GitHub issues from a machine that is not their laptop, on their own subscription. There is no shadowclone server, so the run must happen on a host that the owner owns.

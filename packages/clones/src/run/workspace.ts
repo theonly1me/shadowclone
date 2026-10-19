@@ -1,9 +1,9 @@
 import { chmod, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { SessionConfig } from "../session/config";
-import { agentCoauthors } from "../session/providers";
-import { sessionEngine } from "../session/config";
-import type { SessionRequest } from "../trigger/event";
+import type { CloneConfig } from "../config/config";
+import { agentCoauthors } from "../config/providers";
+import { cloneEngine } from "../config/config";
+import type { ResolvedClone } from "./resolve";
 import { mustRun, type Processes } from "./processes";
 
 export type Workspace = {
@@ -12,7 +12,7 @@ export type Workspace = {
   readonly skills: string;
 };
 
-export function ownerEmail(config: SessionConfig): string {
+export function ownerEmail(config: CloneConfig): string {
   return `${config.ownerId}+${config.ownerLogin}@users.noreply.github.com`;
 }
 
@@ -25,7 +25,7 @@ export function prePushHook(defaultBranch: string): string {
     "#!/bin/sh",
     "while read -r local_ref local_sha remote_ref remote_sha; do",
     `  if [ "$remote_ref" = ${quoted(`refs/heads/${defaultBranch}`)} ]; then`,
-    `    echo ${quoted(`shadowclone: a session never pushes to ${defaultBranch}. Push to the session branch and open a pull request.`)} >&2`,
+    `    echo ${quoted(`shadowclone: a clone never pushes to ${defaultBranch}. Push to the clone branch and open a pull request.`)} >&2`,
     "    exit 1",
     "  fi",
     "done",
@@ -88,12 +88,12 @@ async function checkoutBranch(options: {
 }
 
 export async function prepareWorkspace(options: {
-  readonly config: SessionConfig;
-  readonly request: SessionRequest;
+  readonly config: CloneConfig;
+  readonly clone: ResolvedClone;
   readonly processes: Processes;
   readonly root: string;
 }): Promise<Workspace> {
-  const { config, request, processes, root } = options;
+  const { config, clone, processes, root } = options;
   const repository = path.join(root, "repository");
   const skills = path.join(root, "skills");
 
@@ -138,12 +138,12 @@ export async function prepareWorkspace(options: {
     await installHook({
       repository,
       name: "commit-msg",
-      content: commitMessageHook(agentCoauthors[sessionEngine(config)]),
+      content: commitMessageHook(agentCoauthors[cloneEngine(config)]),
     });
   }
 
-  if (request.kind !== "review") {
-    await checkoutBranch({ processes, repository, branch: request.branch });
+  if (clone.kind !== "review") {
+    await checkoutBranch({ processes, repository, branch: clone.branch });
   }
 
   return { root, repository, skills };

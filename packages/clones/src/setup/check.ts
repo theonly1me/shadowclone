@@ -4,8 +4,8 @@ import { z } from "zod";
 import type { GithubCall } from "../github";
 import { prepareCodexHome } from "../run/codexHome";
 import type { Processes } from "../run/processes";
-import { sessionEngine, type SessionConfig } from "../session/config";
-import { githubTokenSecret } from "../session/providers";
+import { cloneEngine, type CloneConfig } from "../config/config";
+import { githubTokenSecret } from "../config/providers";
 
 export const checkLineSchema = z.strictObject({
   name: z.string(),
@@ -18,7 +18,7 @@ export type CheckLine = z.infer<typeof checkLineSchema>;
 const readyPrompt = "Reply with the single word ready.";
 
 async function githubChecks(options: {
-  readonly config: SessionConfig;
+  readonly config: CloneConfig;
   readonly github: GithubCall;
   readonly environment: Readonly<Record<string, string | undefined>>;
 }): Promise<readonly CheckLine[]> {
@@ -70,7 +70,7 @@ async function githubChecks(options: {
 }
 
 async function modelCheck(options: {
-  readonly config: SessionConfig;
+  readonly config: CloneConfig;
   readonly processes: Processes;
   readonly root: string;
   readonly environment: Readonly<Record<string, string | undefined>>;
@@ -78,7 +78,7 @@ async function modelCheck(options: {
   const { config, processes, root } = options;
   const model = config.model === undefined ? [] : ["--model", config.model];
 
-  if (sessionEngine(config) === "claude") {
+  if (cloneEngine(config) === "claude") {
     const result = await processes.run({
       arguments: ["claude", "-p", readyPrompt, ...model],
       cwd: root,
@@ -119,7 +119,7 @@ async function modelCheck(options: {
 }
 
 export async function runContainerCheck(options: {
-  readonly config: SessionConfig;
+  readonly config: CloneConfig;
   readonly github: GithubCall;
   readonly processes: Processes;
   readonly root: string;
