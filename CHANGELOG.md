@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.44](https://github.com/theonly1me/shadowclone/compare/v0.0.43...v0.0.44) (2026-10-19)
+
+
+### Fixes
+
+* **clones:** stop adding a default branch ruleset at clone setup ([#253](https://github.com/theonly1me/shadowclone/issues/253)) ([4a4d7d0](https://github.com/theonly1me/shadowclone/commit/4a4d7d0028203702fcdc0345c0ac4573f377fd48))
+
 ## [0.0.43](https://github.com/theonly1me/shadowclone/compare/v0.0.42...v0.0.43) (2026-10-19)
 
 
