@@ -33,7 +33,7 @@ Cloud sandbox hosts come back later as workers that the hub starts. Other tunnel
 
 Each clone runs in a fresh container from the clone image, as in 044. The run program prints progress lines on standard output. `serve` reads them and writes `record.json` and `events.jsonl` in the run folder. So `serve` is the only writer of the state, and the container needs no host folder.
 
-**States.** `queued`, `working`, `waiting` (from step 2), `done`, `failed`, `limited`, and `stopped`. The run program decides the final state from the exit code, a usage limit, or a stop. If the container exits with no final progress line, the clone is `failed`.
+**States.** `queued`, `working`, `waiting` (from step 2), `done`, `failed`, `limited`, and `stopped`. The run program decides the final state from the exit code, a usage limit, or a stop. If the container exits with no final progress line, the clone is `failed`. When `serve` starts, it marks each `working` or `waiting` clone from an earlier run as `stopped`, because its container is gone.
 
 **Stop.** `shadowclone clone stop <id>` and `stop` in the tool write a stop marker. `serve` stops the container with SIGTERM, and the run program commits and pushes the unfinished work, as in 044. A queued clone that has a stop marker never starts.
 
