@@ -120,6 +120,25 @@ describe("starting clones on this machine", () => {
     }
   });
 
+  test("two callers that start a clone for one issue at the same time queue only one", async () => {
+    const { paths, remove } = await temporaryClones();
+
+    try {
+      const first = localNode({ paths, newId: () => "clonea00" });
+      const second = localNode({ paths, newId: () => "cloneb00" });
+      const outcomes = await Promise.all(
+        [first, second].map((node) =>
+          node.start({ repository: "sample/project", task: "", issue: 12 }),
+        ),
+      );
+
+      expect(outcomes.map((outcome) => outcome.kind).sort()).toEqual(["queued", "refused"]);
+      expect((await first.list({})).clones).toHaveLength(1);
+    } finally {
+      await remove();
+    }
+  });
+
   test("a review needs a pull request, and a provider with no review support is refused", async () => {
     const { paths, remove } = await temporaryClones([
       sampleConfig(),
