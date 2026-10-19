@@ -49,3 +49,7 @@ export { questionIdPattern } from "./node/progress";
 export { serveAskTool } from "./run/ask/server";
 
 export { questionsFileVariable } from "./run/ask/questions";
+
+export { installService, type ServiceDefinition, type ServiceOutcome } from "./serve/service";
+
+export type { Processes } from "./run/processes";

@@ -80,6 +80,7 @@
         "@shadowclone/core": "workspace:*",
         "@shadowclone/environment": "workspace:*",
         "@shadowclone/harness": "workspace:*",
+        "@shadowclone/hub": "workspace:*",
         "@shadowclone/learning": "workspace:*",
         "@shadowclone/mcp": "workspace:*",
         "@shadowclone/profile": "workspace:*",
@@ -134,6 +135,15 @@
         "@shadowclone/sessions": "workspace:*",
         "@shadowclone/skills": "workspace:*",
         "smol-toml": "^1.9.1",
+        "zod": "^4.6.7",
+      },
+    },
+    "packages/hub": {
+      "name": "@shadowclone/hub",
+      "dependencies": {
+        "@shadowclone/clones": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/mcp": "workspace:*",
         "zod": "^4.6.7",
       },
     },
@@ -382,6 +392,8 @@
     "@shadowclone/evals": ["@shadowclone/evals@workspace:evals"],
 
     "@shadowclone/harness": ["@shadowclone/harness@workspace:packages/harness"],
+
+    "@shadowclone/hub": ["@shadowclone/hub@workspace:packages/hub"],
 
     "@shadowclone/learning": ["@shadowclone/learning@workspace:packages/learning"],
 

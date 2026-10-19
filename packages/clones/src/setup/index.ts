@@ -3,7 +3,7 @@ import type { GithubCall } from "../github";
 import type { Processes } from "../run/processes";
 import type { CloneConfig } from "../config/config";
 import { saveCloneConfig, type ClonesPaths } from "../config/store";
-import { installService, type ServiceOutcome } from "../serve/service";
+import { cloneServeService, installService, type ServiceOutcome } from "../serve/service";
 import {
   organizationWarning,
   prepareClones,
@@ -61,7 +61,7 @@ async function setUpLocal(
   const created = await createSecretsFile({ paths, lines: secrets });
   const ready = await imageReady({ processes, paths, image: config.image });
   const service = await installService({
-    paths,
+    service: cloneServeService(paths),
     processes,
     executable: options.executable,
     pathVariable: options.pathVariable,

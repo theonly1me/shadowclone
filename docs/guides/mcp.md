@@ -17,6 +17,8 @@ For OpenCode, add this entry to `~/.config/opencode/opencode.json`. OpenCode 1.x
 }
 ```
 
+To reach your clones from the Claude app or another machine, use the [hub](hub.md). It serves the two clone tools over HTTPS with OAuth.
+
 The server reads one JSON-RPC 2.0 message from standard input on each line. It uses MCP protocol version `2024-11-05` and the methods `initialize`, `tools/list`, and `tools/call`. The tools follow your consent settings and managed policy. If policy turns shadowclone off, they return "shadowclone context is disabled.", an error, or no results. Opening the server makes no model request.
 
 ## Tools

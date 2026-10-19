@@ -60,6 +60,8 @@ k3x9m2qa done you/app shadowclone/k3x9m2qa #43 2026-10-18T14:02:11Z fix the flak
 
 **Set it up with one sentence.** Ask your agent to "set up shadowclone clones for this repository." You approve your skills and a default branch ruleset, and paste two tokens. See the [clones guide](docs/guides/clones.md).
 
+**Reach them from your phone.** The hub puts your clones behind Tailscale Funnel as an MCP connector. Ask Claude on your phone what your clones are doing, and answer their questions there. See the [hub guide](docs/guides/hub.md).
+
 ### Preferences that evolve with your work
 
 **Learn from corrections.** shadowclone reads the sessions you allow and turns reusable instructions into skills and short native guidance. It keeps repository-specific rules in their scope. Rules remain readable, editable, and reversible.
@@ -168,6 +170,7 @@ Read the [privacy policy](PRIVACY.md) and [data handling](docs/data-handling.md)
 | [Delegated work](docs/guides/delegated-work.md)  | Ready a pull request  |
 | [Actions bot](docs/guides/actions-bot.md)        | Set up the GitHub bot |
 | [Clones](docs/guides/clones.md)                  | Work as you, anywhere |
+| [Hub](docs/guides/hub.md)                        | Reach your clones     |
 | [Reviews](docs/guides/reviews.md)                | Review a pull request |
 | [MCP server](docs/guides/mcp.md)                 | Give agents the tools |
 | [Command reference](docs/guides/commands.md)     | Find every command    |

@@ -15,6 +15,7 @@ export const packageNames = [
   "clones",
   "web",
   "mcp",
+  "hub",
   "cli",
 ] as const;
 
@@ -51,6 +52,7 @@ export const packageLayout: PackageLayout = {
     clones: ["core", "redact", "bot"],
     web: ["core", "redact", "agents", "skills", "environment", "builds", "learning"],
     mcp: ["core", "sessions", "changes", "skills", "environment", "learning", "bot", "clones"],
+    hub: ["core", "clones", "mcp"],
     cli: [
       "core",
       "redact",
@@ -68,6 +70,7 @@ export const packageLayout: PackageLayout = {
       "clones",
       "web",
       "mcp",
+      "hub",
     ],
   },
 };

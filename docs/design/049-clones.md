@@ -63,9 +63,27 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Report.** The final progress line carries the agent's last message, through `redactSecrets`, at most 4000 characters. `clones` now depends on `redact` for this.
 
+## Step 3: the hub
+
+**Server.** `shadowclone hub serve` runs the new package `@shadowclone/hub`. It listens on `127.0.0.1` only, on port 4517 by default. It serves MCP over Streamable HTTP at `/mcp` with protocol versions `2025-03-26`, `2025-06-18`, and `2025-11-25`. It answers each request with one JSON object and offers no GET stream. The tools are `shadowclone_sessions` and `shadowclone_clone` from the MCP package, against `localNode`. A lock keeps one hub on each machine. `hub service` runs the hub under launchd or systemd.
+
+**Reach.** `shadowclone hub expose` runs `tailscale funnel --bg --https=443` to the local port. It reads the machine name from `tailscale status --json` and saves `https://<name>.ts.net` as the public URL. The OAuth metadata uses that URL. `hub expose --url https://...` saves the URL of a proxy that the owner runs on the same machine. `hub expose --off` turns Funnel off.
+
+**Sign-in.** The hub is its own OAuth authorization server. A client finds it through a `401` with `resource_metadata`, the protected resource metadata, and the authorization server metadata. Clients register through DCR as public clients. A redirect must use https, or http on `localhost` or `127.0.0.1`, where the port can change. Every authorization needs PKCE with S256.
+
+**Pairing.** The consent page shows the client name and the host of its redirect. The owner types a code from `shadowclone hub pair`. A code works once, for 10 minutes. Each wrong code counts against every open code, and a code locks after 5 wrong tries. If a client has only loopback redirects, the page warns that any program on that computer can claim the name.
+
+**Tokens.** An access token lasts 1 hour, and a refresh token lasts 30 days. Each refresh rotates the refresh token. A second use of an authorization code or of an old refresh token revokes the whole grant. The hub stores only SHA-256 hashes of codes and tokens, in `~/.shadowclone/hub/hub.db`.
+
+**Controls.** `hub clients` lists the approved clients, and `hub clients revoke <id>` ends their tokens at once. `hub lock` refuses every request until `hub unlock`. `hub allow` limits the source addresses to `anthropic` (`160.79.104.0/21`), `tailnet`, `loopback`, or address ranges. Behind Funnel, every request comes from loopback. So the hub reads `X-Forwarded-For` only when the peer is loopback, and it uses the last address. Tailscale replaces that header with the real client address.
+
+**Not now.** The hub does not accept a Client ID Metadata Document. Claude uses DCR when the metadata does not advertise CIMD. CIMD would also make the public hub fetch URLs that a caller names. The hub has no rate limit other than the pairing tries.
+
 ## Consequences
 
 - An owner can start a clone from any agent on the node without GitHub. A phone needs the hub from step 3.
+- The hub is a public endpoint that starts agents that act as the owner. A flaw in sign-in would give a stranger the owner's GitHub. The pairing code, short tokens, revocation, the lock, and the allowlist limit this risk.
+- A local program can send a false `X-Forwarded-For` header. A local program already runs as the owner, so the allowlist guards only remote callers.
 - A clone that exits before CI finishes does not continue. The owner starts it again on its pull request.
 - A node that is off runs nothing. Queued clones wait in their folders until `serve` starts again.
 - Existing cloud sandbox deployments and their repository webhooks stay until the owner deletes them. The guide lists the steps.
@@ -79,7 +97,10 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - Serve tests: a message reaches the clone once, and an answer closes its question. A queued clone starts, its progress lines become its state, and a third clone waits while two run. A stop marker stops a working clone and keeps a queued clone from starting. A second `serve` stops at the lock.
 - Run tests use a fake GitHub and a fake engine. They check the hooks, the trailer switch, the label, the body line, the save after SIGTERM, and the final state.
 - Config tests: a version 1 config fails with the setup message.
+- Hub tests send HTTP requests to the handler with a real database. They cover the `401`, a sign-in through to a tool call, plain PKCE, a wrong, used, or expired code, and the fifth wrong try. They also cover a code exchanged twice, refresh token reuse, revocation, expiry, the lock, the allowlist, the origin check, the protocol version, and loopback redirects.
 
 ## Data handling
 
 The run folder holds the owner's task text, the progress lines, and the container log. The folder has mode 0700 and its files mode 0600. `serve` removes a finished run folder after 30 days. Nothing in the run folder leaves the machine in step 1. The container sends the repository, the skills, and the prompt to the chosen model provider, as in 044.
+
+In step 3, the hub sends clone lists and clone details to each approved client. For the Claude app, that text passes through Anthropic. The hub database holds client names, redirect URIs, settings, and hashes of codes and tokens. The hub log names client ids and redirect hosts, never a token.

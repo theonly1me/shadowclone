@@ -1,0 +1,18 @@
+{
+  "name": "@shadowclone/hub",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@shadowclone/clones": "workspace:*",
+    "@shadowclone/core": "workspace:*",
+    "@shadowclone/mcp": "workspace:*",
+    "zod": "^4.6.7"
+  }
+}
