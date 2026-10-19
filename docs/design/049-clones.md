@@ -33,11 +33,11 @@ Cloud sandbox hosts come back later as workers that the hub starts. Other tunnel
 
 Each clone runs in a fresh container from the clone image, as in 044. The run program prints progress lines on standard output. `serve` reads them and writes `record.json` and `events.jsonl` in the run folder. So `serve` is the only writer of the state, and the container needs no host folder.
 
-**States.** `queued`, `working`, `waiting` (from step 2), `done`, `failed`, `limited`, and `stopped`. The run program decides the final state from the exit code, a usage limit, or a stop. If the container exits with no final progress line, the clone is `failed`.
+**States.** `queued`, `working`, `waiting` (from step 2), `done`, `failed`, `limited`, and `stopped`. The run program decides the final state from the exit code, a usage limit, or a stop. If the container exits with no final progress line, the clone is `failed`. When `serve` starts, it marks each `working` or `waiting` clone from an earlier run as `stopped`, because its container is gone.
 
 **Stop.** `shadowclone clone stop <id>` and `stop` in the tool write a stop marker. `serve` stops the container with SIGTERM, and the run program commits and pushes the unfinished work, as in 044. A queued clone that has a stop marker never starts.
 
-**Budget.** The node refuses a new clone when the repository already had `dailyClones` clones in the last 24 hours. The default is 20. It also refuses a clone for an issue or pull request that another queued or working clone uses.
+**Budget.** The node refuses a new clone when the repository already had `dailyClones` clones in the last 24 hours. The default is 20. It also refuses a clone for an issue or pull request that another queued or working clone uses. A start holds `start.lock` while it checks these limits and writes the request, so two starts at the same time cannot both pass.
 
 **CI.** The poller is gone, so nothing starts a clone again after it exits. The prompt tells the clone to watch the CI of its pull request and fix each failure before it stops, within its 170-minute limit.
 
@@ -87,7 +87,7 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Routing.** The hub tools take an optional `node`. `list` with no node shows each node in its own section, and an offline node with the time that the hub last saw it. `start` with no node runs on the hub machine. An operation on a clone id with no node goes to the node that has the clone. The hub sends a node the same tool call, and the node answers with its own `localNode`. A node that does not answer in 15 seconds gives an error.
 
-**Local agents.** On a node, `shadowclone mcp` sends the two clone tools to the hub with the node token. So Claude Code and Codex on that machine see every node with no OAuth. If the hub does not answer, the tools answer for that machine and say so.
+**Local agents.** On a node, `shadowclone mcp` sends the two clone tools to the hub with the node token. So Claude Code and Codex on that machine see every node with no OAuth. If the hub does not answer, the tools answer for that machine and say so. A call that acts on another machine runs nothing then. This includes `start` with no node, which belongs to the hub machine.
 
 **Reach.** A node reaches the hub at its `ts.net` URL inside the tailnet. `hub expose --tailnet` uses `tailscale serve` for a hub that only nodes reach. With `hub allow`, add `tailnet` so that nodes still reach the hub.
 
@@ -128,7 +128,7 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - Config tests: a version 1 config fails with the setup message.
 - Hub tests send HTTP requests to the handler with a real database. They cover the `401`, a sign-in through to a tool call, plain PKCE, a wrong, used, or expired code, and the fifth wrong try. They also cover a code exchanged twice, refresh token reuse, revocation, expiry, the lock, the allowlist, the origin check, the protocol version, and loopback redirects.
 - Live tests: with consent off, a hook writes nothing and `list` is empty. A stop keeps a redacted summary and no tool output. The `Stop` hook delivers a queued message once, and `PostToolUse` delivers one during a turn. An idle tmux pane gets the message, a refused terminal keeps it, and a working session queues it. Install keeps the owner's own hooks.
-- Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine.
+- Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine, and a `start` for another machine runs nothing.
 
 ## Data handling
 

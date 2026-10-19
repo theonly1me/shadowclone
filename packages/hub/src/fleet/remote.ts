@@ -17,7 +17,19 @@ const callSchema = z.object({
   arguments: z.record(z.string(), z.unknown()).default({}),
 });
 
+type Call = z.infer<typeof callSchema>;
+
 const responseSchema = z.object({ result: toolResultSchema });
+
+function actsOnAnotherMachine(options: { readonly call: Call; readonly name: string }): boolean {
+  const { node, operation } = options.call.arguments;
+
+  if (options.call.name !== "shadowclone_clone" || node === options.name) {
+    return false;
+  }
+
+  return node !== undefined || operation === "start";
+}
 
 async function askHub(options: {
   readonly link: NodeLink;
@@ -72,6 +84,14 @@ export function forwardedSessionTools(options: {
         });
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
+
+        if (actsOnAnotherMachine({ call: call.data, name: options.link.name })) {
+          return textResult({
+            value: `The hub at ${options.link.hubUrl} is unreachable (${reason}), and this call acts on another machine, so nothing ran. Set node to ${options.link.name} to act on this machine.`,
+            isError: true,
+          });
+        }
+
         const fallback = toolResultSchema.safeParse(
           await local.run({
             name: call.data.name,

@@ -35,7 +35,7 @@ Runs clones: Claude Code or Codex works for the owner, as the owner, in Docker o
 - A Claude message interrupts the turn and arrives as a new user turn. A Codex message uses `turn/steer`.
 - A clone with an open question waits at most 30 minutes, then takes its recommended option and skips each destructive step.
 - The final report passes through `redactSecrets` before it leaves the container.
-- `start` refuses a repository with no setup and a setup from an earlier config version. It also refuses a clone over `dailyClones` and a second active clone for one issue or pull request.
+- `start` refuses a repository with no setup and a setup from an earlier config version. It also refuses a clone over `dailyClones` and a second active clone for one issue or pull request. It holds the `start.lock` lock from the check to the written request.
 - shadowclone never reads a model login or the GitHub token. The owner pastes them into the secrets file. Docker gets the secrets file path only.
 - A clone never pushes to the default branch. The pre-push hook refuses it, and setup adds a ruleset with no bypass.
 - A review runs the toolchain only on a pull request that the owner wrote in this repository. Other reviews turn the network off.

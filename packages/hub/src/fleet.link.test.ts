@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { CloneStartInput } from "@shadowclone/clones";
 import { mkdtemp, realpath, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -11,6 +12,20 @@ import { hubStore } from "./store";
 import { openHubDatabase } from "./store/database";
 
 const listCall = { name: "shadowclone_sessions", arguments: { operation: "list" } };
+
+const workLink = { hubUrl: "https://hub.example.ts.net", name: "work", token: "t".repeat(43) };
+
+function startCall(node: string | undefined) {
+  return {
+    name: "shadowclone_clone",
+    arguments: {
+      operation: "start",
+      repository: "you/api",
+      task: "fix the parser",
+      ...(node === undefined ? {} : { node }),
+    },
+  };
+}
 
 async function listText(tools: ReturnType<typeof forwardedSessionTools>): Promise<string> {
   const result = await tools.run(listCall);
@@ -101,5 +116,44 @@ describe("a node links to the hub over a WebSocket", () => {
       "The hub at https://hub.example.ts.net is unreachable (connection refused), so this answer covers only this machine.",
     );
     expect(text).toContain("work0001 working you/api");
+  });
+  test("a start for another machine runs nothing here when the hub is unreachable or locked", async () => {
+    const started: CloneStartInput[] = [];
+    const failures = [
+      async () => {
+        throw new Error("connection refused");
+      },
+      async () => new Response("locked", { status: 423 }),
+    ];
+
+    for (const fetch of failures) {
+      const tools = forwardedSessionTools({ link: workLink, local: fakeNode(started, []), fetch });
+
+      for (const node of [undefined, "home"]) {
+        const result = await tools.run(startCall(node));
+
+        expect(result?.isError).toBe(true);
+        expect(result?.content.map((part) => part.text).join("\n")).toContain(
+          "this call acts on another machine, so nothing ran. Set node to work to act on this machine.",
+        );
+      }
+    }
+
+    expect(started).toEqual([]);
+  });
+
+  test("a start that names this machine runs here when the hub is unreachable", async () => {
+    const started: CloneStartInput[] = [];
+    const tools = forwardedSessionTools({
+      link: workLink,
+      local: fakeNode(started, []),
+      fetch: async () => {
+        throw new Error("connection refused");
+      },
+    });
+
+    await tools.run(startCall("work"));
+
+    expect(started.map((input) => input.repository)).toEqual(["you/api"]);
   });
 });
