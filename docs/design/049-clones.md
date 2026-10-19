@@ -37,7 +37,7 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Stop.** `shadowclone clone stop <id>` and `stop` in the tool write a stop marker. `serve` stops the container with SIGTERM, and the run program commits and pushes the unfinished work, as in 044. A queued clone that has a stop marker never starts.
 
-**Budget.** The node refuses a new clone when the repository already had `dailyClones` clones in the last 24 hours. The default is 20. It also refuses a clone for an issue or pull request that another queued or working clone uses.
+**Budget.** The node refuses a new clone when the repository already had `dailyClones` clones in the last 24 hours. The default is 20. It also refuses a clone for an issue or pull request that another queued or working clone uses. A start holds `start.lock` while it checks these limits and writes the request, so two starts at the same time cannot both pass.
 
 **CI.** The poller is gone, so nothing starts a clone again after it exits. The prompt tells the clone to watch the CI of its pull request and fix each failure before it stops, within its 170-minute limit.
 
