@@ -72,6 +72,8 @@ The tool rejects a token field. The owner adds tokens in the secrets file that s
 - `answer` with `id`, `question`, and `text` answers an open question of the clone.
 - `stop` with `id` stops the clone. A running clone pushes its unfinished work first.
 
+With live sessions on, the tools also cover your own Claude Code and Codex sessions, with `live-` ids. `send` reaches a live session. `answer` and `stop` do not.
+
 `shadowclone_sessions` takes `operation`:
 
 - `list`, with an optional `repository`, returns each clone with its state, branch, and pull request.

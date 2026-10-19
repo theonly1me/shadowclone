@@ -5,6 +5,7 @@ import { createCloneSetupTool } from "./cloneSetup";
 import { createSessionsTools } from "./sessions";
 import { compileContext } from "@shadowclone/environment";
 import { clonesPaths, localNode } from "@shadowclone/clones";
+import { machineLive } from "@shadowclone/live";
 import { projectPaths } from "@shadowclone/core";
 import type { ProjectPaths } from "@shadowclone/core";
 import type { GitRemoteReader } from "@shadowclone/sessions";
@@ -51,7 +52,8 @@ export async function serveMcp(
   const bot = createBotTool({ cwd, paths: botPaths });
   const cloneSetup = createCloneSetupTool({ cwd, paths: botPaths });
   const sessions =
-    options.sessionTools ?? createSessionsTools({ node: localNode({ paths: clonesPaths() }) });
+    options.sessionTools ??
+    createSessionsTools({ node: localNode({ paths: clonesPaths() }), live: machineLive() });
 
   for await (const chunk of Bun.stdin.stream()) {
     buffer += decoder.decode(chunk, { stream: true });

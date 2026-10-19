@@ -79,6 +79,9 @@ export function renderConfig(config: ShadowcloneConfig): string {
     "schema-version": config.schemaVersion,
     sources: config.sources,
     distillation: config.distillation,
+    ...(config.remote === undefined
+      ? {}
+      : { remote: { "live-sessions": config.remote.liveSessions } }),
   };
 
   return toml.stringify(document);
@@ -105,6 +108,13 @@ export function setSourceEnabled(options: {
       [options.source]: options.enabled,
     },
   };
+}
+
+export function setLiveSessionsEnabled(options: {
+  readonly config: ShadowcloneConfig;
+  readonly enabled: boolean;
+}): ShadowcloneConfig {
+  return { ...options.config, remote: { liveSessions: options.enabled } };
 }
 
 export function setDeepEnabled(options: {

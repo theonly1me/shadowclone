@@ -91,10 +91,26 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Reach.** A node reaches the hub at its `ts.net` URL inside the tailnet. `hub expose --tailnet` uses `tailscale serve` for a hub that only nodes reach. With `hub allow`, add `tailnet` so that nodes still reach the hub.
 
+## Step 5: live sessions
+
+**Consent.** `shadowclone live enable` turns on `remote.live-sessions` in `~/.shadowclone/config.toml`, and installs the live hooks. It is off by default. A managed policy turns it off unless the policy allows the `act` tier. `shadowclone live disable` removes the hooks and the saved state.
+
+**Hooks.** Claude Code gets `SessionStart`, `UserPromptSubmit`, `Notification`, `PostToolUse`, `Stop`, `StopFailure`, and `SessionEnd` in `~/.claude/settings.json`. Claude Code sends `StopFailure` in place of `Stop` when an API error ends the turn, and ignores its output. Codex gets the same set in `~/.codex/hooks.json`, with `PermissionRequest` in place of `Notification` and no `StopFailure`. Codex now has hooks with `last_assistant_message` and a `Stop` decision, so it does not need `notify`. Codex asks the owner to trust new hooks. Removal finds each entry by the `live hook` text in its command.
+
+**State.** Each session has one file, `~/.shadowclone/live/live-<hash>.json`, with mode 0600. It holds the engine, the repository from `origin`, the branch, the folder name, the state, the times, and the terminal. The summary is `last_assistant_message` through `redactSecrets`, at most 2 KB. The hooks store no prompt, no tool input or output, and no thinking. A permission prompt marks the session `needs-you` with the redacted notification text.
+
+**Steering.** A message for a working session goes to `live-<hash>.inbox.jsonl`. `PostToolUse` adds it as context after the next tool call, and `Stop` continues the turn with it. Each message arrives once. `PostToolUse` starts shadowclone only when the file `~/.shadowclone/live/pending` exists, so a session with no message pays only a shell test. For an idle session, the node types the message into its tmux pane, or its cmux surface. If the terminal refuses, the message waits for the next turn. When a Claude turn ends with `StopFailure`, or Claude Code reports `idle_prompt`, the hook types each waiting message the same way.
+
+**Terminals.** tmux takes keys from any process of the owner. By default, cmux accepts only processes that start inside cmux. So a hub or node service cannot type into a cmux surface unless the owner allows it. A session in tmux inside cmux records the tmux pane. shadowclone never types into a session that waits for a permission answer. Those answers stay with the terminal or Remote Control.
+
+**Tools.** `shadowclone_sessions` lists live sessions after the clones, with `live-<hash>` ids, and `get` returns one. `shadowclone_clone` accepts only `send` for a live session.
+
 ## Consequences
 
 - An owner can start a clone from any agent on the node without GitHub. A phone needs the hub from step 3.
 - The hub is a public endpoint that starts agents that act as the owner. A flaw in sign-in would give a stranger the owner's GitHub. The pairing code, short tokens, revocation, the lock, and the allowlist limit this risk.
+- With live sessions on, the last message of each live session leaves the machine through the hub. It can hold code or plans from that session.
+- A message to an idle session becomes a prompt in that session, with the owner's permissions.
 - A node token gives the same clone tools as an approved client. `hub nodes remove <name>` revokes it.
 - A local program can send a false `X-Forwarded-For` header. A local program already runs as the owner, so the allowlist guards only remote callers.
 - A clone that exits before CI finishes does not continue. The owner starts it again on its pull request.
@@ -111,6 +127,7 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - Run tests use a fake GitHub and a fake engine. They check the hooks, the trailer switch, the label, the body line, the save after SIGTERM, and the final state.
 - Config tests: a version 1 config fails with the setup message.
 - Hub tests send HTTP requests to the handler with a real database. They cover the `401`, a sign-in through to a tool call, plain PKCE, a wrong, used, or expired code, and the fifth wrong try. They also cover a code exchanged twice, refresh token reuse, revocation, expiry, the lock, the allowlist, the origin check, the protocol version, and loopback redirects.
+- Live tests: with consent off, a hook writes nothing and `list` is empty. A stop keeps a redacted summary and no tool output. The `Stop` hook delivers a queued message once, and `PostToolUse` delivers one during a turn. An idle tmux pane gets the message, a refused terminal keeps it, and a working session queues it. `StopFailure` and `idle_prompt` type a waiting message. Install keeps the owner's own hooks.
 - Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine, and a `start` for another machine runs nothing.
 
 ## Data handling
@@ -120,3 +137,5 @@ The run folder holds the owner's task text, the progress lines, and the containe
 In step 3, the hub sends clone lists and clone details to each approved client. For the Claude app, that text passes through Anthropic. The hub database holds client names, redirect URIs, settings, and hashes of codes and tokens. The hub log names client ids and redirect hosts, never a token.
 
 In step 4, a node sends the hub the text of its clone tool answers over the tailnet. `link.json` on the node holds the hub URL, the node name, and the node token. The hub database holds a hash of each node token.
+
+In step 5, live sessions are a new consent flag, off by default. The hub sends each approved client the redacted last message of each live session. The live state stays in `~/.shadowclone/live/` until the session ends, and `live disable` deletes it.

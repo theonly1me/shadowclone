@@ -14,6 +14,7 @@
     "@shadowclone/changes": "workspace:*",
     "@shadowclone/clones": "workspace:*",
     "@shadowclone/core": "workspace:*",
+    "@shadowclone/live": "workspace:*",
     "@shadowclone/environment": "workspace:*",
     "@shadowclone/learning": "workspace:*",
     "@shadowclone/sessions": "workspace:*",

@@ -1,4 +1,5 @@
 import type { CloneNode } from "@shadowclone/clones";
+import type { LiveSessions } from "@shadowclone/live";
 import type { HubStore } from "./store";
 import { issuerOf } from "./store/settings";
 import { fleetTools } from "./fleet/tools";
@@ -30,12 +31,19 @@ type Route = (options: {
 export function createHub(options: {
   readonly store: HubStore;
   readonly node: CloneNode;
+  readonly live?: LiveSessions;
   readonly hostName: string;
   readonly links: NodeLinks;
   readonly log: (line: string) => void;
 }): Hub {
   const { store, log, hostName } = options;
-  const fleet = fleetTools({ hostName, local: options.node, links: options.links, store });
+  const fleet = fleetTools({
+    hostName,
+    local: options.node,
+    ...(options.live === undefined ? {} : { live: options.live }),
+    links: options.links,
+    store,
+  });
   const tools = { list: fleet.list, call: fleet.call };
   const routes: Readonly<Record<string, Route>> = {
     "GET /.well-known/oauth-protected-resource": ({ issuer }) => protectedResourceMetadata(issuer),

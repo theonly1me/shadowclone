@@ -126,6 +126,16 @@ export function applyManagedPolicy(options: {
         options.policy.enabled &&
         options.policy.distillation !== "disabled",
     },
+    ...(options.config.remote === undefined
+      ? {}
+      : {
+          remote: {
+            liveSessions:
+              options.config.remote.liveSessions &&
+              options.policy.enabled &&
+              options.policy.maxActionTier === "act",
+          },
+        }),
   };
 }
 

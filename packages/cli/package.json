@@ -56,6 +56,7 @@
     "@shadowclone/harness": "workspace:*",
     "@shadowclone/hub": "workspace:*",
     "@shadowclone/learning": "workspace:*",
+    "@shadowclone/live": "workspace:*",
     "@shadowclone/mcp": "workspace:*",
     "@shadowclone/profile": "workspace:*",
     "@shadowclone/redact": "workspace:*",

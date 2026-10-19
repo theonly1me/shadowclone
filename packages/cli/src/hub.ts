@@ -13,6 +13,7 @@ import {
   serveHub,
   statusLines,
 } from "@shadowclone/hub";
+import { machineLive } from "@shadowclone/live";
 import { flagValue } from "./cloneOptions";
 import { print, runAsService, stopSignal, timestamped, withStore } from "./hubCommon";
 import { nodeOperations } from "./hubNode";
@@ -42,6 +43,7 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
     const outcome = await serveHub({
       paths: hubPaths(),
       node: localNode({ paths: clonesPaths() }),
+      live: machineLive(),
       signal: stopSignal(),
       log: timestamped,
       ...(port === undefined ? {} : { port }),

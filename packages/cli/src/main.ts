@@ -17,6 +17,7 @@ import { botCommand } from "./bot";
 import { cloneCommand, cloneUsage, serveCommand } from "./clone";
 import { hubCommand, hubUsage } from "./hub";
 import { mcpCommand } from "./hubNode";
+import { liveCommand, liveUsage } from "./live";
 import { reviewCommand } from "./review";
 
 const usage =
@@ -39,6 +40,7 @@ function printUsage(): void {
   );
   console.log(cloneUsage);
   console.log(hubUsage);
+  console.log(liveUsage);
   console.log(
     "Pull request review: review <pr-number> [--cloud] [--no-checks] [--repo owner/repository] [--output file.md] [--model <id>] [--effort <level>]; workflow stages: review prepare|checks|analyze|publish",
   );
@@ -142,6 +144,12 @@ async function main(arguments_: readonly string[]): Promise<void> {
 
   if (command === "clone") {
     await cloneCommand(rest);
+
+    return;
+  }
+
+  if (command === "live") {
+    await liveCommand(rest);
 
     return;
   }
