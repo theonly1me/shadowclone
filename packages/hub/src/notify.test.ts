@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { pushFor, type Push } from "./notify/push";
 import type { NodeStates, SessionState } from "./notify/states";
-import { createWatcher } from "./notify/watcher";
+import { createWatcher, pushAttempts } from "./notify/watcher";
 
 const question: SessionState = {
   id: "work0001",
@@ -16,9 +16,12 @@ const question: SessionState = {
 function watcherWith(options: {
   readonly rounds: (readonly NodeStates[])[];
   readonly url?: string | null;
+  readonly failures?: number;
 }) {
   const sent: Push[] = [];
+  const logs: string[] = [];
   let round = 0;
+  let tries = 0;
   const watcher = createWatcher({
     gather: async () => options.rounds[Math.min(round++, options.rounds.length - 1)] ?? [],
     settings: () => ({
@@ -26,12 +29,18 @@ function watcherWith(options: {
       notifyText: false,
     }),
     send: async ({ push }) => {
+      tries++;
+
+      if (tries <= (options.failures ?? 0)) {
+        throw new Error("ntfy answered 502.");
+      }
+
       sent.push(push);
     },
-    log: () => undefined,
+    log: (line) => logs.push(line),
   });
 
-  return { watcher, sent };
+  return { watcher, sent, logs, tries: () => tries };
 }
 
 describe("phone pushes", () => {
@@ -113,5 +122,35 @@ describe("phone pushes", () => {
     await watcher.scan();
 
     expect(sent).toEqual([]);
+  });
+
+  test("a push that fails is sent again at the next scan, and then not again", async () => {
+    const { watcher, sent, tries } = watcherWith({
+      failures: 1,
+      rounds: [[{ node: "work", states: [] }], [{ node: "work", states: [question] }]],
+    });
+
+    for (let scan = 0; scan < 4; scan++) {
+      await watcher.scan();
+    }
+
+    expect(tries()).toBe(2);
+    expect(sent.map((push) => push.title)).toEqual(["Clone work0001 needs you"]);
+  });
+
+  test("a push that keeps failing stops after its last try and says so", async () => {
+    const { watcher, logs, tries } = watcherWith({
+      failures: Number.POSITIVE_INFINITY,
+      rounds: [[{ node: "work", states: [] }], [{ node: "work", states: [question] }]],
+    });
+
+    for (let scan = 0; scan < pushAttempts + 5; scan++) {
+      await watcher.scan();
+    }
+
+    expect(tries()).toBe(pushAttempts);
+    expect(logs.at(-1)).toBe(
+      `The hub stopped trying to push "Clone work0001 needs you" after ${pushAttempts} tries.`,
+    );
   });
 });

@@ -55,7 +55,7 @@ cmux lets only processes inside cmux type into its terminals. So a message for a
 
 ## Get a push on your phone
 
-The hub can send a push when a clone or a live session needs you, and when a clone finishes. It uses [ntfy](https://ntfy.sh), which has free apps for iOS and Android.
+The hub can send a push when a clone or a live session needs you, and when a clone finishes. It uses [ntfy](https://ntfy.sh), which has free apps for iOS and Android. If ntfy does not accept a push, the hub tries it again every 15 seconds for about one hour.
 
 1. Run `shadowclone hub notify`. It makes a private topic and prints its URL.
 2. In the ntfy app, subscribe to that URL.
