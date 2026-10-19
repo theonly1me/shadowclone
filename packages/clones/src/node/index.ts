@@ -51,12 +51,32 @@ async function serveRunning(paths: ClonesPaths): Promise<boolean> {
   return lock === null;
 }
 
-async function startClone(options: {
+const startLockTries = 100;
+
+const startLockPauseMilliseconds = 50;
+
+async function startLock(paths: ClonesPaths): Promise<{ readonly release: () => void } | null> {
+  for (let attempt = 0; attempt < startLockTries; attempt++) {
+    const lock = await acquireLocalLock(paths.startLockFile);
+
+    if (lock !== null) {
+      return lock;
+    }
+
+    await Bun.sleep(startLockPauseMilliseconds);
+  }
+
+  return null;
+}
+
+type StartOptions = {
   readonly paths: ClonesPaths;
   readonly now: () => Date;
   readonly newId: () => string;
   readonly input: CloneStartInput;
-}): Promise<StartOutcome> {
+};
+
+async function startClone(options: StartOptions): Promise<StartOutcome> {
   const { paths, input } = options;
   const config = await readCloneConfig({ paths, repository: input.repository }).catch(
     (error: unknown) => (error instanceof Error ? error.message : String(error)),
@@ -78,6 +98,27 @@ async function startClone(options: {
     };
   }
 
+  const lock = await startLock(paths);
+
+  if (lock === null) {
+    return {
+      kind: "refused",
+      reason: "Another clone start on this machine did not finish in 5 seconds. Try again.",
+    };
+  }
+
+  try {
+    return await admitClone({ ...options, dailyClones: config.dailyClones });
+  } finally {
+    lock.release();
+  }
+}
+
+async function admitClone(
+  options: StartOptions & { readonly dailyClones: number },
+): Promise<StartOutcome> {
+  const { paths, input } = options;
+
   for (let attempt = 0; attempt < 3; attempt++) {
     const now = options.now();
     const request = cloneRequest({ input, id: options.newId(), now });
@@ -87,7 +128,7 @@ async function startClone(options: {
     }
 
     const { runs } = await listRuns(paths);
-    const reason = refusal({ request, runs, dailyClones: config.dailyClones, now });
+    const reason = refusal({ request, runs, dailyClones: options.dailyClones, now });
 
     if (reason !== null) {
       return { kind: "refused", reason };
