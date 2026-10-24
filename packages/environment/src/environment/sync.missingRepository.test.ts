@@ -144,9 +144,14 @@ test("skills published inside a deleted repository folder no longer block sync",
   });
   const current = await readEnvironment(setup.paths);
   expect(current?.repositories).toEqual([setup.repository]);
-  expect(current?.artifacts.map((artifact) => artifact.filePath)).toEqual(
-    setup.state.artifacts.map((artifact) => artifact.filePath),
-  );
+  expect(
+    current?.artifacts.filter(({ kind }) => kind === "skill").map((artifact) => artifact.filePath),
+  ).toEqual(setup.state.artifacts.map((artifact) => artifact.filePath));
+  expect(
+    current?.artifacts.some(
+      (artifact) => artifact.scope === `${charts.originDirectory}/${charts.repositoryName}`,
+    ),
+  ).toBe(false);
 });
 
 test("a maintained skill with no copy left names the skill and its files", async () => {

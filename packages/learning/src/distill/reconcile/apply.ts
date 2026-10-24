@@ -1,17 +1,9 @@
 import { applyExisting, emptyMinedRule } from "./ruleUpdates";
 import type { ProfileRule } from "@shadowclone/profile";
-import {
-  assessedContext,
-  explicitEvidenceTokens,
-  globalEvidenceTokens,
-} from "./assessments";
+import { assessedContext, explicitEvidenceTokens, globalEvidenceTokens } from "./assessments";
 import { materializeEvidenceIds } from "./evidence";
 import { assessedScopePromotions } from "./scope";
-import type {
-  AppliedReconciliation,
-  ReconciliationContext,
-  ReconciliationOutput,
-} from "./types";
+import type { AppliedReconciliation, ReconciliationContext, ReconciliationOutput } from "./types";
 
 export function applyReconciliation(options: {
   readonly output: ReconciliationOutput;
@@ -22,9 +14,7 @@ export function applyReconciliation(options: {
 
   options = { ...options, context: assessedContext(options) };
 
-  const promptRules = new Map(
-    options.context.rules.map((entry) => [entry.token, entry]),
-  );
+  const promptRules = new Map(options.context.rules.map((entry) => [entry.token, entry]));
   const rules: ProfileRule[] = [];
   const changes: AppliedReconciliation["changes"][number][] = [];
 
@@ -73,19 +63,11 @@ export function applyReconciliation(options: {
     });
   }
 
-  const rejectionTokens = new Set([
-    ...options.context.rejections.map((entry) => entry.token),
-    ...options.context.coverage.map((entry) => entry.token),
-  ]);
+  const rejectionTokens = new Set(options.context.rejections.map((entry) => entry.token));
+  const coverageTokens = new Map(options.context.coverage.map((entry) => [entry.token, entry]));
   let rejectedMatches = 0;
 
   for (const result of options.output.newRules) {
-    if (result.rejectionToken && rejectionTokens.has(result.rejectionToken)) {
-      rejectedMatches += 1;
-
-      continue;
-    }
-
     const evidence = materializeEvidenceIds({
       tokens: result.evidenceTokens,
       context: options.context,
@@ -103,6 +85,17 @@ export function applyReconciliation(options: {
       globalTokens,
     });
 
+    const covered = coverageTokens.get(result.rejectionToken);
+    const coveredScope =
+      covered !== undefined &&
+      (covered.repository === undefined ||
+        (after.scope === "project" &&
+          covered.repository.originDirectory === after.originDirectory &&
+          covered.repository.repositoryName === after.repositoryName));
+    if (rejectionTokens.has(result.rejectionToken) || coveredScope) {
+      rejectedMatches += 1;
+      continue;
+    }
     rules.push(after);
     changes.push({
       kind: "new",

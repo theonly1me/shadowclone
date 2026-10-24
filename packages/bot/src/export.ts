@@ -6,6 +6,7 @@ import { resolveRepository, isOriginBlocked, type GitRemoteReader } from "@shado
 import { readEffectiveConfig, ownedDirectory } from "@shadowclone/core";
 import { deliveryFingerprint } from "./deliveryFiles";
 import type { Delivery } from "./types";
+import { portableCatalog, portableCatalogName, portableCatalogPath } from "./portableCatalog";
 
 const identifyingPath = /\/Users\/|\/home\/|\/private\/|(?<!\w)[A-Za-z]:\\/u;
 
@@ -44,7 +45,7 @@ export async function exportGuidance(options: {
     path.join(options.paths.shadowcloneDirectory, "cloud", "export-"),
   );
   const files: Delivery["files"][number][] = [];
-  const found = new Set<string>();
+  const found = new Map<string, string>();
 
   try {
     const routing = await materializeSkillDelivery({
@@ -76,10 +77,7 @@ export async function exportGuidance(options: {
         const content = Buffer.from(await Bun.file(destination).arrayBuffer());
         const text = content.toString("utf8");
 
-        if (
-          identifyingPath.test(text) ||
-          text.includes(options.cwd)
-        ) {
+        if (identifyingPath.test(text) || text.includes(options.cwd)) {
           throw new Error(
             `Remove identifying local paths from ${name}/${relative.join("/")} before export.`,
           );
@@ -92,7 +90,7 @@ export async function exportGuidance(options: {
         });
 
         if (relative.join("/") === "SKILL.md") {
-          found.add(name);
+          found.set(name, destination);
         }
       },
     });
@@ -105,20 +103,24 @@ export async function exportGuidance(options: {
       throw new Error("A selected skill is not available in this repository scope.");
     }
 
-    const native = (
+    const catalog = await portableCatalog({ directory: temporary, skills: found });
+    if (identifyingPath.test(catalog) || catalog.includes(options.cwd)) {
+      throw new Error("The guidance catalog contains identifying local paths.");
+    }
+    const compiled = (
       await environmentCompilation({
         paths: options.paths,
         cwd: options.cwd,
         originDirectory: repository.origin.directoryName,
         repositoryName: repository.profileFileName,
+        catalogPaths: [],
       })
     )?.markdown;
+    const native = compiled
+      ? `${compiled}\nBefore task work, read the ${portableCatalogName} skill and load every matching skill.\n`
+      : null;
 
-    if (
-      !native ||
-      identifyingPath.test(native) ||
-      native.includes(options.cwd)
-    ) {
+    if (!native || identifyingPath.test(native) || native.includes(options.cwd)) {
       throw new Error("The native rules contain identifying paths or are disabled.");
     }
 
@@ -152,12 +154,13 @@ export async function exportGuidance(options: {
       }),
     });
 
+    addText({ path: portableCatalogPath, content: catalog });
     addText({ path: "native.md", content: native });
 
     return {
       native,
       files,
-      skills: [...found],
+      skills: [...found.keys()],
       fingerprint: deliveryFingerprint(files),
     };
   } finally {

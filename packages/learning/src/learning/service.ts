@@ -56,17 +56,16 @@ export async function runLearningService(options: {
   readonly authorizeRef?: (ref: CorrectionSignal["textRefs"][number]) => Promise<boolean>;
 }): Promise<DeepLearningResult> {
   const writeLine = options.writeLine ?? console.log;
-  const preferences = selectLearningPreferences({ explicit: options,
-    saved: (await readConfig({ configPath: options.paths.configFile })).distillation });
+  const preferences = selectLearningPreferences({
+    explicit: options,
+    saved: (await readConfig({ configPath: options.paths.configFile })).distillation,
+  });
 
   if (options.policy.distillation !== "allowed") {
     throw new Error("Managed policy does not allow remote distillation");
   }
 
-  if (
-    preferences.engine &&
-    !options.policy.allowedEngines.includes(preferences.engine)
-  ) {
+  if (preferences.engine && !options.policy.allowedEngines.includes(preferences.engine)) {
     throw new Error("Managed policy blocks the selected learning engine");
   }
 
@@ -88,9 +87,7 @@ export async function runLearningService(options: {
     detectedRunner({
       ...run,
       ...(preferences.model ? { model: preferences.model } : {}),
-      ...(options.reasoningEffort
-        ? { reasoningEffort: options.reasoningEffort }
-        : {}),
+      ...(options.reasoningEffort ? { reasoningEffort: options.reasoningEffort } : {}),
     });
   const limits =
     options.limits ??
@@ -104,27 +101,29 @@ export async function runLearningService(options: {
       runner,
       limits,
     });
-  const supportsCostLimit =
-    getProviderByEngine(engine)?.engine?.capabilities.maxBudgetUsd === true;
+  const supportsCostLimit = getProviderByEngine(engine)?.engine?.capabilities.maxBudgetUsd === true;
 
   writeLine(
     [
       `Learning is limited to ${limits.maximumCalls} total calls and ${limits.timeoutMilliseconds / 1_000} seconds`,
-      supportsCostLimit
-        ? ` with a $${limits.maximumCostUsd.toFixed(2)} total ceiling.`
-        : ".",
+      supportsCostLimit ? ` with a $${limits.maximumCostUsd.toFixed(2)} total ceiling.` : ".",
     ].join(""),
   );
 
   const { config: effectiveConfig } = await readEffectiveConfig({
-    configPath: options.paths.configFile, managedConfigPath: options.paths.managedConfigFile,
+    configPath: options.paths.configFile,
+    managedConfigPath: options.paths.managedConfigFile,
   });
   const [storedProfile, seedLibrary, pending, previousEnvironment, coverage] = await Promise.all([
     readLearningSnapshot(options.paths),
     loadSeedLibrary(),
     readPendingLearning(options.paths),
     readEnvironment(options.paths),
-    readCoveredGuidance({ paths: options.paths, config: effectiveConfig }),
+    readCoveredGuidance({
+      paths: options.paths,
+      config: effectiveConfig,
+      blockedOrigins: options.policy.blockedOrigins,
+    }),
   ]);
   const normalized = normalizeExplicitCandidates(storedProfile);
   const result = await distillSignals({
@@ -156,15 +155,21 @@ export async function runLearningService(options: {
   let pendingReview = 0;
 
   if (!options.dryRun) {
-    await recordLaterCorrections({ paths: options.paths, state: previousEnvironment, corrections: result.corrections });
+    await recordLaterCorrections({
+      paths: options.paths,
+      state: previousEnvironment,
+      corrections: result.corrections,
+    });
     const proposed = result.rules.filter((rule) => !pending.rejectedKeys.includes(rule.key));
-    const approved = proposed.length === 0 || options.apply ||
+    const approved =
+      proposed.length === 0 ||
+      options.apply ||
       (await options.confirm?.("Apply these learned rules?")) === true;
     let authorized = true;
     if (options.authorizeRef) {
       for (const signal of options.signals) {
         for (const ref of signal.textRefs) {
-          if (!await options.authorizeRef(ref)) authorized = false;
+          if (!(await options.authorizeRef(ref))) authorized = false;
         }
       }
     }
@@ -178,52 +183,63 @@ export async function runLearningService(options: {
         events: options.events,
         signals: options.signals,
       });
-      writeLine(`${pendingReview} learned rule(s) saved for review. Run shadowclone learning pending.`);
-      if (!authorized) writeLine("Source consent changed during learning. New rules remain pending.");
+      writeLine(
+        `${pendingReview} learned rule(s) saved for review. Run shadowclone learning pending.`,
+      );
+      if (!authorized)
+        writeLine("Source consent changed during learning. New rules remain pending.");
     }
 
     if (updates.length > 0) {
-      await updatePendingLearning({ paths: options.paths, update: async (current) => {
-        const rules = [
-          ...new Map(updates.filter((rule) => !current.rejectedKeys.includes(rule.key))
-            .map((rule) => [rule.key, rule])).values(),
-        ].sort(
-          (left, right) =>
-            right.observations - left.observations ||
-            left.title.localeCompare(right.title),
-        );
-        if (rules.length === 0) return current;
-
-        await persistLearningRules({
-          paths: options.paths,
-          rules,
-          provenance: Object.fromEntries(rules.map((rule) => [rule.key, learningRuleProvenance({
-            rule, signals: options.signals, events: options.events,
-          })])),
-        });
-
-        if (normalized.promoted.length > 0) {
-          writeLine(
-            `Activated ${normalized.promoted.length} explicit profile rule(s).`,
+      await updatePendingLearning({
+        paths: options.paths,
+        update: async (current) => {
+          const rules = [
+            ...new Map(
+              updates
+                .filter((rule) => !current.rejectedKeys.includes(rule.key))
+                .map((rule) => [rule.key, rule]),
+            ).values(),
+          ].sort(
+            (left, right) =>
+              right.observations - left.observations || left.title.localeCompare(right.title),
           );
-        }
+          if (rules.length === 0) return current;
 
-        const refreshed = await refreshIntegrations({
-          paths: options.paths,
-          configPath: options.paths.configFile,
-        });
+          await persistLearningRules({
+            paths: options.paths,
+            rules,
+            provenance: Object.fromEntries(
+              rules.map((rule) => [
+                rule.key,
+                learningRuleProvenance({
+                  rule,
+                  signals: options.signals,
+                  events: options.events,
+                }),
+              ]),
+            ),
+          });
 
-        if (refreshed.preserved > 0) {
-          writeLine(
-            `Preserved ${refreshed.preserved} edited or unavailable integration(s).`,
-          );
-        }
+          if (normalized.promoted.length > 0) {
+            writeLine(`Activated ${normalized.promoted.length} explicit profile rule(s).`);
+          }
 
-        profileUpdated = true;
+          const refreshed = await refreshIntegrations({
+            paths: options.paths,
+            configPath: options.paths.configFile,
+          });
 
-        const appliedKeys = new Set(accepted ? rules.map((rule) => rule.key) : []);
-        return { ...current, rules: current.rules.filter((rule) => !appliedKeys.has(rule.key)) };
-      } });
+          if (refreshed.preserved > 0) {
+            writeLine(`Preserved ${refreshed.preserved} edited or unavailable integration(s).`);
+          }
+
+          profileUpdated = true;
+
+          const appliedKeys = new Set(accepted ? rules.map((rule) => rule.key) : []);
+          return { ...current, rules: current.rules.filter((rule) => !appliedKeys.has(rule.key)) };
+        },
+      });
     }
   }
 

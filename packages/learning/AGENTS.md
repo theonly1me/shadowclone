@@ -18,7 +18,7 @@ Turns evidence from consented sessions into guidance. It distills, reconciles, a
 - `src/distill/`: evidence selection (`authorizedLearningEvents`, `materializeEvidence`), reconciliation, consolidation, and checkpoints.
 - `src/learning/`: `runLearningService`, `runAutomaticLearning`, `scheduleLearning`, the pending queue, receipts, and probes.
 - `src/learning/skillMaintenance/`: skill proposals and conflict review (`maintainSkills`).
-- `src/learning/triage/` and `coverage.ts`: session-end triage (`triagePendingLearning`) and the user's own guidance that learning treats as covered.
+- `src/learning/triage/` and `coverage.ts`: session-end triage (`triagePendingLearning`) and the scoped instruction and skill contents that learning treats as covered.
 - `src/preferences/`: `rememberPreference`. `src/importRules/`: repository guidance import.
 
 ## Rules
@@ -31,6 +31,8 @@ Turns evidence from consented sessions into guidance. It distills, reconciles, a
 - The background worker takes the `learning-worker.db` lock. It exits as `busy` when another worker runs.
 - Background learning needs `distillation.deep`, `distillation.automatic`, and a managed policy that allows it.
 - Triage applies a rule only when automatic maintenance is on. A discard uses the retire lifecycle, so the rule becomes a rejection with a reason.
+- Coverage reads full user-owned skill text and verified repository instructions under their source consent. Repository coverage cannot suppress a global rule or another repository's rule.
+- Triage uses one model call per pending scope within the shared budget. Deferred decisions include the guidance fingerprint. Unprocessed candidates remain eligible.
 - A triggering session model reaches learning only when the session also names its engine.
 
 ## Tests
