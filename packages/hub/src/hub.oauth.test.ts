@@ -84,6 +84,7 @@ describe("a connector signs in to the hub", () => {
       expect(listed.result.tools.map((tool: { name: string }) => tool.name)).toEqual([
         "shadowclone_sessions",
         "shadowclone_clone",
+        "shadowclone_pair",
       ]);
 
       const started = await (

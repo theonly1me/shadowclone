@@ -29,6 +29,10 @@ function fakeLive(sent: { id: string; text: string }[]): LiveSessions {
 
       return { kind: "queued", detail: "It waits." };
     },
+    pair: async () => ({ kind: "refused", reason: "Not in this test." }),
+    unpair: async () => ({ kind: "refused", reason: "Not in this test." }),
+    pairs: async () => [],
+    peerSend: async () => ({ kind: "refused", reason: "Not in this test." }),
   };
 }
 

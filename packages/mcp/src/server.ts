@@ -3,6 +3,7 @@ import { runPreferenceTool } from "./preferences";
 import { createBotTool } from "./bot";
 import { createCloneSetupTool } from "./cloneSetup";
 import { createSessionsTools } from "./sessions";
+import { createPeerTool } from "./pairs";
 import { compileContext } from "@shadowclone/environment";
 import { clonesPaths, localNode } from "@shadowclone/clones";
 import { machineLive } from "@shadowclone/live";
@@ -51,9 +52,10 @@ export async function serveMcp(
   const decoder = new TextDecoder();
   const bot = createBotTool({ cwd, paths: botPaths });
   const cloneSetup = createCloneSetupTool({ cwd, paths: botPaths });
+  const live = machineLive();
   const sessions =
-    options.sessionTools ??
-    createSessionsTools({ node: localNode({ paths: clonesPaths() }), live: machineLive() });
+    options.sessionTools ?? createSessionsTools({ node: localNode({ paths: clonesPaths() }), live });
+  const peer = createPeerTool({ live });
 
   for await (const chunk of Bun.stdin.stream()) {
     buffer += decoder.decode(chunk, { stream: true });
@@ -94,6 +96,7 @@ export async function serveMcp(
                 ? ((await bot.run(request.params)) ??
                   (await cloneSetup.run(request.params)) ??
                   (await sessions.run(request.params)) ??
+                  (await peer.run(request.params)) ??
                   (await runPreferenceTool({
                     params: request.params,
                     cwd,
