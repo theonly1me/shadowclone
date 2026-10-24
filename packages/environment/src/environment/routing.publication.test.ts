@@ -125,7 +125,7 @@ test("native routing follows description edits and repairs stale metadata withou
         state: current,
         scopes: learningScopes({ paths: setup.paths, state: current }),
       }),
-    ).toContain(catalogPath);
+    ).toContain("read .agents/skills/shadowclone-guidance/catalog.md from the repository root");
     expect(await Bun.file(catalogPath).text()).toContain(description);
     expect(await Bun.file(setup.instructions).text()).toBe(
       "Keep this manually authored instruction.\n",

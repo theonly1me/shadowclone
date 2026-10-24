@@ -3,7 +3,12 @@ import type { ProjectPaths } from "@shadowclone/core";
 import { belongsToScope, learningScopes, type LearningScope } from "./scope";
 import { readRedactedEnvironment } from "./store";
 import type { EnvironmentState } from "./types";
-import { publishedSkills, taskCatalogInstruction, taskCatalogPath } from "./catalog";
+import {
+  guidanceReference,
+  publishedSkills,
+  taskCatalogInstruction,
+  taskCatalogPath,
+} from "./catalog";
 import { recordFingerprint } from "./records";
 import { renderBuildRouting } from "./builds/routing";
 import { repositoryDeliveryQuestion } from "./repositoryQuestion";
@@ -40,7 +45,7 @@ export function renderSkillRouting(options: {
     options.catalogPaths ??
     options.scopes
       .filter((scope) => taskSkills.some((skill) => skill.scope === scope.key))
-      .map(taskCatalogPath);
+      .map((scope) => guidanceReference({ scope, filePath: taskCatalogPath(scope) }));
   const shortRules = options.state.records.flatMap((record) => {
     if (taskKeys.has(record.rule.key)) return [];
     const body = record.rule.body.replace(/\s+/gu, " ").trim();

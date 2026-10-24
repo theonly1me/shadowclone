@@ -21,6 +21,11 @@ import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "@shado
 
 export type SkippedRouting =
   | {
+      readonly kind: "catalog";
+      readonly path: string;
+      readonly reason: "edited" | "untracked";
+    }
+  | {
       readonly kind: "link";
       readonly agent: string;
       readonly path: string;
@@ -33,7 +38,7 @@ export type SkippedRouting =
       readonly reason: PreservedReason;
     };
 
-export type ReplacedRouting = { readonly agent: string; readonly path: string };
+export type ReplacedRouting = { readonly agent: string | null; readonly path: string };
 
 export async function nativePublication(options: {
   readonly paths: ProjectPaths;
@@ -86,13 +91,23 @@ export async function nativePublication(options: {
     }
   }
 
-  const catalogs = await publishTaskCatalogs({ state: options.state, scopes });
+  const catalogs = await publishTaskCatalogs({
+    state: options.state,
+    scopes,
+    replaceEdited: options.replaceEdited,
+  });
   const routed = await withoutMissingBuildSkills(catalogs.state);
   const integrations = await readIntegrations(options.paths);
   const updatedIntegrations = [];
   const updates: FileUpdate[] = [...catalogs.updates];
-  const skipped: SkippedRouting[] = [];
-  const replaced: ReplacedRouting[] = [];
+  const skipped: SkippedRouting[] = catalogs.skipped.map((entry) => ({
+    kind: "catalog",
+    ...entry,
+  }));
+  const replaced: ReplacedRouting[] = catalogs.replaced.map((filePath) => ({
+    agent: null,
+    path: filePath,
+  }));
 
   for (const integration of integrations) {
     const applicable = scopes.filter(

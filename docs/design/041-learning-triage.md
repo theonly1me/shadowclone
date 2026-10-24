@@ -50,3 +50,11 @@ Coverage includes the full redacted text of user-owned skills. Repository instru
 Reconciliation receives only coverage for its evidence scope. Triage groups pending rules by scope, within the existing learning budget. A duplicate must preserve the same conditions and requirement. A correction that changes a requirement stays eligible. Deferred triage decisions include the maintained guidance fingerprint, so guidance changes trigger another check.
 
 Implement catalog publication and routing first. Add scoped coverage and deferred-decision invalidation next. Verify both through synthetic files, mock model runners, native startup, and isolated delivery.
+
+## Catalog portability and preservation
+
+Repository catalogs and their startup references use paths relative to the repository root. Global and private catalogs retain absolute paths. Catalog instructions identify the root for relative references. A copied repository must retain usable catalog entries without the original publisher's home directory.
+
+An edited or untracked catalog remains unchanged during publication. Publication reports a preserved catalog and continues with other scopes. `shadowclone sync` names each preserved catalog, counts it, and exits with status 1. `shadowclone sync --replace-edited` replaces the catalog and records a reversible revision.
+
+Add failing tests for repository relocation, preserved catalogs, and command recovery first. Then change scoped references and catalog outcomes. Verify the replacement revision, current routing, and the complete repository checks.

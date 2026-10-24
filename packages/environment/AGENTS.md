@@ -40,7 +40,8 @@ Holds what agents receive: the environment record, skill publication, native ins
 - Native publication, session-start context, and skill delivery render routing through `withoutMissingBuildSkills`. Routing leaves out a build skill with no copy left. Sync reports it when its build selects it, and keeps its records.
 - Skill publication and sync release a skill record when every rule behind it is retired, also outside the destinations. They drop the record and delete an unchanged copy that shadowclone made. They never write `original` back, because a file that matches the record can hold edits that sync copied into it.
 - Task-specific learned skills appear in a catalog for their learning scope. Startup requires a catalog lookup and keeps universal rules and selected workflows automatic.
-- Catalogs use owned artifacts and reversible revisions. Publication preserves a manual edit with an error.
+- Catalogs use owned artifacts and reversible revisions. Publication reports edited or untracked catalogs as preserved skips and continues other scopes. Only `replaceEdited` replaces them.
+- Repository catalogs and their routing references use paths relative to the repository root. Global, private, and isolated catalogs keep absolute paths.
 - A repository with `privateSkillsDirectory` publishes skills and its catalog only under `~/.shadowclone/builds/`. No repository file changes.
 
 ## Tests

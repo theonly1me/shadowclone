@@ -55,7 +55,9 @@ Setup and `learn --deep` still register the repository where they run, with the 
 
 Universal rules and selected workflow requirements stay in startup guidance. Task-specific learned skills appear in a separate catalog for their scope. Startup requires each agent to read the catalog and load every matching skill before task work.
 
-Private repository catalogs stay beside their private skills. Isolated agents receive a catalog whose paths point inside their snapshot. Catalog writes use the same ownership checks and reversible revisions as published skills. A missing catalog on an older installation requires `shadowclone sync`.
+Repository catalogs and their startup references use paths relative to the repository root. They remain usable when a teammate copies the repository. Private repository catalogs stay beside their private skills. Isolated agents receive a catalog whose paths point inside their snapshot. Catalog writes use the same ownership checks and reversible revisions as published skills. A missing catalog on an older installation requires `shadowclone sync`.
+
+If a catalog has manual edits or no ownership record, publication preserves it. Other scopes continue to publish. `shadowclone sync` names and counts each preserved catalog, then exits with status 1. `shadowclone sync --replace-edited` replaces the catalog. `shadowclone undo` restores the previous catalog and its ownership record.
 
 ## Record a rule
 

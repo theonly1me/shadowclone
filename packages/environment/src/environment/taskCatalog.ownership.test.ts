@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import { readLocalText } from "@shadowclone/core";
-import { nativePublication } from "./native";
+import { nativePublication, type SkippedRouting } from "./native";
 import { publishEnvironmentRevision } from "./revision";
 import { environmentFile, readEnvironment, renderEnvironment } from "./store";
 import { syncLearningEnvironment } from "./sync";
@@ -14,7 +14,11 @@ test("catalog publication preserves a manual edit", async () => {
     await syncLearningEnvironment(setup.paths);
     const edited = "Keep this manually authored catalog.\n";
     await Bun.write(setup.catalogPath, edited);
-    await expect(syncLearningEnvironment(setup.paths)).rejects.toThrow("catalog changed");
+    const skipped: SkippedRouting[] = [];
+    await syncLearningEnvironment(setup.paths, {
+      onSkipped: (entries) => skipped.push(...entries),
+    });
+    expect(skipped).toEqual([{ kind: "catalog", path: setup.catalogPath, reason: "edited" }]);
     expect(await Bun.file(setup.catalogPath).text()).toBe(edited);
   } finally {
     await rm(setup.home, { recursive: true, force: true });

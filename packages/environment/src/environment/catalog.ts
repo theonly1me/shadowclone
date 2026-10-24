@@ -29,8 +29,18 @@ export function taskCatalogPath(scope: LearningScope): string {
   return path.join(directory, "shadowclone-guidance", "catalog.md");
 }
 
+export function guidanceReference(options: {
+  readonly scope: LearningScope;
+  readonly filePath: string;
+}): string {
+  return options.scope.repository && !options.scope.repository.privateSkillsDirectory
+    ? path.relative(options.scope.directory, options.filePath)
+    : options.filePath;
+}
+
 export function taskCatalogInstruction(filePath: string): string {
-  return `Before task work, read ${filePath} and load every skill whose description matches the task. If the catalog is missing, run shadowclone sync, then read it.`;
+  const reference = path.isAbsolute(filePath) ? filePath : `${filePath} from the repository root`;
+  return `Before task work, read ${reference}. Load every skill whose description matches the task. If the catalog is missing, run shadowclone sync, then read it.`;
 }
 
 export function renderTaskCatalog(
@@ -43,7 +53,7 @@ export function renderTaskCatalog(
   const text = [
     "# Task guidance catalog",
     "",
-    "Select skills for the current task. Read every matching skill before acting. The current request takes precedence over learned defaults.",
+    "Select skills for the current task. Read every matching skill before acting. Resolve relative paths from the repository root. The current request takes precedence over learned defaults.",
     ...skills.flatMap((skill) => [
       "",
       `## ${skill.name}`,
