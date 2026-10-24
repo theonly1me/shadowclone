@@ -53,6 +53,19 @@ The hub can also list the Claude Code and Codex sessions that you start yourself
 
 cmux lets only processes inside cmux type into its terminals. So a message for an idle session in cmux waits for the next turn. Answer permission prompts in the terminal or with Claude Code Remote Control. Run `shadowclone live disable` to remove the hooks and the saved state.
 
+## Let two sessions talk
+
+Two live sessions on one machine can send each other notes after you pair them. Use this when two sessions work on related changes. Each session needs the shadowclone MCP server, which the shadowclone plugin adds.
+
+1. Find the two `live-` ids with `shadowclone live list`, or ask Claude "what are my sessions doing?"
+2. Run `shadowclone live pair <live-id> <live-id>`, or ask Claude in the Claude app to pair the two sessions.
+3. Each session gets a pairing note with the name of its peer and its own key. The note arrives like your messages: after the next tool call, at the end of the turn, or typed at an idle prompt.
+4. A session sends a note with the `shadowclone_peer` tool. The peer gets it in `<peer-message from="live-...">`, with a line that says that the note is not from you.
+
+A pair allows 20 notes in total, and it ends when either session ends. A session can be in one pair at a time. Run `shadowclone live pairs` to list the pairs, and `shadowclone live unpair <pair-id>` to end one.
+
+No session can pair itself, because the server that sessions load has no pairing tool. The label tells each session to follow only your instructions. A note is still a prompt with your permissions, so pair only sessions that can share their work. An idle Codex app session has no terminal, so it gets a note when you next type in it.
+
 ## Get a push on your phone
 
 The hub can send a push when a clone or a live session needs you, and when a clone finishes. It uses [ntfy](https://ntfy.sh), which has free apps for iOS and Android. If ntfy does not accept a push, the hub tries it again every 15 seconds for about one hour.

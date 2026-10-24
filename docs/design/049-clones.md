@@ -20,6 +20,7 @@ A **clone** is a session that shadowclone starts and runs as the owner, on a mac
 4. Other machines join the hub over the tailnet.
 5. The hub lists live Claude Code and Codex sessions, behind a consent flag that is off by default.
 6. The hub sends an optional push notification when a clone needs the owner.
+7. The owner pairs two live sessions, so that each can send the other notes.
 
 Cloud sandbox hosts come back later as workers that the hub starts. Other tunnels and a shared relay wait until users ask for them.
 
@@ -115,6 +116,16 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Text.** By default a push names the clone or live session, its state, and its machine. `hub notify --text` adds the repository and the question, through `redactSecrets`, at most 500 characters. `hub notify test` sends one push to check the topic.
 
+## Step 7: paired sessions
+
+**Pairing.** The owner pairs two live sessions of one machine with `shadowclone live pair <a> <b>`, or with `shadowclone_pair` through the hub. The server that sessions load has no pairing tool, so a session cannot pair itself. A session can be in one pair at a time. `~/.shadowclone/live/pairs.json` holds the pair id, the two session ids, a SHA-256 hash of the key of each side, the time, and the number of notes.
+
+**Keys.** Each side gets its own random key in a pairing note. The note goes through the inbox, like an owner message. It names the peer, the key, and the limit. `shadowclone_peer` finds the sender from the hash of the key, so a session cannot send as its peer through the tool. A process of the owner can still read the live folder, so the key does not stop a local program.
+
+**Notes.** A note reaches the peer in `<peer-message from="live-<hash>">`, after a line that says that the note is not from the owner. It arrives like an owner message: as context after the next tool call, at `Stop`, or typed into an idle tmux pane or cmux surface. A note has at most 8000 characters after `redactSecrets`. shadowclone replaces the wrapper tags in its text, so a note cannot end its own label.
+
+**Limits.** A pair allows 20 notes in total, for both sessions together. A pair ends when either session ends, at `live unpair`, and at `live disable`. A session that resumes after its end has no pair.
+
 ## Consequences
 
 - An owner can start a clone from any agent on the node without GitHub. A phone needs the hub from step 3.
@@ -122,6 +133,8 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - With live sessions on, the last message of each live session leaves the machine through the hub. It can hold code or plans from that session.
 - With pushes on, ntfy receives clone ids, states, and machine names. Anyone who knows the topic can read them.
 - A message to an idle session becomes a prompt in that session, with the owner's permissions.
+- A note from a paired session also becomes a prompt in its peer. Its label tells the agent to follow only the owner, but an agent can still act on it.
+- Two paired sessions can use their 20 notes on a loop before the pair stops them.
 - A node token gives the same clone tools as an approved client. `hub nodes remove <name>` revokes it.
 - A local program can send a false `X-Forwarded-For` header. A local program already runs as the owner, so the allowlist guards only remote callers.
 - A clone that exits before CI finishes does not continue. The owner starts it again on its pull request.
@@ -140,6 +153,7 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - Hub tests send HTTP requests to the handler with a real database. They cover the `401`, a sign-in through to a tool call, plain PKCE, a wrong, used, or expired code, and the fifth wrong try. They also cover a code exchanged twice, refresh token reuse, revocation, expiry, the lock, the allowlist, the origin check, the protocol version, and loopback redirects.
 - Push tests: a push has no question text or repository by default. The first scan pushes nothing, and a new question pushes once. A node that returns, or joins later, does not push its old states. With no topic, nothing is sent. A failed push goes out at the next scan, and a push that keeps failing stops after its last try.
 - Live tests: with consent off, a hook writes nothing and `list` is empty. A stop keeps a redacted summary and no tool output. The `Stop` hook delivers a queued message once, and `PostToolUse` delivers one during a turn. An idle tmux pane gets the message, a refused terminal keeps it, and a working session queues it. `StopFailure` and `idle_prompt` type a waiting message. Install keeps the owner's own hooks.
+- Pair tests: each side gets its own key, and a note reaches the peer with the sender's label. An idle tmux peer gets the note typed in. `peerSend` refuses a wrong key, the 21st note, and a key after its session ended. `peerNoteText` redacts and bounds a note, and the note cannot end its label. The server that sessions load lists `shadowclone_peer` and no pairing tool, and the hub lists `shadowclone_pair`.
 - Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine, and a `start` for another machine runs nothing.
 
 ## Data handling
@@ -153,3 +167,5 @@ In step 4, a node sends the hub the text of its clone tool answers over the tail
 In step 5, live sessions are a new consent flag, off by default. The hub sends each approved client the redacted last message of each live session. The live state stays in `~/.shadowclone/live/` until the session ends, and `live disable` deletes it.
 
 In step 6, pushes are off until the owner runs `hub notify`. A push goes to the ntfy server of the topic. It holds no question text or repository unless the owner turns text on.
+
+In step 7, a note stays in the inbox file of the peer until the peer gets it, and then shadowclone deletes it. `pairs.json` holds no note text and no key, only the key hashes and a count. A note stays on the machine. It leaves the machine only when the peer's agent sends it to its model provider.

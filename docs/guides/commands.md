@@ -78,7 +78,8 @@ See [skill maintenance](skills.md).
 - `shadowclone hub allow <source>...`: accept requests only from `anthropic`, `tailnet`, `loopback`, or address ranges. `--any` removes the limit.
 - `shadowclone hub status`: show the URL, the lock, the allowed sources, and the number of clients.
 - `shadowclone live enable` and `live disable`: turn live sessions on or off on this machine. Enable adds the hooks to Claude Code and Codex. Disable removes them and the saved state. See [the hub](hub.md#see-your-own-sessions).
-- `shadowclone live status` and `live list`: show the setting and the live sessions of this machine. `live hook claude` and `live hook codex` run from the agent hooks.
+- `shadowclone live status` and `live list`: show the setting and the live sessions of this machine, then the open pairs. `live hook claude` and `live hook codex` run from the agent hooks.
+- `shadowclone live pair <live-id> <live-id>`: let two live sessions send each other notes, 20 in total. `live pairs` lists the open pairs, and `live unpair <pair-id>` ends one. See [the hub](hub.md#let-two-sessions-talk).
 - `shadowclone check [--changed]`: run the repository checks. `--format` accepts `human`, `json`, or `claude-stop`.
 
 ## Serve
