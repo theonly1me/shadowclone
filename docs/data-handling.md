@@ -160,6 +160,8 @@ A machine that joins a hub writes `~/.shadowclone/hub/link.json` (mode 0600) wit
 
 The hub and joined machines send the list and the summaries to each approved client. A message that you send waits in `live-<id>.inbox.jsonl` until a hook delivers it. For an idle session, shadowclone types it into the tmux pane or cmux surface instead. A finished session record stays for 1 day. `live disable` removes the hooks and the folder.
 
+When you pair two sessions, `~/.shadowclone/live/pairs.json` holds the pair id, the two session ids, a hash of each key, and the number of notes. A note passes through `redactSecrets` and has at most 8000 characters. It waits in the inbox file of the peer until a hook delivers it, and then shadowclone deletes it. The peer's agent sends the note to its model provider, like any prompt.
+
 ## Boundaries that a change must keep
 
 Contributors also read the [contributor data rules](../.claude/skills/data-handling/SKILL.md).

@@ -21,6 +21,7 @@ Serves the shadowclone tools to a connected agent over the MCP protocol on stand
 - `src/bot.ts`: `shadowclone_bot`.
 - `src/cloneSetup.ts`, `cloneSetupTools.ts`, and `cloneSetupText.ts`: `shadowclone_clone_setup`.
 - `src/sessions.ts` and `sessionsTools.ts`: `shadowclone_sessions` and `shadowclone_clone`.
+- `src/pairs.ts` and `pairTools.ts`: `shadowclone_peer` for the server that sessions load, and `shadowclone_pair` for the hub.
 
 ## Rules
 
@@ -31,6 +32,7 @@ Serves the shadowclone tools to a connected agent over the MCP protocol on stand
 - `shadowclone_clone_setup` has no token field. The owner pastes tokens into the secrets file. Setup and skills pushes need `approve: true` after the owner agrees.
 - The package exports `sessionsTools` and `createSessionsTools`, so the hub serves the same clone tools. `serveMcp` takes `sessionTools`, so a node can send them to its hub.
 - `shadowclone_sessions` only reads, and carries `readOnlyHint`. It lists live sessions after the clones when the owner turned them on. `shadowclone_clone` accepts only `send` for a `live-` id. `shadowclone_clone` starts, steers, answers, and stops clones through `localNode`. The `get` answer marks clone text as data.
+- `serveMcp` lists `shadowclone_peer` and never `shadowclone_pair`, so a session cannot pair itself. The package exports `pairTool` and `createPairTool` for the hub.
 - The first `setup` call only lists the skill files. It pushes them after a second call with `approveSkills: true`.
 - Context comes from `compileContext`, so it follows the same consent and scope as native delivery.
 

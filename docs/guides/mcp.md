@@ -1,6 +1,6 @@
 # MCP server
 
-The MCP server gives a connected agent eight tools. It runs on your machine and needs no shadowclone credentials.
+The MCP server gives a connected agent nine tools. It runs on your machine and needs no shadowclone credentials.
 
 ## Start the server
 
@@ -17,7 +17,7 @@ For OpenCode, add this entry to `~/.config/opencode/opencode.json`. OpenCode 1.x
 }
 ```
 
-To reach your clones from the Claude app or another machine, use the [hub](hub.md). It serves the two clone tools over HTTPS with OAuth. On a machine that joined a hub, `shadowclone mcp` sends the two clone tools to the hub, so they cover every machine.
+To reach your clones from the Claude app or another machine, use the [hub](hub.md). It serves the two clone tools over HTTPS with OAuth, and `shadowclone_pair` for your live sessions. On a machine that joined a hub, `shadowclone mcp` sends the two clone tools to the hub, so they cover every machine.
 
 The server reads one JSON-RPC 2.0 message from standard input on each line. It uses MCP protocol version `2024-11-05` and the methods `initialize`, `tools/list`, and `tools/call`. The tools follow your consent settings and managed policy. If policy turns shadowclone off, they return "shadowclone context is disabled.", an error, or no results. Opening the server makes no model request.
 
@@ -31,6 +31,7 @@ The server reads one JSON-RPC 2.0 message from standard input on each line. It u
 - `shadowclone_clone_setup` pushes skills for clones, sets them up on this machine, or checks them.
 - `shadowclone_sessions` lists the clones on this machine, or returns one clone. It is read only.
 - `shadowclone_clone` starts, steers, answers, or stops a clone.
+- `shadowclone_peer` sends a note to the live session that the owner paired with this session.
 
 Tools other than `shadowclone_context` reject unlisted input fields.
 
@@ -72,7 +73,7 @@ The tool rejects a token field. The owner adds tokens in the secrets file that s
 - `answer` with `id`, `question`, and `text` answers an open question of the clone.
 - `stop` with `id` stops the clone. A running clone pushes its unfinished work first.
 
-With live sessions on, the tools also cover your own Claude Code and Codex sessions, with `live-` ids. `send` reaches a live session. `answer` and `stop` do not.
+With live sessions on, the tools also cover your own Claude Code and Codex sessions, with `live-` ids. `send` reaches a live session. `answer` and `stop` do not. `list` also names the open pairs of live sessions.
 
 `shadowclone_sessions` takes `operation`:
 
@@ -80,3 +81,9 @@ With live sessions on, the tools also cover your own Claude Code and Codex sessi
 - `get` with `id` returns one clone with its task, questions, report, and recent events. The answer starts with a line that marks the clone text as data.
 
 `shadowclone_sessions` carries the `readOnlyHint` annotation, so a client can run it without a question. `shadowclone_clone` does not.
+
+## Send a note to a paired session
+
+`shadowclone_peer` takes `operation` (`send`), `key`, and `text`. The key comes from the pairing note that a session gets after the owner pairs it. The answer says whether shadowclone typed or queued the note, and how many notes the pair has left. A wrong key, a pair with no notes left, and an ended session return an error.
+
+Only the hub serves `shadowclone_pair`. It takes `operation`: `pair` with two `live-` ids in `sessions`, `unpair` with `pair`, or `list`. See [the hub](hub.md#let-two-sessions-talk).

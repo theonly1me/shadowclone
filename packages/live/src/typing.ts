@@ -1,4 +1,4 @@
-import { liveOwnerMessage } from "./messages";
+import { liveInboxText } from "./messages";
 import type { LivePaths } from "./paths";
 import type { Surface } from "./record";
 import { appendInbox, takeInbox } from "./store";
@@ -19,13 +19,13 @@ export async function typeInbox(options: {
   }
 
   if (
-    await options.typeText({ surface: options.surface, text: oneLine(liveOwnerMessage(pending)) })
+    await options.typeText({ surface: options.surface, text: oneLine(liveInboxText(pending)) })
   ) {
     return "typed";
   }
 
   for (const message of pending) {
-    await appendInbox({ paths, id, text: message, now: options.now });
+    await appendInbox({ paths, id, message, now: options.now });
   }
 
   return "kept";

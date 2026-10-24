@@ -2,7 +2,10 @@ import {
   handleLiveHook,
   livePaths,
   liveListLine,
+  livePairLines,
+  livePairText,
   liveSessionsEnabled,
+  liveUnpairText,
   machineLive,
   readGitFacts,
   switchLiveSessions,
@@ -11,7 +14,7 @@ import {
 } from "@shadowclone/live";
 
 export const liveUsage =
-  "Live sessions: live enable|disable|status|list; live hook claude|codex (run by the agent hooks)";
+  "Live sessions: live enable|disable|status|list; live pair <live-id> <live-id>; live unpair <pair-id>; live pairs; live hook claude|codex (run by the agent hooks)";
 
 function engineOf(value: string | undefined): LiveEngine | null {
   return value === "claude" || value === "codex" ? value : null;
@@ -66,9 +69,49 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
     console.log(`Live sessions: ${(await liveSessionsEnabled()) ? "on" : "off"}`);
   },
   list: async () => {
-    const records = await machineLive().list();
+    const live = machineLive();
+    const records = await live.list();
+    const pairs = await live.pairs();
 
-    console.log(records.length === 0 ? "No live sessions." : records.map(liveListLine).join("\n"));
+    console.log(
+      [
+        ...(records.length === 0 ? ["No live sessions."] : records.map(liveListLine)),
+        ...(pairs.length === 0 ? [] : ["Pairs:", ...livePairLines(pairs)]),
+      ].join("\n"),
+    );
+  },
+  pair: async (arguments_) => {
+    const [first, second] = arguments_;
+
+    if (first === undefined || second === undefined || arguments_.length !== 2) {
+      console.log("Usage: shadowclone live pair <live-id> <live-id>");
+      process.exitCode = 1;
+      return;
+    }
+
+    const outcome = await machineLive().pair({ first, second });
+
+    console.log(livePairText(outcome));
+    process.exitCode = outcome.kind === "refused" ? 1 : 0;
+  },
+  unpair: async (arguments_) => {
+    const [pair] = arguments_;
+
+    if (pair === undefined || arguments_.length !== 1) {
+      console.log("Usage: shadowclone live unpair <pair-id>");
+      process.exitCode = 1;
+      return;
+    }
+
+    const outcome = await machineLive().unpair(pair);
+
+    console.log(liveUnpairText(outcome));
+    process.exitCode = outcome.kind === "refused" ? 1 : 0;
+  },
+  pairs: async () => {
+    const pairs = await machineLive().pairs();
+
+    console.log(pairs.length === 0 ? "No open pairs." : livePairLines(pairs).join("\n"));
   },
   hook,
 };

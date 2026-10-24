@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { GitFacts } from "./git";
-import { boundedText, liveOwnerMessage, summaryLimit } from "./messages";
+import { boundedText, liveInboxText, summaryLimit } from "./messages";
 import type { LivePaths } from "./paths";
 import { surfaceFrom, type LiveEngine, type LiveRecord } from "./record";
 import { takeInbox } from "./store";
@@ -49,7 +49,7 @@ async function delivered(options: {
 
   return messages.length === 0
     ? { record: options.otherwise, output: null }
-    : { record: { state: "working" }, output: options.wrap(liveOwnerMessage(messages)) };
+    : { record: { state: "working" }, output: options.wrap(liveInboxText(messages)) };
 }
 
 export async function changeFor(options: {

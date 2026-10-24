@@ -74,7 +74,12 @@ describe("the live session hooks", () => {
 
     try {
       await handleLiveHook({ context, input: hookInput("UserPromptSubmit") });
-      await appendInbox({ paths, id, text: "Use the v2 endpoint.", now: new Date() });
+      await appendInbox({
+        paths,
+        id,
+        message: { kind: "owner", text: "Use the v2 endpoint." },
+        now: new Date(),
+      });
 
       const first = await handleLiveHook({
         context,
@@ -108,7 +113,7 @@ describe("the live session hooks", () => {
       await appendInbox({
         paths,
         id: codexId,
-        text: "Stop after the first test.",
+        message: { kind: "owner", text: "Stop after the first test." },
         now: new Date(),
       });
 

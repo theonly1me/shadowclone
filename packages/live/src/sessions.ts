@@ -1,14 +1,14 @@
+import { deliver, type LiveDelivery } from "./delivery";
+import { liveOffReason } from "./messages";
+import { localPairing, type LivePairing } from "./pairing";
 import type { LivePaths } from "./paths";
 import type { LiveRecord } from "./record";
-import { appendInbox, listRecords, readRecord } from "./store";
+import { listRecords, readRecord } from "./store";
 import type { TypeText } from "./terminal";
-import { typeInbox } from "./typing";
 
-export type LiveSendOutcome =
-  | { readonly kind: "typed" | "queued"; readonly detail: string }
-  | { readonly kind: "refused"; readonly reason: string };
+export type LiveSendOutcome = LiveDelivery | { readonly kind: "refused"; readonly reason: string };
 
-export type LiveSessions = {
+export type LiveSessions = LivePairing & {
   readonly list: () => Promise<readonly LiveRecord[]>;
   readonly get: (id: string) => Promise<LiveRecord | null>;
   readonly send: (options: {
@@ -16,9 +16,6 @@ export type LiveSessions = {
     readonly text: string;
   }) => Promise<LiveSendOutcome>;
 };
-
-export const liveOffReason =
-  "Live sessions are off on this machine. Run shadowclone live enable there.";
 
 export function localLive(options: {
   readonly paths: LivePaths;
@@ -30,6 +27,7 @@ export function localLive(options: {
   const { paths } = options;
 
   return {
+    ...localPairing({ ...options, now }),
     list: async () => ((await options.enabled()) ? listRecords({ paths, now: now() }) : []),
     get: async (id) => ((await options.enabled()) ? readRecord({ paths, id }) : null),
     send: async ({ id, text }) => {
@@ -47,45 +45,13 @@ export function localLive(options: {
         return { kind: "refused", reason: `Live session ${id} already ended.` };
       }
 
-      await appendInbox({ paths, id, text, now: now() });
-
-      if (record.state === "needs-you") {
-        return {
-          kind: "queued",
-          detail:
-            "The session waits for an answer in its terminal or in Remote Control. Your message reaches it after that.",
-        };
-      }
-
-      if (record.state === "working" || record.surface === null) {
-        return {
-          kind: "queued",
-          detail:
-            record.state === "working"
-              ? "It reaches the session after its next tool call, or when its turn ends."
-              : "The session is idle outside cmux and tmux, so your message waits for its next turn.",
-        };
-      }
-
-      const typing = await typeInbox({
+      return deliver({
         paths,
-        id,
-        surface: record.surface,
+        record,
+        message: { kind: "owner", text },
         typeText: options.typeText,
         now: now(),
       });
-
-      if (typing !== "kept") {
-        return {
-          kind: "typed",
-          detail: `shadowclone typed it into the ${record.surface.kind} terminal of the session.`,
-        };
-      }
-
-      return {
-        kind: "queued",
-        detail: `${record.surface.kind} refused the input, so your message waits for the next turn of the session.`,
-      };
     },
   };
 }

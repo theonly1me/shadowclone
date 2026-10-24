@@ -1,5 +1,6 @@
 import type { CloneNode } from "@shadowclone/clones";
 import type { LiveSessions } from "@shadowclone/live";
+import { createPairTool, pairTool } from "@shadowclone/mcp";
 import type { HubStore } from "./store";
 import { issuerOf } from "./store/settings";
 import { fleetTools } from "./fleet/tools";
@@ -44,7 +45,11 @@ export function createHub(options: {
     links: options.links,
     store,
   });
-  const tools = { list: fleet.list, call: fleet.call };
+  const pairing = createPairTool(options.live === undefined ? {} : { live: options.live });
+  const tools = {
+    list: [...fleet.list, pairTool],
+    call: async (params: unknown) => (await pairing.run(params)) ?? fleet.call(params),
+  };
   const routes: Readonly<Record<string, Route>> = {
     "GET /.well-known/oauth-protected-resource": ({ issuer }) => protectedResourceMetadata(issuer),
     "GET /.well-known/oauth-protected-resource/mcp": ({ issuer }) =>

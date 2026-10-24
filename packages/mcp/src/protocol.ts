@@ -2,6 +2,7 @@ import product from "@shadowclone/core/product.json";
 import { preferenceTools } from "./preferences";
 import { botTools } from "./bot";
 import { cloneSetupTools } from "./cloneSetupTools";
+import { peerTool } from "./pairTools";
 import { sessionsTools } from "./sessionsTools";
 
 type JsonRpcId = string | number | null;
@@ -54,6 +55,7 @@ export function handleMcpRequest(options: {
           ...botTools,
           ...cloneSetupTools,
           ...(options.sessionToolList ?? sessionsTools),
+          peerTool,
           {
             name: "shadowclone_context",
             description: "Inspect applicable learned skills and native routing for this repository",

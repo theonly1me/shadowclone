@@ -2,6 +2,7 @@ import { mkdtemp, realpath, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { CloneNode, CloneStartInput, CloneView } from "@shadowclone/clones";
+import type { LiveSessions } from "@shadowclone/live";
 import { nodeLinks, type NodeLinks } from "./fleet/links";
 import { createHub } from "./hub";
 import { hubStore, type HubStore } from "./store";
@@ -53,7 +54,7 @@ export type TestHub = {
   readonly remove: () => Promise<void>;
 };
 
-export async function testHub(): Promise<TestHub> {
+export async function testHub(options: { readonly live?: LiveSessions } = {}): Promise<TestHub> {
   const directory = await realpath(await mkdtemp(path.join(os.tmpdir(), "shadowclone-hub-")));
   let now = new Date("2026-10-18T12:00:00Z");
   const store = hubStore({
@@ -69,6 +70,7 @@ export async function testHub(): Promise<TestHub> {
     hostName: hubHost,
     links,
     log: (line) => logs.push(line),
+    ...(options.live === undefined ? {} : { live: options.live }),
   });
 
   store.setSetting({ key: "publicUrl", value: issuer });

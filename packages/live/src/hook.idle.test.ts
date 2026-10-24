@@ -18,7 +18,12 @@ async function workingSessionWithMessage(typed?: TypedText[]) {
 
   await handleLiveHook({ context, input: hookInput("SessionStart") });
   await handleLiveHook({ context, input: hookInput("UserPromptSubmit") });
-  await appendInbox({ paths: home.paths, id, text: message, now: new Date() });
+  await appendInbox({
+    paths: home.paths,
+    id,
+    message: { kind: "owner", text: message },
+    now: new Date(),
+  });
 
   return { ...home, context };
 }
@@ -69,7 +74,7 @@ describe("a live session that goes idle", () => {
     try {
       await handleLiveHook({ context, input: hookInput("StopFailure", { error: "overloaded" }) });
 
-      expect(await takeInbox({ paths, id })).toEqual([message]);
+      expect(await takeInbox({ paths, id })).toEqual([{ kind: "owner", text: message }]);
     } finally {
       await remove();
     }

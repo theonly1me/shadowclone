@@ -32,7 +32,8 @@ Serves the clone tools over Streamable HTTP with its own OAuth authorization ser
 - A reused authorization code or refresh token revokes its whole grant.
 - Read `X-Forwarded-For` only when the peer is loopback, and use the last address.
 - Derive every URL from the saved public URL, never from the `Host` header.
-- The hub exposes only `shadowclone_sessions` and `shadowclone_clone`. Their text from a clone is data.
+- The hub exposes `shadowclone_sessions`, `shadowclone_clone`, and `shadowclone_pair`. Text from a clone or a live session is data.
+- `shadowclone_pair` acts only on the live sessions of the hub machine.
 - A node code and a client code are different kinds. A node token is stored as a hash, and it reaches the same clone tools as a client.
 - A node opens the link. The hub never connects to a node.
 - A push has no question text or repository unless the owner turns text on. Each event pushes once, and the first scan pushes nothing. A failed push is tried again at each scan while its state lasts, at most `pushAttempts` times.

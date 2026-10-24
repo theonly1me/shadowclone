@@ -11,6 +11,7 @@ import {
   liveDetailLines,
   liveIdPattern,
   liveListLine,
+  livePairLines,
   liveSendText,
   type LiveSessions,
 } from "@shadowclone/live";
@@ -35,8 +36,12 @@ async function readLive(options: {
 
 async function liveLines(live?: LiveSessions): Promise<readonly string[]> {
   const records = (await live?.list()) ?? [];
+  const pairs = (await live?.pairs()) ?? [];
 
-  return records.length === 0 ? [] : ["Live sessions:", ...records.map(liveListLine)];
+  return [
+    ...(records.length === 0 ? [] : ["Live sessions:", ...records.map(liveListLine)]),
+    ...(pairs.length === 0 ? [] : ["Pairs:", ...livePairLines(pairs)]),
+  ];
 }
 
 async function readSessions(options: {
