@@ -1,7 +1,12 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { createProjectPaths, ownedWrite } from "@shadowclone/core";
-import { emptyEnvironment, renderSkillRouting, skillPublication } from "@shadowclone/environment";
+import {
+  emptyEnvironment,
+  nativePublication,
+  renderSkillRouting,
+  skillPublication,
+} from "@shadowclone/environment";
 import { nativeFileSchema } from "../native/schema";
 import { captureArm } from "../native/study/prepare/freeze";
 import { fingerprint } from "../shared/structured";
@@ -16,16 +21,38 @@ export async function fixedArmEnvironments(options: { directory: string; engine:
   const paths = createProjectPaths({ homeDirectory: home, platform: process.platform });
   const scope = { key: "global", directory: home, repository: null };
   const publication = await skillPublication({
-    paths, state: { ...emptyEnvironment, phase: "active" }, scope, skill: null, records: [],
+    paths,
+    state: { ...emptyEnvironment, phase: "active" },
+    scope,
+    skill: null,
+    records: [],
     name: "engineering-preferences",
     text: `---\nname: engineering-preferences\ndescription: Apply personal standards when changing code or answering engineering questions.\n---\n\n# Engineering preferences\n\n${profileText}`,
   });
   for (const update of publication.updates) {
     if (update.next !== null) await ownedWrite({ path: update.filePath, content: update.next });
   }
+  const native = await nativePublication({ paths, state: publication.state });
+  for (const update of native.updates) {
+    if (update.next !== null) await ownedWrite({ path: update.filePath, content: update.next });
+  }
   const instructionPath = options.engine === "codex" ? ".codex/AGENTS.md" : ".claude/CLAUDE.md";
-  await ownedWrite({ path: path.join(home, instructionPath), content: renderSkillRouting({ state: publication.state, scopes: [scope] }) });
-  const shadowclone = await captureArm({ home, workspace, sourceHome: home, engine: options.engine });
-  const files = [nativeFileSchema.parse({ root: "home", path: instructionPath, content: profileText })];
-  return { original: { files, fingerprint: fingerprint(files) }, "first-time": shadowclone, deep: { files: [], fingerprint: fingerprint([]) } };
+  await ownedWrite({
+    path: path.join(home, instructionPath),
+    content: renderSkillRouting({ state: native.state, scopes: [scope] }),
+  });
+  const shadowclone = await captureArm({
+    home,
+    workspace,
+    sourceHome: home,
+    engine: options.engine,
+  });
+  const files = [
+    nativeFileSchema.parse({ root: "home", path: instructionPath, content: profileText }),
+  ];
+  return {
+    original: { files, fingerprint: fingerprint(files) },
+    "first-time": shadowclone,
+    deep: { files: [], fingerprint: fingerprint([]) },
+  };
 }

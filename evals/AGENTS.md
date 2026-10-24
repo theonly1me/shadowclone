@@ -26,6 +26,7 @@ Private evaluation suites. They measure whether agents follow preferences and wo
 - A phase that calls a model needs an `approve-*` step, `--yes`, and a scope that names the host, model, and call ceiling.
 - Private storage cannot be inside a repository. `requirePrivateDirectory` enforces this.
 - Held-out cases stay outside the checkout. Only their hashes and family names are public.
+- Frozen guidance includes generated task catalogs and their native lookup instruction. Catalog paths remain portable with the other guidance files.
 - A report stays incomplete while a reserved call has no recorded attempt.
 - Do not change a number in `evals.md` or the README results table without a new run.
 

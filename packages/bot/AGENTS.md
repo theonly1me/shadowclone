@@ -19,7 +19,7 @@ Sets up the GitHub Actions bot, writes its workflows, exports reviewed guidance,
 - `src/types.ts`: the clone record, the four providers, and their secret names (`providers`, `providerSecrets`, `providerEngine`).
 - `src/workflow.ts`, `workerWorkflow.ts`, `agentSteps.ts`, `providerSteps.ts`, `reviewJobs.ts`, and `checkWorkflow.ts`: the generated GitHub workflows. `reviewLinters.ts` pins the linters that the review checks job installs.
 - `src/guard/` and `react.ts`: the code that runs inside the workflows to validate events.
-- `src/export.ts` and `deliveryFiles.ts`: `exportGuidance` and `writeDeliveryFiles`.
+- `src/export.ts`, `portableCatalog.ts`, and `deliveryFiles.ts`: `exportGuidance`, the portable task catalog, and `writeDeliveryFiles`.
 - `src/status.ts`: `cloneStatus` and `readInstallation`.
 
 ## Rules
@@ -27,6 +27,7 @@ Sets up the GitHub Actions bot, writes its workflows, exports reviewed guidance,
 - Secrets reach GitHub only through the standard input of `gh secret set`. Workflows name a secret and never hold its value.
 - Setup refuses a `shadowclone` environment that allows a branch other than the default branch.
 - `exportGuidance` refuses an unknown or blocked repository origin. It requires the `shadowclone-work` skill.
+- Export includes a generated catalog skill that selects reviewed skills by name. Native routing requires that lookup, and neither file contains local paths.
 - Setup leaves out a selected skill that has no copy on disk, and the setup output names it. Delivery uses any recorded copy that still exists, and it keeps one copy of each skill name.
 - Files in `src/guard/` and `react.ts` run inside the generated workflow. They import only each other and types.
 - The guard starts work or a review only when a person with write, maintain, or admin access tags the bot. It checks the live entity, the pause label, and the run budget before a worker starts.
