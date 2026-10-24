@@ -26,11 +26,11 @@
     "eval:work": "bun evals/work/run.ts"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.15",
+    "@biomejs/biome": "2.6.2",
     "@types/bun": "latest",
-    "knip": "6.41.0",
+    "knip": "6.42.1",
     "prettier": "3.9.10",
-    "turbo": "2.11.8",
+    "turbo": "2.11.10",
     "typescript": "~5.9"
   }
 }
