@@ -1,9 +1,9 @@
 import { mkdtemp, realpath, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { HookContext } from "./hook";
+import { handleLiveHook, type HookContext } from "./hook";
 import { livePaths, type LivePaths } from "./paths";
-import type { Surface } from "./record";
+import { liveId, type Surface } from "./record";
 
 export type TypedText = { readonly surface: Surface; readonly text: string };
 
@@ -46,4 +46,45 @@ export function hookInput(event: string, fields: Readonly<Record<string, unknown
     cwd: "/work/app",
     ...fields,
   });
+}
+
+export type SessionHandle = {
+  readonly id: string;
+  readonly hook: (event: string, fields?: Readonly<Record<string, unknown>>) => Promise<string>;
+};
+
+export function sessionHandle(options: {
+  readonly paths: LivePaths;
+  readonly engine: "claude" | "codex";
+  readonly sessionId: string;
+  readonly environment?: Readonly<Record<string, string>>;
+  readonly typed?: TypedText[];
+}): SessionHandle {
+  const context = hookContext({
+    paths: options.paths,
+    engine: options.engine,
+    ...(options.environment === undefined ? {} : { environment: options.environment }),
+    ...(options.typed === undefined ? {} : { typed: options.typed }),
+  });
+
+  return {
+    id: liveId({ engine: options.engine, sessionId: options.sessionId }),
+    hook: async (event, fields = {}) =>
+      JSON.stringify(
+        await handleLiveHook({
+          context,
+          input: hookInput(event, { session_id: options.sessionId, ...fields }),
+        }),
+      ),
+  };
+}
+
+export function peerKeyIn(text: string): string {
+  const [, key] = /key ([0-9a-f]{32})/.exec(text) ?? [];
+
+  if (key === undefined) {
+    throw new Error(`No peer key in ${text}`);
+  }
+
+  return key;
 }

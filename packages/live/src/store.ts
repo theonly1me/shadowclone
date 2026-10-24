@@ -3,13 +3,61 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { z } from "zod";
 import type { LivePaths } from "./paths";
-import { liveIdPattern, liveRecordSchema, type LiveRecord } from "./record";
+import { liveIdPattern, liveRecordSchema, pairIdPattern, type LiveRecord } from "./record";
 
 const endedKeepMilliseconds = 86_400_000;
 
 const staleMilliseconds = 7 * 86_400_000;
 
-const inboxEntrySchema = z.object({ at: z.string(), text: z.string() });
+const senderSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("pairing"), pair: z.string().regex(pairIdPattern) }),
+  z.object({
+    kind: z.literal("peer"),
+    pair: z.string().regex(pairIdPattern),
+    session: z.string().regex(liveIdPattern),
+  }),
+]);
+
+const inboxEntrySchema = z.object({
+  at: z.string(),
+  text: z.string(),
+  from: senderSchema.optional(),
+});
+
+type InboxEntry = z.infer<typeof inboxEntrySchema>;
+
+export type InboxMessage =
+  | { readonly kind: "owner"; readonly text: string }
+  | { readonly kind: "pairing"; readonly pair: string; readonly text: string }
+  | {
+      readonly kind: "peer";
+      readonly pair: string;
+      readonly session: string;
+      readonly text: string;
+    };
+
+function entryOf(options: { readonly message: InboxMessage; readonly at: string }): InboxEntry {
+  const { message, at } = options;
+
+  switch (message.kind) {
+    case "owner":
+      return { at, text: message.text };
+    case "pairing":
+      return { at, text: message.text, from: { kind: "pairing", pair: message.pair } };
+    case "peer":
+      return {
+        at,
+        text: message.text,
+        from: { kind: "peer", pair: message.pair, session: message.session },
+      };
+  }
+}
+
+function messageOf(entry: InboxEntry): InboxMessage {
+  return entry.from === undefined
+    ? { kind: "owner", text: entry.text }
+    : { ...entry.from, text: entry.text };
+}
 
 function recordFile(options: { readonly paths: LivePaths; readonly id: string }): string {
   return path.join(options.paths.directory, `${options.id}.json`);
@@ -96,13 +144,13 @@ export async function refreshPending(paths: LivePaths): Promise<void> {
 export async function appendInbox(options: {
   readonly paths: LivePaths;
   readonly id: string;
-  readonly text: string;
+  readonly message: InboxMessage;
   readonly now: Date;
 }): Promise<void> {
   await ensureDirectory(options.paths);
   await writeFile(
     inboxFile(options),
-    `${JSON.stringify({ at: options.now.toISOString(), text: options.text })}\n`,
+    `${JSON.stringify(entryOf({ message: options.message, at: options.now.toISOString() }))}\n`,
     { flag: "a", mode: 0o600 },
   );
   await refreshPending(options.paths);
@@ -111,7 +159,7 @@ export async function appendInbox(options: {
 export async function takeInbox(options: {
   readonly paths: LivePaths;
   readonly id: string;
-}): Promise<readonly string[]> {
+}): Promise<readonly InboxMessage[]> {
   const taking = `${inboxFile(options)}.${randomUUID()}.taking`;
   const moved = await rename(inboxFile(options), taking).then(
     () => true,
@@ -130,5 +178,5 @@ export async function takeInbox(options: {
   return text
     .split("\n")
     .map((line) => inboxEntrySchema.safeParse(parseJson(line)))
-    .flatMap((entry) => (entry.success ? [entry.data.text] : []));
+    .flatMap((entry) => (entry.success ? [messageOf(entry.data)] : []));
 }

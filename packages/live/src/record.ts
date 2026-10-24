@@ -3,6 +3,8 @@ import { z } from "zod";
 
 export const liveIdPattern = /^live-[0-9a-f]{8}$/;
 
+export const pairIdPattern = /^pair-[0-9a-f]{8}$/;
+
 export const liveEngines = ["claude", "codex"] as const;
 
 export type LiveEngine = (typeof liveEngines)[number];

@@ -5,10 +5,16 @@ export type LivePaths = {
   readonly home: string;
   readonly directory: string;
   readonly pendingMarker: string;
+  readonly pairsFile: string;
 };
 
 export function livePaths(home: string = os.homedir()): LivePaths {
   const directory = path.join(home, ".shadowclone", "live");
 
-  return { home, directory, pendingMarker: path.join(directory, "pending") };
+  return {
+    home,
+    directory,
+    pendingMarker: path.join(directory, "pending"),
+    pairsFile: path.join(directory, "pairs.json"),
+  };
 }

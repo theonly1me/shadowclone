@@ -1,6 +1,6 @@
 # @shadowclone/live
 
-Tracks the Claude Code and Codex sessions that the owner starts, after the owner turns on live sessions. Its hooks keep one state file for each session, and deliver the owner's messages to a session.
+Tracks the Claude Code and Codex sessions that the owner starts, after the owner turns on live sessions. Its hooks keep one state file for each session, and deliver the owner's messages and the notes of paired sessions to a session.
 
 <!-- package-facts:start -->
 
@@ -19,6 +19,10 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - `src/hookChange.ts`: the state change and the output for each hook event.
 - `src/store.ts`: the session files, the inbox, and the `pending` marker.
 - `src/sessions.ts`: `localLive`, the `list`, `get`, and `send` operations.
+- `src/delivery.ts`: `deliver`, which queues one inbox message or types it into an idle terminal.
+- `src/pairs.ts`: `pairs.json`, the key hashes, and `activePairs`, which drops a pair when either session ended.
+- `src/pairing/`: the `pair`, `unpair`, `pairs`, and `peerSend` operations.
+- `src/messages.ts`: the wrappers of owner messages, pairing notes, and peer notes.
 - `src/terminal.ts`: typing into a tmux pane or a cmux surface.
 - `src/typing.ts`: `typeInbox`, which types the waiting messages and keeps them if the terminal refuses.
 - `src/install.ts`: the hook entries in `~/.claude/settings.json` and `~/.codex/hooks.json`.
@@ -30,6 +34,9 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - Store only the repository, the branch, the folder name, the state, the times, the terminal, and the redacted last message. Never store a prompt, a tool input or output, or thinking.
 - Bound the summary to 2 KB after `redactSecrets`.
 - Deliver each queued message once. Never type into a session that waits for a permission answer.
+- Pair sessions only when the owner asks, through the CLI or the hub. Keep only the SHA-256 hash of each key. A session is in one pair at a time.
+- A pair allows `pairNoteLimit` notes, and ends when either session ends.
+- Mark a peer note as not from the owner. Bound it with `peerNoteText`, which also replaces the wrapper tags in its text.
 - A Claude turn that ends with `StopFailure`, and an `idle_prompt` notification, make the session idle and type its waiting messages.
 - Prefer a tmux pane over a cmux surface, because tmux can run inside cmux.
 - Keep the owner's own hooks. Find shadowclone's hooks by the `live hook` text in their command.

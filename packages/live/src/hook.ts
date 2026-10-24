@@ -1,5 +1,6 @@
 import path from "node:path";
 import { changeFor, hookInputSchema, type HookContext } from "./hookChange";
+import { activePairs } from "./pairs";
 import { liveId, surfaceFrom, type LiveRecord } from "./record";
 import { readRecord, writeRecord } from "./store";
 import { typeInbox } from "./typing";
@@ -63,6 +64,10 @@ export async function handleLiveHook(options: {
   };
 
   await writeRecord({ paths: context.paths, record });
+
+  if (record.state === "ended") {
+    await activePairs(context.paths);
+  }
 
   if (change.typeWaiting === true && record.surface !== null) {
     await typeInbox({
