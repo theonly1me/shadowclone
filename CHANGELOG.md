@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.45](https://github.com/theonly1me/shadowclone/compare/v0.0.44...v0.0.45) (2026-10-24)
+
+
+### Features
+
+* let two live sessions that you pair send each other notes ([#255](https://github.com/theonly1me/shadowclone/issues/255)) ([f7334f0](https://github.com/theonly1me/shadowclone/commit/f7334f028e3ed7b445564466111e95680cac01c2))
+
 ## [0.0.44](https://github.com/theonly1me/shadowclone/compare/v0.0.43...v0.0.44) (2026-10-19)
 
 
