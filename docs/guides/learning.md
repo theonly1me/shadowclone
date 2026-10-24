@@ -32,15 +32,15 @@ Background learning has its own consent. After `shadowclone learning enable`, sh
 
 ## Triage after each session
 
-After each background run, shadowclone triages the learned rules that wait for publication, in one model call inside the same budget. Each rule gets one result:
+After each background run, shadowclone triages the learned rules that wait for publication. It uses one model call per scope, inside the same budget. Each rule gets one result:
 
 - **Discard** a rule that repeats another rule, published guidance, your instruction files, or your skills. Also discard a rule that names a missing skill or that applied to one task only. The rule becomes a rejection, so it does not return.
 - **Apply** durable guidance that nothing covers. Triage publishes it only when automatic maintenance is on (`shadowclone skills automatic on`).
-- **Defer** a rule when the model is not sure, when automatic maintenance is off, or when its repository has no destination yet. Triage asks again only after the rule or its destination changes.
+- **Defer** a rule when the model is not sure, when automatic maintenance is off, or when its repository has no destination yet. Triage asks again after the rule, its destination, or relevant maintained guidance changes.
 
 Your next agent session starts with one line that names the applied and discarded rules and their revisions. Use `shadowclone history` to review a change and `shadowclone undo <revision>` to reverse it. `learning status` shows the triage counts of the latest run.
 
-With `agent-context` on, learning reads `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, and `~/.codex/AGENTS.override.md`. With `skill-library` on, it reads the names and descriptions of your personal skills. It then drops new rules that this text already states.
+With `agent-context` on, learning reads `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, and `~/.codex/AGENTS.override.md`. It also reads root instruction files for verified registered repositories when Git metadata consent is on. With `skill-library` on, it reads the full text of user-owned skills in those scopes. It drops a new rule when the existing text states the same requirement under the same conditions. A correction that changes the requirement stays eligible. Repository guidance covers only that repository. Global guidance applies across repositories.
 
 ## Choose where repository rules go
 
@@ -50,6 +50,12 @@ A repository rule waits until its repository has a destination. When you start a
 - `shadowclone learning repositories set . --repository` publishes them into the repository's `.agents/skills` and `.claude/skills` folders. Other people use those files, so each rule waits as a proposal until you approve it. An edit to an existing repository skill changes only the copies that already exist.
 
 Setup and `learn --deep` still register the repository where they run, with the `--repository` destination.
+
+## Load task-specific guidance
+
+Universal rules and selected workflow requirements stay in startup guidance. Task-specific learned skills appear in a separate catalog for their scope. Startup requires each agent to read the catalog and load every matching skill before task work.
+
+Private repository catalogs stay beside their private skills. Isolated agents receive a catalog whose paths point inside their snapshot. Catalog writes use the same ownership checks and reversible revisions as published skills. A missing catalog on an older installation requires `shadowclone sync`.
 
 ## Record a rule
 
