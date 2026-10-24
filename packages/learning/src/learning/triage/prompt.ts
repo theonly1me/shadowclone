@@ -10,7 +10,10 @@ export type TriageCandidate = {
 
 function ruleText(options: { readonly heading: string; readonly record: LearningRecord }): string {
   const { rule } = options.record;
-  const location = rule.scope === "global" ? "global" : `${rule.scope}, ${rule.repositoryName ?? rule.originDirectory}`;
+  const location =
+    rule.scope === "global"
+      ? "global"
+      : `${rule.scope}, ${rule.repositoryName ?? rule.originDirectory}`;
 
   return [`${options.heading} (${location})`, rule.title, rule.body].join("\n");
 }
@@ -27,16 +30,20 @@ export function buildTriagePrompt(options: {
     "Return one decision for every pending token.",
     "Use discard with reason duplicate when another pending rule or published guidance says the same thing. Keep the clearest rule of each duplicate group, and discard the others.",
     "Use discard with reason skill-covered when guidance that the user already maintains states it.",
+    "Coverage requires the same requirement under the same conditions. A changed requirement or a correction to maintained guidance stays eligible.",
     "Use discard with reason stale when it names a skill, command, or path that the maintained guidance shows no longer exists, or when newer guidance replaces it.",
     "Use discard with reason one-off when it applies only to one finished task.",
     "Use apply for durable, reusable guidance that nothing above covers. Use defer when you are not sure.",
     "Use an empty reason for apply and defer. Keep each note to one short sentence.",
     "",
     "Pending rules",
-    options.candidates.map(({ token, record }) => ruleText({ heading: token, record })).join("\n\n") || "None",
+    options.candidates
+      .map(({ token, record }) => ruleText({ heading: token, record }))
+      .join("\n\n") || "None",
     "",
     "Published guidance",
-    options.published.map((record) => ruleText({ heading: "published", record })).join("\n\n") || "None",
+    options.published.map((record) => ruleText({ heading: "published", record })).join("\n\n") ||
+      "None",
     "",
     "Guidance the user already maintains",
     options.coverage.map(({ source, text }) => [source, text].join("\n")).join("\n\n") || "None",

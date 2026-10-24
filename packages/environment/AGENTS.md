@@ -17,6 +17,7 @@ Holds what agents receive: the environment record, skill publication, native ins
 
 - `src/environment/`: the store (`readEnvironment`, `writeEnvironment`), `publishEnvironmentRevision`, `undoRevision`, `syncLearningEnvironment`, and `environmentStatus`.
 - `src/environment/builds/` and `harness/`: build definitions, routing text, and the harness manifest.
+- `src/environment/taskCatalogs.ts` and `catalog.ts`: owned task catalogs and the required lookup instruction.
 - `src/integrations/`: native sections, hooks, `installIntegration`, `uninstallIntegration`, `compileContext`, and `isContextBlocked`.
 - `src/integrations/installation/`: the install record and artifact ownership checks.
 - `src/environment/learningNotice.ts`, `repositoryQuestion.ts`, and `reviewPrompt.ts`: the one-time triage notice, the repository destination question, and the prompt to review waiting proposals in session-start context.
@@ -38,7 +39,10 @@ Holds what agents receive: the environment record, skill publication, native ins
 - `syncLearningEnvironment` removes a registered repository whose folder no longer exists, with the skills and instructions published inside it, and reports each folder.
 - Native publication, session-start context, and skill delivery render routing through `withoutMissingBuildSkills`. Routing leaves out a build skill with no copy left. Sync reports it when its build selects it, and keeps its records.
 - Skill publication and sync release a skill record when every rule behind it is retired, also outside the destinations. They drop the record and delete an unchanged copy that shadowclone made. They never write `original` back, because a file that matches the record can hold edits that sync copied into it.
-- A repository with `privateSkillsDirectory` publishes skills only under `~/.shadowclone/builds/`. Its routing names each skill by its file path, and no repository file changes.
+- Task-specific learned skills appear in a catalog for their learning scope. Startup requires a catalog lookup and keeps universal rules and selected workflows automatic.
+- Catalogs use owned artifacts and reversible revisions. Publication reports edited or untracked catalogs as preserved skips and continues other scopes. Only `replaceEdited` replaces them.
+- Repository catalogs and their routing references use paths relative to the repository root. Global, private, and isolated catalogs keep absolute paths.
+- A repository with `privateSkillsDirectory` publishes skills and its catalog only under `~/.shadowclone/builds/`. No repository file changes.
 
 ## Tests
 

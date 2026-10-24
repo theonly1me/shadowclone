@@ -23,9 +23,7 @@ test("portable publication and dispatch retain resource bytes and executable mod
 
   await Bun.write(asset, bytes);
 
-  const { skills } = await discoverSkills(
-    (await readMaintenanceState(setup.paths)).roots,
-  );
+  const { skills } = await discoverSkills((await readMaintenanceState(setup.paths)).roots);
   const skill = skills.find((entry) => entry.name === "typed-changes");
 
   if (!skill) {
@@ -63,13 +61,9 @@ test("portable publication and dispatch retain resource bytes and executable mod
   const canonical = path.join(setup.home, ".agents/skills/typed-changes");
 
   expect(
-    new Uint8Array(
-      await Bun.file(path.join(canonical, "assets/sample.bin")).arrayBuffer(),
-    ),
+    new Uint8Array(await Bun.file(path.join(canonical, "assets/sample.bin")).arrayBuffer()),
   ).toEqual(bytes);
-  expect(
-    (await lstat(path.join(canonical, "scripts/check.sh"))).mode & 0o777,
-  ).toBe(0o700);
+  expect((await lstat(path.join(canonical, "scripts/check.sh"))).mode & 0o777).toBe(0o700);
 
   const destination = path.join(setup.home, "dispatch");
   const routing = await materializeSkillDelivery({
@@ -78,16 +72,15 @@ test("portable publication and dispatch retain resource bytes and executable mod
     destination,
   });
 
-  expect(routing).toContain(
+  const catalogPath = path.join(destination, ".shadowclone-skills/catalog.md");
+  expect(routing).toContain(catalogPath);
+  expect(await Bun.file(catalogPath).text()).toContain(
     path.join(destination, ".shadowclone-skills/0/typed-changes/SKILL.md"),
   );
   expect(
     new Uint8Array(
       await Bun.file(
-        path.join(
-          destination,
-          ".shadowclone-skills/0/typed-changes/assets/sample.bin",
-        ),
+        path.join(destination, ".shadowclone-skills/0/typed-changes/assets/sample.bin"),
       ).arrayBuffer(),
     ),
   ).toEqual(bytes);
@@ -98,9 +91,7 @@ test("portable publication and dispatch retain resource bytes and executable mod
 
   await undoRevision({ paths: setup.paths, id: revision });
 
-  expect(
-    await Bun.file(path.join(canonical, "assets/sample.bin")).exists(),
-  ).toBeFalse();
+  expect(await Bun.file(path.join(canonical, "assets/sample.bin")).exists()).toBeFalse();
   expect(await Bun.file(setup.filePath).text()).toBe(setup.original);
   expect(new Uint8Array(await Bun.file(asset).arrayBuffer())).toEqual(bytes);
 });

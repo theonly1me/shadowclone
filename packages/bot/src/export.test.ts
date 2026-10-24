@@ -30,6 +30,12 @@ test("an export preserves only selected skills and their redacted resources", as
     ).not.toContain(secret);
     expect(delivery.native).not.toContain(fixture.root);
     expect(delivery.native).not.toContain("aggregated profile");
+    expect(delivery.native).toContain("read the shadowclone-guidance skill");
+    const catalog = await Bun.file(
+      path.join(restored, "plugins/shadowclone-personal/skills/shadowclone-guidance/SKILL.md"),
+    ).text();
+    expect(catalog).toContain("Use the `shadowclone-work` skill.");
+    expect(catalog).not.toContain(fixture.root);
     expect(
       (
         await lstat(
@@ -76,11 +82,16 @@ test("guidance larger than the old 48 KB secret limit exports in full", async ()
   try {
     await Bun.write(
       path.join(fixture.directory, "reference.md"),
-      Array.from({ length: 2_000 }, (_, index) => `Rule ${index}: use full names and one options object.`).join("\n"),
+      Array.from(
+        { length: 2_000 },
+        (_, index) => `Rule ${index}: use full names and one options object.`,
+      ).join("\n"),
     );
 
     const delivery = await exportGuidance({ ...fixture, skills: selection });
-    const reference = delivery.files.find((file) => file.path.endsWith("shadowclone-work/reference.md"));
+    const reference = delivery.files.find((file) =>
+      file.path.endsWith("shadowclone-work/reference.md"),
+    );
 
     expect(Buffer.from(reference?.content ?? "", "base64").length).toBeGreaterThan(48 * 1024);
   } finally {
@@ -94,7 +105,9 @@ test("a delivery path that leaves its folder is refused before any file is writt
   try {
     await expect(
       writeDeliveryFiles({
-        files: [{ path: "plugins/shadowclone-personal/../../../outside", content: "", mode: 0o600 }],
+        files: [
+          { path: "plugins/shadowclone-personal/../../../outside", content: "", mode: 0o600 },
+        ],
         destination: path.join(fixture.root, "restore"),
       }),
     ).rejects.toThrow();

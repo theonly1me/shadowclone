@@ -2,6 +2,7 @@ import { profileEvidenceId, type ProfileSnapshot } from "@shadowclone/profile";
 import type { SeedGuidance, SeedLibrary } from "@shadowclone/skills";
 import { seedGuidanceProfileKey } from "@shadowclone/skills";
 import type { DistillBatch } from "../batch";
+import { applicableCoverage } from "./coverage";
 import type {
   CoveredGuidance,
   PromptAxisOption,
@@ -11,11 +12,7 @@ import type {
   ReconciliationContext,
 } from "./types";
 
-const sectionFiles = new Set([
-  "engineering.md",
-  "workflow.md",
-  "boundaries.md",
-]);
+const sectionFiles = new Set(["engineering.md", "workflow.md", "boundaries.md"]);
 
 function inBatchScope(options: {
   readonly relativePath: string;
@@ -27,10 +24,7 @@ function inBatchScope(options: {
     return segments.length === 2 && sectionFiles.has(segments[1] ?? "");
   }
 
-  if (
-    segments[0] !== "org" ||
-    segments[1] !== options.batch.origin.directoryName
-  ) {
+  if (segments[0] !== "org" || segments[1] !== options.batch.origin.directoryName) {
     return false;
   }
 
@@ -59,15 +53,12 @@ function ruleInBatch(options: {
   }
 
   return (
-    options.rule.scope === "org" ||
-    options.rule.repositoryName === options.batch.repositoryName
+    options.rule.scope === "org" || options.rule.repositoryName === options.batch.repositoryName
   );
 }
 
 function guidanceBody(guidance: SeedGuidance): string {
-  return guidance.kind === "skill"
-    ? guidance.body.replace(/^## /gm, "### ")
-    : guidance.body;
+  return guidance.kind === "skill" ? guidance.body.replace(/^## /gm, "### ") : guidance.body;
 }
 
 function axisOptions(options: {
@@ -120,21 +111,23 @@ export function createReconciliationContext(options: {
     )
     .map((snapshot, index) => ({ token: `rejection-${index + 1}`, snapshot }));
 
-  const evidence: PromptEvidence[] = options.batch.signals.map(
-    (signal, index) => ({
-      token: `evidence-${index + 1}`,
-      signal,
-      evidenceId: profileEvidenceId({
-        originId: signal.origin.id,
-        sessionId: signal.sessionId,
-        timestamp: signal.timestamp,
-        kind: signal.kind,
-        category: signal.category,
-      }),
+  const evidence: PromptEvidence[] = options.batch.signals.map((signal, index) => ({
+    token: `evidence-${index + 1}`,
+    signal,
+    evidenceId: profileEvidenceId({
+      originId: signal.origin.id,
+      sessionId: signal.sessionId,
+      timestamp: signal.timestamp,
+      kind: signal.kind,
+      category: signal.category,
     }),
-  );
+  }));
 
-  const coverage = (options.coverage ?? []).map((entry, index) => ({ ...entry, token: `covered-${index + 1}` }));
+  const coverage = applicableCoverage({
+    coverage: options.coverage ?? [],
+    originDirectory: options.batch.origin.directoryName,
+    repositoryName: options.batch.repositoryName,
+  }).map((entry, index) => ({ ...entry, token: `covered-${index + 1}` }));
 
   return { batch: options.batch, rules, rejections, coverage, evidence };
 }

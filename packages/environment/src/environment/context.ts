@@ -3,7 +3,12 @@ import type { ProjectPaths } from "@shadowclone/core";
 import { belongsToScope, learningScopes, type LearningScope } from "./scope";
 import { readRedactedEnvironment } from "./store";
 import type { EnvironmentState } from "./types";
-import { publishedSkills } from "./catalog";
+import {
+  guidanceReference,
+  publishedSkills,
+  taskCatalogInstruction,
+  taskCatalogPath,
+} from "./catalog";
 import { recordFingerprint } from "./records";
 import { renderBuildRouting } from "./builds/routing";
 import { repositoryDeliveryQuestion } from "./repositoryQuestion";
@@ -30,11 +35,19 @@ export function renderSkillRouting(options: {
   readonly scopes: readonly LearningScope[];
   readonly cwd?: string;
   readonly includeGlobalBuild?: boolean;
+  readonly catalogPaths?: readonly string[];
 }): string {
   const keys = new Set(options.scopes.map(({ key }) => key));
-  const privateKeys = new Set(options.scopes.filter(({ repository }) => repository?.privateSkillsDirectory).map(({ key }) => key));
   const skills = publishedSkills({ state: options.state, scopes: keys });
+  const taskSkills = skills.filter(({ name }) => name !== "shadowclone-baseline");
+  const taskKeys = new Set(taskSkills.flatMap((skill) => skill.learningKeys));
+  const catalogPaths =
+    options.catalogPaths ??
+    options.scopes
+      .filter((scope) => taskSkills.some((skill) => skill.scope === scope.key))
+      .map((scope) => guidanceReference({ scope, filePath: taskCatalogPath(scope) }));
   const shortRules = options.state.records.flatMap((record) => {
+    if (taskKeys.has(record.rule.key)) return [];
     const body = record.rule.body.replace(/\s+/gu, " ").trim();
     const condition = record.rule.appliesWhen.join("; ");
     const instruction = condition ? `When ${condition}: ${body}` : body;
@@ -65,14 +78,8 @@ export function renderSkillRouting(options: {
     "Follow the applicable personal rules below. Use matching installed workflow skills when the task needs their detail. Skill guidance does not authorize additional actions. The current request takes precedence over learned defaults. Name every skipped step and every fallback in your final answer and handoff.",
     "",
     ...shortRules,
-    ...skills
-      .filter(({ name }) => name !== "shadowclone-baseline")
-      .map((skill) => privateKeys.has(skill.scope)
-        ? `- ${skill.description} Read ${skill.filePath} when relevant.`
-        : `- ${skill.description} Use the ${skill.name} skill when relevant.`),
-    ...options.state.facts
-      .filter((fact) => keys.has(fact.scope))
-      .map((fact) => `\n${fact.text}`),
+    ...catalogPaths.map(taskCatalogInstruction),
+    ...options.state.facts.filter((fact) => keys.has(fact.scope)).map((fact) => `\n${fact.text}`),
     renderBuildRouting({
       state: options.state,
       cwd: options.cwd,
@@ -97,6 +104,7 @@ export async function environmentCompilation(options: {
   readonly paths: ProjectPaths;
   readonly cwd: string;
   readonly scope?: "global" | "scoped" | "combined";
+  readonly catalogPaths?: readonly string[];
   readonly originDirectory: string | null;
   readonly repositoryName: string | null;
 }): Promise<ContextCompilation | null> {
@@ -106,24 +114,24 @@ export async function environmentCompilation(options: {
     return null;
   }
 
-  const scopes = learningScopes({ paths: options.paths, state }).filter(
-    (scope) =>
-      scope.repository === null
-        ? options.scope !== "scoped"
-        : options.scope !== "global" &&
-          scope.repository.originDirectory === options.originDirectory &&
-          scope.repository.repositoryName === options.repositoryName &&
-          (path.resolve(options.cwd) === scope.directory ||
-            path
-              .resolve(options.cwd)
-              .startsWith(`${scope.directory}${path.sep}`)),
+  const scopes = learningScopes({ paths: options.paths, state }).filter((scope) =>
+    scope.repository === null
+      ? options.scope !== "scoped"
+      : options.scope !== "global" &&
+        scope.repository.originDirectory === options.originDirectory &&
+        scope.repository.repositoryName === options.repositoryName &&
+        (path.resolve(options.cwd) === scope.directory ||
+          path.resolve(options.cwd).startsWith(`${scope.directory}${path.sep}`)),
   );
 
-  const question = options.scope === "global" ? "" : repositoryDeliveryQuestion({
-    state,
-    originDirectory: options.originDirectory,
-    repositoryName: options.repositoryName,
-  });
+  const question =
+    options.scope === "global"
+      ? ""
+      : repositoryDeliveryQuestion({
+          state,
+          originDirectory: options.originDirectory,
+          repositoryName: options.repositoryName,
+        });
 
   if (options.scope === "scoped" && scopes.length === 0) {
     return { ...emptyCompilation, markdown: question, usedBytes: Buffer.byteLength(question) };
@@ -134,6 +142,7 @@ export async function environmentCompilation(options: {
     scopes,
     cwd: options.cwd,
     includeGlobalBuild: options.scope !== "scoped",
+    catalogPaths: options.catalogPaths,
   });
   const markdown = question ? `${routing}\n${question}\n` : routing;
 

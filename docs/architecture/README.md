@@ -1,6 +1,6 @@
 # Architecture
 
-shadowclone turns durable guidance from consented sessions into skills that coding agents use. Local records keep evidence, scope, publication decisions, and revisions. Native instructions route tasks to skills.
+shadowclone turns durable guidance from consented sessions into skills that coding agents use. Local records keep evidence, scope, publication decisions, and revisions. Native instructions keep universal rules automatic and require a scoped catalog lookup for task-specific learned skills.
 
 ## Packages
 
@@ -78,11 +78,14 @@ flowchart LR
     Sources["Consented sessions and memory"] --> Index["sessions: event index"]
     Index --> Redaction["resolveRedacted: redacted user text"]
     Redaction --> Learning["learning: reconcile guidance"]
-    Instructions["Your instruction files and skills"] --> Learning
+    Instructions["Consented instructions and user-owned skills"] --> Coverage["Redacted coverage within scope"]
+    Coverage --> Learning
     Learning --> Review["Triage: apply, discard, or hold"]
     Review --> Revision["changes: one revision"]
     Revision --> Delivery["environment: skills and native sections"]
-    Delivery --> Agents["Coding agents"]
+    Delivery -- "universal rules and selected workflows" --> Agents["Coding agents"]
+    Delivery --> Catalog["Scoped task catalogs"]
+    Catalog -- "required lookup" --> Agents
     Agents --> Sources
     Diff["Pull request diff and base standards"] --> Judge["review: rules, checks, model"]
     Diff --> Sandbox["Toolchain sandbox: worktree and isolated state"]

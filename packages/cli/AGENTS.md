@@ -29,6 +29,7 @@ The `shadowclone` command. It parses commands, calls the other packages, and bui
 - Product name and version come from `@shadowclone/core/product.json`. Workspace manifests have no version.
 - `forget --all` stops while task worktrees from earlier versions remain.
 - Error text passes through `redactSecrets` before it prints.
+- `sync` reports and counts preserved task catalogs, continues other scopes, and exits with status 1. `--replace-edited` replaces them through reversible revisions.
 - Update the usage text in `src/main.ts` and `docs/guides/commands.md` when you add a command.
 
 ## Tests

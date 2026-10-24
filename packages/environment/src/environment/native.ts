@@ -14,19 +14,31 @@ import { sharedIntegrationUpdates } from "../integrations/sharedUpdates";
 import { learningScopes } from "./scope";
 import { isMissingFolder } from "./missingRepositories";
 import { renderSkillRouting } from "./context";
+import { publishTaskCatalogs } from "./taskCatalogs";
 import { type MissingBuildSkill, withoutMissingBuildSkills } from "./builds/missingSkills";
 import type { EnvironmentState } from "./types";
-import {
-  isOriginBlocked,
-  resolveRepository,
-  type GitRemoteReader,
-} from "@shadowclone/sessions";
+import { isOriginBlocked, resolveRepository, type GitRemoteReader } from "@shadowclone/sessions";
 
 export type SkippedRouting =
-  | { readonly kind: "link"; readonly agent: string; readonly path: string; readonly target: string | null }
-  | { readonly kind: "preserved"; readonly agent: string; readonly path: string; readonly reason: PreservedReason };
+  | {
+      readonly kind: "catalog";
+      readonly path: string;
+      readonly reason: "edited" | "untracked";
+    }
+  | {
+      readonly kind: "link";
+      readonly agent: string;
+      readonly path: string;
+      readonly target: string | null;
+    }
+  | {
+      readonly kind: "preserved";
+      readonly agent: string;
+      readonly path: string;
+      readonly reason: PreservedReason;
+    };
 
-export type ReplacedRouting = { readonly agent: string; readonly path: string };
+export type ReplacedRouting = { readonly agent: string | null; readonly path: string };
 
 export async function nativePublication(options: {
   readonly paths: ProjectPaths;
@@ -79,19 +91,29 @@ export async function nativePublication(options: {
     }
   }
 
-  const routed = await withoutMissingBuildSkills(options.state);
+  const catalogs = await publishTaskCatalogs({
+    state: options.state,
+    scopes,
+    replaceEdited: options.replaceEdited,
+  });
+  const routed = await withoutMissingBuildSkills(catalogs.state);
   const integrations = await readIntegrations(options.paths);
   const updatedIntegrations = [];
-  const updates: FileUpdate[] = [];
-  const skipped: SkippedRouting[] = [];
-  const replaced: ReplacedRouting[] = [];
+  const updates: FileUpdate[] = [...catalogs.updates];
+  const skipped: SkippedRouting[] = catalogs.skipped.map((entry) => ({
+    kind: "catalog",
+    ...entry,
+  }));
+  const replaced: ReplacedRouting[] = catalogs.replaced.map((filePath) => ({
+    agent: null,
+    path: filePath,
+  }));
 
   for (const integration of integrations) {
     const applicable = scopes.filter(
       (scope) =>
         scope.repository === null ||
-        (integration.scope === "repository" &&
-          integration.directory === scope.directory),
+        (integration.scope === "repository" && integration.directory === scope.directory),
     );
 
     const changes = await prepareIntegrationFiles({
@@ -112,7 +134,12 @@ export async function nativePublication(options: {
 
       if (!options.skipLinkedFiles || !(error instanceof UnsafeDestinationError)) throw error;
 
-      skipped.push({ kind: "link", agent: integration.agent, path: error.path, target: error.target });
+      skipped.push({
+        kind: "link",
+        agent: integration.agent,
+        path: error.path,
+        target: error.target,
+      });
 
       return null;
     });
@@ -152,13 +179,12 @@ export async function nativePublication(options: {
   }
 
   return {
-    state: options.state,
+    state: catalogs.state,
     skipped,
     replaced,
     missing: routed.missing,
     updates: sharedIntegrationUpdates(updates).filter(
-      ({ previous, next }) =>
-        fingerprint(previous ?? "") !== fingerprint(next ?? ""),
+      ({ previous, next }) => fingerprint(previous ?? "") !== fingerprint(next ?? ""),
     ),
   };
 }

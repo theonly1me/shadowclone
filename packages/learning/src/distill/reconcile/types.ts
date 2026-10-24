@@ -33,12 +33,7 @@ export type ReconciliationOutput = {
   readonly assessments?: readonly {
     readonly evidenceToken: string;
     readonly intent:
-      | "preference"
-      | "correction"
-      | "approval"
-      | "additional-context"
-      | "cancellation"
-      | "unknown";
+      "preference" | "correction" | "approval" | "additional-context" | "cancellation" | "unknown";
     readonly durable: boolean;
     readonly explicit?: boolean;
     readonly scope: "global" | "repository";
@@ -72,6 +67,10 @@ export type PromptEvidence = {
 export type CoveredGuidance = {
   readonly source: string;
   readonly text: string;
+  readonly repository?: {
+    readonly originDirectory: string;
+    readonly repositoryName: string;
+  };
 };
 
 export type PromptCoverage = CoveredGuidance & {

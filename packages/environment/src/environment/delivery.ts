@@ -6,7 +6,7 @@ import { readRedactedEnvironment } from "./store";
 import { learningScopes } from "./scope";
 import { renderSkillRouting } from "./context";
 import { withoutMissingBuildSkills } from "./builds/missingSkills";
-import { publishedSkills } from "./catalog";
+import { publishedSkills, renderTaskCatalog } from "./catalog";
 import type { EnvironmentArtifact, EnvironmentState } from "./types";
 import { assertRegularDestination } from "@shadowclone/core";
 import { discoverDeliverySkills, readMaintenanceState } from "@shadowclone/skills";
@@ -66,7 +66,6 @@ export async function materializeSkillDelivery(options: {
   );
 
   const scopeKeys = new Set(scopes.map(({ key }) => key));
-  let routing = renderSkillRouting({ state: (await withoutMissingBuildSkills(state)).state, scopes });
 
   const roots = (await readMaintenanceState(options.paths)).roots.filter(
     (root) =>
@@ -200,13 +199,22 @@ export async function materializeSkillDelivery(options: {
       await options.onArtifact?.({ source: filePath, destination });
     }
 
-    routing = routing.replaceAll(skill.filePath, path.join(targetRoot, "SKILL.md"));
     catalog.push({
       name: skill.name,
       description: skill.description,
-      path: path.join(targetRoot, "SKILL.md"),
+      filePath: path.join(targetRoot, "SKILL.md"),
     });
   }
 
-  return `${routing}\nAvailable skills (read selected bodies when needed):\n${JSON.stringify(catalog)}\n`;
+  const catalogPath = path.join(options.destination, ".shadowclone-skills/catalog.md");
+  const routing = renderSkillRouting({
+    state: (await withoutMissingBuildSkills(state)).state,
+    scopes,
+    catalogPaths: catalog.length > 0 ? [catalogPath] : [],
+  });
+  if (catalog.length === 0) return routing;
+  await mkdir(path.dirname(catalogPath), { recursive: true });
+  assertRegularDestination(catalogPath);
+  await Bun.write(catalogPath, renderTaskCatalog(catalog));
+  return routing;
 }
