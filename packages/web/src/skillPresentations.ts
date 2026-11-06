@@ -19,7 +19,7 @@ export const skillPresentations: Readonly<
   "plan-with-review-page": {
     title: "Plan first",
     summary:
-      "Read the code, ask one round of decisions with a recommendation, and share one plan with a review page before any edit.",
+      "Find the cause, ask the open decisions with a recommendation, and share one plan that explains the problem, the fix, and why it works.",
   },
   "write-plain-english": {
     title: "Plain English",

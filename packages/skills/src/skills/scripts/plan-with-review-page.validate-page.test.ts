@@ -13,17 +13,37 @@ const runtimes = [process.execPath, Bun.which("node")].flatMap((runtime) =>
 const emDash = String.fromCharCode(0x2014);
 
 const filledPlan = {
-  title: "Retire the testing skills",
-  goal: "Builds that selected an old testing skill move to its replacement.",
-  planPath: "/tmp/agent-artifacts/example/2026-01-01-retire-testing/plan.md",
+  title: "Keep edited skills during sync",
+  status: "draft",
+  summary: "Sync keeps a skill copy that the user edited and lists it. Users stop losing edits.",
+  planPath: "/tmp/agent-artifacts/example/2026-01-01-sync-edits/plan.md",
   updated: "2026-01-01 09:00",
+  problem: {
+    statement: "Sync replaces a skill copy that the user edited.",
+    impact: "Each user who edits a bundled skill loses the edit at the next sync.",
+  },
+  evidence: [
+    { fact: "Sync replaced an edited copy in a temporary home.", source: "bun test sync.test.ts", kind: "measured" },
+  ],
+  causes: [{ id: "C1", cause: "Sync compares the file name, not the fingerprint.", origin: "src/sync.ts:42" }],
+  ruledOut: [{ cause: "A stale install record.", reason: "A fresh record gave the same result." }],
+  approach: "Compare the fingerprint before a write, and keep a copy that differs.",
+  changes: [
+    { id: "F1", change: "Compare fingerprints.", files: ["src/sync.ts"], addresses: ["C1"], worksBecause: "An edited copy has a different fingerprint." },
+  ],
+  alternatives: [
+    { option: "Always save a backup.", tradeoff: "It keeps data but still changes the active copy.", verdict: "rejected" },
+  ],
+  risks: [{ risk: "A copy from an old version looks edited.", mitigation: "Accept each recorded bundled fingerprint." }],
+  decisions: [{ question: "Edited copies?", answer: "Keep and list them.", source: "user", reason: "Edits are user work." }],
+  open: [],
   steps: [
-    { status: "done", text: "Read the build code.", note: "" },
+    { status: "done", text: "Read the sync code.", note: "" },
     { status: "skipped", text: "Measure the wizard.", note: "The wizard is out of scope." },
   ],
-  decisions: [{ question: "Edited copies?", answer: "Keep and list them.", source: "user" }],
-  open: [],
-  diagram: "flowchart LR\n  Build --> Sync",
+  verification: [{ check: "bun test sync.test.ts", expected: "The edited copy stays.", proves: ["C1"] }],
+  followUps: ["Show kept copies in the wizard."],
+  diagram: "flowchart LR\n  Sync --> Fingerprint",
 };
 
 async function page(options: {
@@ -66,7 +86,7 @@ for (const runtime of runtimes) {
     const result = validate({ runtime, files: [await page({})] });
 
     expect(result.exitCode).toBe(1);
-    expect(result.lines.at(-1)).toBe("validate-page: 12 errors in 1 file");
+    expect(result.lines.at(-1)).toBe("validate-page: 28 errors in 1 file");
     expect(
       result.lines.some((line) => line.endsWith("error title still has template text, replace it")),
     ).toBeTrue();
@@ -82,24 +102,62 @@ for (const runtime of runtimes) {
     });
   });
 
-  test(`${name}: a bad status, a skip without a reason, and a dash are errors`, async () => {
+  test(`${name}: a plan with only steps and decisions fails and names the missing sections`, async () => {
+    const { title, planPath, updated, steps } = filledPlan;
+    const decisions = [{ question: "Edited copies?", answer: "Keep and list them.", source: "user" }];
+    const filePath = await page({
+      plan: { title, planPath, updated, steps, decisions, open: [], followUps: [], diagram: "" },
+    });
+    const result = validate({ runtime, files: [filePath] });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.lines).toEqual(
+      expect.arrayContaining([
+        `${filePath}: error summary must be filled in`,
+        `${filePath}: error problem.statement must be filled in`,
+        `${filePath}: error evidence must be a list`,
+        `${filePath}: error causes must be a list`,
+        `${filePath}: error alternatives must be a list`,
+        `${filePath}: error decisions[0].reason must be filled in`,
+      ]),
+    );
+  });
+
+  test(`${name}: a cause without a change or a check, and an unknown cause id, are errors`, async () => {
     const filePath = await page({
       plan: {
         ...filledPlan,
-        goal: `Move builds ${emDash} and keep edits.`,
-        steps: [
-          { status: "maybe", text: "Read the code.", note: "" },
-          { status: "skipped", text: "Measure the wizard.", note: "" },
-        ],
+        causes: [...filledPlan.causes, { id: "C2", cause: "Sync ignores the record.", origin: "src/sync.ts:60" }],
+        verification: [{ ...filledPlan.verification[0], proves: ["C1", "C9"] }],
       },
     });
     const result = validate({ runtime, files: [filePath] });
 
     expect(result.exitCode).toBe(1);
     expect(result.lines).toEqual([
-      `${filePath}: error steps[0].status must be one of todo, doing, done, blocked, skipped`,
-      `${filePath}: error steps[1] is skipped, so its note must give the reason`,
-      `${filePath}: error goal has an em or en dash, use a comma, a period, or parentheses`,
+      `${filePath}: error verification[0].proves names C9, which is not a cause id`,
+      `${filePath}: error cause C2 has no change that addresses it`,
+      `${filePath}: error cause C2 has no check that proves the fix`,
+      "validate-page: 3 errors in 1 file",
+    ]);
+  });
+
+  test(`${name}: a bad label, a skip without a reason, and a dash are errors`, async () => {
+    const filePath = await page({
+      plan: {
+        ...filledPlan,
+        summary: `Sync keeps edits ${emDash} and lists them.`,
+        evidence: [{ ...filledPlan.evidence[0], kind: "certain" }],
+        steps: [{ status: "skipped", text: "Measure the wizard.", note: "" }],
+      },
+    });
+    const result = validate({ runtime, files: [filePath] });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.lines).toEqual([
+      `${filePath}: error evidence[0].kind must be one of measured, read, inferred, reported`,
+      `${filePath}: error steps[0] is skipped, so its note must give the reason`,
+      `${filePath}: error summary has an em or en dash, use a comma, a period, or parentheses`,
       "validate-page: 3 errors in 1 file",
     ]);
   });

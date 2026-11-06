@@ -141,6 +141,20 @@ An owner kept personal copies of three skills next to the bundled ones: `plannin
 
 The bundled skills still never rewrite pushed history in their own text. The owner removed that rule from `scope-confirmed-changes` and `shadowclone-work` on purpose, so the personal rule about force pushes does not return.
 
+## Later change: plans that explain the whole change
+
+The owner found that plans from `plan-with-review-page` were lists of steps. A reviewer could not tell what the problem was, why it happened, or why the fix would work. The cause was in the skill. The page template held only a goal, steps, decisions, and open questions. The validator checked only those fields. A guardrail said "Write the recommended approach, not each option that you considered", so plans left out the alternatives.
+
+The plan is now the reference for the person who approves the work:
+
+- The plan file and the page use the same sections in the same order. The sections are the summary and status, the problem, what happened, and why it happened. Then come the fix, why the fix works, the alternatives, and the risks. The plan ends with the decisions, the open questions, the steps, the verification, and the follow-ups.
+- Each fact has a source and one label: measured, read, inferred, or reported.
+- Each cause has an id and an origin. Each change names the causes that it addresses and says why it removes them. Each check names the causes that it proves.
+- The validator fails a plan when a cause has no change or no check, or when a change or a check names an unknown cause. The page builds the "Why the fix works" table from these links.
+- A plan lists at least one alternative and one risk. Each decision has a reason and a source: user, repository, or agent.
+
+A plan in the old shape now fails the validator and names each missing section. Plans live outside repositories, so no stored plan needs a migration.
+
 ## Consequences
 
 No evaluation gates these skills. The owner tests them in use. Each skill lands in its own pull request, so one that triggers or behaves worse reverts alone. The routing header has its own pull request for the same reason. Earlier measurements showed that routing text moved preference adherence by -7.9 to +2.3 points.
