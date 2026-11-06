@@ -95,6 +95,8 @@ th { color: var(--muted); font-size: 12px; }
 .note, .finding { margin: 12px 16px; padding: 14px; border-left: 3px solid var(--accent); border-radius: 6px; background: #211b31; font-size: 13px; }
 .finding { background: #171d29; border-color: #879fc4; }
 .note-meta { display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 11px; }
+.note-meta > span { min-width: 0; overflow-wrap: anywhere; }
+.note-meta > strong, .note-meta > span:last-child { flex: none; }
 .note blockquote, .finding blockquote { margin: 8px 0; padding-left: 10px; color: var(--muted); border-left: 1px solid var(--border); white-space: pre-wrap; }
 .note-actions { display: flex; gap: 8px; margin-top: 8px; }
 .note-actions button { padding: 2px 8px; font-size: 11px; }
