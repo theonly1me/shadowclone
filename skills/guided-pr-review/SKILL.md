@@ -1,6 +1,6 @@
 ---
 name: guided-pr-review
-description: 'Use when the user says "guide me through this PR" or "review PRs 1, 2, 3". Reuses shadowclone-review locally and builds a standalone HTML with actual diffs, behavior traces, and selection comments. Saves notes into the same file. Not for fixing reviewed code (use `shadowclone-work`).'
+description: 'Use when the user asks to review a pull request. Examples are "review PR 123", "review PRs 1, 2, 3", and "guide me through this PR". Reuses shadowclone-review locally and builds a standalone HTML with actual diffs, behavior traces, and selection comments. Saves notes into the same file. Not for fixing reviewed code (use `shadowclone-work`).'
 metadata:
   shadowclone-category: review
   shadowclone-section: workflow
