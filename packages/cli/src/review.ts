@@ -44,7 +44,7 @@ export async function reviewCommand(arguments_: readonly string[]): Promise<void
     cwd,
     failure: "Run shadowclone review inside a Git repository",
   });
-  const reviewModel = { runner: runClaudeCode, model: parsed.model, effort: parsed.effort, network: parsed.network };
+  const reviewModel = { runner: runClaudeCode, model: parsed.model, effort: parsed.effort, network: parsed.network, lenses: parsed.lenses };
   const onProgress = (message: string) => console.error(message);
   const { target } = parsed;
 

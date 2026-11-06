@@ -42,7 +42,7 @@ function printUsage(): void {
   console.log(hubUsage);
   console.log(liveUsage);
   console.log(
-    "Pull request review: review <pr-number> [--cloud] [--no-checks] [--repo owner/repository] [--output file.md] [--model <id>] [--effort <level>]; workflow stages: review prepare|checks|analyze|publish",
+    "Pull request review: review <pr-number> [--cloud] [--no-checks] [--offline] [--no-lenses] [--max-cost <usd>] [--repo owner/repository] [--output file.md] [--model <id>] [--effort <level>]; workflow stages: review prepare|checks|analyze|publish",
   );
   console.log(
     "Skill maintenance: skills configure [--repo|--global], skills list|update|pending, skills show|apply|reject <id>, skills manage <skill-id>, skills disable",

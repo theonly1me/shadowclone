@@ -33,7 +33,10 @@ function result(findings: readonly Finding[]): ReviewResult {
     dropped: [],
     candidates: { dropped: [], undecided: [] },
     rejections: [],
-    statistics: { modelFindings: findings.length, droppedForEvidence: 0, correctionRound: "none", certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 1000, costUsd: null, parts: 1 },
+    worthChecking: [],
+    refuted: [],
+    coverage: { hunks: 2, uncovered: [] },
+    statistics: { modelFindings: findings.length, droppedForEvidence: 0, correctionRound: "none", certainRuleHits: 0, signalRuleHits: 0, durationMilliseconds: 1000, costUsd: null, parts: 1, lensRuns: 0, lensesSkipped: [] },
   };
 }
 
@@ -90,4 +93,16 @@ test("a documentation link to a GitHub issue is not a clickable cross-reference"
   );
 
   expect(payload.comments[0]?.body).toContain("- `https://github.com/other/library/issues/9`: \"the cache is not cleared\"");
+});
+
+test("worth-checking items go into one collapsed section of the review body, and a review without them has none", () => {
+  const doubt = { path: "src/order.ts", line: 40, title: "Refund may run twice", failureScenario: "A retried webhook refunds twice.", reason: "The refutation did not hold." };
+  const withDoubt = reviewPayload({ ...result([]), worthChecking: [doubt] });
+  const without = reviewPayload(result([]));
+
+  expect(withDoubt.body).toContain("<details>\n<summary>Worth checking: 1 unconfirmed candidate</summary>");
+  expect(withDoubt.body).toContain("- **Refund may run twice** at `src/order.ts:40`. A retried webhook refunds twice. Still open: The refutation did not hold.");
+  expect(withDoubt.comments).toEqual([]);
+  expect(without.body).not.toContain("<details>");
+  expect(without.body).toContain("The review examined 2 of 2 changed hunks.");
 });

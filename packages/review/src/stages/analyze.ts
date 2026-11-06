@@ -1,44 +1,23 @@
 import { analyzeReview, readReviewSkill, type ReviewModel } from "../analyze";
-import {
-  checkDispositions,
-  type DispositionCheck,
-  type ReviewCandidate,
-  reviewCandidates,
-} from "../candidates";
-import { correctionPrompt } from "../correction";
-import { cachedFetch, type EvidenceGate, gateFindings } from "../evidence";
+import { checkDispositions, reviewCandidates } from "../candidates";
+import { cachedFetch, type EvidenceSources } from "../evidence";
+import { reviewHunks } from "../hunks";
 import { type ReviewPacket, reviewPrompt } from "../packet";
 import { reviewResult } from "../result";
 import { linterHits } from "../rules/linters";
-import { maximumParallelParts, type ReviewPart, reviewParts } from "../shards";
-import type { Analysis, ReviewResult } from "../types";
+import { reviewParts } from "../shards";
+import type { ReviewResult } from "../types";
+import { reviewLensRuns } from "./lensReview";
+import { inParallel } from "./parallel";
+import { type PartReview, reviewPart } from "./partReview";
 import type { ChecksFile, PacketFile } from "./schemas";
 
-type Judged = { readonly gate: EvidenceGate; readonly dispositions: DispositionCheck };
-
 type CorrectionRound = ReviewResult["statistics"]["correctionRound"];
-
-type PartReview = {
-  readonly analysis: Analysis;
-  readonly gate: EvidenceGate;
-  readonly costs: readonly (number | null)[];
-  readonly correctionRound: CorrectionRound;
-  readonly rejections: readonly string[];
-};
 
 function sumCosts(costs: readonly (number | null)[]): number | null {
   const known = costs.filter((cost): cost is number => cost !== null);
 
   return known.length === 0 ? null : known.reduce((total, cost) => total + cost, 0);
-}
-
-function rejections(judged: Judged): readonly string[] {
-  return [
-    ...judged.gate.dropped.map(
-      (entry) => `Finding "${entry.title}" at ${entry.path}:${entry.line}: ${entry.reason}.`,
-    ),
-    ...judged.dispositions.problems,
-  ];
 }
 
 function packetWithChecks(options: {
@@ -62,22 +41,6 @@ function mergedCorrectionRound(reviews: readonly PartReview[]): CorrectionRound 
   return reviews.some((review) => review.correctionRound === "ran") ? "ran" : "none";
 }
 
-async function eachPart<Output>(options: {
-  readonly parts: readonly ReviewPart[];
-  readonly work: (part: ReviewPart) => Promise<Output>;
-}): Promise<readonly Output[]> {
-  const results: Output[] = [];
-  const queue = [...options.parts];
-  const worker = async (): Promise<void> => {
-    for (let part = queue.shift(); part !== undefined; part = queue.shift()) {
-      results[part.index - 1] = await options.work(part);
-    }
-  };
-
-  await Promise.all(Array.from({ length: Math.min(maximumParallelParts, queue.length) }, worker));
-  return results;
-}
-
 export async function analyzeStage(options: {
   readonly packet: PacketFile;
   readonly checks: ChecksFile | null | Promise<ChecksFile | null>;
@@ -86,23 +49,21 @@ export async function analyzeStage(options: {
   readonly fetchText?: (url: string) => Promise<string | null>;
 }): Promise<ReviewResult> {
   const startedAt = Date.now();
-  const { packet } = options;
+  const { packet, reviewModel } = options;
   const skill = await readReviewSkill();
-  const run = (prompt: string) =>
-    analyzeReview({ reviewModel: options.reviewModel, checkout: options.checkout, prompt });
+  const run = (request: { readonly prompt: string; readonly maxBudgetUsd: number | null }) =>
+    analyzeReview({ reviewModel, checkout: options.checkout, prompt: request.prompt, maxBudgetUsd: request.maxBudgetUsd });
+  const runWithoutLimit = (prompt: string) => run({ prompt, maxBudgetUsd: null });
   const firstPacket = packetWithChecks({
     packet,
     checks: options.checks instanceof Promise ? null : options.checks,
   });
-  const firstParts = reviewParts({
-    files: packet.context.files,
-    candidates: reviewCandidates(firstPacket),
-  });
+  const firstParts = reviewParts({ files: packet.context.files, candidates: reviewCandidates(firstPacket) });
   const [checks, firsts] = await Promise.all([
     Promise.resolve(options.checks),
-    eachPart({
-      parts: firstParts,
-      work: (part) => run(reviewPrompt({ skill, packet: firstPacket, part })),
+    inParallel({
+      items: firstParts,
+      work: (part) => runWithoutLimit(reviewPrompt({ skill, packet: firstPacket, part, focus: null })),
     }),
   ]);
 
@@ -112,88 +73,58 @@ export async function analyzeStage(options: {
 
   const reviewPacket = packetWithChecks({ packet, checks });
   const candidates = reviewCandidates(reviewPacket);
-  const fetchText = cachedFetch(options.fetchText);
-  const judge = async (judged: {
-    readonly output: Analysis;
-    readonly candidates: readonly ReviewCandidate[];
-  }): Promise<Judged> => ({
-    gate: await gateFindings({
-      findings: judged.output.findings,
-      sources: {
-        checkout: options.checkout,
-        files: packet.context.files,
-        ruleHits: packet.ruleHits,
-        toolchain: reviewPacket.toolchain,
-        fetchText,
-      },
-    }),
-    dispositions: checkDispositions({
-      findings: judged.output.findings,
-      dropped: judged.output.dropped,
-      candidates: judged.candidates,
-    }),
-  });
-  const review = async (part: ReviewPart): Promise<PartReview> => {
-    const first = firsts[part.index - 1];
-
-    if (first === undefined) {
-      throw new Error(`Review part ${part.index} has no first answer.`);
-    }
-
-    const firstJudged = await judge({ output: first.output, candidates: part.candidates });
-    const problems = rejections(firstJudged);
-    const second =
-      problems.length === 0
-        ? null
-        : await run(
-            correctionPrompt({
-              skill,
-              packet: reviewPacket,
-              part,
-              previous: first.output,
-              rejections: problems,
-            }),
-          ).catch(() => "failed" as const);
-    const final =
-      second === null || second === "failed"
-        ? { output: first.output, judged: firstJudged }
-        : {
-            output: second.output,
-            judged: await judge({ output: second.output, candidates: part.candidates }),
-          };
-
-    return {
-      analysis: final.output,
-      gate: final.judged.gate,
-      costs: [first.costUsd, ...(second !== null && second !== "failed" ? [second.costUsd] : [])],
-      correctionRound: second === null ? "none" : second === "failed" ? "failed" : "ran",
-      rejections: problems,
-    };
+  const sources: EvidenceSources = {
+    checkout: options.checkout,
+    files: packet.context.files,
+    ruleHits: packet.ruleHits,
+    toolchain: reviewPacket.toolchain,
+    fetchText: cachedFetch(options.fetchText),
   };
   const parts = reviewParts({ files: packet.context.files, candidates });
-  const reviews = await eachPart({ parts, work: review });
-  const analysis: Analysis = {
-    findings: reviews.flatMap((partReview) => partReview.analysis.findings),
-    dropped: reviews.flatMap((partReview) => partReview.analysis.dropped),
-  };
+  const reviews = await inParallel({
+    items: parts,
+    work: async (part) => {
+      const first = firsts[part.index - 1];
+
+      if (first === undefined) {
+        throw new Error(`Review part ${part.index} has no first answer.`);
+      }
+
+      return reviewPart({ part, first, skill, packet: reviewPacket, sources, run: runWithoutLimit });
+    },
+  });
+  const lenses = await reviewLensRuns({
+    parts,
+    setting: reviewModel.lenses,
+    spentUsd: sumCosts(reviews.flatMap((review) => review.costs)),
+    skill,
+    packet: reviewPacket,
+    sources,
+    run,
+  });
+  const judged = [...reviews.map((review) => review.judged), ...lenses.judged];
+  const partFindings = reviews.flatMap((review) => review.analysis.findings);
+  const lensFindings = lenses.judged.reduce((total, entry) => total + entry.gate.kept.length + entry.gate.dropped.length, 0);
 
   return reviewResult({
     packet: reviewPacket,
-    analysis,
-    gate: {
-      kept: reviews.flatMap((partReview) => partReview.gate.kept),
-      dropped: reviews.flatMap((partReview) => partReview.gate.dropped),
-    },
-    dispositions: checkDispositions({
-      findings: analysis.findings,
-      dropped: analysis.dropped,
-      candidates,
-    }),
+    modelFindings: partFindings.length + lensFindings,
+    gate: { kept: judged.flatMap((entry) => entry.gate.kept), dropped: judged.flatMap((entry) => entry.gate.dropped) },
+    dispositions: checkDispositions({ findings: partFindings, dropped: reviews.flatMap((review) => review.analysis.dropped), candidates }),
     candidates,
-    model: options.reviewModel.model ?? "provider default",
-    costUsd: sumCosts(reviews.flatMap((partReview) => partReview.costs)),
+    judged: {
+      refuted: judged.flatMap((entry) => entry.candidates.refuted),
+      worthChecking: judged.flatMap((entry) => entry.candidates.worthChecking),
+    },
+    coverage: {
+      hunks: parts.reduce((total, part) => total + reviewHunks(part.files).length, 0),
+      uncovered: [...reviews.flatMap((review) => review.judged.coverage.missing.map((hunk) => hunk.label)), ...lenses.uncovered],
+    },
+    lenses: { runs: lenses.runs, skipped: lenses.skipped },
+    model: reviewModel.model ?? "provider default",
+    costUsd: sumCosts([...reviews.flatMap((review) => review.costs), ...lenses.costs]),
     correctionRound: mergedCorrectionRound(reviews),
-    rejections: reviews.flatMap((partReview) => partReview.rejections),
+    rejections: reviews.flatMap((review) => review.rejections),
     startedAt,
     parts: parts.length,
   });

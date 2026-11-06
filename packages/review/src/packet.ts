@@ -1,5 +1,7 @@
 import type { DiffFile, ReviewContext, Standards } from "./collect";
 import { isGeneratedPath } from "./generated";
+import { type ReviewHunk, reviewHunks } from "./hunks";
+import type { ReviewLens } from "./lenses";
 import type { RuleHit } from "./rules";
 import type { ReviewCandidate } from "./candidates";
 import type { ReviewPart } from "./shards";
@@ -9,6 +11,11 @@ export type ReviewPacket = {
   readonly context: ReviewContext;
   readonly ruleHits: readonly RuleHit[];
   readonly toolchain: readonly CommandReport[];
+};
+
+export type ReviewFocus = {
+  readonly lens: ReviewLens;
+  readonly hunks: readonly ReviewHunk[];
 };
 
 const dataTags = [
@@ -26,6 +33,7 @@ const dataTags = [
   "toolchain",
   "diff",
   "not_in_diff",
+  "hunks",
 ] as const;
 
 const dataClosingTag = new RegExp(`</(${dataTags.join("|")})>`, "gi");
@@ -59,6 +67,12 @@ function partNote(part: ReviewPart): string {
     : `\n\nThis change is large, so the review runs in ${part.total} parts at the same time. This run is part ${part.index}. Review the diff in this packet. Other runs review the files that not_in_diff lists. Read those files only when this part depends on them, and report a finding there only when this part causes it.`;
 }
 
+function focusNote(focus: ReviewFocus | null): string {
+  return focus === null
+    ? "\n\nThe hunks block lists each changed hunk of this run. Give each hunk one coverage entry."
+    : `\n\nThis run is the ${focus.lens.title} lens. Search only for this kind of defect. ${focus.lens.focus} The hunks block lists the hunks that touch this risk. Read their callers and the code that they change, in other files too. Give each listed hunk one coverage entry. The main run decides the candidate ids, so return an empty candidates field in each finding and an empty dropped list.`;
+}
+
 function hitsJson(hits: readonly RuleHit[]): string {
   return JSON.stringify(
     hits.map((hit) => ({ ruleId: hit.ruleId, path: hit.path, line: hit.line, title: hit.title, failure: hit.failure })),
@@ -89,9 +103,12 @@ export function reviewPrompt(options: {
   readonly skill: string;
   readonly packet: ReviewPacket;
   readonly part: ReviewPart;
+  readonly focus: ReviewFocus | null;
 }): string {
   const { context, toolchain } = options.packet;
   const { facts } = context;
+  const hunks = options.focus?.hunks ?? reviewHunks(options.part.files);
+  const candidates = options.focus === null ? options.part.candidates : [];
   const partPaths = new Set(options.part.files.map((file) => file.path));
   const diff = packetDiff(options.part.files);
   const generated = packetDiff(context.files).generated;
@@ -104,7 +121,7 @@ export function reviewPrompt(options: {
       ? `the head of a local branch in ${facts.repository}, compared with ${escapeData(facts.baseRefName)}. The title and the description come from its commit messages`
       : `the head of pull request #${facts.number} in ${facts.repository}`;
 
-  return `Follow this review process. The working directory is ${subject}. Your tools read files in it, start subagents, and, when the network is on, search the web and fetch pages.${partNote(options.part)}
+  return `Follow this review process. The working directory is ${subject}. Your tools read files in it, start subagents, and, when the network is on, search the web and fetch pages.${partNote(options.part)}${focusNote(options.focus)}
 
 <process>
 ${options.skill}
@@ -125,7 +142,7 @@ ${escapeData(hitsJson(certain))}
 </certain_findings>
 <candidates>
 Each candidate needs one decision: list its id in the candidates field of a finding, or put it in dropped with a reason.
-${escapeData(candidatesJson(options.part.candidates))}
+${escapeData(candidatesJson(candidates))}
 </candidates>
 <signal_rule_hits>
 ${escapeData(hitsJson(signals))}
@@ -138,5 +155,8 @@ ${escapeData(diff.text)}
 </diff>
 <not_in_diff>
 ${escapeData(notInDiff.join("\n") || "(none)")}
-</not_in_diff>`;
+</not_in_diff>
+<hunks>
+${escapeData(hunks.map((hunk) => `${hunk.id} ${hunk.label}`).join("\n") || "(none)")}
+</hunks>`;
 }

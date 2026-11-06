@@ -1,6 +1,28 @@
+import { coverageLine, worthCheckingLines } from "./publish/doubts";
 import { findingBody } from "./publish/format";
 import { neutralizeText } from "./publish/neutralize";
 import type { ReviewResult } from "./types";
+
+function listSection(options: { readonly heading: string; readonly intro: string | null; readonly lines: readonly string[] }): readonly string[] {
+  return options.lines.length === 0 ? [] : [`## ${options.heading}`, "", ...(options.intro === null ? [] : [options.intro, ""]), ...options.lines, ""];
+}
+
+function doubtSections(result: ReviewResult): readonly string[] {
+  return [
+    ...listSection({
+      heading: "Worth checking",
+      intro: "The review could neither confirm nor refute these with quoted code. They are not findings.",
+      lines: worthCheckingLines(result),
+    }),
+    ...listSection({
+      heading: "Refuted candidates",
+      intro: null,
+      lines: result.refuted.map((entry) => `- ${neutralizeText(entry.title)} (\`${entry.path}:${entry.line}\`): ${neutralizeText(entry.refutation)}`),
+    }),
+    ...listSection({ heading: "Not examined", intro: null, lines: result.coverage.uncovered.map((label) => `- ${neutralizeText(label)}`) }),
+    ...listSection({ heading: "Lens runs that did not run", intro: null, lines: result.statistics.lensesSkipped.map((entry) => `- ${neutralizeText(entry)}`) }),
+  ];
+}
 
 function plural(options: { readonly count: number; readonly word: string }): string {
   return `${options.count} ${options.word}${options.count === 1 ? "" : "s"}`;
@@ -27,6 +49,8 @@ export function reviewMarkdown(result: ReviewResult): string {
     `Head \`${pull.headSha.slice(0, 7)}\` against \`${pull.baseRefName}\` (\`${pull.baseSha.slice(0, 7)}\`). Model ${result.model}. ${plural({ count: result.findings.length, word: "finding" })}.`,
     "",
     `The model returned ${plural({ count: statistics.modelFindings, word: "finding" })}, and ${statistics.droppedForEvidence} failed the evidence check. Built-in rules matched ${statistics.certainRuleHits} certain and ${statistics.signalRuleHits} signal lines. The review took ${Math.round(statistics.durationMilliseconds / 1000)} seconds.`,
+    "",
+    coverageLine(result),
   ];
   const findings =
     result.findings.length === 0
@@ -58,7 +82,16 @@ export function reviewMarkdown(result: ReviewResult): string {
       : [];
   const skipped = result.skippedPaths.length > 0 ? ["## Not reviewed", "", ...result.skippedPaths.map((skippedPath) => `- \`${skippedPath}\` (generated)`)] : [];
 
-  const sections = [...header, ...(correction.length > 0 ? ["", ...correction] : []), "", ...findings.flatMap((section) => [section, ""]), ...dropped, ...droppedCandidates, ...undecided];
+  const sections = [
+    ...header,
+    ...(correction.length > 0 ? ["", ...correction] : []),
+    "",
+    ...findings.flatMap((section) => [section, ""]),
+    ...doubtSections(result),
+    ...dropped,
+    ...droppedCandidates,
+    ...undecided,
+  ];
 
   return `${[...sections, "## Toolchain", "", toolchainTable(result), "", ...skipped].join("\n").trimEnd()}\n`;
 }

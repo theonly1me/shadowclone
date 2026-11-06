@@ -1,4 +1,5 @@
 import type { LineRange, ReviewResult } from "../types";
+import { coverageLine, worthCheckingDetails } from "./doubts";
 import { findingBody } from "./format";
 import { neutralizeText } from "./neutralize";
 
@@ -37,6 +38,7 @@ function summary(options: {
     count === 0
       ? `shadowclone reviewed ${head} and found no defect that it could confirm.`
       : `shadowclone reviewed ${head} and confirmed ${count} ${count === 1 ? "finding" : "findings"}, ${inlineCount} inline.`,
+    coverageLine(result),
   ];
 
   if (result.candidates.dropped.length > 0) {
@@ -77,7 +79,9 @@ export function reviewPayload(result: ReviewResult): ReviewPayload {
   return {
     commit_id: result.pull.headSha,
     event: "COMMENT",
-    body: [summary({ result, inlineCount: inline.length }), ...outsideText, reviewMarker].join("\n\n"),
+    body: [summary({ result, inlineCount: inline.length }), ...outsideText, worthCheckingDetails(result), reviewMarker]
+      .filter((section): section is string => section !== null)
+      .join("\n\n"),
     comments: inline.map((finding) => ({
       path: finding.path,
       line: finding.line,

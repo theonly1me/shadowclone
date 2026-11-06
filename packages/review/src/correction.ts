@@ -9,11 +9,11 @@ export function correctionPrompt(options: {
   readonly previous: Analysis;
   readonly rejections: readonly string[];
 }): string {
-  return `${reviewPrompt({ skill: options.skill, packet: options.packet, part: options.part })}
+  return `${reviewPrompt({ skill: options.skill, packet: options.packet, part: options.part, focus: null })}
 
 Your previous answer follows, with the problems that code found in it. Return the full corrected answer in the same schema.
 For each rejected finding, read the source again and copy the quote exactly, or remove the finding.
-Give each candidate id exactly one decision.
+Give each candidate id exactly one decision, and give each hunk a coverage entry.
 
 <previous_answer>
 ${escapeData(JSON.stringify(options.previous, null, 1))}

@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import type { EngineRunOptions } from "@shadowclone/agents";
 import { collectReview } from "../collect";
 import { createGitFixture } from "../collect/gitFixture";
-import { engineRun } from "../engineFixture";
+import { coveredAnswer, engineRun, lensesOff } from "../engineFixture";
 import type { Finding } from "../types";
 import { analyzeStage } from "./analyze";
 import type { PacketFile } from "./schemas";
@@ -45,7 +45,7 @@ function scriptedRunner(answers: readonly unknown[], prompts: string[]) {
     prompts.push(run.prompt);
     const answer = answers[prompts.length - 1];
 
-    return answer instanceof Error ? engineRun({ isError: true, errorMessage: answer.message }) : engineRun({ structured: answer });
+    return answer instanceof Error ? engineRun({ isError: true, errorMessage: answer.message }) : engineRun({ structured: typeof answer === "object" && answer !== null ? coveredAnswer({ answer, prompt: run.prompt }) : answer });
   };
 }
 
@@ -67,6 +67,7 @@ test("a wrong quote and a missing decision get one correction round, and the cor
       model: "m",
       effort: "high",
       network: false,
+      lenses: lensesOff,
     },
   });
 
@@ -88,6 +89,7 @@ test("a clean first answer needs no correction round", async () => {
       model: "m",
       effort: "high",
       network: false,
+      lenses: lensesOff,
     },
   });
 
@@ -105,6 +107,7 @@ test("when the correction round fails, the first answer is judged as it was", as
       model: "m",
       effort: "high",
       network: false,
+      lenses: lensesOff,
     },
   });
 
@@ -128,6 +131,7 @@ test("the result keeps the problems that started the correction round", async ()
       model: "m",
       effort: "high",
       network: false,
+      lenses: lensesOff,
     },
   });
 
