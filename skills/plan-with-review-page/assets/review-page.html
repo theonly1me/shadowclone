@@ -71,7 +71,7 @@ code { background: var(--soft); padding: 1px 4px; border-radius: 4px; } pre { wh
     { "option": "TEMPLATE: Another way, or no change.", "tradeoff": "TEMPLATE: What it gives, what it costs, and why the plan does not use it.", "verdict": "rejected" }
   ],
   "risks": [
-    { "risk": "TEMPLATE: What can go wrong after the change.", "mitigation": "TEMPLATE: How the plan prevents it or finds it early." }
+    { "id": "R1", "risk": "TEMPLATE: What can go wrong after the change.", "mitigation": "TEMPLATE: How the plan prevents it or finds it early." }
   ],
   "decisions": [
     { "question": "TEMPLATE: A decision.", "answer": "TEMPLATE: The answer.", "source": "user", "reason": "TEMPLATE: Why this answer." }
@@ -116,7 +116,7 @@ const bullets = (items) => {
   items.forEach((item) => node.append(element("li", item)));
   return node;
 };
-const causeText = (id) => `${id}: ${plan.causes.find((cause) => cause.id === id)?.cause ?? "not a cause"}`;
+const causeText = (id) => `${id}: ${plan.causes.find((cause) => cause.id === id)?.cause ?? plan.risks.find((risk) => risk.id === id)?.risk ?? "unknown id"}`;
 const fixWorks = plan.causes.map((cause) => [
   causeText(cause.id),
   plan.changes.filter((change) => change.addresses.includes(cause.id)).map((change) => `${change.id}: ${change.worksBecause}`).join(" "),
@@ -133,12 +133,12 @@ const sections = [
   ]],
   ["fix", "The fix", () => [
     element("p", plan.approach),
-    table(["Id", "Change", "Files", "Causes"], plan.changes.map((change) => [change.id, change.change, change.files.join(", "), change.addresses.join(", ")])),
+    table(["Id", "Change", "Files", "Addresses"], plan.changes.map((change) => [change.id, change.change, change.files.join(", "), change.addresses.join(", ")])),
     diagramSlot,
   ]],
   ["works", "Why the fix works", () => [table(["Cause", "How the fix removes it", "Check that proves it"], fixWorks)]],
   ["alternatives", "Alternatives considered", () => [table(["Option", "Trade-off", "Verdict"], plan.alternatives.map((item) => [item.option, item.tradeoff, item.verdict]))]],
-  ["risks", "Risks", () => [table(["Risk", "Mitigation"], plan.risks.map((item) => [item.risk, item.mitigation]))]],
+  ["risks", "Risks", () => [table(["Id", "Risk", "Mitigation"], plan.risks.map((item) => [item.id, item.risk, item.mitigation]))]],
   ["decisions", "Decisions", () => [either(plan.decisions, (items) => table(["Question", "Answer", "Source", "Reason"], items.map((item) => [item.question, item.answer, item.source, item.reason])), "No decisions yet.")]],
   ["open", "Open questions", () => [either(plan.open, (items) => table(["Question", "What it blocks"], items.map((item) => [item.question, item.blocks])), "No open questions.")]],
   ["steps", "Steps", () => [table(["Status", "Step", "Note"], plan.steps.map((step) => [badge(step.status), step.text, step.note]))]],

@@ -30,11 +30,12 @@ const filledPlan = {
   approach: "Compare the fingerprint before a write, and keep a copy that differs.",
   changes: [
     { id: "F1", change: "Compare fingerprints.", files: ["src/sync.ts"], addresses: ["C1"], worksBecause: "An edited copy has a different fingerprint." },
+    { id: "F2", change: "Accept old fingerprints.", files: ["src/versions.json"], addresses: ["R1"], worksBecause: "An old copy matches a recorded fingerprint." },
   ],
   alternatives: [
     { option: "Always save a backup.", tradeoff: "It keeps data but still changes the active copy.", verdict: "rejected" },
   ],
-  risks: [{ risk: "A copy from an old version looks edited.", mitigation: "Accept each recorded bundled fingerprint." }],
+  risks: [{ id: "R1", risk: "A copy from an old version looks edited.", mitigation: "Accept each recorded bundled fingerprint." }],
   decisions: [{ question: "Edited copies?", answer: "Keep and list them.", source: "user", reason: "Edits are user work." }],
   open: [],
   steps: [
@@ -135,7 +136,7 @@ for (const runtime of runtimes) {
 
     expect(result.exitCode).toBe(1);
     expect(result.lines).toEqual([
-      `${filePath}: error verification[0].proves names C9, which is not a cause id`,
+      `${filePath}: error verification[0].proves names C9, which is not a cause or risk id`,
       `${filePath}: error cause C2 has no change that addresses it`,
       `${filePath}: error cause C2 has no check that proves the fix`,
       "validate-page: 3 errors in 1 file",

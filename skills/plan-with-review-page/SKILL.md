@@ -49,10 +49,10 @@ The plan is the reference for the person who approves the work. That person may 
    - **The problem:** what is wrong or missing as the user sees it. Give its impact: who it affects, how often, and the cost.
    - **What happened:** the facts, each with its source and its label.
    - **Why it happened:** each cause with an id such as `C1` and its origin. Add each cause that you ruled out, with the reason.
-   - **The fix:** the approach, then each change with an id such as `F1`, its files, and the causes that it addresses. Say why each change removes its causes. For a change that repeats across many files, describe the pattern once and list a few example paths.
+   - **The fix:** the approach, then each change with an id such as `F1`, its files, and the causes or risks that it addresses. Say why each change works. For a change that repeats across many files, describe the pattern once and list a few example paths.
    - **Why the fix works:** the page builds this table from the causes, the changes, and the checks.
    - **Alternatives considered:** each other option, including no change. Say what it gives, what it costs, and why the plan does not use it.
-   - **Risks:** what can go wrong after the change, and how the plan prevents it or finds it early.
+   - **Risks:** each risk with an id such as `R1`. Say what can go wrong after the change, and how the plan prevents it or finds it early. A change can exist only to limit a risk.
    - **Decisions:** each question, its answer, its reason, and its source. The source is user, repository, or agent. An agent decision is a default that the user can change.
    - **Open questions:** each question, and the step that waits for its answer.
    - **Steps, verification, and follow-ups:** the steps in order, and each check with the result that proves the fix and the causes that it proves. Then write one line for each follow-up.

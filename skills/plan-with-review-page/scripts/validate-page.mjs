@@ -12,7 +12,7 @@ const listRules = {
   ruledOut: { minimum: 0, text: ["cause", "reason"] },
   changes: { minimum: 1, text: ["id", "change", "worksBecause"], lists: ["files", "addresses"] },
   alternatives: { minimum: 1, text: ["option", "tradeoff"], choices: { verdict: ["rejected", "deferred"] } },
-  risks: { minimum: 1, text: ["risk", "mitigation"] },
+  risks: { minimum: 1, text: ["id", "risk", "mitigation"] },
   decisions: { minimum: 0, text: ["question", "answer", "reason"], choices: { source: ["user", "repository", "agent"] } },
   open: { minimum: 0, text: ["question", "blocks"] },
   steps: { minimum: 1, text: ["text"], choices: { status: ["todo", "doing", "done", "blocked", "skipped"] } },
@@ -75,20 +75,20 @@ function entryErrors({ name, rule, plan }) {
 
 function referenceErrors(plan) {
   const causeIds = entriesOf(plan, "causes").map((cause) => cause?.id);
+  const knownIds = [...causeIds, ...entriesOf(plan, "risks").map((risk) => risk?.id)];
   const errors = [];
 
-  for (const name of ["causes", "changes"]) {
+  for (const name of ["causes", "changes", "risks"]) {
     const ids = entriesOf(plan, name).map((entry) => entry?.id);
     const repeated = ids.filter((id, index) => filled(id) && ids.indexOf(id) !== index);
-
     errors.push(...[...new Set(repeated)].map((id) => `${name} use the id ${id} more than once`));
   }
 
   for (const [name, key] of [["changes", "addresses"], ["verification", "proves"]]) {
     for (const [index, entry] of entriesOf(plan, name).entries()) {
-      const unknown = (Array.isArray(entry?.[key]) ? entry[key] : []).filter((id) => !causeIds.includes(id));
+      const unknown = (Array.isArray(entry?.[key]) ? entry[key] : []).filter((id) => !knownIds.includes(id));
 
-      errors.push(...unknown.map((id) => `${name}[${index}].${key} names ${id}, which is not a cause id`));
+      errors.push(...unknown.map((id) => `${name}[${index}].${key} names ${id}, which is not a cause or risk id`));
     }
   }
 

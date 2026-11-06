@@ -149,7 +149,7 @@ The plan is now the reference for the person who approves the work:
 
 - The plan file and the page use the same sections in the same order. The sections are the summary and status, the problem, what happened, and why it happened. Then come the fix, why the fix works, the alternatives, and the risks. The plan ends with the decisions, the open questions, the steps, the verification, and the follow-ups.
 - Each fact has a source and one label: measured, read, inferred, or reported.
-- Each cause has an id and an origin. Each change names the causes that it addresses and says why it removes them. Each check names the causes that it proves.
+- Each cause has an id and an origin, and each risk has an id. Each change names the causes or risks that it addresses and says why it works. Each check names the causes or risks that it proves.
 - The validator fails a plan when a cause has no change or no check, or when a change or a check names an unknown cause. The page builds the "Why the fix works" table from these links.
 - A plan lists at least one alternative and one risk. Each decision has a reason and a source: user, repository, or agent.
 
