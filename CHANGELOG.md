@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.46](https://github.com/theonly1me/shadowclone/compare/v0.0.45...v0.0.46) (2026-11-06)
+
+
+### Features
+
+* **skills:** make each plan explain the problem, the cause, and why the fix works ([#262](https://github.com/theonly1me/shadowclone/issues/262)) ([f7c6d79](https://github.com/theonly1me/shadowclone/commit/f7c6d791c0032bde554ad4f7fd6ed7d3a04e6075))
+
+
+### Fixes
+
+* **skills:** wrap long file paths in the guided review findings panel ([#263](https://github.com/theonly1me/shadowclone/issues/263)) ([5567875](https://github.com/theonly1me/shadowclone/commit/5567875f524ccda036ad89068a11b33611c7a0a9))
+
 ## [0.0.45](https://github.com/theonly1me/shadowclone/compare/v0.0.44...v0.0.45) (2026-10-24)
 
 
