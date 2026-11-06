@@ -26,7 +26,7 @@ export function lineOf(options: { readonly text: string; readonly name: string; 
 
   const versionOffset = lines.slice(nameIndex, nameIndex + 8).findIndex((line) => line.includes(options.version));
 
-  return nameIndex + (versionOffset < 0 ? 0 : versionOffset) + 1;
+  return nameIndex + Math.max(versionOffset, 0) + 1;
 }
 
 async function changedPackages(options: {
