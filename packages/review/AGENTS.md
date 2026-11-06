@@ -32,7 +32,7 @@ The pull request review engine. It collects the diff and standards, runs rules a
 - `rank.ts` keeps 10 findings for each review part, and 25 at most. It keeps every high severity finding up to 25. `shards.ts` puts each changed file in exactly one part of at most 40 KB, unless one file is larger.
 - Each hunk of a part needs a coverage entry. A missing entry gets one correction round, and a hunk that stays uncovered appears in `coverage.uncovered`.
 - A rejection holds only when each of its quotes matches the code, the diff, or a fetched page. Any other rejection, and each unresolved candidate, becomes `worthChecking`, at most 10.
-- Lens runs start after the part runs, only for parts that match a lens trigger, and only while the cost limit allows. The result names each failed lens run in `lensesSkipped`, and a failed lens run never fails the review. The dollar limit reaches only Claude runs.
+- Lens runs start after the part runs, one at a time, with at most one run for each lens. A lens runs only for changes that match its trigger, and only while the cost limit allows. Each run can spend the money that remains. The result names each failed lens run in `lensesSkipped`, and a failed lens run never fails the review. The dollar limit reaches only Claude runs.
 - A fetched documentation address must be public. `evidence/addresses.ts` refuses private, loopback, and metadata addresses.
 
 ## Tests

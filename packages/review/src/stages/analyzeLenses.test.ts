@@ -93,7 +93,7 @@ test("lens runs stop when the part runs used the cost limit, and the result name
   });
 
   expect(prompts.some((prompt) => prompt.includes(transactionLens))).toBe(false);
-  expect(result.statistics.lensesSkipped).toEqual(["Transactions and concurrency: the part runs used $0.50 of the $0.50 limit"]);
+  expect(result.statistics.lensesSkipped).toEqual(["Transactions and concurrency: the review used $0.50 of the $0.50 limit"]);
 });
 
 test("a lens run that fails is named in the result, and the review keeps the part findings", async () => {
@@ -106,4 +106,30 @@ test("a lens run that fails is named in the result, and the review keeps the par
   });
 
   expect([result.statistics.lensRuns, result.statistics.lensesSkipped]).toEqual([0, ["Transactions and concurrency: The review run failed: rate limited"]]);
+});
+
+test("each lens run gets the money that remains, one run at a time, and a lens past the limit does not start", async () => {
+  const fixture = await createGitFixture();
+  await fixture.write({ "README.md": "base\n" });
+  const baseSha = fixture.commit("base");
+  await fixture.write({ "src/charge.ts": "export async function charge(db: Db, admin: Admin): Promise<void> {\n  await db.transaction(async () => undefined);\n  await fetch(admin.paymentUrl);\n}\n" });
+  const headSha = fixture.commit("head");
+  const context = await collectReview({ checkout: fixture.directory, facts: { repository: "example/app", number: 1, title: "t", body: "", baseRefName: "main", baseSha, headSha } });
+  const budgets: (number | undefined)[] = [];
+  const runner = async (run: EngineRunOptions) => {
+    if (run.prompt.includes("lens. Search only")) {
+      budgets.push(run.maxBudgetUsd);
+    }
+
+    return engineRun({ structured: coveredAnswer({ answer: { findings: [], dropped: [] }, prompt: run.prompt }) });
+  };
+  const result = await analyzeStage({
+    packet: { version: 1, context, ruleHits: [], reports: [] },
+    checks: null,
+    checkout: fixture.directory,
+    reviewModel: { runner, model: "m", effort: null, network: false, lenses: { enabled: true, maxCostUsd: 1.5 } },
+  });
+
+  expect(budgets).toEqual([1, 0.5]);
+  expect(result.statistics.lensesSkipped).toEqual(["Outside side effects: the review used $1.50 of the $1.50 limit"]);
 });

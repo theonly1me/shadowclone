@@ -105,7 +105,7 @@ The review now works this way:
 - The packet lists each changed hunk with an id. The answer gives each hunk a coverage entry, and code checks the list like the candidate ids.
 - A judge tests each candidate. A rejection must quote the code, the diff, or a page that makes the claim safe. Code checks that quote.
 - A candidate that the judge cannot decide, and a rejection whose quote fails, become worth checking. The local review, the GitHub review, and the guided review show them as doubts, not findings.
-- Lens runs search for authorization, transactions and concurrency, outside side effects, and compatibility. Code starts a lens only for a part whose changed lines or paths match its trigger. A local review limits the lens runs to $4 by default, and the cloud review runs none.
+- Lens runs search for authorization, transactions and concurrency, outside side effects, and compatibility. Code starts at most one run for each lens whose trigger matches the changed lines or paths. The runs go one at a time, and each can spend the money that remains. A local review has a $4 limit by default, and the cloud review runs no lens runs.
 
 The owner chose smaller parts, coverage, and lens runs, doubts on GitHub too, and up to 3 times the earlier cost. A quick blind evaluation on real pull requests checks the result. Claude and Codex each make the reviews, and the other judges them.
 
