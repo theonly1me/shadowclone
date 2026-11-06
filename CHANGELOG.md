@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.47](https://github.com/theonly1me/shadowclone/compare/v0.0.46...v0.0.47) (2026-11-06)
+
+
+### Features
+
+* **review:** cover every hunk, judge each rejection with quoted code, and add lens runs ([#265](https://github.com/theonly1me/shadowclone/issues/265)) ([e1d56ce](https://github.com/theonly1me/shadowclone/commit/e1d56ce5ba8eff669b9cbb956587df09d0bfc76a))
+
 ## [0.0.46](https://github.com/theonly1me/shadowclone/compare/v0.0.45...v0.0.46) (2026-11-06)
 
 
