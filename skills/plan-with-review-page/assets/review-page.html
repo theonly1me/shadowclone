@@ -89,7 +89,7 @@ code { background: var(--soft); padding: 1px 4px; border-radius: 4px; } pre { wh
 const plan = JSON.parse(document.getElementById("plan").textContent);
 const element = (name, text, className) => {
   const node = document.createElement(name);
-  if (text !== undefined) node.textContent = text;
+  if (text !== undefined) text.split("`").forEach((part, index) => node.append(index % 2 ? Object.assign(document.createElement("code"), { textContent: part }) : part));
   if (className) node.className = className;
   return node;
 };
@@ -149,7 +149,7 @@ const sections = [
 document.title = plan.title;
 document.getElementById("status").replaceWith(badge(plan.status));
 const headerText = [["title", plan.title], ["summary", plan.summary], ["plan-path", plan.planPath], ["updated", plan.updated]];
-headerText.forEach(([id, value]) => (document.getElementById(id).textContent = value));
+headerText.forEach(([id, value]) => document.getElementById(id).append(element("span", value)));
 
 const stepsLeft = plan.steps.filter((step) => !["done", "skipped"].includes(step.status)).length;
 const counts = [[plan.causes.length, "causes"], [plan.steps.filter((step) => step.status === "done").length, "steps done"], [stepsLeft, "steps left"], [plan.open.length, "open questions"]];
