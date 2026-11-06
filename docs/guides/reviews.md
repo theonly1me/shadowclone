@@ -74,11 +74,20 @@ A pull request gets a review only when someone tags the bot. A pull request from
 - **Dependencies:** packages that a changed lockfile adds or upgrades, checked against the OSV vulnerability database.
 - **Toolchain:** the type checks, compilers, and linters of the repository for JavaScript and TypeScript, Python, Go, Rust, Java, and .NET. Only the diagnostics that the pull request adds stay. In a monorepo, each stack runs in the nearest folder that configures it.
 - **Linters:** shellcheck, hadolint, actionlint, zizmor, and squawk on changed shell scripts, Dockerfiles, workflows, and SQL files. `trivy config` checks changed Terraform, Dockerfiles, and Kubernetes, Helm, and CloudFormation files. Each warning or error on a changed line is a finding.
-- **Judgment:** the skill traces each change through its callers and tests. A fresh refuter subagent tries to disprove each candidate finding before you see it.
+- **Judgment:** the skill reads every changed hunk with its callers and tests, and gives each hunk a coverage entry. A fresh judge subagent tests each candidate. A rejection must quote the code that makes the claim safe.
+- **Lens runs:** extra runs that search for one risk area: authorization, transactions and concurrency, outside side effects, or compatibility. Code starts at most one run for each risk area that the changed lines or paths touch.
 
 A certain rule, such as a committed credential, needs no model. A linter warning or error on a changed line is also certain. Other rule hits and toolchain diagnostics reach the review only when the skill confirms a real failure. A review reports at most 10 findings from the skill, highest severity first. It also reports every high severity finding and every certain finding, up to 25.
 
-The review splits a change with more than 150 KB of diff into parts of up to 150 KB. At most four parts run at the same time. Each part gets its own reviewer, and every changed file reaches exactly one of them. A review in parts reports at most 10 findings for each part, and 25 in all.
+The review splits a change with more than 40 KB of diff into parts of up to 40 KB. At most four parts run at the same time. Each part gets its own reviewer, and every changed file reaches exactly one of them. A review in parts reports at most 10 findings for each part, and 25 in all.
+
+Lens runs start after the part runs, one at a time, with the risk area that touches the most hunks first. A local review has a cost limit of $4, and `--max-cost <usd>` changes it. Each lens run can spend the money that remains, and the result names each lens that did not run. `--no-lenses` turns lens runs off. The cloud review runs no lens runs. The dollar limit applies only to Claude, because Codex cannot enforce one.
+
+## Worth checking and coverage
+
+A candidate that the judge can neither confirm nor refute stays visible as "worth checking". So does a rejection whose quote does not match the code. These items are not findings. The local review lists them, the GitHub review shows them in one collapsed section, and the guided review shows them behind the reveal. A review shows at most 10.
+
+The review states how many changed hunks it examined. A hunk with no coverage entry gets one correction round. If it still has no entry, the local review lists it under "Not examined".
 
 ## Evidence
 

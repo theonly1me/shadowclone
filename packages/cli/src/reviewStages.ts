@@ -11,7 +11,7 @@ import {
 import { publishReview, reviewResultSchema } from "@shadowclone/review";
 import { defaultCodexReviewModel } from "@shadowclone/review";
 import { analyzeStage, checksFileSchema, checksStage, packetFileSchema, prepareStage } from "@shadowclone/review";
-import { defaultReviewModel } from "./reviewArguments";
+import { defaultReviewModel, parseMaximumCost } from "./reviewArguments";
 
 function reviewModelChoice(options: {
   readonly engine: "claude" | "codex" | "cursor";
@@ -31,7 +31,7 @@ function reviewModelChoice(options: {
 const stageUsage = [
   "shadowclone review prepare --repo owner/repository --pr <number> --checkout <directory> --output <file> [--head <sha>] [--network on|off]",
   "shadowclone review checks --packet <file> --checkout <directory> --output <file>",
-  "shadowclone review analyze --packet <file> [--checks <file>] --checkout <directory> --output <file> [--engine claude|codex|cursor] [--model <id>] [--base-url <https url>] [--effort <level>] [--network on|off]",
+  "shadowclone review analyze --packet <file> [--checks <file>] --checkout <directory> --output <file> [--engine claude|codex|cursor] [--model <id>] [--base-url <https url>] [--effort <level>] [--network on|off] [--lenses on|off] [--max-cost <usd>]",
   "shadowclone review publish --input <file>",
 ].join("\n");
 
@@ -113,13 +113,20 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
     }
   },
   analyze: async (arguments_) => {
-    const flags = readFlags({ arguments: arguments_, allowed: ["--packet", "--checks", "--checkout", "--output", "--engine", "--model", "--base-url", "--effort", "--network"] });
+    const flags = readFlags({
+      arguments: arguments_,
+      allowed: ["--packet", "--checks", "--checkout", "--output", "--engine", "--model", "--base-url", "--effort", "--network", "--lenses", "--max-cost"],
+    });
     const baseUrl = flags.get("--base-url");
     const engine = flags.get("--engine") ?? "claude";
     const effort = flags.get("--effort") ?? null;
     const checksFile = flags.get("--checks");
-
+    const lenses = flags.get("--lenses") ?? "off";
     const network = flags.get("--network") ?? "on";
+
+    if (lenses !== "on" && lenses !== "off") {
+      throw new Error(`Use:\n${stageUsage}`);
+    }
 
     if (effort !== null && !isReasoningEffort(effort)) {
       throw new Error(`Choose an effort from ${reasoningEfforts.join(", ")}.`);
@@ -148,6 +155,7 @@ export const reviewStages: Readonly<Record<string, (arguments_: readonly string[
         ...(baseUrl === undefined ? {} : { baseUrl }),
         effort,
         network: network === "on",
+        lenses: lenses === "on" ? { enabled: true, maxCostUsd: parseMaximumCost(flags.get("--max-cost")) } : { enabled: false },
       },
     });
 

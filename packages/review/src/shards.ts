@@ -3,7 +3,7 @@ import { isGeneratedPath } from "./generated";
 import { maximumReportedFindings } from "./rank";
 import type { ReviewCandidate } from "./candidates";
 
-export const maximumPartBytes = 150_000;
+export const maximumPartBytes = 40_000;
 
 export const maximumParallelParts = 4;
 

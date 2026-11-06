@@ -42,9 +42,39 @@ export const findingSchema = z.object({
 
 export type Finding = z.infer<typeof findingSchema>;
 
+export const coverageSchema = z.object({
+  hunk: z.string().regex(/^H\d{1,4}$/),
+  result: z.enum(["clear", "raised"]),
+  note: z.string().min(1).max(200),
+});
+
+export type Coverage = z.infer<typeof coverageSchema>;
+
+const candidateFields = {
+  path: z.string().min(1).max(500),
+  line: z.number().int().positive(),
+  title: z.string().min(1).max(100),
+  failureScenario: z.string().min(1).max(300),
+};
+
+export const rejectedCandidateSchema = z.object({
+  ...candidateFields,
+  refutation: z.string().min(1).max(400),
+  evidence: z.array(evidenceSchema).min(1).max(4),
+});
+
+export type RejectedCandidate = z.infer<typeof rejectedCandidateSchema>;
+
+export const doubtSchema = z.object({ ...candidateFields, reason: z.string().min(1).max(300) });
+
+export type Doubt = z.infer<typeof doubtSchema>;
+
 export const analysisSchema = z.object({
   findings: z.array(findingSchema).max(20),
   dropped: z.array(z.object({ id: z.string().regex(/^[ST]\d{1,4}$/), reason: z.string().min(1).max(300) })).max(220),
+  coverage: z.array(coverageSchema).max(400).default([]),
+  rejected: z.array(rejectedCandidateSchema).max(40).default([]),
+  unresolved: z.array(doubtSchema).max(20).default([]),
 });
 
 export type Analysis = z.infer<typeof analysisSchema>;
@@ -94,6 +124,14 @@ export const reviewResultSchema = z.object({
     undecided: z.array(z.object({ id: z.string(), title: z.string().max(200), path: z.string().max(500), line: z.number().int().positive() })).max(220),
   }),
   rejections: z.array(z.string().max(600)).max(50),
+  worthChecking: z.array(doubtSchema).max(10).default([]),
+  refuted: z
+    .array(z.object({ title: z.string().max(100), path: z.string().max(500), line: z.number().int().positive(), refutation: z.string().max(400) }))
+    .max(40)
+    .default([]),
+  coverage: z
+    .object({ hunks: z.number().int().nonnegative(), uncovered: z.array(z.string().max(600)).max(50) })
+    .default({ hunks: 0, uncovered: [] }),
   statistics: z.object({
     modelFindings: z.number().int().nonnegative(),
     droppedForEvidence: z.number().int().nonnegative(),
@@ -103,6 +141,8 @@ export const reviewResultSchema = z.object({
     durationMilliseconds: z.number().int().nonnegative(),
     costUsd: z.number().nonnegative().nullable(),
     parts: z.number().int().positive().default(1),
+    lensRuns: z.number().int().nonnegative().default(0),
+    lensesSkipped: z.array(z.string().max(300)).max(50).default([]),
   }),
 });
 

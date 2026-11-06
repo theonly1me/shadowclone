@@ -94,6 +94,7 @@ th { color: var(--muted); font-size: 12px; }
 .reading-step { scroll-margin-top: 80px; }
 .note, .finding { margin: 12px 16px; padding: 14px; border-left: 3px solid var(--accent); border-radius: 6px; background: #211b31; font-size: 13px; }
 .finding { background: #171d29; border-color: #879fc4; }
+.finding.doubt { border-left-style: dashed; } .agent-findings .coverage { margin: 0 16px 8px; color: var(--muted); font-size: 12px; }
 .note-meta { display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 11px; }
 .note-meta > span { min-width: 0; overflow-wrap: anywhere; }
 .note-meta > strong, .note-meta > span:last-child { flex: none; }
@@ -174,7 +175,14 @@ export function findingMarkup(finding) {
         "</blockquote>",
     )
     .join("");
-  return `<aside class="finding ${escapeHtml(state ?? "")}" data-finding="${escapeHtml(finding.id)}"><div class="note-meta"><strong>Agent</strong><span>#${escapeHtml(pull.number)} · <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(finding.path)}:${escapeHtml(finding.line)}</a></span><span>${state === "included" ? "in your review" : state === "dismissed" ? "dismissed" : "proposal"}</span></div><p>${escapeHtml(finding.explanation)}</p><details><summary>Inspect the reasoning</summary><p><strong>Trigger:</strong> ${escapeHtml(finding.failureScenario)}</p>${proof}<p><strong>Countercheck:</strong> ${escapeHtml(finding.refutation)}</p><p><strong>Suggested direction:</strong> ${escapeHtml(finding.suggestion ?? "Inspect the affected contract before choosing a fix.")}</p></details><div class="note-actions"><button data-include-finding="${escapeHtml(finding.id)}" type="button">${state === "included" ? "Remove from review" : "Add to my review"}</button><button data-dismiss-finding="${escapeHtml(finding.id)}" type="button">${state === "dismissed" ? "Restore" : "Dismiss"}</button></div></aside>`;
+  return `<aside class="finding ${finding.doubt ? "doubt " : ""}${escapeHtml(state ?? "")}" data-finding="${escapeHtml(finding.id)}"><div class="note-meta"><strong>Agent</strong><span>#${escapeHtml(pull.number)} · <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(finding.path)}:${escapeHtml(finding.line)}</a></span><span>${state === "included" ? "in your review" : state === "dismissed" ? "dismissed" : finding.doubt ? "worth checking" : "proposal"}</span></div><p>${escapeHtml(finding.explanation)}</p><details><summary>Inspect the reasoning</summary><p><strong>Trigger:</strong> ${escapeHtml(finding.failureScenario)}</p>${proof}<p><strong>${finding.doubt ? "Still open" : "Countercheck"}:</strong> ${escapeHtml(finding.refutation)}</p><p><strong>Suggested direction:</strong> ${escapeHtml(finding.suggestion ?? "Inspect the affected contract before choosing a fix.")}</p></details><div class="note-actions"><button data-include-finding="${escapeHtml(finding.id)}" type="button">${state === "included" ? "Remove from review" : "Add to my review"}</button><button data-dismiss-finding="${escapeHtml(finding.id)}" type="button">${state === "dismissed" ? "Restore" : "Dismiss"}</button></div></aside>`;
+}
+
+export function coverageMarkup(review) {
+  const lines = review.pulls
+    .filter((pull) => pull.coverage && pull.coverage.hunks > 0)
+    .map((pull) => `#${escapeHtml(pull.number)}: the agent examined ${pull.coverage.hunks - pull.coverage.uncovered.length} of ${pull.coverage.hunks} changed hunks.`);
+  return lines.length ? `<p class="coverage">${lines.join("<br>")}</p>` : "";
 }
 
 export function setSourceLink(options) {

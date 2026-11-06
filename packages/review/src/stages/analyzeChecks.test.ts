@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import type { EngineRunOptions } from "@shadowclone/agents";
 import { collectReview } from "../collect";
 import { createGitFixture } from "../collect/gitFixture";
-import { engineRun } from "../engineFixture";
+import { coveredAnswer, engineRun, lensesOff } from "../engineFixture";
 import { analyzeStage } from "./analyze";
 import type { ChecksFile, PacketFile } from "./schemas";
 
@@ -77,14 +77,14 @@ test("the model starts before the checks finish, and a late diagnostic gets its 
 
     if (prompts.length === 1) {
       checks.finish(checksWith({ headSha: packet.context.facts.headSha, diagnostics: 1 }));
-      return engineRun({ structured: { findings: [], dropped: [] } });
+      return engineRun({ structured: coveredAnswer({ answer: { findings: [], dropped: [] }, prompt: run.prompt }) });
     }
 
     return engineRun({
-      structured: {
-        findings: [],
-        dropped: [{ id: "T1", reason: "The caller converts the number." }],
-      },
+      structured: coveredAnswer({
+        answer: { findings: [], dropped: [{ id: "T1", reason: "The caller converts the number." }] },
+        prompt: run.prompt,
+      }),
     });
   };
 
@@ -92,7 +92,7 @@ test("the model starts before the checks finish, and a late diagnostic gets its 
     packet,
     checks: checks.promise,
     checkout,
-    reviewModel: { runner, model: "m", effort: "high", network: false },
+    reviewModel: { runner, model: "m", effort: "high", network: false, lenses: lensesOff },
   });
 
   expect(prompts).toHaveLength(2);
@@ -108,14 +108,14 @@ test("checks that finish late with no new diagnostic need no correction round", 
   const runner = async (run: EngineRunOptions) => {
     prompts.push(run.prompt);
     checks.finish(checksWith({ headSha: packet.context.facts.headSha, diagnostics: 0 }));
-    return engineRun({ structured: { findings: [], dropped: [] } });
+    return engineRun({ structured: coveredAnswer({ answer: { findings: [], dropped: [] }, prompt: run.prompt }) });
   };
 
   const result = await analyzeStage({
     packet,
     checks: checks.promise,
     checkout,
-    reviewModel: { runner, model: "m", effort: "high", network: false },
+    reviewModel: { runner, model: "m", effort: "high", network: false, lenses: lensesOff },
   });
 
   expect([

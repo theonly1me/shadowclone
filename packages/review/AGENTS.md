@@ -17,8 +17,9 @@ The pull request review engine. It collects the diff and standards, runs rules a
 
 - `src/collect/`: pull request and branch facts, the diff, history, and the standards at the base commit.
 - `src/rules/` and `src/toolchain/`: built-in rules and the repository checks by language stack.
-- `src/stages/` and `src/analyze.ts`: `prepareStage`, `checksStage`, `analyzeStage`, and the model call.
-- `src/evidence/` and `src/dependencies/`: documentation quote checks and lockfile checks.
+- `src/stages/` and `src/analyze.ts`: `prepareStage`, `checksStage`, `analyzeStage`, the part review, the lens runs, and the model call.
+- `src/hunks.ts`, `coverage.ts`, and `lenses.ts`: the hunk ids of a part, the coverage check, and the four lenses with their triggers.
+- `src/evidence/` and `src/dependencies/`: quote checks for findings and rejections, and lockfile checks.
 - `src/local.ts`, `markdown.ts`, and `publish/`: `reviewLocally`, `reviewBranch`, `reviewMarkdown`, and `publishReview`.
 
 ## Rules
@@ -28,7 +29,10 @@ The pull request review engine. It collects the diff and standards, runs rules a
 - Toolchain checks get a fixed list of environment variables, with no token. JavaScript installs use `--ignore-scripts`. When pnpm or Yarn is missing, `toolchain/corepack.ts` runs them through Corepack. `toolchain/projects.ts` selects configured project folders. `toolchain/cache.ts` sets the shared 10 minute time budget.
 - `neutralizeText` redacts every posted text. It wraps mentions, cross-repository references, and GitHub thread links in code spans.
 - `publishReview` posts a `COMMENT` review only. It never approves and never requests changes.
-- `rank.ts` keeps 10 findings for each review part, and 25 at most. It keeps every high severity finding up to 25. `shards.ts` puts each changed file in exactly one part.
+- `rank.ts` keeps 10 findings for each review part, and 25 at most. It keeps every high severity finding up to 25. `shards.ts` puts each changed file in exactly one part of at most 40 KB, unless one file is larger.
+- Each hunk of a part needs a coverage entry. A missing entry gets one correction round, and a hunk that stays uncovered appears in `coverage.uncovered`.
+- A rejection holds only when each of its quotes matches the code, the diff, or a fetched page. Any other rejection, and each unresolved candidate, becomes `worthChecking`, at most 10.
+- Lens runs start after the part runs, one at a time, with at most one run for each lens. A lens runs only for changes that match its trigger, and only while the cost limit allows. Each run can spend the money that remains. The result names each failed lens run in `lensesSkipped`, and a failed lens run never fails the review. The dollar limit reaches only Claude runs.
 - A fetched documentation address must be public. `evidence/addresses.ts` refuses private, loopback, and metadata addresses.
 
 ## Tests

@@ -2,12 +2,12 @@ import { expect, test } from "bun:test";
 import type { EngineRunOptions } from "@shadowclone/agents";
 import { collectReview } from "../collect";
 import { createGitFixture } from "../collect/gitFixture";
-import { engineRun } from "../engineFixture";
+import { coveredAnswer, engineRun, lensesOff } from "../engineFixture";
 import type { Finding } from "../types";
 import { analyzeStage } from "./analyze";
 import type { PacketFile } from "./schemas";
 
-const linesPerFile = 2_000;
+const linesPerFile = 500;
 
 function sourceLine(line: number): string {
   return `export const value${line} = ${line};`;
@@ -82,7 +82,7 @@ function runnerFor(options: {
       ),
     );
 
-    return engineRun({ structured: { findings, dropped: [] } });
+    return engineRun({ structured: coveredAnswer({ answer: { findings, dropped: [] }, prompt: run.prompt }) });
   };
 }
 
@@ -91,6 +91,7 @@ const reviewModel = (runner: ReturnType<typeof runnerFor>) => ({
   model: "m",
   effort: "high" as const,
   network: false,
+  lenses: lensesOff,
 });
 
 test("a diff over the packet limit is reviewed in parts, and every changed file reaches exactly one reviewer", async () => {

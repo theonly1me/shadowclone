@@ -93,6 +93,24 @@ The CLI runs from the temporary directory of the runner, so the `bunfig.toml` an
 - The review does not use standards that exist only in local learning state.
 - Stack detection reads the repository root, so a monorepo without root manifests gets no toolchain checks.
 
+## Later change: review every hunk and keep doubts visible
+
+Twelve local reviews from 2 to 5 November 2026 covered PRs of 2 to 51 files and gave 2 findings in all. Each review ran in one part. Across 425 reviewer runs, the reviewer started about 1.4 refuter subagents for each run, whatever the PR size. The vite evaluation measured the same trade: 36% of the known defects found, and 91% of the findings real.
+
+The causes were in the design. One session reviewed up to 150 KB of diff. Nothing recorded what the reviewer examined, so an empty answer passed every check. A refuter could reject a candidate with no evidence, and the candidate left no record. The risk areas that cross files got one bullet each in the same pass.
+
+The review now works this way:
+
+- Parts are at most 40 KB.
+- The packet lists each changed hunk with an id. The answer gives each hunk a coverage entry, and code checks the list like the candidate ids.
+- A judge tests each candidate. A rejection must quote the code, the diff, or a page that makes the claim safe. Code checks that quote.
+- A candidate that the judge cannot decide, and a rejection whose quote fails, become worth checking. The local review, the GitHub review, and the guided review show them as doubts, not findings.
+- Lens runs search for authorization, transactions and concurrency, outside side effects, and compatibility. Code starts at most one run for each lens whose trigger matches the changed lines or paths. The runs go one at a time, and each can spend the money that remains. A local review has a $4 limit by default, and the cloud review runs no lens runs.
+
+Codex reads files only through shell commands, and the old guardrail forbade commands. So a Codex review saw only the packet and could confirm nothing. The guardrail now allows read-only commands when the host has no file-reading tool, and the Codex review profile stays read-only with the network off.
+
+The owner chose smaller parts, coverage, and lens runs, doubts on GitHub too, and up to 3 times the earlier cost. A quick blind evaluation on real pull requests checks the result. Claude and Codex each make the reviews, and the other judges them.
+
 ## Data handling
 
 A review sends the PR text, the diff, the standards, and the history to the model provider. It also sends rule hits, toolchain diagnostics, and the files that the agent reads. The dependency check sends package names and versions to the OSV API, and no code. Its web searches and the pages that it fetches go to the public web. The skill tells it to use only public names, such as a package and a version, in them. A local result stays in `~/.shadowclone/reviews/`. A cloud result passes between jobs as a workflow artifact that expires after one day. The clone posts its findings to the PR. Nothing from a review becomes learning input.

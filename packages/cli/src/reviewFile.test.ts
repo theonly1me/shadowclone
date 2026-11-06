@@ -37,6 +37,9 @@ const result: ReviewResult = {
   dropped: [],
   candidates: { dropped: [], undecided: [] },
   rejections: [],
+  worthChecking: [],
+  refuted: [],
+  coverage: { hunks: 1, uncovered: [] },
   statistics: {
     modelFindings: 1,
     droppedForEvidence: 0,
@@ -46,6 +49,8 @@ const result: ReviewResult = {
     durationMilliseconds: 40_000,
     costUsd: 0.42,
     parts: 1,
+    lensRuns: 0,
+    lensesSkipped: [],
   },
 };
 

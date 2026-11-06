@@ -2,6 +2,7 @@ export {
   analyzeReview,
   defaultCodexReviewModel,
   readReviewSkill,
+  type ReviewLensSetting,
   type ReviewModel,
 } from "./analyze";
 export { branchRepositoryName } from "./collect";

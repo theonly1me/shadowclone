@@ -1,4 +1,5 @@
 import { reasoningEfforts, type ReasoningEffort } from "@shadowclone/agents";
+import type { ReviewLensSetting } from "@shadowclone/review";
 
 export type ReviewTarget =
   | { readonly kind: "pull"; readonly number: number }
@@ -13,15 +14,32 @@ export type LocalReviewArguments = {
   readonly output: string | null;
   readonly model: string;
   readonly effort: ReasoningEffort | null;
+  readonly lenses: ReviewLensSetting;
 };
 
 export const defaultReviewModel = "claude-opus-5-5";
 
-export const reviewUsage =
-  "Use shadowclone review <pr-number> [--cloud] for a pull request, or shadowclone review [--base ref] for the current branch. Options: [--no-checks] [--offline] [--repo owner/repository] [--output file.md|file.json] [--model id] [--effort level].";
+export const defaultMaximumReviewCostUsd = 4;
 
-const valueFlags = ["--repo", "--output", "--model", "--effort", "--base"] as const;
-const switchFlags = ["--cloud", "--no-checks", "--offline"] as const;
+export const reviewUsage =
+  "Use shadowclone review <pr-number> [--cloud] for a pull request, or shadowclone review [--base ref] for the current branch. Options: [--no-checks] [--offline] [--no-lenses] [--max-cost usd] [--repo owner/repository] [--output file.md|file.json] [--model id] [--effort level].";
+
+const valueFlags = ["--repo", "--output", "--model", "--effort", "--base", "--max-cost"] as const;
+const switchFlags = ["--cloud", "--no-checks", "--offline", "--no-lenses"] as const;
+
+export function parseMaximumCost(text: string | undefined): number {
+  if (text === undefined) {
+    return defaultMaximumReviewCostUsd;
+  }
+
+  const value = Number(text);
+
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error("--max-cost takes a dollar amount above 0, for example --max-cost 6.");
+  }
+
+  return value;
+}
 
 function isReasoningEffort(value: string): value is ReasoningEffort {
   return reasoningEfforts.some((effort) => effort === value);
@@ -100,5 +118,8 @@ export function parseReviewArguments(arguments_: readonly string[]): LocalReview
     output: values.get("--output") ?? null,
     model: values.get("--model") ?? defaultReviewModel,
     effort,
+    lenses: switches.has("--no-lenses")
+      ? { enabled: false }
+      : { enabled: true, maxCostUsd: parseMaximumCost(values.get("--max-cost")) },
   };
 }

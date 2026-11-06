@@ -56,10 +56,13 @@ function modelFinding(line: number): Finding {
 function resultFor(options: { readonly hits: readonly RuleHit[]; readonly findings: readonly Finding[] }) {
   return reviewResult({
     packet: packet(options.hits),
-    analysis: { findings: [...options.findings], dropped: [] },
+    modelFindings: options.findings.length,
     gate: { kept: options.findings, dropped: [] },
     dispositions: { problems: [], dropped: [], undecided: [] },
     candidates: [],
+    judged: { refuted: [], worthChecking: [] },
+    coverage: { hunks: 0, uncovered: [] },
+    lenses: { runs: 0, skipped: [] },
     model: "m",
     costUsd: null,
     correctionRound: "none",

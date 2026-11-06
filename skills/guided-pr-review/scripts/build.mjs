@@ -20,11 +20,25 @@ try {
     )
       throw new Error("The local findings do not match the pinned PR.");
     const result = pulls.find((entry) => entry.id === pull.id);
-    result.findings = (review?.findings ?? []).map((finding, index) => ({
-      ...finding,
-      id: pull.id + "-finding-" + index,
+    const doubts = (review?.worthChecking ?? []).map((doubt, index) => ({
+      ...doubt,
+      id: pull.id + "-doubt-" + index,
       pr: pull.id,
+      doubt: true,
+      explanation: doubt.failureScenario,
+      evidence: [],
+      refutation: doubt.reason,
+      suggestion: null,
     }));
+    result.findings = [
+      ...(review?.findings ?? []).map((finding, index) => ({
+        ...finding,
+        id: pull.id + "-finding-" + index,
+        pr: pull.id,
+      })),
+      ...doubts,
+    ];
+    result.coverage = review?.coverage ?? null;
     result.skippedPaths = review?.skippedPaths ?? [];
   }
   const evidence = input.evidence.map((item) => {

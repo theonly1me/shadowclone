@@ -8,6 +8,10 @@ import { seedSkillsDirectory } from "@shadowclone/core";
 
 export const defaultCodexReviewModel = "gpt-6.1-sol";
 
+export type ReviewLensSetting =
+  | { readonly enabled: false }
+  | { readonly enabled: true; readonly maxCostUsd: number | null };
+
 export type ReviewModel = {
   readonly runner: EngineRunner;
   readonly engine?: "claude" | "codex" | "cursor";
@@ -15,6 +19,7 @@ export type ReviewModel = {
   readonly baseUrl?: string;
   readonly effort: ReasoningEffort | null;
   readonly network: boolean;
+  readonly lenses: ReviewLensSetting;
 };
 
 export type AnalysisRun = {
@@ -37,8 +42,11 @@ export async function analyzeReview(options: {
   readonly reviewModel: ReviewModel;
   readonly checkout: string;
   readonly prompt: string;
+  readonly maxBudgetUsd: number | null;
 }): Promise<AnalysisRun> {
+  const enforcesBudget = options.reviewModel.engine === undefined || options.reviewModel.engine === "claude";
   const run = await options.reviewModel.runner({
+    ...(options.maxBudgetUsd !== null && enforcesBudget ? { maxBudgetUsd: options.maxBudgetUsd } : {}),
     prompt: options.prompt,
     cwd: options.checkout,
     execution: { purpose: "review", network: options.reviewModel.network },

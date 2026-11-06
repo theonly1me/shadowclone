@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { parseReviewArguments, reviewUsage } from "./reviewArguments";
 
-test("a pull request number alone runs a local review with checks", () => {
+test("a pull request number alone runs a local review with checks and lens runs under the default cost limit", () => {
   expect(parseReviewArguments(["42"])).toEqual({
     target: { kind: "pull", number: 42 },
     repository: null,
@@ -11,6 +11,7 @@ test("a pull request number alone runs a local review with checks", () => {
     output: null,
     model: "claude-opus-5-5",
     effort: null,
+    lenses: { enabled: true, maxCostUsd: 4 },
   });
 });
 
@@ -37,4 +38,10 @@ test("--base with a pull request number, or a base that looks like a flag, shows
 
 test("a cloud review without a pull request number is refused", () => {
   expect(() => parseReviewArguments(["--cloud"])).toThrow("needs a pull request number");
+});
+
+test("--no-lenses turns lens runs off, --max-cost sets the limit, and a limit of 0 is refused", () => {
+  expect(parseReviewArguments(["42", "--no-lenses"]).lenses).toEqual({ enabled: false });
+  expect(parseReviewArguments(["42", "--max-cost", "6.5"]).lenses).toEqual({ enabled: true, maxCostUsd: 6.5 });
+  expect(() => parseReviewArguments(["42", "--max-cost", "0"])).toThrow("--max-cost takes a dollar amount above 0");
 });

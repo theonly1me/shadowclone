@@ -70,9 +70,12 @@ Use these fields:
 }
 ```
 
-Local reviewer JSON contains pull.repository, pull.baseSha, pull.headSha, findings, and skippedPaths.
+Local reviewer JSON contains pull.repository, pull.baseSha, pull.headSha, findings, worthChecking, coverage, and skippedPaths.
 The stock CLI produces those fields. A host-agent review records the same pins and its actual investigation output.
 Findings retain the stock path, line, severity, explanation, failureScenario, evidence, suggestion, and refutation fields.
+A worthChecking item is a candidate that the reviewer could neither confirm nor refute with quoted code.
+The guide shows it behind the reveal with the label "worth checking", and the human can add it or dismiss it.
+The findings panel states how many changed hunks the reviewer examined.
 Do not copy benchmark findings into another PR. Do not rewrite their claims while building the document.
 
 CI entries use name and conclusion. They become short status counts, not a badge wall.

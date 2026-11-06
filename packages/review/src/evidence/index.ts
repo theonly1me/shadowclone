@@ -4,6 +4,7 @@ import { checkEvidence, findingLocationExists, readHeadLines, type EvidenceSourc
 
 export type { EvidenceSources } from "./verify";
 export { fetchPageText } from "./fetchPage";
+export { judgeCandidates, type JudgedCandidates } from "./refutations";
 
 export type DroppedFinding = {
   readonly title: string;
