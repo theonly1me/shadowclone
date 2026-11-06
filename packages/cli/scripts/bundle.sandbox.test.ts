@@ -35,7 +35,9 @@ test("the relocated CLI keeps the sandbox runtime external and finds its native 
     expect(text).toContain("@anthropic-ai/sandbox-runtime");
     expect(text).not.toContain(sdk);
     const manifest = publishedManifest({ cliManifest, product });
-    expect(manifest.dependencies["@anthropic-ai/sandbox-runtime"]).toBe("0.0.79");
+    const pinned = cliManifest.dependencies["@anthropic-ai/sandbox-runtime"];
+    expect(pinned).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(manifest.dependencies["@anthropic-ai/sandbox-runtime"]).toBe(pinned);
     const cli = path.join(installed, "cli.js");
     await Bun.write(cli, bundle);
     const run = Bun.spawn([process.execPath, cli, workspace], { stdout: "pipe", stderr: "pipe" });
