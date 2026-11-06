@@ -107,6 +107,8 @@ The review now works this way:
 - A candidate that the judge cannot decide, and a rejection whose quote fails, become worth checking. The local review, the GitHub review, and the guided review show them as doubts, not findings.
 - Lens runs search for authorization, transactions and concurrency, outside side effects, and compatibility. Code starts at most one run for each lens whose trigger matches the changed lines or paths. The runs go one at a time, and each can spend the money that remains. A local review has a $4 limit by default, and the cloud review runs no lens runs.
 
+Codex reads files only through shell commands, and the old guardrail forbade commands. So a Codex review saw only the packet and could confirm nothing. The guardrail now allows read-only commands when the host has no file-reading tool, and the Codex review profile stays read-only with the network off.
+
 The owner chose smaller parts, coverage, and lens runs, doubts on GitHub too, and up to 3 times the earlier cost. A quick blind evaluation on real pull requests checks the result. Claude and Codex each make the reviews, and the other judges them.
 
 ## Data handling
