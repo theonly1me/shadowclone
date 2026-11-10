@@ -31,7 +31,7 @@ async function readLive(options: {
     : { value: [dataLabel, ...liveDetailLines(record)].join("\n"), board: liveBoardDetail(record) };
 }
 
-type LiveSection = Pick<BoardList, "live" | "sessions" | "pairs"> & {
+type LiveSection = Pick<BoardList, "live" | "sessions" | "pairs" | "ended"> & {
   readonly lines: readonly string[];
 };
 
@@ -46,8 +46,9 @@ async function liveSection(live?: LiveSessions): Promise<LiveSection> {
       ...(pairs.length === 0 ? [] : ["Pairs:", ...livePairLines(pairs)]),
     ],
     live: enabled ? "on" : "off",
-    sessions: records.map(liveBoardSession),
+    sessions: records.filter((record) => record.state !== "ended").map(liveBoardSession),
     pairs: pairs.map(liveBoardPair),
+    ended: records.filter((record) => record.state === "ended").length,
   };
 }
 
@@ -96,6 +97,7 @@ export async function readSessions(options: {
       live: live.live,
       sessions: live.sessions,
       pairs: live.pairs,
+      ended: live.ended,
       clones: clones.length,
     },
   };

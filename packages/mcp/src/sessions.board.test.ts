@@ -16,13 +16,15 @@ async function structuredOf(options: {
     : undefined;
 }
 
+const endedRecord = { ...idleRecord, id: "live-99999999", state: "ended" } as const;
+
 const tools = createSessionsTools({
   node: fakeClones([sampleClone]),
-  live: fakeLive([idleRecord, waitingRecord]),
+  live: fakeLive([idleRecord, waitingRecord, endedRecord]),
 });
 
 describe("the session tools give the board typed rows beside the text", () => {
-  test("list gives each live session, the pairs, and the clone count", async () => {
+  test("list gives each open live session, the pairs, the ended count, and the clone count", async () => {
     expect(await structuredOf({ tools, arguments: { operation: "list" } })).toEqual({
       kind: "list",
       live: "on",
@@ -55,6 +57,7 @@ describe("the session tools give the board typed rows beside the text", () => {
           createdAt: "2026-10-18T11:10:00Z",
         },
       ],
+      ended: 1,
       clones: 1,
     });
   });
@@ -108,6 +111,7 @@ describe("the session tools give the board typed rows beside the text", () => {
       live: "off",
       sessions: [],
       pairs: [],
+      ended: 0,
       clones: 0,
     });
   });

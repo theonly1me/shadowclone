@@ -39,6 +39,7 @@ export const boardListSchema = z.strictObject({
   live: z.enum(["on", "off"]),
   sessions: z.array(boardSessionSchema),
   pairs: z.array(boardPairSchema),
+  ended: z.number().int().nonnegative(),
   clones: z.number().int().nonnegative(),
 });
 

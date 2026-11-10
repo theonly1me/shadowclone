@@ -19,7 +19,8 @@ Serves the clone tools over Streamable HTTP with its own OAuth authorization ser
 - `src/serve.ts`: `serveHub`, the loopback server and its lock.
 - `src/http/`: the MCP endpoint, the OAuth metadata, registration, the consent page, and the token endpoint.
 - `src/store/`: the SQLite store for settings, clients, pairing codes, consents, grants, and token hashes.
-- `src/fleet/`: node links and the routing of the clone tools across nodes. It also owns the node link client, the link file, and the forwarding tools of a node.
+- `src/fleet/`: node links and the routing of the clone tools across nodes. It also owns the node link client, the link file, and the forwarding tools of a node. `src/fleet/board.ts` merges the board rows of each node.
+- `src/board/schema.ts`: the browser-safe schema of the merged board.
 - `src/notify/`: the session watch and the ntfy pushes.
 - `src/expose.ts`: Tailscale Funnel or serve, and the public URL.
 - `src/admin.ts`: the text of the `hub pair`, `clients`, `lock`, `allow`, and `status` commands.
@@ -38,6 +39,7 @@ Serves the clone tools over Streamable HTTP with its own OAuth authorization ser
 - A node opens the link. The hub never connects to a node.
 - A push has no question text or repository unless the owner turns text on. Each event pushes once, and the first scan pushes nothing. A failed push is tried again at each scan while its state lasts, at most `pushAttempts` times.
 - Each machine answers for its own live sessions. A `live-` id goes to the machine that has it.
+- A `shadowclone_sessions` list keeps the text of each node, and adds the merged board as `structuredContent`. Each row names its node. An offline node, a node that answers with text only, and a node that fails each get their own entry.
 - When the hub does not answer, the forwarding tools of a node act only on that node. A `start` with no node or with another node runs nothing.
 
 ## Tests
