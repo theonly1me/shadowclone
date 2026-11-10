@@ -1,6 +1,8 @@
 export { livePaths, type LivePaths } from "./paths";
 
-export { liveIdPattern, pairIdPattern, type LiveEngine, type LiveRecord } from "./record";
+export { liveIdPattern, pairIdPattern } from "./board";
+
+export type { LiveEngine, LiveRecord } from "./record";
 
 export { handleLiveHook, runLiveHook } from "./hook";
 
@@ -20,6 +22,8 @@ export type {
 } from "./pairing";
 
 export { terminalTyper } from "./terminal";
+
+export { liveBoardDetail, liveBoardPair, liveBoardSession } from "./boardRows";
 
 export {
   liveDetailLines,

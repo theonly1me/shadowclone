@@ -3,7 +3,8 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { z } from "zod";
 import type { LivePaths } from "./paths";
-import { liveIdPattern, liveRecordSchema, pairIdPattern, type LiveRecord } from "./record";
+import { liveIdPattern, pairIdPattern } from "./board";
+import { liveRecordSchema, type LiveRecord } from "./record";
 
 const endedKeepMilliseconds = 86_400_000;
 

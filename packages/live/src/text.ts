@@ -8,7 +8,7 @@ import { pairNoteLimit } from "./pairs";
 import type { LiveRecord } from "./record";
 import type { LiveSendOutcome } from "./sessions";
 
-function firstLine(text: string): string {
+export function firstLine(text: string): string {
   const line = text.split("\n").find((entry) => entry.trim() !== "") ?? "";
 
   return line.length > 120 ? `${line.slice(0, 119)}…` : line;

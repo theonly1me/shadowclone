@@ -9,7 +9,7 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - Package name: `@shadowclone/live`
 - Workspace dependencies: `@shadowclone/core`, `@shadowclone/redact`
 - External dependencies: `zod`
-- Export subpaths: `.`
+- Export subpaths: `.`, `./board`
 
 <!-- package-facts:end -->
 
@@ -27,6 +27,8 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - `src/typing.ts`: `typeInbox`, which types the waiting messages and keeps them if the terminal refuses.
 - `src/install.ts`: the hook entries in `~/.claude/settings.json` and `~/.codex/hooks.json`.
 - `src/consent.ts`: `liveSessionsEnabled` and `switchLiveSessions`.
+- `src/board.ts`: the `./board` subpath. It holds the browser-safe schemas of the board rows, the pairs, and one session.
+- `src/boardRows.ts`: `liveBoardSession`, `liveBoardPair`, and `liveBoardDetail`, which build those rows from a record.
 
 ## Rules
 
@@ -41,6 +43,7 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - Prefer a tmux pane over a cmux surface, because tmux can run inside cmux.
 - Keep the owner's own hooks. Find shadowclone's hooks by the `live hook` text in their command.
 - A hook never fails the agent. An error gives no output.
+- `src/board.ts` imports only `zod`, because the board view in the browser loads it. A board row carries only the fields that the list text line sends.
 
 ## Tests
 

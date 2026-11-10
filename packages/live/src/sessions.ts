@@ -9,6 +9,7 @@ import type { TypeText } from "./terminal";
 export type LiveSendOutcome = LiveDelivery | { readonly kind: "refused"; readonly reason: string };
 
 export type LiveSessions = LivePairing & {
+  readonly enabled: () => Promise<boolean>;
   readonly list: () => Promise<readonly LiveRecord[]>;
   readonly get: (id: string) => Promise<LiveRecord | null>;
   readonly send: (options: {
@@ -28,6 +29,7 @@ export function localLive(options: {
 
   return {
     ...localPairing({ ...options, now }),
+    enabled: options.enabled,
     list: async () => ((await options.enabled()) ? listRecords({ paths, now: now() }) : []),
     get: async (id) => ((await options.enabled()) ? readRecord({ paths, id }) : null),
     send: async ({ id, text }) => {
