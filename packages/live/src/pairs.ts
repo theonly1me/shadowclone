@@ -2,7 +2,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { z } from "zod";
 import type { LivePaths } from "./paths";
-import { liveIdPattern, pairIdPattern } from "./record";
+import { liveIdPattern, pairIdPattern } from "./board";
 import { readRecord } from "./store";
 
 export const pairNoteLimit = 20;

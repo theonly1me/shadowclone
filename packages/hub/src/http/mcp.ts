@@ -1,6 +1,12 @@
 import { resourceMetadataUrl } from "./metadata";
 import { bearerToken, jsonResponse, parseJson } from "./responses";
-import { answerRequest, messageSchema, protocolVersions, type RpcTools } from "./rpc";
+import {
+  answerRequest,
+  messageSchema,
+  protocolVersions,
+  type RpcResources,
+  type RpcTools,
+} from "./rpc";
 import type { HubStore } from "../store";
 
 const maximumBody = 262_144;
@@ -35,6 +41,7 @@ export async function mcpEndpoint(options: {
   readonly store: HubStore;
   readonly issuer: string;
   readonly tools: RpcTools;
+  readonly resources: RpcResources;
 }): Promise<Response> {
   const { request, issuer } = options;
   const origin = request.headers.get("Origin");
@@ -81,6 +88,7 @@ export async function mcpEndpoint(options: {
       method: message.method,
       params: message.params,
       tools: options.tools,
+      resources: options.resources,
     }),
   });
 }

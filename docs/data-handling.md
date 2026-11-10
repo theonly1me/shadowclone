@@ -160,7 +160,7 @@ A machine that joins a hub writes `~/.shadowclone/hub/link.json` (mode 0600) wit
 
 `shadowclone live enable` sets `remote.live-sessions` in `config.toml` and adds hooks to `~/.claude/settings.json` and `~/.codex/hooks.json`. It keeps your own hooks. The hooks write one file for each session in `~/.shadowclone/live/` (mode 0700, files 0600). The summary is the last assistant message through `redactSecrets`, at most 2 KB. A permission prompt adds its redacted notification text.
 
-The hub and joined machines send the list and the summaries to each approved client. A message that you send waits in `live-<id>.inbox.jsonl` until a hook delivers it. For an idle session, shadowclone types it into the tmux pane or cmux surface instead. A finished session record stays for 1 day. `live disable` removes the hooks and the folder.
+The hub and joined machines send the list and the summaries to each approved client. The hub also sends them as typed rows for the session board, with the same fields as the text. The board view runs in the sandbox of the client host and has no network access. A message that you send waits in `live-<id>.inbox.jsonl` until a hook delivers it. For an idle session, shadowclone types it into the tmux pane or cmux surface instead. A finished session record stays for 1 day. `live disable` removes the hooks and the folder.
 
 `shadowclone live briefs enable` sets `remote.task-briefs`. It refuses while live sessions are off. A managed policy keeps it off unless the policy allows live sessions and model generation. With the flag on, the hook writes `live-<id>.task.json` (mode 0600) with the first and the latest prompt of the session. Each prompt passes through `redactSecrets` and has at most 2 KB. A prompt from a subagent stays out.
 

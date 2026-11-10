@@ -2,7 +2,8 @@ import { z } from "zod";
 import { fingerprint } from "@shadowclone/core";
 import { liveFile, readJsonFile, writePrivateJson } from "./files";
 import type { LivePaths } from "./paths";
-import { liveIdPattern, type LiveRecord } from "./record";
+import { liveIdPattern } from "./board";
+import type { LiveRecord } from "./record";
 
 export const liveBriefKinds = ["question", "finished", "blocked"] as const;
 

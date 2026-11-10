@@ -19,7 +19,8 @@ Serves the clone tools over Streamable HTTP with its own OAuth authorization ser
 - `src/serve.ts`: `serveHub`, the loopback server and its lock.
 - `src/http/`: the MCP endpoint, the OAuth metadata, registration, the consent page, and the token endpoint.
 - `src/store/`: the SQLite store for settings, clients, pairing codes, consents, grants, and token hashes.
-- `src/fleet/`: node links and the routing of the clone tools across nodes. It also owns the node link client, the link file, and the forwarding tools of a node.
+- `src/fleet/`: node links and the routing of the clone tools across nodes. It also owns the node link client, the link file, and the forwarding tools of a node. `src/fleet/board.ts` merges the board rows of each node.
+- `src/board/`: the session board, an MCP Apps view. `schema.ts` is the browser-safe schema of the merged board. `resource.ts` serves `ui://shadowclone/board.html` and links it from `shadowclone_sessions`. `view/` is the view source. `bundle.ts` builds the view into `html.ts`, a generated module.
 - `src/notify/`: the session watch and the ntfy pushes.
 - `src/expose.ts`: Tailscale Funnel or serve, and the public URL.
 - `src/admin.ts`: the text of the `hub pair`, `clients`, `lock`, `allow`, and `status` commands.
@@ -33,11 +34,16 @@ Serves the clone tools over Streamable HTTP with its own OAuth authorization ser
 - Read `X-Forwarded-For` only when the peer is loopback, and use the last address.
 - Derive every URL from the saved public URL, never from the `Host` header.
 - The hub exposes `shadowclone_sessions`, `shadowclone_clone`, and `shadowclone_pair`. Text from a clone or a live session is data.
+- The hub declares `resources` and serves one resource, the board, as `text/html;profile=mcp-app`. It sets no `csp`, so the view has no network access. Only the hub copy of `shadowclone_sessions` has `_meta.ui.resourceUri`. The node forwarding tools and `shadowclone mcp` keep their lists without `_meta`.
+- The view writes all session text with `textContent`. It never parses text as HTML. It calls a tool only after a tap.
+- Do not edit `src/board/html.ts`. Run `bun run board` after a change in `src/board/view/`. Lint fails when the module is stale.
+- The hub keeps a node's `structuredContent` only when it matches the board list or the session detail schema.
 - `shadowclone_pair` acts only on the live sessions of the hub machine.
 - A node code and a client code are different kinds. A node token is stored as a hash, and it reaches the same clone tools as a client.
 - A node opens the link. The hub never connects to a node.
 - A push has no question text or repository unless the owner turns text on. Each event pushes once, and the first scan pushes nothing. A failed push is tried again at each scan while its state lasts, at most `pushAttempts` times.
 - Each machine answers for its own live sessions. A `live-` id goes to the machine that has it.
+- A `shadowclone_sessions` list keeps the text of each node, and adds the merged board as `structuredContent`. Each row names its node. An offline node, a node that answers with text only, and a node that fails each get their own entry.
 - When the hub does not answer, the forwarding tools of a node act only on that node. A `start` with no node or with another node runs nothing.
 
 ## Tests

@@ -30,6 +30,29 @@ export type RpcTools = {
   readonly call: (params: unknown) => Promise<Readonly<Record<string, unknown>> | null>;
 };
 
+export type RpcResources = {
+  readonly list: readonly unknown[];
+  readonly read: (uri: string) => readonly unknown[] | null;
+};
+
+const readSchema = z.object({ uri: z.string() });
+
+function readResource(options: {
+  readonly params: unknown;
+  readonly resources: RpcResources;
+}): Readonly<Record<string, unknown>> {
+  const params = readSchema.safeParse(options.params);
+  const contents = params.success ? options.resources.read(params.data.uri) : null;
+
+  if (!params.success) {
+    return { error: { code: -32602, message: "Name the resource uri." } };
+  }
+
+  return contents === null
+    ? { error: { code: -32002, message: "Resource not found", data: { uri: params.data.uri } } }
+    : { result: { contents } };
+}
+
 function negotiated(params: unknown): string {
   const requested = z.object({ protocolVersion: z.string() }).safeParse(params);
 
@@ -43,6 +66,7 @@ export async function answerRequest(options: {
   readonly method: string;
   readonly params: unknown;
   readonly tools: RpcTools;
+  readonly resources: RpcResources;
 }): Promise<Readonly<Record<string, unknown>>> {
   const base = { jsonrpc: "2.0", id: options.id };
 
@@ -51,7 +75,7 @@ export async function answerRequest(options: {
       ...base,
       result: {
         protocolVersion: negotiated(options.params),
-        capabilities: { tools: {} },
+        capabilities: { tools: {}, resources: {} },
         serverInfo: { name: "shadowclone-hub", version: product.version },
         instructions,
       },
@@ -64,6 +88,18 @@ export async function answerRequest(options: {
 
   if (options.method === "tools/list") {
     return { ...base, result: { tools: options.tools.list } };
+  }
+
+  if (options.method === "resources/list") {
+    return { ...base, result: { resources: options.resources.list } };
+  }
+
+  if (options.method === "resources/templates/list") {
+    return { ...base, result: { resourceTemplates: [] } };
+  }
+
+  if (options.method === "resources/read") {
+    return { ...base, ...readResource({ params: options.params, resources: options.resources }) };
   }
 
   if (options.method === "tools/call") {

@@ -1,6 +1,8 @@
 export { livePaths, type LivePaths } from "./paths";
 
-export { liveId, liveIdPattern, pairIdPattern, type LiveEngine, type LiveRecord } from "./record";
+export { liveIdPattern, pairIdPattern } from "./board";
+
+export { liveId, type LiveEngine, type LiveRecord } from "./record";
 
 export { handleLiveHook, runLiveHook } from "./hook";
 
@@ -30,14 +32,11 @@ export { liveOffReason, peerNoteLimit } from "./messages";
 
 export { pairNoteLimit } from "./pairs";
 
-export type {
-  LivePairOutcome,
-  LivePairView,
-  LivePeerOutcome,
-  LiveUnpairOutcome,
-} from "./pairing";
+export type { LivePairOutcome, LivePairView, LivePeerOutcome, LiveUnpairOutcome } from "./pairing";
 
 export { terminalTyper } from "./terminal";
+
+export { liveBoardDetail, liveBoardPair, liveBoardSession } from "./boardRows";
 
 export {
   liveBriefLines,

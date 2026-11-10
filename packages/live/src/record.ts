@@ -1,15 +1,8 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
-
-export const liveIdPattern = /^live-[0-9a-f]{8}$/;
-
-export const pairIdPattern = /^pair-[0-9a-f]{8}$/;
-
-export const liveEngines = ["claude", "codex"] as const;
+import { liveEngines, liveIdPattern, liveStates } from "./board";
 
 export type LiveEngine = (typeof liveEngines)[number];
-
-export const liveStates = ["working", "idle", "needs-you", "ended"] as const;
 
 const surfaceSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("cmux"), surface: z.string().min(1), socket: z.string().nullable() }),

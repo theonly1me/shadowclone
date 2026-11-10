@@ -2,7 +2,7 @@ import { z } from "zod";
 import { liveFile, readJsonFile, writePrivateJson } from "./files";
 import { boundedText } from "./messages";
 import type { LivePaths } from "./paths";
-import { liveIdPattern } from "./record";
+import { liveIdPattern } from "./board";
 
 export const promptLimit = 2048;
 
