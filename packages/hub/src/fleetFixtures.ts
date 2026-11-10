@@ -63,9 +63,13 @@ export function fakeLive(records: readonly LiveRecord[]): LiveSessions {
   };
 }
 
-export function attachTextNode(options: { readonly hub: TestHub; readonly name: string }): void {
+export function attachTextNode(options: {
+  readonly hub: TestHub;
+  readonly name: string;
+  readonly result?: unknown;
+}): void {
   const { hub, name } = options;
-  const result = {
+  const result = options.result ?? {
     content: [{ type: "text", text: "No clones on this machine." }],
     isError: false,
   };

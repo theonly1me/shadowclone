@@ -6,7 +6,7 @@ import { createSessionsTools, sessionsTools } from "@shadowclone/mcp";
 import type { HubStore } from "../store";
 import { nodeNamePattern } from "../store/nodes";
 import type { NodeLinks } from "./links";
-import { answerText, fleetBoard, type NodeAnswer } from "./board";
+import { answerText, fleetBoard, withKnownBoard, type NodeAnswer } from "./board";
 import { textResult, toolResultSchema, type ToolResult } from "./protocol";
 
 const nodeProperty = {
@@ -55,7 +55,9 @@ async function runOn(options: {
     }).run(params);
     const parsed = toolResultSchema.safeParse(result);
 
-    return parsed.success ? parsed.data : textResult({ value: "Unknown tool.", isError: true });
+    return parsed.success
+      ? withKnownBoard(parsed.data)
+      : textResult({ value: "Unknown tool.", isError: true });
   }
 
   try {
@@ -64,7 +66,7 @@ async function runOn(options: {
     );
 
     return parsed.success
-      ? parsed.data
+      ? withKnownBoard(parsed.data)
       : textResult({
           value: `Node ${node} sent an answer that the hub cannot read.`,
           isError: true,

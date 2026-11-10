@@ -3,6 +3,7 @@ import type { LiveSessions } from "@shadowclone/live";
 import { createPairTool, pairTool } from "@shadowclone/mcp";
 import type { HubStore } from "./store";
 import { issuerOf } from "./store/settings";
+import { boardResources, withBoardView } from "./board/resource";
 import { fleetTools } from "./fleet/tools";
 import type { NodeLinks } from "./fleet/links";
 import { answerAuthorization, authorizationPage } from "./http/authorize";
@@ -47,7 +48,7 @@ export function createHub(options: {
   });
   const pairing = createPairTool(options.live === undefined ? {} : { live: options.live });
   const tools = {
-    list: [...fleet.list, pairTool],
+    list: [...withBoardView(fleet.list), pairTool],
     call: async (params: unknown) => (await pairing.run(params)) ?? fleet.call(params),
   };
   const routes: Readonly<Record<string, Route>> = {
@@ -61,7 +62,8 @@ export function createHub(options: {
     "POST /authorize": ({ request, issuer }) =>
       answerAuthorization({ request, store, issuer, log }),
     "POST /token": ({ request }) => tokenEndpoint({ request, store }),
-    "POST /mcp": ({ request, issuer }) => mcpEndpoint({ request, store, issuer, tools }),
+    "POST /mcp": ({ request, issuer }) =>
+      mcpEndpoint({ request, store, issuer, tools, resources: boardResources }),
     "POST /nodes/pair": ({ request }) => pairNode({ request, store, hostName, log }),
     "GET /nodes/link": ({ request, upgrade }) =>
       linkNode({ request, store, ...(upgrade === undefined ? {} : { upgrade }) }),

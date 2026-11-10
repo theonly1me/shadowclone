@@ -1,4 +1,4 @@
-import { boardListSchema } from "@shadowclone/live/board";
+import { boardDetailSchema, boardListSchema } from "@shadowclone/live/board";
 import type { FleetBoard, FleetNode, FleetPair, FleetSession } from "../board/schema";
 import type { ToolResult } from "./protocol";
 
@@ -77,4 +77,16 @@ export function answerText(answer: NodeAnswer): string {
   return answer.kind === "offline"
     ? `Node ${answer.name}: offline, last seen ${answer.lastSeenAt ?? "never"}.`
     : `Node ${answer.name}:\n${resultText(answer.result)}`;
+}
+
+export function withKnownBoard(result: ToolResult): ToolResult {
+  const { structuredContent, ...rest } = result;
+  const list = boardListSchema.safeParse(structuredContent);
+  const detail = boardDetailSchema.safeParse(structuredContent);
+
+  if (list.success) {
+    return { ...rest, structuredContent: list.data };
+  }
+
+  return detail.success ? { ...rest, structuredContent: detail.data } : rest;
 }
