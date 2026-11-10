@@ -17,7 +17,9 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 
 - `src/hook.ts`: `handleLiveHook` and `runLiveHook`, which write the session file for each hook event.
 - `src/hookChange.ts`: the state change and the output for each hook event.
-- `src/store.ts`: the session files, the inbox, and the `pending` marker.
+- `src/store.ts`: the session records, the inbox, and the `pending` marker.
+- `src/files.ts`: the file names of a session, the private JSON writes, and the removal of session files.
+- `src/task.ts`: `recordPrompt` and `readTask`, the first and latest prompt of a session in `live-<id>.task.json`.
 - `src/sessions.ts`: `localLive`, the `list`, `get`, and `send` operations.
 - `src/delivery.ts`: `deliver`, which queues one inbox message or types it into an idle terminal.
 - `src/pairs.ts`: `pairs.json`, the key hashes, and `activePairs`, which drops a pair when either session ended.
@@ -26,12 +28,15 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - `src/terminal.ts`: typing into a tmux pane or a cmux surface.
 - `src/typing.ts`: `typeInbox`, which types the waiting messages and keeps them if the terminal refuses.
 - `src/install.ts`: the hook entries in `~/.claude/settings.json` and `~/.codex/hooks.json`.
-- `src/consent.ts`: `liveSessionsEnabled` and `switchLiveSessions`.
+- `src/consent.ts`: `liveConsent`, `liveSessionsEnabled`, `switchLiveSessions`, and `switchTaskBriefs`.
 
 ## Rules
 
 - Do nothing unless `remote.live-sessions` is on in the effective config.
-- Store only the repository, the branch, the folder name, the state, the times, the terminal, and the redacted last message. Never store a prompt, a tool input or output, or thinking.
+- Store only the repository, the branch, the folder name, the state, the times, the terminal, and the redacted last message. Never store a tool input or output, or thinking.
+- Store a prompt only while `remote.task-briefs` is on in the effective config. The CLI then gives the hook a `taskBriefs` writer. Keep only the first and the latest prompt, each through `boundedText` at `promptLimit`. Never store a prompt from a subagent (an input with `agent_id`).
+- Start the brief writer only after a `Stop` that leaves the session idle. Never import `agents` or `briefs`. The CLI injects the writer.
+- `live briefs disable` and `live disable` delete every task and brief file. An ended session loses them with its record.
 - Bound the summary to 2 KB after `redactSecrets`.
 - Deliver each queued message once. Never type into a session that waits for a permission answer.
 - Pair sessions only when the owner asks, through the CLI or the hub. Keep only the SHA-256 hash of each key. A session is in one pair at a time.

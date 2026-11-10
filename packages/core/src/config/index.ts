@@ -12,6 +12,9 @@ import {
   type ShadowcloneConfig,
   type SourceId,
 } from "./schema";
+import { renderRemote } from "./remote";
+
+export type { RemoteSettings } from "./remote";
 
 export {
   defaultConfig,
@@ -81,7 +84,7 @@ export function renderConfig(config: ShadowcloneConfig): string {
     distillation: config.distillation,
     ...(config.remote === undefined
       ? {}
-      : { remote: { "live-sessions": config.remote.liveSessions } }),
+      : { remote: renderRemote(config.remote) }),
   };
 
   return toml.stringify(document);
@@ -114,7 +117,26 @@ export function setLiveSessionsEnabled(options: {
   readonly config: ShadowcloneConfig;
   readonly enabled: boolean;
 }): ShadowcloneConfig {
-  return { ...options.config, remote: { liveSessions: options.enabled } };
+  return {
+    ...options.config,
+    remote: {
+      liveSessions: options.enabled,
+      taskBriefs: options.enabled && options.config.remote?.taskBriefs === true,
+    },
+  };
+}
+
+export function setTaskBriefsEnabled(options: {
+  readonly config: ShadowcloneConfig;
+  readonly enabled: boolean;
+}): ShadowcloneConfig {
+  return {
+    ...options.config,
+    remote: {
+      liveSessions: options.config.remote?.liveSessions === true,
+      taskBriefs: options.enabled,
+    },
+  };
 }
 
 export function setDeepEnabled(options: {

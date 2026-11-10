@@ -28,6 +28,7 @@ The base of every package. It holds the product identity, project paths, configu
 - This package has no workspace dependency. The boundary check enforces this.
 - Every source in `defaultConfig` is `false`. A new source needs its own flag and an entry in `docs/data-handling.md`.
 - `applyManagedPolicy` can only turn a setting off. A managed policy never widens the user config.
+- `remote.task-briefs` is on only while `remote.live-sessions` is on and the policy allows model generation (`distillation` is `allowed`).
 - Private state uses mode `0o700` for folders and `0o600` for files.
 - `replaceLocalText` refuses a symbolic link. It fails when the file changed after the caller read it.
 

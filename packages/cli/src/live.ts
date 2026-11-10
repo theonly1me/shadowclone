@@ -1,10 +1,11 @@
+import { detachedBriefWriter, taskBriefsCommand } from "./liveBriefs";
 import {
   handleLiveHook,
   livePaths,
   liveListLine,
   livePairLines,
   livePairText,
-  liveSessionsEnabled,
+  liveConsent,
   liveUnpairText,
   machineLive,
   readGitFacts,
@@ -14,7 +15,7 @@ import {
 } from "@shadowclone/live";
 
 export const liveUsage =
-  "Live sessions: live enable|disable|status|list; live pair <live-id> <live-id>; live unpair <pair-id>; live pairs; live hook claude|codex (run by the agent hooks)";
+  "Live sessions: live enable|disable|status|list; live briefs enable|disable; live pair <live-id> <live-id>; live unpair <pair-id>; live pairs; live hook claude|codex (run by the agent hooks)";
 
 function engineOf(value: string | undefined): LiveEngine | null {
   return value === "claude" || value === "codex" ? value : null;
@@ -22,8 +23,9 @@ function engineOf(value: string | undefined): LiveEngine | null {
 
 async function hook(arguments_: readonly string[]): Promise<void> {
   const engine = engineOf(arguments_[0]);
+  const consent = await liveConsent().catch(() => null);
 
-  if (engine === null || !(await liveSessionsEnabled().catch(() => false))) {
+  if (engine === null || consent?.liveSessions !== true) {
     return;
   }
 
@@ -35,6 +37,7 @@ async function hook(arguments_: readonly string[]): Promise<void> {
       environment: process.env,
       gitFacts: readGitFacts,
       typeText: terminalTyper(),
+      ...(consent.taskBriefs ? { taskBriefs: detachedBriefWriter } : {}),
     },
     input: await Bun.stdin.text(),
   }).catch(() => null);
@@ -66,8 +69,16 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
   enable: () => switchTo(true),
   disable: () => switchTo(false),
   status: async () => {
-    console.log(`Live sessions: ${(await liveSessionsEnabled()) ? "on" : "off"}`);
+    const consent = await liveConsent();
+
+    console.log(
+      [
+        `Live sessions: ${consent.liveSessions ? "on" : "off"}`,
+        ...(consent.taskBriefs ? ["Task briefs: on"] : []),
+      ].join("\n"),
+    );
   },
+  briefs: taskBriefsCommand,
   list: async () => {
     const live = machineLive();
     const records = await live.list();
