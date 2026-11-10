@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import path from "node:path";
 import { briefMessageDigest, liveId, livePaths, saveBrief } from "@shadowclone/live";
-import { promptInput, runCli, withHome } from "./liveCli.fixtures";
+import { cliTestMilliseconds, promptInput, runCli, withHome } from "./liveCli.fixtures";
 
 const id = liveId({ engine: "claude", sessionId: "briefs-session" });
 
@@ -42,7 +42,7 @@ test("with task briefs off, live list and live show print no brief", async () =>
     expect(shown.output).not.toContain("Brief");
     expect(shown.output).toStartWith(`Live claude session ${id} in `);
   });
-});
+}, cliTestMilliseconds);
 
 test("with task briefs on, live list adds the kind and name, and live show prints the brief", async () => {
   await withHome(async (home) => {
@@ -67,7 +67,7 @@ test("with task briefs on, live list adds the kind and name, and live show print
       ].join("\n"),
     );
   });
-});
+}, cliTestMilliseconds);
 
 test("live brief refuses while task briefs are off, and makes no call for an unchanged message", async () => {
   await withHome(async (home) => {
@@ -89,4 +89,4 @@ test("live brief refuses while task briefs are off, and makes no call for an unc
       exitCode: 1,
     });
   });
-});
+}, cliTestMilliseconds);

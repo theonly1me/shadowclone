@@ -3,7 +3,7 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fingerprint } from "@shadowclone/core";
 import { liveId, livePaths, readBrief, saveBrief } from "@shadowclone/live";
-import { promptInput, runCli, syntheticToken, withHome } from "./liveCli.fixtures";
+import { cliTestMilliseconds, promptInput, runCli, syntheticToken, withHome } from "./liveCli.fixtures";
 
 test("live briefs enable refuses while live sessions are off", async () => {
   await withHome(async (home) => {
@@ -12,7 +12,7 @@ test("live briefs enable refuses while live sessions are off", async () => {
       exitCode: 1,
     });
   });
-});
+}, cliTestMilliseconds);
 
 test("with task briefs off, a prompt stores no task file and status prints one line", async () => {
   await withHome(async (home) => {
@@ -27,7 +27,7 @@ test("with task briefs off, a prompt stores no task file and status prints one l
       exitCode: 0,
     });
   });
-});
+}, cliTestMilliseconds);
 
 test("live briefs enable stores the redacted prompt with mode 0600, and disable deletes it", async () => {
   await withHome(async (home) => {
@@ -61,7 +61,7 @@ test("live briefs enable stores the redacted prompt with mode 0600, and disable 
     });
     expect((await readdir(directory)).filter((name) => name.endsWith(".task.json"))).toEqual([]);
   });
-});
+}, cliTestMilliseconds);
 
 test("a stop with task briefs on starts a detached writer and returns at once", async () => {
   await withHome(async (home) => {
@@ -105,4 +105,4 @@ test("a stop with task briefs on starts a detached writer and returns at once", 
     expect(await Bun.file(lockFile).exists()).toBe(true);
     expect((await readBrief({ paths: livePaths(home), id }))?.name).toBe("Rename the parser");
   });
-}, 20_000);
+}, cliTestMilliseconds);
