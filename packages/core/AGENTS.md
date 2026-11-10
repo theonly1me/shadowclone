@@ -22,6 +22,7 @@ The base of every package. It holds the product identity, project paths, configu
 - `src/localFiles/`: `readLocalFile`, `replaceLocalText`, `acquireLocalLock`, and `fingerprint`.
 - `src/distribution.ts`: finds `skills/` and `preferences/` in a checkout or an install.
 - `src/product.json`: the product name and version.
+- `src/noop.ts`: `noop`, the shared handler for a promise whose failure must not change the result.
 
 ## Rules
 

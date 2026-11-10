@@ -1,4 +1,5 @@
 import path from "node:path";
+import { noop } from "@shadowclone/core";
 import { changeFor, hookInputSchema, type HookContext, type HookInput } from "./hookChange";
 import { activePairs } from "./pairs";
 import { liveId, surfaceFrom, type LiveRecord } from "./record";
@@ -8,11 +9,13 @@ import { typeInbox } from "./typing";
 
 export type { HookContext };
 
-async function followTask(options: {
+type TaskEvent = {
   readonly context: HookContext;
   readonly input: HookInput;
   readonly record: LiveRecord;
-}): Promise<void> {
+};
+
+async function recordTaskEvent(options: TaskEvent): Promise<void> {
   const { context, input, record } = options;
 
   if (context.taskBriefs === undefined || input.agent_id !== undefined) {
@@ -24,6 +27,10 @@ async function followTask(options: {
   } else if (input.hook_event_name === "Stop" && record.state === "idle" && record.summary !== "") {
     context.taskBriefs.startWriter(record.id);
   }
+}
+
+function followTask(options: TaskEvent): Promise<void> {
+  return recordTaskEvent(options).catch(noop);
 }
 
 function parseInput(text: string): unknown {

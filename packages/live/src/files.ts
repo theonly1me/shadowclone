@@ -54,7 +54,10 @@ export async function writePrivateJson(options: {
   const temporary = `${options.file}.${randomUUID()}.tmp`;
 
   await writeFile(temporary, `${JSON.stringify(options.value)}\n`, { mode: 0o600 });
-  await rename(temporary, options.file);
+  await rename(temporary, options.file).catch(async (error: unknown) => {
+    await rm(temporary, { force: true });
+    throw error;
+  });
 }
 
 export async function removeSessionFiles(options: {
