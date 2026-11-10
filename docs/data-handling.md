@@ -12,24 +12,25 @@ Source access does not authorize automatic skill edits. Disabling a source remov
 
 ## Sources
 
-| Setting                  | What may be read                                                                                                                                                                                      |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `claude-code`            | Session JSONL under `~/.claude/projects/`                                                                                                                                                             |
-| `claude-prompts`         | `~/.claude/history.jsonl`                                                                                                                                                                             |
-| `codex`                  | Sessions under `~/.codex/sessions/`, or `$CODEX_HOME/sessions/`                                                                                                                                       |
-| `cursor`                 | Chat databases and metadata under `~/.cursor/chats/`                                                                                                                                                  |
-| `pi`                     | Version 3 session JSONL under `~/.pi/agent/sessions/`, or `$PI_CODING_AGENT_DIR/sessions/`. Original files stay untouched                                                                             |
-| `opencode`               | User and assistant rows in `opencode.db` under `~/.local/share/opencode/`, `$XDG_DATA_HOME/opencode/`, or `$OPENCODE_DB`. The database stays untouched                                                |
-| `antigravity`            | Generated conversation logs under `~/.gemini/antigravity-cli/brain/`                                                                                                                                  |
-| `antigravity-workspaces` | `~/.gemini/antigravity-cli/history.jsonl`, for workspace attribution                                                                                                                                  |
-| `declared-rules`         | Repository-root `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, and direct `SKILL.md` files under `.claude/skills/` and `.agents/skills/`                                                                   |
-| `claude-memory`          | Claude memory under `~/.claude/projects/<repo>/memory/`. Recurring extraction needs registered repositories with verified identity                                                                    |
-| `agent-context`          | Consented personal and registered repository instructions, plus selected-agent baseline skills for evaluation arms                                                                                    |
-| `skill-library`          | Consented personal, repository, custom, and third-party skill roots                                                                                                                                   |
-| `git-metadata`           | Local repository remote names, to determine scope                                                                                                                                                     |
-| `github-writing`         | Through your `gh` login, for voice capture only: your 40 newest pull request titles and bodies, your 40 newest reviews with up to 10 comments each, and your 60 newest commit messages                |
-| `live-sessions`          | With `remote.live-sessions` on, hooks in Claude Code and Codex record each session's repository, branch, folder name, state, terminal, and redacted last message. No prompt, tool output, or thinking |
-| `repository-manifests`   | Scripts and dependency names in `package.json`, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, CI workflow files, and top-level entry names, for repository setup          |
+| Setting                  | What may be read                                                                                                                                                                                                      |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `claude-code`            | Session JSONL under `~/.claude/projects/`                                                                                                                                                                             |
+| `claude-prompts`         | `~/.claude/history.jsonl`                                                                                                                                                                                             |
+| `codex`                  | Sessions under `~/.codex/sessions/`, or `$CODEX_HOME/sessions/`                                                                                                                                                       |
+| `cursor`                 | Chat databases and metadata under `~/.cursor/chats/`                                                                                                                                                                  |
+| `pi`                     | Version 3 session JSONL under `~/.pi/agent/sessions/`, or `$PI_CODING_AGENT_DIR/sessions/`. Original files stay untouched                                                                                             |
+| `opencode`               | User and assistant rows in `opencode.db` under `~/.local/share/opencode/`, `$XDG_DATA_HOME/opencode/`, or `$OPENCODE_DB`. The database stays untouched                                                                |
+| `antigravity`            | Generated conversation logs under `~/.gemini/antigravity-cli/brain/`                                                                                                                                                  |
+| `antigravity-workspaces` | `~/.gemini/antigravity-cli/history.jsonl`, for workspace attribution                                                                                                                                                  |
+| `declared-rules`         | Repository-root `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, and direct `SKILL.md` files under `.claude/skills/` and `.agents/skills/`                                                                                   |
+| `claude-memory`          | Claude memory under `~/.claude/projects/<repo>/memory/`. Recurring extraction needs registered repositories with verified identity                                                                                    |
+| `agent-context`          | Consented personal and registered repository instructions, plus selected-agent baseline skills for evaluation arms                                                                                                    |
+| `skill-library`          | Consented personal, repository, custom, and third-party skill roots                                                                                                                                                   |
+| `git-metadata`           | Local repository remote names, to determine scope                                                                                                                                                                     |
+| `github-writing`         | Through your `gh` login, for voice capture only: your 40 newest pull request titles and bodies, your 40 newest reviews with up to 10 comments each, and your 60 newest commit messages                                |
+| `live-sessions`          | With `remote.live-sessions` on, hooks in Claude Code and Codex record each session's repository, branch, folder name, state, terminal, and redacted last message. No prompt, tool output, or thinking                 |
+| `task-briefs`            | With `remote.task-briefs` and `remote.live-sessions` on, the `UserPromptSubmit` hook keeps the redacted first and latest prompt of each live session, each at most 2 KB. No subagent prompt, tool output, or thinking |
+| `repository-manifests`   | Scripts and dependency names in `package.json`, lockfile names, `pyproject.toml`, `requirements.txt`, `Makefile` targets, CI workflow files, and top-level entry names, for repository setup                          |
 
 Shell history is not a source. Upgrading deletes indexed shell history events, cursors, and repository bindings, and shadowclone ignores a `shell` setting left in an older `config.toml` or managed policy.
 
@@ -43,17 +44,18 @@ Pi and OpenCode transcript consent is separate from Git metadata and skill maint
 
 ## What reaches a model
 
-| Operation                   | Provider access                                                                                                                                |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Plain `learn` after setup   | Local indexing and reporting. No model calls                                                                                                   |
-| Deep or background learning | Selected redacted steering, supporting context, guidance needed for reconciliation, and redacted coverage text for duplicate checks and triage |
-| Skill maintenance           | Redacted catalogs, full instructions of overlapping workflows, and evidence for proposed updates. Supporting resources are checked locally     |
-| Browser editor              | Opening it makes no model request. Build naming sends redacted skill titles and summaries. Voice capture and skill drafts need a user action   |
-| Actions bot                 | Reviewed skills from your private skills repository, the selected repository, and an authorized issue or PR task                               |
-| Clone                       | Reviewed skills from your private skills repository, the selected repository, and the owner's task                                             |
-| `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace. shadowclone makes no model calls                                             |
-| Pull request review         | The PR title and description, diff, file history, base-commit standards, rule hits, toolchain diagnostics, and files that the reviewer reads   |
-| Evaluation                  | Synthetic task workspaces and the tested setup's skills and instructions. Judges receive generated code without redaction                      |
+| Operation                   | Provider access                                                                                                                                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plain `learn` after setup   | Local indexing and reporting. No model calls                                                                                                                                                         |
+| Deep or background learning | Selected redacted steering, supporting context, guidance needed for reconciliation, and redacted coverage text for duplicate checks and triage                                                       |
+| Skill maintenance           | Redacted catalogs, full instructions of overlapping workflows, and evidence for proposed updates. Supporting resources are checked locally                                                           |
+| Browser editor              | Opening it makes no model request. Build naming sends redacted skill titles and summaries. Voice capture and skill drafts need a user action                                                         |
+| Actions bot                 | Reviewed skills from your private skills repository, the selected repository, and an authorized issue or PR task                                                                                     |
+| Task brief                  | With `remote.task-briefs` on, after each turn: the redacted first and latest prompt and the redacted last message of one live session, to the fast model of that session's own engine, with no tools |
+| Clone                       | Reviewed skills from your private skills repository, the selected repository, and the owner's task                                                                                                   |
+| `shadowclone-work` skill    | The existing agent session reads the skill and its own workspace. shadowclone makes no model calls                                                                                                   |
+| Pull request review         | The PR title and description, diff, file history, base-commit standards, rule hits, toolchain diagnostics, and files that the reviewer reads                                                         |
+| Evaluation                  | Synthetic task workspaces and the tested setup's skills and instructions. Judges receive generated code without redaction                                                                            |
 
 First-time interactive `learn` can offer setup, which may make an authorized first learning pass. A deep dry run still calls a model.
 
@@ -159,6 +161,12 @@ A machine that joins a hub writes `~/.shadowclone/hub/link.json` (mode 0600) wit
 `shadowclone live enable` sets `remote.live-sessions` in `config.toml` and adds hooks to `~/.claude/settings.json` and `~/.codex/hooks.json`. It keeps your own hooks. The hooks write one file for each session in `~/.shadowclone/live/` (mode 0700, files 0600). The summary is the last assistant message through `redactSecrets`, at most 2 KB. A permission prompt adds its redacted notification text.
 
 The hub and joined machines send the list and the summaries to each approved client. A message that you send waits in `live-<id>.inbox.jsonl` until a hook delivers it. For an idle session, shadowclone types it into the tmux pane or cmux surface instead. A finished session record stays for 1 day. `live disable` removes the hooks and the folder.
+
+`shadowclone live briefs enable` sets `remote.task-briefs`. It refuses while live sessions are off. A managed policy keeps it off unless the policy allows live sessions and model generation. With the flag on, the hook writes `live-<id>.task.json` (mode 0600) with the first and the latest prompt of the session. Each prompt passes through `redactSecrets` and has at most 2 KB. A prompt from a subagent stays out.
+
+After a turn ends, a separate `shadowclone live brief <id>` process sends those prompts and the redacted last message to the fast model of the session's own engine. The request marks that text as data, and the run has no tools. The answer becomes `live-<id>.brief.json` (mode 0600): a name, a goal, what the agent did, a kind, an optional question, and up to 4 options. Each field passes through `redactSecrets` and has a length limit. `live-<id>.brief-calls.json` holds the times of the calls in the last hour, and `live-<id>.brief.lock` is the lock of the writer. The writer prints and logs only the session id and its outcome. The hub does not send the brief yet.
+
+These files stay as long as the session record: 1 day after the session ends, or 7 days with no change. `live briefs disable` deletes them for every session. `live disable` deletes them with the rest of the folder, and turns task briefs off.
 
 When you pair two sessions, `~/.shadowclone/live/pairs.json` holds the pair id, the two session ids, a hash of each key, and the number of notes. A note passes through `redactSecrets` and has at most 8000 characters. It waits in the inbox file of the peer until a hook delivers it, and then shadowclone deletes it. The peer's agent sends the note to its model provider, like any prompt.
 

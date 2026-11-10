@@ -1,6 +1,6 @@
 # @shadowclone/briefs
 
-Writes a task brief for one live session after a turn ends. A brief names the task, states its goal and what the agent did, and says whether the session asks a question, finished, or is blocked.
+Writes a task brief for one live session after a turn ends. A brief names the task, states its goal and what the agent did, and says whether the session asks a question, finished, or cannot continue.
 
 <!-- package-facts:start -->
 

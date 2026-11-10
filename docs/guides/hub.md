@@ -53,6 +53,17 @@ The hub can also list the Claude Code and Codex sessions that you start yourself
 
 cmux lets only processes inside cmux type into its terminals. So a message for an idle session in cmux waits for the next turn. Answer permission prompts in the terminal or with Claude Code Remote Control. Run `shadowclone live disable` to remove the hooks and the saved state.
 
+## Name each task
+
+Task briefs give each live session a name and say what it needs from you. This is off until you turn it on, after live sessions.
+
+1. Run `shadowclone live briefs enable`. Each live session now keeps a redacted copy of its first and latest prompt.
+2. Work as usual. After each turn, the fast model of the session's own engine writes a short brief. The brief has a name, the goal, what the agent did, and the kind (`question`, `finished`, or `blocked`).
+3. Run `shadowclone live list`. Each session with a brief shows its kind and its name.
+4. Run `shadowclone live show <live-id>` to read one brief, with the question and the options that the agent offered.
+
+A brief is a summary by a model, so it can be wrong. The last message stays next to it. Each session gets at most 12 brief calls in one hour, and no call when its last message did not change. Run `shadowclone live briefs disable` to stop and delete the saved prompts and briefs.
+
 ## Let two sessions talk
 
 Two live sessions on one machine can send each other notes after you pair them. Use this when two sessions work on related changes. Each session needs the shadowclone MCP server, which the shadowclone plugin adds.

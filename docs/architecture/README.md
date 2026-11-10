@@ -26,6 +26,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`mcp`](../../packages/mcp/AGENTS.md)                 | MCP server                                           |
 | [`hub`](../../packages/hub/AGENTS.md)                 | Remote MCP server with OAuth for clones              |
 | [`live`](../../packages/live/AGENTS.md)               | Live session hooks, state, and messages              |
+| [`briefs`](../../packages/briefs/AGENTS.md)           | Task briefs for live sessions from the fast model    |
 | [`cli`](../../packages/cli/AGENTS.md)                 | Commands, build, and publish                         |
 | [`evals`](../../evals/AGENTS.md)                      | Private evaluation suites                            |
 | [`tooling`](../../tooling/AGENTS.md)                  | Repository checks that `bun run lint` runs           |
@@ -60,6 +61,9 @@ graph BT
   hub --> mcp
   live --> redact
   mcp --> live
+  briefs --> live
+  briefs --> agents
+  cli --> briefs
   cli --> hub
   cli --> web
   cli --> harness
@@ -104,6 +108,9 @@ flowchart LR
   Agents -- "live hooks, with consent" --> Live["live: session state and inbox"]
   Agents -- "notes to the paired session, after the owner pairs" --> Live
   Live -- "redacted last message" --> Hub
+  Live -- "redacted prompts and last message, with consent" --> Briefs["briefs: task brief writer"]
+  Briefs -- "brief file" --> Live
+  Briefs -- "redacted prompts and last message, no tools" --> Provider
   Hub -- "optional push, no question text by default" --> Ntfy["ntfy topic"]
   Session -- "prompt, skills, files that the agent reads" --> Provider
   subgraph GitHub["GitHub"]
@@ -116,19 +123,20 @@ flowchart LR
 
 ## Trust boundaries
 
-| Boundary                | What crosses it                           | Control                                                                                                                      |
-| ----------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Source files to index   | Pointers and event metadata, no text      | A default-off consent flag for each source. Policy can only narrow it                                                        |
-| Index to model          | Redacted user text, labeled agent context | `resolveRedacted`, then a run with no tools and fixed limits                                                                 |
-| Model output to files   | Proposed skill and native edits           | Reversible revisions, ownership fingerprints, kept manual edits                                                              |
-| Browser to local server | Wizard actions                            | Loopback, ephemeral token, origin check                                                                                      |
-| PR code to host         | Toolchain installs, scripts, and configs  | Bubblewrap or Seatbelt. Worktree and isolated state writes only. No host credentials or local sockets                        |
-| Toolchain to network    | Dependency downloads                      | A fixed public-registry allowlist through a restricted proxy                                                                 |
-| Machine to GitHub       | Reviewed skills, secrets, review text     | Owner approval of an exact preview. Secrets use standard input                                                               |
-| Owner task to clone     | A task that starts work as the owner      | A local CLI or MCP call on the owner's machine, a run folder with mode 0700, and a container with only the secrets file      |
-| Internet to hub         | Clone tool calls from approved clients    | OAuth with PKCE, a single-use pairing code, hashed tokens, revocation, the lock, and an optional source allowlist            |
-| Session to session      | Notes between two paired live sessions    | Only the owner pairs, from the CLI or the hub. A hashed key for each side, 20 notes for each pair, and a not-the-owner label |
-| Evaluation              | Synthetic tasks, receipts, held-out cases | Private storage outside checkouts. Approved scope per paid run                                                               |
+| Boundary                | What crosses it                           | Control                                                                                                                          |
+| ----------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Source files to index   | Pointers and event metadata, no text      | A default-off consent flag for each source. Policy can only narrow it                                                            |
+| Index to model          | Redacted user text, labeled agent context | `resolveRedacted`, then a run with no tools and fixed limits                                                                     |
+| Model output to files   | Proposed skill and native edits           | Reversible revisions, ownership fingerprints, kept manual edits                                                                  |
+| Browser to local server | Wizard actions                            | Loopback, ephemeral token, origin check                                                                                          |
+| PR code to host         | Toolchain installs, scripts, and configs  | Bubblewrap or Seatbelt. Worktree and isolated state writes only. No host credentials or local sockets                            |
+| Toolchain to network    | Dependency downloads                      | A fixed public-registry allowlist through a restricted proxy                                                                     |
+| Machine to GitHub       | Reviewed skills, secrets, review text     | Owner approval of an exact preview. Secrets use standard input                                                                   |
+| Owner task to clone     | A task that starts work as the owner      | A local CLI or MCP call on the owner's machine, a run folder with mode 0700, and a container with only the secrets file          |
+| Internet to hub         | Clone tool calls from approved clients    | OAuth with PKCE, a single-use pairing code, hashed tokens, revocation, the lock, and an optional source allowlist                |
+| Session to session      | Notes between two paired live sessions    | Only the owner pairs, from the CLI or the hub. A hashed key for each side, 20 notes for each pair, and a not-the-owner label     |
+| Live session to model   | Redacted prompts and last message         | A default-off `task-briefs` flag, the session's own engine, no tools, a data label, 12 calls an hour, and a strict answer schema |
+| Evaluation              | Synthetic tasks, receipts, held-out cases | Private storage outside checkouts. Approved scope per paid run                                                                   |
 
 ## How the packages work together
 
