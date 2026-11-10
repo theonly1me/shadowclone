@@ -48,6 +48,12 @@ export function noticeLine(notice: Notice | undefined): HTMLElement[] {
     : [element({ tag: "p", className: `notice ${notice.tone}`, text: notice.text })];
 }
 
+export function statusLine(notice: Notice | null): HTMLElement[] {
+  return notice === null
+    ? []
+    : [element({ tag: "p", className: `status ${notice.tone}`, text: notice.text })];
+}
+
 function heading(view: SessionView): HTMLElement {
   const line = element({ tag: "div", className: "heading" });
   const mark = element({ tag: "span", className: `mark ${view.session.state}` });

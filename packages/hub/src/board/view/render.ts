@@ -10,7 +10,14 @@ import {
   sessionGroups,
 } from "./model";
 import { pairButton, pairsSection } from "./pairs";
-import { detailView, noticeLine, sessionCard, sessionRow, sessionView } from "./session";
+import {
+  detailView,
+  noticeLine,
+  sessionCard,
+  sessionRow,
+  sessionView,
+  statusLine,
+} from "./session";
 import { boardNoticeKey, type BoardActions, type ViewState } from "./state";
 
 type Context = {
@@ -34,7 +41,7 @@ function rows(options: { readonly context: Context; readonly sessions: readonly 
 }
 
 function notices(context: Context): HTMLElement[] {
-  return context.board.nodes.flatMap((node) => noticeLine(nodeNotice(node) ?? undefined));
+  return context.board.nodes.flatMap((node) => statusLine(nodeNotice(node)));
 }
 
 function inlineBoard(context: Context): HTMLElement[] {

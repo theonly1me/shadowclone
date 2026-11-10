@@ -167,13 +167,18 @@
   justify-content: flex-end;
 }
 
-.notice {
+.notice,
+.status {
   font-size: 13px;
   white-space: pre-wrap;
+}
+
+.notice {
   animation: notice-in 240ms ease-out;
 }
 
-.notice.fault {
+.notice.fault,
+.status.fault {
   color: var(--fault-red);
 }
 
