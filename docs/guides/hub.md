@@ -59,7 +59,7 @@ Task briefs give each live session a name and say what it needs from you. This i
 
 1. Run `shadowclone live briefs enable`. Each live session now keeps a redacted copy of its first and latest prompt.
 2. Work as usual. After each turn, the fast model of the session's own engine writes a short brief. The brief has a name, the goal, what the agent did, and the kind (`question`, `finished`, or `blocked`).
-3. Run `shadowclone live list`. Each session with a brief shows its kind and its name.
+3. Run `shadowclone live list`. Each session with a brief shows its name. The kind shows only while the session is idle and the brief describes its last message.
 4. Run `shadowclone live show <live-id>` to read one brief, with the question and the options that the agent offered.
 
 A brief is a summary by a model, so it can be wrong. The last message stays next to it. Each session gets at most 12 brief calls in one hour, and no call when its last message did not change. Run `shadowclone live briefs disable` to stop and delete the saved prompts and briefs.

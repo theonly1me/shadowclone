@@ -1,6 +1,7 @@
-import { acquireLocalLock, fingerprint, type EngineId } from "@shadowclone/core";
+import { acquireLocalLock, type EngineId } from "@shadowclone/core";
 import {
   briefLockFile,
+  briefMessageDigest,
   readBrief,
   readBriefCalls,
   readRecord,
@@ -57,7 +58,7 @@ async function briefOnce(options: BriefRun): Promise<BriefOutcome> {
     return { kind: "skipped", reason: "engine-not-allowed" };
   }
 
-  const messageDigest = fingerprint(record.summary);
+  const messageDigest = briefMessageDigest(record.summary);
 
   if ((await readBrief({ paths, id }))?.messageDigest === messageDigest) {
     return { kind: "skipped", reason: "unchanged" };

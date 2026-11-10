@@ -140,7 +140,9 @@ export async function showCommand(arguments_: readonly string[]): Promise<void> 
     return;
   }
 
-  const brief = consent.taskBriefs ? liveBriefLines(await readBrief({ paths: livePaths(), id })) : [];
+  const brief = consent.taskBriefs
+    ? liveBriefLines({ record, brief: await readBrief({ paths: livePaths(), id }) })
+    : [];
 
   console.log([...liveDetailLines(record), ...brief].join("\n"));
 }

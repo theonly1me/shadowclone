@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { fingerprint } from "@shadowclone/core";
 import { liveFile, readJsonFile, writePrivateJson } from "./files";
 import type { LivePaths } from "./paths";
-import { liveIdPattern } from "./record";
+import { liveIdPattern, type LiveRecord } from "./record";
 
 export const liveBriefKinds = ["question", "finished", "blocked"] as const;
 
@@ -21,6 +22,20 @@ export type LiveBrief = z.infer<typeof liveBriefSchema>;
 const briefCallsSchema = z.strictObject({ calls: z.array(z.string()) });
 
 type SessionFile = { readonly paths: LivePaths; readonly id: string };
+
+export function briefMessageDigest(lastMessage: string): string {
+  return fingerprint(lastMessage);
+}
+
+export function briefIsCurrent(options: {
+  readonly record: LiveRecord;
+  readonly brief: LiveBrief;
+}): boolean {
+  return (
+    options.record.state === "idle" &&
+    options.brief.messageDigest === briefMessageDigest(options.record.summary)
+  );
+}
 
 export async function readBrief(options: SessionFile): Promise<LiveBrief | null> {
   if (!liveIdPattern.test(options.id)) {

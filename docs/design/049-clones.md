@@ -142,7 +142,7 @@ The writer reads the task file and the record. It sends the redacted prompts and
 
 **Limits.** One lock for each session, so two writers for one session cannot run together. A call has 60 seconds. A session gets at most 12 calls in one hour. The writer makes no call when the last message did not change since the last brief. A failed call or an invalid answer keeps the earlier brief.
 
-**Reading.** `shadowclone live list` adds the kind and the name of each brief. `shadowclone live show <id>` prints the session and its brief. With the flag off, both print what they printed before.
+**Reading.** `shadowclone live list` adds the kind and the name of each brief. `shadowclone live show <id>` prints the session and its brief. A brief is current only while the session is idle and the brief digest matches the last message. Otherwise the kind, the question, and the options stay hidden. With the flag off, both print what they printed before.
 
 **Retention.** The task file and the brief stay as long as the record: 1 day after the session ends, or 7 days with no change.
 

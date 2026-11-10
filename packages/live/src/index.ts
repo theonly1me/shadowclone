@@ -11,7 +11,9 @@ export { readRecord } from "./store";
 export { promptLimit, readTask, type LiveTask } from "./task";
 
 export {
+  briefIsCurrent,
   briefLockFile,
+  briefMessageDigest,
   liveBriefKinds,
   readBrief,
   readBriefCalls,

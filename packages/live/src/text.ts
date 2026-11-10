@@ -4,7 +4,7 @@ import type {
   LivePeerOutcome,
   LiveUnpairOutcome,
 } from "./pairing";
-import type { LiveBrief } from "./brief";
+import { briefIsCurrent, type LiveBrief } from "./brief";
 import { pairNoteLimit } from "./pairs";
 import type { LiveRecord } from "./record";
 import type { LiveSendOutcome } from "./sessions";
@@ -29,14 +29,31 @@ export function liveBriefListLine(options: {
 }): string {
   const { record, brief } = options;
 
-  return brief === null
-    ? liveListLine(record)
-    : `${listPrefix(record)} [${brief.kind}] ${brief.name}: ${firstLine(record.attention ?? record.summary)}`;
+  if (brief === null) {
+    return liveListLine(record);
+  }
+
+  const label = briefIsCurrent({ record, brief }) ? `[${brief.kind}] ${brief.name}` : brief.name;
+
+  return `${listPrefix(record)} ${label}: ${firstLine(record.attention ?? record.summary)}`;
 }
 
-export function liveBriefLines(brief: LiveBrief | null): readonly string[] {
+export function liveBriefLines(options: {
+  readonly record: LiveRecord;
+  readonly brief: LiveBrief | null;
+}): readonly string[] {
+  const { record, brief } = options;
+
   if (brief === null) {
     return ["Brief: none yet"];
+  }
+
+  if (!briefIsCurrent({ record, brief })) {
+    return [
+      `Brief, a summary by a model at ${brief.writtenAt}, of an earlier message:`,
+      `Name: ${brief.name}`,
+      `Goal: ${brief.goal}`,
+    ];
   }
 
   return [
