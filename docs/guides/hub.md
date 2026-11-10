@@ -48,10 +48,35 @@ The hub can also list the Claude Code and Codex sessions that you start yourself
 
 1. Run `shadowclone live enable`. It adds hooks to Claude Code and Codex, and keeps your own hooks.
 2. Start a new agent session. Codex asks you to trust the new hooks.
-3. Ask Claude "what are my sessions doing?" The answer lists each live session with a `live-` id, its state, and its last message.
+3. Ask Claude "what are my sessions doing?" The answer lists each live session with a `live-` id, its state, and its last message. In Claude, the answer also opens the [session board](#use-the-session-board).
 4. Ask Claude to send a session a message. A working session gets it after its next tool call or at the end of its turn. An idle session in tmux gets it typed at its prompt. This includes a Claude Code session whose turn ended with an API error.
 
-cmux lets only processes inside cmux type into its terminals. So a message for an idle session in cmux waits for the next turn. Answer permission prompts in the terminal or with Claude Code Remote Control. Run `shadowclone live disable` to remove the hooks and the saved state.
+cmux lets only processes inside cmux type into its terminals. So a message for an idle session in cmux waits for the next turn, unless you [let the hub type into cmux](#let-the-hub-type-into-cmux). Answer permission prompts in the terminal or with Claude Code Remote Control. Run `shadowclone live disable` to remove the hooks and the saved state.
+
+## Use the session board
+
+In Claude, the answer to "what are my sessions doing?" opens the session board in the chat. It shows the live sessions of every machine that joined the hub. Claude renders MCP Apps on the web, on Desktop, and in its iOS and Android apps. ChatGPT also renders MCP Apps, but nobody has tested the board in ChatGPT yet.
+
+- The card at the top is the newest session that waits for you, with its last message. For an idle session, type your reply in the box, and select **Send**. The board then shows the hub's answer, which starts with "Sent" or "Queued".
+- A session that waits for a permission answer has no reply box. Answer it in the terminal or in Remote Control.
+- Tap a session to read its full last message.
+- Select **Open the board** to see all sessions in full screen. They are in groups: needs you, your turn, and working. The board also shows the pairs and the number of ended sessions.
+- Select **Pair two sessions**, and then **Pair** on each of the two sessions. Select **Unpair** to end a pair. Only sessions of the hub machine can pair.
+- Select **Refresh** to read the sessions again. The board does not refresh by itself.
+
+The board shows session text as plain text. It has no network access. Each button calls a hub tool through Claude, with your sign-in, and no button calls a tool until you tap it. A machine with an older shadowclone shows its text answer, with a line that asks you to update shadowclone on it.
+
+## Let the hub type into cmux
+
+By default, cmux accepts commands only from processes that start inside cmux. The hub and the node link run as services, outside cmux. So a message for an idle cmux session waits until you type in that session. Password mode lets the hub type the message. shadowclone does not change this setting for you.
+
+1. Copy `~/.config/cmux/cmux.json` to a backup file with the date in its name.
+2. In that file, set `"socketControlMode": "password"` in the `automation` object.
+3. In cmux **Settings**, save a socket password.
+4. Send a message to an idle cmux session from the board. The answer starts with "Sent".
+5. Check that a Claude Code notification still shows in cmux. If a cmux integration stops working, restore the backup.
+
+The cmux CLI reads the password that you saved in Settings. So in password mode, any process of your user can control cmux, not only the processes inside cmux.
 
 ## Let two sessions talk
 
@@ -78,7 +103,7 @@ A push names the clone, its state, and its machine. Run `shadowclone hub notify 
 
 ## What a client can do
 
-A connected client has the two clone tools: `shadowclone_sessions` reads, and `shadowclone_clone` starts, steers, answers, and stops. Claude asks you before it calls `shadowclone_clone`. Text that comes from a clone is data. The hub tells the client so, and the client must not follow instructions in it.
+A connected client has the two clone tools: `shadowclone_sessions` reads, and `shadowclone_clone` starts, steers, answers, and stops. It also has `shadowclone_pair` for your live sessions, and the session board. Claude asks you before it calls `shadowclone_clone`. Text that comes from a clone is data. The hub tells the client so, and the client must not follow instructions in it.
 
 ## Keep it safe
 

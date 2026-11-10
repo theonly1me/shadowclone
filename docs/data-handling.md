@@ -158,7 +158,7 @@ A machine that joins a hub writes `~/.shadowclone/hub/link.json` (mode 0600) wit
 
 `shadowclone live enable` sets `remote.live-sessions` in `config.toml` and adds hooks to `~/.claude/settings.json` and `~/.codex/hooks.json`. It keeps your own hooks. The hooks write one file for each session in `~/.shadowclone/live/` (mode 0700, files 0600). The summary is the last assistant message through `redactSecrets`, at most 2 KB. A permission prompt adds its redacted notification text.
 
-The hub and joined machines send the list and the summaries to each approved client. A message that you send waits in `live-<id>.inbox.jsonl` until a hook delivers it. For an idle session, shadowclone types it into the tmux pane or cmux surface instead. A finished session record stays for 1 day. `live disable` removes the hooks and the folder.
+The hub and joined machines send the list and the summaries to each approved client. The hub also sends them as typed rows for the session board, with the same fields as the text. The board view runs in the sandbox of the client host and has no network access. A message that you send waits in `live-<id>.inbox.jsonl` until a hook delivers it. For an idle session, shadowclone types it into the tmux pane or cmux surface instead. A finished session record stays for 1 day. `live disable` removes the hooks and the folder.
 
 When you pair two sessions, `~/.shadowclone/live/pairs.json` holds the pair id, the two session ids, a hash of each key, and the number of notes. A note passes through `redactSecrets` and has at most 8000 characters. It waits in the inbox file of the peer until a hook delivers it, and then shadowclone deletes it. The peer's agent sends the note to its model provider, like any prompt.
 

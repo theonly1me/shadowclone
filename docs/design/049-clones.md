@@ -126,6 +126,20 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Limits.** A pair allows 20 notes in total, for both sessions together. A pair ends when either session ends, at `live unpair`, and at `live disable`. A session that resumes after its end has no pair.
 
+## Step 8: the session board
+
+**View.** The hub serves one MCP Apps view, `ui://shadowclone/board.html`, with the MIME type `text/html;profile=mcp-app`. The hub copy of `shadowclone_sessions` links to it with `_meta.ui.resourceUri`. Claude and ChatGPT then render the board in the chat for each list. The hub declares the `resources` capability and answers `resources/list` and `resources/read`. `shadowclone mcp` and the node forwarding tools keep their lists without `_meta`. A host without MCP Apps ignores `_meta` and shows the text.
+
+**Rows.** `shadowclone_sessions` keeps its text byte for byte. `list` also returns `structuredContent` with the open live sessions, the pairs, the number of ended sessions, and the clone count. `get` of a live session returns the fields of its detail text. A row carries only fields that the text already sends. Ended sessions are only a count. So a list of 300 sessions stays under 150,000 characters, the size at which Claude stops passing a result to the view. The schemas are in `@shadowclone/live/board`, which imports only `zod`.
+
+**Fleet.** The hub merges the rows of each machine and tags each row with its machine. An offline machine, a machine that answers with text only, and a machine that fails each get their own entry. The hub keeps a machine's `structuredContent` only when it matches the list or the detail schema.
+
+**Board.** The view uses the `App` class of `@modelcontextprotocol/ext-apps` 2.1.0 and writes all session text with `textContent`. The newest session that waits for you is a card with its last message. Send calls `shadowclone_clone`. Pair and Unpair call `shadowclone_pair`. A tap on a row calls `get`, and Refresh calls `list`. Nothing calls a tool until you tap. The view sets no `csp`, so it has no network access.
+
+**Build.** A Bun macro cannot call `Bun.build`, because the bundler waits for the macro. So `src/board/bundle.ts` builds the view and writes `src/board/html.ts`, one HTML document with an inline script and style. The module escapes each character outside printable ASCII. Lint fails when the module does not match its source. The view is about 335,000 characters, because the SDK bundles its protocol schemas and `zod`. Claude documents its 150,000 limit for tool results only, so the view has a growth guard at 400,000.
+
+**cmux.** The hub runs outside cmux, so by default cmux refuses its typing. The [hub guide](../guides/hub.md#let-the-hub-type-into-cmux) shows password mode, which lets the hub type into an idle cmux session. shadowclone does not change the cmux setting.
+
 ## Consequences
 
 - An owner can start a clone from any agent on the node without GitHub. A phone needs the hub from step 3.
@@ -135,6 +149,8 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - A message to an idle session becomes a prompt in that session, with the owner's permissions.
 - A note from a paired session also becomes a prompt in its peer. Its label tells the agent to follow only the owner, but an agent can still act on it.
 - Two paired sessions can use their 20 notes on a loop before the pair stops them.
+- The board view and the rows reach the host of the client. A host that gives `structuredContent` to the model sends the rows to the model too. The rows hold only fields that the text already holds.
+- cmux password mode lets any process of the owner control cmux, not only processes inside cmux.
 - A node token gives the same clone tools as an approved client. `hub nodes remove <name>` revokes it.
 - A local program can send a false `X-Forwarded-For` header. A local program already runs as the owner, so the allowlist guards only remote callers.
 - A clone that exits before CI finishes does not continue. The owner starts it again on its pull request.
@@ -154,6 +170,7 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - Push tests: a push has no question text or repository by default. The first scan pushes nothing, and a new question pushes once. A node that returns, or joins later, does not push its old states. With no topic, nothing is sent. A failed push goes out at the next scan, and a push that keeps failing stops after its last try.
 - Live tests: with consent off, a hook writes nothing and `list` is empty. A stop keeps a redacted summary and no tool output. The `Stop` hook delivers a queued message once, and `PostToolUse` delivers one during a turn. An idle tmux pane gets the message, a refused terminal keeps it, and a working session queues it. `StopFailure` and `idle_prompt` type a waiting message. Install keeps the owner's own hooks.
 - Pair tests: each side gets its own key, and a note reaches the peer with the sender's label. An idle tmux peer gets the note typed in. `peerSend` refuses a wrong key, the 21st note, and a key after its session ended. `peerNoteText` redacts and bounds a note, and the note cannot end its label. The server that sessions load lists `shadowclone_peer` and no pairing tool, and the hub lists `shadowclone_pair`.
+- Board tests: the list and get text of a fixture stays byte for byte the same. A list row has only the allowed keys, and ended sessions are a count. The hub merges the rows of each machine, with entries for an offline and a text-only machine, and drops unknown structured content. A list of 300 sessions stays under 150,000 characters. `initialize` declares `resources`, `resources/read` returns one document, and only the hub copy of `shadowclone_sessions` has `_meta`. The view source has no HTML sink, and the view stays under 400,000 characters with no build-machine path.
 - Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine, and a `start` for another machine runs nothing.
 
 ## Data handling
@@ -169,3 +186,5 @@ In step 5, live sessions are a new consent flag, off by default. The hub sends e
 In step 6, pushes are off until the owner runs `hub notify`. A push goes to the ntfy server of the topic. It holds no question text or repository unless the owner turns text on.
 
 In step 7, a note stays in the inbox file of the peer until the peer gets it, and then shadowclone deletes it. `pairs.json` holds no note text and no key, only the key hashes and a count. A note stays on the machine. It leaves the machine only when the peer's agent sends it to its model provider.
+
+In step 8, the board shows the same data as the text answers. The hub sends the rows to the approved client, beside the text. The view runs in the sandbox of the host and has no network access. It sends a message or pairs sessions only after a tap.

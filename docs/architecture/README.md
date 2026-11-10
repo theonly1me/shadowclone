@@ -24,7 +24,7 @@ The repository is a Bun workspace. Each package is `@shadowclone/<name>` and has
 | [`clones`](../../packages/clones/AGENTS.md)           | Clones on a machine that the owner owns              |
 | [`web`](../../packages/web/AGENTS.md)                 | Wizard, voice capture, and skill drafts              |
 | [`mcp`](../../packages/mcp/AGENTS.md)                 | MCP server                                           |
-| [`hub`](../../packages/hub/AGENTS.md)                 | Remote MCP server with OAuth for clones              |
+| [`hub`](../../packages/hub/AGENTS.md)                 | Remote MCP server with OAuth and the session board   |
 | [`live`](../../packages/live/AGENTS.md)               | Live session hooks, state, and messages              |
 | [`cli`](../../packages/cli/AGENTS.md)                 | Commands, build, and publish                         |
 | [`evals`](../../evals/AGENTS.md)                      | Private evaluation suites                            |
@@ -100,6 +100,7 @@ flowchart LR
   Start["Owner's task from the CLI or an MCP agent"] --> Session
   Phone["Claude app or another MCP client"] -- "OAuth through Tailscale Funnel" --> Hub["hub: MCP over HTTPS on loopback"]
   Hub --> Session
+  Hub -- "session board view and rows" --> Phone
   Node["Another machine: hub link"] -- "WebSocket over the tailnet" --> Hub
   Agents -- "live hooks, with consent" --> Live["live: session state and inbox"]
   Agents -- "notes to the paired session, after the owner pairs" --> Live
@@ -127,6 +128,7 @@ flowchart LR
 | Machine to GitHub       | Reviewed skills, secrets, review text     | Owner approval of an exact preview. Secrets use standard input                                                               |
 | Owner task to clone     | A task that starts work as the owner      | A local CLI or MCP call on the owner's machine, a run folder with mode 0700, and a container with only the secrets file      |
 | Internet to hub         | Clone tool calls from approved clients    | OAuth with PKCE, a single-use pairing code, hashed tokens, revocation, the lock, and an optional source allowlist            |
+| Board view to hub       | Tool calls after a tap on the board       | The host sandbox with no network access, text written as text, and the same OAuth sign-in as the client                      |
 | Session to session      | Notes between two paired live sessions    | Only the owner pairs, from the CLI or the hub. A hashed key for each side, 20 notes for each pair, and a not-the-owner label |
 | Evaluation              | Synthetic tasks, receipts, held-out cases | Private storage outside checkouts. Approved scope per paid run                                                               |
 
