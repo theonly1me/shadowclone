@@ -24,6 +24,8 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - `src/delivery.ts`: `deliver`, which queues one inbox message or types it into an idle terminal.
 - `src/pairs.ts`: `pairs.json`, the key hashes, and `activePairs`, which drops a pair when either session ended.
 - `src/pairing/`: the `pair`, `unpair`, `pairs`, and `peerSend` operations.
+- `src/brief.ts`: the brief file, the call times, and the lock file of the brief writer in `@shadowclone/briefs`.
+- `src/text.ts`: the CLI and MCP text, with `liveBriefListLine` and `liveBriefLines` for briefs.
 - `src/messages.ts`: the wrappers of owner messages, pairing notes, and peer notes.
 - `src/terminal.ts`: typing into a tmux pane or a cmux surface.
 - `src/typing.ts`: `typeInbox`, which types the waiting messages and keeps them if the terminal refuses.

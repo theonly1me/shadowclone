@@ -1,8 +1,13 @@
-import { detachedBriefWriter, taskBriefsCommand } from "./liveBriefs";
+import {
+  briefCommand,
+  detachedBriefWriter,
+  liveListLines,
+  showCommand,
+  taskBriefsCommand,
+} from "./liveBriefs";
 import {
   handleLiveHook,
   livePaths,
-  liveListLine,
   livePairLines,
   livePairText,
   liveConsent,
@@ -15,7 +20,7 @@ import {
 } from "@shadowclone/live";
 
 export const liveUsage =
-  "Live sessions: live enable|disable|status|list; live briefs enable|disable; live pair <live-id> <live-id>; live unpair <pair-id>; live pairs; live hook claude|codex (run by the agent hooks)";
+  "Live sessions: live enable|disable|status|list; live show <live-id>; live briefs enable|disable; live pair <live-id> <live-id>; live unpair <pair-id>; live pairs; live hook claude|codex and live brief <live-id> (run by the agent hooks)";
 
 function engineOf(value: string | undefined): LiveEngine | null {
   return value === "claude" || value === "codex" ? value : null;
@@ -79,6 +84,8 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
     );
   },
   briefs: taskBriefsCommand,
+  brief: briefCommand,
+  show: showCommand,
   list: async () => {
     const live = machineLive();
     const records = await live.list();
@@ -86,7 +93,7 @@ const operations: Readonly<Record<string, (arguments_: readonly string[]) => Pro
 
     console.log(
       [
-        ...(records.length === 0 ? ["No live sessions."] : records.map(liveListLine)),
+        ...(records.length === 0 ? ["No live sessions."] : await liveListLines(records)),
         ...(pairs.length === 0 ? [] : ["Pairs:", ...livePairLines(pairs)]),
       ].join("\n"),
     );

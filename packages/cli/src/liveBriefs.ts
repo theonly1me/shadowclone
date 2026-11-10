@@ -1,5 +1,19 @@
 import os from "node:os";
-import { livePaths, switchTaskBriefs, type LiveTaskBriefs } from "@shadowclone/live";
+import { briefCallsPerHour, writeMachineBrief, type MachineBriefOutcome } from "@shadowclone/briefs";
+import {
+  liveBriefLines,
+  liveBriefListLine,
+  liveConsent,
+  liveDetailLines,
+  liveListLine,
+  liveOffReason,
+  livePaths,
+  machineLive,
+  readBrief,
+  switchTaskBriefs,
+  type LiveRecord,
+  type LiveTaskBriefs,
+} from "@shadowclone/live";
 
 export const taskBriefsUsage = "Usage: shadowclone live briefs enable|disable";
 
@@ -51,4 +65,94 @@ export async function taskBriefsCommand(arguments_: readonly string[]): Promise<
       );
       return;
   }
+}
+
+function briefText(options: { readonly id: string; readonly outcome: MachineBriefOutcome }): {
+  readonly text: string;
+  readonly failed: boolean;
+} {
+  const { id, outcome } = options;
+
+  switch (outcome.kind) {
+    case "off":
+      return { text: "Task briefs are off. Run shadowclone live briefs enable first.", failed: true };
+    case "written":
+      return { text: `Wrote the brief for ${id}.`, failed: false };
+    case "failed":
+      return {
+        text:
+          outcome.reason === "model"
+            ? `The model call for ${id} failed, so the earlier brief stays.`
+            : `The model answer for ${id} was not a valid brief, so the earlier brief stays.`,
+        failed: true,
+      };
+    case "skipped":
+      switch (outcome.reason) {
+        case "missing":
+          return { text: `No live session ${id} exists on this machine.`, failed: true };
+        case "busy":
+          return { text: `Another brief writer runs for ${id}.`, failed: false };
+        case "no-message":
+          return { text: `${id} has no last message yet.`, failed: false };
+        case "unchanged":
+          return { text: `The last message of ${id} did not change, so the brief stays.`, failed: false };
+        case "limited":
+          return {
+            text: `${id} had ${briefCallsPerHour} brief calls in the last hour, so the brief stays.`,
+            failed: false,
+          };
+        case "engine-not-allowed":
+          return { text: `A managed policy does not allow the engine of ${id}.`, failed: true };
+      }
+  }
+}
+
+export async function briefCommand(arguments_: readonly string[]): Promise<void> {
+  const [id] = arguments_;
+
+  if (id === undefined || arguments_.length !== 1) {
+    console.log("Usage: shadowclone live brief <live-id>");
+    process.exitCode = 1;
+    return;
+  }
+
+  const { text, failed } = briefText({ id, outcome: await writeMachineBrief(id) });
+
+  console.log(text);
+  process.exitCode = failed ? 1 : 0;
+}
+
+export async function showCommand(arguments_: readonly string[]): Promise<void> {
+  const [id] = arguments_;
+
+  if (id === undefined || arguments_.length !== 1) {
+    console.log("Usage: shadowclone live show <live-id>");
+    process.exitCode = 1;
+    return;
+  }
+
+  const consent = await liveConsent();
+  const record = consent.liveSessions ? await machineLive().get(id) : null;
+
+  if (record === null) {
+    console.log(consent.liveSessions ? `No live session ${id} exists on this machine.` : liveOffReason);
+    process.exitCode = 1;
+    return;
+  }
+
+  const brief = consent.taskBriefs ? liveBriefLines(await readBrief({ paths: livePaths(), id })) : [];
+
+  console.log([...liveDetailLines(record), ...brief].join("\n"));
+}
+
+export async function liveListLines(records: readonly LiveRecord[]): Promise<readonly string[]> {
+  if (!(await liveConsent()).taskBriefs) {
+    return records.map(liveListLine);
+  }
+
+  const paths = livePaths();
+
+  return Promise.all(
+    records.map(async (record) => liveBriefListLine({ record, brief: await readBrief({ paths, id: record.id }) })),
+  );
 }

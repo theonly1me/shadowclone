@@ -1,6 +1,6 @@
 export { livePaths, type LivePaths } from "./paths";
 
-export { liveIdPattern, pairIdPattern, type LiveEngine, type LiveRecord } from "./record";
+export { liveId, liveIdPattern, pairIdPattern, type LiveEngine, type LiveRecord } from "./record";
 
 export { handleLiveHook, runLiveHook } from "./hook";
 
@@ -9,6 +9,16 @@ export type { LiveTaskBriefs } from "./hookChange";
 export { readRecord } from "./store";
 
 export { promptLimit, readTask, type LiveTask } from "./task";
+
+export {
+  briefLockFile,
+  liveBriefKinds,
+  readBrief,
+  readBriefCalls,
+  saveBrief,
+  saveBriefCalls,
+  type LiveBrief,
+} from "./brief";
 
 export { readGitFacts } from "./git";
 
@@ -28,6 +38,8 @@ export type {
 export { terminalTyper } from "./terminal";
 
 export {
+  liveBriefLines,
+  liveBriefListLine,
   liveDetailLines,
   liveListLine,
   livePairLines,

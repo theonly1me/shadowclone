@@ -1,46 +1,9 @@
 import { expect, test } from "bun:test";
-import { mkdtemp, readdir, readFile, realpath, rm, stat } from "node:fs/promises";
-import os from "node:os";
+import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { checkoutRoot } from "@shadowclone/core/testing";
-
-async function runCli(options: {
-  readonly home: string;
-  readonly arguments: readonly string[];
-  readonly input?: string;
-}) {
-  const child = Bun.spawn([process.execPath, path.join(import.meta.dir, "main.ts"), ...options.arguments], {
-    cwd: await checkoutRoot(),
-    env: { ...process.env, HOME: options.home },
-    stdin: new Blob([options.input ?? ""]),
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  const [output, exitCode] = await Promise.all([new Response(child.stdout).text(), child.exited]);
-
-  return { output: output.trim(), exitCode };
-}
-
-function promptInput(prompt: string): string {
-  return JSON.stringify({
-    session_id: "briefs-session",
-    hook_event_name: "UserPromptSubmit",
-    cwd: "/work/app",
-    prompt,
-  });
-}
-
-const syntheticToken = `ghp_${"c".repeat(36)}`;
-
-async function withHome(run: (home: string) => Promise<void>): Promise<void> {
-  const home = await realpath(await mkdtemp(path.join(os.tmpdir(), "shadowclone-live-briefs-")));
-
-  try {
-    await run(home);
-  } finally {
-    await rm(home, { recursive: true, force: true });
-  }
-}
+import { fingerprint } from "@shadowclone/core";
+import { liveId, livePaths, readBrief, saveBrief } from "@shadowclone/live";
+import { promptInput, runCli, syntheticToken, withHome } from "./liveCli.fixtures";
 
 test("live briefs enable refuses while live sessions are off", async () => {
   await withHome(async (home) => {
@@ -99,3 +62,47 @@ test("live briefs enable stores the redacted prompt with mode 0600, and disable 
     expect((await readdir(directory)).filter((name) => name.endsWith(".task.json"))).toEqual([]);
   });
 });
+
+test("a stop with task briefs on starts a detached writer and returns at once", async () => {
+  await withHome(async (home) => {
+    const id = liveId({ engine: "claude", sessionId: "briefs-session" });
+    const environment = { PATH: `${path.dirname(process.execPath)}:/usr/bin:/bin` };
+    const lockFile = path.join(home, ".shadowclone", "live", `${id}.brief.lock`);
+
+    await runCli({ home, arguments: ["live", "enable"] });
+    await runCli({ home, arguments: ["live", "briefs", "enable"] });
+    await runCli({ home, arguments: ["live", "hook", "claude"], input: promptInput("Rename the parser.") });
+    await saveBrief({
+      paths: livePaths(home),
+      id,
+      brief: {
+        name: "Rename the parser",
+        goal: "",
+        done: "",
+        kind: "finished",
+        question: null,
+        options: [],
+        messageDigest: fingerprint("Done."),
+        writtenAt: "2026-11-10T12:00:00.000Z",
+      },
+    });
+
+    const startedAt = Date.now();
+    const stop = await runCli({
+      home,
+      environment,
+      arguments: ["live", "hook", "claude"],
+      input: JSON.stringify({ session_id: "briefs-session", hook_event_name: "Stop", last_assistant_message: "Done." }),
+    });
+    const hookMilliseconds = Date.now() - startedAt;
+
+    for (let attempt = 0; attempt < 30 && !(await Bun.file(lockFile).exists()); attempt += 1) {
+      await Bun.sleep(100);
+    }
+
+    expect(stop).toEqual({ output: "", exitCode: 0 });
+    expect(hookMilliseconds).toBeLessThan(5_000);
+    expect(await Bun.file(lockFile).exists()).toBe(true);
+    expect((await readBrief({ paths: livePaths(home), id }))?.name).toBe("Rename the parser");
+  });
+}, 20_000);

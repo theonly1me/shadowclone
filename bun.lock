@@ -46,6 +46,16 @@
         "zod": "^4.6.7",
       },
     },
+    "packages/briefs": {
+      "name": "@shadowclone/briefs",
+      "dependencies": {
+        "@shadowclone/agents": "workspace:*",
+        "@shadowclone/core": "workspace:*",
+        "@shadowclone/live": "workspace:*",
+        "@shadowclone/redact": "workspace:*",
+        "zod": "^4.6.7",
+      },
+    },
     "packages/builds": {
       "name": "@shadowclone/builds",
       "dependencies": {
@@ -74,6 +84,7 @@
         "@anthropic-ai/sandbox-runtime": "0.0.81",
         "@shadowclone/agents": "workspace:*",
         "@shadowclone/bot": "workspace:*",
+        "@shadowclone/briefs": "workspace:*",
         "@shadowclone/builds": "workspace:*",
         "@shadowclone/changes": "workspace:*",
         "@shadowclone/clones": "workspace:*",
@@ -392,6 +403,8 @@
     "@shadowclone/agents": ["@shadowclone/agents@workspace:packages/agents"],
 
     "@shadowclone/bot": ["@shadowclone/bot@workspace:packages/bot"],
+
+    "@shadowclone/briefs": ["@shadowclone/briefs@workspace:packages/briefs"],
 
     "@shadowclone/builds": ["@shadowclone/builds@workspace:packages/builds"],
 
