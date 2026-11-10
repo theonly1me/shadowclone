@@ -22,6 +22,8 @@ A **clone** is a session that shadowclone starts and runs as the owner, on a mac
 6. The hub sends an optional push notification when a clone needs the owner.
 7. The owner pairs two live sessions, so that each can send the other notes.
 
+Step 9 adds task briefs for live sessions. It follows the session board.
+
 Cloud sandbox hosts come back later as workers that the hub starts. Other tunnels and a shared relay wait until users ask for them.
 
 ## Step 1: clones on a node
@@ -126,6 +128,24 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 
 **Limits.** A pair allows 20 notes in total, for both sessions together. A pair ends when either session ends, at `live unpair`, and at `live disable`. A session that resumes after its end has no pair.
 
+## Step 9: task briefs
+
+**Problem.** A live session has a hash id and no name. Its record holds no goal, because the hooks store no prompt. `Stop` makes each session `idle`, so a session that asks a question looks the same as a finished session. The owner must open each thread to learn its task and its need.
+
+**Consent.** `shadowclone live briefs enable` turns on `remote.task-briefs`. It is off by default, and it has an effect only while `remote.live-sessions` is on. A managed policy turns it off unless the policy allows live sessions and model generation (`distillation` is `allowed`). `live briefs enable` refuses while live sessions are off. `live briefs disable` and `live disable` turn the flag off and delete each stored prompt and each brief.
+
+**Prompts.** With the flag on, `UserPromptSubmit` stores the first prompt and the latest prompt of the session in `live-<hash>.task.json`, with mode 0600. Each prompt goes through `redactSecrets` and has at most 2 KB. Claude Code 2.1.322 and Codex 0.163.0 send the text in the `prompt` field. A prompt from a subagent has an `agent_id`, and the hook does not store it. With the flag off, the hook stores nothing new.
+
+**Writer.** `live` cannot import `agents`. So the CLI gives the hook a function that starts a detached `shadowclone live brief <id>` and returns at once. The hook calls it after a `Stop` that makes the session idle. The hook timeout stays 10 seconds. The new package `@shadowclone/briefs` holds the writer. It depends on `live`, `agents`, `core`, and `redact`.
+
+The writer reads the task file and the record. It sends the redacted prompts and the redacted last message to the fast tier of the session's own engine, with no tools. The request says that the session text is data, not instructions. The answer must match a strict schema: `name`, `goal`, `done`, `kind` (`question`, `finished`, or `blocked`), `question`, and 0 to 4 `options`. Each field goes through `redactSecrets` and has a length limit. The writer saves `live-<hash>.brief.json` with mode 0600.
+
+**Limits.** One lock for each session, so two writers for one session cannot run together. A call has 60 seconds. A session gets at most 12 calls in one hour. The writer makes no call when the last message did not change since the last brief. A failed call or an invalid answer keeps the earlier brief.
+
+**Reading.** `shadowclone live list` adds the kind and the name of each brief. `shadowclone live show <id>` prints the session and its brief. With the flag off, both print what they printed before.
+
+**Retention.** The task file and the brief stay as long as the record: 1 day after the session ends, or 7 days with no change.
+
 ## Consequences
 
 - An owner can start a clone from any agent on the node without GitHub. A phone needs the hub from step 3.
@@ -135,6 +155,9 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - A message to an idle session becomes a prompt in that session, with the owner's permissions.
 - A note from a paired session also becomes a prompt in its peer. Its label tells the agent to follow only the owner, but an agent can still act on it.
 - Two paired sessions can use their 20 notes on a loop before the pair stops them.
+- With task briefs on, a redacted copy of the owner's prompts stays on the machine. The session's own provider receives it again for each brief. Redaction does not remove every sensitive word.
+- A brief can be wrong. The last message stays next to it.
+- Each brief uses a fast model call from the owner's plan. The hour limit and the unchanged message check bound this use.
 - A node token gives the same clone tools as an approved client. `hub nodes remove <name>` revokes it.
 - A local program can send a false `X-Forwarded-For` header. A local program already runs as the owner, so the allowlist guards only remote callers.
 - A clone that exits before CI finishes does not continue. The owner starts it again on its pull request.
@@ -154,6 +177,7 @@ Each clone runs in a fresh container from the clone image, as in 044. The run pr
 - Push tests: a push has no question text or repository by default. The first scan pushes nothing, and a new question pushes once. A node that returns, or joins later, does not push its old states. With no topic, nothing is sent. A failed push goes out at the next scan, and a push that keeps failing stops after its last try.
 - Live tests: with consent off, a hook writes nothing and `list` is empty. A stop keeps a redacted summary and no tool output. The `Stop` hook delivers a queued message once, and `PostToolUse` delivers one during a turn. An idle tmux pane gets the message, a refused terminal keeps it, and a working session queues it. `StopFailure` and `idle_prompt` type a waiting message. Install keeps the owner's own hooks.
 - Pair tests: each side gets its own key, and a note reaches the peer with the sender's label. An idle tmux peer gets the note typed in. `peerSend` refuses a wrong key, the 21st note, and a key after its session ended. `peerNoteText` redacts and bounds a note, and the note cannot end its label. The server that sessions load lists `shadowclone_peer` and no pairing tool, and the hub lists `shadowclone_pair`.
+- Brief tests: with the flag off, a prompt stores nothing and a stop starts no writer. With the flag on, the task file holds the redacted first and latest prompt, each at most 2 KB, with mode 0600. `live briefs disable` deletes the files. A fake engine writes a brief with a name and a kind. It gets no call for an unchanged message or after 12 calls in one hour, and a failed or invalid answer keeps the earlier brief. The boundary check allows `briefs` only `live`, `agents`, `core`, and `redact`.
 - Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine, and a `start` for another machine runs nothing.
 
 ## Data handling
@@ -169,3 +193,5 @@ In step 5, live sessions are a new consent flag, off by default. The hub sends e
 In step 6, pushes are off until the owner runs `hub notify`. A push goes to the ntfy server of the topic. It holds no question text or repository unless the owner turns text on.
 
 In step 7, a note stays in the inbox file of the peer until the peer gets it, and then shadowclone deletes it. `pairs.json` holds no note text and no key, only the key hashes and a count. A note stays on the machine. It leaves the machine only when the peer's agent sends it to its model provider.
+
+In step 9, task briefs are a new consent flag, off by default. The task file holds the redacted first and latest prompt. The writer sends them and the redacted last message to the provider of the session's own engine, so no new provider receives them. In this step, the hub does not send the brief. `live briefs disable` and `live disable` delete both files.
