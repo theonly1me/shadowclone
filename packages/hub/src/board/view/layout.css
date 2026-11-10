@@ -49,6 +49,10 @@
   font-weight: 600;
 }
 
+.message {
+  display: block;
+}
+
 .message,
 .prompt {
   white-space: pre-wrap;

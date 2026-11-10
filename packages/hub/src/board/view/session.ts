@@ -55,7 +55,7 @@ export function statusLine(notice: Notice | null): HTMLElement[] {
 }
 
 function heading(view: SessionView): HTMLElement {
-  const line = element({ tag: "div", className: "heading" });
+  const line = element({ tag: "span", className: "heading" });
   const mark = element({ tag: "span", className: `mark ${view.session.state}` });
 
   mark.setAttribute("aria-hidden", "true");
@@ -166,7 +166,7 @@ export function sessionRow(options: {
   });
 
   toggle.setAttribute("aria-expanded", String(opened));
-  toggle.append(heading(view), element({ tag: "p", className: "message", text: view.message }));
+  toggle.append(heading(view), element({ tag: "span", className: "message", text: view.message }));
   row.append(
     toggle,
     ...(opened ? answerBlock({ view, state, actions }) : []),
