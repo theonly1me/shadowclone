@@ -1,4 +1,4 @@
-import { liveSessionsEnabled } from "./consent";
+import { liveConsent, liveSessionsEnabled } from "./consent";
 import { livePaths } from "./paths";
 import { localLive, type LiveSessions } from "./sessions";
 import { terminalTyper } from "./terminal";
@@ -8,5 +8,6 @@ export function machineLive(): LiveSessions {
     paths: livePaths(),
     enabled: () => liveSessionsEnabled(),
     typeText: terminalTyper(),
+    taskBriefs: async () => (await liveConsent()).taskBriefs,
   });
 }

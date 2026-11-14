@@ -6,6 +6,7 @@ import { botTools } from "./bot";
 import { cloneSetupTools } from "./cloneSetupTools";
 import { sessionsTools } from "./sessionsTools";
 import { peerTool } from "./pairTools";
+import { askTool } from "./ask/tool";
 
 test("responds to initialize with protocol version and serverInfo", () => {
   const response = handleMcpRequest({
@@ -24,7 +25,7 @@ test("responds to initialize with protocol version and serverInfo", () => {
   });
 });
 
-test("advertises the context, preference, bot, session, and peer tools without the removed profile alias", () => {
+test("advertises the context, preference, bot, session, peer, and ask tools without the removed profile alias", () => {
   const response = handleMcpRequest({
     request: { id: 1, method: "tools/list", params: {} },
     context: "",
@@ -40,6 +41,7 @@ test("advertises the context, preference, bot, session, and peer tools without t
         ...cloneSetupTools,
         ...sessionsTools,
         peerTool,
+        askTool,
         {
           name: "shadowclone_context",
           description: "Inspect applicable learned skills and native routing for this repository",

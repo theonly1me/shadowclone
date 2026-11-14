@@ -1,4 +1,5 @@
 import product from "@shadowclone/core/product.json";
+import { askTool } from "./ask/tool";
 import { preferenceTools } from "./preferences";
 import { botTools } from "./bot";
 import { cloneSetupTools } from "./cloneSetupTools";
@@ -60,6 +61,7 @@ export function handleMcpRequest(options: {
           ...cloneSetupTools,
           ...(options.sessionToolList ?? sessionsTools),
           peerTool,
+          askTool,
           {
             name: "shadowclone_context",
             description: "Inspect applicable learned skills and native routing for this repository",

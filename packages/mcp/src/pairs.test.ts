@@ -11,6 +11,9 @@ function fakeLive(calls: Calls): LiveSessions {
     list: async () => [],
     get: async () => null,
     send: async () => ({ kind: "refused", reason: "Not in this test." }),
+    question: async () => null,
+    ask: async () => ({ kind: "refused", reason: "Not in this test." }),
+    answer: async () => ({ kind: "refused", reason: "Not in this test." }),
     pair: async ({ first, second }) => {
       calls.pairs.push([first, second]);
 
@@ -37,7 +40,12 @@ function fakeLive(calls: Calls): LiveSessions {
 
       return note.key === "f".repeat(32)
         ? { kind: "refused", reason: "This key belongs to no open pair." }
-        : { kind: "sent", to: "live-22222222", left: 19, delivery: { kind: "queued", detail: "It waits." } };
+        : {
+            kind: "sent",
+            to: "live-22222222",
+            left: 19,
+            delivery: { kind: "queued", detail: "It waits." },
+          };
     },
   };
 }
@@ -48,7 +56,9 @@ function text(result: unknown): string {
 
 describe("the pair and peer tools", () => {
   test("the server that sessions load offers shadowclone_peer, and never shadowclone_pair", () => {
-    const listed = text(handleMcpRequest({ request: { id: 1, method: "tools/list", params: {} }, context: "" }));
+    const listed = text(
+      handleMcpRequest({ request: { id: 1, method: "tools/list", params: {} }, context: "" }),
+    );
 
     expect(listed).toContain('"name":"shadowclone_peer"');
     expect(listed).not.toContain("shadowclone_pair");
@@ -95,7 +105,10 @@ describe("the pair and peer tools", () => {
       name: "shadowclone_pair",
       arguments: { operation: "pair", sessions: ["live-11111111", "live-22222222"] },
     });
-    const listed = await pairing.run({ name: "shadowclone_pair", arguments: { operation: "list" } });
+    const listed = await pairing.run({
+      name: "shadowclone_pair",
+      arguments: { operation: "list" },
+    });
     const ended = await pairing.run({
       name: "shadowclone_pair",
       arguments: { operation: "unpair", pair: "pair-0a1b2c3d" },

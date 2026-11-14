@@ -160,6 +160,22 @@ The writer reads the task file and the record. It sends the redacted prompts and
 
 **Retention.** The task file and the brief stay as long as the record: 1 day after the session ends, or 7 days with no change.
 
+**Questions.** With the flag on, a live session can ask the owner a question through `shadowclone_ask` in `shadowclone mcp`. The agent gives its live id, the question, 2 to 4 options, and a recommended option that is one of the options. The tool writes `live-<hash>.question.json` with mode 0600, sets the session to `needs-you`, and waits for the answer. The question and the options go through `redactSecrets`, with at most 2000 and 200 characters. The schema is `boardQuestionSchema` in `@shadowclone/live/board`, because `live` cannot import `clones`. The question id has the same format as a clone question id.
+
+**One question.** A session has at most one open question. The tool creates the file with an exclusive link, so the tool refuses a second question and names the open one.
+
+**Caller.** The harness starts the server as a child process and gives it no session id. Claude Code documents only `CLAUDE_PROJECT_DIR` in the server environment ([MCP guide](https://code.claude.com/docs/en/mcp), Claude Code 2.1.325). The [Codex MCP guide](https://learn.chatgpt.com/docs/extend/mcp) names no session variable (Codex 0.163.0). The hooks already compute the live id from `session_id`. So with the flag on, `SessionStart` adds one line of context with the live id and the rule for the tool. Both harnesses add `hookSpecificOutput.additionalContext` from `SessionStart` to the context. The agent passes the id as `session`. When the server and the record both have a tmux pane or a cmux surface, the two must match. With the flag off, the hook output does not change, and the tool refuses.
+
+**Deadline.** The call waits at most 50 seconds. Codex documents `tool_timeout_sec` with a default of 60 seconds. Claude Code documents an `MCP_TOOL_TIMEOUT` default of about 28 hours, and a 30 minute idle limit for stdio servers. The lower limit is 60 seconds, so the deadline stays under it. The Codex guide does not list `tool_timeout_sec` for plugin servers, so shadowclone does not raise the limit. At the deadline, the call tells the agent to end its turn with the question and to take no option. The question stays open, and `Stop` keeps the session at `needs-you` with the question.
+
+**Answer.** `shadowclone_clone answer` takes the live id, the question id, and the text, as for a clone. Before the deadline, it writes the answer into the question file. The waiting call reads the file every 500 milliseconds and takes it with an atomic rename. After the deadline, `answer` takes the file and delivers the answer as an owner message, as `send` does. It does the same when no call takes the answer in 2 seconds. A rename decides which side takes the file, so the answer arrives once. `answer` refuses an answer for another question id.
+
+**Close.** `SessionEnd`, a prompt that the owner types after the deadline, `live briefs disable`, and `live disable` delete the question file.
+
+**Server.** `shadowclone mcp` runs each `shadowclone_ask` call outside its read loop, and writes all answers in order. Other calls of the session do not wait for the owner.
+
+**Rows.** A board row has an optional `question` with the id, the text, the options, and the recommended option. The list text and the detail text show the same fields.
+
 ## Consequences
 
 - An owner can start a clone from any agent on the node without GitHub. A phone needs the hub from step 3.
@@ -174,6 +190,8 @@ The writer reads the task file and the record. It sends the redacted prompts and
 - With task briefs on, a redacted copy of the owner's prompts stays on the machine. The session's own provider receives it again for each brief. Redaction does not remove every sensitive word.
 - A brief can be wrong. The last message stays next to it.
 - Each brief uses a fast model call from the owner's plan. The hour limit and the unchanged message check bound this use.
+- An agent can ask too often. The `SessionStart` line and the tool description limit the tool to decisions of the owner, and a session has one open question.
+- The owner has 50 seconds to answer while the call waits. A later answer to a session outside tmux and cmux waits for the next turn of the session.
 - A node token gives the same clone tools as an approved client. `hub nodes remove <name>` revokes it.
 - A local program can send a false `X-Forwarded-For` header. A local program already runs as the owner, so the allowlist guards only remote callers.
 - A clone that exits before CI finishes does not continue. The owner starts it again on its pull request.
@@ -195,6 +213,7 @@ The writer reads the task file and the record. It sends the redacted prompts and
 - Pair tests: each side gets its own key, and a note reaches the peer with the sender's label. An idle tmux peer gets the note typed in. `peerSend` refuses a wrong key, the 21st note, and a key after its session ended. `peerNoteText` redacts and bounds a note, and the note cannot end its label. The server that sessions load lists `shadowclone_peer` and no pairing tool, and the hub lists `shadowclone_pair`.
 - Board tests: the list and get text of a fixture stays byte for byte the same. A list row has only the allowed keys, and ended sessions are a count. The hub merges the rows of each machine, with entries for an offline and a text-only machine, and drops unknown structured content. A list of 300 sessions stays under 150,000 characters. `initialize` declares `resources`, `resources/read` returns one document, and only the hub copy of `shadowclone_sessions` has `_meta`. The view source has no HTML sink, and the view stays under 400,000 characters with no build-machine path.
 - Brief tests: with the flag off, a prompt stores nothing and a stop starts no writer. With the flag on, the task file holds the redacted first and latest prompt, each at most 2 KB, with mode 0600. `live briefs disable` deletes the files. A fake engine writes a brief with a name and a kind. It gets no call for an unchanged message or after 12 calls in one hour, and a failed or invalid answer keeps the earlier brief. The boundary check allows `briefs` only `live`, `agents`, `core`, and `redact`.
+- Question tests: a waiting `shadowclone_ask` call shows the session at `needs-you` with the options, and `answer` returns the text to the call. The tool refuses a second open question. At the deadline, the call returns the end-turn text and takes no option, and `Stop` keeps the session at `needs-you`. A late answer arrives as an owner message. The `SessionStart` line appears only with the flag on. `SessionEnd` deletes the question.
 - Node tests: a node code joins and opens the link, and a client code cannot. A link without a node token gets `401`. `list` merges two nodes and shows an offline node. `start` goes to the named node, and a clone id goes to its node. A real WebSocket test links a node and lists its clones through the forwarding tools. With no hub, the forwarding tools answer for the machine, and a `start` for another machine runs nothing.
 
 ## Data handling
@@ -213,4 +232,4 @@ In step 7, a note stays in the inbox file of the peer until the peer gets it, an
 
 In step 8, the board shows the same data as the text answers. The hub sends the rows to the approved client, beside the text. The view runs in the sandbox of the host and has no network access. It sends a message or pairs sessions only after a tap.
 
-In step 9, task briefs are a new consent flag, off by default. The task file holds the redacted first and latest prompt. The writer sends them and the redacted last message to the provider of the session's own engine, so no new provider receives them. In this step, the hub does not send the brief. `live briefs disable` and `live disable` delete both files.
+In step 9, task briefs are a new consent flag, off by default. The task file holds the redacted first and latest prompt. The writer sends them and the redacted last message to the provider of the session's own engine, so no new provider receives them. In this step, the hub does not send the brief. `live briefs disable` and `live disable` delete both files. With the flag on, a question from `shadowclone_ask` and its options leave the machine through the hub, in the text and the board rows. The owner's answer comes back through the hub. The question file holds them until the session gets the answer or ends.

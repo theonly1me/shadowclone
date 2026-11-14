@@ -1,6 +1,7 @@
-import type { BoardDetail, BoardPair, BoardSession } from "./board";
+import type { BoardDetail, BoardPair, BoardQuestion, BoardSession } from "./board";
 import type { LivePairView } from "./pairing";
 import { pairNoteLimit } from "./pairs";
+import type { LiveQuestion } from "./questionStore";
 import type { LiveRecord } from "./record";
 import { firstLine } from "./text";
 
@@ -13,6 +14,15 @@ export function liveBoardSession(record: LiveRecord): BoardSession {
     branch: record.branch,
     updatedAt: record.updatedAt,
     message: firstLine(record.attention ?? record.summary),
+  };
+}
+
+export function liveBoardQuestion(question: LiveQuestion): BoardQuestion {
+  return {
+    id: question.id,
+    text: question.text,
+    options: question.options,
+    recommended: question.recommended,
   };
 }
 

@@ -1,6 +1,6 @@
 export { livePaths, type LivePaths } from "./paths";
 
-export { liveIdPattern, pairIdPattern } from "./board";
+export { liveIdPattern, liveQuestionIdPattern, pairIdPattern } from "./board";
 
 export { liveId, type LiveEngine, type LiveRecord } from "./record";
 
@@ -36,7 +36,15 @@ export type { LivePairOutcome, LivePairView, LivePeerOutcome, LiveUnpairOutcome 
 
 export { terminalTyper } from "./terminal";
 
-export { liveBoardDetail, liveBoardPair, liveBoardSession } from "./boardRows";
+export { liveBoardDetail, liveBoardPair, liveBoardQuestion, liveBoardSession } from "./boardRows";
+
+export type { LiveAnswerOutcome } from "./questionAnswer";
+
+export type { LiveAskOutcome, LiveQuestionInput } from "./questions";
+
+export type { LiveQuestion } from "./questionStore";
+
+export { liveAnswerText, liveAskText, liveQuestionLines } from "./questionText";
 
 export {
   liveBriefLines,

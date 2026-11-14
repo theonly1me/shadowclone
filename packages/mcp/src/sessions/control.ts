@@ -1,9 +1,36 @@
 import type { z } from "zod";
 import { sendText, startText, stopText, type CloneNode } from "@shadowclone/clones";
-import { liveIdPattern, liveSendText, type LiveSessions } from "@shadowclone/live";
+import { liveAnswerText, liveIdPattern, liveSendText, type LiveSessions } from "@shadowclone/live";
 import type { cloneInputSchema } from "../sessionsTools";
 
-const liveOnlySend = "A live session takes only send. Answer or stop it in its own terminal.";
+const liveOperations =
+  "A live session takes send with text, or answer with the id of its open question and text. Stop it in its own terminal.";
+
+const noLiveSession = (id: string) =>
+  ({ kind: "refused", reason: `No live session ${id} exists on this machine.` }) as const;
+
+async function controlLive(options: {
+  readonly live?: LiveSessions;
+  readonly input: z.infer<typeof cloneInputSchema>;
+  readonly id: string;
+}): Promise<{ readonly value: string; readonly isError: boolean }> {
+  const { live, input, id } = options;
+
+  if (input.operation === "send" && input.text !== undefined) {
+    const outcome = (await live?.send({ id, text: input.text })) ?? noLiveSession(id);
+
+    return { value: liveSendText({ id, outcome }), isError: outcome.kind === "refused" };
+  }
+
+  if (input.operation === "answer" && input.text !== undefined && input.question !== undefined) {
+    const outcome =
+      (await live?.answer({ id, question: input.question, text: input.text })) ?? noLiveSession(id);
+
+    return { value: liveAnswerText({ id, outcome }), isError: outcome.kind === "refused" };
+  }
+
+  return { value: liveOperations, isError: true };
+}
 
 export async function controlClone(options: {
   readonly node: CloneNode;
@@ -13,16 +40,7 @@ export async function controlClone(options: {
   const { node, input } = options;
 
   if (input.id !== undefined && liveIdPattern.test(input.id)) {
-    if (input.operation !== "send" || input.text === undefined) {
-      return { value: liveOnlySend, isError: true };
-    }
-
-    const outcome = (await options.live?.send({ id: input.id, text: input.text })) ?? {
-      kind: "refused",
-      reason: `No live session ${input.id} exists on this machine.`,
-    };
-
-    return { value: liveSendText({ id: input.id, outcome }), isError: outcome.kind === "refused" };
+    return controlLive({ ...options, id: input.id });
   }
 
   if (input.operation === "send" || input.operation === "answer") {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { GitFacts } from "./git";
-import { boundedText, liveInboxText, summaryLimit } from "./messages";
+import { boundedText, liveAskHint, liveInboxText, summaryLimit } from "./messages";
 import type { LivePaths } from "./paths";
 import { surfaceFrom, type LiveEngine, type LiveRecord } from "./record";
 import { takeInbox } from "./store";
@@ -72,7 +72,15 @@ export async function changeFor(options: {
     case "SessionStart":
       return {
         record: { state: "idle", attention: null, surface: surfaceFrom(context.environment) },
-        output: null,
+        output:
+          context.taskBriefs === undefined || input.agent_id !== undefined
+            ? null
+            : {
+                hookSpecificOutput: {
+                  hookEventName: "SessionStart",
+                  additionalContext: liveAskHint(id),
+                },
+              },
       };
     case "UserPromptSubmit":
       return { record: { state: "working", attention: null }, output: null };

@@ -89,6 +89,17 @@ Task briefs give each live session a name and say what it needs from you. This i
 
 A brief is a summary by a model, so it can be wrong. The last message stays next to it. Each session gets at most 12 brief calls in one hour, and no call when its last message did not change. Run `shadowclone live briefs disable` to stop and delete the saved prompts and briefs.
 
+## Answer a question from a session
+
+With task briefs on, an agent in a live session can ask you a question with the `shadowclone_ask` tool. It gives 2 to 4 options and the option that it recommends. The tool never picks an option for you.
+
+1. Ask Claude "what are my sessions doing?" A session with a question shows `needs-you`, with the question id, the options, and the recommended option.
+2. Tell Claude your answer, for example "answer the question with Keep it". Claude calls `shadowclone_clone answer` with the `live-` id, the question id, and your text.
+3. If the agent still waits, it gets your answer as the tool result and continues. The answer says "got your answer".
+4. If the agent stopped waiting after 50 seconds, it ended its turn with the question. Your answer then reaches the session as a message, like **Send**.
+
+The board has no option buttons yet. Read the question in the row text, and answer through Claude.
+
 ## Let two sessions talk
 
 Two live sessions on one machine can send each other notes after you pair them. Use this when two sessions work on related changes. Each session needs the shadowclone MCP server, which the shadowclone plugin adds.

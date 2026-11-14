@@ -2,6 +2,7 @@ import path from "node:path";
 import { noop } from "@shadowclone/core";
 import { changeFor, hookInputSchema, type HookContext, type HookInput } from "./hookChange";
 import { activePairs } from "./pairs";
+import { withOpenQuestion } from "./questionHook";
 import { liveId, surfaceFrom, type LiveRecord } from "./record";
 import { readRecord, writeRecord } from "./store";
 import { recordPrompt } from "./task";
@@ -23,7 +24,12 @@ async function recordTaskEvent(options: TaskEvent): Promise<void> {
   }
 
   if (input.hook_event_name === "UserPromptSubmit" && typeof input.prompt === "string") {
-    await recordPrompt({ paths: context.paths, id: record.id, prompt: input.prompt, now: context.now });
+    await recordPrompt({
+      paths: context.paths,
+      id: record.id,
+      prompt: input.prompt,
+      now: context.now,
+    });
   } else if (input.hook_event_name === "Stop" && record.state === "idle" && record.summary !== "") {
     context.taskBriefs.startWriter(record.id);
   }
@@ -80,14 +86,19 @@ export async function handleLiveHook(options: {
     surface: surfaceFrom(context.environment),
   };
 
-  const record: LiveRecord = {
-    ...base,
-    ...(facts === null
-      ? {}
-      : { repository: facts.repository ?? path.basename(cwd), branch: facts.branch }),
-    ...change.record,
-    updatedAt: now,
-  };
+  const record = await withOpenQuestion({
+    paths: context.paths,
+    record: {
+      ...base,
+      ...(facts === null
+        ? {}
+        : { repository: facts.repository ?? path.basename(cwd), branch: facts.branch }),
+      ...change.record,
+      updatedAt: now,
+    },
+    event: input.data.hook_event_name,
+    now: context.now,
+  });
 
   await writeRecord({ paths: context.paths, record });
   await followTask({ context, input: input.data, record });

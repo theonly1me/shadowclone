@@ -28,11 +28,17 @@ describe("the task briefs switch", () => {
     const configPath = path.join(home, "config.toml");
 
     try {
-      const outcome = await switchTaskBriefs({ paths, enabled: true, configPath, managedConfigPath: null });
+      const outcome = await switchTaskBriefs({
+        paths,
+        enabled: true,
+        configPath,
+        managedConfigPath: null,
+      });
 
       expect(outcome).toEqual({
         kind: "refused",
-        reason: "Live sessions are off, so task briefs cannot start. Run shadowclone live enable first.",
+        reason:
+          "Live sessions are off, so task briefs cannot start. Run shadowclone live enable first.",
       });
       expect(await Bun.file(configPath).exists()).toBe(false);
     } finally {
@@ -40,19 +46,35 @@ describe("the task briefs switch", () => {
     }
   });
 
-  test("disable turns the flag off and deletes each task file, and keeps the session records", async () => {
+  test("disable turns the flag off and deletes each task and question file, and keeps the session records", async () => {
     const { home, paths, remove } = await temporaryHome();
     const configPath = path.join(home, "config.toml");
     const location = { configPath, managedConfigPath: null };
 
     try {
-      await writeConfig({ configPath, config: setLiveSessionsEnabled({ config: defaultConfig, enabled: true }) });
+      await writeConfig({
+        configPath,
+        config: setLiveSessionsEnabled({ config: defaultConfig, enabled: true }),
+      });
 
       expect(await switchTaskBriefs({ paths, enabled: true, ...location })).toEqual({ kind: "on" });
       expect(await liveConsent(location)).toEqual({ liveSessions: true, taskBriefs: true });
 
       await sessionsWithTasks({ paths });
-      await Bun.write(path.join(paths.directory, `${liveId({ engine: "claude", sessionId: "first-session" })}.brief.json`), "{}");
+      await Bun.write(
+        path.join(
+          paths.directory,
+          `${liveId({ engine: "claude", sessionId: "first-session" })}.brief.json`,
+        ),
+        "{}",
+      );
+      await Bun.write(
+        path.join(
+          paths.directory,
+          `${liveId({ engine: "claude", sessionId: "first-session" })}.question.json`,
+        ),
+        "{}",
+      );
 
       expect(await switchTaskBriefs({ paths, enabled: false, ...location })).toEqual({
         kind: "off",
@@ -108,7 +130,10 @@ describe("the task briefs switch", () => {
 
       expect(kept).toHaveLength(2);
       expect(afterOneDay.map((record) => record.id)).toEqual([second]);
-      expect((await readdir(paths.directory)).sort()).toEqual([`${second}.json`, `${second}.task.json`]);
+      expect((await readdir(paths.directory)).sort()).toEqual([
+        `${second}.json`,
+        `${second}.task.json`,
+      ]);
     } finally {
       await remove();
     }
