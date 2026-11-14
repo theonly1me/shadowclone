@@ -22,6 +22,7 @@ const record: LiveRecord = {
 
 function fakeLive(sent: { id: string; text: string }[]): LiveSessions {
   return {
+    enabled: async () => true,
     list: async () => [record],
     get: async (id) => (id === record.id ? record : null),
     send: async (message) => {

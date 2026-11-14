@@ -22,6 +22,7 @@ export const fromNodeSchema = z.object({
 export const toolResultSchema = z.object({
   content: z.array(z.object({ type: z.literal("text"), text: z.string() })).min(1),
   isError: z.boolean(),
+  structuredContent: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type ToolResult = z.infer<typeof toolResultSchema>;

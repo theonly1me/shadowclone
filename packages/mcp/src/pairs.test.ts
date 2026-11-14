@@ -7,6 +7,7 @@ type Calls = { readonly pairs: string[][]; readonly notes: { key: string; text: 
 
 function fakeLive(calls: Calls): LiveSessions {
   return {
+    enabled: async () => true,
     list: async () => [],
     get: async () => null,
     send: async () => ({ kind: "refused", reason: "Not in this test." }),

@@ -9,7 +9,7 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - Package name: `@shadowclone/live`
 - Workspace dependencies: `@shadowclone/core`, `@shadowclone/redact`
 - External dependencies: `zod`
-- Export subpaths: `.`
+- Export subpaths: `.`, `./board`
 
 <!-- package-facts:end -->
 
@@ -17,21 +17,32 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 
 - `src/hook.ts`: `handleLiveHook` and `runLiveHook`, which write the session file for each hook event.
 - `src/hookChange.ts`: the state change and the output for each hook event.
-- `src/store.ts`: the session files, the inbox, and the `pending` marker.
+- `src/store.ts`: the session records, the inbox, and the `pending` marker.
+- `src/files.ts`: the file names of a session, the private JSON writes, and the removal of session files.
+- `src/task.ts`: `recordPrompt` and `readTask`, the first and latest prompt of a session in `live-<id>.task.json`.
 - `src/sessions.ts`: `localLive`, the `list`, `get`, and `send` operations.
 - `src/delivery.ts`: `deliver`, which queues one inbox message or types it into an idle terminal.
 - `src/pairs.ts`: `pairs.json`, the key hashes, and `activePairs`, which drops a pair when either session ended.
 - `src/pairing/`: the `pair`, `unpair`, `pairs`, and `peerSend` operations.
+- `src/brief.ts`: the brief file, the call times, and the lock file of the brief writer in `@shadowclone/briefs`. `briefIsCurrent` and `briefMessageDigest` decide whether a brief still describes the session.
+- `src/text.ts`: the CLI and MCP text, with `liveBriefListLine` and `liveBriefLines` for briefs.
 - `src/messages.ts`: the wrappers of owner messages, pairing notes, and peer notes.
 - `src/terminal.ts`: typing into a tmux pane or a cmux surface.
 - `src/typing.ts`: `typeInbox`, which types the waiting messages and keeps them if the terminal refuses.
 - `src/install.ts`: the hook entries in `~/.claude/settings.json` and `~/.codex/hooks.json`.
-- `src/consent.ts`: `liveSessionsEnabled` and `switchLiveSessions`.
+- `src/consent.ts`: `liveConsent`, `liveSessionsEnabled`, `switchLiveSessions`, and `switchTaskBriefs`.
+- `src/board.ts`: the `./board` subpath. It holds the browser-safe schemas of the board rows, the pairs, and one session.
+- `src/boardRows.ts`: `liveBoardSession`, `liveBoardPair`, and `liveBoardDetail`, which build those rows from a record.
 
 ## Rules
 
 - Do nothing unless `remote.live-sessions` is on in the effective config.
-- Store only the repository, the branch, the folder name, the state, the times, the terminal, and the redacted last message. Never store a prompt, a tool input or output, or thinking.
+- Store only the repository, the branch, the folder name, the state, the times, the terminal, and the redacted last message. Never store a tool input or output, or thinking.
+- Store a prompt only while `remote.task-briefs` is on in the effective config. The CLI then gives the hook a `taskBriefs` writer. Keep only the first and the latest prompt, each through `boundedText` at `promptLimit`. Never store a prompt from a subagent (an input with `agent_id`).
+- Start the brief writer only after a `Stop` that leaves the session idle. Never import `agents` or `briefs`. The CLI injects the writer.
+- Show the kind, the question, and the options of a brief only when `briefIsCurrent` is true.
+- A task brief step never changes the hook result. `followTask` contains each failure.
+- `live briefs disable` and `live disable` delete every task and brief file. An ended session loses them with its record.
 - Bound the summary to 2 KB after `redactSecrets`.
 - Deliver each queued message once. Never type into a session that waits for a permission answer.
 - Pair sessions only when the owner asks, through the CLI or the hub. Keep only the SHA-256 hash of each key. A session is in one pair at a time.
@@ -41,6 +52,7 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - Prefer a tmux pane over a cmux surface, because tmux can run inside cmux.
 - Keep the owner's own hooks. Find shadowclone's hooks by the `live hook` text in their command.
 - A hook never fails the agent. An error gives no output.
+- `src/board.ts` imports only `zod`, because the board view in the browser loads it. A board row carries only the fields that the list text line sends.
 
 ## Tests
 

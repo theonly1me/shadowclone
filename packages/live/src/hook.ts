@@ -1,11 +1,37 @@
 import path from "node:path";
-import { changeFor, hookInputSchema, type HookContext } from "./hookChange";
+import { noop } from "@shadowclone/core";
+import { changeFor, hookInputSchema, type HookContext, type HookInput } from "./hookChange";
 import { activePairs } from "./pairs";
 import { liveId, surfaceFrom, type LiveRecord } from "./record";
 import { readRecord, writeRecord } from "./store";
+import { recordPrompt } from "./task";
 import { typeInbox } from "./typing";
 
 export type { HookContext };
+
+type TaskEvent = {
+  readonly context: HookContext;
+  readonly input: HookInput;
+  readonly record: LiveRecord;
+};
+
+async function recordTaskEvent(options: TaskEvent): Promise<void> {
+  const { context, input, record } = options;
+
+  if (context.taskBriefs === undefined || input.agent_id !== undefined) {
+    return;
+  }
+
+  if (input.hook_event_name === "UserPromptSubmit" && typeof input.prompt === "string") {
+    await recordPrompt({ paths: context.paths, id: record.id, prompt: input.prompt, now: context.now });
+  } else if (input.hook_event_name === "Stop" && record.state === "idle" && record.summary !== "") {
+    context.taskBriefs.startWriter(record.id);
+  }
+}
+
+function followTask(options: TaskEvent): Promise<void> {
+  return recordTaskEvent(options).catch(noop);
+}
 
 function parseInput(text: string): unknown {
   try {
@@ -64,6 +90,7 @@ export async function handleLiveHook(options: {
   };
 
   await writeRecord({ paths: context.paths, record });
+  await followTask({ context, input: input.data, record });
 
   if (record.state === "ended") {
     await activePairs(context.paths);

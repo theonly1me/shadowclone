@@ -30,8 +30,12 @@ test("turning live sessions on writes remote.live-sessions and reads it back", a
     config: setLiveSessionsEnabled({ config: defaultConfig, enabled: true }),
   });
 
-  expect(await Bun.file(configPath).text()).toContain("[remote]\nlive-sessions = true");
-  expect((await readConfig({ configPath })).remote).toEqual({ liveSessions: true });
+  expect(await Bun.file(configPath).text()).toContain("[remote]\nlive-sessions = true\n");
+  expect(await Bun.file(configPath).text()).not.toContain("task-briefs");
+  expect((await readConfig({ configPath })).remote).toEqual({
+    liveSessions: true,
+    taskBriefs: false,
+  });
 });
 
 test("a managed policy below the act tier keeps live sessions off", () => {
@@ -39,9 +43,10 @@ test("a managed policy below the act tier keeps live sessions off", () => {
 
   expect(
     applyManagedPolicy({ config, policy: { ...defaultManagedPolicy, maxActionTier: "draft" } }).remote,
-  ).toEqual({ liveSessions: false });
+  ).toEqual({ liveSessions: false, taskBriefs: false });
   expect(applyManagedPolicy({ config, policy: defaultManagedPolicy }).remote).toEqual({
     liveSessions: true,
+    taskBriefs: false,
   });
 });
 
@@ -52,6 +57,6 @@ test("an unknown key in the remote section fails to parse", async () => {
   await Bun.write(configPath, `${renderConfig(defaultConfig)}\n[remote]\nlive-session = true\n`);
 
   await expect(readConfig({ configPath })).rejects.toThrow(
-    "Config remote must contain only a live-sessions boolean",
+    "Config remote must contain only the live-sessions and task-briefs booleans",
   );
 });

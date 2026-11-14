@@ -1,0 +1,88 @@
+:root {
+  color-scheme: light dark;
+  --signal-amber: #9a5b00;
+  --turn-indigo: #3b4cca;
+  --working-teal: #0b6e66;
+  --fault-red: #b42318;
+  --board-background: var(--color-background-primary, #ffffff);
+  --board-text: var(--color-text-primary, #1f1f1f);
+  --board-quiet: var(--color-text-secondary, #5c5c5c);
+  --board-line: var(--color-border-secondary, #d9d9d9);
+  --board-panel: var(--color-background-secondary, #f4f4f4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --signal-amber: #f5b451;
+    --turn-indigo: #a3adff;
+    --working-teal: #4fd1c5;
+    --fault-red: #fda29b;
+    --board-background: var(--color-background-primary, #1f1f1f);
+    --board-text: var(--color-text-primary, #f2f2f2);
+    --board-quiet: var(--color-text-secondary, #b3b3b3);
+    --board-line: var(--color-border-secondary, #3d3d3d);
+    --board-panel: var(--color-background-secondary, #2a2a2a);
+  }
+}
+
+:root[data-theme="dark"] {
+  --signal-amber: #f5b451;
+  --turn-indigo: #a3adff;
+  --working-teal: #4fd1c5;
+  --fault-red: #fda29b;
+  --board-background: var(--color-background-primary, #1f1f1f);
+  --board-text: var(--color-text-primary, #f2f2f2);
+  --board-quiet: var(--color-text-secondary, #b3b3b3);
+  --board-line: var(--color-border-secondary, #3d3d3d);
+  --board-panel: var(--color-background-secondary, #2a2a2a);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--board-background);
+  color: var(--board-text);
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+#board {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 640px;
+  min-width: 288px;
+  padding: 16px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+h2 {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--board-quiet);
+}
+
+p {
+  margin: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.headline {
+  font-size: 15px;
+  font-weight: 600;
+}

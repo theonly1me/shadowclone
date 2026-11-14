@@ -22,8 +22,9 @@ export function hookContext(options: {
   readonly environment?: Readonly<Record<string, string>>;
   readonly engine?: "claude" | "codex";
   readonly typed?: TypedText[];
+  readonly startedWriters?: string[];
 }): HookContext {
-  const { typed } = options;
+  const { typed, startedWriters } = options;
 
   return {
     paths: options.paths,
@@ -36,6 +37,9 @@ export function hookContext(options: {
 
       return typed !== undefined;
     },
+    ...(startedWriters === undefined
+      ? {}
+      : { taskBriefs: { startWriter: (id: string) => startedWriters.push(id) } }),
   };
 }
 

@@ -15,6 +15,7 @@ The wizard and the local MCP server send nothing to shadowclone. These features 
 - **Hub:** clone lists and details go to each client that you approve with a pairing code. For the Claude app, Anthropic receives them.
 - **Pushes:** after you run `shadowclone hub notify`, the ntfy server of your topic receives clone ids, states, and machine names. `--text` adds the repository and the question.
 - **Live sessions:** after you run `shadowclone live enable`, the hub also sends the redacted last message of your own Claude Code and Codex sessions.
+- **Task briefs:** after you run `shadowclone live briefs enable`, each live session keeps a redacted copy of its first and latest prompt. After each turn, the fast model of that session's own engine receives them with the redacted last message.
 
 The provider and GitHub govern retention of what they receive. [Data handling](docs/data-handling.md) lists every source, request, and file.
 
@@ -22,6 +23,7 @@ The provider and GitHub govern retention of what they receive. [Data handling](d
 
 - `shadowclone learning disable` stops background learning.
 - `shadowclone skills automatic off` stops automatic skill edits.
+- `shadowclone live briefs disable` deletes the saved prompts and briefs.
 - `shadowclone forget --all` removes the recorded state.
 
 Local state stays in the state folder. Uninstalling the plugin removes only its setup workflow.

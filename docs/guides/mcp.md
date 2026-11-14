@@ -80,6 +80,8 @@ With live sessions on, the tools also cover your own Claude Code and Codex sessi
 - `list`, with an optional `repository`, returns each clone with its state, branch, and pull request.
 - `get` with `id` returns one clone with its task, questions, report, and recent events. The answer starts with a line that marks the clone text as data.
 
+Through the hub, `list` and the `get` of a live session also return `structuredContent` for the [session board](hub.md#use-the-session-board). `shadowclone mcp` returns only the text, and links to no view.
+
 `shadowclone_sessions` carries the `readOnlyHint` annotation, so a client can run it without a question. `shadowclone_clone` does not.
 
 ## Send a note to a paired session
