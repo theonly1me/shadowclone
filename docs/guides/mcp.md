@@ -1,6 +1,6 @@
 # MCP server
 
-The MCP server gives a connected agent nine tools. It runs on your machine and needs no shadowclone credentials.
+The MCP server gives a connected agent ten tools. It runs on your machine and needs no shadowclone credentials.
 
 ## Start the server
 
@@ -32,6 +32,7 @@ The server reads one JSON-RPC 2.0 message from standard input on each line. It u
 - `shadowclone_sessions` lists the clones on this machine, or returns one clone. It is read only.
 - `shadowclone_clone` starts, steers, answers, or stops a clone.
 - `shadowclone_peer` sends a note to the live session that the owner paired with this session.
+- `shadowclone_ask` lets a live session ask the owner a question, and waits for the answer.
 
 Tools other than `shadowclone_context` reject unlisted input fields.
 
@@ -73,7 +74,7 @@ The tool rejects a token field. The owner adds tokens in the secrets file that s
 - `answer` with `id`, `question`, and `text` answers an open question of the clone.
 - `stop` with `id` stops the clone. A running clone pushes its unfinished work first.
 
-With live sessions on, the tools also cover your own Claude Code and Codex sessions, with `live-` ids. `send` reaches a live session. `answer` and `stop` do not. `list` also names the open pairs of live sessions.
+With live sessions on, the tools also cover your own Claude Code and Codex sessions, with `live-` ids. `send` reaches a live session. `answer` answers the open question of a live session, named by `question`. `stop` does not reach a live session. `list` also names the open pairs of live sessions, and shows the open question of each live session with its options.
 
 `shadowclone_sessions` takes `operation`:
 
@@ -83,6 +84,21 @@ With live sessions on, the tools also cover your own Claude Code and Codex sessi
 Through the hub, `list` and the `get` of a live session also return `structuredContent` for the [session board](hub.md#use-the-session-board). `shadowclone mcp` returns only the text, and links to no view.
 
 `shadowclone_sessions` carries the `readOnlyHint` annotation, so a client can run it without a question. `shadowclone_clone` does not.
+
+## Ask the owner from a live session
+
+`shadowclone_ask` needs live sessions and task briefs on (`shadowclone live briefs enable`). With task briefs on, the `SessionStart` hook gives each session one line of context with its `live-` id. The line tells the agent to call `shadowclone_ask` when a decision is the owner's and the task text does not answer it.
+
+The tool takes these inputs, all required:
+
+- `session`: the `live-` id from the session start line.
+- `question`: the decision, at most 2000 characters.
+- `options`: 2 to 4 choices, each at most 200 characters.
+- `recommended`: the option that the agent recommends. It must be one of the options.
+
+The session shows `needs-you` with the question, and the call waits up to 50 seconds. When the owner answers with `shadowclone_clone answer`, the call returns the answer. If no answer arrives in time, the call tells the agent to end its turn with the question and to take no option. The question stays open, and a later answer reaches the session as an owner message, as `send` does.
+
+A session can have one open question. A second call returns an error that names the open question. The question closes when the session gets the answer, when the session ends, or when you type a prompt into the session after the wait.
 
 ## Send a note to a paired session
 
