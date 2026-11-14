@@ -15,7 +15,7 @@
     "@shadowclone/redact": "workspace:*",
     "@shadowclone/sessions": "workspace:*",
     "@shadowclone/skills": "workspace:*",
-    "commander": "^15.0.0",
+    "commander": "^15.1.0",
     "typescript": "~5.9",
     "zod": "^4.6.7"
   }
