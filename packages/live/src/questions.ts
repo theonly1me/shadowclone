@@ -102,6 +102,28 @@ async function waitForAnswer(
   return { kind: "expired", question };
 }
 
+function markNeedsYou(
+  options: QuestionContext & { readonly question: LiveQuestion },
+): Promise<LiveRecord | null> {
+  return setState({
+    ...options,
+    change: (current) => ({
+      ...current,
+      state: "needs-you",
+      attention: questionAttention(options.question),
+    }),
+  });
+}
+
+async function refusedSecond(options: QuestionContext): Promise<LiveAskOutcome> {
+  const open = await readQuestion(options);
+
+  return {
+    kind: "refused",
+    reason: `Live session ${options.id} already has an open question${open === null ? "" : ` (${open.id})`}. Wait for its answer.`,
+  };
+}
+
 export async function askQuestion(
   options: QuestionContext & {
     readonly environment: Readonly<Record<string, string | undefined>>;
@@ -136,23 +158,21 @@ export async function askQuestion(
     answer: null,
   };
 
+  if ((await readQuestion(options)) !== null) {
+    return refusedSecond(options);
+  }
+
+  await markNeedsYou({ ...options, question });
+
   if (!(await createQuestion({ ...options, question }))) {
     const open = await readQuestion(options);
 
-    return {
-      kind: "refused",
-      reason: `Live session ${options.id} already has an open question${open === null ? "" : ` (${open.id})`}. Wait for its answer.`,
-    };
-  }
+    if (open !== null) {
+      await markNeedsYou({ ...options, question: open });
+    }
 
-  await setState({
-    ...options,
-    change: (current) => ({
-      ...current,
-      state: "needs-you",
-      attention: questionAttention(question),
-    }),
-  });
+    return refusedSecond(options);
+  }
 
   return waitForAnswer({ ...options, question });
 }
