@@ -1,8 +1,9 @@
-import type { BoardDetail } from "@shadowclone/live/board";
+import { briefWaitsForOwner, type BoardDetail } from "@shadowclone/live/board";
 import type { FleetBoard, FleetNode, FleetSession } from "../schema";
 
 export type SessionGroups = {
   readonly needsYou: readonly FleetSession[];
+  readonly readyForYou: readonly FleetSession[];
   readonly yourTurn: readonly FleetSession[];
   readonly working: readonly FleetSession[];
 };
@@ -17,12 +18,20 @@ function newestFirst(sessions: readonly FleetSession[]): readonly FleetSession[]
   return [...sessions].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
 }
 
+function needsOwner(session: FleetSession): boolean {
+  return (
+    session.state === "needs-you" ||
+    (session.brief !== undefined && briefWaitsForOwner(session.brief))
+  );
+}
+
 export function sessionGroups(sessions: readonly FleetSession[]): SessionGroups {
   const sorted = newestFirst(sessions);
 
   return {
-    needsYou: sorted.filter((session) => session.state === "needs-you"),
-    yourTurn: sorted.filter((session) => session.state === "idle"),
+    needsYou: sorted.filter(needsOwner),
+    readyForYou: sorted.filter((session) => session.brief?.kind === "finished"),
+    yourTurn: sorted.filter((session) => session.state === "idle" && session.brief === undefined),
     working: sorted.filter((session) => session.state === "working"),
   };
 }
@@ -50,6 +59,11 @@ export function headline(board: FleetBoard): readonly string[] {
       ? []
       : [
           `${count({ value: groups.needsYou.length, one: "session needs", many: "sessions need" })} you.`,
+        ]),
+    ...(groups.readyForYou.length === 0
+      ? []
+      : [
+          `${count({ value: groups.readyForYou.length, one: "session is", many: "sessions are" })} ready for you.`,
         ]),
     ...(groups.yourTurn.length === 0
       ? []

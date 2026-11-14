@@ -48,7 +48,9 @@ function inlineBoard(context: Context): HTMLElement[] {
   const { board, state, actions } = context;
   const loud = loudSession(board);
   const groups = sessionGroups(board.sessions);
-  const others = [...groups.needsYou, ...groups.yourTurn].filter((session) => session !== loud);
+  const others = [...groups.needsYou, ...groups.readyForYou, ...groups.yourTurn].filter(
+    (session) => session !== loud,
+  );
 
   return [
     ...headline(board).map((line) => element({ tag: "p", className: "headline", text: line })),
@@ -79,6 +81,7 @@ function fullBoard(context: Context): HTMLElement[] {
       : `Sessions on ${board.hub}`;
   const groupsInOrder = [
     { title: "Needs you", sessions: groups.needsYou },
+    { title: "Ready for you", sessions: groups.readyForYou },
     { title: "Your turn", sessions: groups.yourTurn },
     { title: "Working", sessions: groups.working },
   ].filter((group) => group.sessions.length > 0);

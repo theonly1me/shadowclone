@@ -2,7 +2,7 @@ import path from "node:path";
 
 const viewFolder = path.join(import.meta.dir, "view");
 
-const styleFiles = ["theme.css", "layout.css"];
+const styleFiles = ["theme.css", "layout.css", "brief.css"];
 
 const generatedFile = path.join(import.meta.dir, "html.ts");
 
