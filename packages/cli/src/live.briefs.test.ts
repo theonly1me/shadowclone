@@ -51,6 +51,9 @@ test("live briefs enable stores the redacted prompt with mode 0600, and disable 
 
     expect(enabled.exitCode).toBe(0);
     expect(enabled.output).toStartWith("Task briefs are on.");
+    expect(enabled.output).toEndWith(
+      "The hub sends each brief to the clients that you approved, and to ntfy if you ran shadowclone hub notify --text.",
+    );
     expect(stored).toContain("[redacted:github-token]");
     expect(stored).not.toContain("c".repeat(36));
     expect(mode).toBe(0o600);

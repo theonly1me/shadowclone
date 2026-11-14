@@ -56,6 +56,7 @@ export async function taskBriefsCommand(arguments_: readonly string[]): Promise<
         [
           "Task briefs are on. Each live session keeps a redacted copy of its first and latest prompt.",
           "After each turn, the fast model of the session's own engine writes a short brief from those prompts and the last message.",
+          "The hub sends each brief to the clients that you approved, and to ntfy if you ran shadowclone hub notify --text.",
         ].join("\n"),
       );
       return;
