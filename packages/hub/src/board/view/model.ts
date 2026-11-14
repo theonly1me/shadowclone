@@ -37,11 +37,10 @@ export function sessionGroups(sessions: readonly FleetSession[]): SessionGroups 
 }
 
 export function loudSession(board: FleetBoard): FleetSession | null {
-  const [newest] = newestFirst(
-    board.sessions.filter((session) => session.state === "needs-you" || session.state === "idle"),
-  );
+  const groups = sessionGroups(board.sessions);
+  const [loud] = [...groups.needsYou, ...groups.readyForYou, ...groups.yourTurn];
 
-  return newest ?? null;
+  return loud ?? null;
 }
 
 function count(options: {
