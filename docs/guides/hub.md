@@ -57,7 +57,7 @@ cmux lets only processes inside cmux type into its terminals. So a message for a
 
 In Claude, the answer to "what are my sessions doing?" opens the session board in the chat. It shows the live sessions of every machine that joined the hub. Claude renders MCP Apps on the web, on Desktop, and in its iOS and Android apps. ChatGPT also renders MCP Apps, but nobody has tested the board in ChatGPT yet.
 
-- The card at the top is the newest session that waits for you, with its last message. For an idle session, type your reply in the box, and select **Send**. The board then shows the hub's answer, which starts with "Sent" or "Queued".
+- The card at the top is the newest session in the first group that has one: needs you, ready for you, then your turn. It shows the last message. For an idle session, type your reply in the box, and select **Send**. The board then shows the hub's answer, which starts with "Sent" or "Queued".
 - A session that waits for a permission answer has no reply box. Answer it in the terminal or in Remote Control.
 - Tap a session to read its full last message.
 - Select **Open the board** to see all sessions in full screen. They are in groups: needs you, ready for you, your turn, and working. The board also shows the pairs and the number of ended sessions.
@@ -82,11 +82,11 @@ The cmux CLI reads the password that you saved in Settings. So in password mode,
 
 Task briefs give each live session a name and say what it needs from you. This is off until you turn it on, after live sessions.
 
-1. Run `shadowclone live briefs enable`. Each live session now keeps a redacted copy of its first and latest prompt.
+1. Run `shadowclone live briefs enable`. Each live session now keeps a redacted copy of its first and latest prompt. The hub sends each brief to the clients that you approved.
 2. Work as usual. After each turn, the fast model of the session's own engine writes a short brief. The brief has a name, the goal, what the agent did, and the kind (`question`, `finished`, or `blocked`).
 3. Run `shadowclone live list`. Each session with a brief shows its name. The kind shows only while the session is idle and the brief describes its last message.
 4. Run `shadowclone live show <live-id>` to read one brief, with the question and the options that the agent offered.
-5. Open the session board. Each session with a current brief shows its name, its goal, and what it needs from you, above its last message.
+5. Open the session board. Each session with a current brief shows its name, its goal, and what it needs from you, above its last message. Tap the session to also see what the agent did.
 6. If a session asks a question with options, tap an option. The board sends the option text to the session, the same as a typed reply. You can also type a different reply.
 
 On the board, a `question` or `blocked` brief puts the session in "Needs you", and a `finished` brief puts it in "Ready for you". A session with no current brief stays in its usual group. If you run `shadowclone hub notify --text`, a push for a question names the task and gives the question. The hub then sends each brief to the clients that you approved, and with `--text`, to ntfy.

@@ -75,7 +75,7 @@ The tool rejects a token field. The owner adds tokens in the secrets file that s
 
 With live sessions on, the tools also cover your own Claude Code and Codex sessions, with `live-` ids. `send` reaches a live session. `answer` and `stop` do not. `list` also names the open pairs of live sessions.
 
-With task briefs on, `list` adds the brief of each idle session whose last message made the brief. The session line then shows the kind and the name, and the next lines give the goal, the need, and any options. A line before them marks the brief as a summary by a model and as data. See [name each task](hub.md#name-each-task).
+With task briefs on, `list` adds the brief of each idle session whose last message made the brief. The session line then shows the kind and the name. The next lines give the goal, what the agent did, the need, and any options. A line before them marks the brief as a summary by a model and as data. See [name each task](hub.md#name-each-task).
 
 `shadowclone_sessions` takes `operation`:
 
