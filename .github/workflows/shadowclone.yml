@@ -161,7 +161,7 @@ jobs:
                 labels: ['shadowclone:managed'],
               });
             }
-      - uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c
+      - uses: anthropics/claude-code-action@4fa93a88de49bbef68b10eb15aabedf28ca0e1ed
         if: steps.validate.outputs.allowed == 'true'
         env:
           SHADOWCLONE_ENTITY: ${{ steps.validate.outputs.entity }}
