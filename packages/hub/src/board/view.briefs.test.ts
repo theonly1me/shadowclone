@@ -107,6 +107,7 @@ describe("briefs on the session board", () => {
     expect(textOf("brief-name")).toBe(`Rename ${scriptText}`);
     expect(textOf("brief-need")).toBe("Keep the old name?");
     expect(textOf("brief-label")).toBe("Summary by a model");
+    expect(textOf("brief-done")).toBe("Done: The agent renamed it.");
     expect(textOf("loud")).toBe("Raw message of live-00000001.");
     expect(created.filter((node) => node.tagName === "TEXTAREA")).toHaveLength(1);
     expect(created.filter((node) => node.tagName === "SCRIPT" || node.tagName === "B")).toEqual([]);
@@ -162,5 +163,27 @@ describe("briefs on the session board", () => {
     expect(plain).toStartWith("Your turnyou/appmain");
     expect(plain).toEndWith("Raw message of live-00000003.");
     expect(created.slice(before).filter((node) => node.className.includes("brief"))).toEqual([]);
+  });
+
+  test("a row shows the done line only after you open it", () => {
+    const { created } = installFakeDocument();
+    const state = emptyState();
+    const entry = session({ id: "live-00000002", state: "idle", brief: finished });
+    const doneLines = () =>
+      created.filter((node) => node.className === "brief-done").map((node) => node.textContent);
+    const draw = () =>
+      sessionRow({
+        view: sessionView({ session: entry, state, showNode: false }),
+        state,
+        actions: actionsThatRecord([]),
+        extra: [],
+      });
+
+    draw();
+    expect(doneLines()).toEqual([]);
+
+    state.opened = entry.id;
+    draw();
+    expect(doneLines()).toEqual(["Done: The agent renamed it."]);
   });
 });

@@ -52,6 +52,7 @@ export function liveListLines(options: {
   return [
     `${listPrefix(record)} [${brief.kind}] ${brief.name}: ${firstLine(record.attention ?? record.summary)}`,
     `  Goal: ${brief.goal}`,
+    ...(brief.done === "" ? [] : [`  Done: ${brief.done}`]),
     `  Needs: ${briefNeed(brief)}`,
     ...(brief.kind === "question" && brief.options.length > 0
       ? [`  Options: ${brief.options.join(" | ")}`]

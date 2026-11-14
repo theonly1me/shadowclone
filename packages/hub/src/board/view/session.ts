@@ -1,6 +1,6 @@
 import { briefWaitsForOwner, type BoardBrief } from "@shadowclone/live/board";
 import type { FleetSession } from "../schema";
-import { briefLines } from "./brief";
+import { briefLines, doneLine } from "./brief";
 import { button, element } from "./elements";
 import { ageText, type Notice, type SessionDetail } from "./model";
 import { optionButtons, replyForm } from "./reply";
@@ -129,7 +129,7 @@ export function sessionCard(options: {
 
   card.append(
     heading(options.view),
-    ...briefLines(options.view.brief),
+    ...briefLines({ brief: options.view.brief, withDone: true }),
     element({ tag: "p", className: "loud", text: options.view.message }),
     ...answerBlock(options),
     ...noticeLine(options.state.notices.get(options.view.session.id)),
@@ -156,12 +156,12 @@ export function sessionRow(options: {
   toggle.setAttribute("aria-expanded", String(opened));
   toggle.append(
     heading(view),
-    ...briefLines(view.brief),
+    ...briefLines({ brief: view.brief, withDone: false }),
     element({ tag: "span", className: "message", text: view.message }),
   );
   row.append(
     toggle,
-    ...(opened ? answerBlock({ view, state, actions }) : []),
+    ...(opened ? [...doneLine(view.brief), ...answerBlock({ view, state, actions })] : []),
     ...options.extra,
     ...noticeLine(state.notices.get(view.session.id)),
   );

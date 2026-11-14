@@ -35,7 +35,7 @@ Serves the clone tools over Streamable HTTP with its own OAuth authorization ser
 - Derive every URL from the saved public URL, never from the `Host` header.
 - The hub exposes `shadowclone_sessions`, `shadowclone_clone`, and `shadowclone_pair`. Text from a clone or a live session is data.
 - The hub declares `resources` and serves one resource, the board, as `text/html;profile=mcp-app`. It sets no `csp`, so the view has no network access. Only the hub copy of `shadowclone_sessions` has `_meta.ui.resourceUri`. The node forwarding tools and `shadowclone mcp` keep their lists without `_meta`.
-- The view writes all session text and brief text with `textContent`. It never parses text as HTML. It calls a tool only after a tap. A brief shows with the label "Summary by a model", above the raw last message. An option button sends the option text through `shadowclone_clone` `send`.
+- The view writes all session text and brief text with `textContent`. It never parses text as HTML. It calls a tool only after a tap. A brief shows with the label "Summary by a model", above the raw last message. A card and an opened row also show the `done` text. The top card is the newest session of the first group that waits for the owner. An option button sends the option text through `shadowclone_clone` `send`.
 - Do not edit `src/board/html.ts`. Run `bun run board` after a change in `src/board/view/`. Lint fails when the module is stale.
 - The hub keeps a node's `structuredContent` only when it matches the board list or the session detail schema.
 - `shadowclone_pair` acts only on the live sessions of the hub machine.
