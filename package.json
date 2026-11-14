@@ -27,7 +27,7 @@
     "eval:work": "bun evals/work/run.ts"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.4",
+    "@biomejs/biome": "2.6.5",
     "@types/bun": "latest",
     "knip": "6.44.1",
     "prettier": "3.9.10",
