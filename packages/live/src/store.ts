@@ -1,9 +1,10 @@
-import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
-import path from "node:path";
 import { z } from "zod";
+import { ensureDirectory, liveFile, parseJson, removeSessionFiles, writePrivateJson } from "./files";
 import type { LivePaths } from "./paths";
-import { liveIdPattern, liveRecordSchema, pairIdPattern, type LiveRecord } from "./record";
+import { liveIdPattern, pairIdPattern } from "./board";
+import { liveRecordSchema, type LiveRecord } from "./record";
 
 const endedKeepMilliseconds = 86_400_000;
 
@@ -60,23 +61,11 @@ function messageOf(entry: InboxEntry): InboxMessage {
 }
 
 function recordFile(options: { readonly paths: LivePaths; readonly id: string }): string {
-  return path.join(options.paths.directory, `${options.id}.json`);
+  return liveFile({ ...options, kind: "record" });
 }
 
 function inboxFile(options: { readonly paths: LivePaths; readonly id: string }): string {
-  return path.join(options.paths.directory, `${options.id}.inbox.jsonl`);
-}
-
-async function ensureDirectory(paths: LivePaths): Promise<void> {
-  await mkdir(paths.directory, { recursive: true, mode: 0o700 });
-}
-
-function parseJson(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
+  return liveFile({ ...options, kind: "inbox" });
 }
 
 export async function readRecord(options: {
@@ -97,13 +86,11 @@ export async function writeRecord(options: {
   readonly paths: LivePaths;
   readonly record: LiveRecord;
 }): Promise<void> {
-  await ensureDirectory(options.paths);
-
-  const target = recordFile({ paths: options.paths, id: options.record.id });
-  const temporary = `${target}.${randomUUID()}.tmp`;
-
-  await writeFile(temporary, `${JSON.stringify(options.record)}\n`, { mode: 0o600 });
-  await rename(temporary, target);
+  await writePrivateJson({
+    paths: options.paths,
+    file: recordFile({ paths: options.paths, id: options.record.id }),
+    value: options.record,
+  });
 }
 
 export async function listRecords(options: {
@@ -121,8 +108,7 @@ export async function listRecords(options: {
       record !== null &&
       ((record.state === "ended" && age > endedKeepMilliseconds) || age > staleMilliseconds)
     ) {
-      await rm(recordFile({ paths: options.paths, id: record.id }), { force: true });
-      await rm(inboxFile({ paths: options.paths, id: record.id }), { force: true });
+      await removeSessionFiles({ paths: options.paths, id: record.id });
     } else if (record !== null) {
       records.push(record);
     }

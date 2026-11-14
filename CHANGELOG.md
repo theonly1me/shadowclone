@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.48](https://github.com/theonly1me/shadowclone/compare/v0.0.47...v0.0.48) (2026-11-11)
+
+
+### Features
+
+* **hub:** show live sessions on a session board in claude and chatgpt ([#271](https://github.com/theonly1me/shadowclone/issues/271)) ([7cc1724](https://github.com/theonly1me/shadowclone/commit/7cc1724d682b6cf41a0d345cd716f07cbe4e06a2))
+* **live:** name each live session with a task brief ([#269](https://github.com/theonly1me/shadowclone/issues/269)) ([60daf80](https://github.com/theonly1me/shadowclone/commit/60daf8081b2dd27e324e0e91ffe2eb854ce2fe61))
+
 ## [0.0.47](https://github.com/theonly1me/shadowclone/compare/v0.0.46...v0.0.47) (2026-11-06)
 
 

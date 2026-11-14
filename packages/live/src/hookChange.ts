@@ -13,6 +13,8 @@ export const hookInputSchema = z.object({
   last_assistant_message: z.string().nullable().optional(),
   notification_type: z.string().optional(),
   message: z.string().optional(),
+  prompt: z.unknown().optional(),
+  agent_id: z.unknown().optional(),
 });
 
 export type HookInput = z.infer<typeof hookInputSchema>;
@@ -24,6 +26,8 @@ const attentionTypes = [
   "agent_needs_input",
 ];
 
+export type LiveTaskBriefs = { readonly startWriter: (id: string) => void };
+
 export type HookContext = {
   readonly paths: LivePaths;
   readonly engine: LiveEngine;
@@ -31,6 +35,7 @@ export type HookContext = {
   readonly environment: Readonly<Record<string, string | undefined>>;
   readonly gitFacts: (cwd: string) => Promise<GitFacts>;
   readonly typeText: TypeText;
+  readonly taskBriefs?: LiveTaskBriefs;
 };
 
 export type Change = {

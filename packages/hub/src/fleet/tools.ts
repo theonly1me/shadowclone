@@ -6,6 +6,7 @@ import { createSessionsTools, sessionsTools } from "@shadowclone/mcp";
 import type { HubStore } from "../store";
 import { nodeNamePattern } from "../store/nodes";
 import type { NodeLinks } from "./links";
+import { answerText, fleetBoard, withKnownBoard, type NodeAnswer } from "./board";
 import { textResult, toolResultSchema, type ToolResult } from "./protocol";
 
 const nodeProperty = {
@@ -54,7 +55,9 @@ async function runOn(options: {
     }).run(params);
     const parsed = toolResultSchema.safeParse(result);
 
-    return parsed.success ? parsed.data : textResult({ value: "Unknown tool.", isError: true });
+    return parsed.success
+      ? withKnownBoard(parsed.data)
+      : textResult({ value: "Unknown tool.", isError: true });
   }
 
   try {
@@ -63,7 +66,7 @@ async function runOn(options: {
     );
 
     return parsed.success
-      ? parsed.data
+      ? withKnownBoard(parsed.data)
       : textResult({
           value: `Node ${node} sent an answer that the hub cannot read.`,
           isError: true,
@@ -107,26 +110,32 @@ async function listEverywhere(options: {
 }): Promise<ToolResult> {
   const { fleet, params } = options;
   const nodes = fleet.store.listNodes();
-
-  if (nodes.length === 0) {
-    return runOn({ fleet, node: fleet.hostName, params });
-  }
-
-  const sections = await Promise.all(
-    [fleet.hostName, ...nodes.map((node) => node.name)].map(async (name) => {
+  const answers = await Promise.all(
+    [fleet.hostName, ...nodes.map((node) => node.name)].map(async (name): Promise<NodeAnswer> => {
       const node = nodes.find((entry) => entry.name === name);
 
-      if (node !== undefined && !fleet.links.connected(name)) {
-        return `Node ${name}: offline, last seen ${node.lastSeenAt ?? "never"}.`;
-      }
-
-      const result = await runOn({ fleet, node: name, params });
-
-      return `Node ${name}:\n${result.content.map((part) => part.text).join("\n")}`;
+      return node !== undefined && !fleet.links.connected(name)
+        ? { name, kind: "offline", lastSeenAt: node.lastSeenAt }
+        : { name, kind: "answered", result: await runOn({ fleet, node: name, params }) };
     }),
   );
+  const structuredContent = fleetBoard({ hub: fleet.hostName, answers });
+  const [hubAnswer] = answers;
 
-  return textResult({ value: sections.join("\n\n") });
+  return nodes.length === 0 && hubAnswer?.kind === "answered"
+    ? { ...hubAnswer.result, structuredContent }
+    : { ...textResult({ value: answers.map(answerText).join("\n\n") }), structuredContent };
+}
+
+async function listOn(options: {
+  readonly fleet: Fleet;
+  readonly node: string;
+  readonly params: { readonly name: string; readonly arguments: Readonly<Record<string, unknown>> };
+}): Promise<ToolResult> {
+  const result = await runOn(options);
+  const answers = [{ name: options.node, kind: "answered", result } as const];
+
+  return { ...result, structuredContent: fleetBoard({ hub: options.fleet.hostName, answers }) };
 }
 
 export function fleetTools(fleet: Fleet) {
@@ -158,8 +167,10 @@ export function fleetTools(fleet: Fleet) {
       const { node, operation, id } = routing.data;
 
       if (node !== undefined) {
+        const run = operation === "list" ? listOn : runOn;
+
         return known.includes(node)
-          ? runOn({ fleet, node, params })
+          ? run({ fleet, node, params })
           : textResult({
               value: `No node ${node} joined this hub. Known nodes: ${known.join(", ")}.`,
               isError: true,

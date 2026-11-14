@@ -4,3 +4,4 @@ export * from "./io";
 export * from "./storage";
 export * from "./localFiles";
 export * from "./config";
+export { noop } from "./noop";

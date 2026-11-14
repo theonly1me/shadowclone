@@ -27,6 +27,10 @@ export function parseRequest(value: unknown): JsonRpcRequest | null {
   return { id, method: value.method, params: value.params };
 }
 
+function textOnly(result: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
+  return Object.fromEntries(Object.entries(result).filter(([key]) => key !== "structuredContent"));
+}
+
 export function handleMcpRequest(options: {
   readonly request: JsonRpcRequest;
   readonly context: string;
@@ -68,7 +72,7 @@ export function handleMcpRequest(options: {
 
   if (options.request.method === "tools/call") {
     if (options.toolResult) {
-      return { ...base, result: options.toolResult };
+      return { ...base, result: textOnly(options.toolResult) };
     }
 
     const params = isRecord(options.request.params) ? options.request.params : {};

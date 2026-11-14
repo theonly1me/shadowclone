@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { EngineId } from "./engineId";
 import { readRootOwnedFile } from "./managedFile";
+import type { RemoteSettings } from "./remote";
 import {
   isSourceId,
   retiredSourceIds,
@@ -69,6 +70,24 @@ export function parseManagedPolicy(value: unknown): ManagedPolicy {
   return result.data;
 }
 
+function managedRemote(options: {
+  readonly remote: RemoteSettings;
+  readonly policy: ManagedPolicy;
+}): RemoteSettings {
+  const liveSessions =
+    options.remote.liveSessions &&
+    options.policy.enabled &&
+    options.policy.maxActionTier === "act";
+
+  return {
+    liveSessions,
+    taskBriefs:
+      options.remote.taskBriefs &&
+      liveSessions &&
+      options.policy.distillation === "allowed",
+  };
+}
+
 export function applyManagedPolicy(options: {
   readonly config: ShadowcloneConfig;
   readonly policy: ManagedPolicy;
@@ -129,12 +148,10 @@ export function applyManagedPolicy(options: {
     ...(options.config.remote === undefined
       ? {}
       : {
-          remote: {
-            liveSessions:
-              options.config.remote.liveSessions &&
-              options.policy.enabled &&
-              options.policy.maxActionTier === "act",
-          },
+          remote: managedRemote({
+            remote: options.config.remote,
+            policy: options.policy,
+          }),
         }),
   };
 }

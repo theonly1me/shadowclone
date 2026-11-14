@@ -8,7 +8,7 @@ Local type checks and tests did not prevent unchecked changes from merging. Seve
 
 ## Decision
 
-Use `bun run check` as the shared local and CI gate: typecheck, lint, then tests. Run tests on Linux and macOS because filesystem paths, policy locations, and process behavior differ.
+Use `bun run check` as the shared local and CI gate: typecheck, lint, then tests. Run tests on Linux and macOS because filesystem paths, policy locations, and process behavior differ. The Linux test job runs on `ubuntu-24.04`. On the `ubuntu-26.04` image, the review sandbox cannot write `/proc/self/setgroups` in a nested user namespace, so each sandbox test fails.
 
 Run knip after lint to fail on unused files, dependencies, and binaries. `knip.json` lists the entry points that a static import graph cannot find: the MCP server, the browser client, scripts, plugin helpers, and tests. Unused exports stay ungated until the project prunes the barrel re-exports.
 

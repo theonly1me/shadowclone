@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { EngineId } from "./engineId";
+import { parseRemote, type RemoteSettings } from "./remote";
 
 export const sourceIds = [
   "agent-context",
@@ -44,9 +45,7 @@ export type ShadowcloneConfig = {
     readonly engine?: EngineId;
     readonly model?: string;
   };
-  readonly remote?: {
-    readonly liveSessions: boolean;
-  };
+  readonly remote?: RemoteSettings;
 };
 
 export const defaultConfig: ShadowcloneConfig = {
@@ -168,20 +167,6 @@ const configSchema = z.strictObject({
   repo: z.unknown().optional(),
   remote: z.unknown().optional(),
 });
-
-const remoteSchema = z.strictObject({
-  "live-sessions": z.boolean().optional().default(false),
-});
-
-function parseRemote(value: unknown): ShadowcloneConfig["remote"] {
-  const result = remoteSchema.safeParse(value);
-
-  if (!result.success) {
-    throw new Error("Config remote must contain only a live-sessions boolean");
-  }
-
-  return { liveSessions: result.data["live-sessions"] };
-}
 
 export function parseConfig(value: unknown): ShadowcloneConfig {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {

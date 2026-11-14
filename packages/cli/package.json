@@ -48,6 +48,7 @@
     "@anthropic-ai/sandbox-runtime": "0.0.81",
     "@shadowclone/agents": "workspace:*",
     "@shadowclone/bot": "workspace:*",
+    "@shadowclone/briefs": "workspace:*",
     "@shadowclone/builds": "workspace:*",
     "@shadowclone/changes": "workspace:*",
     "@shadowclone/clones": "workspace:*",
