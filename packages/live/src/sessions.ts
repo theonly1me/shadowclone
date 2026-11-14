@@ -1,3 +1,4 @@
+import { briefIsCurrent, readBrief, type LiveBrief } from "./brief";
 import { deliver, type LiveDelivery } from "./delivery";
 import { liveOffReason } from "./messages";
 import { localPairing, type LivePairing } from "./pairing";
@@ -12,6 +13,9 @@ export type LiveSessions = LivePairing & {
   readonly enabled: () => Promise<boolean>;
   readonly list: () => Promise<readonly LiveRecord[]>;
   readonly get: (id: string) => Promise<LiveRecord | null>;
+  readonly currentBriefs: (
+    records: readonly LiveRecord[],
+  ) => Promise<ReadonlyMap<string, LiveBrief>>;
   readonly send: (options: {
     readonly id: string;
     readonly text: string;
@@ -21,6 +25,7 @@ export type LiveSessions = LivePairing & {
 export function localLive(options: {
   readonly paths: LivePaths;
   readonly enabled: () => Promise<boolean>;
+  readonly briefsEnabled?: () => Promise<boolean>;
   readonly typeText: TypeText;
   readonly now?: () => Date;
 }): LiveSessions {
@@ -32,6 +37,23 @@ export function localLive(options: {
     enabled: options.enabled,
     list: async () => ((await options.enabled()) ? listRecords({ paths, now: now() }) : []),
     get: async (id) => ((await options.enabled()) ? readRecord({ paths, id }) : null),
+    currentBriefs: async (records) => {
+      if (!(await (options.briefsEnabled?.() ?? false))) {
+        return new Map<string, LiveBrief>();
+      }
+
+      const entries = await Promise.all(
+        records.map(async (record) => {
+          const brief = await readBrief({ paths, id: record.id });
+
+          return brief !== null && briefIsCurrent({ record, brief })
+            ? [[record.id, brief] as const]
+            : [];
+        }),
+      );
+
+      return new Map(entries.flat());
+    },
     send: async ({ id, text }) => {
       if (!(await options.enabled())) {
         return { kind: "refused", reason: liveOffReason };

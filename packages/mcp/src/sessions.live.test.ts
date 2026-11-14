@@ -25,6 +25,7 @@ function fakeLive(sent: { id: string; text: string }[]): LiveSessions {
     enabled: async () => true,
     list: async () => [record],
     get: async (id) => (id === record.id ? record : null),
+    currentBriefs: async () => new Map(),
     send: async (message) => {
       sent.push(message);
 

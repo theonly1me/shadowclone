@@ -1,10 +1,27 @@
-import type { BoardDetail, BoardPair, BoardSession } from "./board";
+import type { BoardBrief, BoardDetail, BoardPair, BoardSession } from "./board";
+import type { LiveBrief } from "./brief";
 import type { LivePairView } from "./pairing";
 import { pairNoteLimit } from "./pairs";
 import type { LiveRecord } from "./record";
 import { firstLine } from "./text";
 
-export function liveBoardSession(record: LiveRecord): BoardSession {
+function boardBrief(brief: LiveBrief): BoardBrief {
+  return {
+    name: brief.name,
+    goal: brief.goal,
+    done: brief.done,
+    kind: brief.kind,
+    question: brief.question,
+    options: brief.options,
+  };
+}
+
+export function liveBoardSession(options: {
+  readonly record: LiveRecord;
+  readonly brief: LiveBrief | null;
+}): BoardSession {
+  const { record, brief } = options;
+
   return {
     id: record.id,
     engine: record.engine,
@@ -13,6 +30,7 @@ export function liveBoardSession(record: LiveRecord): BoardSession {
     branch: record.branch,
     updatedAt: record.updatedAt,
     message: firstLine(record.attention ?? record.summary),
+    ...(brief === null ? {} : { brief: boardBrief(brief) }),
   };
 }
 
