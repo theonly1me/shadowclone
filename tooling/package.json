@@ -9,7 +9,7 @@
   "dependencies": {
     "@shadowclone/core": "workspace:*",
     "@shadowclone/skills": "workspace:*",
-    "prettier": "3.9.10",
+    "prettier": "3.10.0",
     "typescript": "~5.9",
     "zod": "^4.6.7"
   }
