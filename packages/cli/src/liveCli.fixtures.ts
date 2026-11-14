@@ -3,6 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { checkoutRoot } from "@shadowclone/core/testing";
 
+export const cliTestMilliseconds = 20_000;
+
 export async function runCli(options: {
   readonly home: string;
   readonly arguments: readonly string[];
