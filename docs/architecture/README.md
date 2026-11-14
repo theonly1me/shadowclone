@@ -112,7 +112,8 @@ flowchart LR
   Live -- "redacted prompts and last message, with consent" --> Briefs["briefs: task brief writer"]
   Briefs -- "brief file" --> Live
   Briefs -- "redacted prompts and last message, no tools" --> Provider
-  Hub -- "optional push, no question text by default" --> Ntfy["ntfy topic"]
+  Live -- "current task brief, with consent" --> Hub
+  Hub -- "optional push, no question text or brief by default" --> Ntfy["ntfy topic"]
   Session -- "prompt, skills, files that the agent reads" --> Provider
   subgraph GitHub["GitHub"]
     Bot --> Pulls["Draft pull requests and review comments"]
@@ -138,6 +139,7 @@ flowchart LR
 | Board view to hub       | Tool calls after a tap on the board       | The host sandbox with no network access, text written as text, and the same OAuth sign-in as the client                          |
 | Session to session      | Notes between two paired live sessions    | Only the owner pairs, from the CLI or the hub. A hashed key for each side, 20 notes for each pair, and a not-the-owner label     |
 | Live session to model   | Redacted prompts and last message         | A default-off `task-briefs` flag, the session's own engine, no tools, a data label, 12 calls an hour, and a strict answer schema |
+| Brief to client         | The current brief of each live session    | The `task-briefs` flag, a "Summary by a model" label, a data line in the text, and text written as text on the board             |
 | Evaluation              | Synthetic tasks, receipts, held-out cases | Private storage outside checkouts. Approved scope per paid run                                                                   |
 
 ## How the packages work together

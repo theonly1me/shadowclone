@@ -10,6 +10,7 @@ function fakeLive(calls: Calls): LiveSessions {
     enabled: async () => true,
     list: async () => [],
     get: async () => null,
+    currentBriefs: async () => new Map(),
     send: async () => ({ kind: "refused", reason: "Not in this test." }),
     pair: async ({ first, second }) => {
       calls.pairs.push([first, second]);

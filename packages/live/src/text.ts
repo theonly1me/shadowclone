@@ -4,6 +4,7 @@ import type {
   LivePeerOutcome,
   LiveUnpairOutcome,
 } from "./pairing";
+import { briefNeed } from "./board";
 import { briefIsCurrent, type LiveBrief } from "./brief";
 import { pairNoteLimit } from "./pairs";
 import type { LiveRecord } from "./record";
@@ -36,6 +37,27 @@ export function liveBriefListLine(options: {
   const label = briefIsCurrent({ record, brief }) ? `[${brief.kind}] ${brief.name}` : brief.name;
 
   return `${listPrefix(record)} ${label}: ${firstLine(record.attention ?? record.summary)}`;
+}
+
+export function liveListLines(options: {
+  readonly record: LiveRecord;
+  readonly currentBrief: LiveBrief | null;
+}): readonly string[] {
+  const { record, currentBrief: brief } = options;
+
+  if (brief === null) {
+    return [liveListLine(record)];
+  }
+
+  return [
+    `${listPrefix(record)} [${brief.kind}] ${brief.name}: ${firstLine(record.attention ?? record.summary)}`,
+    `  Goal: ${brief.goal}`,
+    ...(brief.done === "" ? [] : [`  Done: ${brief.done}`]),
+    `  Needs: ${briefNeed(brief)}`,
+    ...(brief.kind === "question" && brief.options.length > 0
+      ? [`  Options: ${brief.options.join(" | ")}`]
+      : []),
+  ];
 }
 
 export function liveBriefLines(options: {
