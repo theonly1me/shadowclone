@@ -49,7 +49,8 @@ export const sessionsTools = [
       "never merges. Add issue or pull to work on one, or review true with pull to review a pull " +
       "request. send gives a running clone the owner's message as text. answer gives the owner's " +
       "answer to an open question, named by question. send also reaches a live session by its " +
-      "live-xxxxxxxx id. Send only the owner's own words. stop stops a clone, which first pushes " +
+      "live-xxxxxxxx id, and answer also answers the open question of a live session. Send only " +
+      "the owner's own words. stop stops a clone, which first pushes " +
       "its unfinished work.",
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     inputSchema: {

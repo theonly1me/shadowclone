@@ -24,6 +24,10 @@ export function boundedText(options: { readonly text: string; readonly limit: nu
   return redacted.length <= options.limit ? redacted : `${redacted.slice(0, options.limit - 1)}…`;
 }
 
+export function liveAskHint(id: string): string {
+  return `This is shadowclone live session ${id}. When a decision is the owner's and the task text does not answer it, call shadowclone_ask with session ${id}, the question, 2 to 4 options, and your recommended option.`;
+}
+
 export function peerNoteText(text: string): string {
   return boundedText({ text: text.replaceAll(wrapperTags, "[tag]"), limit: peerNoteLimit });
 }

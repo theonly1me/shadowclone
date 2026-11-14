@@ -3,7 +3,15 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { LivePaths } from "./paths";
 
-const liveFileKinds = ["record", "inbox", "task", "brief", "briefCalls", "briefLock"] as const;
+const liveFileKinds = [
+  "record",
+  "inbox",
+  "task",
+  "brief",
+  "briefCalls",
+  "briefLock",
+  "question",
+] as const;
 
 export type LiveFileKind = (typeof liveFileKinds)[number];
 
@@ -14,9 +22,11 @@ const suffixes: Readonly<Record<LiveFileKind, string>> = {
   brief: ".brief.json",
   briefCalls: ".brief-calls.json",
   briefLock: ".brief.lock",
+  question: ".question.json",
 };
 
-const briefFileNamePattern = /^(live-[0-9a-f]{8})\.(?:task\.json|brief\.json|brief-calls\.json|brief\.lock)$/;
+const briefFileNamePattern =
+  /^(live-[0-9a-f]{8})\.(?:task\.json|brief\.json|brief-calls\.json|brief\.lock|question\.json)$/;
 
 export function liveFile(options: {
   readonly paths: LivePaths;

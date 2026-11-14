@@ -25,6 +25,11 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - `src/pairs.ts`: `pairs.json`, the key hashes, and `activePairs`, which drops a pair when either session ended.
 - `src/pairing/`: the `pair`, `unpair`, `pairs`, and `peerSend` operations.
 - `src/brief.ts`: the brief file, the call times, and the lock file of the brief writer in `@shadowclone/briefs`. `briefIsCurrent` and `briefMessageDigest` decide whether a brief still describes the session.
+- `src/questionStore.ts`: the open question of a session in `live-<id>.question.json`, created with an exclusive link and taken with a rename.
+- `src/questions.ts`: `askQuestion`, which records the question, sets `needs-you`, and waits for the answer until `questionTiming.waitMilliseconds`.
+- `src/questionAnswer.ts`: `answerQuestion`, which gives the answer to the waiting call, or delivers it as an owner message after the wait.
+- `src/questionHook.ts`: `withOpenQuestion`, which keeps a session with an open question at `needs-you` and closes the question at the session end.
+- `src/questionText.ts`: the text of a question, an ask outcome, and an answer outcome.
 - `src/text.ts`: the CLI and MCP text, with `liveBriefListLine` and `liveBriefLines` for briefs.
 - `src/messages.ts`: the wrappers of owner messages, pairing notes, and peer notes.
 - `src/terminal.ts`: typing into a tmux pane or a cmux surface.
@@ -42,7 +47,10 @@ Tracks the Claude Code and Codex sessions that the owner starts, after the owner
 - Start the brief writer only after a `Stop` that leaves the session idle. Never import `agents` or `briefs`. The CLI injects the writer.
 - Show the kind, the question, and the options of a brief only when `briefIsCurrent` is true.
 - A task brief step never changes the hook result. `followTask` contains each failure.
-- `live briefs disable` and `live disable` delete every task and brief file. An ended session loses them with its record.
+- `live briefs disable` and `live disable` delete every task, brief, and question file. An ended session loses them with its record.
+- `ask` refuses unless `remote.task-briefs` is on. With the flag on, `SessionStart` adds one line of context with the live id. With the flag off, the hook output stays the same.
+- A session has at most one open question. `askQuestion` never takes an option. At the deadline, it returns `expired`, and the question stays open.
+- An answer reaches the session once. The side that renames the question file delivers it.
 - Bound the summary to 2 KB after `redactSecrets`.
 - Deliver each queued message once. Never type into a session that waits for a permission answer.
 - Pair sessions only when the owner asks, through the CLI or the hub. Keep only the SHA-256 hash of each key. A session is in one pair at a time.

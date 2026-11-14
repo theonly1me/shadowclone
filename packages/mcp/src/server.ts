@@ -1,3 +1,4 @@
+import { createAskTool, isAskCall } from "./ask";
 import { handleMcpRequest, isRecord, parseRequest } from "./protocol";
 import { runPreferenceTool } from "./preferences";
 import { createBotTool } from "./bot";
@@ -7,7 +8,7 @@ import { createPeerTool } from "./pairs";
 import { compileContext } from "@shadowclone/environment";
 import { clonesPaths, localNode } from "@shadowclone/clones";
 import { machineLive } from "@shadowclone/live";
-import { projectPaths } from "@shadowclone/core";
+import { noop, projectPaths } from "@shadowclone/core";
 import type { ProjectPaths } from "@shadowclone/core";
 import type { GitRemoteReader } from "@shadowclone/sessions";
 
@@ -54,8 +55,16 @@ export async function serveMcp(
   const cloneSetup = createCloneSetupTool({ cwd, paths: botPaths });
   const live = machineLive();
   const sessions =
-    options.sessionTools ?? createSessionsTools({ node: localNode({ paths: clonesPaths() }), live });
+    options.sessionTools ??
+    createSessionsTools({ node: localNode({ paths: clonesPaths() }), live });
   const peer = createPeerTool({ live });
+  const ask = createAskTool({ live, environment: process.env });
+  let writing = Promise.resolve();
+  const send = (value: Readonly<Record<string, unknown>>) => {
+    writing = writing.then(() => writeMessage(value));
+
+    return writing;
+  };
 
   for await (const chunk of Bun.stdin.stream()) {
     buffer += decoder.decode(chunk, { stream: true });
@@ -72,11 +81,17 @@ export async function serveMcp(
           const request = parseRequest(JSON.parse(line));
 
           if (request === null) {
-            await writeMessage({
+            await send({
               jsonrpc: "2.0",
               id: null,
               error: { code: -32600, message: "Invalid request" },
             });
+          } else if (request.method === "tools/call" && isAskCall(request.params)) {
+            ask
+              .run(request.params)
+              .then((toolResult) => handleMcpRequest({ request, context: "", toolResult }))
+              .then((response) => (response === null ? undefined : send(response)))
+              .catch(noop);
           } else {
             const context =
               request.method === "tools/call" &&
@@ -116,11 +131,11 @@ export async function serveMcp(
             });
 
             if (response !== null) {
-              await writeMessage(response);
+              await send(response);
             }
           }
         } catch {
-          await writeMessage({
+          await send({
             jsonrpc: "2.0",
             id: null,
             error: { code: -32700, message: "Parse error" },
