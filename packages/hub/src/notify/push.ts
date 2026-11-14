@@ -19,11 +19,15 @@ export function pushFor(options: {
 
   if (state.needsYou) {
     const question = redactSecrets({ text: state.question ?? "It waits for you." }).slice(0, 500);
+    const where =
+      state.task === null
+        ? state.repository
+        : `${redactSecrets({ text: state.task })} in ${state.repository}`;
 
     return {
       title: `${label(state)} needs you`,
       body: withText
-        ? `${state.repository} on ${node}: ${question}`
+        ? `${where} on ${node}: ${question}`
         : `On ${node}. Ask Claude about ${state.id} to see what it needs.`,
       urgent: true,
     };
