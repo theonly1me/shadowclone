@@ -104,7 +104,9 @@ export function sessionCard(options: {
   card.append(
     heading(options.view),
     ...briefLines({ brief: options.view.brief, withDone: true }),
-    element({ tag: "p", className: "loud", text: options.view.message }),
+    ...(options.view.question === null
+      ? [element({ tag: "p", className: "loud", text: options.view.message })]
+      : []),
     ...openQuestion(options),
     ...answerBlock(options),
     ...noticeLine(options.state.notices.get(options.view.session.id)),
@@ -132,7 +134,9 @@ export function sessionRow(options: {
   toggle.append(
     heading(view),
     ...briefLines({ brief: view.brief, withDone: false }),
-    element({ tag: "span", className: "message", text: view.message }),
+    ...(view.question === null
+      ? [element({ tag: "span", className: "message", text: view.message })]
+      : []),
   );
   row.append(
     toggle,

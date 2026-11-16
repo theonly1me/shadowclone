@@ -122,6 +122,7 @@ describe("an open question on the session board", () => {
     expect(created.filter((node) => node.tagName === "TEXTAREA")).toHaveLength(1);
     expect(allText).not.toContain("Brief option one");
     expect(allText).not.toContain("Answer it in the terminal");
+    expect(created.filter((node) => node.className === "loud")).toEqual([]);
   });
 
   test("a closed row shows the question and its buttons outside the row toggle", () => {
@@ -142,6 +143,7 @@ describe("an open question on the session board", () => {
       ?.dispatch("click");
 
     expect(state.opened).toBeNull();
+    expect(toggle?.all().filter((node) => node.className === "message")).toEqual([]);
     expect(toggle?.all().filter((node) => node.className.includes("option"))).toEqual([]);
     expect(row?.all().filter((node) => node.className === "question-text")).toHaveLength(1);
     expect(answered).toEqual([{ id: "live-0000000c", question: "qabc123", text: "Ask the team" }]);
