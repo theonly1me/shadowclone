@@ -55,6 +55,7 @@ export function fakeLive(records: readonly LiveRecord[]): LiveSessions {
     enabled: async () => true,
     list: async () => records,
     get: async (id) => records.find((record) => record.id === id) ?? null,
+    currentBriefs: async () => new Map(),
     send: async () => refused,
     pair: async () => refused,
     unpair: async () => refused,

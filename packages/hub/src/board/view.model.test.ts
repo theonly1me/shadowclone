@@ -57,14 +57,41 @@ describe("the board model", () => {
     expect(groups.working.map((entry) => entry.id)).toEqual(["live-00000001"]);
   });
 
-  test("the loud card is the newest session that waits for you, never a working one", () => {
+  test("the loud card is the newest session of the first group that waits, never a working one", () => {
     const working = session({
       id: "live-00000009",
       state: "working",
       updatedAt: "2026-10-18T12:00:00Z",
     });
+    const question: FleetSession = {
+      ...session({ id: "live-00000005", state: "idle", updatedAt: "2026-10-18T10:00:00Z" }),
+      brief: {
+        name: "Rename the parser",
+        goal: "The owner wants the parser renamed.",
+        done: "The agent renamed it.",
+        kind: "question",
+        question: "Keep the old name?",
+        options: [],
+      },
+    };
+    const finished: FleetSession = {
+      ...question,
+      id: "live-00000006",
+      brief: {
+        ...question.brief,
+        name: "Speed up tests",
+        goal: "",
+        done: "",
+        question: null,
+        options: [],
+        kind: "finished",
+      },
+    };
+    const idleOnly = sessions.filter((entry) => entry.state === "idle");
 
-    expect(loudSession(board({ sessions: [...sessions, working] }))?.id).toBe("live-00000004");
+    expect(loudSession(board({ sessions: [...sessions, working] }))?.id).toBe("live-00000003");
+    expect(loudSession(board({ sessions: [...idleOnly, question] }))?.id).toBe("live-00000005");
+    expect(loudSession(board({ sessions: [...idleOnly, finished] }))?.id).toBe("live-00000006");
     expect(loudSession(board({ sessions: [working] }))).toBeNull();
   });
 

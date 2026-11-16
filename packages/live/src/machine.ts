@@ -7,6 +7,7 @@ export function machineLive(): LiveSessions {
   return localLive({
     paths: livePaths(),
     enabled: () => liveSessionsEnabled(),
+    briefsEnabled: async () => (await liveConsent()).taskBriefs,
     typeText: terminalTyper(),
     taskBriefs: async () => (await liveConsent()).taskBriefs,
   });

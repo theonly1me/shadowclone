@@ -2,18 +2,10 @@ import { z } from "zod";
 import { fingerprint } from "@shadowclone/core";
 import { liveFile, readJsonFile, writePrivateJson } from "./files";
 import type { LivePaths } from "./paths";
-import { liveIdPattern } from "./board";
+import { boardBriefSchema, liveIdPattern } from "./board";
 import type { LiveRecord } from "./record";
 
-export const liveBriefKinds = ["question", "finished", "blocked"] as const;
-
-export const liveBriefSchema = z.strictObject({
-  name: z.string(),
-  goal: z.string(),
-  done: z.string(),
-  kind: z.enum(liveBriefKinds),
-  question: z.string().nullable(),
-  options: z.array(z.string()).max(4),
+export const liveBriefSchema = boardBriefSchema.extend({
   messageDigest: z.string(),
   writtenAt: z.string(),
 });

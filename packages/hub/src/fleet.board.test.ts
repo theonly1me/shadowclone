@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { LiveBrief } from "@shadowclone/live";
 import { testHub } from "./fixtures";
 import { attachNode, attachTextNode, fakeLive, sampleRecord } from "./fleetFixtures";
 import { connect, rpc } from "./oauthSteps";
@@ -107,7 +108,7 @@ describe("the hub merges the board rows of every node", () => {
     }
   });
 
-  test("a list of 300 sessions with the longest messages stays under 150,000 characters, because ended rows become a count", async () => {
+  test("a list of 300 sessions with the longest messages and briefs stays under 150,000 characters, because ended rows become a count", async () => {
     const records = Array.from({ length: 300 }, (_, index) => ({
       ...sampleRecord({
         id: `live-${index.toString(16).padStart(8, "0")}`,
@@ -117,12 +118,31 @@ describe("the hub merges the board rows of every node", () => {
       branch: "feature/a-branch-name-that-is-long-enough",
       summary: "m".repeat(400),
     }));
-    const hub = await testHub({ live: fakeLive(records) });
+    const brief: LiveBrief = {
+      name: "n".repeat(60),
+      goal: "g".repeat(300),
+      done: "d".repeat(300),
+      kind: "question",
+      question: "q".repeat(500),
+      options: ["o".repeat(80), "p".repeat(80), "r".repeat(80), "s".repeat(80)],
+      messageDigest: "digest",
+      writtenAt: "2026-10-18T11:30:01Z",
+    };
+    const hub = await testHub({
+      live: {
+        ...fakeLive(records),
+        currentBriefs: async (list) =>
+          new Map(
+            list.filter((record) => record.state === "idle").map((record) => [record.id, brief]),
+          ),
+      },
+    });
 
     try {
       const listed = await listSessions({ hub });
 
       expect(listed.board.sessions).toHaveLength(10);
+      expect(listed.board.sessions[0].brief.options).toHaveLength(4);
       expect(listed.board.nodes[0].ended).toBe(290);
       expect(listed.size).toBeLessThan(150_000);
     } finally {

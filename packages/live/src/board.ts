@@ -23,6 +23,34 @@ export const boardQuestionSchema = z.strictObject({
 
 export type BoardQuestion = z.infer<typeof boardQuestionSchema>;
 
+export const liveBriefKinds = ["question", "finished", "blocked"] as const;
+
+export const boardBriefSchema = z.strictObject({
+  name: z.string(),
+  goal: z.string(),
+  done: z.string(),
+  kind: z.enum(liveBriefKinds),
+  question: z.string().nullable(),
+  options: z.array(z.string()).max(4),
+});
+
+export type BoardBrief = z.infer<typeof boardBriefSchema>;
+
+export function briefWaitsForOwner(brief: BoardBrief): boolean {
+  return brief.kind === "question" || brief.kind === "blocked";
+}
+
+export function briefNeed(brief: BoardBrief): string {
+  switch (brief.kind) {
+    case "question":
+      return brief.question ?? "It asks you a question. Read its last message.";
+    case "blocked":
+      return "It cannot continue without your help. Read its last message.";
+    case "finished":
+      return "It finished. Check the result.";
+  }
+}
+
 export const boardSessionSchema = z.strictObject({
   id: liveId,
   engine: z.enum(liveEngines),
@@ -32,6 +60,7 @@ export const boardSessionSchema = z.strictObject({
   updatedAt: z.string(),
   message: z.string(),
   question: boardQuestionSchema.optional(),
+  brief: boardBriefSchema.optional(),
 });
 
 export type BoardSession = z.infer<typeof boardSessionSchema>;

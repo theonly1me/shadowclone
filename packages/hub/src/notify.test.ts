@@ -11,6 +11,7 @@ const question: SessionState = {
   needsYou: true,
   question: "Delete the old billing API?",
   questionId: "qabc123",
+  task: null,
 };
 
 function watcherWith(options: {

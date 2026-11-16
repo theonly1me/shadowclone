@@ -1,6 +1,6 @@
 export { livePaths, type LivePaths } from "./paths";
 
-export { liveIdPattern, liveQuestionIdPattern, pairIdPattern } from "./board";
+export { liveBriefKinds, liveIdPattern, liveQuestionIdPattern, pairIdPattern } from "./board";
 
 export { liveId, type LiveEngine, type LiveRecord } from "./record";
 
@@ -16,7 +16,6 @@ export {
   briefIsCurrent,
   briefLockFile,
   briefMessageDigest,
-  liveBriefKinds,
   readBrief,
   readBriefCalls,
   saveBrief,
@@ -51,6 +50,7 @@ export {
   liveBriefListLine,
   liveDetailLines,
   liveListLine,
+  liveListLines,
   livePairLines,
   livePairText,
   livePeerText,

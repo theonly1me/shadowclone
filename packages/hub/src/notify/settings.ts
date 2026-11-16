@@ -58,7 +58,7 @@ export function notifyLines(options: {
     `Pushes go to ${settings.notifyUrl ?? "nowhere"}.`,
     "Subscribe to that topic in the ntfy app on your phone. Anyone who knows the topic can read the pushes, so keep it private.",
     settings.notifyText
-      ? "Pushes include the repository and the question text."
+      ? "Pushes include the repository, the question text, and the task name of a live session with a brief."
       : "Pushes name the clone, its state, and its machine only. Run shadowclone hub notify --text to add the question text.",
   ];
 }
