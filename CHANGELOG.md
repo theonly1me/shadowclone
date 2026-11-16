@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.49](https://github.com/theonly1me/shadowclone/compare/v0.0.48...v0.0.49) (2026-11-16)
+
+
+### Features
+
+* **hub:** show task briefs on the session board ([#274](https://github.com/theonly1me/shadowclone/issues/274)) ([f242789](https://github.com/theonly1me/shadowclone/commit/f242789ed5e33ad493a006bb8a9b632098c87a60))
+* **mcp:** let a live session ask the owner a question ([#275](https://github.com/theonly1me/shadowclone/issues/275)) ([f2a0e94](https://github.com/theonly1me/shadowclone/commit/f2a0e940440f3f618005d8161ced5358b84fb251))
+
 ## [0.0.48](https://github.com/theonly1me/shadowclone/compare/v0.0.47...v0.0.48) (2026-11-11)
 
 
