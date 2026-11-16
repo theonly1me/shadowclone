@@ -36,3 +36,19 @@
   white-space: normal;
   text-align: left;
 }
+
+.question-text {
+  font-weight: 600;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.recommended-mark {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 6px;
+  border: 1px solid currentColor;
+  border-radius: var(--border-radius-sm, 4px);
+  font-size: 12px;
+  font-weight: 600;
+}

@@ -1,9 +1,9 @@
-import { briefWaitsForOwner, type BoardBrief } from "@shadowclone/live/board";
+import { briefWaitsForOwner, type BoardBrief, type BoardQuestion } from "@shadowclone/live/board";
 import type { FleetSession } from "../schema";
 import { briefLines, doneLine } from "./brief";
 import { button, element } from "./elements";
+import { answerBlock, openQuestion } from "./answer";
 import { ageText, type Notice, type SessionDetail } from "./model";
-import { optionButtons, replyForm } from "./reply";
 import type { BoardActions, ViewState } from "./state";
 
 const stateWords: Readonly<Record<FleetSession["state"], string>> = {
@@ -13,12 +13,13 @@ const stateWords: Readonly<Record<FleetSession["state"], string>> = {
   ended: "Ended",
 };
 
-type SessionView = {
+export type SessionView = {
   readonly session: Pick<FleetSession, "id" | "state" | "repository" | "branch" | "updatedAt">;
   readonly node: string | null;
   readonly message: string;
   readonly attention: string | null;
   readonly brief: BoardBrief | null;
+  readonly question: BoardQuestion | null;
 };
 
 export function sessionView(options: {
@@ -35,6 +36,7 @@ export function sessionView(options: {
     attention:
       detail?.attention ?? (options.session.state === "needs-you" ? options.session.message : null),
     brief: options.session.brief ?? null,
+    question: options.session.question ?? null,
   };
 }
 
@@ -45,6 +47,7 @@ export function detailView(detail: SessionDetail): SessionView {
     message: detail.summary.trim(),
     attention: detail.attention,
     brief: null,
+    question: null,
   };
 }
 
@@ -91,35 +94,6 @@ function heading(view: SessionView): HTMLElement {
   return line;
 }
 
-function answerBlock(options: {
-  readonly view: SessionView;
-  readonly state: ViewState;
-  readonly actions: BoardActions;
-}): HTMLElement[] {
-  const { view } = options;
-
-  if (view.session.state === "needs-you") {
-    return [
-      ...(view.attention === null
-        ? []
-        : [element({ tag: "p", className: "prompt", text: view.attention })]),
-      element({
-        tag: "p",
-        className: "quiet",
-        text: "Answer it in the terminal or in Remote Control.",
-      }),
-    ];
-  }
-
-  if (view.session.state !== "idle") {
-    return [];
-  }
-
-  const target = { id: view.session.id, state: options.state, actions: options.actions };
-
-  return [...optionButtons({ ...target, brief: view.brief }), replyForm(target)];
-}
-
 export function sessionCard(options: {
   readonly view: SessionView;
   readonly state: ViewState;
@@ -131,6 +105,7 @@ export function sessionCard(options: {
     heading(options.view),
     ...briefLines({ brief: options.view.brief, withDone: true }),
     element({ tag: "p", className: "loud", text: options.view.message }),
+    ...openQuestion(options),
     ...answerBlock(options),
     ...noticeLine(options.state.notices.get(options.view.session.id)),
   );
@@ -161,6 +136,7 @@ export function sessionRow(options: {
   );
   row.append(
     toggle,
+    ...openQuestion({ view, state, actions }),
     ...(opened ? [...doneLine(view.brief), ...answerBlock({ view, state, actions })] : []),
     ...options.extra,
     ...noticeLine(state.notices.get(view.session.id)),

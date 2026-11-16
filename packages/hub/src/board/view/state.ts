@@ -37,6 +37,11 @@ export type BoardActions = {
   readonly refresh: () => void;
   readonly open: (id: string) => void;
   readonly send: (options: { readonly id: string; readonly text: string }) => void;
+  readonly answer: (options: {
+    readonly id: string;
+    readonly question: string;
+    readonly text: string;
+  }) => void;
   readonly startPairing: () => void;
   readonly cancelPairing: () => void;
   readonly choose: (id: string) => void;

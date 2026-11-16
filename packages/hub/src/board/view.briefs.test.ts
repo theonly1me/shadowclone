@@ -50,6 +50,7 @@ function actionsThatRecord(sent: { id: string; text: string }[]): BoardActions {
     refresh: ignore,
     open: ignore,
     send: (entry) => sent.push(entry),
+    answer: ignore,
     startPairing: ignore,
     cancelPairing: ignore,
     choose: ignore,

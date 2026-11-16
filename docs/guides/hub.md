@@ -59,6 +59,7 @@ In Claude, the answer to "what are my sessions doing?" opens the session board i
 
 - The card at the top is the newest session in the first group that has one: needs you, ready for you, then your turn. It shows the last message. For an idle session, type your reply in the box, and select **Send**. The board then shows the hub's answer, which starts with "Sent" or "Queued".
 - A session that waits for a permission answer has no reply box. Answer it in the terminal or in Remote Control.
+- A session that asks a question with `shadowclone_ask` shows the question and one button for each option. The option that the agent recommends has the mark "Recommended". Tap an option, or type another answer and select **Answer**.
 - Tap a session to read its full last message.
 - Select **Open the board** to see all sessions in full screen. They are in groups: needs you, ready for you, your turn, and working. The board also shows the pairs and the number of ended sessions.
 - Select **Pair two sessions**, and then **Pair** on each of the two sessions. Select **Unpair** to end a pair. Only sessions of the hub machine can pair.
@@ -102,7 +103,7 @@ With task briefs on, an agent in a live session can ask you a question with the 
 3. If the agent still waits, it gets your answer as the tool result and continues. The answer says "got your answer".
 4. If the agent stopped waiting after 50 seconds, it ended its turn with the question. Your answer then reaches the session as a message, like **Send**.
 
-The board has no option buttons yet. Read the question in the row text, and answer through Claude.
+On the session board, the question shows in its row and in the top card, with one button for each option. Tap an option, or type another answer and select **Answer**. The board calls `shadowclone_clone answer` with the question id, and then reads the sessions again. If you run `shadowclone hub notify --text`, the push for the question gives the question text.
 
 ## Let two sessions talk
 

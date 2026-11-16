@@ -4,6 +4,8 @@ import { fleetBoardSchema } from "../schema";
 import { deliveryNotice, type Notice } from "./model";
 import { boardNoticeKey, pairsNoticeKey, type BoardActions, type ViewState } from "./state";
 
+type BoardHost = Pick<App, "callServerTool" | "requestDisplayMode">;
+
 type Answer = { readonly text: string; readonly isError: boolean; readonly structured: unknown };
 
 function failureNotice(error: unknown): Notice {
@@ -44,7 +46,7 @@ export function showAnswer(options: { readonly state: ViewState; readonly answer
 }
 
 export function boardActions(options: {
-  readonly app: App;
+  readonly app: BoardHost;
   readonly state: ViewState;
   readonly render: () => void;
 }): BoardActions {
@@ -78,6 +80,26 @@ export function boardActions(options: {
     });
   }
 
+  function deliver(params: {
+    readonly id: string;
+    readonly arguments: Readonly<Record<string, unknown>>;
+  }): void {
+    run({
+      noticeKey: params.id,
+      work: async () => {
+        const answer = await call({ name: "shadowclone_clone", arguments: params.arguments });
+
+        state.notices.set(params.id, deliveryNotice(answer));
+
+        if (!answer.isError) {
+          state.drafts.delete(params.id);
+        }
+
+        await refresh();
+      },
+    });
+  }
+
   return {
     refresh: () => run({ noticeKey: boardNoticeKey, work: refresh }),
     open: (id) => {
@@ -101,24 +123,9 @@ export function boardActions(options: {
           }),
       });
     },
-    send: ({ id, text }) =>
-      run({
-        noticeKey: id,
-        work: async () => {
-          const answer = await call({
-            name: "shadowclone_clone",
-            arguments: { operation: "send", id, text },
-          });
-
-          state.notices.set(id, deliveryNotice(answer));
-
-          if (!answer.isError) {
-            state.drafts.delete(id);
-          }
-
-          await refresh();
-        },
-      }),
+    send: ({ id, text }) => deliver({ id, arguments: { operation: "send", id, text } }),
+    answer: ({ id, question, text }) =>
+      deliver({ id, arguments: { operation: "answer", id, question, text } }),
     startPairing: () => {
       state.pairing = true;
       state.pairingFirst = null;
