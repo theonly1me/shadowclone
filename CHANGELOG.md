@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.50](https://github.com/theonly1me/shadowclone/compare/v0.0.49...v0.0.50) (2026-11-16)
+
+
+### Features
+
+* **hub:** answer a live session question on the session board ([#280](https://github.com/theonly1me/shadowclone/issues/280)) ([775e7f1](https://github.com/theonly1me/shadowclone/commit/775e7f118ef2cc2de8ef67a3f50827ef988839bc))
+
 ## [0.0.49](https://github.com/theonly1me/shadowclone/compare/v0.0.48...v0.0.49) (2026-11-16)
 
 
