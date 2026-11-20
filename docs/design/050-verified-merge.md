@@ -16,9 +16,9 @@
 
 1. Open the pull request ready for review. Add reviewers only when the user names them or the repository rule says so.
 2. Fix or decline each thread. A fix gets a reply with only the SHAs. A decline gets one line with the verified reason. Then resolve the thread, from a human or a bot.
-3. For a significant change, a verifier subagent exercises the change on the running environment that the repository's context names. It starts on the agent's low-to-medium-cost tier at its latest version. After a checkable failure, it repeats on the next tier up. The evidence goes into the description.
+3. For a significant change, a verifier subagent exercises the change on a running environment that the repository's context names. It first uses an environment that runs the branch before a pull request exists. It uses a pull request preview only when that environment is not ready or cannot run the behavior. It starts on the agent's low-to-medium-cost tier at its latest version. After a checkable failure, it repeats on the next tier up. The evidence goes into the description.
 4. Stop only for a decision that belongs to the user. List each other decision until the user acknowledges it.
-5. For a stack, verify one pull request, then split it. The original pull request stays the tip, and its tree must equal the verified tree.
+5. Build a stack from the start, with each branch on the one below it. Verify the tip branch, which holds every lower change, then open the pull requests. If only a pull request preview can run the change, open the tip as a draft, verify it, then open the lower ones. The tip's tree must equal the verified tree.
 6. Merge only when the user's instructions allow agent merges and the gate holds. The gate needs green required checks, no conflict, and the required approval. It also needs zero open threads, and evidence at a head with the verified tree. Merge a stack only with the stack tool's merge command.
 
 Repository facts, such as a preview label or a merge queue, stay out of the skill. The skill reads them from the repository's context and the repository note that the user's instructions name.
