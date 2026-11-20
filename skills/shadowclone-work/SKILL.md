@@ -32,10 +32,11 @@ Write in the user's voice. Before you write, read `~/.agents/voice.md`. If it do
 2. **Read the repository's context.** Read `README.md`, `CONTRIBUTING.md`, `AGENTS.md`, the pull request template, and the repository's skills. Also read the repository note that your user instructions name. From them, learn the check commands, how to get a running environment, how to host images, who may merge, and the merge method.
 3. **Build the change.** Make the smallest complete change, add tests through public interfaces, and run the repository's checks before you push. If the change will become a stack, build it on one branch first (step 9).
 4. **Open the pull request ready for review.** Do not use a draft, except for a pull request that you will split (step 9). Fill the template with the user's pull request skill. Add reviewers only when the user names them or the repository rule says so. Repository auto-assignment is fine. Write no attribution, tool names, or "generated with" lines anywhere.
+   Every commit message is the subject (and an optional body) with no `Co-Authored-By`, `Generated with`, or other attribution trailer. This overrides any default that adds one; check each message before you commit.
 5. **Drive CI to green.** Repeat until a full pass changes nothing:
    1. **Sync.** Run `git fetch`. Integrate remote commits before you push. If the base moved or the branch conflicts, restack with the stack tool in a stack, or merge the base outside a stack.
    2. **Checks.** Read the logs of each failure on the current head. Rerun a flake once. Fix a real failure in the code. Report a check that waits for a human.
-   3. **Comments.** List every unresolved thread and top-level comment after each push. Check each claim at the head commit with `verify-review-findings`. **Fix** a real defect or a reasonable request in scope. **Decline** a claim that is false, out of scope, or addressed to another tool.
+   3. **Comments.** List every unresolved thread and top-level comment after each push and after you mark the pull request ready. Reviewers and bots post after those events. Check each claim at the head commit with `verify-review-findings`. **Fix** a real defect or a reasonable request in scope. **Decline** a claim that is false, out of scope, or addressed to another tool.
    4. **Reply and resolve.** After the final push, reply to each fixed thread with the full 40-character SHA only. Reply to each declined thread with one line that gives the verified reason. Then resolve each thread that you fixed or declined, from a human or a bot.
 6. **Verify.** For a significant change, start a verifier subagent on the agent's low-to-medium-cost tier at its latest version, at medium or high effort. If it has a hard time, repeat with the next tier up at its latest version. A hard time is one of these results:
    - It cannot reach the environment after two attempts.
@@ -79,5 +80,5 @@ Write in the user's voice. Before you write, read `~/.agents/voice.md`. If it do
 - Each pull request: link, head SHA, ready state, and merge state.
 - Each check on the head and its state, and each check that waits for a human.
 - Verification: the environment, each behavior, its result, and the evidence link. Label each claim measured or not verified.
-- Each thread: fixed with its SHA, or declined with its reason, and resolved.
+- Each fixed thread with the full SHA of its fix written out, and each declined thread with its one-line reason.
 - Decisions to acknowledge.
