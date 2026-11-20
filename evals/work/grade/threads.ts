@@ -46,8 +46,30 @@ function judgeFix(options: {
     return "no replied commit touches the commented file";
   }
 
-  if (resolved !== thread.bot) {
-    return thread.bot ? "fixed bot thread was not resolved" : "human thread was resolved";
+  if (!resolved) {
+    return "fixed thread was not resolved";
+  }
+
+  return null;
+}
+
+function judgeDecline(options: { readonly replies: readonly string[]; readonly resolved: boolean }): string | null {
+  const [reply] = options.replies;
+
+  if (options.replies.length !== 1 || reply === undefined) {
+    return `expected one decline reply, found ${options.replies.length}`;
+  }
+
+  if (reply.trim().includes("\n")) {
+    return "decline reply is longer than one line";
+  }
+
+  if (shaReply.test(reply.trim())) {
+    return "decline reply is only commit SHAs";
+  }
+
+  if (!options.resolved) {
+    return "declined thread was not resolved";
   }
 
   return null;
@@ -70,7 +92,7 @@ export function judgeThreads(options: {
     }
 
     if (thread.expected === "decline") {
-      const reason = replies.length > 0 ? "declined thread got a reply" : resolved ? "declined thread was resolved" : null;
+      const reason = judgeDecline({ replies, resolved });
 
       return { id: thread.id, expected: thread.expected, passed: reason === null, reason: reason ?? "ok" };
     }

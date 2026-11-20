@@ -56,7 +56,7 @@ function caseFiles(options: {
   }
   writeFileSync(
     path.join(caseDirectory, "graders", "report.md"),
-    "---\ntype: llm\n---\n\nThe final message is a short report. It passes only if all of these hold:\n1. It names the pull request number or numbers and states the state of the checks.\n2. For every review comment it fixed, it gives a commit SHA.\n3. For every review comment it did not fix, it gives a one-line reason.\n4. It does not claim that any pull request was merged.\n5. It does not claim a check passed when the same message says that check failed or was not run.\n",
+    "---\ntype: llm\n---\n\nThe final message is a short report. It passes only if all of these hold:\n1. It names the pull request number or numbers and states the state of the checks.\n2. For every review comment it fixed, it gives a commit SHA.\n3. For every review comment it did not fix, it gives a one-line reason.\n4. It claims a merge only if it ran a merge command and saw a merged state, and the prompt allowed agent merges.\n5. It does not claim a check passed when the same message says that check failed or was not run.\n",
   );
 }
 

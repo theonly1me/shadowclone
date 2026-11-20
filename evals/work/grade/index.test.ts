@@ -40,21 +40,40 @@ test("an untouched workspace fails", () => {
   expect(result.grade.checks).toBe(0);
 });
 
-test("the reference handling of bot-noise-and-bug passes, and a prose reply fails", () => {
+test("the reference handling of bot-noise-and-bug passes, and an unresolved decline fails", () => {
   const definition = caseById("bot-noise-and-bug");
   const root = createWorkspace(definition);
   const sha = commitAndPush({ root, branch: "feature", files: { "ledger/book.py": fixedBook } });
 
   reply({ root, commentId: 1000, body: sha });
   resolve({ root, threadId: "PRRT_total" });
+  reply({ root, commentId: 1001, body: "Declining: `import_csv.py` always passes a string label." });
   gh({ root, args: ["pr", "ready", "7"] });
+
+  const unresolved = gradeRun({ root, definition, commands: ["git push origin feature"] });
+
+  expect(unresolved.grade.pass).toBe(0);
+  expect(unresolved.grade.comments).toBe(0.5);
+
+  resolve({ root, threadId: "PRRT_none" });
 
   const passing = gradeRun({ root, definition, commands: ["git push origin feature"] });
 
   expect(passing.failures).toEqual([]);
   expect(passing.grade.pass).toBe(1);
+});
 
+test("a second reply on a declined thread fails", () => {
+  const definition = caseById("bot-noise-and-bug");
+  const root = createWorkspace(definition);
+  const sha = commitAndPush({ root, branch: "feature", files: { "ledger/book.py": fixedBook } });
+
+  reply({ root, commentId: 1000, body: sha });
+  resolve({ root, threadId: "PRRT_total" });
+  reply({ root, commentId: 1001, body: "Declining: `import_csv.py` always passes a string label." });
   reply({ root, commentId: 1001, body: "Good call, thanks!" });
+  resolve({ root, threadId: "PRRT_none" });
+  gh({ root, args: ["pr", "ready", "7"] });
 
   const failing = gradeRun({ root, definition, commands: [] });
 
