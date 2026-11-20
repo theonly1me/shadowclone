@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.52](https://github.com/theonly1me/shadowclone/compare/v0.0.51...v0.0.52) (2026-11-20)
+
+
+### Features
+
+* **skills:** build stacks from the start after a branch check ([#284](https://github.com/theonly1me/shadowclone/issues/284)) ([394e071](https://github.com/theonly1me/shadowclone/commit/394e071ba352709c6e041dda99944994ef7f1228))
+
 ## [0.0.51](https://github.com/theonly1me/shadowclone/compare/v0.0.50...v0.0.51) (2026-11-20)
 
 
