@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.51](https://github.com/theonly1me/shadowclone/compare/v0.0.50...v0.0.51) (2026-11-20)
+
+
+### Features
+
+* **skills:** take delegated work to a verified merge ([#282](https://github.com/theonly1me/shadowclone/issues/282)) ([09d9928](https://github.com/theonly1me/shadowclone/commit/09d9928975b7f95756e81a90087b6f403759cdfa))
+
 ## [0.0.50](https://github.com/theonly1me/shadowclone/compare/v0.0.49...v0.0.50) (2026-11-16)
 
 
