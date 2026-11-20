@@ -14,7 +14,7 @@ You are about to say that a change is done, fixed, or ready for review. A questi
 
 ## Gates
 
-1. Did you run what the user runs: the command, the page, or the request, on the surface that they use? A passing unit test does not show that the command works.
+1. Did you run what the user runs: the command, the page, or the request, on the surface that they use? A passing unit test does not show that the command works. For a pull request with a significant change, did a verifier exercise it on a running environment (`shadowclone-work` step 6)?
 2. Did you read every line of the real output, including counts, totals, the final lines, and the exit code? Does each one match what happened?
 3. If the command writes files, did it run in a temporary home or a copy? Did you read the files that it wrote?
 4. Does each claim in your report have a label: measured, inferred, or not verified?
@@ -48,6 +48,7 @@ You are about to say that a change is done, fixed, or ready for review. A questi
 - Keep captured user content and secrets out of the report.
 - Keep unrelated work in the worktree. A worktree with other changes is not a reason to delete them.
 - Report execution evidence and agent limitations in chat or local handoff notes. Do not add them to a pull request description unless the user asks for them.
+- Evidence that a change works on a running environment goes in the pull request description, as the user's pull request skill says.
 
 ## Completion
 
