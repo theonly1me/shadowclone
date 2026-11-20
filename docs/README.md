@@ -10,7 +10,7 @@ Start with the [README](../README.md) to install shadowclone and pick your first
 - [Repository setup](guides/repositories.md): share checks and skills with a repository.
 - [Pi setup](guides/pi.md): use Pi models, including local models.
 - [OpenCode setup](guides/opencode.md): use shadowclone with OpenCode 1.x and 2.x.
-- [Delegated work](guides/delegated-work.md): take a change to ready for review.
+- [Delegated work](guides/delegated-work.md): take a change to a verified merge.
 - [Actions bot](guides/actions-bot.md): set up a GitHub bot on a provider API key.
 - [Hub](guides/hub.md): reach your clones from the Claude app or any MCP client.
 - [Clones](guides/clones.md): run Claude Code or Codex as you on a machine that you own, with your own subscription.

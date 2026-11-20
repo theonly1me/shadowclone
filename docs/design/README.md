@@ -46,3 +46,4 @@ Start a new decision with the [template](template.md), or extend the relevant re
 | [047: Missing build skills](047-missing-build-skills.md)                       | Routing leaves out a build skill that has no copy, and sync names it and exits with status 1                             |
 | [048: Synced skills](048-synced-skills.md)                                     | Discovery skips the skills that another product syncs into `~/.claude/skills/synced/`                                    |
 | [049: Clones](049-clones.md)                                                   | Clones start from the CLI and MCP on a machine that the owner owns, with no GitHub comment trigger or cloud sandbox host |
+| [050: Verified merge](050-verified-merge.md)                                   | Delegated work verifies on a running environment, resolves every thread, and merges only behind a gate                  |
